@@ -67,8 +67,6 @@ public class Workspace {
         aiPartComponent = aiPart.create();
         adminPartComponent = adminPart.create();
 
-        tabs.setHeaderComponent(createLanguageHeader());
-
         User user = userService.find(currentUser.getId());
         if (user != null && user.isAdmin()) {
             tabs.setFooterComponent(createAdminFooter());

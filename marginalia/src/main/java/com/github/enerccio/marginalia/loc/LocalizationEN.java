@@ -42,6 +42,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_MAX_CONTEXT, "Max Context Size");
         setValue(L.LABEL_MAX_RESPONSE, "Max Response Tokens");
         setValue(L.LABEL_ADDITIONAL_PARAMETERS, "Additional Parameters");
+        setValue(L.LABEL_ADMINISTRATOR, "Administrator");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 

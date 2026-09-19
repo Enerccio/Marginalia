@@ -110,13 +110,13 @@ public class UserDialog extends Dialog {
         String passwordRepeat = passwordRepeatField.getValue();
 
         if (StringUtils.isBlank(login)) {
-            Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANNOT_SAVE));
+            Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
             return;
         }
 
         if (user.getId() == null || StringUtils.isNotBlank(password) || StringUtils.isNotBlank(passwordRepeat)) {
             if (!StringUtils.equals(password, passwordRepeat)) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANNOT_SAVE));
+                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
                 return;
             }
         }

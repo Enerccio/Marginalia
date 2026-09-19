@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.repository.ExtendableRepository;
 import com.github.enerccio.marginalia.domain.service.ExtendableService;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
 import com.vaadin.flow.data.provider.Query;
 import org.slf4j.Logger;

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.utils;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.main.dialogs.ErrorDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
