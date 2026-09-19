@@ -53,4 +53,28 @@
         <property name="repository" ref="protocolRepository" />
     </bean>
 
+    <bean id="manuscriptRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaManuscriptRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptServiceImpl">
+        <property name="repository" ref="manuscriptRepository" />
+    </bean>
+
+    <bean id="tagRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaTagRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.TagServiceImpl">
+        <property name="repository" ref="tagRepository" />
+    </bean>
+
+    <bean id="tagRelationRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaTagRelationRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.TagRelationServiceImpl">
+        <property name="repository" ref="tagRelationRepository" />
+    </bean>
+
 </beans>
