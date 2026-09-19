@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.ui.widgets.HTabSheet;
 import com.github.enerccio.marginalia.ui.workspace.parts.AIPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.AdminPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.ProtocolPart;
+import com.github.enerccio.marginalia.ui.workspace.parts.UserPart;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -34,14 +35,14 @@ public class Workspace {
     private UserService userService;
 
     @Autowired
-    private SettingService settingService;
-
-    @Autowired
     private User currentUser;
 
     private HTabSheet tabs;
 
     private final Map<Tab, WorkspaceComponent> tabToComponent = new HashMap<>();
+
+    private final UserPart userPart = new UserPart(this);
+    private Component userPartComponent;
 
     private final ProtocolPart protocolPart = new ProtocolPart(this);
     private Component protocolPartComponent;
@@ -69,10 +70,21 @@ public class Workspace {
         tabs.setTabsMaxWidth("300px");
         vl.add(tabs);
 
+        userPartComponent = userPart.create();
         protocolPartComponent = protocolPart.create();
         aiPartComponent = aiPart.create();
         adminPartComponent = adminPart.create();
 
+        HorizontalLayout userTabHeader = new HorizontalLayout();
+        userTabHeader.setAlignItems(Alignment.CENTER);
+        userTabHeader.setSpacing(true);
+        Span userNameSpan = new Span(loc.getValue(L.LABEL_SETTINGS));
+        userTabHeader.add(userNameSpan);
+
+        Tab userTab = tabs.add(userTabHeader, userPartComponent);
+        tabToComponent.put(userTab, userPart);
+
+        // Protocol Tab
         HorizontalLayout protocolTabHeader = new HorizontalLayout();
         protocolTabHeader.setAlignItems(Alignment.CENTER);
         protocolTabHeader.setSpacing(true);
@@ -82,6 +94,7 @@ public class Workspace {
         Tab protocolTab = tabs.add(protocolTabHeader, protocolPartComponent);
         tabToComponent.put(protocolTab, protocolPart);
 
+        // Inference Providers Tab
         HorizontalLayout aiTabHeader = new HorizontalLayout();
         aiTabHeader.setAlignItems(Alignment.CENTER);
         aiTabHeader.setSpacing(true);
@@ -152,6 +165,7 @@ public class Workspace {
             internalEvent = false;
         }
 
+        userPart.refresh();
         protocolPart.refresh();
         aiPart.refresh();
         adminPart.refresh();

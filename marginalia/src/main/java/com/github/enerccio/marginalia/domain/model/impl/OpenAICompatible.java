@@ -2,11 +2,10 @@ package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.google.gson.JsonObject;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 
 @Entity
+@Table(name = "ais_openaicompat")
 public class OpenAICompatible extends AI {
 
     @Lob

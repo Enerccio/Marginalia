@@ -28,7 +28,8 @@ public class SettingServiceImpl extends ExtendableServiceImpl<Setting, SettingRe
         if (setting == null) {
             setting = clazz.getConstructor().newInstance();
             setting.setKey(clazz.getSimpleName());
-            setting.setOwner(user);
+            if (user != null)
+                setting.setOwner(userService.find(user.getId()));
             setting = (T) getRepository().save(setting);
         }
         return setting;

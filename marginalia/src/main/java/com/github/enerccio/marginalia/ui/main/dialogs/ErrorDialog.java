@@ -40,7 +40,7 @@ public class ErrorDialog {
     public void open(boolean showDetails) {
         Dialog dialog = new Dialog();
         dialog.setWidth(showDetails ? "1024px" : "550px");
-        dialog.setHeight(showDetails ? "470px" : "190px");
+        dialog.setHeight(showDetails ? "510px" : "190px");
         dialog.setCloseOnOutsideClick(true);
         dialog.setHeaderTitle(loc.getValue(L.LABEL_APPLICATION_ERROR));
 

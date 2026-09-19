@@ -12,6 +12,7 @@ public class WebappApplicationInitializer implements WebApplicationInitializer {
 
     @Override
     public void onStartup(@NonNull ServletContext servletContext) throws ServletException {
+        System.setProperty("vaadin.copilot.enable", "false");
         XmlWebApplicationContext rootContext = initRootApplicationContext(servletContext);
 //        rootContext.addApplicationListener(event -> {
 //            try {

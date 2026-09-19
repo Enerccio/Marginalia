@@ -63,6 +63,15 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_FREQUENCY_PENALTY, "Frequency Penalty");
         setValue(L.LABEL_ENABLE_PRESENCE_PENALTY, "Enable Presence Penalty");
         setValue(L.LABEL_PRESENCE_PENALTY, "Presence Penalty");
+        setValue(L.LABEL_SETTINGS, "Settings");
+        setValue(L.LABEL_DEFAULT_MODEL, "Default Model");
+        setValue(L.LABEL_DEFAULT_PROTOCOL, "Default Protocol");
+        setValue(L.LABEL_TEMPLATES, "Templates");
+        setValue(L.LABEL_MASTER_TEMPLATE, "Master Template");
+        setValue(L.LABEL_POV, "Point of View (POV)");
+        setValue(L.LABEL_TENSE, "Tense");
+        setValue(L.LABEL_STYLE, "Style");
+        setValue(L.LABEL_USER_PROMPT, "Default User Prompt");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 
@@ -71,6 +80,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_AUTHENTICATION_FAILED_INFO, "Invalid credentials.");
         setValue(L.MSG_INVALID_JSON_OBJECT, "JSON Invalid.");
         setValue(L.MSG_FETCH_MODELS_FAILED, "Failed to download model list.");
+        setValue(L.MSG_SETTINGS_SAVED, "Settings saved successfully.");
 
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -87,16 +97,16 @@ public class LocalizationEN extends LocalizationBase {
 
     @Override
     public DateFormat getDateFormat() {
-        return new SimpleDateFormat( "MM.dd.yyyy");
+        return new SimpleDateFormat("MM.dd.yyyy");
     }
 
     @Override
     public DateFormat getHourFormat() {
-        return new SimpleDateFormat( "HH:mm:ss");
+        return new SimpleDateFormat("HH:mm:ss");
     }
 
     @Override
     public DateFormat getDateHourFormat() {
-        return new SimpleDateFormat( "MM.dd.yyyy HH:mm:ss");
+        return new SimpleDateFormat("MM.dd.yyyy HH:mm:ss");
     }
 }

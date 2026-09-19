@@ -2,13 +2,11 @@ package com.github.enerccio.marginalia.domain.model.impl.settings;
 
 import com.github.enerccio.marginalia.domain.model.Setting;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorValue("AppSettings")
 public class AppSettings extends Setting {
 
     @Transient

@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(indexes = {
+@Table(name = "users", indexes = {
         @Index(name = "user_is_deleted_idx", columnList = "is_deleted"),
         @Index(name = "user_login_idx", columnList = "login"),
 })
