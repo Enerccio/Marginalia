@@ -19,6 +19,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.Protocol</class>
 
         <class>com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol</class>
 
         <!-- settings -->
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings</class>

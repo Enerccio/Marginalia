@@ -49,6 +49,20 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_NEEDS_JAILBREAK, "Needs Jailbreak");
         setValue(L.LABEL_ENABLED_REASONING, "Enable Reasoning");
         setValue(L.LABEL_REASONING_EFFORT, "Reasoning Effort");
+        setValue(L.LABEL_PROTOCOLS, "Protocols");
+        setValue(L.LABEL_ADD_PROTOCOL, "Add Protocol");
+        setValue(L.LABEL_EDIT_PROTOCOL, "Edit Protocol");
+        setValue(L.LABEL_NEW_PROTOCOL, "New Protocol");
+        setValue(L.LABEL_MAX_TOKENS, "Max Context Tokens");
+        setValue(L.LABEL_REPLY_TOKENS, "Max Reply Tokens");
+        setValue(L.LABEL_ENABLE_TEMPERATURE, "Enable Temperature");
+        setValue(L.LABEL_TEMPERATURE, "Temperature");
+        setValue(L.LABEL_ENABLE_TOP_P, "Enable Top P");
+        setValue(L.LABEL_TOP_P, "Top P");
+        setValue(L.LABEL_ENABLE_FREQUENCY_PENALTY, "Enable Frequency Penalty");
+        setValue(L.LABEL_FREQUENCY_PENALTY, "Frequency Penalty");
+        setValue(L.LABEL_ENABLE_PRESENCE_PENALTY, "Enable Presence Penalty");
+        setValue(L.LABEL_PRESENCE_PENALTY, "Presence Penalty");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 

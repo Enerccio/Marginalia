@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.HTabSheet;
 import com.github.enerccio.marginalia.ui.workspace.parts.AIPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.AdminPart;
+import com.github.enerccio.marginalia.ui.workspace.parts.ProtocolPart;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -17,7 +18,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -43,6 +43,9 @@ public class Workspace {
 
     private final Map<Tab, WorkspaceComponent> tabToComponent = new HashMap<>();
 
+    private final ProtocolPart protocolPart = new ProtocolPart(this);
+    private Component protocolPartComponent;
+
     private final AIPart aiPart = new AIPart(this);
     private Component aiPartComponent;
 
@@ -66,8 +69,18 @@ public class Workspace {
         tabs.setTabsMaxWidth("300px");
         vl.add(tabs);
 
+        protocolPartComponent = protocolPart.create();
         aiPartComponent = aiPart.create();
         adminPartComponent = adminPart.create();
+
+        HorizontalLayout protocolTabHeader = new HorizontalLayout();
+        protocolTabHeader.setAlignItems(Alignment.CENTER);
+        protocolTabHeader.setSpacing(true);
+        Span protocolNameSpan = new Span(loc.getValue(L.LABEL_PROTOCOLS));
+        protocolTabHeader.add(protocolNameSpan);
+
+        Tab protocolTab = tabs.add(protocolTabHeader, protocolPartComponent);
+        tabToComponent.put(protocolTab, protocolPart);
 
         HorizontalLayout aiTabHeader = new HorizontalLayout();
         aiTabHeader.setAlignItems(Alignment.CENTER);
@@ -139,6 +152,7 @@ public class Workspace {
             internalEvent = false;
         }
 
+        protocolPart.refresh();
         aiPart.refresh();
         adminPart.refresh();
     }
