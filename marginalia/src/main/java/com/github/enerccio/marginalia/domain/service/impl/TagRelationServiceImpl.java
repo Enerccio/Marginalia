@@ -95,4 +95,25 @@ public class TagRelationServiceImpl extends BaseServiceImpl<TagRelation, TagRela
         }
         return getRepository().findObjectsForTag(tag.getId(), clazz);
     }
+
+    @Override
+    @CommonTx
+    public void removeRelation(Tag tag, Long objectId, Class<?> clazz) throws Exception {
+        if (tag == null || objectId == null || clazz == null) {
+            return;
+        }
+        TagRelation tr = getRepository().findByTagAndObject(tag.getId(), objectId, clazz.getName());
+        if (tr != null) {
+            delete(tr, true);
+        }
+    }
+
+    @Override
+    @CommonTx
+    public void removeRelation(Tag tag, BaseEntity object) throws Exception {
+        if (object == null || object.getId() == null) {
+            return;
+        }
+        removeRelation(tag, object.getId(), object.getClass());
+    }
 }

@@ -23,7 +23,7 @@ public class JpaLorebookEntryRepository extends JpaExtendableRepository<Lorebook
                 SELECT e FROM LorebookEntry e
                 WHERE e.lorebook.id = :lorebookId
                   AND e.deleted = false
-                ORDER BY e.order ASC
+                ORDER BY e.ordinal ASC
                 """;
 
         return getEntityManager()

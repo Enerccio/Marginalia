@@ -76,6 +76,21 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_USER_PROMPT, "Default User Prompt");
         setValue(L.LABEL_AVAILABLE_VARIABLES, "Available Template Variables");
         setValue(L.LABEL_FILL_DEFAULT, "Insert Default Template");
+        setValue(L.LABEL_LOREBOOKS, "Lorebooks");
+        setValue(L.LABEL_ADD_LOREBOOK, "Add Lorebook");
+        setValue(L.LABEL_EDIT_LOREBOOK, "Edit Lorebook");
+        setValue(L.LABEL_NEW_LOREBOOK, "New Lorebook");
+        setValue(L.LABEL_DELETE_LOREBOOK, "Delete Lorebook");
+        setValue(L.LABEL_ADD_ENTRY, "Add Entry");
+        setValue(L.LABEL_DELETE_ENTRY, "Delete Entry");
+        setValue(L.LABEL_ENTRY_NAME, "Entry Name");
+        setValue(L.LABEL_ORDER, "Order");
+        setValue(L.LABEL_ENABLED, "Enabled");
+        setValue(L.LABEL_CONTENT, "Content");
+        setValue(L.LABEL_NOTE, "Note");
+        setValue(L.LABEL_TAGS, "Tags");
+        setValue(L.LABEL_LOREBOOK, "Lorebook");
+        setValue(L.LABEL_DELETE, "Delete");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 
@@ -85,6 +100,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_INVALID_JSON_OBJECT, "JSON Invalid.");
         setValue(L.MSG_FETCH_MODELS_FAILED, "Failed to download model list.");
         setValue(L.MSG_SETTINGS_SAVED, "Settings saved successfully.");
+        setValue(L.MSG_CONFIRM_DELETE, "Are you sure you want to delete this item?");
 
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
@@ -102,6 +118,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.DESC_TEMPLATE_SCENE_SETTING, "Current location and scene setting.");
         setValue(L.DESC_TEMPLATE_PRESENT_CHARACTERS, "Characters currently present in the scene.");
         setValue(L.DESC_TEMPLATE_INSTRUCTIONS, "Plot specifications and instructions for continuation.");
+
+
     }
 
     @Override

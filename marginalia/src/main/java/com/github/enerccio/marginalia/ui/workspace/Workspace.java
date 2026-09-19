@@ -3,12 +3,12 @@ package com.github.enerccio.marginalia.ui.workspace;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
-import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.HTabSheet;
 import com.github.enerccio.marginalia.ui.workspace.parts.AIPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.AdminPart;
+import com.github.enerccio.marginalia.ui.workspace.parts.LorebookPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.ProtocolPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.UserPart;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -41,6 +41,9 @@ public class Workspace {
 
     private final Map<Tab, WorkspaceComponent> tabToComponent = new HashMap<>();
 
+    private final LorebookPart lorebookPart = new LorebookPart(this);
+    private Component lorebookPartComponent;
+
     private final UserPart userPart = new UserPart(this);
     private Component userPartComponent;
 
@@ -70,11 +73,23 @@ public class Workspace {
         tabs.setTabsMaxWidth("300px");
         vl.add(tabs);
 
+        lorebookPartComponent = lorebookPart.create();
         userPartComponent = userPart.create();
         protocolPartComponent = protocolPart.create();
         aiPartComponent = aiPart.create();
         adminPartComponent = adminPart.create();
 
+        // Lorebooks Tab
+        HorizontalLayout lorebookTabHeader = new HorizontalLayout();
+        lorebookTabHeader.setAlignItems(Alignment.CENTER);
+        lorebookTabHeader.setSpacing(true);
+        Span lorebookNameSpan = new Span(loc.getValue(L.LABEL_LOREBOOKS));
+        lorebookTabHeader.add(lorebookNameSpan);
+
+        Tab lorebookTab = tabs.add(lorebookTabHeader, lorebookPartComponent);
+        tabToComponent.put(lorebookTab, lorebookPart);
+
+        // Settings / User Tab
         HorizontalLayout userTabHeader = new HorizontalLayout();
         userTabHeader.setAlignItems(Alignment.CENTER);
         userTabHeader.setSpacing(true);
@@ -132,6 +147,8 @@ public class Workspace {
             }
         });
 
+        activeComponent = lorebookPart;
+
         return vl;
     }
 
@@ -165,6 +182,7 @@ public class Workspace {
             internalEvent = false;
         }
 
+        lorebookPart.refresh();
         userPart.refresh();
         protocolPart.refresh();
         aiPart.refresh();

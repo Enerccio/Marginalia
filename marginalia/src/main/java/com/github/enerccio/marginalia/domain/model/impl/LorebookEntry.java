@@ -24,7 +24,7 @@ public class LorebookEntry extends ExtendableEntity {
 
     private boolean enabled = true;
 
-    private int order = 100;
+    private int ordinal = 100;
 
     public Lorebook getLorebook() {
         return lorebook;
@@ -67,10 +67,10 @@ public class LorebookEntry extends ExtendableEntity {
     }
 
     public int getOrder() {
-        return order;
+        return ordinal;
     }
 
-    public void setOrder(int order) {
-        this.order = order;
+    public void setOrder(int ordinal) {
+        this.ordinal = ordinal;
     }
 }

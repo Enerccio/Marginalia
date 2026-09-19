@@ -25,4 +25,8 @@ public interface TagRelationService extends BaseService<TagRelation, TagRelation
     List<Long> getObjectIdsForTag(Tag tag, Class<?> clazz) throws Exception;
 
     <T extends BaseEntity> List<T> getObjectsForTag(Tag tag, Class<T> clazz) throws Exception;
+
+    void removeRelation(Tag tag, Long objectId, Class<?> clazz) throws Exception;
+
+    void removeRelation(Tag tag, BaseEntity object) throws Exception;
 }
