@@ -15,10 +15,16 @@ public class Manuscript extends ExtendableEntity {
     private String description;
 
     @ManyToOne
+    private Lorebook lorebook;
+
+    @ManyToOne
     private AI ai;
 
     @ManyToOne
     private Protocol protocol;
+
+    @OneToOne
+    private ChatMessage activeLeaf;
 
     @ExtendedAttribute
     @Transient
@@ -110,5 +116,21 @@ public class Manuscript extends ExtendableEntity {
 
     public void setUserPrompt(String userPrompt) {
         this.userPrompt = userPrompt;
+    }
+
+    public ChatMessage getActiveLeaf() {
+        return activeLeaf;
+    }
+
+    public void setActiveLeaf(ChatMessage activeLeaf) {
+        this.activeLeaf = activeLeaf;
+    }
+
+    public Lorebook getLorebook() {
+        return lorebook;
+    }
+
+    public void setLorebook(Lorebook lorebook) {
+        this.lorebook = lorebook;
     }
 }

@@ -77,4 +77,28 @@
         <property name="repository" ref="tagRelationRepository" />
     </bean>
 
+    <bean id="chatMessageRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaChatMessageRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ChatMessageServiceImpl">
+        <property name="repository" ref="chatMessageRepository" />
+    </bean>
+
+    <bean id="lorebookRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaLorebookRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.LorebookServiceImpl">
+        <property name="repository" ref="lorebookRepository" />
+    </bean>
+
+    <bean id="lorebookEntryRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaLorebookEntryRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.LorebookEntryServiceImpl">
+        <property name="repository" ref="lorebookEntryRepository" />
+    </bean>
+
 </beans>
