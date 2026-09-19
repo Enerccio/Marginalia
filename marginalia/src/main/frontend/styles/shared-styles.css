@@ -1,0 +1,23 @@
+
+/* Spacing */
+.space-m {
+    padding: var(--lumo-space-m);
+}
+
+.v-loading-indicator {
+    position: fixed; /* Occupy whole screen even if scrolled */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* Eat mouse events when visible, doesn't prevent scrolling */
+    pointer-events: auto;
+
+    background-image:url("img/progress_indicator.gif");
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-size: 35px;
+    background-color: rgba(0, 0, 0, 0.05);
+
+    z-index: 2147483647;
+}

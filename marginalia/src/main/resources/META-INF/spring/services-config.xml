@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="userRepository" class="com.github.enerccio.marginalia.domain.security.repository.impl.JpaUserRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.security.service.impl.UserServiceImpl">
+        <property name="repository" ref="userRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.InferenceServicesImpl">
+        <property name="inferenceProviders">
+            <list>
+                <value>com.github.enerccio.marginalia.domain.service.impl.inference.OpenAICompatibleInferenceService</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="settingRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaSettingRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.SettingServiceImpl">
+        <property name="repository" ref="settingRepository" />
+    </bean>
+
+    <bean id="resourceRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaResourceRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ResourceServiceImpl">
+        <property name="repository" ref="resourceRepository" />
+    </bean>
+
+    <bean id="aiRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAIRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AIServiceImpl">
+        <property name="repository" ref="aiRepository" />
+    </bean>
+
+    <bean id="protocolRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaProtocolRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ProtocolServiceImpl">
+        <property name="repository" ref="protocolRepository" />
+    </bean>
+
+</beans>

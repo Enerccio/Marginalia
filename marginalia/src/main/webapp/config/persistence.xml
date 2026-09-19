@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
+             https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+    <persistence-unit name="LLLLM_PU" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!-- Entity Classes -->
+        <class>com.github.enerccio.marginalia.domain.security.model.User</class>
+
+        <class>com.github.enerccio.marginalia.domain.model.impl.Resource</class>
+        <class>com.github.enerccio.marginalia.domain.model.Setting</class>
+
+        <!-- data entities -->
+        <class>com.github.enerccio.marginalia.domain.model.impl.AI</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.Resource</class>
+
+        <!-- settings -->
+        <class>com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings</class>
+
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+
+        <properties>
+            <!-- Hibernate Specific Properties -->
+            <!-- Note: SQLiteDialect is often a custom class in Hibernate 5/6 projects -->
+            <property name="hibernate.dialect" value="org.hibernate.community.dialect.SQLiteDialect" />
+
+            <property name="hibernate.show_sql" value="true" />
+            <property name="hibernate.format_sql" value="true" />
+
+            <!-- Update schema automatically -->
+            <property name="hibernate.hbm2ddl.auto" value="update" />
+        </properties>
+    </persistence-unit>
+</persistence>

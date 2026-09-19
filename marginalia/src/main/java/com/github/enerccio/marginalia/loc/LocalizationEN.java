@@ -1,0 +1,81 @@
+package com.github.enerccio.marginalia.loc;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
+public class LocalizationEN extends LocalizationBase {
+
+    @Override
+    protected void loadMessages() {
+        setValue(L.LABEL_YES, "Yes");
+        setValue(L.LABEL_NO, "No");
+        setValue(L.LABEL_OK, "OK");
+        setValue(L.LABEL_CANCEL, "Cancel");
+        setValue(L.LABEL_SAVE, "Save");
+        setValue(L.LABEL_EXIT, "Exit");
+        setValue(L.LABEL_USERNAME, "Uživatelské jméno");
+        setValue(L.LABEL_USER_FULLNAME, "Jméno a příjmení");
+        setValue(L.LABEL_EMAIL, "Email");
+        setValue(L.LABEL_LOGIN, "Login");
+        setValue(L.LABEL_LOGOUT, "Logout");
+        setValue(L.LABEL_EXIT_APPLICATION, "Close application");
+        setValue(L.LABEL_PASSWORD, "Password");
+        setValue(L.LABEL_PASSWORD_AGAIN, "Repeat password");
+        setValue(L.LABEL_FORGOT_PASSWORD, "Forgotten password?");
+        setValue(L.LABEL_SAVE_LOGIN, "Save login");
+        setValue(L.LABEL_AUTHENTICATION_FAILED, "Failed to authenticate");
+        setValue(L.LABEL_APPLICATION_ERROR, "Application Error");
+        setValue(L.LABEL_MODELS, "Inference Providers");
+        setValue(L.LABEL_ADD_MODEL, "Add Inference Provider");
+        setValue(L.LABEL_TYPE, "Type");
+        setValue(L.LABEL_NAME, "Name");
+        setValue(L.LABEL_EDIT, "Edit");
+        setValue(L.LABEL_ADMIN, "Admin");
+        setValue(L.LABEL_EDIT_AI, "Edit Inference Provider");
+        setValue(L.LABEL_NEW_AI, "New Inference Provider");
+        setValue(L.LABEL_URL, "OpenAI URL (ends with /v1)");
+        setValue(L.LABEL_API_KEY, "Api Key");
+        setValue(L.LABEL_RESET, "Reset Api Key");
+        setValue(L.LABEL_MODEL, "Model");
+        setValue(L.LABEL_REFRESH, "Refresh");
+        setValue(L.LABEL_MAX_CONTEXT, "Max Context Size");
+        setValue(L.LABEL_MAX_RESPONSE, "Max Response Tokens");
+        setValue(L.LABEL_ADDITIONAL_PARAMETERS, "Additional Parameters");
+
+        setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
+
+        setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
+        setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "Cannot save form. Invalid fields: ");
+        setValue(L.MSG_AUTHENTICATION_FAILED_INFO, "Invalid credentials.");
+        setValue(L.MSG_INVALID_JSON_OBJECT, "JSON Invalid.");
+        setValue(L.MSG_FETCH_MODELS_FAILED, "Failed to download model list.");
+
+        setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
+        setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");
+        setValue(L.ENUM_REASONING_NONE, "None");
+        setValue(L.ENUM_REASONING_LOW, "Low");
+        setValue(L.ENUM_REASONING_MEDIUM, "Medium");
+        setValue(L.ENUM_REASONING_HIGH, "High");
+    }
+
+    @Override
+    public Locale getLocale() {
+        return Locale.US;
+    }
+
+    @Override
+    public DateFormat getDateFormat() {
+        return new SimpleDateFormat( "MM.dd.yyyy");
+    }
+
+    @Override
+    public DateFormat getHourFormat() {
+        return new SimpleDateFormat( "HH:mm:ss");
+    }
+
+    @Override
+    public DateFormat getDateHourFormat() {
+        return new SimpleDateFormat( "MM.dd.yyyy HH:mm:ss");
+    }
+}
