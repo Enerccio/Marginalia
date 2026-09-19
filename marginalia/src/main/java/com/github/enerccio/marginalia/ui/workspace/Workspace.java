@@ -13,6 +13,8 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import org.apache.commons.lang3.StringUtils;
@@ -67,6 +69,15 @@ public class Workspace {
         aiPartComponent = aiPart.create();
         adminPartComponent = adminPart.create();
 
+        HorizontalLayout aiTabHeader = new HorizontalLayout();
+        aiTabHeader.setAlignItems(Alignment.CENTER);
+        aiTabHeader.setSpacing(true);
+        Span connNameSpan = new Span(loc.getValue(L.LABEL_MODELS));
+        aiTabHeader.add(connNameSpan);
+
+        Tab aiTab = tabs.add(aiTabHeader, aiPartComponent);
+        tabToComponent.put(aiTab, aiPart);
+
         User user = userService.find(currentUser.getId());
         if (user != null && user.isAdmin()) {
             tabs.setFooterComponent(createAdminFooter());
@@ -96,20 +107,6 @@ public class Workspace {
         });
 
         return vl;
-    }
-
-    private Span createIconSpan(String svgContent) {
-        Span iconSpan = new Span();
-        if (StringUtils.isNotBlank(svgContent)) {
-            iconSpan.getElement().setProperty("innerHTML", svgContent);
-            iconSpan.setWidth("20px");
-            iconSpan.setHeight("15px");
-            iconSpan.getStyle().set("display", "inline-flex");
-            iconSpan.getStyle().set("align-items", "center");
-            iconSpan.getStyle().set("justify-content", "center");
-            iconSpan.getStyle().set("flex-shrink", "0");
-        }
-        return iconSpan;
     }
 
     private Component createAdminFooter() {

@@ -213,17 +213,22 @@ public class AIDialog extends Dialog {
             Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
             return;
         }
-        
-        if (ai instanceof OpenAICompatible compatible) {
+
+        OpenAICompatible compatible = (ai instanceof OpenAICompatible c) ? c : null;
+
+        if (compatible != null || typeCombo.getValue() == AIType.OPEN_AI_COMPATIBLE) {
             String apiKeyToUse;
             if (apiKeyField.isEnabled()) {
                 apiKeyToUse = apiKeyField.getValue();
-            } else {
+            } else if (compatible != null) {
                 apiKeyToUse = compatible.getApiKey();
+            } else {
+                return;
             }
 
             try {
                 OpenAICompatible copy = new OpenAICompatible();
+                copy.setAiType(AIType.OPEN_AI_COMPATIBLE);
                 copy.setUri(url);
                 copy.setApiKey(apiKeyToUse);
                 List<String> models = inferenceServices.forAI(copy).getModels();
