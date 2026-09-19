@@ -23,11 +23,12 @@
 
         <!-- settings -->
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting</class>
 
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
         <properties>
-            <property name="hibernate.dialect" value="org.hibernate.community.dialect.SQLiteDialect" />
+            <property name="hibernate.dialect" value="com.github.enerccio.marginalia.SaneSQLiteDialect" />
 
             <property name="hibernate.show_sql" value="true" />
             <property name="hibernate.format_sql" value="true" />

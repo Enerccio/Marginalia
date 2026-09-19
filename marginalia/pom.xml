@@ -9,8 +9,6 @@
   <packaging>war</packaging>
   <name>marginalia</name>
 
-  <!-- Language Learniing LLM Project. -->
-
   <properties>
     <marginalia-version>${project.version}</marginalia-version>
     <marginalia-build-timestamp>${maven.build.timestamp}</marginalia-build-timestamp>
@@ -221,6 +219,18 @@
       <groupId>com.flowingcode.addons</groupId>
       <artifactId>font-awesome-iron-iconset</artifactId>
       <version>6.0.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.spullara.mustache.java</groupId>
+      <artifactId>compiler</artifactId>
+      <version>0.9.10</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>3.1.8</version>
     </dependency>
   </dependencies>
 
