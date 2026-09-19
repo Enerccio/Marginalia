@@ -43,6 +43,12 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_MAX_RESPONSE, "Max Response Tokens");
         setValue(L.LABEL_ADDITIONAL_PARAMETERS, "Additional Parameters");
         setValue(L.LABEL_ADMINISTRATOR, "Administrator");
+        setValue(L.LABEL_GENERAL_SETTINGS, "General Settings");
+        setValue(L.LABEL_TYPE_SETTINGS, "Per Type Settings");
+        setValue(L.LABEL_JAILBREAK, "Jailbreak Prompt");
+        setValue(L.LABEL_NEEDS_JAILBREAK, "Needs Jailbreak");
+        setValue(L.LABEL_ENABLED_REASONING, "Enable Reasoning");
+        setValue(L.LABEL_REASONING_EFFORT, "Reasoning Effort");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 

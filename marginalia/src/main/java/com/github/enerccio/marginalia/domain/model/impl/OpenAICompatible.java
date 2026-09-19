@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
+import com.google.gson.JsonObject;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Transient;
@@ -22,7 +23,7 @@ public class OpenAICompatible extends AI {
 
     @Transient
     @ExtendedAttribute(inject = true, injectPrefix = "additionalParameters")
-    private String additionalParameters;
+    private JsonObject additionalParameters = new JsonObject();
 
     public String getUri() {
         return uri;
@@ -56,11 +57,11 @@ public class OpenAICompatible extends AI {
         this.modelName = modelName;
     }
 
-    public String getAdditionalParameters() {
+    public JsonObject getAdditionalParameters() {
         return additionalParameters;
     }
 
-    public void setAdditionalParameters(String additionalParameters) {
+    public void setAdditionalParameters(JsonObject additionalParameters) {
         this.additionalParameters = additionalParameters;
     }
 }
