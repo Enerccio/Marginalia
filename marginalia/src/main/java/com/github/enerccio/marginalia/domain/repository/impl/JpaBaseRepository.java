@@ -26,6 +26,7 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
 
     @Override
     public T find(Long id) throws Exception {
+        if (id == null) return null;
         return hydrate(entityManager.find(getEntityClass(), id));
     }
 

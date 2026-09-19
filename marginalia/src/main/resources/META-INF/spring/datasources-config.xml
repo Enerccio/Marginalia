@@ -28,7 +28,7 @@
     </bean>
 
     <bean id="emf" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-        <property name="persistenceUnitName" value="LLLLM_PU"/>
+        <property name="persistenceUnitName" value="PU"/>
         <property name="persistenceXmlLocation" value="config/persistence.xml" />
         <property name="dataSource" ref="ds"/>
     </bean>

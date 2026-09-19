@@ -4,21 +4,42 @@ import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.traits.SupportedAI;
+import org.springframework.beans.factory.InitializingBean;
 
+import java.lang.reflect.Constructor;
+import java.util.EnumMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
-public class InferenceServicesImpl implements InferenceServices {
+public class InferenceServicesImpl implements InferenceServices, InitializingBean {
 
-    private List<InferenceProvider> inferenceProviders;
-    private ConcurrentHashMap<AIType, InferenceProvider> providerCache = new ConcurrentHashMap<>();
+    private List<Class<? extends InferenceService>> inferenceProviders;
+    private final Map<AIType, Constructor<? extends InferenceService>> providerMap = new EnumMap<>(AIType.class);
 
-    public List<InferenceProvider> getInferenceProviders() {
+    public List<Class<? extends InferenceService>> getInferenceProviders() {
         return inferenceProviders;
     }
 
-    public void setInferenceProviders(List<InferenceProvider> services) {
+    public void setInferenceProviders(List<Class<? extends InferenceService>> services) {
         this.inferenceProviders = services;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if (inferenceProviders == null) {
+            return;
+        }
+
+        for (Class<? extends InferenceService> clazz : inferenceProviders) {
+            SupportedAI annotation = clazz.getAnnotation(SupportedAI.class);
+            if (annotation == null) {
+                throw new IllegalStateException("Class " + clazz.getName() + " missing @SupportedAI annotation");
+            }
+
+            Constructor<? extends InferenceService> constructor = clazz.getConstructor(AI.class);
+            providerMap.put(annotation.value(), constructor);
+        }
     }
 
     @Override
@@ -27,26 +48,13 @@ public class InferenceServicesImpl implements InferenceServices {
             return ai.getInferenceService();
         }
 
-        InferenceProvider provider = providerCache.getOrDefault(ai.getAiType(), null);
-        if (provider == null) {
-            AI test = new AI();
-            test.setAiType(ai.getAiType());
-            for (InferenceProvider p : inferenceProviders) {
-                InferenceService service = p.create(test);
-                if (service.getType() == test.getAiType()) {
-                    provider = p;
-                    providerCache.put(ai.getAiType(), p);
-                    break;
-                }
-            }
+        Constructor<? extends InferenceService> constructor = providerMap.get(ai.getAiType());
+        if (constructor == null) {
+            throw new IllegalArgumentException("Unknown provider for AI type: " + ai.getAiType());
         }
 
-        if (provider == null)
-            throw new IllegalArgumentException("Unknown provider: " + ai.getAiType());
-
-        InferenceService service = provider.create(ai);
+        InferenceService service = constructor.newInstance(ai);
         ai.setInferenceService(service);
         return service;
     }
-
 }

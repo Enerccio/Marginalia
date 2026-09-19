@@ -3,16 +3,13 @@ package com.github.enerccio.marginalia.domain.model;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.google.gson.JsonObject;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.Lob;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 
 @MappedSuperclass
 @EntityListeners({ ExtendableEntityListener.class })
 public class ExtendableEntity extends OwnedEntity {
 
-    @Lob
+    @Column(length = 268435456)
     private byte[] extendedContent;
 
     @Transient

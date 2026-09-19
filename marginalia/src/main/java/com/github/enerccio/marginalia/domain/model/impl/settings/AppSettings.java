@@ -1,15 +1,22 @@
 package com.github.enerccio.marginalia.domain.model.impl.settings;
 
 import com.github.enerccio.marginalia.domain.model.Setting;
+import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Transient;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class AppSettings extends Setting {
 
+    @Transient
+    @ExtendedAttribute
     private Integer dbVersion = 1;
+
+    @Transient
+    @ExtendedAttribute
     private Integer appVersion = 1;
 
     public Integer getDbVersion() {

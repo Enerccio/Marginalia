@@ -8,7 +8,7 @@ public interface InferenceServices {
 
     interface InferenceProvider {
 
-        InferenceService create(AI ai);
+        InferenceService create(AI ai) throws Exception;
 
     }
 

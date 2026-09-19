@@ -6,8 +6,6 @@ import java.util.List;
 
 public interface InferenceService {
 
-    AIType getType();
-
     List<String> getModels();
 
 }

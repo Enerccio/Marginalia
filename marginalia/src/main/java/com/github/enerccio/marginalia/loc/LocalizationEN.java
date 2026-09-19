@@ -14,8 +14,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_CANCEL, "Cancel");
         setValue(L.LABEL_SAVE, "Save");
         setValue(L.LABEL_EXIT, "Exit");
-        setValue(L.LABEL_USERNAME, "Uživatelské jméno");
-        setValue(L.LABEL_USER_FULLNAME, "Jméno a příjmení");
+        setValue(L.LABEL_USERNAME, "Username");
+        setValue(L.LABEL_USER_FULLNAME, "Full Name");
         setValue(L.LABEL_EMAIL, "Email");
         setValue(L.LABEL_LOGIN, "Login");
         setValue(L.LABEL_LOGOUT, "Logout");

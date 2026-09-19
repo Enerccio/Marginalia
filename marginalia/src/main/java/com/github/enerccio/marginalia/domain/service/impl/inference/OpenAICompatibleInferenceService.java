@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.models.Model;
@@ -13,18 +14,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+@SupportedAI(AIType.OPEN_AI_COMPATIBLE)
 public class OpenAICompatibleInferenceService implements InferenceService {
     private static final Logger log = LoggerFactory.getLogger(OpenAICompatibleInferenceService.class);
 
     private final OpenAICompatible ai;
 
     public OpenAICompatibleInferenceService(AI ai) {
-        this.ai = ai instanceof OpenAICompatible ? (OpenAICompatible) ai : null;
-    }
-
-    @Override
-    public AIType getType() {
-        return AIType.OPEN_AI_COMPATIBLE;
+        this.ai = (OpenAICompatible) ai;
     }
 
     @Override
