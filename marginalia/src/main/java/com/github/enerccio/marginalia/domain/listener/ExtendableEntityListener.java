@@ -8,8 +8,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.persistence.PostLoad;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +25,6 @@ public class ExtendableEntityListener {
 
     private static final ConcurrentHashMap<Class<?>, AttributesAccessor> accessorMap = new ConcurrentHashMap<>();
 
-    @PrePersist
-    @PreUpdate
     public void serialize(ExtendableEntity entity) throws Exception {
         accessorMap.computeIfAbsent(entity.getClass(), key -> {
             try {
