@@ -19,6 +19,8 @@
         </property>
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.TemplateServiceImpl" />
+
     <bean id="settingRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaSettingRepository">
         <property name="entityManager" ref="em"/>
     </bean>
