@@ -82,6 +82,14 @@ public class ChatMessage extends ExtendableEntity {
     @Transient
     private String protocolUsed;
 
+    @ExtendedAttribute
+    @Transient
+    private String builtPrompt;
+
+    @ExtendedAttribute
+    @Transient
+    private String builtPromptTokens;
+
     public Manuscript getParentScript() {
         return parentScript;
     }
@@ -224,5 +232,21 @@ public class ChatMessage extends ExtendableEntity {
 
     public void setProtocolUsed(String protocolUsed) {
         this.protocolUsed = protocolUsed;
+    }
+
+    public String getBuiltPrompt() {
+        return builtPrompt;
+    }
+
+    public void setBuiltPrompt(String builtPrompt) {
+        this.builtPrompt = builtPrompt;
+    }
+
+    public String getBuiltPromptTokens() {
+        return builtPromptTokens;
+    }
+
+    public void setBuiltPromptTokens(String builtPromptTokens) {
+        this.builtPromptTokens = builtPromptTokens;
     }
 }

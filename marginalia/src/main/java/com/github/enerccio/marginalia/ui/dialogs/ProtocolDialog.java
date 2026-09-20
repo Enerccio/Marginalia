@@ -1,4 +1,4 @@
-package com.github.enerccio.marginalia.ui.main.dialogs;
+package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.collections.ProtocolType;
 import com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol;
@@ -65,15 +65,15 @@ public class ProtocolDialog extends Dialog {
         setHeaderTitle(isEdit ? loc.getValue(L.LABEL_EDIT_PROTOCOL) : loc.getValue(L.LABEL_NEW_PROTOCOL));
         setWidth("600px");
         setHeight("680px");
-        setCloseOnEsc(true);
-        setCloseOnOutsideClick(true);
+        setCloseOnEsc(false);
+        setCloseOnOutsideClick(false);
 
         createFields();
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
-        mainLayout.setPadding(true);
-        mainLayout.setSpacing(true);
+        mainLayout.setPadding(false);
+        mainLayout.setSpacing(false);
 
         FormLayout formLayout = new FormLayout();
         formLayout.setWidthFull();

@@ -1,12 +1,13 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.main.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Configurable
@@ -70,8 +72,8 @@ public class LorebookView extends VerticalLayout {
 
     public Component create() throws Exception {
         setSizeFull();
-        setPadding(true);
-        setSpacing(true);
+        setPadding(false);
+        setSpacing(false);
 
         HorizontalLayout controlsLayout = new HorizontalLayout();
         controlsLayout.setWidthFull();
@@ -99,13 +101,13 @@ public class LorebookView extends VerticalLayout {
         refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), VaadinIcon.REFRESH.create(), event -> {
             try {
                 refreshEntries();
-                Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
             } catch (Exception e) {
                 UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
             }
         });
 
         controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, addEntryButton, refreshButton);
+        controlsLayout.setAlignItems(Alignment.END);
 
         HorizontalLayout lorebookHeaderLayout = new HorizontalLayout();
         lorebookHeaderLayout.setWidthFull();
@@ -166,7 +168,7 @@ public class LorebookView extends VerticalLayout {
                 }
             });
             return cb;
-        }).setHeader(loc.getValue(L.LABEL_ENABLED)).setAutoWidth(true);
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
 
         grid.addComponentColumn(entry -> {
             TextField tf = new TextField();
@@ -179,7 +181,7 @@ public class LorebookView extends VerticalLayout {
                 }
             });
             return tf;
-        }).setHeader(loc.getValue(L.LABEL_ENTRY_NAME)).setFlexGrow(1);
+        }).setHeader(loc.getValue(L.LABEL_ENTRY_NAME)).setFlexGrow(2);
 
         grid.addComponentColumn(entry -> {
             IntegerField orderField = new IntegerField();
@@ -192,14 +194,14 @@ public class LorebookView extends VerticalLayout {
                 }
             });
             return orderField;
-        }).setHeader(loc.getValue(L.LABEL_ORDER)).setAutoWidth(true);
+        }).setHeader(loc.getValue(L.LABEL_ORDER)).setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
 
         grid.addComponentColumn(entry -> {
             TagMultiComboBox tagCombo = new TagMultiComboBox();
             tagCombo.setWidthFull();
             tagCombo.setForEntity(entry);
             return tagCombo;
-        }).setHeader(loc.getValue(L.LABEL_TAGS)).setWidth("280px");
+        }).setHeader(loc.getValue(L.LABEL_TAGS)).setFlexGrow(2);
 
         grid.addComponentColumn(entry -> {
             HorizontalLayout actions = new HorizontalLayout();
@@ -226,7 +228,7 @@ public class LorebookView extends VerticalLayout {
 
             actions.add(toggleDetails, deleteBtn);
             return actions;
-        }).setHeader("").setAutoWidth(true);
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
 
         grid.setItemDetailsRenderer(new ComponentRenderer<>(entry -> {
             VerticalLayout detailsLayout = new VerticalLayout();
@@ -274,6 +276,7 @@ public class LorebookView extends VerticalLayout {
     private void loadLorebooks() {
         try {
             List<Lorebook> lorebooks = lorebookService.findAllForUser();
+            lorebooks.sort(Comparator.comparing(Lorebook::getName));
             lorebookCombo.setItems(lorebooks);
             if (currentLorebook == null && !lorebooks.isEmpty()) {
                 currentLorebook = lorebooks.getFirst();

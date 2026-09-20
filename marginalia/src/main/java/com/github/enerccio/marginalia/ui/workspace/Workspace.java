@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.ui.widgets.HTabSheet;
 import com.github.enerccio.marginalia.ui.workspace.parts.AIPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.AdminPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.LorebookPart;
+import com.github.enerccio.marginalia.ui.workspace.parts.ManuscriptPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.ProtocolPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.UserPart;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -40,6 +41,9 @@ public class Workspace {
     private HTabSheet tabs;
 
     private final Map<Tab, WorkspaceComponent> tabToComponent = new HashMap<>();
+
+    private final ManuscriptPart manuscriptPart = new ManuscriptPart(this);
+    private Component manuscriptPartComponent;
 
     private final LorebookPart lorebookPart = new LorebookPart(this);
     private Component lorebookPartComponent;
@@ -73,13 +77,22 @@ public class Workspace {
         tabs.setTabsMaxWidth("300px");
         vl.add(tabs);
 
+        manuscriptPartComponent = manuscriptPart.create();
         lorebookPartComponent = lorebookPart.create();
         userPartComponent = userPart.create();
         protocolPartComponent = protocolPart.create();
         aiPartComponent = aiPart.create();
         adminPartComponent = adminPart.create();
 
-        // Lorebooks Tab
+        HorizontalLayout manuscriptTabHeader = new HorizontalLayout();
+        manuscriptTabHeader.setAlignItems(Alignment.CENTER);
+        manuscriptTabHeader.setSpacing(true);
+        Span manuscriptNameSpan = new Span(loc.getValue(L.LABEL_BOOKS));
+        manuscriptTabHeader.add(manuscriptNameSpan);
+
+        Tab manuscriptTab = tabs.add(manuscriptTabHeader, manuscriptPartComponent);
+        tabToComponent.put(manuscriptTab, manuscriptPart);
+
         HorizontalLayout lorebookTabHeader = new HorizontalLayout();
         lorebookTabHeader.setAlignItems(Alignment.CENTER);
         lorebookTabHeader.setSpacing(true);
@@ -89,7 +102,6 @@ public class Workspace {
         Tab lorebookTab = tabs.add(lorebookTabHeader, lorebookPartComponent);
         tabToComponent.put(lorebookTab, lorebookPart);
 
-        // Settings / User Tab
         HorizontalLayout userTabHeader = new HorizontalLayout();
         userTabHeader.setAlignItems(Alignment.CENTER);
         userTabHeader.setSpacing(true);
@@ -99,7 +111,6 @@ public class Workspace {
         Tab userTab = tabs.add(userTabHeader, userPartComponent);
         tabToComponent.put(userTab, userPart);
 
-        // Protocol Tab
         HorizontalLayout protocolTabHeader = new HorizontalLayout();
         protocolTabHeader.setAlignItems(Alignment.CENTER);
         protocolTabHeader.setSpacing(true);
@@ -109,7 +120,6 @@ public class Workspace {
         Tab protocolTab = tabs.add(protocolTabHeader, protocolPartComponent);
         tabToComponent.put(protocolTab, protocolPart);
 
-        // Inference Providers Tab
         HorizontalLayout aiTabHeader = new HorizontalLayout();
         aiTabHeader.setAlignItems(Alignment.CENTER);
         aiTabHeader.setSpacing(true);
@@ -147,7 +157,7 @@ public class Workspace {
             }
         });
 
-        activeComponent = lorebookPart;
+        activeComponent = manuscriptPart;
 
         return vl;
     }
@@ -182,6 +192,7 @@ public class Workspace {
             internalEvent = false;
         }
 
+        manuscriptPart.refresh();
         lorebookPart.refresh();
         userPart.refresh();
         protocolPart.refresh();

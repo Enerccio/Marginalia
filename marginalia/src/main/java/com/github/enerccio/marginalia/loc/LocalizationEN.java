@@ -72,8 +72,6 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_TENSE, "Tense");
         setValue(L.LABEL_STYLE, "Style");
         setValue(L.LABEL_USER_PROMPT, "Default User Prompt");
-        setValue(L.LABEL_STYLE, "Style");
-        setValue(L.LABEL_USER_PROMPT, "Default User Prompt");
         setValue(L.LABEL_AVAILABLE_VARIABLES, "Available Template Variables");
         setValue(L.LABEL_FILL_DEFAULT, "Insert Default Template");
         setValue(L.LABEL_LOREBOOKS, "Lorebooks");
@@ -91,6 +89,11 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_TAGS, "Tags");
         setValue(L.LABEL_LOREBOOK, "Lorebook");
         setValue(L.LABEL_DELETE, "Delete");
+        setValue(L.LABEL_BOOKS, "Books");
+        setValue(L.LABEL_BOOK, "Book");
+        setValue(L.LABEL_ADD_BOOK, "Add Book");
+        setValue(L.LABEL_EDIT_BOOK, "Edit Book");
+        setValue(L.LABEL_NEW_BOOK, "New Book");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 
@@ -118,8 +121,6 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.DESC_TEMPLATE_SCENE_SETTING, "Current location and scene setting.");
         setValue(L.DESC_TEMPLATE_PRESENT_CHARACTERS, "Characters currently present in the scene.");
         setValue(L.DESC_TEMPLATE_INSTRUCTIONS, "Plot specifications and instructions for continuation.");
-
-
     }
 
     @Override

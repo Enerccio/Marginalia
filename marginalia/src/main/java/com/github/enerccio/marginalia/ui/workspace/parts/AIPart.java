@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.main.dialogs.AIDialog;
+import com.github.enerccio.marginalia.ui.dialogs.AIDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Configurable
@@ -109,14 +111,8 @@ public class AIPart implements WorkspaceComponent {
             return;
         }
         try {
-            List<Long> ids = aiService.findAllIds();
-            List<AI> connections = new ArrayList<>();
-            for (Long id : ids) {
-                AI connection = aiService.find(id);
-                if (connection != null) {
-                    connections.add(connection);
-                }
-            }
+            List<AI> connections = aiService.findAllForUser();
+            connections.sort(Comparator.comparing(AI::getName));
             grid.setItems(connections);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

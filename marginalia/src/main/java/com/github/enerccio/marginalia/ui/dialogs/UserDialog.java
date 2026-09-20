@@ -1,4 +1,4 @@
-package com.github.enerccio.marginalia.ui.main.dialogs;
+package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;

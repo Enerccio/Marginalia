@@ -1,4 +1,4 @@
-package com.github.enerccio.marginalia.ui.main.dialogs;
+package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -43,8 +43,8 @@ public class ConfirmDialog extends Dialog {
 	}
 	
 	public void create() {
-		setCloseOnEsc(true);
-		setCloseOnOutsideClick(true);
+		setCloseOnEsc(false);
+		setCloseOnOutsideClick(false);
 		
 		HorizontalLayout hl = new HorizontalLayout();
 		hl.setWidthFull();

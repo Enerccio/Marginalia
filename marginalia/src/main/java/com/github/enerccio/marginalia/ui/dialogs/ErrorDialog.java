@@ -1,4 +1,4 @@
-package com.github.enerccio.marginalia.ui.main.dialogs;
+package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;

@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.main.dialogs.UserDialog;
+import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.PermissiveLoginOverlay;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;

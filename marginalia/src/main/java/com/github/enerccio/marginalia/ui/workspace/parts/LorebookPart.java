@@ -53,7 +53,4 @@ public class LorebookPart implements WorkspaceComponent {
 
     }
 
-    public LorebookView getLorebookView() {
-        return lorebookView;
-    }
 }

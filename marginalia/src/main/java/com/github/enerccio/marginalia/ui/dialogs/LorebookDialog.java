@@ -1,4 +1,4 @@
-package com.github.enerccio.marginalia.ui.main.dialogs;
+package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.loc.L;
@@ -34,8 +34,8 @@ public class LorebookDialog extends Dialog {
         setHeaderTitle(isEdit ? loc.getValue(L.LABEL_EDIT_LOREBOOK) : loc.getValue(L.LABEL_NEW_LOREBOOK));
         setWidth("1050px");
         setHeight("750px");
-        setCloseOnEsc(true);
-        setCloseOnOutsideClick(true);
+        setCloseOnEsc(false);
+        setCloseOnOutsideClick(false);
 
         lorebookView = new LorebookView(lorebook);
         try {
@@ -68,7 +68,4 @@ public class LorebookDialog extends Dialog {
         this.onClose = onClose;
     }
 
-    public LorebookView getLorebookView() {
-        return lorebookView;
-    }
 }

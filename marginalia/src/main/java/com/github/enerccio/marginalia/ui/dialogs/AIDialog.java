@@ -1,4 +1,4 @@
-package com.github.enerccio.marginalia.ui.main.dialogs;
+package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
@@ -80,15 +80,15 @@ public class AIDialog extends Dialog {
         setHeaderTitle(isEdit ? loc.getValue(L.LABEL_EDIT_AI) : loc.getValue(L.LABEL_NEW_AI));
         setWidth("600px");
         setHeight("820px");
-        setCloseOnEsc(true);
-        setCloseOnOutsideClick(true);
+        setCloseOnEsc(false);
+        setCloseOnOutsideClick(false);
 
         createFields();
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
-        mainLayout.setPadding(true);
-        mainLayout.setSpacing(true);
+        mainLayout.setPadding(false);
+        mainLayout.setSpacing(false);
 
         FormLayout baseFormLayout = new FormLayout();
         baseFormLayout.setWidthFull();

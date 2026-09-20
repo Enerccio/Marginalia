@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.main.dialogs.ProtocolDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ProtocolDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Configurable
@@ -109,14 +110,8 @@ public class ProtocolPart implements WorkspaceComponent {
             return;
         }
         try {
-            List<Long> ids = protocolService.findAllIds();
-            List<Protocol> protocols = new ArrayList<>();
-            for (Long id : ids) {
-                Protocol protocol = protocolService.find(id);
-                if (protocol != null) {
-                    protocols.add(protocol);
-                }
-            }
+            List<Protocol> protocols = protocolService.findAllForUser();
+            protocols.sort(Comparator.comparing(Protocol::getName));
             grid.setItems(protocols);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
