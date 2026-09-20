@@ -311,6 +311,10 @@ public class LorebookView extends VerticalLayout {
                 }
             });
 
+            TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_NEGATIVE_TAGS), true);
+            negativeTagCombo.setWidthFull();
+            negativeTagCombo.setForEntity(entry, true);
+
             TextArea commentField = new TextArea(loc.getValue(L.LABEL_NOTE));
             commentField.setWidthFull();
             commentField.setMinHeight("60px");
@@ -322,7 +326,7 @@ public class LorebookView extends VerticalLayout {
                 }
             });
 
-            detailsLayout.add(payloadField, commentField);
+            detailsLayout.add(payloadField, negativeTagCombo, commentField);
             return detailsLayout;
         }));
     }

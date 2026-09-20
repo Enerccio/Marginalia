@@ -5,7 +5,8 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "t2e", indexes = {
-        @Index(name = "ix__tag__id_clazz", columnList = "id,clazz")
+        @Index(name = "ix__tag__id_clazz", columnList = "id,clazz"),
+        @Index(name = "ix__tag__id_clazz_neg", columnList = "id,clazz,negative")
 })
 public class TagRelation extends ExtendableEntity {
 
@@ -16,6 +17,9 @@ public class TagRelation extends ExtendableEntity {
 
     @Column(length = 255)
     private String clazz;
+
+    @Column
+    private boolean negative = false;
 
     public String getClazz() {
         return clazz;
@@ -39,5 +43,13 @@ public class TagRelation extends ExtendableEntity {
 
     public void setObjectId(Long objectId) {
         this.objectId = objectId;
+    }
+
+    public boolean isNegative() {
+        return negative;
+    }
+
+    public void setNegative(boolean negative) {
+        this.negative = negative;
     }
 }

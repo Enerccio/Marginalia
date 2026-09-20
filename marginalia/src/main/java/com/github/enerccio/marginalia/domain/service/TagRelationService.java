@@ -12,21 +12,37 @@ public interface TagRelationService extends ExtendableService<TagRelation, TagRe
 
     TagRelation createRelation(Tag tag, BaseEntity object) throws Exception;
 
+    TagRelation createRelation(Tag tag, BaseEntity object, boolean negative) throws Exception;
+
     TagRelation createRelation(Tag tag, Manuscript manuscript) throws Exception;
 
     TagRelation createRelation(Tag tag, Long objectId, Class<?> clazz) throws Exception;
+
+    TagRelation createRelation(Tag tag, Long objectId, Class<?> clazz, boolean negative) throws Exception;
 
     void deleteForTag(Tag tag, boolean hard) throws Exception;
 
     List<Tag> getTagsForObject(BaseEntity object) throws Exception;
 
+    List<Tag> getTagsForObject(BaseEntity object, boolean negative) throws Exception;
+
     List<Tag> getTagsForObject(Long objectId, Class<?> clazz) throws Exception;
+
+    List<Tag> getTagsForObject(Long objectId, Class<?> clazz, boolean negative) throws Exception;
 
     List<Long> getObjectIdsForTag(Tag tag, Class<?> clazz) throws Exception;
 
+    List<Long> getObjectIdsForTag(Tag tag, Class<?> clazz, boolean negative) throws Exception;
+
     <T extends BaseEntity> List<T> getObjectsForTag(Tag tag, Class<T> clazz) throws Exception;
+
+    <T extends BaseEntity> List<T> getObjectsForTag(Tag tag, Class<T> clazz, boolean negative) throws Exception;
 
     void removeRelation(Tag tag, Long objectId, Class<?> clazz) throws Exception;
 
+    void removeRelation(Tag tag, Long objectId, Class<?> clazz, boolean negative) throws Exception;
+
     void removeRelation(Tag tag, BaseEntity object) throws Exception;
+
+    void removeRelation(Tag tag, BaseEntity object, boolean negative) throws Exception;
 }

@@ -17,26 +17,38 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
     @Override
     @CommonTx
     public TagRelation createRelation(Tag tag, BaseEntity object) throws Exception {
+        return createRelation(tag, object, false);
+    }
+
+    @Override
+    @CommonTx
+    public TagRelation createRelation(Tag tag, BaseEntity object, boolean negative) throws Exception {
         if (tag == null || object == null || object.getId() == null) {
             throw new IllegalArgumentException("Tag and Object with valid ID must not be null");
         }
-        return createRelation(tag, object.getId(), object.getClass());
+        return createRelation(tag, object.getId(), object.getClass(), negative);
     }
 
     @Override
     @CommonTx
     public TagRelation createRelation(Tag tag, Manuscript manuscript) throws Exception {
-        return createRelation(tag, (BaseEntity) manuscript);
+        return createRelation(tag, (BaseEntity) manuscript, false);
     }
 
     @Override
     @CommonTx
     public TagRelation createRelation(Tag tag, Long objectId, Class<?> clazz) throws Exception {
+        return createRelation(tag, objectId, clazz, false);
+    }
+
+    @Override
+    @CommonTx
+    public TagRelation createRelation(Tag tag, Long objectId, Class<?> clazz, boolean negative) throws Exception {
         if (tag == null || objectId == null || clazz == null) {
             throw new IllegalArgumentException("Tag, objectId, and clazz must not be null");
         }
         String clazzName = clazz.getName();
-        TagRelation existing = getRepository().findByTagAndObject(tag.getId(), objectId, clazzName);
+        TagRelation existing = getRepository().findByTagAndObject(tag.getId(), objectId, clazzName, negative);
         if (existing != null) {
             return existing;
         }
@@ -45,6 +57,7 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
         relation.setTag(tag);
         relation.setObjectId(objectId);
         relation.setClazz(clazzName);
+        relation.setNegative(negative);
         return save(relation);
     }
 
@@ -63,46 +76,76 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
     @Override
     @CommonTxReadOnly
     public List<Tag> getTagsForObject(BaseEntity object) throws Exception {
+        return getTagsForObject(object, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Tag> getTagsForObject(BaseEntity object, boolean negative) throws Exception {
         if (object == null || object.getId() == null) {
             return Collections.emptyList();
         }
-        return getTagsForObject(object.getId(), object.getClass());
+        return getTagsForObject(object.getId(), object.getClass(), negative);
     }
 
     @Override
     @CommonTxReadOnly
     public List<Tag> getTagsForObject(Long objectId, Class<?> clazz) throws Exception {
+        return getTagsForObject(objectId, clazz, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Tag> getTagsForObject(Long objectId, Class<?> clazz, boolean negative) throws Exception {
         if (objectId == null || clazz == null) {
             return Collections.emptyList();
         }
-        return getRepository().findTagsForObject(objectId, clazz.getName());
+        return getRepository().findTagsForObject(objectId, clazz.getName(), negative);
     }
 
     @Override
     @CommonTxReadOnly
     public List<Long> getObjectIdsForTag(Tag tag, Class<?> clazz) throws Exception {
+        return getObjectIdsForTag(tag, clazz, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Long> getObjectIdsForTag(Tag tag, Class<?> clazz, boolean negative) throws Exception {
         if (tag == null || tag.getId() == null || clazz == null) {
             return Collections.emptyList();
         }
-        return getRepository().findObjectIdsForTag(tag.getId(), clazz.getName());
+        return getRepository().findObjectIdsForTag(tag.getId(), clazz.getName(), negative);
     }
 
     @Override
     @CommonTxReadOnly
     public <T extends BaseEntity> List<T> getObjectsForTag(Tag tag, Class<T> clazz) throws Exception {
+        return getObjectsForTag(tag, clazz, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public <T extends BaseEntity> List<T> getObjectsForTag(Tag tag, Class<T> clazz, boolean negative) throws Exception {
         if (tag == null || tag.getId() == null || clazz == null) {
             return Collections.emptyList();
         }
-        return getRepository().findObjectsForTag(tag.getId(), clazz);
+        return getRepository().findObjectsForTag(tag.getId(), clazz, negative);
     }
 
     @Override
     @CommonTx
     public void removeRelation(Tag tag, Long objectId, Class<?> clazz) throws Exception {
+        removeRelation(tag, objectId, clazz, false);
+    }
+
+    @Override
+    @CommonTx
+    public void removeRelation(Tag tag, Long objectId, Class<?> clazz, boolean negative) throws Exception {
         if (tag == null || objectId == null || clazz == null) {
             return;
         }
-        TagRelation tr = getRepository().findByTagAndObject(tag.getId(), objectId, clazz.getName());
+        TagRelation tr = getRepository().findByTagAndObject(tag.getId(), objectId, clazz.getName(), negative);
         if (tr != null) {
             delete(tr, true);
         }
@@ -111,9 +154,15 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
     @Override
     @CommonTx
     public void removeRelation(Tag tag, BaseEntity object) throws Exception {
+        removeRelation(tag, object, false);
+    }
+
+    @Override
+    @CommonTx
+    public void removeRelation(Tag tag, BaseEntity object, boolean negative) throws Exception {
         if (object == null || object.getId() == null) {
             return;
         }
-        removeRelation(tag, object.getId(), object.getClass());
+        removeRelation(tag, object.getId(), object.getClass(), negative);
     }
 }

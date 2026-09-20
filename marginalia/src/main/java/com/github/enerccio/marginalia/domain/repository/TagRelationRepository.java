@@ -12,9 +12,17 @@ public interface TagRelationRepository extends ExtendableRepository<TagRelation>
 
     List<Tag> findTagsForObject(Long objectId, String clazz) throws Exception;
 
+    List<Tag> findTagsForObject(Long objectId, String clazz, boolean negative) throws Exception;
+
     List<Long> findObjectIdsForTag(Long tagId, String clazz) throws Exception;
+
+    List<Long> findObjectIdsForTag(Long tagId, String clazz, boolean negative) throws Exception;
 
     <T extends BaseEntity> List<T> findObjectsForTag(Long tagId, Class<T> clazz) throws Exception;
 
+    <T extends BaseEntity> List<T> findObjectsForTag(Long tagId, Class<T> clazz, boolean negative) throws Exception;
+
     TagRelation findByTagAndObject(Long tagId, Long objectId, String clazz) throws Exception;
+
+    TagRelation findByTagAndObject(Long tagId, Long objectId, String clazz, boolean negative) throws Exception;
 }

@@ -95,6 +95,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_ADD_BOOK, "Add Book");
         setValue(L.LABEL_EDIT_BOOK, "Edit Book");
         setValue(L.LABEL_NEW_BOOK, "New Book");
+        setValue(L.LABEL_NEGATIVE_TAGS, "Negative Tags (Exclusion)");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 
