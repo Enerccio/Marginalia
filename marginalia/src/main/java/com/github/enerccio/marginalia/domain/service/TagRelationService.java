@@ -8,7 +8,7 @@ import com.github.enerccio.marginalia.domain.repository.TagRelationRepository;
 
 import java.util.List;
 
-public interface TagRelationService extends BaseService<TagRelation, TagRelationRepository> {
+public interface TagRelationService extends ExtendableService<TagRelation, TagRelationRepository> {
 
     TagRelation createRelation(Tag tag, BaseEntity object) throws Exception;
 

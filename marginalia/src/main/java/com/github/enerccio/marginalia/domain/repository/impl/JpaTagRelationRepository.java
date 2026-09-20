@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.repository.TagRelationRepository;
 
 import java.util.List;
 
-public class JpaTagRelationRepository extends JpaBaseRepository<TagRelation> implements TagRelationRepository {
+public class JpaTagRelationRepository extends JpaExtendableRepository<TagRelation> implements TagRelationRepository {
 
     @Override
     protected Class<TagRelation> getEntityClass() {

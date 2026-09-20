@@ -12,7 +12,7 @@ import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import java.util.Collections;
 import java.util.List;
 
-public class TagRelationServiceImpl extends BaseServiceImpl<TagRelation, TagRelationRepository> implements TagRelationService {
+public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, TagRelationRepository> implements TagRelationService {
 
     @Override
     @CommonTx

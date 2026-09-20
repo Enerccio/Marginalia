@@ -1,13 +1,13 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
-import com.github.enerccio.marginalia.domain.model.BaseEntity;
+import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "t2e", indexes = {
         @Index(name = "ix__tag__id_clazz", columnList = "id,clazz")
 })
-public class TagRelation extends BaseEntity {
+public class TagRelation extends ExtendableEntity {
 
     @ManyToOne
     private Tag tag;

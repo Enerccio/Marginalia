@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
 
 import java.util.List;
 
-public interface TagRelationRepository extends BaseRepository<TagRelation> {
+public interface TagRelationRepository extends ExtendableRepository<TagRelation> {
 
     List<TagRelation> findAllByTag(Tag tag) throws Exception;
 
