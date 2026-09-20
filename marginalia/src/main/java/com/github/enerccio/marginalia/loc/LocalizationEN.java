@@ -79,6 +79,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_EDIT_LOREBOOK, "Edit Lorebook");
         setValue(L.LABEL_NEW_LOREBOOK, "New Lorebook");
         setValue(L.LABEL_DELETE_LOREBOOK, "Delete Lorebook");
+        setValue(L.LABEL_SUB_LOREBOOKS, "Sub Lorebooks");
         setValue(L.LABEL_ADD_ENTRY, "Add Entry");
         setValue(L.LABEL_DELETE_ENTRY, "Delete Entry");
         setValue(L.LABEL_ENTRY_NAME, "Entry Name");
@@ -104,6 +105,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_FETCH_MODELS_FAILED, "Failed to download model list.");
         setValue(L.MSG_SETTINGS_SAVED, "Settings saved successfully.");
         setValue(L.MSG_CONFIRM_DELETE, "Are you sure you want to delete this item?");
+        setValue(L.MSG_CYCLE_DETECTED, "Cannot select sub lorebook: cycle detected.");
 
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");

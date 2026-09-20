@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.components;
 
 import com.github.enerccio.marginalia.UIConstants;
+import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
@@ -15,6 +16,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -28,9 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Configurable
 public class LorebookView extends VerticalLayout {
@@ -53,6 +54,7 @@ public class LorebookView extends VerticalLayout {
 
     private TextField lorebookNameField;
     private Checkbox lorebookEnabledCheckbox;
+    private MultiSelectComboBox<Lorebook> subLorebooksCombo;
 
     private Button addEntryButton;
     private Button refreshButton;
@@ -130,6 +132,41 @@ public class LorebookView extends VerticalLayout {
             }
         });
 
+        subLorebooksCombo = new MultiSelectComboBox<>(loc.getValue(L.LABEL_SUB_LOREBOOKS));
+        subLorebooksCombo.setItemLabelGenerator(Lorebook::getName);
+        subLorebooksCombo.setWidthFull();
+        subLorebooksCombo.addValueChangeListener(e -> {
+            if (currentLorebook != null && e.isFromClient()) {
+                Set<Lorebook> newSelection = e.getValue();
+                if (newSelection != null && !newSelection.isEmpty()) {
+                    try {
+                        List<Lorebook> allUserLorebooks = lorebookService.findAllForUser();
+                        Map<Long, Lorebook> lorebookMap = allUserLorebooks.stream()
+                                .filter(l -> l.getId() != null)
+                                .collect(Collectors.toMap(BaseEntity::getId, l -> l, (a, b) -> a));
+
+                        for (Lorebook candidate : newSelection) {
+                            if (candidate.getId() != null && (candidate.getId().equals(currentLorebook.getId())
+                                    || isReachable(candidate.getId(), currentLorebook.getId(), lorebookMap, new HashSet<>()))) {
+                                Notification.warning(loc.getValue(L.MSG_CYCLE_DETECTED));
+                                subLorebooksCombo.setValue(e.getOldValue() != null ? e.getOldValue() : Collections.emptySet());
+                                return;
+                            }
+                        }
+                    } catch (Exception ex) {
+                        UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+                        return;
+                    }
+                }
+                try {
+                    currentLorebook.setSubbooks(newSelection != null ? new ArrayList<>(newSelection) : new ArrayList<>());
+                    lorebookService.save(currentLorebook);
+                } catch (Exception ex) {
+                    UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+                }
+            }
+        });
+
         lorebookEnabledCheckbox = new Checkbox(loc.getValue(L.LABEL_ENABLED));
         lorebookEnabledCheckbox.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
@@ -142,8 +179,9 @@ public class LorebookView extends VerticalLayout {
             }
         });
 
-        lorebookHeaderLayout.add(lorebookNameField, lorebookEnabledCheckbox);
+        lorebookHeaderLayout.add(lorebookNameField, subLorebooksCombo, lorebookEnabledCheckbox);
         lorebookHeaderLayout.setFlexGrow(1, lorebookNameField);
+        lorebookHeaderLayout.setFlexGrow(1, subLorebooksCombo);
 
         setupGrid();
 
@@ -153,6 +191,30 @@ public class LorebookView extends VerticalLayout {
         refresh();
 
         return this;
+    }
+
+    private boolean isReachable(Long startId, Long targetId, Map<Long, Lorebook> lorebookMap, Set<Long> visited) {
+        if (startId == null || targetId == null) {
+            return false;
+        }
+        if (startId.equals(targetId)) {
+            return true;
+        }
+        if (!visited.add(startId)) {
+            return false;
+        }
+        Lorebook start = lorebookMap.get(startId);
+        if (start == null || start.getSubbooks() == null) {
+            return false;
+        }
+        for (Lorebook sub : start.getSubbooks()) {
+            if (sub != null && sub.getId() != null) {
+                if (isReachable(sub.getId(), targetId, lorebookMap, visited)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void setupGrid() {
@@ -294,6 +356,7 @@ public class LorebookView extends VerticalLayout {
         boolean hasLorebook = currentLorebook != null;
         lorebookNameField.setEnabled(hasLorebook);
         lorebookEnabledCheckbox.setEnabled(hasLorebook);
+        subLorebooksCombo.setEnabled(hasLorebook);
         addEntryButton.setEnabled(hasLorebook);
         deleteLorebookButton.setEnabled(hasLorebook);
         refreshButton.setEnabled(hasLorebook);
@@ -301,10 +364,36 @@ public class LorebookView extends VerticalLayout {
         if (hasLorebook) {
             lorebookNameField.setValue(StringUtils.defaultString(currentLorebook.getName()));
             lorebookEnabledCheckbox.setValue(currentLorebook.isEnabled());
+
+            try {
+                List<Lorebook> allLorebooks = lorebookService.findAllForUser();
+                List<Lorebook> availableLorebooks = allLorebooks.stream()
+                        .filter(l -> l.getId() != null && !l.getId().equals(currentLorebook.getId()))
+                        .sorted(Comparator.comparing(Lorebook::getName))
+                        .collect(Collectors.toList());
+                subLorebooksCombo.setItems(availableLorebooks);
+
+                if (currentLorebook.getSubbooks() != null) {
+                    Set<Long> subIds = currentLorebook.getSubbooks().stream()
+                            .map(BaseEntity::getId)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+                    Set<Lorebook> selectedSubbooks = availableLorebooks.stream()
+                            .filter(l -> subIds.contains(l.getId()))
+                            .collect(Collectors.toSet());
+                    subLorebooksCombo.setValue(selectedSubbooks);
+                } else {
+                    subLorebooksCombo.setValue(Collections.emptySet());
+                }
+            } catch (Exception e) {
+                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            }
+
             refreshEntries();
         } else {
             lorebookNameField.setValue("");
             lorebookEnabledCheckbox.setValue(false);
+            subLorebooksCombo.setValue(Collections.emptySet());
             grid.setItems(new ArrayList<>());
         }
     }
