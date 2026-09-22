@@ -101,4 +101,6 @@
         <property name="repository" ref="lorebookEntryRepository" />
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.StoryGenerationServiceImpl" />
+
 </beans>

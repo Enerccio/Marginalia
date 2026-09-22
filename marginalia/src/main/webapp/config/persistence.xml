@@ -36,8 +36,8 @@
         <properties>
             <property name="hibernate.dialect" value="com.github.enerccio.marginalia.SaneSQLiteDialect" />
 
-            <property name="hibernate.show_sql" value="true" />
-            <property name="hibernate.format_sql" value="true" />
+<!--            <property name="hibernate.show_sql" value="true" />-->
+<!--            <property name="hibernate.format_sql" value="true" />-->
 
             <!-- Update schema automatically -->
             <property name="hibernate.hbm2ddl.auto" value="update" />

@@ -19,7 +19,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
 
         try {
             return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() +
-                            " o WHERE o.tree LIKE ?1 AND o.user.id = ?2 AND o.deleted = false ORDER BY o.tree", Long.class)
+                            " o WHERE o.tree LIKE ?1 AND o.owner.id = ?2 AND o.deleted = false ORDER BY o.tree", Long.class)
                     .setParameter(1, likePart)
                     .setParameter(2, user.getId())
                     .getResultList();
@@ -37,7 +37,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
         String likePart = entity.getTree() + StringUtils.repeat("_", levelSize);
         TypedQuery<Long> q = null;
         q = getEntityManager().createQuery(
-                        "SELECT count(o) FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.user.id = ?2 AND o.deleted = false", Long.class)
+                        "SELECT count(o) FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.owner.id = ?2 AND o.deleted = false", Long.class)
                 .setParameter(1, likePart)
                 .setParameter(2, user.getId());
 
@@ -49,7 +49,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
 
         try {
             return getEntityManager().createQuery("SELECT o.tree FROM " + getEntityType() +
-                            " o WHERE o.tree LIKE ?1  AND o.user.id = ?2 AND o.deleted = false ORDER BY o.tree", String.class)
+                            " o WHERE o.tree LIKE ?1  AND o.owner.id = ?2 AND o.deleted = false ORDER BY o.tree", String.class)
                     .setParameter(1, likePart)
                     .setParameter(2, user.getId())
                     .getResultList();
@@ -76,7 +76,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
     public Long findByTree(String tree, User user) {
         try {
             return getEntityManager().createQuery(
-                            "SELECT o.id FROM " + getEntityType() + " o WHERE o.tree = ?1  AND o.user.id = ?2 AND o.deleted = false", Long.class)
+                            "SELECT o.id FROM " + getEntityType() + " o WHERE o.tree = ?1  AND o.owner.id = ?2 AND o.deleted = false", Long.class)
                     .setParameter(1, tree)
                     .setParameter(2, user.getId())
                     .getSingleResult();
@@ -108,7 +108,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
         String parent = tree.substring(0, tree.length() - levelSize);
 
         try {
-            return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree < ?1 AND o.tree LIKE ?2 AND LENGTH(o.tree) = ?3 AND o.user.id = ?4 AND o.deleted = false ORDER BY o.tree DESC", Long.class)
+            return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree < ?1 AND o.tree LIKE ?2 AND LENGTH(o.tree) = ?3 AND o.owner.id = ?4 AND o.deleted = false ORDER BY o.tree DESC", Long.class)
                     .setParameter(1, tree)
                     .setParameter(2, parent + "%")
                     .setParameter(3, tree.length())
@@ -126,7 +126,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
         String parent = tree.substring(0, tree.length() - levelSize);
 
         try {
-            return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree > ?1 AND o.tree LIKE ?2 AND LENGTH(o.tree) = ?3 AND o.user.id = ?4 AND o.deleted = false ORDER BY o.tree ASC", Long.class)
+            return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree > ?1 AND o.tree LIKE ?2 AND LENGTH(o.tree) = ?3 AND o.owner.id = ?4 AND o.deleted = false ORDER BY o.tree ASC", Long.class)
                     .setParameter(1, tree)
                     .setParameter(2, parent + "%")
                     .setParameter(3, tree.length())
@@ -142,7 +142,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
     public void changeTree(String oldTree, String newTree, User user) {
         getEntityManager().createQuery("UPDATE " + getEntityType() + " o " +
                         "SET o.tree = CONCAT(?1, SUBSTRING(o.tree, ?2)) " +
-                        "WHERE o.tree LIKE ?3 AND o.user.id = ?4 AND o.deleted = false")
+                        "WHERE o.tree LIKE ?3 AND o.owner.id = ?4 AND o.deleted = false")
                 .setParameter(1, newTree)
                 .setParameter(2, oldTree.length() + 1)
                 .setParameter(3, oldTree + "%")
@@ -159,7 +159,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
     public Long getRoot(int levelSize, User user) {
         String likePart = StringUtils.repeat("_", levelSize);
 
-        return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.user.id = ?2 AND o.deleted = false", Long.class)
+        return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.owner.id = ?2 AND o.deleted = false", Long.class)
                 .setParameter(1, likePart)
                 .setParameter(2, user.getId())
                 .setMaxResults(1)
@@ -170,7 +170,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
     public List<Long> getRoots(int levelSize, User user) {
         String likePart = StringUtils.repeat("_", levelSize);
 
-        return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree LIKE ?1  AND o.user.id = ?2 AND o.deleted = false ORDER BY o.tree ASC", Long.class)
+        return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree LIKE ?1  AND o.owner.id = ?2 AND o.deleted = false ORDER BY o.tree ASC", Long.class)
                 .setParameter(1, likePart)
                 .setParameter(2, user.getId())
                 .getResultList();
@@ -180,7 +180,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
     public List<String> getRootTrees(int levelSize, User user) {
         String likePart = StringUtils.repeat("_", levelSize);
 
-        return getEntityManager().createQuery("SELECT o.tree FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.user.id = ?2 AND o.deleted = false ORDER BY o.tree ASC", String.class)
+        return getEntityManager().createQuery("SELECT o.tree FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.owner.id = ?2 AND o.deleted = false ORDER BY o.tree ASC", String.class)
                 .setParameter(1, likePart)
                 .setParameter(2, user.getId())
                 .getResultList();
@@ -200,7 +200,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
     public String getMaxTree(T entity, int levelSize, User user) throws Exception {
         String likePart = entity.getTree() + StringUtils.repeat("_", levelSize);
 
-        return getEntityManager().createQuery("SELECT max(o.tree) FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.user.id = ?2 AND o.deleted = false", String.class)
+        return getEntityManager().createQuery("SELECT max(o.tree) FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.owner.id = ?2 AND o.deleted = false", String.class)
                 .setParameter(1, likePart)
                 .setParameter(2, user.getId())
                 .setMaxResults(1)
@@ -219,7 +219,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
 
     @Override
     public String getTreeForEntity(Long entityId, User user) throws Exception {
-        List<String> trees = getEntityManager().createQuery("SELECT o.tree FROM " + getEntityType() + " o WHERE o.id = ?1 AND o.user.id = ?2 AND o.deleted = false ", String.class)
+        List<String> trees = getEntityManager().createQuery("SELECT o.tree FROM " + getEntityType() + " o WHERE o.id = ?1 AND o.owner.id = ?2 AND o.deleted = false ", String.class)
                 .setParameter(1, entityId)
                 .setParameter(2, user.getId())
                 .setMaxResults(1)
@@ -234,7 +234,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
         if (selfId == null)
             return Collections.emptyList();
 
-        return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.id <> ?2 AND o.user.id = ?2 AND o.deleted = false ORDER BY o.tree", Long.class)
+        return getEntityManager().createQuery("SELECT o.id FROM " + getEntityType() + " o WHERE o.tree LIKE ?1 AND o.id <> ?2 AND o.owner.id = ?2 AND o.deleted = false ORDER BY o.tree", Long.class)
                 .setParameter(1, tree + "%")
                 .setParameter(2, selfId)
                 .setParameter(3, user.getId())
@@ -243,7 +243,7 @@ public abstract class JpaTreeEntityRepository<T extends TreeEntity> extends JpaE
 
     private Long getMinMaxChildIds(String tree, int length, String order, User user) {
         try {
-            return getEntityManager().createQuery("SELECT id FROM " + getEntityType() + " o WHERE tree LIKE ?1 AND LENGTH(tree) = ?2  AND o.user.id = ?3 AND o.deleted = false ORDER BY tree " + order, Long.class)
+            return getEntityManager().createQuery("SELECT id FROM " + getEntityType() + " o WHERE tree LIKE ?1 AND LENGTH(tree) = ?2  AND o.owner.id = ?3 AND o.deleted = false ORDER BY tree " + order, Long.class)
                     .setParameter(1, tree + "%")
                     .setParameter(2, length)
                     .setParameter(3, user.getId())

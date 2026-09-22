@@ -120,6 +120,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_TURN_DETAILS, "Turn Details");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
+        setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");
+        setValue(L.ERROR_PROTOCOL_NOT_SET, "Book is missing protocol.");
 
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "Cannot save form. Invalid fields: ");
