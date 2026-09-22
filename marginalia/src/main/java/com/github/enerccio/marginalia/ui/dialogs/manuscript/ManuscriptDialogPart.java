@@ -12,4 +12,8 @@ public interface ManuscriptDialogPart {
 
     void load(Manuscript manuscript);
 
+    void onTabLeave() throws Exception;
+
+    void onTabEnter() throws Exception;
+
 }

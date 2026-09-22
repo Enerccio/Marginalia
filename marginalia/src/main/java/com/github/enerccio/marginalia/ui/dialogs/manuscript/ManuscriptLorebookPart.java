@@ -138,4 +138,14 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
             loading = false;
         }
     }
+
+    @Override
+    public void onTabLeave() throws Exception {
+
+    }
+
+    @Override
+    public void onTabEnter() throws Exception {
+
+    }
 }

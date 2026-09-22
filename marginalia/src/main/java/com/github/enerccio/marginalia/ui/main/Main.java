@@ -30,12 +30,12 @@ public class Main extends LoginCheckRoute {
 
     @Override
     protected String getAppTitle() {
-        return "LLLLM";
+        return "Marginalia";
     }
 
     @Override
     protected String getAppDescription() {
-        return "Language Learning LLM";
+        return "Collaborative story writing app with LLM";
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
+import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -46,6 +47,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
     private final ManuscriptDialog parent;
 
     private TextField nameField;
+    private TagMultiComboBox tags;
     private TextArea descriptionField;
     private ComboBox<AI> aiCombo;
     private ComboBox<Protocol> protocolCombo;
@@ -72,7 +74,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
 
         FormLayout formLayout = new FormLayout();
         formLayout.setWidthFull();
-        formLayout.add(nameField, descriptionField);
+        formLayout.add(nameField, tags, descriptionField);
         formLayout.setColspan(descriptionField, 2);
         formLayout.add(aiCombo, protocolCombo);
 
@@ -94,6 +96,8 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
                 autosave();
             }
         });
+
+        tags = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
 
         descriptionField = new TextArea(loc.getValue(L.LABEL_DESCRIPTION));
         descriptionField.setWidthFull();
@@ -210,6 +214,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
             descriptionField.setValue(StringUtils.defaultString(manuscript.getDescription()));
             aiCombo.setValue(manuscript.getAi());
             protocolCombo.setValue(manuscript.getProtocol());
+            tags.setForEntity(manuscript);
 
             updateSyntheticFields(manuscript);
         } catch (Exception e) {
@@ -217,5 +222,15 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         } finally {
             loading = false;
         }
+    }
+
+    @Override
+    public void onTabLeave() throws Exception {
+
+    }
+
+    @Override
+    public void onTabEnter() throws Exception {
+        updateSyntheticFields(parent.getManuscript());
     }
 }

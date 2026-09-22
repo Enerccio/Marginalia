@@ -104,6 +104,20 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_TOTAL_TOKEN_COUNT, "Total Token Count");
         setValue(L.LABEL_BRANCH_WORD_COUNT, "Active Branch Word Count");
         setValue(L.LABEL_BRANCH_TOKEN_COUNT, "Active Branch Token Count");
+        setValue(L.LABEL_STORY_CONTROLS, "Story Controls");
+        setValue(L.LABEL_GENERATE_NEXT, "Generate Next");
+        setValue(L.LABEL_BRANCH_STORY, "Branch Story");
+        setValue(L.LABEL_NODE_METADATA, "Node Metadata");
+        setValue(L.LABEL_VIEW_REASONING, "View Reasoning");
+        setValue(L.LABEL_TOKENS, "Tokens");
+        setValue(L.LABEL_WORDS, "Words");
+        setValue(L.LABEL_SCENE_SETTING, "Scene Setting");
+        setValue(L.LABEL_POV_CHARACTER, "POV Character");
+        setValue(L.LABEL_PRESENT_CHARACTERS, "Present Characters");
+        setValue(L.LABEL_INSTRUCTIONS, "Instructions");
+        setValue(L.LABEL_NEW_TURN_INSTRUCTIONS, "New Turn Instructions");
+        setValue(L.LABEL_GENERATE, "Generate");
+        setValue(L.LABEL_TURN_DETAILS, "Turn Details");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 
@@ -115,6 +129,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_SETTINGS_SAVED, "Settings saved successfully.");
         setValue(L.MSG_CONFIRM_DELETE, "Arwhae you sure you want to delete this item?");
         setValue(L.MSG_CYCLE_DETECTED, "Cannot select sub lorebook: cycle detected.");
+        setValue(L.MSG_NO_ACTIVE_BRANCH, "No active story branch. Add a message to begin.");
+        setValue(L.MSG_SELECT_MESSAGE_METADATA, "Select a message to view metadata.");
 
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");

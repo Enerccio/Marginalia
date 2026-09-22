@@ -19,7 +19,9 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Configurable
 public class ManuscriptDialog extends Dialog {
@@ -47,6 +49,7 @@ public class ManuscriptDialog extends Dialog {
     private Component lorebookPartComponent;
     private final ManuscriptStoryPart storyPart = new ManuscriptStoryPart(this);
     private Component storyPartComponent;
+    private final Map<Component, ManuscriptDialogPart> c2p = new HashMap<>();
 
     public ManuscriptDialog(Manuscript manuscript) {
         this.manuscript = manuscript;
@@ -67,9 +70,13 @@ public class ManuscriptDialog extends Dialog {
         tabs.setSizeFull();
 
         infoPartComponent = infoPart.create(tabs);
+        c2p.put(infoPartComponent, infoPart);
         promptPartComponent = promptPart.create(tabs);
+        c2p.put(promptPartComponent, promptPart);
         lorebookPartComponent = lorebookPart.create(tabs);
+        c2p.put(lorebookPartComponent, lorebookPart);
         storyPartComponent = storyPart.create(tabs);
+        c2p.put(storyPartComponent, storyPart);
 
         parts.add(infoPart);
         parts.add(promptPart);
@@ -89,6 +96,25 @@ public class ManuscriptDialog extends Dialog {
 
         footerLayout.add(exitButton);
         getFooter().add(footerLayout);
+
+        tabs.addSelectedChangeListener(event -> {
+            ManuscriptDialogPart leavingPart = c2p.get(tabs.getComponent(event.getPreviousTab()));
+            if (leavingPart != null) {
+                try {
+                    leavingPart.onTabLeave();
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            }
+            ManuscriptDialogPart enteringPart = c2p.get(tabs.getComponent(event.getSelectedTab()));
+            if (enteringPart != null) {
+                try {
+                    enteringPart.onTabEnter();
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            }
+        });
     }
 
     @Override
