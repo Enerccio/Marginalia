@@ -1,22 +1,35 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.List;
 
 public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
 
+    @Autowired
+    private ManuscriptService manuscriptService;
+
     @Override
     @CommonTx
     public ChatMessage createRoot(Manuscript manuscript, ChatMessage message) throws Exception {
         message.setParent(null);
-        message.setTree(getRepository().getMaxTree(getLevelSize(), manuscript.getOwner()));
+        List<String> rootTrees = getRootTrees(manuscript.getOwner());
+        String rootTree;
+        if (rootTrees.isEmpty()) {
+            rootTree = num2tree(0L);
+        } else {
+            rootTree = incTree(rootTrees.getLast(), Constants.TREE_DEFAULT_ALLOC_GAP);
+        }
+        message.setTree(rootTree);
         message.setParentScript(manuscript);
         return save(message);
     }
@@ -107,6 +120,75 @@ public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMes
             total += msg.getTokenCount();
         }
         return total;
+    }
+
+    @Override
+    @CommonTx
+    public void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception {
+        if (message == null || message.getId() == null) {
+            return;
+        }
+
+        message = find(message.getId());
+        if (message == null) {
+            return;
+        }
+
+        if (manuscript != null && manuscript.getId() != null) {
+            manuscript = manuscriptService.find(manuscript.getId());
+        }
+
+        ChatMessage parentNode = message.getParent();
+        if (parentNode == null) {
+            parentNode = getParent(message);
+        } else {
+            parentNode = find(parentNode.getId());
+        }
+
+        List<ChatMessage> children = getChildren(message);
+        ChatMessage activeLeaf = manuscript != null ? manuscript.getActiveLeaf() : null;
+        boolean isDeletingActiveLeaf = activeLeaf != null && activeLeaf.getId().equals(message.getId());
+
+        for (ChatMessage child : children) {
+            if (parentNode != null) {
+                moveChild(parentNode, child);
+                child.setParent(parentNode);
+            } else {
+                child.setParent(null);
+                List<String> rootTrees = getRootTrees(child.getOwner());
+                String rootTree = rootTrees.isEmpty() ? num2tree(0L) : incTree(rootTrees.getLast(), Constants.TREE_DEFAULT_ALLOC_GAP);
+                child.setTree(rootTree);
+            }
+            save(child);
+        }
+
+        if (manuscript != null && isDeletingActiveLeaf) {
+            ChatMessage newActiveLeaf = null;
+
+            if (!children.isEmpty()) {
+                newActiveLeaf = children.getFirst();
+            } else {
+                ChatMessage leftSibling = null;
+                try {
+                    leftSibling = getPrevious(message);
+                } catch (Exception ignored) {}
+
+                if (leftSibling != null) {
+                    ChatMessage leafCursor = leftSibling;
+                    while (hasChildren(leafCursor)) {
+                        leafCursor = getLastChild(leafCursor);
+                    }
+                    newActiveLeaf = leafCursor;
+                } else {
+                    newActiveLeaf = parentNode;
+                }
+            }
+
+            manuscript.setActiveLeaf(newActiveLeaf);
+            manuscriptService.save(manuscript);
+        }
+
+        delete(message, hard);
     }
 
 }

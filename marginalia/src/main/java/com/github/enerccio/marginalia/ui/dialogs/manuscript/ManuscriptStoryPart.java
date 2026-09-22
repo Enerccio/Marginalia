@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -430,6 +431,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private Button menuBtn;
         private ContextMenu hamburgerMenu;
         private MenuItem editItem;
+        private MenuItem deleteItem;
         private Details reasoningDetails;
         private Markdown reasoningMarkdown;
         private Markdown responseMarkdown;
@@ -471,6 +473,29 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             hamburgerMenu.setTarget(menuBtn);
             hamburgerMenu.setOpenOnClick(true);
             editItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_EDIT), event -> toggleEdit());
+
+            deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
+                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+                    centerContentPanel.getElement().executeJs("return $0.scrollTop").then(Integer.class, scrollTop -> {
+                        try {
+                            Long parentId = message.getParent() != null ? message.getParent().getId() : null;
+
+                            chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
+
+                            parent.refreshManuscript();
+                            load(parent.getManuscript());
+
+                            if (scrollTop != null && scrollTop > 0) {
+                                centerContentPanel.getElement().executeJs("$0.scrollTop = $1", scrollTop);
+                            } else if (parentId != null && activeCardMap.containsKey(parentId)) {
+                                activeCardMap.get(parentId).scrollIntoView();
+                            }
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    });
+                });
+            });
 
             headerBar.add(UIUtils.voidComponent(), menuBtn);
 

@@ -101,6 +101,16 @@
         <property name="repository" ref="lorebookEntryRepository" />
     </bean>
 
-    <bean class="com.github.enerccio.marginalia.domain.service.impl.StoryGenerationServiceImpl" />
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.TokenizerServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.StoryGenerationServiceImpl">
+        <property name="installedSteps">
+            <list>
+                <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.PrepareForGenerationStep" />
+                <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.PrepareConstantsStep" />
+                <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.ProcessLorebookStep" />
+            </list>
+        </property>
+    </bean>
 
 </beans>

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.TurnInput;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -21,10 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -253,6 +251,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
 
     protected class GenerationEngine implements GenerationController {
 
+        private final Map<String, Object> properties = new HashMap<>();
         private GenerationStepType currentStep = GenerationStepType.PREPARE_GENERATION;
         private TurnInput turnInput;
         private Manuscript manuscript;
@@ -260,9 +259,15 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         private CancellationToken cancellationToken;
         private GenerationListener uiListener;
         private ThreadCopyRequestAttributes requestAttributes;
+        private PrePromptData prePromptData;
 
         public GenerationEngine() {
 
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return properties;
         }
 
         @Override
@@ -303,6 +308,16 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         @Override
         public ThreadCopyRequestAttributes getRequestAttributes() {
             return requestAttributes;
+        }
+
+        @Override
+        public PrePromptData getPrePromptData() {
+            return prePromptData;
+        }
+
+        @Override
+        public void setPrePromptData(PrePromptData prePromptData) {
+            this.prePromptData = prePromptData;
         }
 
         @Override
@@ -349,7 +364,8 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                     if (step == null) {
                         // not installed? during development normal
                         uiListener.onSimpleError("NOT IMPLEMENTED");
-                        jumpTo(GenerationStepType.CLEANUP);
+                        if (currentStep != GenerationStepType.CLEANUP)
+                            jumpTo(GenerationStepType.CLEANUP);
                         return;
                     }
                     step.step(this);

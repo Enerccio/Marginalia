@@ -1,10 +1,14 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum GenerationStepType {
 
     PREPARE_GENERATION,
-    GENERATE_NEW_MESSAGE,
+    PREPARE_CONSTANTS,
     PROCESS_LOREBOOK,
+    GENERATE_NEW_MESSAGE,
     PREPARE_CONTENT,
     PREPARE_PAYLOAD,
     INFERENCE,
@@ -12,16 +16,21 @@ public enum GenerationStepType {
 
     ;
 
+    private static GenerationStepType[] stepAll = values();
+    private static Map<GenerationStepType, Integer> ordinals = new HashMap<>();
+
+    static {
+        for (int i=0; i<stepAll.length; i++) {
+            ordinals.put(stepAll[i], i);
+        }
+    }
+
     public GenerationStepType next() {
-        return switch (this) {
-            case PREPARE_GENERATION -> GENERATE_NEW_MESSAGE;
-            case GENERATE_NEW_MESSAGE -> PROCESS_LOREBOOK;
-            case PROCESS_LOREBOOK -> PREPARE_CONTENT;
-            case PREPARE_CONTENT -> PREPARE_PAYLOAD;
-            case PREPARE_PAYLOAD -> INFERENCE;
-            case INFERENCE -> CLEANUP;
-            case CLEANUP -> null;
-        };
+        int ord = ordinals.get(this);
+        if (ord < stepAll.length - 1) {
+            return stepAll[ord + 1];
+        }
+        return null;
     }
 
 }

@@ -5,9 +5,14 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.TurnInput;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 
+import java.util.Map;
+
 public interface GenerationController {
+
+    Map<String, Object> getProperties();
 
     Manuscript getManuscript();
     void setManuscript(Manuscript manuscript);
@@ -17,6 +22,8 @@ public interface GenerationController {
     CancellationToken getCancellationToken();
     GenerationListener getUIListener();
     ThreadCopyRequestAttributes getRequestAttributes();
+    PrePromptData getPrePromptData();
+    void setPrePromptData(PrePromptData prePromptData);
 
     void next() throws Exception;
 

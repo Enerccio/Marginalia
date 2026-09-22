@@ -27,4 +27,7 @@ public interface ChatMessageService extends TreeService<ChatMessage, ChatMessage
     int getBranchWordCount(ChatMessage leaf) throws Exception;
 
     int getBranchTokenCount(ChatMessage leaf) throws Exception;
+
+    void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception;
+
 }
