@@ -63,4 +63,50 @@ public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMes
         return getRepository().hasAnyMessages(manuscript);
     }
 
+    @Override
+    @CommonTxReadOnly
+    public int getTotalWordCount(Manuscript manuscript) throws Exception {
+        if (manuscript == null || manuscript.getId() == null) {
+            return 0;
+        }
+        return getRepository().getTotalWordCount(manuscript.getId());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public int getTotalTokenCount(Manuscript manuscript) throws Exception {
+        if (manuscript == null || manuscript.getId() == null) {
+            return 0;
+        }
+        return getRepository().getTotalTokenCount(manuscript.getId());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public int getBranchWordCount(ChatMessage leaf) throws Exception {
+        if (leaf == null || leaf.getId() == null) {
+            return 0;
+        }
+        List<ChatMessage> branch = getBranchFromLeaf(leaf.getId());
+        int total = 0;
+        for (ChatMessage msg : branch) {
+            total += msg.getWordCount();
+        }
+        return total;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public int getBranchTokenCount(ChatMessage leaf) throws Exception {
+        if (leaf == null || leaf.getId() == null) {
+            return 0;
+        }
+        List<ChatMessage> branch = getBranchFromLeaf(leaf.getId());
+        int total = 0;
+        for (ChatMessage msg : branch) {
+            total += msg.getTokenCount();
+        }
+        return total;
+    }
+
 }

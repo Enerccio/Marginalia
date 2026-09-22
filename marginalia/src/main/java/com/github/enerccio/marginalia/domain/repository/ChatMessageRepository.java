@@ -15,4 +15,7 @@ public interface ChatMessageRepository extends TreeRepository<ChatMessage> {
 
     List<Long> getAllMessages(Manuscript manuscript) throws Exception;
 
+    int getTotalWordCount(Long manuscriptId) throws Exception;
+
+    int getTotalTokenCount(Long manuscriptId) throws Exception;
 }

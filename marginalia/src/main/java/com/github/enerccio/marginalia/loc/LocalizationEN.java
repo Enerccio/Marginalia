@@ -99,6 +99,11 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_INFO_PART, "About");
         setValue(L.LABEL_PROMPT_PART, "Prompts");
         setValue(L.LABEL_STORY_PART, "Story");
+        setValue(L.LABEL_DESCRIPTION, "Description");
+        setValue(L.LABEL_TOTAL_WORD_COUNT, "Total Word Count");
+        setValue(L.LABEL_TOTAL_TOKEN_COUNT, "Total Token Count");
+        setValue(L.LABEL_BRANCH_WORD_COUNT, "Active Branch Word Count");
+        setValue(L.LABEL_BRANCH_TOKEN_COUNT, "Active Branch Token Count");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 

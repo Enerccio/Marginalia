@@ -125,10 +125,14 @@ public class ManuscriptPart implements WorkspaceComponent {
                 .setHeader(loc.getValue(L.LABEL_NAME));
 
         grid.addComponentColumn(manuscript -> new Button(VaadinIcon.PENCIL.create(), event -> {
-            ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
-            dialog.setOnClose(this::refreshGrid);
-            dialog.create();
-            dialog.open();
+            try {
+                ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
+                dialog.setOnClose(this::refreshGrid);
+                dialog.create();
+                dialog.open();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         })).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
 
         mainLayout.add(headerLayout, grid);

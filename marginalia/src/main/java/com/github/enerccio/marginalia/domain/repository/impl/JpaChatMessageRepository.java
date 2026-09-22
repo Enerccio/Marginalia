@@ -78,4 +78,28 @@ public class JpaChatMessageRepository extends JpaTreeEntityRepository<ChatMessag
                 .getResultList();
     }
 
+    @Override
+    public int getTotalWordCount(Long manuscriptId) throws Exception {
+        if (manuscriptId == null) {
+            return 0;
+        }
+        Long result = getEntityManager().createQuery(
+                        "SELECT COALESCE(SUM(m.wordCount), 0) FROM ChatMessage m WHERE m.parentScript.id = :manuscriptId AND m.deleted = false", Long.class)
+                .setParameter("manuscriptId", manuscriptId)
+                .getSingleResult();
+        return result != null ? result.intValue() : 0;
+    }
+
+    @Override
+    public int getTotalTokenCount(Long manuscriptId) throws Exception {
+        if (manuscriptId == null) {
+            return 0;
+        }
+        Long result = getEntityManager().createQuery(
+                        "SELECT COALESCE(SUM(m.tokenCount), 0) FROM ChatMessage m WHERE m.parentScript.id = :manuscriptId AND m.deleted = false", Long.class)
+                .setParameter("manuscriptId", manuscriptId)
+                .getSingleResult();
+        return result != null ? result.intValue() : 0;
+    }
+
 }

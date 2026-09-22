@@ -19,4 +19,12 @@ public interface ChatMessageService extends TreeService<ChatMessage, ChatMessage
     List<ChatMessage> findAllLeavesForManuscript(Manuscript manuscript) throws Exception;
 
     boolean hasAnyMessages(Manuscript manuscript) throws Exception;
+
+    int getTotalWordCount(Manuscript manuscript) throws Exception;
+
+    int getTotalTokenCount(Manuscript manuscript) throws Exception;
+
+    int getBranchWordCount(ChatMessage leaf) throws Exception;
+
+    int getBranchTokenCount(ChatMessage leaf) throws Exception;
 }

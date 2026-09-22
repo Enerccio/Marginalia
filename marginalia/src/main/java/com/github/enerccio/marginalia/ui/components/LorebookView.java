@@ -475,4 +475,9 @@ public class LorebookView extends VerticalLayout {
     public Lorebook getCurrentLorebook() {
         return currentLorebook;
     }
+
+    public void setLorebook(Lorebook lorebook) {
+        this.currentLorebook = lorebook;
+        updateSelectedLorebook();
+    }
 }

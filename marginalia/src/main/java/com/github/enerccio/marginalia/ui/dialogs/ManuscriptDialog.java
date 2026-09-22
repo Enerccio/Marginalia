@@ -5,10 +5,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptDialogPart;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptInfoPart;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptPromptPart;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -46,6 +43,8 @@ public class ManuscriptDialog extends Dialog {
     private Component infoPartComponent;
     private final ManuscriptPromptPart promptPart = new ManuscriptPromptPart(this);
     private Component promptPartComponent;
+    private final ManuscriptLorebookPart lorebookPart = new ManuscriptLorebookPart(this);
+    private Component lorebookPartComponent;
     private final ManuscriptStoryPart storyPart = new ManuscriptStoryPart(this);
     private Component storyPartComponent;
 
@@ -69,7 +68,16 @@ public class ManuscriptDialog extends Dialog {
 
         infoPartComponent = infoPart.create(tabs);
         promptPartComponent = promptPart.create(tabs);
+        lorebookPartComponent = lorebookPart.create(tabs);
         storyPartComponent = storyPart.create(tabs);
+
+        parts.add(infoPart);
+        parts.add(promptPart);
+        parts.add(lorebookPart);
+        parts.add(storyPart);
+
+        mainLayout.add(tabs);
+        mainLayout.setFlexGrow(1, tabs);
 
         add(mainLayout);
 
