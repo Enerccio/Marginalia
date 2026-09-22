@@ -27,8 +27,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -105,7 +103,7 @@ public class ManuscriptPart implements WorkspaceComponent {
 
                     manuscript = manuscriptService.save(manuscript);
                     ManuscriptDialog manuscriptDialog = new ManuscriptDialog(manuscript);
-                    manuscriptDialog.setOnSave(this::refreshGrid);
+                    manuscriptDialog.setOnClose(this::refreshGrid);
                     manuscriptDialog.create();
                     manuscriptDialog.open();
                 } catch (Exception e) {
@@ -128,7 +126,7 @@ public class ManuscriptPart implements WorkspaceComponent {
 
         grid.addComponentColumn(manuscript -> new Button(VaadinIcon.PENCIL.create(), event -> {
             ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
-            dialog.setOnSave(this::refreshGrid);
+            dialog.setOnClose(this::refreshGrid);
             dialog.create();
             dialog.open();
         })).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);

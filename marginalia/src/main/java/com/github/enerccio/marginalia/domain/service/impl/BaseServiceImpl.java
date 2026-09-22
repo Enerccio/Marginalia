@@ -26,6 +26,13 @@ public class BaseServiceImpl<T extends BaseEntity, R extends BaseRepository<T>> 
 
     @Override
     @CommonTxReadOnly
+    public T find(T t) throws Exception {
+        if (t == null) return null;
+        return find(t.getId());
+    }
+
+    @Override
+    @CommonTxReadOnly
     public Long find(String uuid) throws Exception {
         return getRepository().find(uuid);
     }

@@ -8,6 +8,7 @@ import java.util.List;
 public interface BaseService<T extends BaseEntity, R extends BaseRepository<T>> {
 
     T find(Long id) throws Exception;
+    T find(T t) throws Exception;
     Long find(String uuid) throws Exception;
     List<T> findAll() throws Exception;
     List<Long> findAllIds() throws Exception;

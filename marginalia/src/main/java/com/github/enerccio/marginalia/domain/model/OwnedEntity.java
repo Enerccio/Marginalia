@@ -9,7 +9,7 @@ import jakarta.persistence.MappedSuperclass;
 @MappedSuperclass
 public class OwnedEntity extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userId", nullable = true)
     private User owner;
 

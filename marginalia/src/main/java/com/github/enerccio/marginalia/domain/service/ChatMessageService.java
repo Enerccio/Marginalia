@@ -6,7 +6,9 @@ import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 
 import java.util.List;
 
-public interface ChatMessageService extends ExtendableService<ChatMessage, ChatMessageRepository> {
+public interface ChatMessageService extends TreeService<ChatMessage, ChatMessageRepository> {
+
+    ChatMessage createRoot(Manuscript manuscript, ChatMessage message) throws Exception;
 
     List<ChatMessage> getBranchFromLeaf(Long leafId) throws Exception;
 
@@ -16,4 +18,5 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     List<ChatMessage> findAllLeavesForManuscript(Manuscript manuscript) throws Exception;
 
+    boolean hasAnyMessages(Manuscript manuscript) throws Exception;
 }

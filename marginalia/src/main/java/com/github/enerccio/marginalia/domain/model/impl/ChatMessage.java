@@ -1,21 +1,26 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
-import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.model.TreeEntity;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
-import org.checkerframework.checker.units.qual.Temperature;
 
 import java.util.Date;
 
-@SuppressWarnings("deprecation")
+
 @Entity
 @Table(name = "messages", indexes = {
         @Index(name = "ix_msg_parent_script", columnList = "parentScript_id"),
         @Index(name = "ix_msg_parent_msg", columnList = "parent_id"),
         @Index(name = "ix_msg_user_id", columnList = "userId"),
+        @Index(name = "ix_msg_parent_script_tree", columnList = "parentScript_id,tree"),
+        @Index(name = "ix_msg_parent_script_tree_deleted", columnList = "parentScript_id,tree,is_deleted"),
+        @Index(name = "ix_msg_parent_msg_tree", columnList = "parent_id,tree"),
+        @Index(name = "ix_msg_parent_msg_tree_deleted", columnList = "parent_id,tree,is_deleted"),
+        @Index(name = "ix_msg_user_id_tree", columnList = "userId,tree"),
+        @Index(name = "ix_msg_user_id_tree_deleted", columnList = "userId,tree,is_deleted"),
         @Index(name = "ix_msg_is_deleted", columnList = "is_deleted")
 })
-public class ChatMessage extends ExtendableEntity {
+public class ChatMessage extends TreeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Manuscript parentScript;
@@ -249,4 +254,5 @@ public class ChatMessage extends ExtendableEntity {
     public void setBuiltPromptTokens(String builtPromptTokens) {
         this.builtPromptTokens = builtPromptTokens;
     }
+
 }

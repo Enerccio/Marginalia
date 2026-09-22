@@ -4,12 +4,22 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 
 import java.util.Collections;
 import java.util.List;
 
-public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
+public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
+
+    @Override
+    @CommonTx
+    public ChatMessage createRoot(Manuscript manuscript, ChatMessage message) throws Exception {
+        message.setParent(null);
+        message.setTree(getRepository().getMaxTree(getLevelSize(), manuscript.getOwner()));
+        message.setParentScript(manuscript);
+        return save(message);
+    }
 
     @Override
     @CommonTxReadOnly
@@ -45,6 +55,12 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             return Collections.emptyList();
         }
         return findAllLeavesForManuscript(manuscript.getId());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public boolean hasAnyMessages(Manuscript manuscript) throws Exception {
+        return getRepository().hasAnyMessages(manuscript);
     }
 
 }

@@ -1,12 +1,13 @@
 package com.github.enerccio.marginalia.domain.repository.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 
 import java.util.Collections;
 import java.util.List;
 
-public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessage> implements ChatMessageRepository {
+public class JpaChatMessageRepository extends JpaTreeEntityRepository<ChatMessage> implements ChatMessageRepository {
 
     @Override
     protected Class<ChatMessage> getEntityClass() {
@@ -62,6 +63,18 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
         return getEntityManager()
                 .createQuery(jpql, ChatMessage.class)
                 .setParameter("manuscriptId", manuscriptId)
+                .getResultList();
+    }
+
+    @Override
+    public boolean hasAnyMessages(Manuscript manuscript) throws Exception {
+        return !getAllMessages(manuscript).isEmpty();
+    }
+
+    @Override
+    public List<Long> getAllMessages(Manuscript manuscript) throws Exception {
+        return getEntityManager().createQuery("SELECT m.id FROM ChatMessage m WHERE m.parentScript = ?1 AND m.deleted = false ORDER BY m.tree", Long.class)
+                .setParameter(1, manuscript)
                 .getResultList();
     }
 
