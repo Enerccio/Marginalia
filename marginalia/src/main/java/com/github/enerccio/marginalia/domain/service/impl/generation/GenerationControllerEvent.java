@@ -12,7 +12,17 @@ public interface GenerationControllerEvent {
     void setMessage(ChatMessage message);
     CancellationToken getCancellationToken();
 
-    void continueEvents();
     void terminateEvents();
+
+    @FunctionalInterface
+    interface Registration {
+        void unregister();
+    }
+
+    interface EventChain {
+        void next();
+
+        void terminate();
+    }
 
 }

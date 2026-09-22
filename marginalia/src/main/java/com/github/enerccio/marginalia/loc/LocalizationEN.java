@@ -133,6 +133,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_CYCLE_DETECTED, "Cannot select sub lorebook: cycle detected.");
         setValue(L.MSG_NO_ACTIVE_BRANCH, "No active story branch. Add a message to begin.");
         setValue(L.MSG_SELECT_MESSAGE_METADATA, "Select a message to view metadata.");
+        setValue(L.MSG_INTERRUPTED, "Generation interrupted on the backend.");
 
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");

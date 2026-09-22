@@ -1,8 +1,13 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationEvent;
 
 public interface StoryGenerationService {
+
+    Registration addEventListener(Events event, GenerationEvent listener);
 
     /**
      * Spawns an asynchronous generation task.
