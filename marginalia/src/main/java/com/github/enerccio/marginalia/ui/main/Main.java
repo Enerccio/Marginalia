@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -50,6 +51,7 @@ public class Main extends LoginCheckRoute {
     @Override
     protected void proceedWithLogin(String username) {
         try {
+            VaadinService.reinitializeSession(VaadinService.getCurrentRequest());
             User u = userService.findByName(username);
 
             user.setId(u.getId());
