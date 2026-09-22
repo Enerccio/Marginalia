@@ -6,12 +6,17 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptDialogPart;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptInfoPart;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptPromptPart;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
@@ -37,12 +42,18 @@ public class ManuscriptDialog extends Dialog {
     private Button exitButton;
     private VTabSheet tabs;
     private final List<ManuscriptDialogPart> parts = new ArrayList<>();
+    private final ManuscriptInfoPart infoPart = new ManuscriptInfoPart(this);
+    private Component infoPartComponent;
+    private final ManuscriptPromptPart promptPart = new ManuscriptPromptPart(this);
+    private Component promptPartComponent;
+    private final ManuscriptStoryPart storyPart = new ManuscriptStoryPart(this);
+    private Component storyPartComponent;
 
     public ManuscriptDialog(Manuscript manuscript) {
         this.manuscript = manuscript;
     }
 
-    public void create() {
+    public void create() throws Exception {
         setHeaderTitle(manuscript.getName());
         setSizeFull();
         setCloseOnEsc(false);
@@ -55,6 +66,10 @@ public class ManuscriptDialog extends Dialog {
 
         tabs = new VTabSheet();
         tabs.setSizeFull();
+
+        infoPartComponent = infoPart.create(tabs);
+        promptPartComponent = promptPart.create(tabs);
+        storyPartComponent = storyPart.create(tabs);
 
         add(mainLayout);
 
@@ -72,11 +87,14 @@ public class ManuscriptDialog extends Dialog {
     public void open() {
         super.open();
         try {
-            manuscript = manuscriptService.find(manuscript.getId());
+            refreshManuscript();
             if (chatMessageService.hasAnyMessages(manuscript)) {
-                // open chat tab with last message tree loaded
+                tabs.setSelectedTab(tabs.getTab(storyPartComponent));
             } else {
-                // open init tab
+                tabs.setSelectedTab(tabs.getTab(infoPartComponent));
+            }
+            for (ManuscriptDialogPart part : parts) {
+                part.load(getManuscript());
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -104,6 +122,18 @@ public class ManuscriptDialog extends Dialog {
         for (ManuscriptDialogPart part : parts) {
             part.setFrozen(frozen);
         }
+    }
+
+    public Manuscript getManuscript() {
+        return manuscript;
+    }
+
+    public Manuscript refreshManuscript() throws Exception {
+        return manuscript = manuscriptService.find(manuscript);
+    }
+
+    public Manuscript save() throws Exception {
+        return manuscript = manuscriptService.save(manuscript);
     }
 
     public Runnable getOnClose() {

@@ -96,6 +96,9 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_EDIT_BOOK, "Edit Book");
         setValue(L.LABEL_NEW_BOOK, "New Book");
         setValue(L.LABEL_NEGATIVE_TAGS, "Negative Tags (Exclusion)");
+        setValue(L.LABEL_INFO_PART, "About");
+        setValue(L.LABEL_PROMPT_PART, "Prompts");
+        setValue(L.LABEL_STORY_PART, "Story");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
 
@@ -105,7 +108,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_INVALID_JSON_OBJECT, "JSON Invalid.");
         setValue(L.MSG_FETCH_MODELS_FAILED, "Failed to download model list.");
         setValue(L.MSG_SETTINGS_SAVED, "Settings saved successfully.");
-        setValue(L.MSG_CONFIRM_DELETE, "Are you sure you want to delete this item?");
+        setValue(L.MSG_CONFIRM_DELETE, "Arwhae you sure you want to delete this item?");
         setValue(L.MSG_CYCLE_DETECTED, "Cannot select sub lorebook: cycle detected.");
 
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
