@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.TurnInput;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
 import com.github.enerccio.marginalia.loc.L;
@@ -261,6 +262,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         private GenerationListener uiListener;
         private ThreadCopyRequestAttributes requestAttributes;
         private PrePromptData prePromptData;
+        private List<LLMChatMessage> payload;
 
         public GenerationEngine() {
 
@@ -319,6 +321,16 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         @Override
         public void setPrePromptData(PrePromptData prePromptData) {
             this.prePromptData = prePromptData;
+        }
+
+        @Override
+        public List<LLMChatMessage> getPayload() {
+            return payload;
+        }
+
+        @Override
+        public void setPayload(List<LLMChatMessage> payload) {
+            this.payload = payload;
         }
 
         @Override

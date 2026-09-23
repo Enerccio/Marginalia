@@ -53,15 +53,15 @@ public class ChatMessage extends TreeEntity {
     private String response;
 
     // approx since model is used and can be changed
-    private int tokenCount;
+    private long tokenCount;
 
     @ExtendedAttribute
     @Transient
-    private int promptTokens;
+    private Long promptTokens;
 
     @ExtendedAttribute
     @Transient
-    private int tokenReasoningCount;
+    private Long tokenReasoningCount;
 
     private int wordCount;
 
@@ -93,7 +93,7 @@ public class ChatMessage extends TreeEntity {
 
     @ExtendedAttribute
     @Transient
-    private String builtPromptTokens;
+    private Long builtPromptTokens;
 
     public Manuscript getParentScript() {
         return parentScript;
@@ -159,27 +159,27 @@ public class ChatMessage extends TreeEntity {
         this.response = response;
     }
 
-    public int getTokenCount() {
+    public long getTokenCount() {
         return tokenCount;
     }
 
-    public void setTokenCount(int tokenCount) {
+    public void setTokenCount(long tokenCount) {
         this.tokenCount = tokenCount;
     }
 
-    public int getPromptTokens() {
+    public Long getPromptTokens() {
         return promptTokens;
     }
 
-    public void setPromptTokens(int promptTokens) {
+    public void setPromptTokens(Long promptTokens) {
         this.promptTokens = promptTokens;
     }
 
-    public int getTokenReasoningCount() {
+    public Long getTokenReasoningCount() {
         return tokenReasoningCount;
     }
 
-    public void setTokenReasoningCount(int tokenReasoningCount) {
+    public void setTokenReasoningCount(Long tokenReasoningCount) {
         this.tokenReasoningCount = tokenReasoningCount;
     }
 
@@ -247,11 +247,11 @@ public class ChatMessage extends TreeEntity {
         this.builtPrompt = builtPrompt;
     }
 
-    public String getBuiltPromptTokens() {
+    public Long getBuiltPromptTokens() {
         return builtPromptTokens;
     }
 
-    public void setBuiltPromptTokens(String builtPromptTokens) {
+    public void setBuiltPromptTokens(Long builtPromptTokens) {
         this.builtPromptTokens = builtPromptTokens;
     }
 

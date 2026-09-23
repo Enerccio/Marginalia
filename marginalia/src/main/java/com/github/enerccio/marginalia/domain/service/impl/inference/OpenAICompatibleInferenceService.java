@@ -5,9 +5,12 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
+import com.openai.core.http.StreamResponse;
+import com.openai.models.chat.completions.*;
 import com.openai.models.models.Model;
 import com.openai.models.models.ModelListPage;
 import com.openai.models.responses.inputtokens.InputTokenCountParams;
@@ -17,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @SupportedAI(AIType.OPEN_AI_COMPATIBLE)
@@ -55,10 +58,163 @@ public class OpenAICompatibleInferenceService implements InferenceService {
         return tokenizerService.countTokens(ai, text);
     }
 
+    @Override
+    public void stream(List<LLMChatMessage> payload, InferenceAsyncCallback callback) throws Exception {
+        OpenAIClient client = openClient();
+
+        List<ChatCompletionMessageParam> messages = new ArrayList<>();
+        for (LLMChatMessage msg : payload) {
+            if (msg.getContent() == null) {
+                continue;
+            }
+            switch (msg.getRole()) {
+                case SYSTEM -> messages.add(ChatCompletionMessageParam.ofSystem(
+                        ChatCompletionSystemMessageParam.builder().content(msg.getContent()).build()));
+                case USER -> messages.add(ChatCompletionMessageParam.ofUser(
+                        ChatCompletionUserMessageParam.builder().content(msg.getContent()).build()));
+                case ASSISTANT -> messages.add(ChatCompletionMessageParam.ofAssistant(
+                        ChatCompletionAssistantMessageParam.builder().content(msg.getContent()).build()));
+            }
+        }
+
+        ChatCompletionCreateParams.Builder paramsBuilder = ChatCompletionCreateParams.builder()
+                .model(ai.getModel())
+                .messages(messages);
+
+        if (ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0) {
+            paramsBuilder.maxCompletionTokens(ai.getMaxCompletionTokens());
+        }
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                StreamResponse<ChatCompletionChunk> streamResponse = client.chat().completions().createStreaming(paramsBuilder.build());
+                OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse, callback);
+                controller.continueInference();
+            } catch (Exception e) {
+                log.error("Failed to start streaming inference: {}", e.getMessage(), e);
+                try {
+                    callback.onError(e);
+                } catch (Exception ex) {
+                    log.error("Error during callback.onError", ex);
+                }
+            }
+        });
+    }
+
     private OpenAIClient openClient() {
         return OpenAIOkHttpClient.builder()
                 .baseUrl(ai.getUri())
                 .apiKey(ai.getApiKey())
                 .build();
     }
+
+    private record PendingChunk(ChunkType type, String text) {}
+
+    private static class OpenAIInferenceAsyncController implements InferenceAsyncController {
+        private final StreamResponse<ChatCompletionChunk> streamResponse;
+        private final Iterator<ChatCompletionChunk> iterator;
+        private final InferenceAsyncCallback callback;
+        private final Queue<PendingChunk> pendingChunks = new LinkedList<>();
+        private boolean completed = false;
+
+        public OpenAIInferenceAsyncController(StreamResponse<ChatCompletionChunk> streamResponse,
+                                              InferenceAsyncCallback callback) {
+            this.streamResponse = streamResponse;
+            this.iterator = streamResponse.stream().iterator();
+            this.callback = callback;
+        }
+
+        @Override
+        public void continueInference() {
+            CompletableFuture.runAsync(this::processNext);
+        }
+
+        @Override
+        public synchronized void terminateInference() {
+            if (completed) {
+                return;
+            }
+            completed = true;
+            pendingChunks.clear();
+            closeStream();
+            log.debug("Inference execution terminated by controller request.");
+        }
+
+        private synchronized void processNext() {
+            if (completed) {
+                return;
+            }
+
+            try {
+                // 1. Deliver buffered chunks remaining from previous network packets
+                if (!pendingChunks.isEmpty()) {
+                    PendingChunk chunk = pendingChunks.poll();
+                    callback.onChunk(this, chunk.type(), chunk.text());
+                    return;
+                }
+
+                // 2. Fetch network stream until next reasoning or content chunk is found
+                while (iterator.hasNext()) {
+                    if (completed) {
+                        return;
+                    }
+
+                    ChatCompletionChunk chunk = iterator.next();
+                    for (ChatCompletionChunk.Choice choice : chunk.choices()) {
+                        ChatCompletionChunk.Choice.Delta delta = choice.delta();
+
+                        String reasoning = extractReasoningContent(delta);
+                        if (reasoning != null && !reasoning.isEmpty()) {
+                            pendingChunks.add(new PendingChunk(ChunkType.REASONING, reasoning));
+                        }
+
+                        delta.content().ifPresent(content -> {
+                            if (!content.isEmpty()) {
+                                pendingChunks.add(new PendingChunk(ChunkType.RESPONSE, content));
+                            }
+                        });
+                    }
+
+                    if (!pendingChunks.isEmpty()) {
+                        PendingChunk nextChunk = pendingChunks.poll();
+                        callback.onChunk(this, nextChunk.type(), nextChunk.text());
+                        return;
+                    }
+                }
+
+                completed = true;
+                closeStream();
+                callback.onCompletion();
+            } catch (Exception e) {
+                if (!completed) {
+                    completed = true;
+                    closeStream();
+                    try {
+                        callback.onError(e);
+                    } catch (Exception ex) {
+                        log.error("Error invoking callback.onError", ex);
+                    }
+                }
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private String extractReasoningContent(ChatCompletionChunk.Choice.Delta delta) {
+            delta._additionalProperties();
+            com.openai.core.JsonValue val = delta._additionalProperties().get("reasoning_content");
+            if (val == null) {
+                val = delta._additionalProperties().get("reasoning");
+            }
+            return (val != null && !val.isNull()) ? (String) val.asString().orElse((String) null) : null;
+        }
+
+        private void closeStream() {
+            try {
+                streamResponse.close();
+            } catch (Exception e) {
+                log.trace("Error closing OpenAI stream response", e);
+            }
+        }
+    }
+
 }
