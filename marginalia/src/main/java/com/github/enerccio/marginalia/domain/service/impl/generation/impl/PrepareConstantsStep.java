@@ -37,6 +37,7 @@ public class PrepareConstantsStep extends GenerationStepBase {
             data.setPov(manuscriptService.getPov(controller.getManuscript()));
             data.setStyle(manuscriptService.getStyle(controller.getManuscript()));
             data.setUserPrompt(manuscriptService.getUserPrompt(controller.getManuscript()));
+            controller.setPrePromptData(data);
 
             controller.emitEvent(Events.AFTER_STATIC_TEMPLATE_DATA, () -> {
                 UserPromptData userPromptData = new UserPromptData();

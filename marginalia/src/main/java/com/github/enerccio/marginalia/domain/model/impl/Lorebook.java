@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.model.impl;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -14,6 +15,9 @@ public class Lorebook extends ExtendableEntity {
 
     @OneToMany(fetch = FetchType.EAGER)
     private List<Lorebook> subbooks;
+
+    @Transient
+    private List<LorebookEntry> cachedEntries = new ArrayList<>();
 
     private boolean enabled = true;
 
@@ -39,5 +43,21 @@ public class Lorebook extends ExtendableEntity {
 
     public void setSubbooks(List<Lorebook> subbooks) {
         this.subbooks = subbooks;
+    }
+
+    public List<LorebookEntry> getCachedEntries() {
+        return cachedEntries;
+    }
+
+    public void setCachedEntries(List<LorebookEntry> cachedEntries) {
+        this.cachedEntries = cachedEntries;
+    }
+
+    @Override
+    public String toString() {
+        return "Lorebook{" +
+                "name='" + name + '\'' +
+                ", enabled=" + enabled +
+                '}';
     }
 }

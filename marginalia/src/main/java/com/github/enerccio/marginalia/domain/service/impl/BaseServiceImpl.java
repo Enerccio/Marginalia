@@ -61,6 +61,11 @@ public class BaseServiceImpl<T extends BaseEntity, R extends BaseRepository<T>> 
         return getRepository().delete(entity, hard);
     }
 
+    @Override
+    public void evict(T entity) throws Exception {
+        getRepository().evict(entity);
+    }
+
     public R getRepository() {
         return repository;
     }

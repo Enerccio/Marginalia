@@ -35,6 +35,15 @@ public abstract class GenerationStepBase implements GenerationStep {
     @Autowired
     protected ProtocolService protocolService;
 
+    @Autowired
+    protected LorebookService lorebookService;
+
+    @Autowired
+    protected LorebookEntryService lorebookEntryService;
+
+    @Autowired
+    protected TagRelationService tagRelationService;
+
     protected abstract void onStep(GenerationController controller) throws Exception;
 
     @Override

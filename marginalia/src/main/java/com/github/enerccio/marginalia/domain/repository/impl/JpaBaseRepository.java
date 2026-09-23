@@ -88,6 +88,11 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
         return null;
     }
 
+    @Override
+    public void evict(T entity) throws Exception {
+        getEntityManager().detach(entity);
+    }
+
     public EntityManager getEntityManager() {
         return entityManager;
     }

@@ -4,6 +4,9 @@ import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "entries")
 public class LorebookEntry extends ExtendableEntity {
@@ -25,6 +28,12 @@ public class LorebookEntry extends ExtendableEntity {
     private boolean enabled = true;
 
     private int ordinal = 100;
+
+    @Transient
+    private List<String> cachedTags = new ArrayList<>();
+
+    @Transient
+    private List<String> cachedNegativeTags = new ArrayList<>();
 
     public Lorebook getLorebook() {
         return lorebook;
@@ -72,5 +81,28 @@ public class LorebookEntry extends ExtendableEntity {
 
     public void setOrder(int ordinal) {
         this.ordinal = ordinal;
+    }
+
+    public List<String> getCachedTags() {
+        return cachedTags;
+    }
+
+    public void setCachedTags(List<String> cachedTags) {
+        this.cachedTags = cachedTags;
+    }
+
+    public List<String> getCachedNegativeTags() {
+        return cachedNegativeTags;
+    }
+
+    public void setCachedNegativeTags(List<String> cachedNegativeTags) {
+        this.cachedNegativeTags = cachedNegativeTags;
+    }
+
+    @Override
+    public String toString() {
+        return "LorebookEntry{" +
+                "name='" + name + '\'' +
+                '}';
     }
 }
