@@ -1,25 +1,19 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.dto;
 
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.TurnInput;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class PrePromptData {
 
     private String jailbreak;
     private long jailbreakTokens;
-    private List<LorebookEntry> allEntries = new ArrayList<>();
-    private List<LorebookEntry> activatedEntries = new ArrayList<>();
     private String backgroundLore;
     private long backgroundLoreTokens;
     private String generalTemplate;
     private String pov;
     private String style;
     private String tense;
-    private String fullPrompt;
-    private long fullPromptTokens;
+    private String systemPrompt;
+    private long systemPromptTokens;
     private String userPrompt;
     private String userPromptProcessed;
     private long userPromptProcessedTokens;
@@ -31,22 +25,6 @@ public class PrePromptData {
 
     public void setJailbreak(String jailbreak) {
         this.jailbreak = jailbreak;
-    }
-
-    public List<LorebookEntry> getAllEntries() {
-        return allEntries;
-    }
-
-    public void setAllEntries(List<LorebookEntry> allEntries) {
-        this.allEntries = allEntries;
-    }
-
-    public List<LorebookEntry> getActivatedEntries() {
-        return activatedEntries;
-    }
-
-    public void setActivatedEntries(List<LorebookEntry> activatedEntries) {
-        this.activatedEntries = activatedEntries;
     }
 
     public String getBackgroundLore() {
@@ -121,20 +99,20 @@ public class PrePromptData {
         this.backgroundLoreTokens = backgroundLoreTokens;
     }
 
-    public String getFullPrompt() {
-        return fullPrompt;
+    public String getSystemPrompt() {
+        return systemPrompt;
     }
 
-    public void setFullPrompt(String fullPrompt) {
-        this.fullPrompt = fullPrompt;
+    public void setSystemPrompt(String systemPrompt) {
+        this.systemPrompt = systemPrompt;
     }
 
-    public long getFullPromptTokens() {
-        return fullPromptTokens;
+    public long getSystemPromptTokens() {
+        return systemPromptTokens;
     }
 
-    public void setFullPromptTokens(long fullPromptTokens) {
-        this.fullPromptTokens = fullPromptTokens;
+    public void setSystemPromptTokens(long systemPromptTokens) {
+        this.systemPromptTokens = systemPromptTokens;
     }
 
     public String getUserPromptProcessed() {
