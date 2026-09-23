@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.traits.NoTx;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -226,7 +227,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         AtomicLong tc = new AtomicLong();
         taskExecutor = Executors.newCachedThreadPool(runnable -> {
             Thread thread = new Thread(runnable);
-            thread.setName("Generation thread " + tc.getAndAdd(1));
+            thread.setName("Generation thread " + StringUtils.leftPad("" + tc.getAndAdd(1), 3, '0'));
             return thread;
         });
         for (GenerationStep step : installedSteps) {
@@ -382,7 +383,12 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         }
 
         @Override
-        public void emitEvent(Events event, FromEventCallback continueAfterEventHandling) {
+        public void emitEvent(Events event, FromEventCallback continueAfterEventHandlingArg) {
+            log.debug("Emitting event {}.", event);
+            FromEventCallback continueAfterEventHandling = () -> {
+                log.debug("Returning from event {}.", event);
+                continueAfterEventHandlingArg.returnFromEvent();
+            };
             List<GenerationEvent> eventListeners = getListeners(event);
 
             if (eventListeners == null || eventListeners.isEmpty()) {
