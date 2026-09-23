@@ -13,13 +13,13 @@ RUN cp src/main/resources/META-INF/VAADIN/config/flow-build-info.json.PRODUCTION
        src/main/resources/META-INF/VAADIN/config/flow-build-info.json
 RUN mvn clean package -DskipTests
 
-FROM jetty:12-jre21-eclipse-temurin
+FROM jetty:12-jdk25-eclipse-temurin
 
 USER jetty
 WORKDIR $JETTY_BASE
 
 RUN java -jar "$JETTY_HOME/start.jar" --create-startd \
-    --add-modules=server,http,ee10-deploy,ee10-websocket-jakarta,ee10-webapp
+    --add-modules=server,http,ee10-deploy,ee10-websocket-jakarta,ee10-webapp,ee10-jsp
 
 COPY --from=builder /build/target/*.war $JETTY_BASE/webapps/ROOT.war
 
