@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
+import com.github.enerccio.marginalia.ui.dialogs.PromptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -437,6 +438,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                                 card.updateReasoning("");
                                 card.updateResponse("");
                                 card.updateMetrics(message);
+                                card.wasReasoningOpenedByGeneration = false;
+                                streamingCard = card;
                             } else {
                                 List<ChatMessageCard> cards = activeCardMap.values().stream().toList();
                                 ChatMessageCard last = cards.getLast();
@@ -514,6 +517,20 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @Override
                     public void onCancelled(ChatMessage partialMessage) {
                         ui.access(() -> {
+                            updateLastFlagsForNewCard();
+                            if (partialMessage == null) {
+                                centerContentPanel.remove(streamingCard);
+                            } else {
+                                if (!partialMessage.getId().equals(streamingCard.message.getId())) {
+                                    centerContentPanel.remove(streamingCard);
+                                    ChatMessageCard card = new ChatMessageCard(partialMessage, true);
+                                    card.setFrozen(true);
+                                    activeCardMap.put(partialMessage.getId(), card);
+                                    streamingCard = null;
+                                    centerContentPanel.add(card);
+                                }
+                            }
+
                             activeGenerationToken = null;
                             streamingCard = null;
                             parent.unfreeze();
@@ -536,9 +553,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @Override
                     public void onError(Throwable cause) {
                         ui.access(() -> {
-                            activeGenerationToken = null;
-                            streamingCard = null;
-                            parent.unfreeze();
                             UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
                             UIPushGuard.push(ui);
                         });
@@ -547,9 +561,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @Override
                     public void onSimpleError(String error) {
                         ui.access(() -> {
-                            activeGenerationToken = null;
-                            streamingCard = null;
-                            parent.unfreeze();
                             Notification.error(error);
                             UIPushGuard.push(ui);
                         });
@@ -622,6 +633,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
         private MenuItem deleteItem;
+        private MenuItem showPromptItem;
         private Details reasoningDetails;
         private Markdown reasoningMarkdown;
         private Markdown responseMarkdown;
@@ -690,6 +702,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             swipeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SWIPE), event -> swipe());
             swipeItem.setVisible(this.isLast);
+
+            showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
 
             deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -972,6 +986,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             modelSpan.setText(loc.getValue(L.LABEL_MODEL) + ": " + modelName);
             tokensSpan.setText(loc.getValue(L.LABEL_TOKENS) + ": " + msg.getTokenCount() + " (" + msg.getPromptTokens() + ")");
             wordsSpan.setText(loc.getValue(L.LABEL_WORDS) + ": " + msg.getWordCount());
+        }
+
+        private void showPrompt() {
+            PromptDialog dialog = new PromptDialog(message.getBuiltPrompt());
+            dialog.create();
+            dialog.open();
         }
     }
 }

@@ -122,6 +122,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_CHANGE_STYLES, "Change Styles For Text");
         setValue(L.LABEL_REGENERATE, "Regenerate");
         setValue(L.LABEL_SWIPE, "Swipe");
+        setValue(L.LABEL_SHOW_PROMPT, "Show Prompt");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.TurnInput;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -69,7 +70,7 @@ public class GenerateNewMessageStep extends GenerationStepBase {
                     }
                 }
                 case REGENERATE -> {
-                    node = initialNode;
+                    node = chatMessageService.save(initialNode);
                 }
                 case SWIPE -> {
                     ChatMessage parent = chatMessageService.getParent(controller.getRequest().getNode());
@@ -90,6 +91,7 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             controller.setManuscript(manuscriptService.save(manuscript));
             controller.setMessage(node);
             controller.emitEvent(Events.AFTER_GENERATE_NEW_MESSAGE, () -> {
+                controller.setState(State.PARTIAL_SUCCESS);
                 controller.getUIListener().onNodeCreated(controller.getMessage());
                 controller.next();
             });

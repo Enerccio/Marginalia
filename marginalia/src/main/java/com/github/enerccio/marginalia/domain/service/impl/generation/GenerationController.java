@@ -29,6 +29,8 @@ public interface GenerationController {
     void setPrePromptData(PrePromptData prePromptData);
     List<LLMChatMessage> getPayload();
     void setPayload(List<LLMChatMessage> payload);
+    State getState();
+    void setState(State state);
 
     void next() throws Exception;
 
@@ -40,5 +42,9 @@ public interface GenerationController {
 
         void returnFromEvent() throws Exception;
 
+    }
+
+    enum State {
+        NOT_SUCCESSFUL, PARTIAL_SUCCESS, SUCCESSFUL
     }
 }

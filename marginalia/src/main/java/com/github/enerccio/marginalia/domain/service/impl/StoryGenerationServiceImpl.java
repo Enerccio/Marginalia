@@ -119,6 +119,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         private ThreadCopyRequestAttributes requestAttributes;
         private PrePromptData prePromptData;
         private List<LLMChatMessage> payload;
+        private State state = State.NOT_SUCCESSFUL;
 
         public GenerationEngine() {
 
@@ -192,6 +193,16 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         @Override
         public void setPayload(List<LLMChatMessage> payload) {
             this.payload = payload;
+        }
+
+        @Override
+        public State getState() {
+            return state;
+        }
+
+        @Override
+        public void setState(State state) {
+            this.state = state;
         }
 
         @Override

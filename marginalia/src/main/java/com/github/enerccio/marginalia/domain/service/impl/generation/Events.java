@@ -24,6 +24,5 @@ public enum Events {
     CHUNK_RECEIVED,
     AFTER_INFERENCE,
     BEFORE_CLEANUP,
-    AFTER_CLEANUP
 
 }

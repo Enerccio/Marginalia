@@ -8,8 +8,8 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationS
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
-import com.github.enerccio.marginalia.domain.templates.UserPromptData;
 import com.github.enerccio.marginalia.loc.L;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,8 +59,10 @@ public class PrepareContentStep extends GenerationStepBase {
                     if (!iterator.hasNext())
                         break;
                     ChatMessage message = iterator.next();
-                    storyText.add(message.getResponse());
-                    tokens += message.getTokenCount();
+                    if (StringUtils.isNotBlank(message.getResponse())) {
+                        storyText.add(message.getResponse());
+                        tokens += message.getTokenCount();
+                    }
                 }
 
                 Collections.reverse(storyText);

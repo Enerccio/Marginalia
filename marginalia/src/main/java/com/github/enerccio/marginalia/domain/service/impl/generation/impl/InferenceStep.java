@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceA
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
 import com.github.enerccio.marginalia.loc.L;
@@ -29,13 +30,13 @@ public class InferenceStep extends GenerationStepBase {
             InferenceService inferenceService = inferenceServices.forAI(controller.getManuscript().getAi());
 
             controller.getMessage().setPromptTokens(inferenceService.countTokens(gson.toJson(controller.getPayload())));
+            controller.setMessage(chatMessageService.save(controller.getMessage()));
 
             inferenceService.stream(controller.getPayload(), new InferenceAsyncCallback() {
 
                 @Override
                 public void onChunk(InferenceAsyncController inferenceController, ChunkType chunkType, String text) throws Exception {
                     if (controller.getCancellationToken().isCancelled()) {
-                        controller.getUIListener().onCancelled(controller.getMessage());
                         controller.jumpTo(GenerationStepType.CLEANUP);
                         return;
                     }
@@ -92,20 +93,20 @@ public class InferenceStep extends GenerationStepBase {
 
                 @Override
                 public void onCompletion() throws Exception {
-                    Manuscript manuscript = controller.getManuscript();
-                    ChatMessage chatMessage = controller.getMessage();
-                    if (StringUtils.isNotBlank(chatMessage.getResponse())) {
-                        chatMessage.setTokenCount(inferenceService.countTokens(chatMessage.getResponse()));
-                    }
-                    if (StringUtils.isNotBlank(chatMessage.getResponseReasoning())) {
-                        chatMessage.setTokenReasoningCount(inferenceService.countTokens(chatMessage.getResponseReasoning()));
-                    }
-                    controller.setMessage(chatMessageService.save(chatMessage));
-                    controller.setManuscript(manuscriptService.save(manuscript));
-                    controller.getUIListener().onMetricsUpdated(controller.getMessage());
-
-                    controller.getUIListener().onComplete(controller.getMessage());
-                    controller.next();
+                    controller.emitEvent(Events.AFTER_INFERENCE, () -> {
+                        Manuscript manuscript = controller.getManuscript();
+                        ChatMessage chatMessage = controller.getMessage();
+                        if (StringUtils.isNotBlank(chatMessage.getResponse())) {
+                            chatMessage.setTokenCount(inferenceService.countTokens(chatMessage.getResponse()));
+                        }
+                        if (StringUtils.isNotBlank(chatMessage.getResponseReasoning())) {
+                            chatMessage.setTokenReasoningCount(inferenceService.countTokens(chatMessage.getResponseReasoning()));
+                        }
+                        controller.setMessage(chatMessageService.save(chatMessage));
+                        controller.setManuscript(manuscriptService.save(manuscript));
+                        controller.setState(State.SUCCESSFUL);
+                        controller.next();
+                    });
                 }
 
                 @Override
@@ -124,8 +125,6 @@ public class InferenceStep extends GenerationStepBase {
                     return controller.getCancellationToken().isCancelled();
                 }
             });
-
-            controller.emitEvent(Events.AFTER_INFERENCE, controller::next);
         });
     }
 
