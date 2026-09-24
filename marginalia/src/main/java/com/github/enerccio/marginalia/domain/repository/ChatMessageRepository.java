@@ -5,11 +5,17 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 
 import java.util.List;
 
-public interface ChatMessageRepository extends TreeRepository<ChatMessage> {
+public interface ChatMessageRepository extends ExtendableRepository<ChatMessage> {
 
-    List<ChatMessage> findBranchFromLeaf(Long leafId) throws Exception;
+    List<ChatMessage> findBranchFromLeaf(ChatMessage leaf) throws Exception;
 
-    List<ChatMessage> findAllLeavesForManuscript(Long manuscriptId) throws Exception;
+    List<ChatMessage> findChildren(ChatMessage parent) throws Exception;
+
+    List<ChatMessage> findRootMessages(Manuscript manuscript) throws Exception;
+
+    List<ChatMessage> findAllByManuscript(Manuscript manuscript) throws Exception;
+
+    void reparentChildren(ChatMessage targetNode, ChatMessage newParent) throws Exception;
 
     boolean hasAnyMessages(Manuscript manuscript) throws Exception;
 
@@ -18,4 +24,5 @@ public interface ChatMessageRepository extends TreeRepository<ChatMessage> {
     int getTotalWordCount(Long manuscriptId) throws Exception;
 
     int getTotalTokenCount(Long manuscriptId) throws Exception;
+
 }

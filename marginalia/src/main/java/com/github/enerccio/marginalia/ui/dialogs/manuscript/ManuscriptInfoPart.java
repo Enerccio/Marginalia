@@ -184,12 +184,12 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         int totalWords = chatMessageService.getTotalWordCount(manuscript);
         int totalTokens = chatMessageService.getTotalTokenCount(manuscript);
         int branchWords = chatMessageService.getBranchWordCount(manuscript.getActiveLeaf());
-        int branchTokens = chatMessageService.getBranchTokenCount(manuscript.getActiveLeaf());
+        long branchTokens = chatMessageService.getBranchTokenCount(manuscript.getActiveLeaf());
 
         totalWordCountField.setValue(totalWords);
         totalTokenCountField.setValue(totalTokens);
         branchWordCountField.setValue(branchWords);
-        branchTokenCountField.setValue(branchTokens);
+        branchTokenCountField.setValue((int) branchTokens);
     }
 
     @Override

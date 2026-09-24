@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
+public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
     private static final Pattern WORD_PATTERN = Pattern.compile("\\w+", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Autowired
@@ -25,53 +25,66 @@ public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMes
     @Override
     @CommonTx
     public ChatMessage createRoot(Manuscript manuscript, ChatMessage message) throws Exception {
-        message.setParent(null);
-        List<String> rootTrees = getRootTrees(manuscript.getOwner());
-        String rootTree;
-        if (rootTrees.isEmpty()) {
-            rootTree = num2tree(0L);
-        } else {
-            rootTree = incTree(rootTrees.getLast(), Constants.TREE_DEFAULT_ALLOC_GAP);
-        }
-        message.setTree(rootTree);
         message.setParentScript(manuscript);
+        message.setParent(null);
         return save(message);
     }
 
     @Override
-    @CommonTxReadOnly
-    public List<ChatMessage> getBranchFromLeaf(Long leafId) throws Exception {
-        if (leafId == null) {
-            return Collections.emptyList();
-        }
-        return getRepository().findBranchFromLeaf(leafId);
+    @CommonTx
+    public ChatMessage addChild(ChatMessage parent, ChatMessage child) throws Exception {
+        child.setParent(parent);
+        child.setParentScript(parent.getParentScript());
+        return save(child);
     }
 
     @Override
     @CommonTxReadOnly
     public List<ChatMessage> getBranchFromLeaf(ChatMessage leaf) throws Exception {
-        if (leaf == null || leaf.getId() == null) {
+        if (leaf == null) {
             return Collections.emptyList();
         }
-        return getBranchFromLeaf(leaf.getId());
+        return getRepository().findBranchFromLeaf(leaf);
     }
 
     @Override
     @CommonTxReadOnly
-    public List<ChatMessage> findAllLeavesForManuscript(Long manuscriptId) throws Exception {
-        if (manuscriptId == null) {
+    public List<ChatMessage> getSwipesForMessage(ChatMessage message) throws Exception {
+        if (message == null) {
             return Collections.emptyList();
         }
-        return getRepository().findAllLeavesForManuscript(manuscriptId);
+
+        if (message.getParent() != null) {
+            return getRepository().findChildren(message.getParent());
+        } else if (message.getParentScript() != null) {
+            return getRepository().findRootMessages(message.getParentScript());
+        }
+
+        return Collections.emptyList();
     }
 
     @Override
-    @CommonTxReadOnly
-    public List<ChatMessage> findAllLeavesForManuscript(Manuscript manuscript) throws Exception {
-        if (manuscript == null || manuscript.getId() == null) {
-            return Collections.emptyList();
+    @CommonTx
+    public ChatMessage swipeTo(Manuscript manuscript, ChatMessage targetMessage) throws Exception {
+        if (manuscript == null || targetMessage == null) {
+            return null;
         }
-        return findAllLeavesForManuscript(manuscript.getId());
+
+        ChatMessage deepestLeaf = findDeepestActiveLeaf(targetMessage);
+        manuscript.setActiveLeaf(deepestLeaf);
+        return deepestLeaf;
+    }
+
+    private ChatMessage findDeepestActiveLeaf(ChatMessage node) throws Exception {
+        ChatMessage current = node;
+        while (true) {
+            List<ChatMessage> children = getRepository().findChildren(current);
+            if (children.isEmpty()) {
+                break;
+            }
+            current = children.get(children.size() - 1);
+        }
+        return current;
     }
 
     @Override
@@ -104,7 +117,7 @@ public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMes
         if (leaf == null || leaf.getId() == null) {
             return 0;
         }
-        List<ChatMessage> branch = getBranchFromLeaf(leaf.getId());
+        List<ChatMessage> branch = getBranchFromLeaf(leaf);
         int total = 0;
         for (ChatMessage msg : branch) {
             total += msg.getWordCount();
@@ -114,12 +127,12 @@ public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMes
 
     @Override
     @CommonTxReadOnly
-    public int getBranchTokenCount(ChatMessage leaf) throws Exception {
+    public long getBranchTokenCount(ChatMessage leaf) throws Exception {
         if (leaf == null || leaf.getId() == null) {
             return 0;
         }
-        List<ChatMessage> branch = getBranchFromLeaf(leaf.getId());
-        int total = 0;
+        List<ChatMessage> branch = getBranchFromLeaf(leaf);
+        long total = 0;
         for (ChatMessage msg : branch) {
             total += msg.getTokenCount();
         }
@@ -128,71 +141,22 @@ public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMes
 
     @Override
     @CommonTx
-    public void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception {
-        if (message == null || message.getId() == null) {
-            return;
-        }
-
-        message = find(message.getId());
+    public void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean softDelete) throws Exception {
         if (message == null) {
             return;
         }
 
-        if (manuscript != null && manuscript.getId() != null) {
-            manuscript = manuscriptService.find(manuscript.getId());
-        }
+        ChatMessage parent = message.getParent();
 
-        ChatMessage parentNode = message.getParent();
-        if (parentNode == null) {
-            parentNode = getParent(message);
-        } else {
-            parentNode = find(parentNode.getId());
-        }
+        getRepository().reparentChildren(message, parent);
 
-        List<ChatMessage> children = getChildren(message);
-        ChatMessage activeLeaf = manuscript != null ? manuscript.getActiveLeaf() : null;
-        boolean isDeletingActiveLeaf = activeLeaf != null && activeLeaf.getId().equals(message.getId());
-
-        for (ChatMessage child : children) {
-            if (parentNode != null) {
-                moveChild(parentNode, child);
-                child.setParent(parentNode);
-            } else {
-                child.setParent(null);
-                List<String> rootTrees = getRootTrees(child.getOwner());
-                String rootTree = rootTrees.isEmpty() ? num2tree(0L) : incTree(rootTrees.getLast(), Constants.TREE_DEFAULT_ALLOC_GAP);
-                child.setTree(rootTree);
+        if (manuscript != null && manuscript.getActiveLeaf() != null) {
+            if (manuscript.getActiveLeaf().getId().equals(message.getId())) {
+                manuscript.setActiveLeaf(parent);
             }
-            save(child);
         }
 
-        if (manuscript != null && isDeletingActiveLeaf) {
-            ChatMessage newActiveLeaf = null;
-
-            if (!children.isEmpty()) {
-                newActiveLeaf = children.getFirst();
-            } else {
-                ChatMessage leftSibling = null;
-                try {
-                    leftSibling = getPrevious(message);
-                } catch (Exception ignored) {}
-
-                if (leftSibling != null) {
-                    ChatMessage leafCursor = leftSibling;
-                    while (hasChildren(leafCursor)) {
-                        leafCursor = getLastChild(leafCursor);
-                    }
-                    newActiveLeaf = leafCursor;
-                } else {
-                    newActiveLeaf = parentNode;
-                }
-            }
-
-            manuscript.setActiveLeaf(newActiveLeaf);
-            manuscriptService.save(manuscript);
-        }
-
-        delete(message, hard);
+        delete(message, softDelete);
     }
 
     @Override
