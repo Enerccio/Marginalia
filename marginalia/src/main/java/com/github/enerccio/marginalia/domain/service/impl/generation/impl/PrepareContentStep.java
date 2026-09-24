@@ -37,7 +37,7 @@ public class PrepareContentStep extends GenerationStepBase {
             templateData.setNarrativeTense(data.getTense());
 
             String emptyTemplate = templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData);
-            long baseTokens = inferenceService.countTokens(emptyTemplate) + data.getJailbreakTokens() + data.getUserPromptProcessedTokens();
+            long baseTokens = inferenceService.countTokens(emptyTemplate) + data.getJailbreakTokens() + data.getUserPromptProcessedTokens() + 100; /* Buffer for HEADERS */
 
             if (baseTokens >= limit) {
                 controller.getUIListener().onSimpleError(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
@@ -46,6 +46,10 @@ public class PrepareContentStep extends GenerationStepBase {
             ChatMessage activeMessage = chatMessageService.find(controller.getManuscript().getActiveLeaf());
             if (activeMessage != null) {
                 List<ChatMessage> fromRoot = chatMessageService.getBranchFromLeaf(activeMessage);
+                if (!fromRoot.isEmpty()) {
+                    // remove last
+                    fromRoot = fromRoot.subList(0, fromRoot.size() - 1);
+                }
                 Collections.reverse(fromRoot);
                 Iterator<ChatMessage> iterator = fromRoot.iterator();
 
@@ -61,16 +65,14 @@ public class PrepareContentStep extends GenerationStepBase {
                     ChatMessage message = iterator.next();
                     if (StringUtils.isNotBlank(message.getResponse())) {
                         storyText.add(message.getResponse());
-                        tokens += message.getTokenCount();
+                        tokens += message.getTokenCount() + 100; /* Buffer for dummy messages */
                     }
                 }
 
                 Collections.reverse(storyText);
-                String script = String.join("\n", storyText);
-                controller.getProperties().put(MANUSCRIPT_CHRONICLE, script);
+                controller.getProperties().put(MANUSCRIPT_CHRONICLE, storyText);
 
                 controller.emitEvent(Events.AFTER_MANUSCRIPT_CONCATENATION, () -> {
-                    templateData.setManuscript((String) controller.getProperties().get(MANUSCRIPT_CHRONICLE));
                     String systemPrompt = templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData);
                     data.setSystemPrompt(systemPrompt);
                     data.setSystemPromptTokens(inferenceService.countTokens(systemPrompt));

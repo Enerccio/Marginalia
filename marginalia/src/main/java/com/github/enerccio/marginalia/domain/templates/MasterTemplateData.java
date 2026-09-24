@@ -8,9 +8,6 @@ public class MasterTemplateData implements TemplateData {
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_BACKGROUND_LORE)
     private String backgroundLore;
 
-    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_MANUSCRIPT)
-    private String manuscript;
-
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_NARRATIVE_POV)
     private String narrativePov;
 
@@ -26,14 +23,6 @@ public class MasterTemplateData implements TemplateData {
 
     public void setBackgroundLore(String backgroundLore) {
         this.backgroundLore = backgroundLore;
-    }
-
-    public String getManuscript() {
-        return manuscript;
-    }
-
-    public void setManuscript(String manuscript) {
-        this.manuscript = manuscript;
     }
 
     public String getNarrativePov() {

@@ -12,12 +12,24 @@ import java.util.List;
 
 public class PreparePayloadStep extends GenerationStepBase {
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void onStep(GenerationController controller) throws Exception {
         controller.emitEvent(Events.BEFORE_PREPARE_PAYLOAD, () -> {
             List<LLMChatMessage> payload = new ArrayList<>();
             payload.add(createSystemPrompt(controller));
-            payload.add(createUserPrompt(controller));
+            List<String> story = (List<String>) controller.getProperties().get(PrepareContentStep.MANUSCRIPT_CHRONICLE);
+            boolean first = true;
+            for (String blob : story) {
+                if (first) {
+                    payload.add(createUserPrompt("[ Generate story. ]"));
+                    first = false;
+                } else {
+                    payload.add(createUserPrompt("[ Generate more story. ]"));
+                }
+                payload.add(createAssistantPrompt(blob));
+            }
+            payload.add(createUserPrompt(controller.getPrePromptData().getUserPromptProcessed()));
             controller.setPayload(payload);
             controller.emitEvent(Events.AFTER_PREPARE_PAYLOAD, controller::next);
         });
@@ -30,10 +42,17 @@ public class PreparePayloadStep extends GenerationStepBase {
         return message;
     }
 
-    private LLMChatMessage createUserPrompt(GenerationController controller) {
+    private LLMChatMessage createUserPrompt(String prompt) {
         LLMChatMessage message = new LLMChatMessage();
         message.setRole(LLMRole.USER);
-        message.setContent(controller.getPrePromptData().getUserPromptProcessed());
+        message.setContent(prompt);
+        return message;
+    }
+
+    private LLMChatMessage createAssistantPrompt(String prompt) {
+        LLMChatMessage message = new LLMChatMessage();
+        message.setRole(LLMRole.ASSISTANT);
+        message.setContent(prompt);
         return message;
     }
 

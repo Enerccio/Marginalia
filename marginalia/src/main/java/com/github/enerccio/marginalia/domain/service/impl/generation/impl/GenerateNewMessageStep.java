@@ -50,6 +50,9 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             initialNode.setInstructions(input.instructions());
             initialNode.setResponseReasoning("");
             initialNode.setResponse("");
+            initialNode.setTokenCount(0);
+            initialNode.setReasoningEnd(null);
+            initialNode.setTokenReasoningCount(null);
             initialNode.setBuiltPromptTokens(controller.getPrePromptData().getSystemPromptTokens() + controller.getPrePromptData().getUserPromptProcessedTokens());
             initialNode.setModelUsed(manuscript.getAi().getName());
             initialNode.setProtocolUsed(manuscript.getProtocol().getName());
@@ -90,8 +93,8 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             manuscript.setActiveLeaf(node);
             controller.setManuscript(manuscriptService.save(manuscript));
             controller.setMessage(node);
+            controller.setState(State.PARTIAL_SUCCESS);
             controller.emitEvent(Events.AFTER_GENERATE_NEW_MESSAGE, () -> {
-                controller.setState(State.PARTIAL_SUCCESS);
                 controller.getUIListener().onNodeCreated(controller.getMessage());
                 controller.next();
             });

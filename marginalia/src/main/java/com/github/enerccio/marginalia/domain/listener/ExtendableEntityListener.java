@@ -136,8 +136,11 @@ public class ExtendableEntityListener {
 
                 try {
                     if (strVal == null || strVal.trim().isEmpty()) {
-                        if (f.getType() == boolean.class)
+                        if (f.getType() == boolean.class) {
                             f.set(entity, false);
+                        } else if (String.class.equals(f.getType())) {
+                            f.set(entity, strVal != null ? strVal : "");
+                        }
                         return;
                     }
 

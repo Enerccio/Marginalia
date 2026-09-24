@@ -10,11 +10,6 @@ You are an expert fiction author writing the ongoing narrative "MANUSCRIPT CHRON
 ===== WORLD & LORE CONTEXT =====
 {{.}}
 {{/backgroundLore}}
-{{#manuscript}}
-
-===== MANUSCRIPT CHRONICLE =====
-{{.}}
-{{/manuscript}}
 
 ===== TECHNICAL WRITING STYLE & MECHANICS =====
 {{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
