@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.L;
@@ -8,6 +10,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -31,10 +34,15 @@ public class ManuscriptDialog extends Dialog {
 
     @Autowired
     private ManuscriptService manuscriptService;
+
     @Autowired
     private ChatMessageService chatMessageService;
 
+    @Autowired
+    private AIService aiService;
+
     private Manuscript manuscript;
+    private AI ai;
     private Runnable onClose;
     private boolean frozen;
 
@@ -56,10 +64,12 @@ public class ManuscriptDialog extends Dialog {
     }
 
     public void create() throws Exception {
+        ai = aiService.find(manuscript.getAi());
         setHeaderTitle(manuscript.getName());
         setSizeFull();
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
+        setModality(ModalityMode.STRICT);
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
@@ -176,5 +186,9 @@ public class ManuscriptDialog extends Dialog {
 
     public void setOnClose(Runnable onClose) {
         this.onClose = onClose;
+    }
+
+    public AI getAi() {
+        return ai;
     }
 }

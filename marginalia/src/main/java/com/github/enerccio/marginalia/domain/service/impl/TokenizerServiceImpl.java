@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.*;
@@ -22,19 +21,19 @@ public class TokenizerServiceImpl implements TokenizerService {
     private final TokenizerStrategy llamaCpp = new LlamaCppTokenizerStrategy();
     private final LiteLlmTokenizerStrategy liteLlmTokenizerStrategy = new LiteLlmTokenizerStrategy();
     private final LiteLlmAnthropicTokenizerStrategy liteLlmAnthropicTokenizerStrategy = new LiteLlmAnthropicTokenizerStrategy();
-    private final TokenizerStrategy heuristic = new HeuristicTokenizerStrategy();
+    private final TokenizerStrategy tokkit = new JavaTokkitStrategy();
 
     /**
      * Map each AIType (or AI class) to its ordered list of candidate strategies.
      */
     public List<TokenizerStrategy> getCandidates(AI ai) {
         if (ai == null || ai.getAiType() == null) {
-            return List.of(heuristic);
+            return List.of(tokkit);
         }
 
         return switch (ai.getAiType()) {
-            case OPEN_AI_COMPATIBLE -> List.of(openAiSdk, llamaCpp, liteLlmTokenizerStrategy, liteLlmAnthropicTokenizerStrategy, heuristic);
-            default -> List.of(heuristic);
+            case OPEN_AI_COMPATIBLE -> List.of(openAiSdk, llamaCpp, liteLlmTokenizerStrategy, liteLlmAnthropicTokenizerStrategy, tokkit);
+            default -> List.of(tokkit);
         };
     }
 
@@ -71,7 +70,12 @@ public class TokenizerServiceImpl implements TokenizerService {
             }
         }
 
-        return heuristic.countTokens(ai, text);
+        return tokkit.countTokens(ai, text);
+    }
+
+    @Override
+    public long countTokensApprox(String text) throws Exception {
+        return tokkit.countTokens(null, text);
     }
 
     @Override

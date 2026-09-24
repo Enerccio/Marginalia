@@ -8,12 +8,16 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.domain.traits.NoTx;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
+    private static final Pattern WORD_PATTERN = Pattern.compile("\\w+", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -189,6 +193,15 @@ public class ChatMessageServiceImpl extends TreeServiceImpl<ChatMessage, ChatMes
         }
 
         delete(message, hard);
+    }
+
+    @Override
+    @NoTx
+    public int countWords(String text) {
+        Matcher matcher = WORD_PATTERN.matcher(text);
+        int count = 0;
+        while (matcher.find()) count++;
+        return count;
     }
 
 }

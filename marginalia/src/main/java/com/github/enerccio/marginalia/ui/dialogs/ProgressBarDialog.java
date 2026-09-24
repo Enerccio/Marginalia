@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -42,6 +43,7 @@ public class ProgressBarDialog extends ThreadAccessDialog {
         setHeight("150px");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
+        setModality(ModalityMode.STRICT);
 
         VerticalLayout vl = new VerticalLayout();
         vl.setSizeFull();

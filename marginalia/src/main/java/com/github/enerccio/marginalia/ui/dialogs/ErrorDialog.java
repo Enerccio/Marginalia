@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.HtmlText;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -39,6 +40,7 @@ public class ErrorDialog {
 
     public void open(boolean showDetails) {
         Dialog dialog = new Dialog();
+        dialog.setModality(ModalityMode.STRICT);
         dialog.setWidth(showDetails ? "1024px" : "550px");
         dialog.setHeight(showDetails ? "510px" : "190px");
         dialog.setCloseOnOutsideClick(true);

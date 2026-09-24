@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -26,6 +27,7 @@ public class TextInputDialog extends Dialog {
                             String inputMessageLabel, boolean messageRequired) {
 		setCloseOnEsc(true);
 		setCloseOnOutsideClick(true);
+		setModality(ModalityMode.STRICT);
 
 		HorizontalLayout hl = new HorizontalLayout();
 		hl.setWidthFull();

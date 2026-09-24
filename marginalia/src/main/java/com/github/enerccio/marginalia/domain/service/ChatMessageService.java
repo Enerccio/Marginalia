@@ -30,4 +30,5 @@ public interface ChatMessageService extends TreeService<ChatMessage, ChatMessage
 
     void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception;
 
+    int countWords(String text);
 }

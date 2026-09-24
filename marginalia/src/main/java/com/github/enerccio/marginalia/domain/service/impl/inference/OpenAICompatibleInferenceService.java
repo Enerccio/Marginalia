@@ -59,6 +59,11 @@ public class OpenAICompatibleInferenceService implements InferenceService {
     }
 
     @Override
+    public long countTokensApprox(String text) throws Exception {
+        return tokenizerService.countTokensApprox(text);
+    }
+
+    @Override
     public void stream(List<LLMChatMessage> payload, InferenceAsyncCallback callback) throws Exception {
         OpenAIClient client = openClient();
 

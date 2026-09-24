@@ -46,7 +46,7 @@ public class Configuration implements InitializingBean {
     }
 
     public String resolveDb(String db) {
-        return "jdbc:sqlite:" + folder.getAbsolutePath() + File.separator + db;
+        return "jdbc:sqlite:" + folder.getAbsolutePath() + File.separator + db + "?busy_timeout=10000&journal_mode=WAL";
     }
 
     public File getUserDataFolder(User user) {

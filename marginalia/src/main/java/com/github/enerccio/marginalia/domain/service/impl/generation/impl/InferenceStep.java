@@ -14,8 +14,11 @@ import com.github.enerccio.marginalia.loc.L;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class InferenceStep extends GenerationStepBase {
+
     public static final String REASONING_CHUNK = "REASONING_CHUNK";
     public static final String CHUNK = "CHUNK";
 
@@ -48,8 +51,9 @@ public class InferenceStep extends GenerationStepBase {
                                 chatMessage.setTtft(new Date());
                             }
                             String t = (String) controller.getProperties().get(REASONING_CHUNK);
-                            long deltaTokenIncrease = inferenceService.countTokens(t);
-                            chatMessage.setResponseReasoning(chatMessage.getResponseReasoning() + t);
+                            long deltaTokenIncrease = inferenceService.countTokensApprox(t);
+                            String existingReasoning = StringUtils.defaultString(chatMessage.getResponseReasoning());
+                            chatMessage.setResponseReasoning(existingReasoning + t);
                             chatMessage.setTokenReasoningCount(chatMessage.getTokenReasoningCount() == null ? deltaTokenIncrease : chatMessage.getTokenReasoningCount() + deltaTokenIncrease);
                             controller.setMessage(chatMessageService.save(chatMessage));
                             controller.setManuscript(manuscriptService.save(manuscript));
@@ -69,8 +73,9 @@ public class InferenceStep extends GenerationStepBase {
                                 chatMessage.setReasoningEnd(new Date());
                             }
                             String t = (String) controller.getProperties().get(CHUNK);
-                            long deltaTokenIncrease = inferenceService.countTokens(t);
-                            chatMessage.setResponse(chatMessage.getResponse() + t);
+                            long deltaTokenIncrease = inferenceService.countTokensApprox(t);
+                            String existingResponse = StringUtils.defaultString(chatMessage.getResponse());
+                            chatMessage.setResponse(existingResponse + t);
                             chatMessage.setTokenCount(chatMessage.getTokenCount() + deltaTokenIncrease);
                             chatMessage.setWordCount(countWords(chatMessage.getResponse()));
                             controller.setMessage(chatMessageService.save(chatMessage));
@@ -84,6 +89,18 @@ public class InferenceStep extends GenerationStepBase {
 
                 @Override
                 public void onCompletion() throws Exception {
+                    Manuscript manuscript = controller.getManuscript();
+                    ChatMessage chatMessage = controller.getMessage();
+                    if (StringUtils.isNotBlank(chatMessage.getResponse())) {
+                        chatMessage.setTokenCount(inferenceService.countTokens(chatMessage.getResponse()));
+                    }
+                    if (StringUtils.isNotBlank(chatMessage.getResponseReasoning())) {
+                        chatMessage.setTokenReasoningCount(inferenceService.countTokens(chatMessage.getResponseReasoning()));
+                    }
+                    controller.setMessage(chatMessageService.save(chatMessage));
+                    controller.setManuscript(manuscriptService.save(manuscript));
+                    controller.getUIListener().onMetricsUpdated(controller.getMessage());
+
                     controller.getUIListener().onComplete(controller.getMessage());
                     controller.next();
                 }
@@ -99,9 +116,8 @@ public class InferenceStep extends GenerationStepBase {
         });
     }
 
-    private int countWords(String response) {
-        // TODO?
-        return StringUtils.countMatches(response, " ");
+    private int countWords(String text) {
+         return chatMessageService.countWords(text);
     }
 
     @Override

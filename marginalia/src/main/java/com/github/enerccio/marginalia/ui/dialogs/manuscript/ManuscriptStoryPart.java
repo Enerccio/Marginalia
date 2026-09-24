@@ -111,6 +111,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         centerContentPanel.setSizeFull();
         centerContentPanel.getStyle().set("padding", "8px");
 
+        setupScrollListener();
+
         bottomControlsLayout = buildBottomControls();
 
         centerLayout.add(centerContentPanel, bottomControlsLayout);
@@ -121,8 +123,62 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         mainLayout.setFlexGrow(0, leftMarginLayout);
         mainLayout.setFlexGrow(1, centerLayout);
 
+        UI.getCurrent().getPage().executeJs(
+                "if (!document.getElementById('marginalia-markdown-fix-style')) {" +
+                        "  const style = document.createElement('style');" +
+                        "  style.id = 'marginalia-markdown-fix-style';" +
+                        "  style.textContent = `" +
+                        "    pre, code, pre code, p, div, span, blockquote, vaadin-markdown, .markdown-content {" +
+                        "      white-space: pre-wrap !important;" +
+                        "      word-break: break-word !important;" +
+                        "      overflow-wrap: anywhere !important;" +
+                        "      max-width: 100% !important;" +
+                        "      box-sizing: border-box !important;" +
+                        "    }" +
+                        "    vaadin-details, vaadin-details::part(content), vaadin-details::part(summary) {" +
+                        "      max-width: 100% !important;" +
+                        "      min-width: 0 !important;" +
+                        "      width: 100% !important;" +
+                        "      box-sizing: border-box !important;" +
+                        "    }" +
+                        "  `;" +
+                        "  document.head.appendChild(style);" +
+                        "}"
+        );
+
         container.add(loc.getValue(L.LABEL_STORY_PART), mainLayout);
         return mainLayout;
+    }
+
+    private void setupScrollListener() {
+        centerContentPanel.getElement().addEventListener("panel-scroll", event -> {
+            // Ignore scroll saves while generation is running to avoid SQLITE_BUSY lock contention
+            if (isFrozen) {
+                return;
+            }
+            double pos = event.getEventData().get("event.detail.scrollTop").asDouble();
+            if (currentManuscript != null && currentManuscript.getActiveLeaf() != null) {
+                ChatMessage leaf = currentManuscript.getActiveLeaf();
+                leaf.setScrollPosition((int) pos);
+                try {
+                    chatMessageService.save(leaf);
+                } catch (Exception ignored) {}
+            }
+        }).addEventData("event.detail.scrollTop");
+
+        centerContentPanel.getElement().executeJs(
+                "const el = $0;" +
+                        "if (!el._hasScrollListener) {" +
+                        "  el._hasScrollListener = true;" +
+                        "  let timer;" +
+                        "  el.addEventListener('scroll', () => {" +
+                        "    clearTimeout(timer);" +
+                        "    timer = setTimeout(() => {" +
+                        "      el.dispatchEvent(new CustomEvent('panel-scroll', { detail: { scrollTop: Math.round(el.scrollTop) } }));" +
+                        "    }, 300);" +
+                        "  });" +
+                        "}"
+                , centerContentPanel.getElement());
     }
 
     private HorizontalLayout buildBottomControls() {
@@ -245,14 +301,37 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf());
             for (ChatMessage msg : branch) {
                 ChatMessageCard card = new ChatMessageCard(msg);
+                card.setFrozen(isFrozen);
                 if (msg.getId() != null) {
                     activeCardMap.put(msg.getId(), card);
                 }
                 centerContentPanel.add(card);
             }
+            restoreScrollPosition();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    private void restoreScrollPosition() {
+        ChatMessage leaf = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
+        Integer savedPos = (leaf != null) ? leaf.getScrollPosition() : null;
+
+        centerContentPanel.getElement().executeJs(
+                "requestAnimationFrame(() => {" +
+                        "  requestAnimationFrame(() => {" +
+                        "    const el = $0;" +
+                        "    const target = $1;" +
+                        "    if (target !== null && target !== undefined) {" +
+                        "      el.scrollTop = target;" +
+                        "    } else {" +
+                        "      el.scrollTop = el.scrollHeight;" +
+                        "    }" +
+                        "  });" +
+                        "});",
+                centerContentPanel.getElement(),
+                savedPos
+        );
     }
 
     public void autosaveAndSwapAllToMarkdown() {
@@ -264,6 +343,28 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         if (streamingCard != null && streamingCard.isEditing()) {
             streamingCard.autosaveAndSwapToMarkdown();
         }
+    }
+
+    private void scrollToBottom() {
+        centerContentPanel.getElement().executeJs(
+                "requestAnimationFrame(() => {" +
+                        "  requestAnimationFrame(() => {" +
+                        "    $0.scrollTop = $0.scrollHeight;" +
+                        "  });" +
+                        "});"
+        );
+    }
+
+    private void scrollToBottomIfAtBottom() {
+        centerContentPanel.getElement().executeJs(
+                "requestAnimationFrame(() => {" +
+                        "  const el = $0;" +
+                        "  const isAtBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 100;" +
+                        "  if (isAtBottom) {" +
+                        "    el.scrollTop = el.scrollHeight;" +
+                        "  }" +
+                        "});"
+        );
     }
 
     private void startGeneration() {
@@ -288,11 +389,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     public void onNodeCreated(ChatMessage message) {
                         ui.access(() -> {
                             ChatMessageCard card = new ChatMessageCard(message);
+                            card.setFrozen(true);
                             if (message.getId() != null) {
                                 activeCardMap.put(message.getId(), card);
                             }
                             streamingCard = card;
                             centerContentPanel.add(card);
+                            scrollToBottom();
                             UIPushGuard.push(ui);
                         });
                     }
@@ -303,6 +406,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                             ChatMessageCard card = getOrCreateCard(message);
                             if (card != null) {
                                 card.updateReasoning(message.getResponseReasoning());
+                                scrollToBottomIfAtBottom();
                             }
                             UIPushGuard.push(ui);
                         });
@@ -314,6 +418,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                             ChatMessageCard card = getOrCreateCard(message);
                             if (card != null) {
                                 card.updateResponse(message.getResponse());
+                                scrollToBottomIfAtBottom();
                             }
                             UIPushGuard.push(ui);
                         });
@@ -336,8 +441,18 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                             activeGenerationToken = null;
                             streamingCard = null;
                             parent.unfreeze();
-                            renderStoryContent();
-                            UIPushGuard.push(ui);
+
+                            centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
+                                    .then(Integer.class, scrollTop -> {
+                                        if (scrollTop != null && message != null) {
+                                            message.setScrollPosition(scrollTop);
+                                            try {
+                                                chatMessageService.save(message);
+                                            } catch (Exception ignored) {}
+                                        }
+                                        renderStoryContent();
+                                        UIPushGuard.push(ui);
+                                    });
                         });
                     }
 
@@ -347,8 +462,18 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                             activeGenerationToken = null;
                             streamingCard = null;
                             parent.unfreeze();
-                            renderStoryContent();
-                            UIPushGuard.push(ui);
+
+                            centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
+                                    .then(Integer.class, scrollTop -> {
+                                        if (scrollTop != null && partialMessage != null) {
+                                            partialMessage.setScrollPosition(scrollTop);
+                                            try {
+                                                chatMessageService.save(partialMessage);
+                                            } catch (Exception ignored) {}
+                                        }
+                                        renderStoryContent();
+                                        UIPushGuard.push(ui);
+                                    });
                         });
                     }
 
@@ -390,8 +515,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         this.isFrozen = frozen;
 
         leftMarginLayout.setEnabled(!frozen);
-        centerContentPanel.setEnabled(!frozen);
         menuBar.setEnabled(!frozen);
+
+        for (ChatMessageCard card : activeCardMap.values()) {
+            card.setFrozen(frozen);
+        }
+        if (streamingCard != null) {
+            streamingCard.setFrozen(frozen);
+        }
 
         if (frozen) {
             newTurnPopover.close();
@@ -442,6 +573,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private Span modelSpan;
         private Span tokensSpan;
         private Span wordsSpan;
+        private Button turnDetailsBtn;
 
         public ChatMessageCard(ChatMessage message) {
             this.message = message;
@@ -452,12 +584,20 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             getStyle().set("margin-bottom", "8px");
             getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
             getStyle().set("border-radius", "var(--lumo-border-radius-s)");
+            getStyle().set("min-width", "0");
+            getStyle().set("max-width", "100%");
+            getStyle().set("box-sizing", "border-box");
+            getStyle().set("overflow", "hidden");
 
             contentLayout = new VerticalLayout();
             contentLayout.setWidthFull();
             contentLayout.setPadding(false);
             contentLayout.setSpacing(false);
             contentLayout.getStyle().set("padding", "8px 12px");
+            contentLayout.getStyle().set("min-width", "0");
+            contentLayout.getStyle().set("max-width", "100%");
+            contentLayout.getStyle().set("box-sizing", "border-box");
+            contentLayout.getStyle().set("overflow", "hidden");
 
             HorizontalLayout headerBar = new HorizontalLayout();
             headerBar.setWidthFull();
@@ -500,16 +640,19 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             headerBar.add(UIUtils.voidComponent(), menuBtn);
 
             reasoningMarkdown = new Markdown();
-            reasoningMarkdown.setWidthFull();
+            applyMarkdownStyles(reasoningMarkdown);
             if (StringUtils.isNotBlank(message.getResponseReasoning())) {
                 reasoningMarkdown.setContent(message.getResponseReasoning());
             }
 
             reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
             reasoningDetails.setWidthFull();
+            reasoningDetails.getStyle().set("max-width", "100%");
+            reasoningDetails.getStyle().set("min-width", "0");
+            reasoningDetails.getStyle().set("box-sizing", "border-box");
 
             responseMarkdown = new Markdown();
-            responseMarkdown.setWidthFull();
+            applyMarkdownStyles(responseMarkdown);
             if (StringUtils.isNotBlank(message.getResponse())) {
                 responseMarkdown.setContent(message.getResponse());
             }
@@ -524,6 +667,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             metaLayout = new VerticalLayout();
             metaLayout.setWidth("220px");
+            metaLayout.getStyle().set("min-width", "220px");
+            metaLayout.getStyle().set("max-width", "220px");
+            metaLayout.getStyle().set("flex-shrink", "0");
+            metaLayout.getStyle().set("flex-grow", "0");
+            metaLayout.getStyle().set("box-sizing", "border-box");
             metaLayout.setPadding(false);
             metaLayout.setSpacing(false);
             metaLayout.getStyle().set("padding", "8px 12px");
@@ -544,7 +692,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             wordsSpan = new Span(loc.getValue(L.LABEL_WORDS) + ": " + message.getWordCount());
             wordsSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
 
-            Button turnDetailsBtn = new Button(loc.getValue(L.LABEL_TURN_DETAILS), VaadinIcon.INFO_CIRCLE.create());
+            turnDetailsBtn = new Button(loc.getValue(L.LABEL_TURN_DETAILS), VaadinIcon.INFO_CIRCLE.create());
             turnDetailsBtn.setThemeName("tertiary small");
             turnDetailsBtn.setWidthFull();
 
@@ -581,6 +729,40 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             setFlexGrow(0, metaLayout);
         }
 
+        private void applyMarkdownStyles(Markdown markdown) {
+            markdown.setWidthFull();
+            markdown.getStyle().set("min-width", "0");
+            markdown.getStyle().set("max-width", "100%");
+            markdown.getStyle().set("box-sizing", "border-box");
+            markdown.getElement().executeJs(
+                    "const el = this;" +
+                            "const enforceWrap = () => {" +
+                            "  if (!el) return;" +
+                            "  const root = el.shadowRoot || el;" +
+                            "  const elements = root.querySelectorAll('pre, code, p, div, span');" +
+                            "  elements.forEach(node => {" +
+                            "    node.style.setProperty('white-space', 'pre-wrap', 'important');" +
+                            "    node.style.setProperty('word-break', 'break-word', 'important');" +
+                            "    node.style.setProperty('overflow-wrap', 'anywhere', 'important');" +
+                            "    node.style.setProperty('max-width', '100%', 'important');" +
+                            "    node.style.setProperty('box-sizing', 'border-box', 'important');" +
+                            "  });" +
+                            "};" +
+                            "enforceWrap();" +
+                            "const observer = new MutationObserver(enforceWrap);" +
+                            "observer.observe(el.shadowRoot || el, { childList: true, subtree: true, characterData: true });"
+            );
+        }
+
+        public void setFrozen(boolean frozen) {
+            if (menuBtn != null) {
+                menuBtn.setEnabled(!frozen);
+            }
+            if (turnDetailsBtn != null) {
+                turnDetailsBtn.setEnabled(!frozen);
+            }
+        }
+
         public boolean isEditing() {
             return editing;
         }
@@ -603,7 +785,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 message.setResponse(newResponse);
                 message.setEdited(true);
                 try {
-                   message = chatMessageService.save(message);
+                    message = chatMessageService.save(message);
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
                 }
@@ -618,6 +800,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         public void updateReasoning(String reasoningText) {
             message.setResponseReasoning(reasoningText);
+            reasoningDetails.setOpened(true);
             reasoningMarkdown.setContent(StringUtils.defaultString(reasoningText));
         }
 

@@ -10,7 +10,9 @@ public interface InferenceService {
 
     List<String> getModels();
     long countTokens(String text) throws Exception;
+    long countTokensApprox(String text) throws Exception;
     void stream(List<LLMChatMessage> payload, InferenceAsyncCallback callback) throws Exception;
+
 
     enum ChunkType {
         REASONING, RESPONSE

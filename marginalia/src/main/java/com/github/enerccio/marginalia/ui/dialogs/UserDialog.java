@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -50,6 +51,7 @@ public class UserDialog extends Dialog {
         setCloseOnEsc(!firstTime);
         setCloseOnOutsideClick(!firstTime);
         setWidth("450px");
+        setModality(ModalityMode.STRICT);
 
         setHeaderTitle(user.getId() == null ? loc.getValue(L.LABEL_LOGIN) : loc.getValue(L.LABEL_USERNAME));
 

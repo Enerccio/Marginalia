@@ -95,6 +95,10 @@ public class ChatMessage extends TreeEntity {
     @Transient
     private Long builtPromptTokens;
 
+    @ExtendedAttribute
+    @Transient
+    private Integer scrollPosition;
+
     public Manuscript getParentScript() {
         return parentScript;
     }
@@ -255,4 +259,11 @@ public class ChatMessage extends TreeEntity {
         this.builtPromptTokens = builtPromptTokens;
     }
 
+    public Integer getScrollPosition() {
+        return scrollPosition;
+    }
+
+    public void setScrollPosition(Integer scrollPosition) {
+        this.scrollPosition = scrollPosition;
+    }
 }

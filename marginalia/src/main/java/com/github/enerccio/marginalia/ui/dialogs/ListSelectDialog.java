@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.ItemLabelGenerator;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -51,6 +52,7 @@ public class ListSelectDialog<T> extends Dialog {
         setHeaderTitle(title);
         setWidth("450px");
         setHeight("200px");
+        setModality(ModalityMode.STRICT);
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
 

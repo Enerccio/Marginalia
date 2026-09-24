@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -67,6 +68,7 @@ public class ProtocolDialog extends Dialog {
         setHeight("680px");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
+        setModality(ModalityMode.STRICT);
 
         createFields();
 
