@@ -163,6 +163,7 @@ public class OpenAICompatibleInferenceService implements InferenceService {
                     }
                     if (callback.isDead()) {
                         closeStream();
+                        callback.onCancel();
                         return;
                     }
 

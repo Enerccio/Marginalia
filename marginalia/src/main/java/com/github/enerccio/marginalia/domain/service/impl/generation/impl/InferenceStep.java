@@ -109,6 +109,11 @@ public class InferenceStep extends GenerationStepBase {
                 }
 
                 @Override
+                public void onCancel() throws Exception {
+                    controller.jumpTo(GenerationStepType.CLEANUP);
+                }
+
+                @Override
                 public void onError(Exception exception) throws Exception {
                     controller.getUIListener().onError(exception);
                     controller.jumpTo(GenerationStepType.CLEANUP);

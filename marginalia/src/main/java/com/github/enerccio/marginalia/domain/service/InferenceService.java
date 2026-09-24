@@ -20,6 +20,7 @@ public interface InferenceService {
 
         void onChunk(InferenceAsyncController controller, ChunkType chunkType, String text) throws Exception;
         void onCompletion() throws Exception;
+        void onCancel() throws Exception;
         void onError(Exception exception) throws Exception;
         boolean isDead();
 
