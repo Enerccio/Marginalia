@@ -110,6 +110,9 @@
                 <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.PrepareConstantsStep" />
                 <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.ProcessLorebookStep" />
                 <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.PrepareContentStep" />
+                <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.PreparePayloadStep" />
+                <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.GenerateNewMessageStep" />
+                <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.InferenceStep" />
                 <bean class="com.github.enerccio.marginalia.domain.service.impl.generation.impl.CleanupStep" />
             </list>
         </property>

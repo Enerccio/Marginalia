@@ -21,3 +21,26 @@
 
     z-index: 2147483647;
 }
+
+html {
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+}
+
+body {
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#outlet, #UIRoot {
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+}

@@ -16,7 +16,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.tabs.Tab;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
@@ -66,6 +65,7 @@ public class ManuscriptDialog extends Dialog {
     public void create() throws Exception {
         ai = aiService.find(manuscript.getAi());
         setHeaderTitle(manuscript.getName());
+        getElement().getThemeList().add("full-screen");
         setSizeFull();
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
@@ -73,7 +73,8 @@ public class ManuscriptDialog extends Dialog {
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
-        mainLayout.setPadding(false);
+        mainLayout.getStyle().set("overflow", "hidden");
+        mainLayout.setPadding(true);
         mainLayout.setSpacing(false);
 
         tabs = new VTabSheet();

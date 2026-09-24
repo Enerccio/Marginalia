@@ -110,6 +110,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         centerContentPanel = new ScrollPanel();
         centerContentPanel.setSizeFull();
         centerContentPanel.getStyle().set("padding", "8px");
+        centerContentPanel.getStyle().set("overscroll-behavior", "contain");
 
         setupScrollListener();
 
