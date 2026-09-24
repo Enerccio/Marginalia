@@ -15,6 +15,7 @@ import java.util.Map;
 public interface GenerationController {
 
     Map<String, Object> getProperties();
+    GenerationRequest getRequest();
 
     Manuscript getManuscript();
     void setManuscript(Manuscript manuscript);

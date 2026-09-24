@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.SharedStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -154,9 +155,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
             double pos = event.getEventData().get("event.detail.scrollTop").asDouble();
             if (currentManuscript != null && currentManuscript.getActiveLeaf() != null) {
-                ChatMessage leaf = currentManuscript.getActiveLeaf();
-                leaf.setScrollPosition((int) pos);
                 try {
+                    ChatMessage leaf = chatMessageService.find(currentManuscript.getActiveLeaf());
+                    leaf.setScrollPosition((int) pos);
                     chatMessageService.save(leaf);
                 } catch (Exception ignored) {}
             }
@@ -238,7 +239,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         VerticalLayout content = new VerticalLayout();
         content.setPadding(true);
         content.setSpacing(false);
-        content.setWidth("340px");
+        content.setWidth("540px");
 
         Span title = new Span(loc.getValue(L.LABEL_NEW_TURN_INSTRUCTIONS));
         title.getStyle().set("font-weight", "bold");
@@ -398,6 +399,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         this.activeGenerationToken = storyGenerationService.generateNextTurn(
                 currentManuscript,
                 input,
+                GenerationRequest.newMessage(),
                 new GenerationListener() {
 
                     @Override
@@ -590,6 +592,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private Span tokensSpan;
         private Span wordsSpan;
         private Button turnDetailsBtn;
+        private boolean wasReasoningOpenedByGeneration;
 
         public ChatMessageCard(ChatMessage message) {
             this.message = message;
@@ -718,7 +721,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             readOnlyPopover.setTarget(turnDetailsBtn);
 
             FormLayout detailsForm = new FormLayout();
-            detailsForm.setWidth("320px");
+            detailsForm.setWidth("520px");
             detailsForm.getStyle().set("padding", "12px");
 
             TextArea roScene = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING), StringUtils.defaultString(message.getSceneSetting()), "");
@@ -817,8 +820,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
 
         public void updateReasoning(String reasoningText) {
+            if (!wasReasoningOpenedByGeneration) {
+                reasoningDetails.setOpened(true);
+                wasReasoningOpenedByGeneration = true;
+            }
             message.setResponseReasoning(reasoningText);
-            reasoningDetails.setOpened(true);
             reasoningMarkdown.setContent(StringUtils.defaultString(reasoningText));
         }
 

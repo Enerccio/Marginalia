@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface ChatMessageService extends ExtendableService<ChatMessage, ChatMessageRepository> {
 
+    ChatMessage getParent(ChatMessage node) throws Exception;
+
     ChatMessage createRoot(Manuscript manuscript, ChatMessage message) throws Exception;
 
     ChatMessage addChild(ChatMessage parent, ChatMessage child) throws Exception;
@@ -31,4 +33,5 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception;
 
     int countWords(String text);
+
 }

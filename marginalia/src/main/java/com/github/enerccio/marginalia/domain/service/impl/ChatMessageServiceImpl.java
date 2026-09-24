@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
@@ -21,6 +20,14 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Override
+    @CommonTx
+    public ChatMessage getParent(ChatMessage node) throws Exception {
+        if (node == null)
+            return null;
+        return find(find(node).getParent());
+    }
 
     @Override
     @CommonTx

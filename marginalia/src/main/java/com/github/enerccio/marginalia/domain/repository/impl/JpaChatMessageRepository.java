@@ -1,10 +1,12 @@
 package com.github.enerccio.marginalia.domain.repository.impl;
 
+import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 import jakarta.persistence.TypedQuery;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,12 +35,24 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
                 SELECT * FROM branch
                 """;
 
-        List<ChatMessage> results = getEntityManager()
+        List<ChatMessage> rawResults = getEntityManager()
                 .createNativeQuery(sql, ChatMessage.class)
                 .setParameter("leafId", leaf.getId())
                 .getResultList();
 
+        List<ChatMessage> results = new ArrayList<>();
+        for (ChatMessage msg : rawResults) {
+            ChatMessage entity = (ChatMessage) org.hibernate.Hibernate.unproxy(msg);
+
+            if (entity.getResponse() == null && entity.getExtendedContent() != null) {
+                listener.deserialize(entity);
+            }
+
+            results.add(entity);
+        }
+
         Collections.reverse(results);
+        results.forEach(ExtendableEntity::getExtendedContent);
         return results;
     }
 

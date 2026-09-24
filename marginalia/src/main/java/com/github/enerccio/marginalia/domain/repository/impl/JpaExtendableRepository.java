@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.repository.ExtendableRepository;
 
 public abstract class JpaExtendableRepository<T extends ExtendableEntity> extends JpaOwnedRepository<T> implements ExtendableRepository<T> {
 
-    private final ExtendableEntityListener listener = new ExtendableEntityListener();
+    protected final ExtendableEntityListener listener = new ExtendableEntityListener();
 
     @Override
     public T save(T entity) throws Exception {
