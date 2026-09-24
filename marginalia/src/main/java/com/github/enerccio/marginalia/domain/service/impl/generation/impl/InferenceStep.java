@@ -113,6 +113,11 @@ public class InferenceStep extends GenerationStepBase {
                     controller.getUIListener().onError(exception);
                     controller.jumpTo(GenerationStepType.CLEANUP);
                 }
+
+                @Override
+                public boolean isDead() {
+                    return controller.getCancellationToken().isCancelled();
+                }
             });
 
             controller.emitEvent(Events.AFTER_INFERENCE, controller::next);

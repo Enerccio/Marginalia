@@ -1,10 +1,8 @@
 package com.github.enerccio.marginalia.domain.service;
 
-import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public interface InferenceService {
 
@@ -23,6 +21,7 @@ public interface InferenceService {
         void onChunk(InferenceAsyncController controller, ChunkType chunkType, String text) throws Exception;
         void onCompletion() throws Exception;
         void onError(Exception exception) throws Exception;
+        boolean isDead();
 
     }
 

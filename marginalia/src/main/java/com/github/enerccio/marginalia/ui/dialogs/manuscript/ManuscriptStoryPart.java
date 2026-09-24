@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -35,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -84,7 +85,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private Manuscript currentManuscript;
     private boolean isFrozen = false;
 
-    private final Map<Long, ChatMessageCard> activeCardMap = new HashMap<>();
+    private final Map<Long, ChatMessageCard> activeCardMap = new LinkedHashMap<>();
     private ChatMessageCard streamingCard;
 
     public ManuscriptStoryPart(ManuscriptDialog parent) {
@@ -315,8 +316,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         try {
             List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf());
-            for (ChatMessage msg : branch) {
-                ChatMessageCard card = new ChatMessageCard(msg);
+            int total = branch.size();
+            for (int i = 0; i < total; i++) {
+                ChatMessage msg = branch.get(i);
+                boolean isLast = (i == total - 1);
+                ChatMessageCard card = new ChatMessageCard(msg, isLast);
                 card.setFrozen(isFrozen);
                 if (msg.getId() != null) {
                     activeCardMap.put(msg.getId(), card);
@@ -326,6 +330,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             restoreScrollPosition();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    private void updateLastFlagsForNewCard() {
+        for (ChatMessageCard card : activeCardMap.values()) {
+            card.setLastMessage(false);
+        }
+        if (streamingCard != null) {
+            streamingCard.setLastMessage(false);
         }
     }
 
@@ -384,9 +397,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     private void startGeneration() {
-        autosaveAndSwapAllToMarkdown();
-        UI ui = UI.getCurrent();
-
         TurnInput input = new TurnInput(
                 pendingSceneSetting,
                 pendingPovCharacter,
@@ -394,24 +404,52 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 pendingInstructions
         );
 
+        startGeneration(GenerationRequest.newMessage(), input);
+    }
+
+    private void startGeneration(GenerationRequest request, TurnInput turnInput) {
+        autosaveAndSwapAllToMarkdown();
+        UI ui = UI.getCurrent();
+
         parent.freeze();
 
         this.activeGenerationToken = storyGenerationService.generateNextTurn(
                 currentManuscript,
-                input,
-                GenerationRequest.newMessage(),
+                turnInput,
+                request,
                 new GenerationListener() {
 
                     @Override
                     public void onNodeCreated(ChatMessage message) {
                         ui.access(() -> {
-                            ChatMessageCard card = new ChatMessageCard(message);
-                            card.setFrozen(true);
-                            if (message.getId() != null) {
-                                activeCardMap.put(message.getId(), card);
+                            updateLastFlagsForNewCard();
+
+                            if (request.getRequestType() == GenerationRequestType.NEW_MESSAGE) {
+                                ChatMessageCard card = new ChatMessageCard(message, true);
+                                card.setFrozen(true);
+                                if (message.getId() != null) {
+                                    activeCardMap.put(message.getId(), card);
+                                }
+                                streamingCard = card;
+                                centerContentPanel.add(card);
+                            } else if (request.getRequestType() == GenerationRequestType.REGENERATE) {
+                                ChatMessageCard card = getOrCreateCard(message);
+                                card.updateReasoning("");
+                                card.updateResponse("");
+                                card.updateMetrics(message);
+                            } else {
+                                List<ChatMessageCard> cards = activeCardMap.values().stream().toList();
+                                ChatMessageCard last = cards.getLast();
+                                activeCardMap.remove(last.message.getId());
+                                centerContentPanel.remove(last);
+                                ChatMessageCard card = new ChatMessageCard(message, true);
+                                card.setFrozen(true);
+                                if (message.getId() != null) {
+                                    activeCardMap.put(message.getId(), card);
+                                }
+                                streamingCard = card;
+                                centerContentPanel.add(card);
                             }
-                            streamingCard = card;
-                            centerContentPanel.add(card);
                             scrollToBottom();
                             UIPushGuard.push(ui);
                         });
@@ -575,11 +613,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private class ChatMessageCard extends HorizontalLayout {
         private ChatMessage message;
+        private boolean isLast;
 
         private final VerticalLayout contentLayout;
         private Button menuBtn;
         private ContextMenu hamburgerMenu;
         private MenuItem editItem;
+        private MenuItem regenerateItem;
+        private MenuItem swipeItem;
         private MenuItem deleteItem;
         private Details reasoningDetails;
         private Markdown reasoningMarkdown;
@@ -594,8 +635,18 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private Button turnDetailsBtn;
         private boolean wasReasoningOpenedByGeneration;
 
+        private TextArea detailsSceneField;
+        private TextField detailsPovField;
+        private TextArea detailsPresentField;
+        private TextArea detailsInstructionsField;
+
         public ChatMessageCard(ChatMessage message) {
+            this(message, false);
+        }
+
+        public ChatMessageCard(ChatMessage message, boolean isLast) {
             this.message = message;
+            this.isLast = isLast;
 
             setWidthFull();
             setPadding(false);
@@ -633,6 +684,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             hamburgerMenu.setTarget(menuBtn);
             hamburgerMenu.setOpenOnClick(true);
             editItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_EDIT), event -> toggleEdit());
+
+            regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
+            regenerateItem.setVisible(this.isLast);
+
+            swipeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SWIPE), event -> swipe());
+            swipeItem.setVisible(this.isLast);
 
             deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -724,23 +781,47 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             detailsForm.setWidth("520px");
             detailsForm.getStyle().set("padding", "12px");
 
-            TextArea roScene = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING), StringUtils.defaultString(message.getSceneSetting()), "");
-            roScene.setReadOnly(true);
-            roScene.setWidthFull();
+            detailsSceneField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING), StringUtils.defaultString(message.getSceneSetting()), "");
+            detailsSceneField.setReadOnly(!this.isLast);
+            detailsSceneField.setWidthFull();
+            detailsSceneField.addValueChangeListener(e -> {
+                if (e.isFromClient() && this.isLast) {
+                    this.message.setSceneSetting(e.getValue());
+                    saveMessage();
+                }
+            });
 
-            TextField roPov = new TextField(loc.getValue(L.LABEL_POV_CHARACTER), StringUtils.defaultString(message.getPovCharacter()), "");
-            roPov.setReadOnly(true);
-            roPov.setWidthFull();
+            detailsPovField = new TextField(loc.getValue(L.LABEL_POV_CHARACTER), StringUtils.defaultString(message.getPovCharacter()), "");
+            detailsPovField.setReadOnly(!this.isLast);
+            detailsPovField.setWidthFull();
+            detailsPovField.addValueChangeListener(e -> {
+                if (e.isFromClient() && this.isLast) {
+                    this.message.setPovCharacter(e.getValue());
+                    saveMessage();
+                }
+            });
 
-            TextArea roPresent = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS), StringUtils.defaultString(message.getPresentCharacters()), "");
-            roPresent.setReadOnly(true);
-            roPresent.setWidthFull();
+            detailsPresentField = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS), StringUtils.defaultString(message.getPresentCharacters()), "");
+            detailsPresentField.setReadOnly(!this.isLast);
+            detailsPresentField.setWidthFull();
+            detailsPresentField.addValueChangeListener(e -> {
+                if (e.isFromClient() && this.isLast) {
+                    this.message.setPresentCharacters(e.getValue());
+                    saveMessage();
+                }
+            });
 
-            TextArea roInst = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS), StringUtils.defaultString(message.getInstructions()), "");
-            roInst.setReadOnly(true);
-            roInst.setWidthFull();
+            detailsInstructionsField = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS), StringUtils.defaultString(message.getInstructions()), "");
+            detailsInstructionsField.setReadOnly(!this.isLast);
+            detailsInstructionsField.setWidthFull();
+            detailsInstructionsField.addValueChangeListener(e -> {
+                if (e.isFromClient() && this.isLast) {
+                    this.message.setInstructions(e.getValue());
+                    saveMessage();
+                }
+            });
 
-            detailsForm.add(roScene, roPov, roPresent, roInst);
+            detailsForm.add(detailsSceneField, detailsPovField, detailsPresentField, detailsInstructionsField);
             readOnlyPopover.add(detailsForm);
 
             metaLayout.add(metaHeader, modelSpan, tokensSpan, wordsSpan, turnDetailsBtn);
@@ -748,6 +829,56 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             add(contentLayout, metaLayout);
             setFlexGrow(1, contentLayout);
             setFlexGrow(0, metaLayout);
+        }
+
+        private void regenerate() {
+            TurnInput input = new TurnInput(
+                    detailsSceneField.getValue(),
+                    detailsPovField.getValue(),
+                    detailsPresentField.getValue(),
+                    detailsInstructionsField.getValue()
+            );
+            startGeneration(GenerationRequest.regenerate(message), input);
+        }
+
+        private void swipe() {
+            TurnInput input = new TurnInput(
+                    detailsSceneField.getValue(),
+                    detailsPovField.getValue(),
+                    detailsPresentField.getValue(),
+                    detailsInstructionsField.getValue()
+            );
+            startGeneration(GenerationRequest.newSwipe(message), input);
+        }
+
+        private void saveMessage() {
+            try {
+                this.message = chatMessageService.save(this.message);
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        public void setLastMessage(boolean isLast) {
+            this.isLast = isLast;
+            if (regenerateItem != null) {
+                regenerateItem.setVisible(isLast);
+            }
+            if (swipeItem != null) {
+                swipeItem.setVisible(isLast);
+            }
+            if (detailsSceneField != null) {
+                detailsSceneField.setReadOnly(!isLast);
+            }
+            if (detailsPovField != null) {
+                detailsPovField.setReadOnly(!isLast);
+            }
+            if (detailsPresentField != null) {
+                detailsPresentField.setReadOnly(!isLast);
+            }
+            if (detailsInstructionsField != null) {
+                detailsInstructionsField.setReadOnly(!isLast);
+            }
         }
 
         private void applyMarkdownStyles(Markdown markdown) {

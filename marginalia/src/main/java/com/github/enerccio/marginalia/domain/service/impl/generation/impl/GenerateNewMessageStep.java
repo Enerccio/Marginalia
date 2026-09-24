@@ -31,25 +31,35 @@ public class GenerateNewMessageStep extends GenerationStepBase {
 
             ChatMessage parentLeaf = chatMessageService.find(manuscript.getActiveLeaf());
 
+            ChatMessage initialNode;
+
+            switch (controller.getRequest().getRequestType()) {
+                case NEW_MESSAGE, SWIPE -> {
+                    initialNode = new ChatMessage();
+                }
+                case REGENERATE -> {
+                    initialNode = chatMessageService.find(controller.getRequest().getNode());
+                }
+                default -> throw new RuntimeException("FIX STATES!");
+            }
+
+            initialNode.setSceneSetting(input.sceneSetting());
+            initialNode.setPovCharacter(input.povCharacter());
+            initialNode.setPresentCharacters(input.presentCharacters());
+            initialNode.setInstructions(input.instructions());
+            initialNode.setResponseReasoning("");
+            initialNode.setResponse("");
+            initialNode.setBuiltPromptTokens(controller.getPrePromptData().getSystemPromptTokens() + controller.getPrePromptData().getUserPromptProcessedTokens());
+            initialNode.setModelUsed(manuscript.getAi().getName());
+            initialNode.setProtocolUsed(manuscript.getProtocol().getName());
+            initialNode.setBuiltPrompt(gson.toJson(payload));
+            initialNode.setBuiltPromptTokens(inferenceService.countTokens(initialNode.getBuiltPrompt()));
+            initialNode.setRequest(new Date());
+
             ChatMessage node;
 
             switch (controller.getRequest().getRequestType()) {
                 case NEW_MESSAGE -> {
-                    ChatMessage initialNode = new ChatMessage();
-
-                    initialNode.setSceneSetting(input.sceneSetting());
-                    initialNode.setPovCharacter(input.povCharacter());
-                    initialNode.setPresentCharacters(input.presentCharacters());
-                    initialNode.setInstructions(input.instructions());
-                    initialNode.setResponseReasoning("");
-                    initialNode.setResponse("");
-                    initialNode.setBuiltPromptTokens(controller.getPrePromptData().getSystemPromptTokens() + controller.getPrePromptData().getUserPromptProcessedTokens());
-                    initialNode.setModelUsed(manuscript.getAi().getName());
-                    initialNode.setProtocolUsed(manuscript.getProtocol().getName());
-                    initialNode.setBuiltPrompt(gson.toJson(payload));
-                    initialNode.setBuiltPromptTokens(inferenceService.countTokens(initialNode.getBuiltPrompt()));
-                    initialNode.setRequest(new Date());
-
                     if (parentLeaf == null) {
                         node = chatMessageService.createRoot(manuscript, initialNode);
                     } else {
@@ -59,24 +69,9 @@ public class GenerateNewMessageStep extends GenerationStepBase {
                     }
                 }
                 case REGENERATE -> {
-                    node = chatMessageService.find(controller.getRequest().getNode());
+                    node = initialNode;
                 }
                 case SWIPE -> {
-                    ChatMessage initialNode = new ChatMessage();
-
-                    initialNode.setSceneSetting(input.sceneSetting());
-                    initialNode.setPovCharacter(input.povCharacter());
-                    initialNode.setPresentCharacters(input.presentCharacters());
-                    initialNode.setInstructions(input.instructions());
-                    initialNode.setResponseReasoning("");
-                    initialNode.setResponse("");
-                    initialNode.setBuiltPromptTokens(controller.getPrePromptData().getSystemPromptTokens() + controller.getPrePromptData().getUserPromptProcessedTokens());
-                    initialNode.setModelUsed(manuscript.getAi().getName());
-                    initialNode.setProtocolUsed(manuscript.getProtocol().getName());
-                    initialNode.setBuiltPrompt(gson.toJson(payload));
-                    initialNode.setBuiltPromptTokens(inferenceService.countTokens(initialNode.getBuiltPrompt()));
-                    initialNode.setRequest(new Date());
-
                     ChatMessage parent = chatMessageService.getParent(controller.getRequest().getNode());
                     if (parent == null) {
                         node = chatMessageService.createRoot(manuscript, initialNode);

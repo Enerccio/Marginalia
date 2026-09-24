@@ -13,8 +13,6 @@ import com.openai.core.http.StreamResponse;
 import com.openai.models.chat.completions.*;
 import com.openai.models.models.Model;
 import com.openai.models.models.ModelListPage;
-import com.openai.models.responses.inputtokens.InputTokenCountParams;
-import com.openai.models.responses.inputtokens.InputTokenCountResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,6 +159,10 @@ public class OpenAICompatibleInferenceService implements InferenceService {
                 // 2. Fetch network stream until next reasoning or content chunk is found
                 while (iterator.hasNext()) {
                     if (completed) {
+                        return;
+                    }
+                    if (callback.isDead()) {
+                        closeStream();
                         return;
                     }
 
