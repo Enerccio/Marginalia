@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.SharedStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -64,6 +65,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private HorizontalLayout bottomControlsLayout;
 
     private MenuBar menuBar;
+    private MenuItem changeStyles;
     private Button actionButton;
 
     private Popover newTurnPopover;
@@ -185,6 +187,18 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         layout.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
 
         menuBar = new MenuBar();
+        MenuItem cogs = menuBar.addItem(Solid.COGS.create());
+        changeStyles = cogs.getContextMenu().addItem(Solid.PEN_FANCY.create(), event -> {
+            try {
+                Manuscript manuscript = parent.refreshManuscript();
+                manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
+                manuscriptService.save(manuscript);
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+            applyBookStyles();
+        });
+        applyBookStyles();
 
         actionButton = new Button(Solid.PLUS.create());
         actionButton.setThemeName("primary icon small");
@@ -206,6 +220,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         layout.add(actionButton);
 
         return layout;
+    }
+
+    private void applyBookStyles() {
+        Manuscript manuscript = parent.getManuscript();
+        if (manuscript.getShowBookStyles()) {
+            mainLayout.addClassName(SharedStyles.MARKDOWN_MANUSCRIPT_STYLES);
+        } else {
+            mainLayout.removeClassName(SharedStyles.MARKDOWN_MANUSCRIPT_STYLES);
+        }
     }
 
     private Popover buildNewTurnPopover(Button targetButton) {
@@ -581,6 +604,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             getStyle().set("max-width", "100%");
             getStyle().set("box-sizing", "border-box");
             getStyle().set("overflow", "hidden");
+            addClassName(SharedStyles.CHAT_MESSAGE);
 
             contentLayout = new VerticalLayout();
             contentLayout.setWidthFull();
@@ -633,6 +657,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             headerBar.add(UIUtils.voidComponent(), menuBtn);
 
             reasoningMarkdown = new Markdown();
+            reasoningMarkdown.addClassName(SharedStyles.CHAT_MESSAGE_MARKDOWN);
             applyMarkdownStyles(reasoningMarkdown);
             if (StringUtils.isNotBlank(message.getResponseReasoning())) {
                 reasoningMarkdown.setContent(message.getResponseReasoning());
@@ -645,7 +670,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             reasoningDetails.getStyle().set("box-sizing", "border-box");
 
             responseMarkdown = new Markdown();
-            applyMarkdownStyles(responseMarkdown);
+            responseMarkdown.addClassName(SharedStyles.CHAT_MESSAGE_MARKDOWN);
             if (StringUtils.isNotBlank(message.getResponse())) {
                 responseMarkdown.setContent(message.getResponse());
             }

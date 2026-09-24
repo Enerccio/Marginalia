@@ -44,3 +44,121 @@ body {
     width: 100% !important;
     overflow: hidden !important;
 }
+
+/* ==========================================================================
+   MANUSCRIPT READING MODE (Story View)
+   ========================================================================== */
+
+/* Base Typography & Container */
+.manuscript-styles .chat-message-markdown {
+    font-family: "Georgia", "Garamond", "Times New Roman", serif;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    letter-spacing: 0.015em;
+    color: var(--lumo-body-text-color, #e0e0e0);
+}
+
+/* Paragraph Flow & New Lines */
+.manuscript-styles .chat-message-markdown p {
+    margin-top: 0;
+    margin-bottom: 0.85em;
+    text-align: justify;
+    hyphens: auto;
+}
+
+/* Classic Book Paragraph Indentation (Indents consecutive paragraphs) */
+.manuscript-styles .chat-message-markdown p + p {
+    text-indent: 1.5em;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* Italics (* * or _ _) - Rendered as soft warm/lavender tint for actions/thoughts */
+.manuscript-styles .chat-message-markdown em,
+.manuscript-styles .chat-message-markdown i {
+    font-style: italic;
+    color: #d1c4e9; /* Soft lavender tint */
+}
+
+/* Bold (** **) - Sharp contrast for dialogue emphasis or key terms */
+.manuscript-styles .chat-message-markdown strong,
+.manuscript-styles .chat-message-markdown b {
+    font-weight: 700;
+    color: var(--lumo-header-text-color, #ffffff);
+}
+
+/* Quotes & Blockquotes (> ) - Warm distinct tint for lore excerpts or recollections */
+.manuscript-styles .chat-message-markdown blockquote {
+    margin: 1.2em 0 1.2em 1em;
+    padding: 0.5em 1.2em;
+    border-left: 3px solid var(--lumo-primary-color, #7e57c2);
+    background-color: var(--lumo-contrast-5pct, rgba(255, 255, 255, 0.03));
+    border-radius: 0 4px 4px 0;
+    font-style: italic;
+    color: #b0bec5; /* Soft slate quote color */
+}
+
+.manuscript-styles .chat-message-markdown blockquote p {
+    text-indent: 0 !important;
+    margin-bottom: 0.4em;
+}
+
+.manuscript-styles .chat-message-markdown blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* Headings (# ## ###) - Styled as Chapter/Section Headers */
+.manuscript-styles .chat-message-markdown h1,
+.manuscript-styles .chat-message-markdown h2,
+.manuscript-styles .chat-message-markdown h3,
+.manuscript-styles .chat-message-markdown h4,
+.manuscript-styles .chat-message-markdown h5,
+.manuscript-styles .chat-message-markdown h6 {
+    font-family: "Georgia", "Garamond", serif;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0.06em;
+    margin-top: 1.8em;
+    margin-bottom: 0.8em;
+    color: var(--lumo-header-text-color, #ffffff);
+}
+
+.manuscript-styles .chat-message-markdown h1 {
+    font-size: 1.5rem;
+    font-variant: small-caps;
+    border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.1));
+    padding-bottom: 0.4em;
+}
+
+.manuscript-styles .chat-message-markdown h2 {
+    font-size: 1.3rem;
+    font-variant: small-caps;
+}
+
+.manuscript-styles .chat-message-markdown h3 {
+    font-size: 1.15rem;
+}
+
+/* Scene Separators (--- or ***) - Replaced with classic centered asterisks */
+.manuscript-styles .chat-message-markdown hr {
+    border: none;
+    text-align: center;
+    margin: 2em 0;
+    height: auto;
+}
+
+.manuscript-styles .chat-message-markdown hr::after {
+    content: "•  •  •";
+    display: inline-block;
+    font-size: 1rem;
+    letter-spacing: 0.5em;
+    color: var(--lumo-contrast-40pct, #888888);
+}
+
+.manuscript-styles .chat-message-markdown code {
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: 0.88em;
+    background-color: var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.08));
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+}
