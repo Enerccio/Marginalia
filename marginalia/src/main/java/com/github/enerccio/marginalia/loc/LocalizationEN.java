@@ -135,7 +135,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_INVALID_JSON_OBJECT, "JSON Invalid.");
         setValue(L.MSG_FETCH_MODELS_FAILED, "Failed to download model list.");
         setValue(L.MSG_SETTINGS_SAVED, "Settings saved successfully.");
-        setValue(L.MSG_CONFIRM_DELETE, "Arwhae you sure you want to delete this item?");
+        setValue(L.MSG_CONFIRM_DELETE, "Are you sure you want to delete this item?");
         setValue(L.MSG_CYCLE_DETECTED, "Cannot select sub lorebook: cycle detected.");
         setValue(L.MSG_NO_ACTIVE_BRANCH, "No active story branch. Add a message to begin.");
         setValue(L.MSG_SELECT_MESSAGE_METADATA, "Select a message to view metadata.");
