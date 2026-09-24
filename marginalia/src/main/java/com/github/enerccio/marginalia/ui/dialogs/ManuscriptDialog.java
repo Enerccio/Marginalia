@@ -65,8 +65,7 @@ public class ManuscriptDialog extends Dialog {
     public void create() throws Exception {
         ai = aiService.find(manuscript.getAi());
         setHeaderTitle(manuscript.getName());
-        setWidth("95%");
-        setHeight("95%");
+        setSizeFull();
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);

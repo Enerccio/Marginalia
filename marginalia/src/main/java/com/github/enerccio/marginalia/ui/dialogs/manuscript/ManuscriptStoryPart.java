@@ -129,17 +129,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                         "  const style = document.createElement('style');" +
                         "  style.id = 'marginalia-markdown-fix-style';" +
                         "  style.textContent = `" +
-                        "    pre, code, pre code, p, div, span, blockquote, vaadin-markdown, .markdown-content {" +
+                        "    .markdown-content pre, .markdown-content code, .markdown-content p, .markdown-content span {" +
                         "      white-space: pre-wrap !important;" +
                         "      word-break: break-word !important;" +
                         "      overflow-wrap: anywhere !important;" +
                         "      max-width: 100% !important;" +
-                        "      box-sizing: border-box !important;" +
-                        "    }" +
-                        "    vaadin-details, vaadin-details::part(content), vaadin-details::part(summary) {" +
-                        "      max-width: 100% !important;" +
-                        "      min-width: 0 !important;" +
-                        "      width: 100% !important;" +
                         "      box-sizing: border-box !important;" +
                         "    }" +
                         "  `;" +
