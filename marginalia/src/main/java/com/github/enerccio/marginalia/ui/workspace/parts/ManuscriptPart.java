@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -20,7 +21,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -51,10 +51,6 @@ public class ManuscriptPart implements WorkspaceComponent {
     private final Workspace workspace;
     private Grid<Manuscript> grid;
     private VerticalLayout mainLayout;
-
-    public ManuscriptPart() {
-        this(null);
-    }
 
     public ManuscriptPart(Workspace workspace) {
         this.workspace = workspace;
@@ -124,7 +120,7 @@ public class ManuscriptPart implements WorkspaceComponent {
         grid.addColumn(Manuscript::getName)
                 .setHeader(loc.getValue(L.LABEL_NAME));
 
-        grid.addComponentColumn(manuscript -> new Button(VaadinIcon.PENCIL.create(), event -> {
+        grid.addComponentColumn(manuscript -> new Button(Solid.PENCIL.create(),event -> {
             try {
                 ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
                 dialog.setOnClose(this::refreshGrid);

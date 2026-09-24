@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -77,7 +77,7 @@ public class Notification extends com.vaadin.flow.component.notification.Notific
 
         HorizontalLayout layout = new HorizontalLayout();
         layout.add(new HtmlText(message));
-        layout.add(new Button(VaadinIcon.CLOSE_SMALL.create(), event -> notification.close()));
+        layout.add(new Button(Solid.CLOSE.create(),event -> notification.close()));
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         return layout;

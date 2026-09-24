@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.loc.L;
@@ -18,7 +20,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -34,10 +35,6 @@ public class ProtocolPart implements WorkspaceComponent {
     private final Workspace workspace;
     private Grid<Protocol> grid;
     private VerticalLayout mainLayout;
-
-    public ProtocolPart() {
-        this(null);
-    }
 
     public ProtocolPart(Workspace workspace) {
         this.workspace = workspace;
@@ -79,18 +76,18 @@ public class ProtocolPart implements WorkspaceComponent {
 
         grid.addColumn(protocol -> loc.getValue(loc.getProtocolType(protocol.getProtocolType())))
                 .setHeader(loc.getValue(L.LABEL_TYPE))
-                .setAutoWidth(true);
+                .setFlexGrow(1);
 
         grid.addColumn(Protocol::getName)
                 .setHeader(loc.getValue(L.LABEL_NAME))
-                .setAutoWidth(true);
+                .setFlexGrow(1);
 
-        grid.addComponentColumn(protocol -> new Button(loc.getValue(L.LABEL_EDIT), event -> {
+        grid.addComponentColumn(protocol -> new Button(Solid.PEN.create(), event -> {
             ProtocolDialog dialog = new ProtocolDialog(protocol);
             dialog.setOnSave(this::refreshGrid);
             dialog.create();
             dialog.open();
-        })).setHeader("").setAutoWidth(true);
+        })).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
 
         mainLayout.add(headerLayout, grid);
         mainLayout.setFlexGrow(1, grid);

@@ -74,10 +74,6 @@ public class UserPart implements WorkspaceComponent {
 
     private UserSetting userSetting;
 
-    public UserPart() {
-        this(null);
-    }
-
     public UserPart(Workspace workspace) {
         this.workspace = workspace;
     }

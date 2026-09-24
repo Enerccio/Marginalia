@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -19,7 +20,6 @@ import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -153,7 +153,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private void setupScrollListener() {
         centerContentPanel.getElement().addEventListener("panel-scroll", event -> {
-            // Ignore scroll saves while generation is running to avoid SQLITE_BUSY lock contention
             if (isFrozen) {
                 return;
             }
@@ -192,10 +191,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         layout.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
 
         menuBar = new MenuBar();
-        menuBar.addItem(loc.getValue(L.LABEL_EDIT));
-        menuBar.addItem(loc.getValue(L.LABEL_REFRESH));
 
-        actionButton = new Button(VaadinIcon.PLUS.create());
+        actionButton = new Button(Solid.PLUS.create());
         actionButton.setThemeName("primary icon small");
 
         newTurnPopover = buildNewTurnPopover(actionButton);
@@ -248,7 +245,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         instructionsField.setMinHeight("80px");
         instructionsField.addValueChangeListener(e -> pendingInstructions = e.getValue());
 
-        Button generateBtn = new Button(loc.getValue(L.LABEL_GENERATE), VaadinIcon.PLAY.create(), event -> {
+        Button generateBtn = new Button(loc.getValue(L.LABEL_GENERATE), Solid.PLAY.create(), event -> {
             popover.close();
             if (parent != null) {
                 autosaveAndSwapAllToMarkdown();
@@ -475,6 +472,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                                         renderStoryContent();
                                         UIPushGuard.push(ui);
                                     });
+                            UIPushGuard.push(ui);
                         });
                     }
 
@@ -528,11 +526,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         if (frozen) {
             newTurnPopover.close();
             newTurnPopover.setTarget(null);
-            actionButton.setIcon(VaadinIcon.STOP.create());
+            actionButton.setIcon(Solid.STOP.create());
             actionButton.setThemeName("error primary icon small");
         } else {
             newTurnPopover.setTarget(actionButton);
-            actionButton.setIcon(VaadinIcon.PLUS.create());
+            actionButton.setIcon(Solid.PLUS.create());
             actionButton.setThemeName("primary icon small");
         }
     }
@@ -606,7 +604,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             headerBar.setSpacing(false);
             headerBar.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            menuBtn = new Button(VaadinIcon.MENU.create());
+            menuBtn = new Button(Solid.HAMBURGER.create());
             menuBtn.setThemeName("tertiary icon small");
             menuBtn.getStyle().set("margin-left", "auto");
 
@@ -693,7 +691,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             wordsSpan = new Span(loc.getValue(L.LABEL_WORDS) + ": " + message.getWordCount());
             wordsSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
 
-            turnDetailsBtn = new Button(loc.getValue(L.LABEL_TURN_DETAILS), VaadinIcon.INFO_CIRCLE.create());
+            turnDetailsBtn = new Button(loc.getValue(L.LABEL_TURN_DETAILS), Solid.INFO_CIRCLE.create());
             turnDetailsBtn.setThemeName("tertiary small");
             turnDetailsBtn.setWidthFull();
 

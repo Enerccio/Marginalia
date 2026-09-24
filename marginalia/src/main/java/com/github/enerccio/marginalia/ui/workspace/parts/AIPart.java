@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.loc.L;
@@ -18,8 +20,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -35,10 +35,6 @@ public class AIPart implements WorkspaceComponent {
     private final Workspace workspace;
     private Grid<AI> grid;
     private VerticalLayout mainLayout;
-
-    public AIPart() {
-        this(null);
-    }
 
     public AIPart(Workspace workspace) {
         this.workspace = workspace;
@@ -80,18 +76,18 @@ public class AIPart implements WorkspaceComponent {
 
         grid.addColumn(ai -> loc.getValue(loc.getAIType(ai.getAiType())))
                 .setHeader(loc.getValue(L.LABEL_TYPE))
-                .setAutoWidth(true);
+                .setFlexGrow(1);
 
         grid.addColumn(AI::getName)
                 .setHeader(loc.getValue(L.LABEL_NAME))
-                .setAutoWidth(true);
+                .setFlexGrow(1);
 
-        grid.addComponentColumn(ai -> new Button(loc.getValue(L.LABEL_EDIT), event -> {
+        grid.addComponentColumn(ai -> new Button(Solid.PEN.create(), event -> {
             AIDialog dialog = new AIDialog(ai);
             dialog.setOnSave(this::refreshGrid);
             dialog.create();
             dialog.open();
-        })).setHeader("").setAutoWidth(true);
+        })).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
 
         mainLayout.add(headerLayout, grid);
         mainLayout.setFlexGrow(1, grid);

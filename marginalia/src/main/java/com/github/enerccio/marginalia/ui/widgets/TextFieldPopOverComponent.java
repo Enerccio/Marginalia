@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.textfield.TextField;
 
@@ -18,7 +18,7 @@ public class TextFieldPopOverComponent extends TextField {
     public TextFieldPopOverComponent(String label) {
         super(label);
 
-        infoIcon = VaadinIcon.INFO_CIRCLE.create();
+        infoIcon = Solid.INFO_CIRCLE.create();
         infoIcon.getStyle().set("cursor", "pointer");
         infoIcon.getStyle().set("color", "var(--lumo-secondary-text-color)");
 

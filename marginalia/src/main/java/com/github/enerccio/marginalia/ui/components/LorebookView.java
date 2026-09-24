@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -18,7 +19,6 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -90,17 +90,17 @@ public class LorebookView extends VerticalLayout {
             updateSelectedLorebook();
         });
 
-        addLorebookButton = new Button(loc.getValue(L.LABEL_ADD_LOREBOOK), VaadinIcon.PLUS.create(), event -> createNewLorebook());
+        addLorebookButton = new Button(loc.getValue(L.LABEL_ADD_LOREBOOK), Solid.PLUS_CIRCLE.create(),event -> createNewLorebook());
         addLorebookButton.setThemeName("primary");
         addLorebookButton.setVisible(!pinnedLorebook);
 
-        deleteLorebookButton = new Button(loc.getValue(L.LABEL_DELETE_LOREBOOK), VaadinIcon.TRASH.create(), event -> deleteCurrentLorebook());
+        deleteLorebookButton = new Button(loc.getValue(L.LABEL_DELETE_LOREBOOK), Solid.TRASH.create(), event -> deleteCurrentLorebook());
         deleteLorebookButton.setThemeName("error");
 
-        addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), VaadinIcon.PLUS_CIRCLE.create(), event -> createNewEntry());
+        addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createNewEntry());
         addEntryButton.setThemeName("primary");
 
-        refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), VaadinIcon.REFRESH.create(), event -> {
+        refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.REFRESH.create(), event -> {
             try {
                 refreshEntries();
             } catch (Exception e) {
@@ -269,14 +269,14 @@ public class LorebookView extends VerticalLayout {
             HorizontalLayout actions = new HorizontalLayout();
             actions.setSpacing(true);
 
-            Button toggleDetails = new Button(VaadinIcon.ANGLE_DOWN.create(), event -> {
+            Button toggleDetails = new Button(Solid.ANGLE_DOWN.create(), event -> {
                 boolean isVisible = grid.isDetailsVisible(entry);
                 grid.setDetailsVisible(entry, !isVisible);
-                event.getSource().setIcon(!isVisible ? VaadinIcon.ANGLE_UP.create() : VaadinIcon.ANGLE_DOWN.create());
+                event.getSource().setIcon(!isVisible ? Solid.ANGLE_UP.create() : Solid.ANGLE_DOWN.create());
             });
             toggleDetails.setThemeName("tertiary");
 
-            Button deleteBtn = new Button(VaadinIcon.TRASH.create(), event -> {
+            Button deleteBtn = new Button(Solid.TRASH.create(), event -> {
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
                     try {
                         lorebookEntryService.delete(entry, false);

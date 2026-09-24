@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.HtmlText;
@@ -10,7 +11,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -46,7 +46,7 @@ public class ErrorDialog {
         dialog.setCloseOnOutsideClick(true);
         dialog.setHeaderTitle(loc.getValue(L.LABEL_APPLICATION_ERROR));
 
-        Icon errorIcon = VaadinIcon.CLOSE_CIRCLE_O.create();
+        Icon errorIcon = Solid.CIRCLE_INFO.create();
         errorIcon.setColor("var(--lumo-error-color)");
         errorIcon.setSize("30px");
         errorIcon.addClickListener(event -> dialog.close());

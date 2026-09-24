@@ -18,10 +18,6 @@ public class LorebookPart implements WorkspaceComponent {
     private final Workspace workspace;
     private LorebookView lorebookView;
 
-    public LorebookPart() {
-        this(null);
-    }
-
     public LorebookPart(Workspace workspace) {
         this.workspace = workspace;
     }

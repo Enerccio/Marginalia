@@ -46,6 +46,10 @@ public class Manuscript extends ExtendableEntity {
     @Transient
     private String userPrompt;
 
+    @ExtendedAttribute
+    @Transient
+    private Boolean showBookStyles;
+
     public String getName() {
         return name;
     }
@@ -132,5 +136,13 @@ public class Manuscript extends ExtendableEntity {
 
     public void setLorebook(Lorebook lorebook) {
         this.lorebook = lorebook;
+    }
+
+    public Boolean getShowBookStyles() {
+        return showBookStyles != null && showBookStyles;
+    }
+
+    public void setShowBookStyles(Boolean showBookStyles) {
+        this.showBookStyles = showBookStyles;
     }
 }
