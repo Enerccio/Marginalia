@@ -358,6 +358,15 @@ public class UIUtils {
         comboBox.getStyle().set("--vaadin-combo-box-overlay-width", width);
     }
 
+    public static Component menuItemWithIcon(Icon icon, String text) {
+        Span span = new Span(text);
+        span.setWidthFull();
+        HorizontalLayout horizontalLayout = new HorizontalLayout(icon, span);
+        horizontalLayout.setWidthFull();
+        horizontalLayout.expand(span);
+        return horizontalLayout;
+    }
+
     public enum Anchor {
         NorthEast, NorthWest, SouthWest, SouthEast
     }

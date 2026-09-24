@@ -118,6 +118,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_NEW_TURN_INSTRUCTIONS, "New Turn Instructions");
         setValue(L.LABEL_GENERATE, "Generate");
         setValue(L.LABEL_TURN_DETAILS, "Turn Details");
+        setValue(L.LABEL_IMPORT_FROM_SILLYTAVERN, "Import from SillyTavern");
+        setValue(L.LABEL_CHANGE_STYLES, "Change Styles For Text");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");

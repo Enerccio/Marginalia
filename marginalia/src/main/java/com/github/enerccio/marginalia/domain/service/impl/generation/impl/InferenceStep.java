@@ -11,13 +11,14 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationC
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
 import com.github.enerccio.marginalia.loc.L;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class InferenceStep extends GenerationStepBase {
+    private static final Gson gson = new GsonBuilder().create();
 
     public static final String REASONING_CHUNK = "REASONING_CHUNK";
     public static final String CHUNK = "CHUNK";
@@ -26,6 +27,8 @@ public class InferenceStep extends GenerationStepBase {
     protected void onStep(GenerationController controller) throws Exception {
         controller.emitEvent(Events.BEFORE_INFERENCE, () -> {
             InferenceService inferenceService = inferenceServices.forAI(controller.getManuscript().getAi());
+
+            controller.getMessage().setPromptTokens(inferenceService.countTokens(gson.toJson(controller.getPayload())));
 
             inferenceService.stream(controller.getPayload(), new InferenceAsyncCallback() {
 

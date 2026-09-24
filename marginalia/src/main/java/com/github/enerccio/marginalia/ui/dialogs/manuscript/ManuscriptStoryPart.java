@@ -188,7 +188,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         menuBar = new MenuBar();
         MenuItem cogs = menuBar.addItem(Solid.COGS.create());
-        changeStyles = cogs.getContextMenu().addItem(Solid.PEN_FANCY.create(), event -> {
+        changeStyles = cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.PEN_FANCY.create(), loc.getValue(L.LABEL_CHANGE_STYLES)), event -> {
             try {
                 Manuscript manuscript = parent.refreshManuscript();
                 manuscript.setShowBookStyles(!manuscript.getShowBookStyles());

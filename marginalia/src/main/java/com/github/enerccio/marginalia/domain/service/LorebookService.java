@@ -11,4 +11,6 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
 
     Lorebook fillEntries(Lorebook book) throws Exception;
 
+    Lorebook importFromSillytavern(String json, String name) throws Exception;
+
 }

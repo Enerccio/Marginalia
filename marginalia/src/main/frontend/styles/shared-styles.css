@@ -46,60 +46,74 @@ body {
 }
 
 /* ==========================================================================
-   MANUSCRIPT READING MODE (Story View)
+   MANUSCRIPT READING MODE (Hybrid Style)
    ========================================================================== */
 
-/* Base Typography & Container */
+/* Base Container & Typography Setup */
 .manuscript-styles .chat-message-markdown {
-    font-family: "Georgia", "Garamond", "Times New Roman", serif;
-    font-size: 1.05rem;
+    font-family: "Garamond", "Georgia", "Times New Roman", serif;
+    font-size: 1.04rem;
     line-height: 1.8;
-    letter-spacing: 0.015em;
+    letter-spacing: 0.012em;
     color: var(--lumo-body-text-color, #e0e0e0);
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
 }
 
-/* Paragraph Flow & New Lines */
+/* Force child elements to stay flush-left and strictly inside boundaries */
+.manuscript-styles .chat-message-markdown *,
+.manuscript-styles .chat-message-markdown p,
+.manuscript-styles .chat-message-markdown div,
+.manuscript-styles .chat-message-markdown pre,
+.manuscript-styles .chat-message-markdown code,
+.manuscript-styles .chat-message-markdown blockquote,
+.manuscript-styles .chat-message-markdown ul,
+.manuscript-styles .chat-message-markdown ol,
+.manuscript-styles .chat-message-markdown li {
+    text-indent: 0 !important; /* Prevents dialogue stair-casing and offset bugs */
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+}
+
+/* Paragraph Flow (Flush-Left with Vertical Breathing Room) */
 .manuscript-styles .chat-message-markdown p {
     margin-top: 0;
     margin-bottom: 0.85em;
-    text-align: justify;
-    hyphens: auto;
+    text-align: left;
+    white-space: pre-wrap !important;
 }
 
-/* Classic Book Paragraph Indentation (Indents consecutive paragraphs) */
-.manuscript-styles .chat-message-markdown p + p {
-    text-indent: 1.5em;
-    margin-top: 0;
-    margin-bottom: 0;
-}
-
-/* Italics (* * or _ _) - Rendered as soft warm/lavender tint for actions/thoughts */
+/* Character Actions & Internal Monologue (* * or _ _) */
 .manuscript-styles .chat-message-markdown em,
 .manuscript-styles .chat-message-markdown i {
     font-style: italic;
     color: #d1c4e9; /* Soft lavender tint */
 }
 
-/* Bold (** **) - Sharp contrast for dialogue emphasis or key terms */
+/* Strong Text (** **) */
 .manuscript-styles .chat-message-markdown strong,
 .manuscript-styles .chat-message-markdown b {
     font-weight: 700;
     color: var(--lumo-header-text-color, #ffffff);
 }
 
-/* Quotes & Blockquotes (> ) - Warm distinct tint for lore excerpts or recollections */
+/* Blockquotes / Lore Highlights (> ) */
 .manuscript-styles .chat-message-markdown blockquote {
-    margin: 1.2em 0 1.2em 1em;
-    padding: 0.5em 1.2em;
+    margin: 1em 0;
+    padding: 0.5em 1em;
     border-left: 3px solid var(--lumo-primary-color, #7e57c2);
     background-color: var(--lumo-contrast-5pct, rgba(255, 255, 255, 0.03));
     border-radius: 0 4px 4px 0;
     font-style: italic;
-    color: #b0bec5; /* Soft slate quote color */
+    color: #b0bec5;
 }
 
 .manuscript-styles .chat-message-markdown blockquote p {
-    text-indent: 0 !important;
     margin-bottom: 0.4em;
 }
 
@@ -107,52 +121,18 @@ body {
     margin-bottom: 0;
 }
 
-/* Headings (# ## ###) - Styled as Chapter/Section Headers */
-.manuscript-styles .chat-message-markdown h1,
-.manuscript-styles .chat-message-markdown h2,
-.manuscript-styles .chat-message-markdown h3,
-.manuscript-styles .chat-message-markdown h4,
-.manuscript-styles .chat-message-markdown h5,
-.manuscript-styles .chat-message-markdown h6 {
-    font-family: "Georgia", "Garamond", serif;
-    font-weight: 600;
-    text-align: center;
-    letter-spacing: 0.06em;
-    margin-top: 1.8em;
-    margin-bottom: 0.8em;
-    color: var(--lumo-header-text-color, #ffffff);
-}
-
-.manuscript-styles .chat-message-markdown h1 {
-    font-size: 1.5rem;
-    font-variant: small-caps;
-    border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.1));
-    padding-bottom: 0.4em;
-}
-
-.manuscript-styles .chat-message-markdown h2 {
-    font-size: 1.3rem;
-    font-variant: small-caps;
-}
-
-.manuscript-styles .chat-message-markdown h3 {
-    font-size: 1.15rem;
-}
-
-/* Scene Separators (--- or ***) - Replaced with classic centered asterisks */
-.manuscript-styles .chat-message-markdown hr {
-    border: none;
-    text-align: center;
-    margin: 2em 0;
-    height: auto;
-}
-
-.manuscript-styles .chat-message-markdown hr::after {
-    content: "•  •  •";
-    display: inline-block;
-    font-size: 1rem;
-    letter-spacing: 0.5em;
-    color: var(--lumo-contrast-40pct, #888888);
+/* Reasoning & Code Blocks (Locked within card bounds) */
+.manuscript-styles .chat-message-markdown pre {
+    background-color: var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.1));
+    border-radius: 4px;
+    padding: 0.6em 0.8em;
+    margin: 0.8em 0;
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: 0.88em;
+    line-height: 1.5;
+    white-space: pre-wrap !important;
+    overflow-x: hidden !important;
 }
 
 .manuscript-styles .chat-message-markdown code {
@@ -161,4 +141,49 @@ body {
     background-color: var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.08));
     padding: 0.1em 0.3em;
     border-radius: 3px;
+    white-space: pre-wrap !important;
+}
+
+/* Book Headings (# ## ###) */
+.manuscript-styles .chat-message-markdown h1,
+.manuscript-styles .chat-message-markdown h2,
+.manuscript-styles .chat-message-markdown h3 {
+    font-family: "Garamond", "Georgia", serif;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0.05em;
+    margin-top: 1.5em;
+    margin-bottom: 0.6em;
+    color: var(--lumo-header-text-color, #ffffff);
+}
+
+.manuscript-styles .chat-message-markdown h1 {
+    font-size: 1.35rem;
+    font-variant: small-caps;
+    border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.1));
+    padding-bottom: 0.3em;
+}
+
+.manuscript-styles .chat-message-markdown h2 {
+    font-size: 1.2rem;
+    font-variant: small-caps;
+}
+
+.manuscript-styles .chat-message-markdown h3 {
+    font-size: 1.08rem;
+}
+
+/* Scene Break Dividers (--- or ***) */
+.manuscript-styles .chat-message-markdown hr {
+    border: none;
+    text-align: center;
+    margin: 1.8em 0;
+}
+
+.manuscript-styles .chat-message-markdown hr::after {
+    content: "•  •  •";
+    display: inline-block;
+    font-size: 1rem;
+    letter-spacing: 0.5em;
+    color: var(--lumo-contrast-40pct, #888888);
 }

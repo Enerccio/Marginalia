@@ -18,6 +18,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -25,11 +27,16 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,6 +58,7 @@ public class LorebookView extends VerticalLayout {
     private ComboBox<Lorebook> lorebookCombo;
     private Button addLorebookButton;
     private Button deleteLorebookButton;
+    private Button importLorebookButton;
 
     private TextField lorebookNameField;
     private Checkbox lorebookEnabledCheckbox;
@@ -97,6 +105,14 @@ public class LorebookView extends VerticalLayout {
         deleteLorebookButton = new Button(loc.getValue(L.LABEL_DELETE_LOREBOOK), Solid.TRASH.create(), event -> deleteCurrentLorebook());
         deleteLorebookButton.setThemeName("error");
 
+        importLorebookButton = new Button(Solid.FILE_IMPORT.create());
+        importLorebookButton.setVisible(!pinnedLorebook);
+
+        ContextMenu importMenu = new ContextMenu();
+        importMenu.setTarget(importLorebookButton);
+        importMenu.setOpenOnClick(true);
+        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), event -> openImportSillyTavernDialog());
+
         addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createNewEntry());
         addEntryButton.setThemeName("primary");
 
@@ -108,7 +124,7 @@ public class LorebookView extends VerticalLayout {
             }
         });
 
-        controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, addEntryButton, refreshButton);
+        controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, importLorebookButton, addEntryButton, refreshButton);
         controlsLayout.setAlignItems(Alignment.END);
 
         HorizontalLayout lorebookHeaderLayout = new HorizontalLayout();
@@ -191,6 +207,44 @@ public class LorebookView extends VerticalLayout {
         refresh();
 
         return this;
+    }
+
+    private void openImportSillyTavernDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
+        dialog.setWidth("450px");
+
+        InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
+            try (InputStream inputStream = new ByteArrayInputStream(data)) {
+                String jsonContent = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                String fileName = metadata.fileName();
+                if (fileName.endsWith(".json")) {
+                    fileName = fileName.substring(0, fileName.length() - 5);
+                }
+
+                Lorebook importedLorebook = lorebookService.importFromSillytavern(jsonContent, fileName);
+                dialog.close();
+
+                this.currentLorebook = importedLorebook;
+                if (!pinnedLorebook) {
+                    loadLorebooks();
+                } else {
+                    updateSelectedLorebook();
+                }
+            } catch (Exception e) {
+                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            }
+        });
+
+        Upload upload = new Upload(handler);
+        upload.setAcceptedMimeTypes("application/json");
+        Button cancelButton = new Button(loc.getValue(L.LABEL_CANCEL), event -> dialog.close());
+        VerticalLayout dialogLayout = new VerticalLayout(upload);
+        dialogLayout.setPadding(true);
+
+        dialog.add(dialogLayout);
+        dialog.getFooter().add(cancelButton);
+        dialog.open();
     }
 
     private boolean isReachable(Long startId, Long targetId, Map<Long, Lorebook> lorebookMap, Set<Long> visited) {
