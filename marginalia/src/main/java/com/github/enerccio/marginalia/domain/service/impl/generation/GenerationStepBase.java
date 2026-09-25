@@ -3,11 +3,10 @@ package com.github.enerccio.marginalia.domain.service.impl.generation;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.Iterator;
 
@@ -48,9 +47,7 @@ public abstract class GenerationStepBase implements GenerationStep {
 
     @Override
     public void step(GenerationController controller) throws Exception {
-        ThreadCopyRequestAttributes attributes = controller.getRequestAttributes();
-        RequestContextHolder.setRequestAttributes(attributes);
-        try {
+        try (InRequestScope _ = new InRequestScope(controller.getRequestAttributes())) {
             if (Thread.interrupted()) {
                 controller.getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
                 controller.jumpTo(GenerationStepType.CLEANUP);
@@ -70,8 +67,6 @@ public abstract class GenerationStepBase implements GenerationStep {
                 controller.getUIListener().onError(e);
                 controller.jumpTo(GenerationStepType.CLEANUP);
             }
-        } finally {
-            RequestContextHolder.resetRequestAttributes();
         }
     }
 
@@ -97,11 +92,7 @@ public abstract class GenerationStepBase implements GenerationStep {
             Iterator<T> iterator,
             AsyncItemProcessor<T> processor,
             GenerationController.FromEventCallback onComplete) throws Exception {
-
-        ThreadCopyRequestAttributes attributes = controller.getRequestAttributes();
-        RequestContextHolder.setRequestAttributes(attributes);
-
-        try {
+        try (InRequestScope _ = new InRequestScope(controller.getRequestAttributes())) {
             if (Thread.interrupted()) {
                 controller.getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
                 controller.jumpTo(GenerationStepType.CLEANUP);
@@ -121,8 +112,6 @@ public abstract class GenerationStepBase implements GenerationStep {
             log.error("Error during async iteration: {}", e.getMessage(), e);
             controller.getUIListener().onError(e);
             controller.jumpTo(GenerationStepType.CLEANUP);
-        } finally {
-            RequestContextHolder.resetRequestAttributes();
         }
     }
 

@@ -3,13 +3,15 @@ package com.github.enerccio.marginalia.ui.components;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Field;
 
 public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 
-	public ThreadCopyRequestAttributes(HttpServletRequest request, HttpServletResponse response) {
+	private ThreadCopyRequestAttributes(HttpServletRequest request, HttpServletResponse response) {
 		super(request, response);
 		HttpSession s = getSession(true); // store session
 		requestDestructionCallbacks.clear();
@@ -26,6 +28,35 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 	@Override
 	protected void updateAccessedSessionAttributes() {
 		// fake copy, do nothing
-	}		
+	}
+
+	public static ThreadCopyRequestAttributes create() {
+		ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		if (attrs != null) {
+			return new ThreadCopyRequestAttributes(attrs.getRequest(), attrs.getResponse());
+		}
+		return null;
+	}
+
+	public static class InRequestScope implements AutoCloseable {
+
+		private final ThreadCopyRequestAttributes attributes;
+		private final RequestAttributes oldAttributes;
+
+		public InRequestScope(ThreadCopyRequestAttributes attributes) {
+			this.attributes = attributes;
+			oldAttributes = RequestContextHolder.getRequestAttributes();
+			if (attributes == null)
+				return;
+			RequestContextHolder.setRequestAttributes(attributes);
+		}
+
+		@Override
+		public void close() {
+			if (attributes == null)
+				return;
+			RequestContextHolder.setRequestAttributes(oldAttributes);
+		}
+	}
 	
 }

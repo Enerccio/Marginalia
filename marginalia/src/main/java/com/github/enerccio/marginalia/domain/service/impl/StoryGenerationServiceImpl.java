@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.domain.traits.NoTx;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         if (attrs == null) {
             throw new IllegalStateException("Called out of ui!");
         }
-        ThreadCopyRequestAttributes attributes = new ThreadCopyRequestAttributes(attrs.getRequest(), attrs.getResponse());
+        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
         GenerationEngine generationEngine = new GenerationEngine();
         generationEngine.setManuscript(manuscript);
         generationEngine.generationRequest = generationRequest;
@@ -287,9 +288,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                 @Override
                 public void next() {
                     taskExecutor.submit(() -> {
-                        ThreadCopyRequestAttributes attributes = getRequestAttributes();
-                        RequestContextHolder.setRequestAttributes(attributes);
-                        try {
+                        try (InRequestScope _ = new InRequestScope(getRequestAttributes())) {
                             if (cancellationToken.isCancelled()) {
                                 invokeContinuation(continueAfterEventHandling);
                                 return;
@@ -316,8 +315,6 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                             } else {
                                 invokeContinuation(continueAfterEventHandling);
                             }
-                        } finally {
-                            RequestContextHolder.resetRequestAttributes();
                         }
                     });
                 }
@@ -334,14 +331,11 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         private void invokeContinuation(FromEventCallback continuation) {
             if (continuation != null) {
                 taskExecutor.submit(() -> {
-                    RequestContextHolder.setRequestAttributes(requestAttributes);
-                    try {
+                    try (InRequestScope _ = new InRequestScope(getRequestAttributes())) {
                         continuation.returnFromEvent();
                     } catch (Exception e) {
                         log.error("Failed continuation after event emission", e);
                         getUIListener().onError(e);
-                    } finally {
-                        RequestContextHolder.resetRequestAttributes();
                     }
                 });
             }
