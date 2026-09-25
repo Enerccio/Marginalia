@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.inference;
 
+import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.concurrent.AsyncRunnableWrapper;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
@@ -28,6 +30,9 @@ public class OpenAICompatibleInferenceService implements InferenceService {
 
     @Autowired
     private TokenizerService tokenizerService;
+
+    @Autowired
+    private Configuration configuration;
 
     private final OpenAICompatible ai;
 
@@ -88,12 +93,15 @@ public class OpenAICompatibleInferenceService implements InferenceService {
             paramsBuilder.maxCompletionTokens(ai.getMaxCompletionTokens());
         }
 
+        AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
         CompletableFuture.runAsync(() -> {
             try {
-                StreamResponse<ChatCompletionChunk> streamResponse = client.chat().completions().createStreaming(paramsBuilder.build());
-                OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse, callback);
-                controller.continueInference();
-            } catch (Exception e) {
+                wrapper.run(() -> {
+                    StreamResponse<ChatCompletionChunk> streamResponse = client.chat().completions().createStreaming(paramsBuilder.build());
+                    OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse, callback);
+                    controller.continueInference();
+                });
+            } catch (Throwable e) {
                 log.error("Failed to start streaming inference: {}", e.getMessage(), e);
                 try {
                     callback.onError(e);
@@ -113,7 +121,12 @@ public class OpenAICompatibleInferenceService implements InferenceService {
 
     private record PendingChunk(ChunkType type, String text) {}
 
+    @Configurable(preConstruction = true)
     private static class OpenAIInferenceAsyncController implements InferenceAsyncController {
+
+        @Autowired
+        private Configuration configuration;
+
         private final StreamResponse<ChatCompletionChunk> streamResponse;
         private final Iterator<ChatCompletionChunk> iterator;
         private final InferenceAsyncCallback callback;
@@ -129,7 +142,8 @@ public class OpenAICompatibleInferenceService implements InferenceService {
 
         @Override
         public void continueInference() {
-            CompletableFuture.runAsync(this::processNext);
+            AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
+            CompletableFuture.runAsync(() -> this.processNext(wrapper));
         }
 
         @Override
@@ -143,57 +157,59 @@ public class OpenAICompatibleInferenceService implements InferenceService {
             log.debug("Inference execution terminated by controller request.");
         }
 
-        private synchronized void processNext() {
+        private synchronized void processNext(AsyncRunnableWrapper wrapper) {
             if (completed) {
                 return;
             }
 
             try {
-                // 1. Deliver buffered chunks remaining from previous network packets
-                if (!pendingChunks.isEmpty()) {
-                    PendingChunk chunk = pendingChunks.poll();
-                    callback.onChunk(this, chunk.type(), chunk.text());
-                    return;
-                }
-
-                // 2. Fetch network stream until next reasoning or content chunk is found
-                while (iterator.hasNext()) {
-                    if (completed) {
-                        return;
-                    }
-                    if (callback.isDead()) {
-                        closeStream();
-                        callback.onCancel();
+                wrapper.run(() -> {
+                    // 1. Deliver buffered chunks remaining from previous network packets
+                    if (!pendingChunks.isEmpty()) {
+                        PendingChunk chunk = pendingChunks.poll();
+                        callback.onChunk(this, chunk.type(), chunk.text());
                         return;
                     }
 
-                    ChatCompletionChunk chunk = iterator.next();
-                    for (ChatCompletionChunk.Choice choice : chunk.choices()) {
-                        ChatCompletionChunk.Choice.Delta delta = choice.delta();
-
-                        String reasoning = extractReasoningContent(delta);
-                        if (reasoning != null && !reasoning.isEmpty()) {
-                            pendingChunks.add(new PendingChunk(ChunkType.REASONING, reasoning));
+                    // 2. Fetch network stream until next reasoning or content chunk is found
+                    while (iterator.hasNext()) {
+                        if (completed) {
+                            return;
+                        }
+                        if (callback.isDead()) {
+                            closeStream();
+                            callback.onCancel();
+                            return;
                         }
 
-                        delta.content().ifPresent(content -> {
-                            if (!content.isEmpty()) {
-                                pendingChunks.add(new PendingChunk(ChunkType.RESPONSE, content));
+                        ChatCompletionChunk chunk = iterator.next();
+                        for (ChatCompletionChunk.Choice choice : chunk.choices()) {
+                            ChatCompletionChunk.Choice.Delta delta = choice.delta();
+
+                            String reasoning = extractReasoningContent(delta);
+                            if (reasoning != null && !reasoning.isEmpty()) {
+                                pendingChunks.add(new PendingChunk(ChunkType.REASONING, reasoning));
                             }
-                        });
+
+                            delta.content().ifPresent(content -> {
+                                if (!content.isEmpty()) {
+                                    pendingChunks.add(new PendingChunk(ChunkType.RESPONSE, content));
+                                }
+                            });
+                        }
+
+                        if (!pendingChunks.isEmpty()) {
+                            PendingChunk nextChunk = pendingChunks.poll();
+                            callback.onChunk(this, nextChunk.type(), nextChunk.text());
+                            return;
+                        }
                     }
 
-                    if (!pendingChunks.isEmpty()) {
-                        PendingChunk nextChunk = pendingChunks.poll();
-                        callback.onChunk(this, nextChunk.type(), nextChunk.text());
-                        return;
-                    }
-                }
-
-                completed = true;
-                closeStream();
-                callback.onCompletion();
-            } catch (Exception e) {
+                    completed = true;
+                    closeStream();
+                    callback.onCompletion();
+                });
+            } catch (Throwable e) {
                 if (!completed) {
                     completed = true;
                     closeStream();

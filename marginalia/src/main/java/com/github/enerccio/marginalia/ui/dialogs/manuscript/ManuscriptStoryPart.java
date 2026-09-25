@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.SharedStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
@@ -17,11 +18,13 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
@@ -30,6 +33,8 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout.Orientation;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
@@ -58,14 +63,20 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @Autowired
     private StoryGenerationService storyGenerationService;
 
+    @Autowired
+    private SummaryService summaryService;
+
     private final ManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
 
-    private HorizontalLayout mainLayout;
+    private SplitLayout mainLayout;
     private VerticalLayout leftMarginLayout;
     private VerticalLayout centerLayout;
     private ScrollPanel centerContentPanel;
     private HorizontalLayout bottomControlsLayout;
+    private VTabSheet leftBar;
+    private Span sidebarHeader;
+    private VerticalLayout sidebarList;
 
     private MenuBar menuBar;
     private MenuItem changeStyles;
@@ -81,7 +92,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private String pendingPovCharacter = "";
     private String pendingPresentCharacters = "";
     private String pendingInstructions = "";
-    private boolean stateInitialized = false;
 
     private Manuscript currentManuscript;
     private boolean isFrozen = false;
@@ -95,14 +105,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     @Override
     public Component create(VTabSheet container) throws Exception {
-        mainLayout = new HorizontalLayout();
+        mainLayout = new SplitLayout();
         mainLayout.setSizeFull();
-        mainLayout.setSpacing(false);
-        mainLayout.setPadding(false);
 
         leftMarginLayout = new VerticalLayout();
-        leftMarginLayout.setWidth("320px");
-        leftMarginLayout.setHeightFull();
+        leftMarginLayout.setSizeFull();
         leftMarginLayout.setPadding(false);
         leftMarginLayout.setSpacing(false);
         leftMarginLayout.getStyle().set("border-right", "1px solid var(--lumo-contrast-10pct)");
@@ -125,9 +132,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         centerLayout.setFlexGrow(1, centerContentPanel);
         centerLayout.setFlexGrow(0, bottomControlsLayout);
 
-        mainLayout.add(leftMarginLayout, centerLayout);
-        mainLayout.setFlexGrow(0, leftMarginLayout);
-        mainLayout.setFlexGrow(1, centerLayout);
+        mainLayout.setOrientation(Orientation.HORIZONTAL);
+        mainLayout.addToPrimary(leftMarginLayout);
+        mainLayout.addToSecondary(centerLayout);
+        mainLayout.setSplitterPosition(20);
 
         UI.getCurrent().getPage().executeJs(
                 "if (!document.getElementById('marginalia-markdown-fix-style')) {" +
@@ -288,16 +296,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     private void syncFieldsFromState() {
-        if (!stateInitialized) {
-            ChatMessage lastMsg = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
-            if (lastMsg != null) {
-                pendingSceneSetting = StringUtils.defaultString(lastMsg.getSceneSetting());
-                pendingPovCharacter = StringUtils.defaultString(lastMsg.getPovCharacter());
-                pendingPresentCharacters = StringUtils.defaultString(lastMsg.getPresentCharacters());
-            }
-            pendingInstructions = "";
-            stateInitialized = true;
+        ChatMessage lastMsg = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
+        if (lastMsg != null) {
+            pendingSceneSetting = StringUtils.defaultString(lastMsg.getSceneSetting());
+            pendingPovCharacter = StringUtils.defaultString(lastMsg.getPovCharacter());
+            pendingPresentCharacters = StringUtils.defaultString(lastMsg.getPresentCharacters());
         }
+        pendingInstructions = "";
 
         sceneSettingField.setValue(pendingSceneSetting);
         povCharacterField.setValue(pendingPovCharacter);
@@ -307,31 +312,77 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private void renderStoryContent() {
         centerContentPanel.removeAll();
+        leftMarginLayout.removeAll();
         activeCardMap.clear();
+
+        leftBar = new VTabSheet();
+        leftBar.setSizeFull();
+        leftMarginLayout.add(leftBar);
+
+        createStoryOutlineTab();
 
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
             centerContentPanel.add(UIUtils.centerComponent(emptyLabel));
-            return;
-        }
+        } else {
 
-        try {
-            List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf());
-            int total = branch.size();
-            for (int i = 0; i < total; i++) {
-                ChatMessage msg = branch.get(i);
-                boolean isLast = (i == total - 1);
-                ChatMessageCard card = new ChatMessageCard(msg, isLast);
-                card.setFrozen(isFrozen);
-                if (msg.getId() != null) {
-                    activeCardMap.put(msg.getId(), card);
+            try {
+                List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf());
+                int total = branch.size();
+                sidebarHeader.setText(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_HEADER), total));
+
+                for (int i = 0; i < total; i++) {
+                    ChatMessage msg = branch.get(i);
+                    int orderId = i + 1;
+                    Long dbId = msg.getId();
+
+                    Button sidebarBtn = new Button(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
+                    sidebarBtn.setThemeName("tertiary small");
+                    sidebarBtn.setWidthFull();
+                    sidebarBtn.getStyle().set("text-align", "left");
+                    sidebarBtn.getStyle().set("justify-content", "flex-start");
+                    sidebarBtn.getStyle().set("padding-left", "12px");
+
+                    sidebarBtn.addClickListener(event -> {
+                        if (dbId != null && activeCardMap.containsKey(dbId)) {
+                            activeCardMap.get(dbId).scrollIntoView();
+                        }
+                    });
+                    sidebarList.add(sidebarBtn);
+
+                    boolean isLast = (i == total - 1);
+                    ChatMessageCard card = new ChatMessageCard(msg, isLast, orderId);
+                    card.setFrozen(isFrozen);
+                    if (msg.getId() != null) {
+                        activeCardMap.put(msg.getId(), card);
+                    }
+                    centerContentPanel.add(card);
                 }
-                centerContentPanel.add(card);
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
             }
+
             restoreScrollPosition();
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
         }
+    }
+
+    private void createStoryOutlineTab() {
+        VerticalLayout leftMarginLayout = new VerticalLayout();
+        leftMarginLayout.setSizeFull();
+        leftBar.add(loc.getValue(L.LABEL_CHAPTERS), leftMarginLayout);
+
+        sidebarHeader = new Span();
+        sidebarHeader.getStyle().set("font-weight", "bold");
+        sidebarHeader.getStyle().set("font-size", "var(--lumo-font-size-s)");
+        sidebarHeader.getStyle().set("padding", "12px 12px 4px 12px");
+
+        sidebarList = new VerticalLayout();
+        sidebarList.setPadding(false);
+        sidebarList.setSpacing(false);
+        sidebarList.setWidthFull();
+
+        leftMarginLayout.add(sidebarHeader, sidebarList);
+        leftMarginLayout.setFlexGrow(1, sidebarList);
     }
 
     private void updateLastFlagsForNewCard() {
@@ -424,9 +475,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     public void onNodeCreated(ChatMessage message) {
                         ui.access(() -> {
                             updateLastFlagsForNewCard();
+                            int newOrderId = activeCardMap.size() + 1;
 
                             if (request.getRequestType() == GenerationRequestType.NEW_MESSAGE) {
-                                ChatMessageCard card = new ChatMessageCard(message, true);
+                                ChatMessageCard card = new ChatMessageCard(message, true, newOrderId);
                                 card.setFrozen(true);
                                 if (message.getId() != null) {
                                     activeCardMap.put(message.getId(), card);
@@ -434,7 +486,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                                 streamingCard = card;
                                 centerContentPanel.add(card);
                             } else if (request.getRequestType() == GenerationRequestType.REGENERATE) {
-                                ChatMessageCard card = getOrCreateCard(message);
+                                ChatMessageCard card = getOrCreateCard(message, newOrderId);
                                 card.updateReasoning("");
                                 card.updateResponse("");
                                 card.updateMetrics(message);
@@ -445,7 +497,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                                 ChatMessageCard last = cards.getLast();
                                 activeCardMap.remove(last.message.getId());
                                 centerContentPanel.remove(last);
-                                ChatMessageCard card = new ChatMessageCard(message, true);
+                                ChatMessageCard card = new ChatMessageCard(message, true, newOrderId);
                                 card.setFrozen(true);
                                 if (message.getId() != null) {
                                     activeCardMap.put(message.getId(), card);
@@ -461,7 +513,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @Override
                     public void onReasoningChunk(String chunk, ChatMessage message) {
                         ui.access(() -> {
-                            ChatMessageCard card = getOrCreateCard(message);
+                            ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
                             if (card != null) {
                                 card.updateReasoning(message.getResponseReasoning());
                                 scrollToBottomIfAtBottom();
@@ -473,7 +525,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @Override
                     public void onResponseChunk(String chunk, ChatMessage message) {
                         ui.access(() -> {
-                            ChatMessageCard card = getOrCreateCard(message);
+                            ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
                             if (card != null) {
                                 card.updateResponse(message.getResponse());
                                 scrollToBottomIfAtBottom();
@@ -485,7 +537,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     @Override
                     public void onMetricsUpdated(ChatMessage message) {
                         ui.access(() -> {
-                            ChatMessageCard card = getOrCreateCard(message);
+                            ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
                             if (card != null) {
                                 card.updateMetrics(message);
                             }
@@ -519,11 +571,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                         ui.access(() -> {
                             updateLastFlagsForNewCard();
                             if (partialMessage == null) {
-                                centerContentPanel.remove(streamingCard);
+                                if (streamingCard != null)
+                                    centerContentPanel.remove(streamingCard);
                             } else {
                                 if (!partialMessage.getId().equals(streamingCard.message.getId())) {
                                     centerContentPanel.remove(streamingCard);
-                                    ChatMessageCard card = new ChatMessageCard(partialMessage, true);
+                                    ChatMessageCard card = new ChatMessageCard(partialMessage, true, activeCardMap.size() + 1);
                                     card.setFrozen(true);
                                     activeCardMap.put(partialMessage.getId(), card);
                                     streamingCard = null;
@@ -565,16 +618,49 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                             UIPushGuard.push(ui);
                         });
                     }
+
+                    @Override
+                    public void askQuestion(String question, Runnable yes, Runnable no) {
+                        ui.access(() -> {
+                            ConfirmDialog.show(question, yes, no);
+                            UIPushGuard.push(ui);
+                        });
+                    }
                 }
         );
     }
 
-    private ChatMessageCard getOrCreateCard(ChatMessage message) {
+    private ChatMessageCard getOrCreateCard(ChatMessage message, int fallbackOrderId) {
         if (message == null) return streamingCard;
         if (message.getId() != null && activeCardMap.containsKey(message.getId())) {
             return activeCardMap.get(message.getId());
         }
         return streamingCard;
+    }
+
+    private void applyMarkdownStyles(Markdown markdown) {
+        markdown.setWidthFull();
+        markdown.getStyle().set("min-width", "0");
+        markdown.getStyle().set("max-width", "100%");
+        markdown.getStyle().set("box-sizing", "border-box");
+        markdown.getElement().executeJs(
+                "const el = this;" +
+                        "const enforceWrap = () => {" +
+                        "  if (!el) return;" +
+                        "  const root = el.shadowRoot || el;" +
+                        "  const elements = root.querySelectorAll('pre, code, p, div, span');" +
+                        "  elements.forEach(node => {" +
+                        "    node.style.setProperty('white-space', 'pre-wrap', 'important');" +
+                        "    node.style.setProperty('word-break', 'break-word', 'important');" +
+                        "    node.style.setProperty('overflow-wrap', 'anywhere', 'important');" +
+                        "    node.style.setProperty('max-width', '100%', 'important');" +
+                        "    node.style.setProperty('box-sizing', 'border-box', 'important');" +
+                        "  });" +
+                        "};" +
+                        "enforceWrap();" +
+                        "const observer = new MutationObserver(enforceWrap);" +
+                        "observer.observe(el.shadowRoot || el, { childList: true, subtree: true, characterData: true });"
+        );
     }
 
     @Override
@@ -606,7 +692,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @Override
     public void load(Manuscript manuscript) {
         this.currentManuscript = manuscript;
-        this.stateInitialized = false;
         renderStoryContent();
     }
 
@@ -625,6 +710,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private class ChatMessageCard extends HorizontalLayout {
         private ChatMessage message;
         private boolean isLast;
+        private final int orderId;
 
         private final VerticalLayout contentLayout;
         private Button menuBtn;
@@ -632,6 +718,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private MenuItem editItem;
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
+        private MenuItem summaryItem;
+        private MenuItem deleteSummaryItem;
         private MenuItem deleteItem;
         private MenuItem showPromptItem;
         private Details reasoningDetails;
@@ -641,6 +729,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private boolean editing = false;
 
         private final VerticalLayout metaLayout;
+        private Span idSpan;
         private Span modelSpan;
         private Span tokensSpan;
         private Span wordsSpan;
@@ -652,13 +741,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private TextArea detailsPresentField;
         private TextArea detailsInstructionsField;
 
-        public ChatMessageCard(ChatMessage message) {
-            this(message, false);
+        public ChatMessageCard(ChatMessage message, int orderId) {
+            this(message, false, orderId);
         }
 
-        public ChatMessageCard(ChatMessage message, boolean isLast) {
+        public ChatMessageCard(ChatMessage message, boolean isLast, int orderId) {
             this.message = message;
             this.isLast = isLast;
+            this.orderId = orderId;
 
             setWidthFull();
             setPadding(false);
@@ -695,6 +785,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             hamburgerMenu = new ContextMenu();
             hamburgerMenu.setTarget(menuBtn);
             hamburgerMenu.setOpenOnClick(true);
+
             editItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_EDIT), event -> toggleEdit());
 
             regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
@@ -704,6 +795,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             swipeItem.setVisible(this.isLast);
 
             showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
+
+            summaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_GENERATE_SUMMARY), event -> openSummaryDialog());
+            deleteSummaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE_SUMMARY), event -> confirmDeleteSummary());
 
             deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
@@ -726,6 +820,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                         }
                     });
                 });
+            });
+
+            hamburgerMenu.addOpenedChangeListener(event -> {
+                if (event.isOpened()) {
+                    refreshSummaryMenuItems();
+                }
             });
 
             headerBar.add(UIUtils.voidComponent(), menuBtn);
@@ -773,6 +873,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             Span metaHeader = new Span(loc.getValue(L.LABEL_NODE_METADATA));
             metaHeader.getStyle().set("font-weight", "600");
             metaHeader.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+
+            idSpan = new Span(String.format(loc.getValue(L.LABEL_MESSAGE_IDS), this.orderId, (message.getId() != null ? message.getId() : NOT_AVAILABLE)));
+            idSpan.getStyle().set("font-weight", "600");
+            idSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
 
             String modelName = StringUtils.defaultIfBlank(message.getModelUsed(), NOT_AVAILABLE);
             modelSpan = new Span(loc.getValue(L.LABEL_MODEL) + ": " + modelName);
@@ -838,11 +942,59 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             detailsForm.add(detailsSceneField, detailsPovField, detailsPresentField, detailsInstructionsField);
             readOnlyPopover.add(detailsForm);
 
-            metaLayout.add(metaHeader, modelSpan, tokensSpan, wordsSpan, turnDetailsBtn);
+            metaLayout.add(metaHeader, idSpan, modelSpan, tokensSpan, wordsSpan, turnDetailsBtn);
 
             add(contentLayout, metaLayout);
             setFlexGrow(1, contentLayout);
             setFlexGrow(0, metaLayout);
+        }
+
+        private void refreshSummaryMenuItems() {
+            try {
+                if (message != null && message.getId() != null) {
+                    ChatMessage latest = chatMessageService.find(message.getId());
+                    if (latest != null) {
+                        this.message = latest;
+                    }
+                }
+            } catch (Exception ignored) {}
+
+            boolean hasSummary = (message != null && message.getSummary() != null);
+            if (hasSummary) {
+                summaryItem.setText(loc.getValue(L.LABEL_SHOW_SUMMARY));
+                deleteSummaryItem.setEnabled(true);
+            } else {
+                summaryItem.setText(loc.getValue(L.LABEL_GENERATE_SUMMARY));
+                deleteSummaryItem.setEnabled(false);
+            }
+        }
+
+        private void confirmDeleteSummary() {
+            ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+                try {
+                    if (message != null && message.getSummary() != null) {
+                        Summary summaryToDelete = summaryService.find(message.getSummary());
+                        message.setSummary(null);
+                        message = chatMessageService.save(message);
+                        if (summaryToDelete != null) {
+                            summaryService.delete(summaryToDelete, true);
+                        }
+                        refreshSummaryMenuItems();
+                    }
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            });
+        }
+
+        private void openSummaryDialog() {
+            refreshSummaryMenuItems();
+            boolean hasSummary = (message != null && message.getSummary() != null);
+            SummaryDialog summaryDialog = new SummaryDialog(message, !hasSummary);
+            summaryDialog.open();
+            if (!hasSummary) {
+                summaryDialog.startGeneration();
+            }
         }
 
         private void regenerate() {
@@ -893,31 +1045,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             if (detailsInstructionsField != null) {
                 detailsInstructionsField.setReadOnly(!isLast);
             }
-        }
-
-        private void applyMarkdownStyles(Markdown markdown) {
-            markdown.setWidthFull();
-            markdown.getStyle().set("min-width", "0");
-            markdown.getStyle().set("max-width", "100%");
-            markdown.getStyle().set("box-sizing", "border-box");
-            markdown.getElement().executeJs(
-                    "const el = this;" +
-                            "const enforceWrap = () => {" +
-                            "  if (!el) return;" +
-                            "  const root = el.shadowRoot || el;" +
-                            "  const elements = root.querySelectorAll('pre, code, p, div, span');" +
-                            "  elements.forEach(node => {" +
-                            "    node.style.setProperty('white-space', 'pre-wrap', 'important');" +
-                            "    node.style.setProperty('word-break', 'break-word', 'important');" +
-                            "    node.style.setProperty('overflow-wrap', 'anywhere', 'important');" +
-                            "    node.style.setProperty('max-width', '100%', 'important');" +
-                            "    node.style.setProperty('box-sizing', 'border-box', 'important');" +
-                            "  });" +
-                            "};" +
-                            "enforceWrap();" +
-                            "const observer = new MutationObserver(enforceWrap);" +
-                            "observer.observe(el.shadowRoot || el, { childList: true, subtree: true, characterData: true });"
-            );
         }
 
         public void setFrozen(boolean frozen) {
@@ -983,6 +1110,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         public void updateMetrics(ChatMessage msg) {
             String modelName = StringUtils.defaultIfBlank(msg.getModelUsed(), NOT_AVAILABLE);
+            idSpan.setText(String.format(loc.getValue(L.LABEL_MESSAGE_IDS), this.orderId, (message.getId() != null ? message.getId() : NOT_AVAILABLE)));
             modelSpan.setText(loc.getValue(L.LABEL_MODEL) + ": " + modelName);
             tokensSpan.setText(loc.getValue(L.LABEL_TOKENS) + ": " + msg.getTokenCount() + " (" + msg.getPromptTokens() + ")");
             wordsSpan.setText(loc.getValue(L.LABEL_WORDS) + ": " + msg.getWordCount());
@@ -992,6 +1120,172 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             PromptDialog dialog = new PromptDialog(message.getBuiltPrompt());
             dialog.create();
             dialog.open();
+        }
+    }
+
+    private class SummaryDialog extends Dialog {
+        private final ChatMessage dialogMessage;
+
+        private final Button actionButton;
+        private final Details reasoningDetails;
+        private final Markdown reasoningMarkdown;
+        private final TextArea summaryArea;
+
+        private CancellationToken cancellationToken;
+        private boolean isGeneratingState;
+
+        public SummaryDialog(ChatMessage message, boolean isGenerating) {
+            this.dialogMessage = message;
+
+            setHeaderTitle(isGenerating ? loc.getValue(L.LABEL_GENERATING_SUMMARY) : loc.getValue(L.LABEL_SUMMARY));
+            setWidth("700px");
+            setHeight("500px");
+            setCloseOnEsc(false);
+            setCloseOnOutsideClick(false);
+            setModality(ModalityMode.STRICT);
+
+            VerticalLayout layout = new VerticalLayout();
+            layout.setSizeFull();
+            layout.setPadding(false);
+            layout.setSpacing(true);
+
+            reasoningMarkdown = new Markdown();
+            reasoningMarkdown.addClassName(SharedStyles.CHAT_MESSAGE_MARKDOWN);
+            applyMarkdownStyles(reasoningMarkdown);
+
+            reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
+            reasoningDetails.setWidthFull();
+            reasoningDetails.setVisible(false);
+
+            summaryArea = new TextArea();
+            summaryArea.setSizeFull();
+            summaryArea.setReadOnly(true);
+
+            ScrollPanel scrollPanel = new ScrollPanel();
+            scrollPanel.setSizeFull();
+            VerticalLayout scrollContent = new VerticalLayout(reasoningDetails, summaryArea);
+            scrollContent.setPadding(false);
+            scrollContent.setSpacing(true);
+            scrollContent.setWidthFull();
+            scrollPanel.add(scrollContent);
+
+            layout.add(scrollPanel);
+            layout.setFlexGrow(1, scrollPanel);
+            add(layout);
+
+            HorizontalLayout footer = new HorizontalLayout();
+            footer.setWidthFull();
+            footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+
+            actionButton = new Button();
+            updateActionButtonState(isGenerating);
+
+            actionButton.addClickListener(_ -> {
+                if (isGeneratingState) {
+                    if (cancellationToken != null && !cancellationToken.isCancelled()) {
+                        cancellationToken.cancel();
+                    }
+                    updateActionButtonState(false);
+                } else {
+                    close();
+                }
+            });
+
+            footer.add(actionButton);
+            getFooter().add(footer);
+
+            if (!isGenerating) {
+                loadExistingSummary();
+            }
+        }
+
+        private void updateActionButtonState(boolean generating) {
+            this.isGeneratingState = generating;
+            if (generating) {
+                actionButton.setText(loc.getValue(L.LABEL_STOP));
+                actionButton.setThemeName("error primary");
+            } else {
+                actionButton.setText(loc.getValue(L.LABEL_EXIT));
+                actionButton.setThemeName("primary");
+            }
+        }
+
+        private void loadExistingSummary() {
+            try {
+                if (dialogMessage.getSummary() != null) {
+                    Summary summary = summaryService.find(dialogMessage.getSummary());
+                    if (summary != null) {
+                        if (StringUtils.isNotBlank(summary.getReasoning())) {
+                            reasoningMarkdown.setContent(summary.getReasoning());
+                            reasoningDetails.setVisible(true);
+                        } else {
+                            reasoningDetails.setVisible(false);
+                        }
+                        summaryArea.setValue(StringUtils.defaultString(summary.getSummary()));
+                    }
+                }
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        public void startGeneration() {
+            UI ui = UI.getCurrent();
+            try {
+                cancellationToken = summaryService.createSummary(currentManuscript, dialogMessage, new SummaryService.AsyncCallback() {
+                    @Override
+                    public void onSummaryProgress(String reasoning, String summaryText) {
+                        ui.access(() -> {
+                            if (StringUtils.isNotBlank(reasoning)) {
+                                reasoningMarkdown.setContent(reasoning);
+                                reasoningDetails.setVisible(true);
+                            }
+                            if (StringUtils.isNotBlank(summaryText)) {
+                                summaryArea.setValue(summaryText);
+                            }
+                            UIPushGuard.push(ui);
+                        });
+                    }
+
+                    @Override
+                    public void onSummaryFinished(Summary summary) {
+                        ui.access(() -> {
+                            try {
+                                dialogMessage.setSummary(summary);
+                                chatMessageService.save(dialogMessage);
+                                setHeaderTitle(loc.getValue(L.LABEL_SUMMARY));
+                                updateActionButtonState(false);
+                            } catch (Exception e) {
+                                UIUtils.internalServerError(loc, e);
+                            }
+                            UIPushGuard.push(ui);
+                        });
+                    }
+
+                    @Override
+                    public void onSummaryTerminated() {
+                        ui.access(() -> {
+                            setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_STOPPED));
+                            updateActionButtonState(false);
+                            UIPushGuard.push(ui);
+                        });
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        ui.access(() -> {
+                            setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
+                            updateActionButtonState(false);
+                            UIUtils.internalServerError(loc, throwable);
+                            UIPushGuard.push(ui);
+                        });
+                    }
+                });
+            } catch (Exception e) {
+                setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
+                updateActionButtonState(false);
+                UIUtils.internalServerError(loc, e);
+            }
         }
     }
 }

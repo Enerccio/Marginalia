@@ -101,6 +101,14 @@
         <property name="repository" ref="lorebookEntryRepository" />
     </bean>
 
+    <bean id="summaryRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaSummaryRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.SummaryServiceImpl">
+        <property name="repository" ref="summaryRepository" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.TokenizerServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.StoryGenerationServiceImpl">

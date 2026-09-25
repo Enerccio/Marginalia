@@ -36,7 +36,9 @@ public interface GenerationController {
 
     void jumpTo(GenerationStepType stepType) throws Exception;
 
-    void emitEvent(Events event, FromEventCallback continueAfterEventHandling) throws Exception;
+    void emitEvent(Events event, FromEventCallback continueAfterEventHandling);
+
+    Runnable wrapCallback(FromEventCallback callback);
 
     interface FromEventCallback {
 

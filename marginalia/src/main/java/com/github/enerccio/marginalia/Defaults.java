@@ -45,7 +45,7 @@ Write the next section of **MANUSCRIPT CHRONICLE** using the following specifica
 
 {{#povCharacter}}Point of View Character: {{.}}{{/povCharacter}}
 {{#sceneSetting}}Current Location & Time: {{.}}{{/sceneSetting}}
-{{#presentCharacters}}Characters Currently Present / State: {{/}}{{/presentCharacters}}
+{{#presentCharacters}}Characters Currently Present / State: {{.}}{{/presentCharacters}}
 
 {{#instructions}}
 **Plot Specifications for the Next Part:**

@@ -124,6 +124,18 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_REGENERATE, "Regenerate");
         setValue(L.LABEL_SWIPE, "Swipe");
         setValue(L.LABEL_SHOW_PROMPT, "Show Prompt");
+        setValue(L.LABEL_CHAPTERS, "Outline");
+        setValue(L.LABEL_CHAPTER_OUTLINE_HEADER, "Story Branch (%s)");
+        setValue(L.LABEL_CHAPTER_OUTLINE_NODE, "#%s (DB ID: %s)");
+        setValue(L.LABEL_GENERATE_SUMMARY, "Generate summary");
+        setValue(L.LABEL_SHOW_SUMMARY, "View summary");
+        setValue(L.LABEL_DELETE_SUMMARY, "Delete summary");
+        setValue(L.LABEL_MESSAGE_IDS, "Order #%s | DB ID: %s");
+        setValue(L.LABEL_GENERATING_SUMMARY, "Generating Summary");
+        setValue(L.LABEL_SUMMARY, "Summary");
+        setValue(L.LABEL_STOP, "Stop");
+        setValue(L.LABEL_SUMMARY_STOPPED, "Summary Terminated");
+        setValue(L.LABEL_SUMMARY_ERROR, "Summary Error");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");
@@ -141,6 +153,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_NO_ACTIVE_BRANCH, "No active story branch. Add a message to begin.");
         setValue(L.MSG_SELECT_MESSAGE_METADATA, "Select a message to view metadata.");
         setValue(L.MSG_INTERRUPTED, "Generation interrupted on the backend.");
+        setValue(L.MSG_SUMMARY_FAILURE, "Invalidated summaries for messages with IDs: [%s]. Continue generation without those summaries?");
 
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");

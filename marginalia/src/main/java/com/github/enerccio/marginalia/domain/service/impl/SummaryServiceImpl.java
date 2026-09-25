@@ -57,6 +57,10 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         InferenceService inferenceService = inferenceServices.forAI(ai);
         CancellationToken cancellationToken = new CancellationToken();
         Summary newSummary = new Summary();
+        newSummary.setReasoning("");
+        newSummary.setSummary("");
+        newSummary.setReasoningTokens(0L);
+        newSummary.setSummaryTokens(0L);
 
         List<LLMChatMessage> payload = createSummaryPayload(manuscript, from, ai, inferenceService, newSummary);
         if (payload == null)
@@ -81,6 +85,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
                     }
                     summary = self.save(summary);
                     callback.onSummaryProgress(summary.getReasoning(), summary.getSummary());
+                    controller.continueInference();
                 }
             }
 
@@ -90,6 +95,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
                     summary.setSummaryTokens(inferenceService.countTokens(summary.getSummary()));
                     summary.setReasoningTokens(inferenceService.countTokens(summary.getReasoning()));
                     summary = self.save(summary);
+                    ChatMessage message = chatMessageService.find(from);
+                    message.setSummary(summary);
+                    chatMessageService.save(message);
                     callback.onSummaryFinished(summary);
                 }
             }
@@ -103,7 +111,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             }
 
             @Override
-            public void onError(Exception exception) throws Exception {
+            public void onError(Throwable exception) throws Exception {
                 try (InRequestScope _ = new InRequestScope(attributes)) {
                     self.delete(summary, true);
                     callback.onError(exception);
@@ -124,7 +132,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         List<ChatMessage> tree = chatMessageService.getBranchFromLeaf(from);
         tree = tree.reversed();
 
-        int maxTokens = ai.getMaxCompletionTokens();
+        int maxTokens = ai.getMaxContext();
         SummaryTemplateData template = new SummaryTemplateData();
 
         if (StringUtils.isNotBlank(from.getBackgroundLore())) {
@@ -159,11 +167,11 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         }
 
         MessageDigest digest = MessageDigest.getInstance("SHA512");
-        messagesToSummarize.reversed().stream().map(ChatMessage::getResponse).map(s -> s.getBytes(StandardCharsets.UTF_8)).forEach(digest::update);
+        messagesToSummarize.stream().map(ChatMessage::getResponse).map(s -> s.getBytes(StandardCharsets.UTF_8)).forEach(digest::update);
         newSummary.setSummaryMessageHash(HexFormat.of().formatHex(digest.digest()));
         template.setText(messagesToSummarize.reversed().stream().map(ChatMessage::getResponse).collect(Collectors.joining("\n\n")));
         String fullPrompt = templateService.processTemplate(systemPrompt, "summaryPrompt", template);
-        tokens = inferenceService.countTokens(prompt);
+        tokens = inferenceService.countTokens(fullPrompt);
 
         if (tokens > maxTokens) {
             throw new SummaryContextInsufficient(tokens, maxTokens);

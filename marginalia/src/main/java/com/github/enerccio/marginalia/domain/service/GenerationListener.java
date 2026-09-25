@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.FromEventCallback;
 
 public interface GenerationListener {
     /** Fired immediately after the initial ChatMessage tree node is persisted */
@@ -29,5 +28,5 @@ public interface GenerationListener {
     void onSimpleError(String error);
 
     /** Display dialog */
-    void askQuestion(String question, FromEventCallback yes, FromEventCallback no);
+    void askQuestion(String question, Runnable yes, Runnable no);
 }

@@ -16,8 +16,9 @@ public class CleanupStep extends GenerationStepBase {
 
             if (controller.getState() == State.NOT_SUCCESSFUL) {
                 ChatMessage message = controller.getMessage();
-                if (message.getId() == null) {
+                if (message == null || message.getId() == null) {
                     // ignore, did not even call new node
+                    controller.getUIListener().onCancelled(null);
                 } else {
                     message = chatMessageService.find(message);
                     if (controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE) {

@@ -23,6 +23,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.LorebookEntry</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Tag</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.TagRelation</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.Summary</class>
 
         <class>com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol</class>
@@ -35,12 +36,7 @@
 
         <properties>
             <property name="hibernate.dialect" value="com.github.enerccio.marginalia.SaneSQLiteDialect" />
-
-<!--            <property name="hibernate.show_sql" value="true" />-->
-<!--            <property name="hibernate.format_sql" value="true" />-->
-
-            <!-- Update schema automatically -->
-            <property name="hibernate.hbm2ddl.auto" value="update" />
+            <property name="hibernate.hbm2ddl.auto" value="validate" />
         </properties>
     </persistence-unit>
 </persistence>

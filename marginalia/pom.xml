@@ -250,6 +250,13 @@
       <artifactId>snakeyaml</artifactId>
       <version>2.7</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <version>13.7.0</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>

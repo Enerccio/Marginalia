@@ -11,6 +11,7 @@ public class Configuration implements InitializingBean {
     private boolean allowPersistentLogin = true;
     private File folder;
     private File dataFolder;
+    private boolean saveAsyncStacks = false;
 
     public Long getPersistentLoginInfoTTL() {
         return persistentLoginInfoTTL;
@@ -68,5 +69,13 @@ public class Configuration implements InitializingBean {
         if (!file.exists())
             file.mkdirs();
         return file;
+    }
+
+    public boolean isSaveAsyncStacks() {
+        return saveAsyncStacks;
+    }
+
+    public void setSaveAsyncStacks(boolean saveAsyncStacks) {
+        this.saveAsyncStacks = saveAsyncStacks;
     }
 }

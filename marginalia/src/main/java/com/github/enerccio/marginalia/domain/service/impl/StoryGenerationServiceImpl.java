@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.concurrent.AsyncRunnableWrapper;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
@@ -37,6 +39,9 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
 
     @Autowired
     private Localization loc;
+
+    @Autowired
+    private Configuration configuration;
 
     private List<GenerationStep> installedSteps;
     private final Map<GenerationStepType, GenerationStep> steps = new LinkedHashMap<>();
@@ -219,6 +224,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         }
 
         private void executeNextStep() {
+            AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
             taskExecutor.submit(() -> {
                 if (currentStep == null) {
                     // we are done, exit
@@ -228,8 +234,8 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                 if (Thread.interrupted()) {
                     getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
                     try {
-                        jumpTo(GenerationStepType.CLEANUP);
-                    } catch (Exception e) {
+                        wrapper.run(() -> jumpTo(GenerationStepType.CLEANUP));
+                    } catch (Throwable e) {
                         getUIListener().onError(e);
                     }
                     return;
@@ -238,8 +244,8 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                 if (cancellationToken.isCancelled() && currentStep != GenerationStepType.CLEANUP) {
                     log.info("Generation cancelled by user, short-circuiting to CLEANUP");
                     try {
-                        jumpTo(GenerationStepType.CLEANUP);
-                    } catch (Exception e) {
+                        wrapper.run(() -> jumpTo(GenerationStepType.CLEANUP));
+                    } catch (Throwable e) {
                         getUIListener().onError(e);
                     }
                     return;
@@ -247,17 +253,18 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
 
                 GenerationStep step = steps.get(currentStep);
                 try {
-                    if (step == null) {
-                        // not installed? during development normal
-                        uiListener.onSimpleError("NOT IMPLEMENTED");
-                        if (currentStep != GenerationStepType.CLEANUP)
-                            jumpTo(GenerationStepType.CLEANUP);
-                        return;
-                    }
-                    step.step(this);
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                    log.debug(e.getMessage(), e);
+                    wrapper.run(() -> {
+                        if (step == null) {
+                            // not installed? during development normal
+                            uiListener.onSimpleError("NOT IMPLEMENTED");
+                            if (currentStep != GenerationStepType.CLEANUP)
+                                jumpTo(GenerationStepType.CLEANUP);
+                            return;
+                        }
+                        step.step(this);
+                    });
+                } catch (Throwable e) {
+                    log.error(e.getMessage(), e);
                     getUIListener().onError(e);
                     if (currentStep != GenerationStepType.CLEANUP) {
                         currentStep = GenerationStepType.CLEANUP;
@@ -287,6 +294,7 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
             EventChain chain = new EventChain() {
                 @Override
                 public void next() {
+                    AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
                     taskExecutor.submit(() -> {
                         try (InRequestScope _ = new InRequestScope(getRequestAttributes())) {
                             if (cancellationToken.isCancelled()) {
@@ -297,8 +305,9 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                             if (Thread.interrupted()) {
                                 getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
                                 try {
-                                    jumpTo(GenerationStepType.CLEANUP);
-                                } catch (Exception e) {
+                                    wrapper.run(() -> jumpTo(GenerationStepType.CLEANUP));
+                                } catch (Throwable e) {
+                                    log.error(e.getMessage(), e);
                                     getUIListener().onError(e);
                                 }
                                 return;
@@ -306,10 +315,12 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
 
                             if (iterator.hasNext() && !eventImpl.terminated) {
                                 try {
-                                    GenerationEvent listener = iterator.next();
-                                    listener.onEvent(eventImpl, this);
-                                } catch (Exception e) {
-                                    log.error("Error executing listener for event " + event, e);
+                                    wrapper.run(() -> {
+                                        GenerationEvent listener = iterator.next();
+                                        listener.onEvent(eventImpl, this);
+                                    });
+                                } catch (Throwable e) {
+                                    log.error("Error executing listener for event {}", event, e);
                                     next();
                                 }
                             } else {
@@ -328,14 +339,27 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
             chain.next();
         }
 
+        @Override
+        public Runnable wrapCallback(FromEventCallback callback) {
+            return () -> {
+                invokeContinuation(callback);
+            };
+        }
+
         private void invokeContinuation(FromEventCallback continuation) {
             if (continuation != null) {
+                AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
                 taskExecutor.submit(() -> {
                     try (InRequestScope _ = new InRequestScope(getRequestAttributes())) {
-                        continuation.returnFromEvent();
-                    } catch (Exception e) {
+                        wrapper.run(continuation::returnFromEvent);
+                    } catch (Throwable e) {
                         log.error("Failed continuation after event emission", e);
                         getUIListener().onError(e);
+                        try {
+                            jumpTo(GenerationStepType.CLEANUP);
+                        } catch (Exception ex) {
+                            log.error(ex.getMessage(), e);
+                        }
                     }
                 });
             }

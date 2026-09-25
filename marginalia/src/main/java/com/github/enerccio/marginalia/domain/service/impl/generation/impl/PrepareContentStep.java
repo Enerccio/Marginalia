@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationS
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.tools.Pointer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PrepareContentStep extends GenerationStepBase {
     private static final Logger log = LoggerFactory.getLogger(PrepareContentStep.class);
@@ -40,9 +42,10 @@ public class PrepareContentStep extends GenerationStepBase {
             PrePromptData data = controller.getPrePromptData();
             List<ChatMessage> fromRoot = null;
             List<ChatMessage> invalidatedSummaries = new ArrayList<>();
+            Pointer<ChatMessage> stopMessage = new Pointer<>();
             if (activeMessage != null) {
                 fromRoot = chatMessageService.getBranchFromLeaf(activeMessage);
-                List<String> currentSummaries = gatherSummaries(fromRoot, invalidatedSummaries);
+                List<String> currentSummaries = gatherSummaries(fromRoot, invalidatedSummaries, stopMessage);
                 controller.getProperties().put(SUMMARIES, currentSummaries);
             } else {
                 controller.getProperties().put(SUMMARIES, new ArrayList<>());
@@ -95,6 +98,10 @@ public class PrepareContentStep extends GenerationStepBase {
                             if (!iterator.hasNext())
                                 break;
                             ChatMessage message = iterator.next();
+                            if (stopMessage.isPresent()) {
+                                if (stopMessage.fastGet().getId().equals(message.getId()))
+                                    break;
+                            }
                             if (StringUtils.isNotBlank(message.getResponse())) {
                                 storyText.add(message.getResponse());
                                 tokens += message.getTokenCount() + 100; /* Buffer for dummy messages */
@@ -119,14 +126,15 @@ public class PrepareContentStep extends GenerationStepBase {
             };
 
             if (!invalidatedSummaries.isEmpty()) {
-                controller.getUIListener().askQuestion("Invalidated summaries for messages with IDs: []. Continue generation?", callback, () -> controller.jumpTo(GenerationStepType.CLEANUP));
+                controller.getUIListener().askQuestion(String.format(loc.getValue(L.MSG_SUMMARY_FAILURE), invalidatedSummaries.stream().map(ChatMessage::getId).map(x -> "#" + x.toString()).collect(Collectors.joining(", "))),
+                        controller.wrapCallback(callback), controller.wrapCallback(() -> controller.jumpTo(GenerationStepType.CLEANUP)));
             } else {
                 callback.returnFromEvent();
             }
         });
     }
 
-    private List<String> gatherSummaries(List<ChatMessage> fromRoot, List<ChatMessage> invalidatedSummaries) throws Exception {
+    private List<String> gatherSummaries(List<ChatMessage> fromRoot, List<ChatMessage> invalidatedSummaries, Pointer<ChatMessage> firstSummaryFound) throws Exception {
         List<ChatMessage> toCheck = fromRoot.reversed();
 
         ChatMessage current = null;
@@ -140,6 +148,8 @@ public class PrepareContentStep extends GenerationStepBase {
         if (current == null) {
             return new ArrayList<>();
         }
+
+        firstSummaryFound.set(current);
 
         List<String> summaries = new ArrayList<>();
         MessageDigest digest = null;
@@ -178,8 +188,8 @@ public class PrepareContentStep extends GenerationStepBase {
         if (!lastHash.equals(hash)) {
             Summary summary = summaryService.find(current.getSummary());
             current.setSummary(null);
-            summaryService.delete(summary, true);
             current = chatMessageService.save(current);
+            summaryService.delete(summary, true);
             summaries.removeLast(); // remove invalid
             log.info("Summary invalidated");
             invalidatedSummaries.add(current);
