@@ -22,6 +22,9 @@ public class ChatMessage extends ExtendableEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private ChatMessage parent;
 
+    @OneToOne
+    private Summary summary;
+
     @ExtendedAttribute
     @Transient
     private String instructions;
@@ -92,6 +95,18 @@ public class ChatMessage extends ExtendableEntity {
     @ExtendedAttribute
     @Transient
     private Integer scrollPosition;
+
+    @ExtendedAttribute
+    @Transient
+    private String backgroundLore;
+
+    public Summary getSummary() {
+        return summary;
+    }
+
+    public void setSummary(Summary summary) {
+        this.summary = summary;
+    }
 
     public Manuscript getParentScript() {
         return parentScript;
@@ -259,5 +274,13 @@ public class ChatMessage extends ExtendableEntity {
 
     public void setScrollPosition(Integer scrollPosition) {
         this.scrollPosition = scrollPosition;
+    }
+
+    public String getBackgroundLore() {
+        return backgroundLore;
+    }
+
+    public void setBackgroundLore(String backgroundLore) {
+        this.backgroundLore = backgroundLore;
     }
 }

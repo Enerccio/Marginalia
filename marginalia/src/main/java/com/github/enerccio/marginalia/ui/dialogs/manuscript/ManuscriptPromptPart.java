@@ -50,6 +50,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
     private TextFieldPopOverComponent tenseField;
     private TextAreaPopoverComponent styleField;
     private TextAreaPopoverComponent userPromptField;
+    private TextAreaPopoverComponent summaryField;
 
     private boolean loading = false;
 
@@ -81,6 +82,9 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         formLayout.add(userPromptField);
         formLayout.setColspan(userPromptField, 2);
 
+        formLayout.add(summaryField);
+        formLayout.setColspan(summaryField, 2);
+
         mainLayout.add(formLayout);
 
         container.add(loc.getValue(L.LABEL_PROMPT_PART), mainLayout);
@@ -101,6 +105,15 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         userPromptField.setWidthFull();
         userPromptField.setMinHeight("180px");
         userPromptField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
+
+        summaryField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_SUMMARY_PROMPT));
+        summaryField.setWidthFull();
+        summaryField.setMinHeight("180px");
+        summaryField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
             }
@@ -232,6 +245,20 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             }
         }
 
+        String summaryPrompt = summaryField.getValue();
+        if (StringUtils.isNotBlank(userPrompt)) {
+            try {
+                TemplateService.ValidationResult result = templateService.isValidTemplate(summaryPrompt, "summaryPrompt");
+                if (!result.isValid()) {
+                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
+                    return;
+                }
+            } catch (Exception e) {
+                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
+                return;
+            }
+        }
+
         try {
             Manuscript manuscript = refreshModel();
             if (manuscript == null) {
@@ -243,6 +270,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             manuscript.setTense(tenseField.getValue());
             manuscript.setStyle(styleField.getValue());
             manuscript.setUserPrompt(userPrompt);
+            manuscript.setUserPrompt(summaryPrompt);
 
             parent.save();
         } catch (Exception e) {

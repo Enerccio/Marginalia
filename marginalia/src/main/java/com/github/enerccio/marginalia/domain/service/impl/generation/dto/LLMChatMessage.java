@@ -20,4 +20,12 @@ public class LLMChatMessage {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public static LLMChatMessage of(LLMRole role, String content) {
+        LLMChatMessage message = new LLMChatMessage();
+        message.role = role;
+        message.content = content;
+        return message;
+    }
+
 }

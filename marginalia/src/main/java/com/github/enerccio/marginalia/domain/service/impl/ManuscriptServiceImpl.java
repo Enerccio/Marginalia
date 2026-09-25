@@ -79,4 +79,16 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         }
         return Defaults.DEFAULT_USER_PROMPT;
     }
+
+    @Override
+    public String getSummaryPrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getSummaryPrompt())) {
+            return manuscript.getUserPrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultSummaryPrompt())) {
+            return userSetting.getDefaultSummaryPrompt();
+        }
+        return Defaults.DEFAULT_SUMMARY_PROMPT;
+    }
 }

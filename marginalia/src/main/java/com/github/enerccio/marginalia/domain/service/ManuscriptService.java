@@ -10,5 +10,6 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     String getTense(Manuscript manuscript) throws Exception;
     String getStyle(Manuscript manuscript) throws Exception;
     String getUserPrompt(Manuscript manuscript) throws Exception;
+    String getSummaryPrompt(Manuscript manuscript) throws Exception;
 
 }

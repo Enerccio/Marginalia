@@ -17,6 +17,9 @@ public class MasterTemplateData implements TemplateData {
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_STYLE)
     private String style;
 
+    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_SUMMARIES)
+    private String summaries;
+
     public String getBackgroundLore() {
         return backgroundLore;
     }
@@ -47,5 +50,13 @@ public class MasterTemplateData implements TemplateData {
 
     public void setStyle(String style) {
         this.style = style;
+    }
+
+    public String getSummaries() {
+        return summaries;
+    }
+
+    public void setSummaries(String summaries) {
+        this.summaries = summaries;
     }
 }

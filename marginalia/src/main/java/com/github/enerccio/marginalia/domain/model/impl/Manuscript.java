@@ -50,6 +50,10 @@ public class Manuscript extends ExtendableEntity {
     @Transient
     private Boolean showBookStyles;
 
+    @ExtendedAttribute
+    @Transient
+    private String summaryPrompt;
+
     public String getName() {
         return name;
     }
@@ -144,5 +148,13 @@ public class Manuscript extends ExtendableEntity {
 
     public void setShowBookStyles(Boolean showBookStyles) {
         this.showBookStyles = showBookStyles;
+    }
+
+    public String getSummaryPrompt() {
+        return summaryPrompt;
+    }
+
+    public void setSummaryPrompt(String summaryPrompt) {
+        this.summaryPrompt = summaryPrompt;
     }
 }

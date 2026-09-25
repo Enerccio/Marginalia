@@ -71,6 +71,7 @@ public class UserPart implements WorkspaceComponent {
     private TextFieldPopOverComponent defaultTenseField;
     private TextAreaPopoverComponent defaultStyleField;
     private TextAreaPopoverComponent defaultUserPromptField;
+    private TextAreaPopoverComponent defaultSummaryPromptField;
 
     private UserSetting userSetting;
 
@@ -131,6 +132,9 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.add(defaultUserPromptField);
         templatesFormLayout.setColspan(defaultUserPromptField, 2);
 
+        templatesFormLayout.add(defaultSummaryPromptField);
+        templatesFormLayout.setColspan(defaultSummaryPromptField, 2);
+
         tabSheet.add(loc.getValue(L.LABEL_TEMPLATES), templatesFormLayout);
 
         mainLayout.add(headerLayout, tabSheet);
@@ -184,6 +188,13 @@ public class UserPart implements WorkspaceComponent {
         defaultTenseField.setPlaceholder(Defaults.DEFAULT_TENSE);
         defaultTenseField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultTenseField, defaultTenseField.getPopover(), null, Defaults.DEFAULT_TENSE));
+
+        defaultSummaryPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_SUMMARY_PROMPT));
+        defaultSummaryPromptField.setWidthFull();
+        defaultSummaryPromptField.setMinHeight("120px");
+        defaultSummaryPromptField.setPlaceholder(Defaults.DEFAULT_SUMMARY_PROMPT);
+        defaultSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultSummaryPromptField, defaultSummaryPromptField.getPopover(), null, Defaults.DEFAULT_SUMMARY_PROMPT));
     }
 
     private Component createTemplateHintPopoverContent(HasValue<?, String> field, Popover popover, Class<? extends TemplateData> clazz, String defaultValue) {

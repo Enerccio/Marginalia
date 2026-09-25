@@ -71,6 +71,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_POV, "Point of View (POV)");
         setValue(L.LABEL_TENSE, "Tense");
         setValue(L.LABEL_STYLE, "Style");
+        setValue(L.LABEL_SUMMARY_PROMPT, "Default Summary Prompt");
         setValue(L.LABEL_USER_PROMPT, "Default User Prompt");
         setValue(L.LABEL_AVAILABLE_VARIABLES, "Available Template Variables");
         setValue(L.LABEL_FILL_DEFAULT, "Insert Default Template");
@@ -149,7 +150,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ENUM_REASONING_HIGH, "High");
 
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
-        setValue(L.DESC_TEMPLATE_MANUSCRIPT, "The ongoing manuscript content.");
+        setValue(L.DESC_TEMPLATE_MANUSCRIPT, "The ongoing manuscript content for summary.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_POV, "Point of view (POV) for the narrative.");
         setValue(L.DESC_TEMPLATE_NARRATIVE_TENSE, "Tense used for the narrative.");
         setValue(L.DESC_TEMPLATE_STYLE, "Style and tone guidelines.");
@@ -157,6 +158,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.DESC_TEMPLATE_SCENE_SETTING, "Current location and scene setting.");
         setValue(L.DESC_TEMPLATE_PRESENT_CHARACTERS, "Characters currently present in the scene.");
         setValue(L.DESC_TEMPLATE_INSTRUCTIONS, "Plot specifications and instructions for continuation.");
+        setValue(L.DESC_TEMPLATE_SUMMARIES, "Summaries.");
     }
 
     @Override

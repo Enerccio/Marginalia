@@ -40,6 +40,10 @@ public class UserSetting extends Setting {
     @Transient
     private String defaultUserPrompt;
 
+    @ExtendedAttribute
+    @Transient
+    private String defaultSummaryPrompt;
+
     public Long getDefaultModel() {
         return defaultModel;
     }
@@ -94,5 +98,13 @@ public class UserSetting extends Setting {
 
     public void setDefaultUserPrompt(String defaultUserPrompt) {
         this.defaultUserPrompt = defaultUserPrompt;
+    }
+
+    public String getDefaultSummaryPrompt() {
+        return defaultSummaryPrompt;
+    }
+
+    public void setDefaultSummaryPrompt(String defaultSummaryPrompt) {
+        this.defaultSummaryPrompt = defaultSummaryPrompt;
     }
 }

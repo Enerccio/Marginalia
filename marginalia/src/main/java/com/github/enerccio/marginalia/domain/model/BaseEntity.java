@@ -1,9 +1,9 @@
 package com.github.enerccio.marginalia.domain.model;
 
-import com.github.enerccio.marginalia.domain.security.model.User;
 import jakarta.persistence.*;
 
 import java.util.Date;
+import java.util.Objects;
 
 @MappedSuperclass
 public class BaseEntity {
@@ -64,5 +64,16 @@ public class BaseEntity {
 
     public void setModification(Date modification) {
         this.modification = modification;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof BaseEntity that)) return false;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
     }
 }
