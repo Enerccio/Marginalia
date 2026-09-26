@@ -1,4 +1,4 @@
-create table main.HTE_ais
+create table HTE_ais
 (
     aiType              tinyint,
     deleted             boolean,
@@ -20,7 +20,7 @@ create table main.HTE_ais
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_ais_openaicompat
+create table HTE_ais_openaicompat
 (
     aiType              tinyint,
     deleted             boolean,
@@ -46,7 +46,7 @@ create table main.HTE_ais_openaicompat
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_entries
+create table HTE_entries
 (
     deleted         boolean,
     enabled         boolean,
@@ -64,7 +64,7 @@ create table main.HTE_entries
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_lorebooks
+create table HTE_lorebooks
 (
     deleted         boolean,
     enabled         boolean,
@@ -80,7 +80,7 @@ create table main.HTE_lorebooks
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_manuscripts
+create table HTE_manuscripts
 (
     deleted         boolean,
     rn_             integer not null,
@@ -100,7 +100,7 @@ create table main.HTE_manuscripts
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_messages
+create table HTE_messages
 (
     deleted         boolean,
     edited          boolean,
@@ -119,7 +119,7 @@ create table main.HTE_messages
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_protocols
+create table HTE_protocols
 (
     deleted         boolean,
     maxTokens       integer,
@@ -137,7 +137,7 @@ create table main.HTE_protocols
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_protocols_chatcompletion
+create table HTE_protocols_chatcompletion
 (
     deleted         boolean,
     maxTokens       integer,
@@ -155,7 +155,7 @@ create table main.HTE_protocols_chatcompletion
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_resources
+create table HTE_resources
 (
     deleted      boolean,
     rn_          integer not null,
@@ -173,7 +173,7 @@ create table main.HTE_resources
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_settings
+create table HTE_settings
 (
     deleted         boolean,
     rn_             integer not null,
@@ -189,7 +189,7 @@ create table main.HTE_settings
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_settings1
+create table HTE_settings1
 (
     deleted         boolean,
     rn_             integer not null,
@@ -205,7 +205,7 @@ create table main.HTE_settings1
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_settings2
+create table HTE_settings2
 (
     deleted         boolean,
     rn_             integer not null,
@@ -221,7 +221,7 @@ create table main.HTE_settings2
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_summaries
+create table HTE_summaries
 (
     deleted         boolean,
     rn_             integer not null,
@@ -235,7 +235,7 @@ create table main.HTE_summaries
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_t2e
+create table HTE_t2e
 (
     deleted      boolean,
     rn_          integer not null,
@@ -250,7 +250,7 @@ create table main.HTE_t2e
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_tags
+create table HTE_tags
 (
     deleted         boolean,
     rn_             integer not null,
@@ -265,7 +265,7 @@ create table main.HTE_tags
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HTE_users
+create table HTE_users
 (
     deleted      boolean,
     isAdmin      boolean,
@@ -282,21 +282,21 @@ create table main.HTE_users
     primary key (rn_, hib_sess_id)
 );
 
-create table main.HT_ais
+create table HT_ais
 (
     id          bigint not null,
     hib_sess_id char   not null,
     primary key (id, hib_sess_id)
 );
 
-create table main.HT_protocols
+create table HT_protocols
 (
     id          bigint not null,
     hib_sess_id char   not null,
     primary key (id, hib_sess_id)
 );
 
-create table main.ais
+create table ais
 (
     id                  bigint      not null
         primary key,
@@ -317,21 +317,21 @@ create table main.ais
     userId              bigint
 );
 
-create index main.ai_is_deleted_idx
-    on main.ais (is_deleted);
+create index ai_is_deleted_idx
+    on ais (is_deleted);
 
-create index main.ai_type_idx
-    on main.ais (ai_type);
+create index ai_type_idx
+    on ais (ai_type);
 
-create index main.ai_user_id_ix
-    on main.ais (userId);
+create index ai_user_id_ix
+    on ais (userId);
 
-create table main.ais_SEQ
+create table ais_SEQ
 (
     next_val bigint
 );
 
-create table main.ais_openaicompat
+create table ais_openaicompat
 (
     apiKey    clob,
     model     clob,
@@ -341,7 +341,7 @@ create table main.ais_openaicompat
         primary key
 );
 
-create table main.entries
+create table entries
 (
     id              bigint      not null
         primary key,
@@ -358,12 +358,12 @@ create table main.entries
     lorebook_id     bigint
 );
 
-create table main.entries_SEQ
+create table entries_SEQ
 (
     next_val bigint
 );
 
-create table main.lorebooks
+create table lorebooks
 (
     id              bigint      not null
         primary key,
@@ -378,19 +378,19 @@ create table main.lorebooks
     userId          bigint
 );
 
-create table main.lorebooks_SEQ
+create table lorebooks_SEQ
 (
     next_val bigint
 );
 
-create table main.lorebooks_lorebooks
+create table lorebooks_lorebooks
 (
     Lorebook_id bigint not null,
     subbooks_id bigint not null
         unique
 );
 
-create table main.manuscripts
+create table manuscripts
 (
     id              bigint      not null
         primary key,
@@ -410,12 +410,12 @@ create table main.manuscripts
     protocol_id     bigint
 );
 
-create table main.manuscripts_SEQ
+create table manuscripts_SEQ
 (
     next_val bigint
 );
 
-create table main.messages
+create table messages
 (
     id              bigint      not null
         primary key,
@@ -433,24 +433,24 @@ create table main.messages
     parentScript_id bigint
 );
 
-create index main.ix_msg_is_deleted
-    on main.messages (is_deleted);
+create index ix_msg_is_deleted
+    on messages (is_deleted);
 
-create index main.ix_msg_parent_msg
-    on main.messages (parent_id);
+create index ix_msg_parent_msg
+    on messages (parent_id);
 
-create index main.ix_msg_parent_script
-    on main.messages (parentScript_id);
+create index ix_msg_parent_script
+    on messages (parentScript_id);
 
-create index main.ix_msg_user_id
-    on main.messages (userId);
+create index ix_msg_user_id
+    on messages (userId);
 
-create table main.messages_SEQ
+create table messages_SEQ
 (
     next_val bigint
 );
 
-create table main.protocols
+create table protocols
 (
     id              bigint      not null
         primary key,
@@ -467,24 +467,24 @@ create table main.protocols
     userId          bigint
 );
 
-create index main.protocol_is_deleted_idx
-    on main.protocols (is_deleted);
+create index protocol_is_deleted_idx
+    on protocols (is_deleted);
 
-create index main.protocol_user_id_ix
-    on main.protocols (userId);
+create index protocol_user_id_ix
+    on protocols (userId);
 
-create table main.protocols_SEQ
+create table protocols_SEQ
 (
     next_val bigint
 );
 
-create table main.protocols_chatcompletion
+create table protocols_chatcompletion
 (
     id bigint not null
         primary key
 );
 
-create table main.resources
+create table resources
 (
     id           bigint      not null
         primary key,
@@ -501,21 +501,21 @@ create table main.resources
     userId       bigint
 );
 
-create index main.resource_hash_ix
-    on main.resources (hash);
+create index resource_hash_ix
+    on resources (hash);
 
-create index main.resource_is_deleted_ix
-    on main.resources (is_deleted);
+create index resource_is_deleted_ix
+    on resources (is_deleted);
 
-create index main.resource_user_id_ix
-    on main.resources (userId);
+create index resource_user_id_ix
+    on resources (userId);
 
-create table main.resources_SEQ
+create table resources_SEQ
 (
     next_val bigint
 );
 
-create table main.settings
+create table settings
 (
     id              bigint      not null
         primary key,
@@ -530,12 +530,12 @@ create table main.settings
     userId          bigint
 );
 
-create table main.settings_SEQ
+create table settings_SEQ
 (
     next_val bigint
 );
 
-create table main.summaries
+create table summaries
 (
     id              bigint      not null
         primary key,
@@ -548,12 +548,12 @@ create table main.summaries
     userId          bigint
 );
 
-create table main.summaries_SEQ
+create table summaries_SEQ
 (
     next_val bigint
 );
 
-create table main.t2e
+create table t2e
 (
     id              bigint      not null
         primary key,
@@ -570,18 +570,18 @@ create table main.t2e
     tag_id          bigint
 );
 
-create index main.ix__tag__id_clazz
-    on main.t2e (id, clazz);
+create index ix__tag__id_clazz
+    on t2e (id, clazz);
 
-create index main.ix__tag__id_clazz_neg
-    on main.t2e (id, clazz, negative);
+create index ix__tag__id_clazz_neg
+    on t2e (id, clazz, negative);
 
-create table main.t2e_SEQ
+create table t2e_SEQ
 (
     next_val bigint
 );
 
-create table main.tags
+create table tags
 (
     id              bigint      not null
         primary key,
@@ -595,12 +595,12 @@ create table main.tags
     userId          bigint
 );
 
-create table main.tags_SEQ
+create table tags_SEQ
 (
     next_val bigint
 );
 
-create table main.users
+create table users
 (
     id           bigint      not null
         primary key,
@@ -617,13 +617,13 @@ create table main.users
     savedLogins  clob
 );
 
-create index main.user_is_deleted_idx
-    on main.users (is_deleted);
+create index user_is_deleted_idx
+    on users (is_deleted);
 
-create index main.user_login_idx
-    on main.users (login);
+create index user_login_idx
+    on users (login);
 
-create table main.users_SEQ
+create table users_SEQ
 (
     next_val bigint
 );
