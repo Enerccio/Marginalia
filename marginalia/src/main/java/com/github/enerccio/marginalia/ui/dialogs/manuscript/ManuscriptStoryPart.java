@@ -188,7 +188,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 , centerContentPanel.getElement());
     }
 
-    private HorizontalLayout buildBottomControls() {
+    private HorizontalLayout buildBottomControls() throws Exception {
         HorizontalLayout layout = new HorizontalLayout();
         layout.setWidthFull();
         layout.setPadding(false);
@@ -204,10 +204,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 Manuscript manuscript = parent.refreshManuscript();
                 manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
                 manuscriptService.save(manuscript);
+                applyBookStyles();
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
-            applyBookStyles();
         });
         applyBookStyles();
 
@@ -233,8 +233,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         return layout;
     }
 
-    private void applyBookStyles() {
-        Manuscript manuscript = parent.getManuscript();
+    private void applyBookStyles() throws Exception {
+        Manuscript manuscript = parent.refreshManuscript();
         if (manuscript.getShowBookStyles()) {
             mainLayout.addClassName(SharedStyles.MARKDOWN_MANUSCRIPT_STYLES);
         } else {
@@ -703,7 +703,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @Override
     public void onTabEnter() throws Exception {
         if (parent != null) {
-            load(parent.getManuscript());
+            load(parent.refreshManuscript());
         }
     }
 

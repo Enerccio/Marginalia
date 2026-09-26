@@ -4,11 +4,8 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
-import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
+import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.FromEventCallback;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
 import com.github.enerccio.marginalia.loc.L;
@@ -81,8 +78,8 @@ public class PrepareContentStep extends GenerationStepBase {
 
                     if (activeMessage != null) {
                         List<ChatMessage> chain = finalFromRoot;
-                        if (!chain.isEmpty()) {
-                            // remove last
+                        if (!chain.isEmpty() && controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE) {
+                            // remove last since we are regenerating
                             chain = chain.subList(0, chain.size() - 1);
                         }
                         Collections.reverse(chain);
