@@ -19,15 +19,17 @@ public class PreparePayloadStep extends GenerationStepBase {
             List<LLMChatMessage> payload = new ArrayList<>();
             payload.add(createSystemPrompt(controller));
             List<String> story = (List<String>) controller.getProperties().get(PrepareContentStep.MANUSCRIPT_CHRONICLE);
-            boolean first = true;
-            for (String blob : story) {
-                if (first) {
-                    payload.add(createUserPrompt("[ Generate story. ]"));
-                    first = false;
-                } else {
-                    payload.add(createUserPrompt("[ Generate more story. ]"));
+            if (story != null) {
+                boolean first = true;
+                for (String blob : story) {
+                    if (first) {
+                        payload.add(createUserPrompt("[ Generate story. ]"));
+                        first = false;
+                    } else {
+                        payload.add(createUserPrompt("[ Generate more story. ]"));
+                    }
+                    payload.add(createAssistantPrompt(blob));
                 }
-                payload.add(createAssistantPrompt(blob));
             }
             payload.add(createUserPrompt(controller.getPrePromptData().getUserPromptProcessed()));
             controller.setPayload(payload);
