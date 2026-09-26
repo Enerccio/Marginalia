@@ -628,3 +628,15 @@ create table users_SEQ
     next_val bigint
 );
 
+INSERT INTO ais_SEQ (next_val) VALUES (1);
+INSERT INTO entries_SEQ (next_val) VALUES (1);
+INSERT INTO lorebooks_SEQ (next_val) VALUES (1);
+INSERT INTO manuscripts_SEQ (next_val) VALUES (1);
+INSERT INTO messages_SEQ (next_val) VALUES (1);
+INSERT INTO protocols_SEQ (next_val) VALUES (1);
+INSERT INTO resources_SEQ (next_val) VALUES (1);
+INSERT INTO settings_SEQ (next_val) VALUES (1);
+INSERT INTO summaries_SEQ (next_val) VALUES (1);
+INSERT INTO t2e_SEQ (next_val) VALUES (1);
+INSERT INTO tags_SEQ (next_val) VALUES (1);
+INSERT INTO users_SEQ (next_val) VALUES (1);
