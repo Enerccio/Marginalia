@@ -197,6 +197,7 @@ public abstract class LoginCheckRoute extends Div {
                                 VaadinService.getCurrentResponse().addCookie(cookieSaved);
                             }
                             loginOverlay.setOpened(false);
+                            VaadinService.reinitializeSession(VaadinService.getCurrentRequest());
                             performLogin(userName);
                         } else {
                             loginOverlay.setEnabled(true);
