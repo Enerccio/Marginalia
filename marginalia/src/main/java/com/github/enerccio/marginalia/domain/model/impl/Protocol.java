@@ -4,8 +4,6 @@ import com.github.enerccio.marginalia.domain.collections.ProtocolType;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
-import org.hibernate.annotations.DiscriminatorFormula;
-import org.hibernate.annotations.DiscriminatorOptions;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -21,8 +19,8 @@ public abstract class Protocol extends ExtendableEntity {
     @Enumerated(value = EnumType.ORDINAL)
     private ProtocolType protocolType;
 
-    private int maxTokens;
-    private int replyTokens;
+    private Integer maxTokens;
+    private Integer replyTokens;
 
     @Transient
     @ExtendedAttribute
@@ -64,19 +62,19 @@ public abstract class Protocol extends ExtendableEntity {
         this.name = name;
     }
 
-    public int getMaxTokens() {
+    public Integer getMaxTokens() {
         return maxTokens;
     }
 
-    public void setMaxTokens(int maxTokens) {
+    public void setMaxTokens(Integer maxTokens) {
         this.maxTokens = maxTokens;
     }
 
-    public int getReplyTokens() {
+    public Integer getReplyTokens() {
         return replyTokens;
     }
 
-    public void setReplyTokens(int replyTokens) {
+    public void setReplyTokens(Integer replyTokens) {
         this.replyTokens = replyTokens;
     }
 

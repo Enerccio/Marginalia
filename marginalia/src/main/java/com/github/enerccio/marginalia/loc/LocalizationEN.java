@@ -145,15 +145,14 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_BUNDLE_STATE, "State");
         setValue(L.LABEL_ACTIONS, "Actions");
         setValue(L.LABEL_REFRESH_EXTENSIONS, "Refresh");
-        setValue(L.MSG_EXTENSION_INSTALLED_SUCCESS, "Extension loaded successfully.");
-        setValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS, "Extension unloaded successfully.");
-        setValue(L.ERROR_EXTENSION_INSTALL_FAILED, "Failed to load extension: %s");
-        setValue(L.ERROR_EXTENSION_UNINSTALL_FAILED, "Failed to unload extension: %s");
+        setValue(L.LABEL_EXTENSION_SETTINGS, "Extension Settings");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");
         setValue(L.ERROR_PROTOCOL_NOT_SET, "Book is missing protocol.");
         setValue(L.ERROR_CONTEXT_INSUFFICIENT, "Contextual limit not sufficient.");
+        setValue(L.ERROR_EXTENSION_INSTALL_FAILED, "Failed to load extension: %s");
+        setValue(L.ERROR_EXTENSION_UNINSTALL_FAILED, "Failed to unload extension: %s");
 
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "Cannot save form. Invalid fields: ");
@@ -167,6 +166,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_SELECT_MESSAGE_METADATA, "Select a message to view metadata.");
         setValue(L.MSG_INTERRUPTED, "Generation interrupted on the backend.");
         setValue(L.MSG_SUMMARY_FAILURE, "Invalidated summaries for messages with IDs: [%s]. Continue generation without those summaries?");
+        setValue(L.MSG_EXTENSION_INSTALLED_SUCCESS, "Extension loaded successfully.");
+        setValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS, "Extension unloaded successfully.");
 
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");

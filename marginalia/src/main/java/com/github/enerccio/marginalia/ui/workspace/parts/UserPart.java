@@ -23,6 +23,7 @@ import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -76,6 +77,7 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultSummaryPromptField;
 
     // Tab 3 Extensions
+    private Accordion extensionSettings;
 
     private UserSetting userSetting;
 
@@ -140,6 +142,10 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.setColspan(defaultSummaryPromptField, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_TEMPLATES), templatesFormLayout);
+
+        extensionSettings = new Accordion();
+        extensionSettings.setSizeFull();
+        tabSheet.add(loc.getValue(L.LABEL_EXTENSION_SETTINGS), extensionSettings);
 
         mainLayout.add(headerLayout, tabSheet);
         mainLayout.setFlexGrow(1, tabSheet);
