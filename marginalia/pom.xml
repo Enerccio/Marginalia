@@ -416,6 +416,12 @@
               <artifactId>spring-aspects</artifactId>
             </aspectLibrary>
           </aspectLibraries>
+
+          <preserveAllLocals>true</preserveAllLocals>
+          <additionalCompilerArgs>
+            <arg>-g</arg>
+            <arg>-parameters</arg>
+          </additionalCompilerArgs>
         </configuration>
         <executions>
           <execution>

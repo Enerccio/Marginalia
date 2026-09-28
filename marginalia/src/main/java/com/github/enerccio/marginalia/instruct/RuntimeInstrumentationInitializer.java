@@ -1,17 +1,11 @@
 package com.github.enerccio.marginalia.instruct;
 
-
-import aj.org.objectweb.asm.Opcodes;
-import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
-import net.bytebuddy.asm.Advice;
 import net.bytebuddy.asm.AsmVisitorWrapper;
-import net.bytebuddy.description.modifier.FieldManifestation;
-import net.bytebuddy.description.modifier.Ownership;
-import net.bytebuddy.description.modifier.SyntheticState;
-import net.bytebuddy.description.modifier.Visibility;
+import net.bytebuddy.jar.asm.ClassWriter;
+import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -22,18 +16,13 @@ public class RuntimeInstrumentationInitializer implements InitializingBean {
         ByteBuddyAgent.install();
 
         new AgentBuilder.Default()
+                .disableClassFormatChanges() // Required for JVM retransformation of pre-loaded classes
                 .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                .with(AgentBuilder.Listener.StreamWriting.toSystemOut().withTransformationsOnly())
                 .type(ElementMatchers.isAnnotatedWith(Extendable.class))
                 .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder
-                        .defineField("$extensionService", ExtensionService.class,
-                                Visibility.PRIVATE,
-                                Ownership.MEMBER,
-                                FieldManifestation.PLAIN,
-                                SyntheticState.SYNTHETIC)
-
-                        .visit(Advice.to(ConstructorAdvice.class).on(ElementMatchers.isConstructor()))
-
                         .visit(new AsmVisitorWrapper.ForDeclaredMethods()
+                                .writerFlags(ClassWriter.COMPUTE_FRAMES)
                                 .method(
                                         ElementMatchers.not(ElementMatchers.isPrivate())
                                                 .and(ElementMatchers.not(ElementMatchers.isConstructor()))
@@ -42,7 +31,7 @@ public class RuntimeInstrumentationInitializer implements InitializingBean {
                                                 new LocalVarTrackingMethodVisitor(
                                                         Opcodes.ASM9,
                                                         methodVisitor,
-                                                        instrumentedMethod.getStackSize(), // Reserved initial local variable slots
+                                                        instrumentedMethod.getStackSize(),
                                                         instrumentedType.getInternalName(),
                                                         instrumentedMethod.getName()
                                                 )
@@ -50,5 +39,4 @@ public class RuntimeInstrumentationInitializer implements InitializingBean {
                         ))
                 .installOnByteBuddyAgent();
     }
-
 }

@@ -7,8 +7,8 @@ public interface ExtensionService {
     void registerDecorator(ExtensionDecorator decorator, String className, String methodName) throws Exception;
     void unregisterDecorator(ExtensionDecorator decorator);
 
-    void onExtendableMethodEnter(Class<?> cls, String method, Object extendableSelf);
-    void onExtendableMethodLeave(Class<?> cls, String method, Object extendableSelf, ExtendableMethodContext context, Throwable throwing);
+    void onExtendableMethodEnter(Class<?> cls, Object extendableSelf, String method);
+    void onExtendableMethodLeave(Class<?> cls, Object extendableSelf, ExtendableMethodContext context, String method, Throwable throwing);
 
     interface ExtendableMethodContext {
 
@@ -16,6 +16,8 @@ public interface ExtensionService {
         <T> T getLocalVariable(String name, Class<T> type) throws Exception;
         boolean hasLocalVariable(String name);
         boolean hasLocalVariable(String name, Class<?> isOfType);
+        <T> T getReflectiveFieldValue(Object object, String field, Class<T> fieldReturnType);
+        <T> void setReflectiveFieldValue(Object object, String field, T value, Class<T> fieldReturnType);
 
     }
 

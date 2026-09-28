@@ -1,10 +1,12 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
+import com.github.enerccio.marginalia.utils.ReflectUtils;
 import com.github.enerccio.tools.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +38,7 @@ public class ExtensionServiceImpl implements ExtensionService {
     }
 
     @Override
-    public void onExtendableMethodEnter(Class<?> cls, String method, Object extendableSelf) {
+    public void onExtendableMethodEnter(Class<?> cls, Object extendableSelf, String method) {
         List<ExtensionDecorator> decorators = getDecorators(cls, method);
         if (decorators.isEmpty()) return;
 
@@ -52,7 +54,7 @@ public class ExtensionServiceImpl implements ExtensionService {
     }
 
     @Override
-    public void onExtendableMethodLeave(Class<?> cls, String method, Object extendableSelf, ExtendableMethodContext context, Throwable throwing) {
+    public void onExtendableMethodLeave(Class<?> cls, Object extendableSelf, ExtendableMethodContext context, String method, Throwable throwing) {
         List<ExtensionDecorator> decorators = getDecorators(cls, method);
         if (decorators.isEmpty()) return;
 
@@ -127,6 +129,49 @@ public class ExtensionServiceImpl implements ExtensionService {
         public boolean hasLocalVariable(String name, Class<?> isOfType) {
             Pair<Object, Class<?>> registeredPair = localVariables.get(name);
             return registeredPair != null && isOfType.isAssignableFrom(registeredPair.getB());
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T getReflectiveFieldValue(Object object, String field, Class<T> fieldReturnType) {
+            try {
+                Field f = ReflectUtils.getField(object.getClass(), field);
+                if (!fieldReturnType.isAssignableFrom(f.getType())) {
+                    throw new ModCompatibilityException(String.format(
+                            "Field '%s' in %s is of type %s, but extension expected %s.",
+                            field, targetInstance.getClass().getSimpleName(),
+                            f.getType().getName(), fieldReturnType.getName()
+                    ));
+                }
+                return (T) f.get(object);
+            } catch (Throwable t) {
+                throw new ModCompatibilityException(String.format(
+                        "Required field '%s' was not found in %s. " +
+                                "The core UI code may have been refactored or renamed.",
+                        field, targetInstance.getClass().getSimpleName()
+                ));
+            }
+        }
+
+        @Override
+        public <T> void setReflectiveFieldValue(Object object, String field, T value, Class<T> fieldReturnType) {
+            try {
+                Field f = ReflectUtils.getField(object.getClass(), field);
+                if (!fieldReturnType.isAssignableFrom(f.getType())) {
+                    throw new ModCompatibilityException(String.format(
+                            "Field '%s' in %s is of type %s, but extension expected %s.",
+                            field, targetInstance.getClass().getSimpleName(),
+                            f.getType().getName(), fieldReturnType.getName()
+                    ));
+                }
+                f.set(object, value);
+            } catch (Throwable t) {
+                throw new ModCompatibilityException(String.format(
+                        "Required field '%s' was not found in %s. " +
+                                "The core UI code may have been refactored or renamed.",
+                        field, targetInstance.getClass().getSimpleName()
+                ));
+            }
         }
     }
 
