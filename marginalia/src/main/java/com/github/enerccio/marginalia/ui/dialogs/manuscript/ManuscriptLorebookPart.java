@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
@@ -21,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Configurable
+@Extendable
 public class ManuscriptLorebookPart implements ManuscriptDialogPart {
 
     @Autowired

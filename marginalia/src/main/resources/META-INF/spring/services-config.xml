@@ -126,4 +126,9 @@
         </property>
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.instruct.RuntimeInstrumentationInitializer" />
 </beans>

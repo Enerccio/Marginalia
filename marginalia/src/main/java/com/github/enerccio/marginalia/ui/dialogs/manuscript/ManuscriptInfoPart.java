@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
@@ -27,6 +28,7 @@ import org.vaadin.firitin.layouts.VTabSheet;
 import java.util.List;
 
 @Configurable
+@Extendable
 public class ManuscriptInfoPart implements ManuscriptDialogPart {
 
     @Autowired

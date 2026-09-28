@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.UserPromptData;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -32,6 +33,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 @Configurable
+@Extendable
 public class ManuscriptPromptPart implements ManuscriptDialogPart {
 
     @Autowired

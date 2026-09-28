@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -47,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 
 @Configurable
+@Extendable
 public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private static final String NOT_AVAILABLE = "N/A";
@@ -707,6 +709,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
     }
 
+    @Extendable
     private class ChatMessageCard extends HorizontalLayout {
         private ChatMessage message;
         private boolean isLast;
@@ -1123,6 +1126,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
     }
 
+    @Extendable
     private class SummaryDialog extends Dialog {
         private final ChatMessage dialogMessage;
 

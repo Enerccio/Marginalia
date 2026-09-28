@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 @Configurable
+@Extendable
 public class ManuscriptDialog extends Dialog {
 
     @Autowired

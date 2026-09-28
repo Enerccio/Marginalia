@@ -3,15 +3,11 @@ package com.github.enerccio.marginalia.ui.workspace;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.HTabSheet;
-import com.github.enerccio.marginalia.ui.workspace.parts.AIPart;
-import com.github.enerccio.marginalia.ui.workspace.parts.AdminPart;
-import com.github.enerccio.marginalia.ui.workspace.parts.LorebookPart;
-import com.github.enerccio.marginalia.ui.workspace.parts.ManuscriptPart;
-import com.github.enerccio.marginalia.ui.workspace.parts.ProtocolPart;
-import com.github.enerccio.marginalia.ui.workspace.parts.UserPart;
+import com.github.enerccio.marginalia.ui.workspace.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -27,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configurable
+@Extendable
 public class Workspace {
 
     @Autowired

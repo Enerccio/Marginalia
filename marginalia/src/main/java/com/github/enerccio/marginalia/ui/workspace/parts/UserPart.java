@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.UserPromptData;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -40,6 +41,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 @Configurable
+@Extendable
 public class UserPart implements WorkspaceComponent {
 
     @Autowired
@@ -72,6 +74,8 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultStyleField;
     private TextAreaPopoverComponent defaultUserPromptField;
     private TextAreaPopoverComponent defaultSummaryPromptField;
+
+    // Tab 3 Extensions
 
     private UserSetting userSetting;
 
