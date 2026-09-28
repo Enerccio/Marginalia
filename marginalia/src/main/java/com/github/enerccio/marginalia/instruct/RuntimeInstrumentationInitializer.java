@@ -24,8 +24,9 @@ public class RuntimeInstrumentationInitializer implements InitializingBean {
                         .visit(new AsmVisitorWrapper.ForDeclaredMethods()
                                 .writerFlags(ClassWriter.COMPUTE_FRAMES)
                                 .method(
-                                        ElementMatchers.not(ElementMatchers.isPrivate())
-                                                .and(ElementMatchers.not(ElementMatchers.isConstructor()))
+                                        ElementMatchers
+                                                .not(ElementMatchers.isConstructor())
+                                                .and(ElementMatchers.not(ElementMatchers.isSynthetic()))
                                                 .and(ElementMatchers.not(ElementMatchers.isStatic())),
                                         (instrumentedType, instrumentedMethod, methodVisitor, implementationContext, typePool, writerFlags, readerFlags) ->
                                                 new LocalVarTrackingMethodVisitor(

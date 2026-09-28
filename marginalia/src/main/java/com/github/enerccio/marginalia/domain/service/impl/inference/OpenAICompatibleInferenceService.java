@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.concurrent.AsyncRunnableWrapper;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
+import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -67,8 +68,9 @@ public class OpenAICompatibleInferenceService implements InferenceService {
     }
 
     @Override
-    public void stream(List<LLMChatMessage> payload, InferenceAsyncCallback callback) throws Exception {
+    public CancellationToken stream(List<LLMChatMessage> payload, InferenceAsyncCallback callback) throws Exception {
         OpenAIClient client = openClient();
+        CancellationToken cancellationToken = new CancellationToken();
 
         List<ChatCompletionMessageParam> messages = new ArrayList<>();
         for (LLMChatMessage msg : payload) {
@@ -97,8 +99,10 @@ public class OpenAICompatibleInferenceService implements InferenceService {
         CompletableFuture.runAsync(() -> {
             try {
                 wrapper.run(() -> {
+                    if (cancellationToken.isCancelled())
+                        return;
                     StreamResponse<ChatCompletionChunk> streamResponse = client.chat().completions().createStreaming(paramsBuilder.build());
-                    OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse, callback);
+                    OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse, callback, cancellationToken);
                     controller.continueInference();
                 });
             } catch (Throwable e) {
@@ -110,6 +114,7 @@ public class OpenAICompatibleInferenceService implements InferenceService {
                 }
             }
         });
+        return cancellationToken;
     }
 
     private OpenAIClient openClient() {
@@ -131,13 +136,15 @@ public class OpenAICompatibleInferenceService implements InferenceService {
         private final Iterator<ChatCompletionChunk> iterator;
         private final InferenceAsyncCallback callback;
         private final Queue<PendingChunk> pendingChunks = new LinkedList<>();
+        private final CancellationToken cancellationToken;
         private boolean completed = false;
 
         public OpenAIInferenceAsyncController(StreamResponse<ChatCompletionChunk> streamResponse,
-                                              InferenceAsyncCallback callback) {
+                                              InferenceAsyncCallback callback, CancellationToken cancellationToken) {
             this.streamResponse = streamResponse;
             this.iterator = streamResponse.stream().iterator();
             this.callback = callback;
+            this.cancellationToken = cancellationToken;
         }
 
         @Override
@@ -176,7 +183,7 @@ public class OpenAICompatibleInferenceService implements InferenceService {
                         if (completed) {
                             return;
                         }
-                        if (callback.isDead()) {
+                        if (callback.isDead() || cancellationToken.isCancelled()) {
                             closeStream();
                             callback.onCancel();
                             return;

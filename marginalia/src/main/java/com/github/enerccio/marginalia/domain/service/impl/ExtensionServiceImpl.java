@@ -143,6 +143,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                             f.getType().getName(), fieldReturnType.getName()
                     ));
                 }
+                f.setAccessible(true);
                 return (T) f.get(object);
             } catch (Throwable t) {
                 throw new ModCompatibilityException(String.format(
@@ -164,6 +165,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                             f.getType().getName(), fieldReturnType.getName()
                     ));
                 }
+                f.setAccessible(true);
                 f.set(object, value);
             } catch (Throwable t) {
                 throw new ModCompatibilityException(String.format(

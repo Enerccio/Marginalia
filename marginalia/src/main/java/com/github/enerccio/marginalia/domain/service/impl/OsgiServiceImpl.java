@@ -207,11 +207,23 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
 
     @Override
     public List<Bundle> getBundles() {
-        if (f != null && f.getState() == Framework.ACTIVE) {
-            return Arrays.asList(context.getBundles());
-        }
+        try {
+            if (f != null && f.getState() == Framework.ACTIVE) {
+                Bundle[] bundles = context.getBundles();
+                List<Bundle> ourBundles = new ArrayList<>();
+                for (Bundle bundle : bundles) {
+                    List<ServiceReference<?>> services = getServices(bundle, MarginaliaExtension.class);
+                    if (!services.isEmpty()) {
+                        ourBundles.add(bundle);
+                    }
+                }
+                return ourBundles;
+            }
 
-        return new ArrayList<>();
+            return new ArrayList<>();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void startBundleInternal(Bundle b) throws Exception {

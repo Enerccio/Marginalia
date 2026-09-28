@@ -136,6 +136,19 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_STOP, "Stop");
         setValue(L.LABEL_SUMMARY_STOPPED, "Summary Terminated");
         setValue(L.LABEL_SUMMARY_ERROR, "Summary Error");
+        setValue(L.LABEL_EXTENSIONS, "Extensions");
+        setValue(L.LABEL_UPLOAD_EXTENSION, "Load Extension (.jar)");
+        setValue(L.LABEL_UNLOAD_EXTENSION, "Unload");
+        setValue(L.LABEL_BUNDLE_ID, "ID");
+        setValue(L.LABEL_BUNDLE_NAME, "Extension Name");
+        setValue(L.LABEL_BUNDLE_VERSION, "Version");
+        setValue(L.LABEL_BUNDLE_STATE, "State");
+        setValue(L.LABEL_ACTIONS, "Actions");
+        setValue(L.LABEL_REFRESH_EXTENSIONS, "Refresh");
+        setValue(L.MSG_EXTENSION_INSTALLED_SUCCESS, "Extension loaded successfully.");
+        setValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS, "Extension unloaded successfully.");
+        setValue(L.ERROR_EXTENSION_INSTALL_FAILED, "Failed to load extension: %s");
+        setValue(L.ERROR_EXTENSION_UNINSTALL_FAILED, "Failed to unload extension: %s");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");

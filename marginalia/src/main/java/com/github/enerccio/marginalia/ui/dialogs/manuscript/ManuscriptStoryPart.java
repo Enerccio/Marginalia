@@ -785,51 +785,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             menuBtn.setThemeName("tertiary icon small");
             menuBtn.getStyle().set("margin-left", "auto");
 
-            hamburgerMenu = new ContextMenu();
-            hamburgerMenu.setTarget(menuBtn);
-            hamburgerMenu.setOpenOnClick(true);
-
-            editItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_EDIT), event -> toggleEdit());
-
-            regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
-            regenerateItem.setVisible(this.isLast);
-
-            swipeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SWIPE), event -> swipe());
-            swipeItem.setVisible(this.isLast);
-
-            showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
-
-            summaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_GENERATE_SUMMARY), event -> openSummaryDialog());
-            deleteSummaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE_SUMMARY), event -> confirmDeleteSummary());
-
-            deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
-                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
-                    centerContentPanel.getElement().executeJs("return $0.scrollTop").then(Integer.class, scrollTop -> {
-                        try {
-                            Long parentId = message.getParent() != null ? message.getParent().getId() : null;
-
-                            chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
-
-                            parent.refreshManuscript();
-                            load(parent.getManuscript());
-
-                            if (scrollTop != null && scrollTop > 0) {
-                                centerContentPanel.getElement().executeJs("$0.scrollTop = $1", scrollTop);
-                            } else if (parentId != null && activeCardMap.containsKey(parentId)) {
-                                activeCardMap.get(parentId).scrollIntoView();
-                            }
-                        } catch (Exception e) {
-                            UIUtils.internalServerError(loc, e);
-                        }
-                    });
-                });
-            });
-
-            hamburgerMenu.addOpenedChangeListener(event -> {
-                if (event.isOpened()) {
-                    refreshSummaryMenuItems();
-                }
-            });
+            createMenuItems();
 
             headerBar.add(UIUtils.voidComponent(), menuBtn);
 
@@ -950,6 +906,54 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             add(contentLayout, metaLayout);
             setFlexGrow(1, contentLayout);
             setFlexGrow(0, metaLayout);
+        }
+
+        private void createMenuItems() {
+            hamburgerMenu = new ContextMenu();
+            hamburgerMenu.setTarget(menuBtn);
+            hamburgerMenu.setOpenOnClick(true);
+
+            editItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_EDIT), event -> toggleEdit());
+
+            regenerateItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_REGENERATE), event -> regenerate());
+            regenerateItem.setVisible(this.isLast);
+
+            swipeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SWIPE), event -> swipe());
+            swipeItem.setVisible(this.isLast);
+
+            showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
+
+            summaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_GENERATE_SUMMARY), event -> openSummaryDialog());
+            deleteSummaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE_SUMMARY), event -> confirmDeleteSummary());
+
+            deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
+                ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+                    centerContentPanel.getElement().executeJs("return $0.scrollTop").then(Integer.class, scrollTop -> {
+                        try {
+                            Long parentId = message.getParent() != null ? message.getParent().getId() : null;
+
+                            chatMessageService.deleteNodeAndMigrateChildren(message, currentManuscript, false);
+
+                            parent.refreshManuscript();
+                            load(parent.getManuscript());
+
+                            if (scrollTop != null && scrollTop > 0) {
+                                centerContentPanel.getElement().executeJs("$0.scrollTop = $1", scrollTop);
+                            } else if (parentId != null && activeCardMap.containsKey(parentId)) {
+                                activeCardMap.get(parentId).scrollIntoView();
+                            }
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    });
+                });
+            });
+
+            hamburgerMenu.addOpenedChangeListener(event -> {
+                if (event.isOpened()) {
+                    refreshSummaryMenuItems();
+                }
+            });
         }
 
         private void refreshSummaryMenuItems() {
