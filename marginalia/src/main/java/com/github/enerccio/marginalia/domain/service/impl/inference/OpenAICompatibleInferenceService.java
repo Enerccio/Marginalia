@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChat
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
+import com.openai.core.JsonValue;
 import com.openai.core.http.StreamResponse;
 import com.openai.models.chat.completions.*;
 import com.openai.models.models.Model;
@@ -95,6 +96,12 @@ public class OpenAICompatibleInferenceService implements InferenceService {
             paramsBuilder.maxCompletionTokens(ai.getMaxCompletionTokens());
         }
 
+        if (ai.getEnabledReasoning() && ai.getReasoningEffort() != null) {
+            String effortValue = ai.getReasoningEffort().toString().toLowerCase();
+            paramsBuilder.putAdditionalBodyProperty("reasoning_effort", JsonValue.from(effortValue));
+            paramsBuilder.putAdditionalBodyProperty("allowed_openai_params", JsonValue.from(List.of("reasoning_effort")));
+        }
+
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
         CompletableFuture.runAsync(() -> {
             try {
@@ -171,14 +178,12 @@ public class OpenAICompatibleInferenceService implements InferenceService {
 
             try {
                 wrapper.run(() -> {
-                    // 1. Deliver buffered chunks remaining from previous network packets
                     if (!pendingChunks.isEmpty()) {
                         PendingChunk chunk = pendingChunks.poll();
                         callback.onChunk(this, chunk.type(), chunk.text());
                         return;
                     }
 
-                    // 2. Fetch network stream until next reasoning or content chunk is found
                     while (iterator.hasNext()) {
                         if (completed) {
                             return;
@@ -247,5 +252,4 @@ public class OpenAICompatibleInferenceService implements InferenceService {
             }
         }
     }
-
 }
