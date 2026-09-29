@@ -23,7 +23,7 @@ public interface ExtensionService {
 
     interface ExtensionDecorator {
 
-        void onMethodEnter(Object instrumented) throws Exception;
+        void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception;
         void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception;
 
     }

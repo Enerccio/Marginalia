@@ -58,6 +58,7 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             initialNode.setProtocolUsed(manuscript.getProtocol().getName());
             initialNode.setBuiltPrompt(gson.toJson(payload));
             initialNode.setBuiltPromptTokens(inferenceService.countTokens(initialNode.getBuiltPrompt()));
+            initialNode.setBackgroundLore(controller.getPrePromptData().getBackgroundLore());
             initialNode.setRequest(new Date());
 
             ChatMessage node;

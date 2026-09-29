@@ -44,7 +44,7 @@ public class ExtensionServiceImpl implements ExtensionService {
 
         for (ExtensionDecorator decorator : decorators) {
             try {
-                decorator.onMethodEnter(extendableSelf);
+                decorator.onMethodEnter(extendableSelf, new ContextImpl(extendableSelf));
             } catch (Throwable t) {
                 log.error("Unhandled exception in extension '{}' while decorating {}.{}:",
                         decorator.getClass().getName(),
