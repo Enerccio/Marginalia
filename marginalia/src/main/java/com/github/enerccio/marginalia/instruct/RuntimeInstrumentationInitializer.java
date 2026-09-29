@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.instruct;
 
-import com.github.enerccio.marginalia.domain.traits.Extendable;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.AsmVisitorWrapper;
@@ -18,8 +17,10 @@ public class RuntimeInstrumentationInitializer implements InitializingBean {
         new AgentBuilder.Default()
                 .disableClassFormatChanges() // Required for JVM retransformation of pre-loaded classes
                 .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                .with(AgentBuilder.Listener.StreamWriting.toSystemOut().withTransformationsOnly())
-                .type(ElementMatchers.isAnnotatedWith(Extendable.class))
+                .with(AgentBuilder.DescriptionStrategy.Default.POOL_ONLY)
+                .ignore(ElementMatchers.not(ElementMatchers.nameStartsWith("com.github.enerccio")))
+//                .with(AgentBuilder.Listener.StreamWriting.toSystemOut())
+                .type(ElementMatchers.isAnnotatedWith(ElementMatchers.named("com.github.enerccio.marginalia.domain.traits.Extendable")))
                 .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder
                         .visit(new AsmVisitorWrapper.ForDeclaredMethods()
                                 .writerFlags(ClassWriter.COMPUTE_FRAMES)

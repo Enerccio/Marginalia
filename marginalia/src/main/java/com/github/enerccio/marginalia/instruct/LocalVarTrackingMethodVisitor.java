@@ -28,6 +28,7 @@ public class LocalVarTrackingMethodVisitor extends MethodVisitor {
     private final int thrownSlot;
 
     private final Map<Integer, String> slotToNameMap = new HashMap<>();
+    private final List<Consumer<MethodVisitor>> tryCatchBlocks = new ArrayList<>();
     private final List<Consumer<MethodVisitor>> instructions = new ArrayList<>();
     private final List<Consumer<MethodVisitor>> localVarsToReplay = new ArrayList<>();
 
@@ -167,7 +168,8 @@ public class LocalVarTrackingMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
-        instructions.add(mv -> mv.visitTryCatchBlock(start, end, handler, type));
+        // Collect try-catch definitions separately from bytecode instructions
+        tryCatchBlocks.add(mv -> mv.visitTryCatchBlock(start, end, handler, type));
     }
 
     @Override
@@ -194,9 +196,12 @@ public class LocalVarTrackingMethodVisitor extends MethodVisitor {
     public void visitEnd() {
         targetVisitor.visitCode();
 
+        for (Consumer<MethodVisitor> action : tryCatchBlocks) {
+            action.accept(targetVisitor);
+        }
+
         targetVisitor.visitTryCatchBlock(startLabel, endLabel, handlerLabel, "java/lang/Throwable");
 
-        // Fetch ExtensionService via ExtensionServiceHolder
         targetVisitor.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "com/github/enerccio/marginalia/instruct/ExtensionServiceHolder",
