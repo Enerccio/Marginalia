@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.extensions.reviewer;
 
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
@@ -33,18 +35,6 @@ public class ReviewerExtension implements MarginaliaExtension {
     private Localization loc;
 
     @Autowired
-    private ChatMessageService chatMessageService;
-
-    @Autowired
-    private SettingService settingService;
-
-    @Autowired
-    private AIService aiService;
-
-    @Autowired
-    private ProtocolService protocolService;
-
-    @Autowired
     private InferenceServices inferenceServices;
 
     @Autowired
@@ -54,6 +44,7 @@ public class ReviewerExtension implements MarginaliaExtension {
     private ExtensionDecorator cardDecorator;
     private ExtensionDecorator cardDecoratorRefresh;
     private ExtensionDecorator userPartDecorator;
+    private ExtensionDecorator userPartSaveDecorator;
 
     private final Map<ContextMenu, MenuItem> existingMenus = new HashMap<>();
     private final Map<Accordion, AccordionPanel> settingItems = new HashMap<>();
@@ -62,8 +53,11 @@ public class ReviewerExtension implements MarginaliaExtension {
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         try {
             cardDecorator = new ExtensionDecorator() {
+
                 @Override
-                public void onMethodEnter(Object instrumented) {}
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+
+                }
 
                 @Override
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
@@ -77,17 +71,20 @@ public class ReviewerExtension implements MarginaliaExtension {
                         reviewMenuItem.addComponentAsFirst(VaadinIcon.STAR.create());
 
                         reviewMenuItem.getSubMenu().addItem("View / Generate Review", e -> {
-                            ReviewDialog dialog = new ReviewDialog(
-                                    message, manuscript, chatMessageService, settingService, inferenceServices, aiService, reviewerService, null);
+                            ReviewDialog dialog = new ReviewDialog(reviewerService,
+                                    message, manuscript, null);
                             dialog.open();
                         });
 
                         reviewMenuItem.getSubMenu().addItem("Advanced Options", e -> {
                             try {
-                                ReviewerSettings settings = reviewerService.getSettings(settingService);
-                                AdvancedOptionsDialog dialog = new AdvancedOptionsDialog(reviewerService, manuscript, settings, null, opts -> {
-                                    ReviewDialog rDialog = new ReviewDialog(
-                                            message, manuscript, chatMessageService, settingService, inferenceServices, aiService, reviewerService, opts);
+                                ReviewerSettings settings = reviewerService.getSettings();
+                                AI targetAi = reviewerService.resolveAI(settings, manuscript);
+                                InferenceService service = inferenceServices.forAI(targetAi);
+                                AdvancedOptionsDialog dialog = new AdvancedOptionsDialog(reviewerService, service, manuscript, settings.getSettings().get(settings.getDefaultSetting()),
+                                        message, null, opts -> {
+                                    ReviewDialog rDialog = new ReviewDialog(reviewerService,
+                                            message, manuscript, opts);
                                     rDialog.open();
                                 });
                                 dialog.open();
@@ -99,7 +96,7 @@ public class ReviewerExtension implements MarginaliaExtension {
                         boolean hasReview = reviewerService.getReviewData(message) != null;
                         MenuItem deleteItem = reviewMenuItem.getSubMenu().addItem("Delete Review", e -> {
                             try {
-                                reviewerService.deleteReviewData(chatMessageService, message);
+                                reviewerService.deleteReviewData(message);
                             } catch (Exception ex) {
                                 UIUtils.internalServerError(loc, ex);
                             }
@@ -117,8 +114,11 @@ public class ReviewerExtension implements MarginaliaExtension {
             );
 
             cardDecoratorRefresh = new ExtensionDecorator() {
+
                 @Override
-                public void onMethodEnter(Object instrumented) throws Exception {}
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+
+                }
 
                 @Override
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
@@ -142,7 +142,9 @@ public class ReviewerExtension implements MarginaliaExtension {
             // Hook into UserPart to insert extension settings panel into Accordion
             userPartDecorator = new ExtensionDecorator() {
                 @Override
-                public void onMethodEnter(Object instrumented) throws Exception {}
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+
+                }
 
                 @Override
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
@@ -157,7 +159,7 @@ public class ReviewerExtension implements MarginaliaExtension {
                             });
                         } else {
                             ReviewerSettingsForm form = new ReviewerSettingsForm(
-                                    reviewerService, settingService, aiService, protocolService, loc);
+                                    reviewerService);
                             AccordionPanel contentPanel = extensionSettings.add("Reviewer Settings", form);
                             settingItems.put(extensionSettings, contentPanel);
                         }
@@ -171,6 +173,34 @@ public class ReviewerExtension implements MarginaliaExtension {
                     "refresh"
             );
 
+            userPartSaveDecorator = new ExtensionDecorator() {
+
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+                    UserSetting userSetting = context.getReflectiveFieldValue(instrumented, "userSetting", UserSetting.class);
+                    Accordion extensionSettings = context.getReflectiveFieldValue(instrumented, "extensionSettings", Accordion.class);
+                    if (extensionSettings != null && userSetting != null) {
+                        AccordionPanel contentPanel = settingItems.get(extensionSettings);
+                        contentPanel.getContent().findFirst().ifPresent(content -> {
+                            if (content instanceof ReviewerSettingsForm form) {
+                                ReviewerSettings settings = form.save();
+                                reviewerService.saveSettings(settings, userSetting);
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+
+                }
+            };
+
+            extensionService.registerDecorator(
+                    userPartSaveDecorator,
+                    "com.github.enerccio.marginalia.ui.workspace.parts.UserPart",
+                    "save"
+            );
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -189,6 +219,9 @@ public class ReviewerExtension implements MarginaliaExtension {
             for (Accordion accordion : settingItems.keySet()) {
                 accordion.remove(settingItems.get(accordion));
             }
+        }
+        if (userPartSaveDecorator != null) {
+            extensionService.unregisterDecorator(userPartSaveDecorator);
         }
     }
 }

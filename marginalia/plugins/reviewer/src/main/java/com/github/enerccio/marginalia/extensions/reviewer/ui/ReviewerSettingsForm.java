@@ -2,56 +2,52 @@ package com.github.enerccio.marginalia.extensions.reviewer.ui;
 
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.AIService;
-import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSetting;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
-import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
 import java.util.List;
 
+@Configurable(preConstruction = true)
 public class ReviewerSettingsForm extends VerticalLayout {
 
+    public static final String DEFAULT_PROFILE = "_Default";
+
+    @Autowired
+    private Localization loc;
+
     private final ReviewerService reviewerService;
-    private final SettingService settingService;
-    private final AIService aiService;
-    private final ProtocolService protocolService;
-    private final Localization loc;
+
+    private ComboBox<String> profileCombo;
+    private Button newProfileBtn;
+    private Button renameProfileBtn;
+    private Button deleteProfileBtn;
 
     private ComboBox<AI> overrideModelCombo;
     private ComboBox<Protocol> overrideProtocolCombo;
     private TextArea reviewPromptPreArea;
     private TextArea reviewPromptArea;
-    private Checkbox removeInstructionBox;
-    private Checkbox removeUserBox;
-    private Checkbox removeCharacterBox;
-    private Checkbox removeWorldInfoBox;
 
     private ReviewerSettings settings;
+    private String currentProfileName;
 
-    public ReviewerSettingsForm(
-            ReviewerService reviewerService,
-            SettingService settingService,
-            AIService aiService,
-            ProtocolService protocolService,
-            Localization loc) {
-
+    public ReviewerSettingsForm(ReviewerService reviewerService) {
         this.reviewerService = reviewerService;
-        this.settingService = settingService;
-        this.aiService = aiService;
-        this.protocolService = protocolService;
-        this.loc = loc;
 
         setWidthFull();
         setPadding(true);
@@ -62,6 +58,30 @@ public class ReviewerSettingsForm extends VerticalLayout {
     }
 
     private void buildForm() {
+        HorizontalLayout profileLayout = new HorizontalLayout();
+        profileLayout.setWidthFull();
+        profileLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+
+        profileCombo = new ComboBox<>("Profile");
+        profileCombo.setWidthFull();
+        profileCombo.setAllowCustomValue(false);
+        profileCombo.addValueChangeListener(e -> {
+            if (e.isFromClient() && e.getValue() != null && !e.getValue().equals(currentProfileName)) {
+                saveCurrentFieldsToProfile();
+                currentProfileName = e.getValue();
+                settings.setDefaultSetting(currentProfileName);
+                loadProfileFields(currentProfileName);
+                updateProfileButtonsState();
+            }
+        });
+
+        newProfileBtn = new Button("New", e -> createNewProfile());
+        renameProfileBtn = new Button("Rename", e -> renameCurrentProfile());
+        deleteProfileBtn = new Button("Delete", e -> deleteCurrentProfile());
+
+        profileLayout.add(profileCombo, newProfileBtn, renameProfileBtn, deleteProfileBtn);
+        profileLayout.setFlexGrow(1, profileCombo);
+
         FormLayout formLayout = new FormLayout();
         formLayout.setWidthFull();
 
@@ -89,78 +109,232 @@ public class ReviewerSettingsForm extends VerticalLayout {
         checkboxesLayout.setWidthFull();
         checkboxesLayout.setSpacing(true);
 
-        removeInstructionBox = new Checkbox("Remove instructions");
-        removeUserBox = new Checkbox("Remove persona");
-        removeCharacterBox = new Checkbox("Remove character");
-        removeWorldInfoBox = new Checkbox("Remove world info");
-
-        checkboxesLayout.add(removeInstructionBox, removeUserBox, removeCharacterBox, removeWorldInfoBox);
-
-        Button saveBtn = new Button(loc.getValue(L.LABEL_SAVE), e -> save());
-        saveBtn.setThemeName("primary");
-
-        add(formLayout, reviewPromptPreArea, reviewPromptArea, checkboxesLayout, saveBtn);
+        add(profileLayout, formLayout, reviewPromptPreArea, reviewPromptArea, checkboxesLayout);
     }
 
     public void refresh() {
         try {
-            settings = reviewerService.getSettings(settingService);
+            settings = reviewerService.getSettings();
+            if (settings == null) {
+                settings = reviewerService.createDefault();
+            }
+            if (settings.getSettings().isEmpty()) {
+                settings.getSettings().put(DEFAULT_PROFILE, new ReviewerSetting());
+            }
 
-            // Populate AI models and validate selection via find()
-            List<AI> allModels = aiService.findAllForUser();
-            overrideModelCombo.setItems(allModels);
-            if (settings.getSelectedAiId() != null) {
-                AI validAi = aiService.find(settings.getSelectedAiId());
+            List<String> profileNames = new ArrayList<>(settings.getSettings().keySet());
+            profileCombo.setItems(profileNames);
+
+            String activeProfile = settings.getDefaultSetting();
+            if (activeProfile == null || !settings.getSettings().containsKey(activeProfile)) {
+                activeProfile = settings.getSettings().containsKey(DEFAULT_PROFILE)
+                        ? DEFAULT_PROFILE
+                        : profileNames.get(0);
+                settings.setDefaultSetting(activeProfile);
+            }
+
+            currentProfileName = activeProfile;
+            profileCombo.setValue(currentProfileName);
+
+            overrideModelCombo.setItems(reviewerService.getAvailableAiModels());
+            overrideProtocolCombo.setItems(reviewerService.getAvailableProtocols());
+
+            loadProfileFields(currentProfileName);
+            updateProfileButtonsState();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    private void loadProfileFields(String profileName) {
+        if (settings == null || profileName == null) return;
+        ReviewerSetting profileSetting = settings.getSettings().get(profileName);
+        if (profileSetting == null) {
+            profileSetting = new ReviewerSetting();
+            settings.getSettings().put(profileName, profileSetting);
+        }
+
+        try {
+            if (profileSetting.getSelectedAiId() != null) {
+                AI validAi = reviewerService.findAi(profileSetting.getSelectedAiId());
                 overrideModelCombo.setValue(validAi != null && !validAi.isDeleted() ? validAi : null);
             } else {
                 overrideModelCombo.setValue(null);
             }
 
-            // Populate Protocols and validate selection via find()
-            List<Protocol> allProtocols = protocolService.findAllForUser();
-            overrideProtocolCombo.setItems(allProtocols);
-            if (settings.getSelectedProtocolId() != null) {
-                Protocol validProtocol = protocolService.find(settings.getSelectedProtocolId());
+            if (profileSetting.getSelectedProtocolId() != null) {
+                Protocol validProtocol = reviewerService.findProtocol(profileSetting.getSelectedProtocolId());
                 overrideProtocolCombo.setValue(validProtocol != null && !validProtocol.isDeleted() ? validProtocol : null);
             } else {
                 overrideProtocolCombo.setValue(null);
             }
-
-            reviewPromptPreArea.setValue(settings.getReviewPromptPre() != null ? settings.getReviewPromptPre() : "");
-            reviewPromptArea.setValue(settings.getReviewPrompt() != null ? settings.getReviewPrompt() : "");
-            removeInstructionBox.setValue(settings.isRemoveInstruction());
-            removeUserBox.setValue(settings.isRemoveUser());
-            removeCharacterBox.setValue(settings.isRemoveCharacter());
-            removeWorldInfoBox.setValue(settings.isRemoveWorldInfo());
-
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+
+        reviewPromptPreArea.setValue(profileSetting.getReviewPromptPre() != null ? profileSetting.getReviewPromptPre() : "");
+        reviewPromptArea.setValue(profileSetting.getReviewPrompt() != null ? profileSetting.getReviewPrompt() : "");
     }
 
-    private void save() {
-        try {
-            if (settings == null) {
-                settings = new ReviewerSettings();
+    private void saveCurrentFieldsToProfile() {
+        if (settings == null || currentProfileName == null) return;
+        ReviewerSetting profileSetting = settings.getSettings().get(currentProfileName);
+        if (profileSetting == null) {
+            profileSetting = new ReviewerSetting();
+            settings.getSettings().put(currentProfileName, profileSetting);
+        }
+
+        AI selectedAi = overrideModelCombo.getValue();
+        profileSetting.setSelectedAiId(selectedAi != null ? selectedAi.getId() : null);
+
+        Protocol selectedProtocol = overrideProtocolCombo.getValue();
+        profileSetting.setSelectedProtocolId(selectedProtocol != null ? selectedProtocol.getId() : null);
+
+        profileSetting.setReviewPromptPre(reviewPromptPreArea.getValue());
+        profileSetting.setReviewPrompt(reviewPromptArea.getValue());
+    }
+
+    private void updateProfileButtonsState() {
+        boolean isDefault = DEFAULT_PROFILE.equalsIgnoreCase(currentProfileName);
+        renameProfileBtn.setEnabled(!isDefault);
+        deleteProfileBtn.setEnabled(!isDefault);
+    }
+
+    private void createNewProfile() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("New Profile");
+
+        TextField nameField = new TextField("Profile Name");
+        nameField.setWidthFull();
+
+        VerticalLayout dialogLayout = new VerticalLayout(nameField);
+        dialogLayout.setPadding(false);
+        dialog.add(dialogLayout);
+
+        Button createBtn = new Button("Create", e -> {
+            String name = nameField.getValue() != null ? nameField.getValue().trim() : "";
+            if (name.isEmpty()) {
+                Notification.error("Profile name cannot be empty");
+                return;
+            }
+            if (settings.getSettings().containsKey(name)) {
+                Notification.error("Profile already exists");
+                return;
             }
 
-            AI selectedAi = overrideModelCombo.getValue();
-            settings.setSelectedAiId(selectedAi != null ? selectedAi.getId() : null);
+            saveCurrentFieldsToProfile();
 
-            Protocol selectedProtocol = overrideProtocolCombo.getValue();
-            settings.setSelectedProtocolId(selectedProtocol != null ? selectedProtocol.getId() : null);
+            ReviewerSetting newSetting = new ReviewerSetting();
+            settings.getSettings().put(name, newSetting);
+            currentProfileName = name;
+            settings.setDefaultSetting(name);
 
-            settings.setReviewPromptPre(reviewPromptPreArea.getValue());
-            settings.setReviewPrompt(reviewPromptArea.getValue());
-            settings.setRemoveInstruction(removeInstructionBox.getValue());
-            settings.setRemoveUser(removeUserBox.getValue());
-            settings.setRemoveCharacter(removeCharacterBox.getValue());
-            settings.setRemoveWorldInfo(removeWorldInfoBox.getValue());
+            profileCombo.setItems(new ArrayList<>(settings.getSettings().keySet()));
+            profileCombo.setValue(name);
+            loadProfileFields(name);
+            updateProfileButtonsState();
 
-            reviewerService.saveSettings(settingService, settings);
-            Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
+            dialog.close();
+        });
+        createBtn.setThemeName("primary");
+
+        Button cancelBtn = new Button("Cancel", e -> dialog.close());
+
+        dialog.getFooter().add(cancelBtn, createBtn);
+        dialog.open();
+    }
+
+    private void renameCurrentProfile() {
+        if (DEFAULT_PROFILE.equalsIgnoreCase(currentProfileName)) {
+            Notification.error("Cannot rename " + DEFAULT_PROFILE + " profile");
+            return;
         }
+
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Rename Profile");
+
+        TextField nameField = new TextField("New Profile Name");
+        nameField.setWidthFull();
+        nameField.setValue(currentProfileName != null ? currentProfileName : "");
+
+        VerticalLayout dialogLayout = new VerticalLayout(nameField);
+        dialogLayout.setPadding(false);
+        dialog.add(dialogLayout);
+
+        Button renameBtn = new Button("Rename", e -> {
+            String newName = nameField.getValue() != null ? nameField.getValue().trim() : "";
+            if (newName.isEmpty()) {
+                Notification.error("Profile name cannot be empty");
+                return;
+            }
+            if (newName.equals(currentProfileName)) {
+                dialog.close();
+                return;
+            }
+            if (settings.getSettings().containsKey(newName)) {
+                Notification.error("Profile already exists");
+                return;
+            }
+
+            saveCurrentFieldsToProfile();
+
+            ReviewerSetting profileSetting = settings.getSettings().remove(currentProfileName);
+            if (profileSetting == null) {
+                profileSetting = new ReviewerSetting();
+            }
+
+            settings.getSettings().put(newName, profileSetting);
+            currentProfileName = newName;
+            settings.setDefaultSetting(newName);
+
+            profileCombo.setItems(new ArrayList<>(settings.getSettings().keySet()));
+            profileCombo.setValue(newName);
+            updateProfileButtonsState();
+
+            dialog.close();
+        });
+        renameBtn.setThemeName("primary");
+
+        Button cancelBtn = new Button("Cancel", e -> dialog.close());
+
+        dialog.getFooter().add(cancelBtn, renameBtn);
+        dialog.open();
+    }
+
+    private void deleteCurrentProfile() {
+        if (DEFAULT_PROFILE.equalsIgnoreCase(currentProfileName)) {
+            Notification.error("Cannot delete " + DEFAULT_PROFILE + " profile");
+            return;
+        }
+
+        settings.getSettings().remove(currentProfileName);
+
+        String fallbackProfile = DEFAULT_PROFILE;
+        if (!settings.getSettings().containsKey(fallbackProfile) && !settings.getSettings().isEmpty()) {
+            fallbackProfile = settings.getSettings().firstKey();
+        } else if (settings.getSettings().isEmpty()) {
+            settings.getSettings().put(DEFAULT_PROFILE, new ReviewerSetting());
+        }
+
+        currentProfileName = fallbackProfile;
+        settings.setDefaultSetting(currentProfileName);
+
+        profileCombo.setItems(new ArrayList<>(settings.getSettings().keySet()));
+        profileCombo.setValue(currentProfileName);
+        loadProfileFields(currentProfileName);
+        updateProfileButtonsState();
+    }
+
+    public ReviewerSettings save() {
+        if (settings == null) {
+            settings = reviewerService.createDefault();
+        }
+        if (currentProfileName == null) {
+            currentProfileName = DEFAULT_PROFILE;
+        }
+
+        saveCurrentFieldsToProfile();
+        settings.setDefaultSetting(currentProfileName);
+        return settings;
     }
 }

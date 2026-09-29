@@ -10,62 +10,116 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChat
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.extensions.reviewer.model.AdvancedOptions;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewData;
+import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSetting;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Configurable
 public class ReviewerService {
+
+    @Autowired
+    private Localization loc;
+
+    @Autowired
+    private SettingService settingService;
+
+    @Autowired
+    private AIService aiService;
+
+    @Autowired
+    private InferenceServices inferenceServices;
+
+    @Autowired
+    private ProtocolService protocolService;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
 
     private final Gson gson = new Gson();
 
-    public ReviewerSettings getSettings(SettingService settingService) throws Exception {
+    public ReviewerSettings getSettings() throws Exception {
         UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
         JsonObject attrs = userSetting.getAttributes();
+        ReviewerSettings settings = createDefault();
         if (attrs != null && attrs.has(ReviewerSettings.KEY)) {
-            return gson.fromJson(attrs.get(ReviewerSettings.KEY), ReviewerSettings.class);
+            settings = gson.fromJson(attrs.get(ReviewerSettings.KEY), ReviewerSettings.class);
         }
-        return new ReviewerSettings();
+        return settings;
     }
 
-    public void saveSettings(SettingService settingService, ReviewerSettings settings) throws Exception {
+    public ReviewerSettings createDefault() {
+        ReviewerSettings settings = new ReviewerSettings();
+        settings.getSettings().put("_Default", new ReviewerSetting());
+        settings.setDefaultSetting("_Default");
+        return settings;
+    }
+
+    public void saveSettings(ReviewerSettings settings) throws Exception {
         UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        saveSettings(settings, userSetting);
+        settingService.save(userSetting);
+    }
+
+    public void saveSettings(ReviewerSettings settings, UserSetting userSetting) {
         JsonObject attrs = userSetting.getAttributes();
         if (attrs == null) {
             attrs = new JsonObject();
             userSetting.setAttributes(attrs);
         }
+        if (attrs.has(ReviewerSettings.KEY)) {
+            attrs.remove(ReviewerSettings.KEY);
+        }
         attrs.add(ReviewerSettings.KEY, gson.toJsonTree(settings));
-        settingService.save(userSetting);
     }
 
-    public AI resolveAI(ReviewerSettings settings, Manuscript manuscript, AIService aiService) {
-        if (settings != null && settings.getSelectedAiId() != null) {
+    public AI resolveAI(ReviewerSettings settings, Manuscript manuscript) throws Exception {
+        return resolveAI(settings.getSettings().get(settings.getDefaultSetting()), manuscript);
+    }
+
+    public AI resolveAI(ReviewerSetting setting, Manuscript manuscript) throws Exception {
+        if (setting.getSelectedAiId() != null) {
             try {
-                AI configuredAi = aiService.find(settings.getSelectedAiId());
+                AI configuredAi = aiService.find(setting.getSelectedAiId());
                 if (configuredAi != null && !configuredAi.isDeleted()) {
                     return configuredAi;
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
-        return manuscript != null ? manuscript.getAi() : null;
+        return aiService.find(manuscript.getAi());
     }
 
-    public Protocol resolveProtocol(ReviewerSettings settings, Manuscript manuscript, ProtocolService protocolService) {
-        if (settings != null && settings.getSelectedProtocolId() != null) {
+    public Protocol resolveProtocol(ReviewerSettings settings, Manuscript manuscript) throws Exception {
+        return resolveProtocol(settings.getSettings().get(settings.getDefaultSetting()), manuscript);
+    }
+
+    public Protocol resolveProtocol(ReviewerSetting setting, Manuscript manuscript) throws Exception {
+        if (setting.getSelectedProtocolId() != null) {
             try {
-                Protocol configuredProtocol = protocolService.find(settings.getSelectedProtocolId());
+                Protocol configuredProtocol = protocolService.find(setting.getSelectedProtocolId());
                 if (configuredProtocol != null && !configuredProtocol.isDeleted()) {
                     return configuredProtocol;
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
-        return manuscript != null ? manuscript.getProtocol() : null;
+        return protocolService.find(manuscript.getProtocol());
     }
 
     public ReviewData getReviewData(ChatMessage message) {
@@ -76,7 +130,7 @@ public class ReviewerService {
         return null;
     }
 
-    public void saveReviewData(ChatMessageService chatMessageService, ChatMessage message, ReviewData data) throws Exception {
+    public void saveReviewData(ChatMessage message, ReviewData data) throws Exception {
         JsonObject attrs = message.getAttributes();
         if (attrs == null) {
             attrs = new JsonObject();
@@ -86,7 +140,7 @@ public class ReviewerService {
         chatMessageService.save(message);
     }
 
-    public void deleteReviewData(ChatMessageService chatMessageService, ChatMessage message) throws Exception {
+    public void deleteReviewData(ChatMessage message) throws Exception {
         JsonObject attrs = message.getAttributes();
         if (attrs != null && attrs.has(ReviewerSettings.KEY)) {
             attrs.remove(ReviewerSettings.KEY);
@@ -95,18 +149,24 @@ public class ReviewerService {
     }
 
     public List<LLMChatMessage> buildChatCompletePrompts(
-            ChatMessage targetMessage,
-            ChatMessageService chatMessageService,
             InferenceService inferenceService,
+            ChatMessage targetMessage,
             ReviewerSettings settings,
             AdvancedOptions advancedOptions) throws Exception {
+        return buildChatCompletePrompts(inferenceService, targetMessage, settings.getSettings().get(settings.getDefaultSetting()),advancedOptions);
+    }
 
+    public List<LLMChatMessage> buildChatCompletePrompts(
+            InferenceService inferenceService,
+            ChatMessage targetMessage,
+            ReviewerSetting setting,
+            AdvancedOptions advancedOptions) throws Exception {
         List<LLMChatMessage> payload = new ArrayList<>();
 
-        String prePrompt = settings.getReviewPromptPre();
+        String prePrompt = setting.getReviewPromptPre();
         String reviewPrompt = (advancedOptions != null && StringUtils.isNotBlank(advancedOptions.getPrompt()))
                 ? advancedOptions.getPrompt()
-                : settings.getReviewPrompt();
+                : setting.getReviewPrompt();
 
         List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(targetMessage);
 
@@ -144,7 +204,7 @@ public class ReviewerService {
                 }
 
                 currentTokens += msgTokens;
-                selectedMessages.add(0, msg);
+                selectedMessages.addFirst(msg);
             }
 
             // Assemble LLMChatMessage list
@@ -194,12 +254,32 @@ public class ReviewerService {
         return text.length() / 4L; // Rough fallback estimate
     }
 
-    public Integer getTokenLimit(ReviewerSettings settings, Manuscript manuscript, AIService aiService, ProtocolService protocolService) {
-        AI ai = resolveAI(settings, manuscript, aiService);
-        Protocol protocol = resolveProtocol(settings, manuscript, protocolService);
+    public Integer getTokenLimit(ReviewerSettings settings, Manuscript manuscript) throws Exception {
+        return getTokenLimit(settings.getSettings().get(settings.getDefaultSetting()), manuscript);
+    }
+
+    public Integer getTokenLimit(ReviewerSetting setting, Manuscript manuscript) throws Exception {
+        AI ai = resolveAI(setting, manuscript);
+        Protocol protocol = resolveProtocol(setting, manuscript);
         if (protocol.getMaxTokens() != null) {
             return protocol.getMaxTokens();
         }
         return ai.getMaxContext();
+    }
+
+    public List<AI> getAvailableAiModels() throws Exception {
+        return aiService.findAllForUser();
+    }
+
+    public AI findAi(Long id) throws Exception {
+        return id != null ? aiService.find(id) : null;
+    }
+
+    public List<Protocol> getAvailableProtocols() throws Exception {
+        return protocolService.findAllForUser();
+    }
+
+    public Protocol findProtocol(Long id) throws Exception {
+        return id != null ? protocolService.find(id) : null;
     }
 }

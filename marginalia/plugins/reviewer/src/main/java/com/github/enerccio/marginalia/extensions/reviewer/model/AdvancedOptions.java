@@ -5,7 +5,6 @@ public class AdvancedOptions {
     private boolean usePromptInfo = true;
     private boolean lorebook = false;
     private Integer tokenLimit = null;
-    private String lorebookTrigger = "review";
 
     public String getPrompt() { return prompt; }
     public void setPrompt(String prompt) { this.prompt = prompt; }
@@ -18,7 +17,4 @@ public class AdvancedOptions {
 
     public Integer getTokenLimit() { return tokenLimit; }
     public void setTokenLimit(Integer tokenLimit) { this.tokenLimit = tokenLimit; }
-
-    public String getLorebookTrigger() { return lorebookTrigger; }
-    public void setLorebookTrigger(String lorebookTrigger) { this.lorebookTrigger = lorebookTrigger; }
 }

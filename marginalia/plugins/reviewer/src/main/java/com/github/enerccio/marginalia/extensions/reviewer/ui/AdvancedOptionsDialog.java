@@ -1,42 +1,66 @@
 package com.github.enerccio.marginalia.extensions.reviewer.ui;
 
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.extensions.reviewer.model.AdvancedOptions;
-import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
+import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSetting;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.List;
 import java.util.function.Consumer;
 
+@Configurable
 public class AdvancedOptionsDialog extends Dialog {
+    private static final Gson gson = new GsonBuilder().create();
+
+    @Autowired
+    private Localization loc;
 
     private final AdvancedOptions options;
-    private final Consumer<AdvancedOptions> onConfirm;
+    private final ReviewerSetting setting;
+    private final Manuscript manuscript;
+    private final ReviewerService reviewerService;
+    private final InferenceService inferenceService;
+    private final ChatMessage targetMessage;
 
     private TextArea promptArea;
     private Checkbox usePromptInfo;
     private Checkbox lorebookBox;
     private IntegerField tokenLimitField;
-    private ComboBox<String> lorebookTriggerCombo;
+    private Span counter;
 
-    public AdvancedOptionsDialog(ReviewerService reviewerService, Manuscript manuscript, ReviewerSettings settings, AdvancedOptions existingOptions, Consumer<AdvancedOptions> onConfirm) {
+    public AdvancedOptionsDialog(ReviewerService reviewerService, InferenceService inferenceService, Manuscript manuscript,
+                                 ReviewerSetting setting, ChatMessage targetMessage, AdvancedOptions existingOptions, Consumer<AdvancedOptions> onConfirm) throws Exception {
+        this.reviewerService = reviewerService;
+        this.setting = setting;
+        this.manuscript = manuscript;
+        this.inferenceService = inferenceService;
+        this.targetMessage = targetMessage;
         this.options = existingOptions != null ? existingOptions : new AdvancedOptions();
-        this.onConfirm = onConfirm;
 
         if (existingOptions == null) {
-            options.setPrompt(settings.getReviewPrompt());
+            options.setPrompt(setting.getReviewPrompt());
         }
 
         setHeaderTitle("Advanced Review Options");
-        setWidth("600px");
+        setWidth("900px");
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
@@ -45,26 +69,45 @@ public class AdvancedOptionsDialog extends Dialog {
         promptArea.setWidthFull();
         promptArea.setMinHeight("120px");
         promptArea.setValue(options.getPrompt() != null ? options.getPrompt() : "");
+        promptArea.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                refreshCount();
+            }
+        });
 
         usePromptInfo = new Checkbox("Use standard prompt info", options.isUsePromptInfo());
         usePromptInfo.addValueChangeListener(e -> toggleFields(!e.getValue()));
+        usePromptInfo.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                refreshCount();
+            }
+        });
+
+        counter = new Span("");
+        counter.setWidthFull();
 
         HorizontalLayout optionsRow = new HorizontalLayout();
         optionsRow.setWidthFull();
         optionsRow.setAlignItems(Alignment.BASELINE);
 
         lorebookBox = new Checkbox("Include Lorebook", options.isLorebook());
+        lorebookBox.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                refreshCount();
+            }
+        });
 
         tokenLimitField = new IntegerField("Token Limit");
-        tokenLimitField.setValue(reviewerService.getTokenLimit(settings, manuscript));
+        tokenLimitField.setValue(reviewerService.getTokenLimit(setting, manuscript));
+        tokenLimitField.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                refreshCount();
+            }
+        });
 
-        lorebookTriggerCombo = new ComboBox<>("Lorebook Trigger");
-        lorebookTriggerCombo.setItems("review", "normal");
-        lorebookTriggerCombo.setValue(options.getLorebookTrigger());
+        optionsRow.add(lorebookBox, tokenLimitField);
 
-        optionsRow.add(lorebookBox, tokenLimitField, lorebookTriggerCombo);
-
-        layout.add(promptArea, usePromptInfo, optionsRow);
+        layout.add(promptArea, usePromptInfo, counter, optionsRow);
         add(layout);
 
         toggleFields(!usePromptInfo.getValue());
@@ -81,17 +124,35 @@ public class AdvancedOptionsDialog extends Dialog {
         getFooter().add(cancelBtn, generateBtn);
     }
 
+    private void refreshCount() {
+        counter.setText("");
+        if (!usePromptInfo.getValue()) {
+            try {
+                saveState();
+                List<LLMChatMessage> prompt = reviewerService.buildChatCompletePrompts(inferenceService, targetMessage, setting, options);
+                String text = gson.toJson(prompt);
+                counter.setText("Total tokens: " + inferenceService.countTokensApprox(text));
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+    }
+
     private void toggleFields(boolean enabled) {
         lorebookBox.setEnabled(enabled);
         tokenLimitField.setEnabled(enabled);
-        lorebookTriggerCombo.setEnabled(enabled);
     }
 
     private void saveState() {
-        options.setPrompt(promptArea.getValue());
-        options.setUsePromptInfo(usePromptInfo.getValue());
-        options.setLorebook(lorebookBox.getValue());
-        options.setTokenLimit(tokenLimitField.getValue() != null ? tokenLimitField.getValue() : 4096);
-        options.setLorebookTrigger(lorebookTriggerCombo.getValue());
+        try {
+            options.setPrompt(promptArea.getValue());
+            options.setUsePromptInfo(usePromptInfo.getValue());
+            options.setLorebook(lorebookBox.getValue());
+            options.setTokenLimit(tokenLimitField.getValue() != null ? tokenLimitField.getValue() :
+                    reviewerService.getTokenLimit(setting, manuscript));
+
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 }

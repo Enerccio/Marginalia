@@ -4,13 +4,16 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.extensions.reviewer.model.AdvancedOptions;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewData;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewItem;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -24,17 +27,22 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.List;
 
+@Configurable(preConstruction = true)
 public class ReviewDialog extends Dialog {
+
+    @Autowired
+    private InferenceServices inferenceServices;
+
+    @Autowired
+    private Localization loc;
 
     private final ChatMessage message;
     private final Manuscript manuscript;
-    private final ChatMessageService chatMessageService;
-    private final SettingService settingService;
-    private final InferenceServices inferenceServices;
-    private final AIService aiService;
     private final ReviewerService reviewerService;
 
     private ReviewData reviewData;
@@ -53,23 +61,14 @@ public class ReviewDialog extends Dialog {
     private boolean editing = false;
     private CancellationToken isGenerating;
 
-    public ReviewDialog(
+    public ReviewDialog(ReviewerService reviewerService,
             ChatMessage message,
             Manuscript manuscript,
-            ChatMessageService chatMessageService,
-            SettingService settingService,
-            InferenceServices inferenceServices,
-            AIService aiService,
-            ReviewerService reviewerService,
             AdvancedOptions advancedOptions) {
 
+        this.reviewerService = reviewerService;
         this.message = message;
         this.manuscript = manuscript;
-        this.chatMessageService = chatMessageService;
-        this.settingService = settingService;
-        this.inferenceServices = inferenceServices;
-        this.aiService = aiService;
-        this.reviewerService = reviewerService;
         this.pendingAdvancedOptions = advancedOptions;
 
         setHeaderTitle("Message Review");
@@ -96,7 +95,7 @@ public class ReviewDialog extends Dialog {
 
     private void persistData() {
         try {
-            reviewerService.saveReviewData(chatMessageService, message, reviewData);
+            reviewerService.saveReviewData(message, reviewData);
         } catch (Exception ignored) {}
     }
 
@@ -218,15 +217,14 @@ public class ReviewDialog extends Dialog {
         UI ui = UI.getCurrent();
 
         try {
-            ReviewerSettings settings = reviewerService.getSettings(settingService);
-            AI targetAi = reviewerService.resolveAI(settings, manuscript, aiService);
-
+            ReviewerSettings settings = reviewerService.getSettings();
+            AI targetAi = reviewerService.resolveAI(settings, manuscript);
             InferenceService service = inferenceServices.forAI(targetAi);
 
             AdvancedOptions opts = pendingAdvancedOptions != null ? pendingAdvancedOptions : new AdvancedOptions();
 
-            List<LLMChatMessage> payload = reviewerService.buildChatCompletePrompts(
-                    message, chatMessageService, service, settings, opts);
+            List<LLMChatMessage> payload = reviewerService.buildChatCompletePrompts(service,
+                    message, settings, opts);
 
             ReviewItem currentItem = reviewData.getReviews().get(reviewData.getCurrent());
             currentItem.getMetadata().setAdvancedInfo(opts);
@@ -293,6 +291,7 @@ public class ReviewDialog extends Dialog {
             }
             ReviewItem currentItem = reviewData.getReviews().get(reviewData.getCurrent());
             currentItem.setText("Failed to start inference: " + e.getMessage());
+            UIUtils.internalServerError(loc, e);
             displayReview();
         }
     }
