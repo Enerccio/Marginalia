@@ -5,6 +5,7 @@ public class SideQueryMessage {
     private boolean fromUser;
     private String contents = "";
     private String reasoning = "";
+    private boolean reasoningOpened = true;
     private boolean included = true;
     private String genInfoText = "";
 
@@ -30,6 +31,14 @@ public class SideQueryMessage {
 
     public void setReasoning(String reasoning) {
         this.reasoning = reasoning;
+    }
+
+    public boolean isReasoningOpened() {
+        return reasoningOpened;
+    }
+
+    public void setReasoningOpened(boolean reasoningOpened) {
+        this.reasoningOpened = reasoningOpened;
     }
 
     public boolean isIncluded() {

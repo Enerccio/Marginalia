@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 @Configurable
 public class SideQueryService {
@@ -81,6 +82,26 @@ public class SideQueryService {
         attrs.add(SideQuerySettings.KEY, gson.toJsonTree(settings));
     }
 
+    public TreeMap<String, String> getSavedQueries() {
+        try {
+            return getSettings().getSavedQueries();
+        } catch (Exception e) {
+            return new TreeMap<>();
+        }
+    }
+
+    public void saveQueryTemplate(String name, String content) throws Exception {
+        SideQuerySettings settings = getSettings();
+        settings.getSavedQueries().put(name, content);
+        saveSettings(settings);
+    }
+
+    public void deleteQueryTemplate(String name) throws Exception {
+        SideQuerySettings settings = getSettings();
+        settings.getSavedQueries().remove(name);
+        saveSettings(settings);
+    }
+
     public AI resolveAI(SideQuerySettings settings, Manuscript manuscript) throws Exception {
         return resolveAI(settings.getSettings().get(settings.getDefaultSetting()), manuscript);
     }
@@ -142,9 +163,10 @@ public class SideQueryService {
             SideQuerySession session) throws Exception {
 
         List<LLMChatMessage> payload = new ArrayList<>();
+        StringBuilder systemBuilder = new StringBuilder();
 
         if (StringUtils.isNotBlank(setting.getInitialQuery())) {
-            payload.add(LLMChatMessage.of(LLMRole.SYSTEM, setting.getInitialQuery()));
+            systemBuilder.append(setting.getInitialQuery()).append("\n\n");
         }
 
         SideQueryOptions opts = session.getOptions();
@@ -161,7 +183,7 @@ public class SideQueryService {
                     }
                 }
                 if (!loreBuilder.isEmpty()) {
-                    payload.add(LLMChatMessage.of(LLMRole.SYSTEM, "Lorebook Context:\n" + loreBuilder.toString().trim()));
+                    systemBuilder.append("Lorebook Context:\n").append(loreBuilder.toString().trim()).append("\n\n");
                 }
             }
         }
@@ -180,12 +202,17 @@ public class SideQueryService {
                                 .append(msg.getResponse()).append("\n\n");
                     }
                 }
-                payload.add(LLMChatMessage.of(LLMRole.SYSTEM, logBuilder.toString().trim()));
+                systemBuilder.append(logBuilder.toString().trim()).append("\n\n");
             }
         }
 
         if (StringUtils.isNotBlank(setting.getInstructionsBeforeUser())) {
-            payload.add(LLMChatMessage.of(LLMRole.SYSTEM, setting.getInstructionsBeforeUser()));
+            systemBuilder.append(setting.getInstructionsBeforeUser()).append("\n\n");
+        }
+
+        String fullSystemPrompt = systemBuilder.toString().trim();
+        if (StringUtils.isNotBlank(fullSystemPrompt)) {
+            payload.add(LLMChatMessage.of(LLMRole.SYSTEM, fullSystemPrompt));
         }
 
         for (SideQueryMessage msg : session.getMessages()) {
