@@ -2,12 +2,10 @@ package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.domain.service.AIService;
-import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.service.SettingService;
-import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.UserPromptData;
@@ -26,6 +24,7 @@ import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -33,6 +32,9 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -59,6 +61,9 @@ public class UserPart implements WorkspaceComponent {
 
     @Autowired
     private TemplateService templateService;
+
+    @Autowired
+    private BackupService backupService;
 
     private final Workspace workspace;
 
@@ -104,10 +109,12 @@ public class UserPart implements WorkspaceComponent {
         titleSpan.getStyle().set("font-size", "var(--lumo-font-size-l)");
         titleSpan.getStyle().set("font-weight", "bold");
 
+        Button importBackupAsNewButton = new Button(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
+
         Button saveButton = new Button(loc.getValue(L.LABEL_SAVE), event -> save());
         saveButton.setThemeName("primary");
 
-        headerLayout.add(titleSpan, saveButton);
+        headerLayout.add(titleSpan, importBackupAsNewButton, saveButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
@@ -409,6 +416,46 @@ public class UserPart implements WorkspaceComponent {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    private void openImportBackupAsNewDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW));
+        dialog.setWidth("450px");
+
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(true);
+        layout.setSpacing(true);
+
+        TextField nameField = new TextField(loc.getValue(L.LABEL_NEW_MANUSCRIPT_NAME));
+        nameField.setRequired(true);
+        nameField.setWidthFull();
+
+        InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
+            String newName = nameField.getValue();
+            if (StringUtils.isBlank(newName)) {
+                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
+                return;
+            }
+            try {
+                Manuscript newManuscript = backupService.restoreAsNewManuscript(data, newName);
+                dialog.close();
+                Notification.success(loc.getValue(L.LABEL_IMPORT_BACKUP) + ": " + newManuscript.getName());
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+
+        Upload upload = new Upload(handler);
+        upload.setAcceptedMimeTypes("application/json");
+
+        layout.add(nameField, upload);
+        dialog.add(layout);
+
+        Button cancelBtn = new Button(loc.getValue(L.LABEL_CANCEL), event -> dialog.close());
+        dialog.getFooter().add(cancelBtn);
+
+        dialog.open();
     }
 
     @Override

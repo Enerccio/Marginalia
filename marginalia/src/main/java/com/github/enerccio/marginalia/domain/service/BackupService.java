@@ -13,6 +13,9 @@ public interface BackupService {
     Manuscript applyBackup(Manuscript manuscript, ManuscriptBackup backup, boolean messagesOnly) throws Exception;
     ManuscriptBackup importBackup(Manuscript manuscript, byte[] backupData) throws Exception;
     void deleteBackup(ManuscriptBackup backup) throws Exception;
+    Manuscript restoreAsNewManuscript(byte[] backupData, String newName) throws Exception;
+    Manuscript cloneBackup(ManuscriptBackup backup, String newName) throws Exception;
+    String serializeBackup(ManuscriptBackup backup) throws Exception;
 
     class ManuscriptBackup {
 

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
@@ -200,6 +201,49 @@ public class BackupServiceImpl implements BackupService {
         if (file.exists()) {
             file.delete();
         }
+    }
+
+    @Override
+    public Manuscript restoreAsNewManuscript(byte[] backupData, String newName) throws Exception {
+        String jsonStr = new String(backupData, StandardCharsets.UTF_8);
+        JsonElement element = JsonParser.parseString(jsonStr);
+        JsonObject backupObj;
+        if (element.isJsonObject()) {
+            JsonObject root = element.getAsJsonObject();
+            if (root.has("backup") && root.get("backup").isJsonObject()) {
+                backupObj = root.getAsJsonObject("backup");
+            } else {
+                backupObj = root;
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid backup JSON payload");
+        }
+
+        Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj);
+        if (StringUtils.isNotBlank(newName)) {
+            manuscript.setName(newName.trim());
+            manuscript = manuscriptService.save(manuscript);
+        }
+        return manuscript;
+    }
+
+    @Override
+    public Manuscript cloneBackup(ManuscriptBackup backup, String newName) throws Exception {
+        JsonObject backupObj = backup.getBackup();
+        if (backupObj.has("backup") && backupObj.get("backup").isJsonObject()) {
+            backupObj = backupObj.getAsJsonObject("backup");
+        }
+        Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj);
+        if (StringUtils.isNotBlank(newName)) {
+            manuscript.setName(newName.trim());
+            manuscript = manuscriptService.save(manuscript);
+        }
+        return manuscript;
+    }
+
+    @Override
+    public String serializeBackup(ManuscriptBackup backup) throws Exception {
+        return gson.toJson(backup);
     }
 
     private synchronized File getManuscriptBackupFolder(Manuscript manuscript) {

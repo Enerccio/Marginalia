@@ -147,6 +147,20 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_REFRESH_EXTENSIONS, "Refresh");
         setValue(L.LABEL_EXTENSION_SETTINGS, "Extension Settings");
         setValue(L.LABEL_BRANCH_TREE, "Branch view");
+        setValue(L.LABEL_BACKUPS, "Backups");
+        setValue(L.LABEL_TAKE_BACKUP, "Take Backup");
+        setValue(L.LABEL_RESTORE_BACKUP, "Restore");
+        setValue(L.LABEL_CLONE_BACKUP, "Clone Backup");
+        setValue(L.LABEL_IMPORT_BACKUP, "Import Backup");
+        setValue(L.LABEL_EXPORT_BACKUP, "Export");
+        setValue(L.LABEL_IMPORT_BACKUP_AS_NEW, "Import Backup as New Book");
+        setValue(L.LABEL_BACKUP_DATE, "Date");
+        setValue(L.LABEL_MESSAGES_COUNT, "Messages");
+        setValue(L.LABEL_FULL_RESTORE, "Full Restore");
+        setValue(L.LABEL_MESSAGES_ONLY_RESTORE, "Messages Only Restore");
+        setValue(L.LABEL_NEW_MANUSCRIPT_NAME, "New Book Name");
+        setValue(L.LABEL_RESTORE_OPTION_TITLE, "Select Restore Option");
+        setValue(L.LABEL_RESTORE_OPTION_MSG, "Choose how you want to restore this backup:");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");

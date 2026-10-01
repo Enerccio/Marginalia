@@ -60,6 +60,8 @@ public class ManuscriptDialog extends Dialog {
     private Component storyPartComponent;
     private final ManuscriptTreePart treePart = new ManuscriptTreePart(this);
     private Component treePartComponent;
+    private final ManuscriptBackupPart backupPart = new ManuscriptBackupPart(this);
+    private Component backupPartComponent;
     private final Map<Component, ManuscriptDialogPart> c2p = new HashMap<>();
 
     public ManuscriptDialog(Manuscript manuscript) {
@@ -93,12 +95,15 @@ public class ManuscriptDialog extends Dialog {
         c2p.put(storyPartComponent, storyPart);
         treePartComponent = treePart.create(tabs);
         c2p.put(treePartComponent, treePart);
+        backupPartComponent = backupPart.create(tabs);
+        c2p.put(backupPartComponent, backupPart);
 
         parts.add(infoPart);
         parts.add(promptPart);
         parts.add(lorebookPart);
         parts.add(storyPart);
         parts.add(treePart);
+        parts.add(backupPart);
 
         mainLayout.add(tabs);
         mainLayout.setFlexGrow(1, tabs);
