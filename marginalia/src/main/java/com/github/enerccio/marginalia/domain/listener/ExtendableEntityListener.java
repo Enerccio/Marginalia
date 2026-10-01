@@ -160,6 +160,9 @@ public class ExtendableEntityListener {
                         f.set(entity, df.get().parse(strVal));
                     } else if (Boolean.class.equals(type) || boolean.class.equals(type)) {
                         f.set(entity, Boolean.valueOf(strVal));
+                    } else if (Enum.class.isAssignableFrom(type)) {
+                        //noinspection unchecked, rawtypes
+                        f.set(entity, Enum.valueOf((Class) type, strVal));
                     }
                 } catch (Exception e) {
                     log.error("Error deserialize entity ({}), id: {}, string value: {}, error {}({})", entity.getClass().getSimpleName(), entity.getId(), strVal, e.getClass(), e.getMessage());
