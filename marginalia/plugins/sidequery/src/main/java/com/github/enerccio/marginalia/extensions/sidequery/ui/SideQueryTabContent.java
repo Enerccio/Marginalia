@@ -17,10 +17,8 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -293,129 +291,39 @@ public class SideQueryTabContent extends VerticalLayout {
     private void displayMessages() {
         messagesListLayout.removeAll();
         List<SideQueryMessage> msgs = session.getMessages();
-        for (int i = 0; i < msgs.size(); i++) {
-            messagesListLayout.add(createMessageCard(msgs.get(i), i, msgs.size()));
+        int total = msgs.size();
+        for (int i = 0; i < total; i++) {
+            messagesListLayout.add(createMessageCard(msgs.get(i), i, total));
         }
         updateButtonStates();
         updateTokenCount();
     }
 
-    private VerticalLayout createMessageCard(SideQueryMessage msg, int index, int totalMessages) {
-        VerticalLayout card = new VerticalLayout();
-        card.setWidthFull();
-        card.setPadding(true);
-        card.setSpacing(false);
-        card.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-        card.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
-        card.getStyle().set("background-color", msg.isFromUser() ? "var(--lumo-contrast-5pct)" : "transparent");
+    private SideQueryMessageCard createMessageCard(SideQueryMessage msg, int index, int totalMessages) {
+        return new SideQueryMessageCard(msg, index, totalMessages, new SideQueryMessageCard.MessageCardListener() {
+            @Override
+            public void onMoveUp(SideQueryMessage message, int currentIndex) {
+                moveMessage(currentIndex, currentIndex - 1);
+            }
 
-        if (!msg.isIncluded()) {
-            card.getStyle().set("opacity", "0.5");
-            card.getStyle().set("border-style", "dashed");
-        } else {
-            card.getStyle().set("opacity", "1.0");
-            card.getStyle().set("border-style", "solid");
-        }
+            @Override
+            public void onMoveDown(SideQueryMessage message, int currentIndex) {
+                moveMessage(currentIndex, currentIndex + 1);
+            }
 
-        HorizontalLayout header = new HorizontalLayout();
-        header.setWidthFull();
-        header.setAlignItems(Alignment.CENTER);
+            @Override
+            public void onToggleInclude(SideQueryMessage message) {
+                message.setIncluded(!message.isIncluded());
+                triggerSave();
+                displayMessages();
+            }
 
-        Span senderSpan = new Span(msg.isFromUser() ? "User" : "AI");
-        senderSpan.getStyle().set("font-weight", "bold");
-
-        Button moveUpBtn = new Button(Solid.ARROW_UP.create(), e -> moveMessage(index, index - 1));
-        moveUpBtn.setThemeName("tertiary icon small");
-        moveUpBtn.setTooltipText("Move message up");
-        moveUpBtn.setEnabled(index > 0);
-
-        Button moveDownBtn = new Button(Solid.ARROW_DOWN.create(), e -> moveMessage(index, index + 1));
-        moveDownBtn.setThemeName("tertiary icon small");
-        moveDownBtn.setTooltipText("Move message down");
-        moveDownBtn.setEnabled(index < totalMessages - 1);
-
-        Button editBtn = new Button(Solid.PEN.create(), e -> startEditingMessage(card, msg));
-        editBtn.setThemeName("tertiary icon small");
-        editBtn.setTooltipText("Edit message");
-
-        Button copyBtn = new Button(Solid.COPY.create(), e -> {
-            UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", msg.getContents());
-            Notification.show("Copied to clipboard");
+            @Override
+            public void onMessageEdited(SideQueryMessage message) {
+                triggerSave();
+                displayMessages();
+            }
         });
-        copyBtn.setThemeName("tertiary icon small");
-        copyBtn.setTooltipText("Copy message");
-
-        Button toggleBtn = new Button(msg.isIncluded() ? Solid.EYE.create() : Solid.EYE_SLASH.create(), e -> {
-            msg.setIncluded(!msg.isIncluded());
-            triggerSave();
-            displayMessages();
-        });
-        toggleBtn.setThemeName("tertiary icon small");
-        toggleBtn.setTooltipText(msg.isIncluded() ? "Exclude from context" : "Include in context");
-
-        header.add(senderSpan, UIUtils.voidComponent(), moveUpBtn, moveDownBtn, editBtn, copyBtn, toggleBtn);
-
-        Markdown reasoningMarkdown = new Markdown();
-        Details reasoningDetails = new Details("Thinking Process", reasoningMarkdown);
-        reasoningDetails.setWidthFull();
-
-        if (StringUtils.isNotBlank(msg.getReasoning())) {
-            reasoningMarkdown.setContent(msg.getReasoning());
-            reasoningDetails.setVisible(true);
-
-            // Preserve open/closed state across streaming re-renders
-            reasoningDetails.setOpened(msg.isReasoningOpened());
-            reasoningDetails.addOpenedChangeListener(e -> msg.setReasoningOpened(e.isOpened()));
-        } else {
-            reasoningDetails.setVisible(false);
-        }
-
-        Markdown contentMarkdown = new Markdown();
-        contentMarkdown.setWidthFull();
-        contentMarkdown.setContent(msg.getContents());
-
-        card.add(header, reasoningDetails, contentMarkdown);
-
-        if (StringUtils.isNotBlank(msg.getGenInfoText())) {
-            Span infoSpan = new Span(msg.getGenInfoText());
-            infoSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-            infoSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
-            card.add(infoSpan);
-        }
-
-        return card;
-    }
-
-    private void startEditingMessage(VerticalLayout card, SideQueryMessage msg) {
-        card.removeAll();
-
-        HorizontalLayout editHeader = new HorizontalLayout();
-        editHeader.setWidthFull();
-        editHeader.setAlignItems(Alignment.CENTER);
-
-        Span senderSpan = new Span((msg.isFromUser() ? "User" : "AI") + " (Editing)");
-        senderSpan.getStyle().set("font-weight", "bold");
-        editHeader.add(senderSpan);
-
-        TextArea editArea = new TextArea();
-        editArea.setWidthFull();
-        editArea.setMinHeight("100px");
-        editArea.setValue(msg.getContents() != null ? msg.getContents() : "");
-
-        HorizontalLayout btnRow = new HorizontalLayout();
-        Button saveBtn = new Button("Save", e -> {
-            msg.setContents(editArea.getValue());
-            triggerSave();
-            displayMessages();
-        });
-        saveBtn.setThemeName("primary small");
-
-        Button cancelBtn = new Button("Cancel", e -> displayMessages());
-        cancelBtn.setThemeName("tertiary small");
-
-        btnRow.add(saveBtn, cancelBtn);
-
-        card.add(editHeader, editArea, btnRow);
     }
 
     private void moveMessage(int fromIndex, int toIndex) {
@@ -490,7 +398,12 @@ public class SideQueryTabContent extends VerticalLayout {
             aiMsg.setFromUser(false);
             aiMsg.setContents("Generating response...");
             session.getMessages().add(aiMsg);
+
+            // Display messages once to mount the card in the UI
             displayMessages();
+
+            // Obtain reference to the newly added AI card for in-place updates during streaming
+            SideQueryMessageCard aiCard = (SideQueryMessageCard) messagesListLayout.getComponentAt(messagesListLayout.getComponentCount() - 1);
 
             activeToken = service.stream(payload, new InferenceService.InferenceAsyncCallback() {
                 private final StringBuilder responseBuf = new StringBuilder();
@@ -501,12 +414,11 @@ public class SideQueryTabContent extends VerticalLayout {
                     ui.access(() -> {
                         if (chunkType == InferenceService.ChunkType.REASONING) {
                             reasoningBuf.append(text);
-                            aiMsg.setReasoning(reasoningBuf.toString());
+                            aiCard.updateReasoning(reasoningBuf.toString());
                         } else {
                             responseBuf.append(text);
-                            aiMsg.setContents(responseBuf.toString());
+                            aiCard.updateContent(responseBuf.toString());
                         }
-                        displayMessages();
                         UIPushGuard.push(ui);
                         controller.continueInference();
                     });
@@ -517,7 +429,8 @@ public class SideQueryTabContent extends VerticalLayout {
                     ui.access(() -> {
                         activeToken = null;
                         triggerSave();
-                        displayMessages();
+                        updateButtonStates();
+                        updateTokenCount();
                         UIPushGuard.push(ui);
                     });
                 }
@@ -527,7 +440,8 @@ public class SideQueryTabContent extends VerticalLayout {
                     ui.access(() -> {
                         activeToken = null;
                         triggerSave();
-                        displayMessages();
+                        updateButtonStates();
+                        updateTokenCount();
                         UIPushGuard.push(ui);
                     });
                 }
@@ -536,9 +450,10 @@ public class SideQueryTabContent extends VerticalLayout {
                 public void onError(Throwable exception) {
                     ui.access(() -> {
                         activeToken = null;
-                        aiMsg.setContents("Error: " + exception.getMessage());
+                        aiCard.updateContent("Error: " + exception.getMessage());
                         triggerSave();
-                        displayMessages();
+                        updateButtonStates();
+                        updateTokenCount();
                         UIPushGuard.push(ui);
                     });
                 }

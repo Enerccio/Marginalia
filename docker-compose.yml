@@ -10,4 +10,4 @@ services:
     volumes:
       - ./data:/var/marginalia/.marginalia
     environment:
-      - JAVA_OPTIONS=-Duser.home=/var/marginalia -Xms256m -Xmx512m
+      - JAVA_TOOL_OPTIONS=-Duser.home=/var/marginalia -Xms256m -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/marginalia/.marginalia/heapdump.hprof
