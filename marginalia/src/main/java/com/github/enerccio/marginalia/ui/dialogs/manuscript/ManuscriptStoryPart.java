@@ -516,8 +516,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 }
 
                 manuscript.setBackupStrategyCurrentValue(prefix + count);
-                manuscriptService.save(manuscript);
-
+                parent.save();
             } else if (strategy == BackupStrategy.AFTER_N_MINUTES) {
                 long lastBackupTime = System.currentTimeMillis();
                 boolean prefixValid = currentVal != null && currentVal.startsWith(prefix);
@@ -547,7 +546,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 }
 
                 manuscript.setBackupStrategyCurrentValue(prefix + lastBackupTime);
-                manuscriptService.save(manuscript);
+                parent.save();
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -560,171 +559,178 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         parent.freeze();
 
-        this.activeGenerationToken = storyGenerationService.generateNextTurn(
-                currentManuscript,
-                turnInput,
-                request,
-                new GenerationListener() {
+        try {
+            this.currentManuscript = parent.refreshManuscript();
+            this.activeGenerationToken = storyGenerationService.generateNextTurn(
+                    currentManuscript,
+                    turnInput,
+                    request,
+                    new GenerationListener() {
 
-                    @Override
-                    public void onNodeCreated(ChatMessage message) {
-                        ui.access(() -> {
-                            updateLastFlagsForNewCard();
-                            int newOrderId = activeCardMap.size() + 1;
+                        @Override
+                        public void onNodeCreated(ChatMessage message) {
+                            ui.access(() -> {
+                                updateLastFlagsForNewCard();
+                                int newOrderId = activeCardMap.size() + 1;
 
-                            if (request.getRequestType() == GenerationRequestType.NEW_MESSAGE) {
-                                ChatMessageCard card = new ChatMessageCard(message, true, newOrderId);
-                                card.setFrozen(true);
-                                if (message.getId() != null) {
-                                    activeCardMap.put(message.getId(), card);
-                                }
-                                streamingCard = card;
-                                centerContentPanel.add(card);
-                            } else if (request.getRequestType() == GenerationRequestType.REGENERATE) {
-                                ChatMessageCard card = getOrCreateCard(message, newOrderId);
-                                card.updateReasoning("");
-                                card.updateResponse("");
-                                card.updateMetrics(message);
-                                card.wasReasoningOpenedByGeneration = false;
-                                streamingCard = card;
-                            } else {
-                                List<ChatMessageCard> cards = activeCardMap.values().stream().toList();
-                                ChatMessageCard last = cards.getLast();
-                                activeCardMap.remove(last.message.getId());
-                                centerContentPanel.remove(last);
-                                ChatMessageCard card = new ChatMessageCard(message, true, newOrderId);
-                                card.setFrozen(true);
-                                if (message.getId() != null) {
-                                    activeCardMap.put(message.getId(), card);
-                                }
-                                streamingCard = card;
-                                centerContentPanel.add(card);
-                            }
-                            scrollToBottom();
-                            UIPushGuard.push(ui);
-                        });
-                    }
-
-                    @Override
-                    public void onReasoningChunk(String chunk, ChatMessage message) {
-                        ui.access(() -> {
-                            ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
-                            if (card != null) {
-                                card.updateReasoning(message.getResponseReasoning());
-                                scrollToBottomIfAtBottom();
-                            }
-                            UIPushGuard.push(ui);
-                        });
-                    }
-
-                    @Override
-                    public void onResponseChunk(String chunk, ChatMessage message) {
-                        ui.access(() -> {
-                            ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
-                            if (card != null) {
-                                card.updateResponse(message.getResponse());
-                                scrollToBottomIfAtBottom();
-                            }
-                            UIPushGuard.push(ui);
-                        });
-                    }
-
-                    @Override
-                    public void onMetricsUpdated(ChatMessage message) {
-                        ui.access(() -> {
-                            ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
-                            if (card != null) {
-                                card.updateMetrics(message);
-                            }
-                            UIPushGuard.push(ui);
-                        });
-                    }
-
-                    @Override
-                    public void onComplete(ChatMessage message) {
-                        ui.access(() -> {
-                            activeGenerationToken = null;
-                            streamingCard = null;
-                            parent.unfreeze();
-
-                            checkAndApplyBackupStrategy();
-
-                            centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
-                                    .then(Integer.class, scrollTop -> {
-                                        if (scrollTop != null && message != null) {
-                                            message.setScrollPosition(scrollTop);
-                                            try {
-                                                chatMessageService.save(message);
-                                            } catch (Exception ignored) {}
-                                        }
-                                        renderStoryContent();
-                                        UIPushGuard.push(ui);
-                                    });
-                        });
-                    }
-
-                    @Override
-                    public void onCancelled(ChatMessage partialMessage) {
-                        ui.access(() -> {
-                            updateLastFlagsForNewCard();
-                            if (partialMessage == null) {
-                                if (streamingCard != null)
-                                    centerContentPanel.remove(streamingCard);
-                            } else {
-                                if (!partialMessage.getId().equals(streamingCard.message.getId())) {
-                                    centerContentPanel.remove(streamingCard);
-                                    ChatMessageCard card = new ChatMessageCard(partialMessage, true, activeCardMap.size() + 1);
+                                if (request.getRequestType() == GenerationRequestType.NEW_MESSAGE) {
+                                    ChatMessageCard card = new ChatMessageCard(message, true, newOrderId);
                                     card.setFrozen(true);
-                                    activeCardMap.put(partialMessage.getId(), card);
-                                    streamingCard = null;
+                                    if (message.getId() != null) {
+                                        activeCardMap.put(message.getId(), card);
+                                    }
+                                    streamingCard = card;
+                                    centerContentPanel.add(card);
+                                } else if (request.getRequestType() == GenerationRequestType.REGENERATE) {
+                                    ChatMessageCard card = getOrCreateCard(message, newOrderId);
+                                    card.updateReasoning("");
+                                    card.updateResponse("");
+                                    card.updateMetrics(message);
+                                    card.wasReasoningOpenedByGeneration = false;
+                                    streamingCard = card;
+                                } else {
+                                    List<ChatMessageCard> cards = activeCardMap.values().stream().toList();
+                                    ChatMessageCard last = cards.getLast();
+                                    activeCardMap.remove(last.message.getId());
+                                    centerContentPanel.remove(last);
+                                    ChatMessageCard card = new ChatMessageCard(message, true, newOrderId);
+                                    card.setFrozen(true);
+                                    if (message.getId() != null) {
+                                        activeCardMap.put(message.getId(), card);
+                                    }
+                                    streamingCard = card;
                                     centerContentPanel.add(card);
                                 }
-                            }
+                                scrollToBottom();
+                                UIPushGuard.push(ui);
+                            });
+                        }
 
-                            activeGenerationToken = null;
-                            streamingCard = null;
-                            parent.unfreeze();
+                        @Override
+                        public void onReasoningChunk(String chunk, ChatMessage message) {
+                            ui.access(() -> {
+                                ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
+                                if (card != null) {
+                                    card.updateReasoning(message.getResponseReasoning());
+                                    scrollToBottomIfAtBottom();
+                                }
+                                UIPushGuard.push(ui);
+                            });
+                        }
 
-                            centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
-                                    .then(Integer.class, scrollTop -> {
-                                        if (scrollTop != null && partialMessage != null) {
-                                            partialMessage.setScrollPosition(scrollTop);
-                                            try {
-                                                chatMessageService.save(partialMessage);
-                                            } catch (Exception ignored) {}
-                                        }
-                                        renderStoryContent();
-                                        UIPushGuard.push(ui);
-                                    });
-                            UIPushGuard.push(ui);
-                        });
+                        @Override
+                        public void onResponseChunk(String chunk, ChatMessage message) {
+                            ui.access(() -> {
+                                ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
+                                if (card != null) {
+                                    card.updateResponse(message.getResponse());
+                                    scrollToBottomIfAtBottom();
+                                }
+                                UIPushGuard.push(ui);
+                            });
+                        }
+
+                        @Override
+                        public void onMetricsUpdated(ChatMessage message) {
+                            ui.access(() -> {
+                                ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
+                                if (card != null) {
+                                    card.updateMetrics(message);
+                                }
+                                UIPushGuard.push(ui);
+                            });
+                        }
+
+                        @Override
+                        public void onComplete(ChatMessage message) {
+                            ui.access(() -> {
+                                activeGenerationToken = null;
+                                streamingCard = null;
+                                parent.unfreeze();
+
+                                checkAndApplyBackupStrategy();
+
+                                centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
+                                        .then(Integer.class, scrollTop -> {
+                                            if (scrollTop != null && message != null) {
+                                                message.setScrollPosition(scrollTop);
+                                                try {
+                                                    chatMessageService.save(message);
+                                                } catch (Exception ignored) {
+                                                }
+                                            }
+                                            renderStoryContent();
+                                            UIPushGuard.push(ui);
+                                        });
+                            });
+                        }
+
+                        @Override
+                        public void onCancelled(ChatMessage partialMessage) {
+                            ui.access(() -> {
+                                updateLastFlagsForNewCard();
+                                if (partialMessage == null) {
+                                    if (streamingCard != null)
+                                        centerContentPanel.remove(streamingCard);
+                                } else {
+                                    if (!partialMessage.getId().equals(streamingCard.message.getId())) {
+                                        centerContentPanel.remove(streamingCard);
+                                        ChatMessageCard card = new ChatMessageCard(partialMessage, true, activeCardMap.size() + 1);
+                                        card.setFrozen(true);
+                                        activeCardMap.put(partialMessage.getId(), card);
+                                        streamingCard = null;
+                                        centerContentPanel.add(card);
+                                    }
+                                }
+
+                                activeGenerationToken = null;
+                                streamingCard = null;
+                                parent.unfreeze();
+
+                                centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
+                                        .then(Integer.class, scrollTop -> {
+                                            if (scrollTop != null && partialMessage != null) {
+                                                partialMessage.setScrollPosition(scrollTop);
+                                                try {
+                                                    chatMessageService.save(partialMessage);
+                                                } catch (Exception ignored) {
+                                                }
+                                            }
+                                            renderStoryContent();
+                                            UIPushGuard.push(ui);
+                                        });
+                                UIPushGuard.push(ui);
+                            });
+                        }
+
+                        @Override
+                        public void onError(Throwable cause) {
+                            ui.access(() -> {
+                                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
+                                UIPushGuard.push(ui);
+                            });
+                        }
+
+                        @Override
+                        public void onSimpleError(String error) {
+                            ui.access(() -> {
+                                Notification.error(error);
+                                UIPushGuard.push(ui);
+                            });
+                        }
+
+                        @Override
+                        public void askQuestion(String question, Runnable yes, Runnable no) {
+                            ui.access(() -> {
+                                ConfirmDialog.show(question, yes, no);
+                                UIPushGuard.push(ui);
+                            });
+                        }
                     }
-
-                    @Override
-                    public void onError(Throwable cause) {
-                        ui.access(() -> {
-                            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
-                            UIPushGuard.push(ui);
-                        });
-                    }
-
-                    @Override
-                    public void onSimpleError(String error) {
-                        ui.access(() -> {
-                            Notification.error(error);
-                            UIPushGuard.push(ui);
-                        });
-                    }
-
-                    @Override
-                    public void askQuestion(String question, Runnable yes, Runnable no) {
-                        ui.access(() -> {
-                            ConfirmDialog.show(question, yes, no);
-                            UIPushGuard.push(ui);
-                        });
-                    }
-                }
-        );
+            );
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     private ChatMessageCard getOrCreateCard(ChatMessage message, int fallbackOrderId) {
