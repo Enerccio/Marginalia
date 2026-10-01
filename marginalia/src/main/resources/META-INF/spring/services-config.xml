@@ -130,5 +130,7 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.BackupServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.instruct.RuntimeInstrumentationInitializer" />
 </beans>

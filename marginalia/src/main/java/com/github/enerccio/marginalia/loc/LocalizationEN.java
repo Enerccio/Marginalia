@@ -154,6 +154,14 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ERROR_CONTEXT_INSUFFICIENT, "Contextual limit not sufficient.");
         setValue(L.ERROR_EXTENSION_INSTALL_FAILED, "Failed to load extension: %s");
         setValue(L.ERROR_EXTENSION_UNINSTALL_FAILED, "Failed to unload extension: %s");
+        setValue(L.ERROR_MANUSCRIPT_NULL, "Manuscript cannot be null.");
+        setValue(L.ERROR_BACKUP_NULL, "Manuscript and backup cannot be null.");
+        setValue(L.ERROR_BACKUP_DATA_EMPTY, "Backup data cannot be empty.");
+        setValue(L.ERROR_BACKUP_INVALID_JSON, "Invalid backup payload: Unable to parse JSON.");
+        setValue(L.ERROR_BACKUP_INVALID_ROOT_OBJECT, "Invalid backup payload: Root must be a JSON object.");
+        setValue(L.ERROR_BACKUP_MISSING_CONTENT, "Invalid backup structure: Missing manuscript backup content.");
+        setValue(L.ERROR_BACKUP_MISSING_METADATA, "Invalid backup metadata: Missing required fields.");
+        setValue(L.ERROR_MANUSCRIPT_UUID_NULL, "Manuscript and its UUID cannot be null.");
 
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "Cannot save form. Invalid fields: ");
