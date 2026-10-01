@@ -721,6 +721,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private MenuItem editItem;
         private MenuItem regenerateItem;
         private MenuItem swipeItem;
+        private MenuItem branchItem;
         private MenuItem summaryItem;
         private MenuItem deleteSummaryItem;
         private MenuItem deleteItem;
@@ -921,6 +922,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             swipeItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SWIPE), event -> swipe());
             swipeItem.setVisible(this.isLast);
 
+            branchItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_BRANCH_STORY), event -> branch());
+
             showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
 
             summaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_GENERATE_SUMMARY), event -> openSummaryDialog());
@@ -992,6 +995,16 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     UIUtils.internalServerError(loc, e);
                 }
             });
+        }
+
+        private void branch() {
+            try {
+                currentManuscript = parent.refreshManuscript();
+                currentManuscript.setActiveLeaf(chatMessageService.branch(currentManuscript, message));
+                load(parent.save());
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
 
         private void openSummaryDialog() {

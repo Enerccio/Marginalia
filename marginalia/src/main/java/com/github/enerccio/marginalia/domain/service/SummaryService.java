@@ -9,6 +9,8 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
 
     CancellationToken createSummary(Manuscript manuscript, ChatMessage from, AsyncCallback callback) throws Exception;
 
+    Summary copySummary(Summary summary) throws Exception;
+
     interface AsyncCallback {
 
         void onSummaryProgress(String reasoning, String summary) throws Exception;

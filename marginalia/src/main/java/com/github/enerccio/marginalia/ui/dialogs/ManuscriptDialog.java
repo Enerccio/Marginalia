@@ -58,6 +58,8 @@ public class ManuscriptDialog extends Dialog {
     private Component lorebookPartComponent;
     private final ManuscriptStoryPart storyPart = new ManuscriptStoryPart(this);
     private Component storyPartComponent;
+    private final ManuscriptTreePart treePart = new ManuscriptTreePart(this);
+    private Component treePartComponent;
     private final Map<Component, ManuscriptDialogPart> c2p = new HashMap<>();
 
     public ManuscriptDialog(Manuscript manuscript) {
@@ -89,11 +91,14 @@ public class ManuscriptDialog extends Dialog {
         c2p.put(lorebookPartComponent, lorebookPart);
         storyPartComponent = storyPart.create(tabs);
         c2p.put(storyPartComponent, storyPart);
+        treePartComponent = treePart.create(tabs);
+        c2p.put(treePartComponent, treePart);
 
         parts.add(infoPart);
         parts.add(promptPart);
         parts.add(lorebookPart);
         parts.add(storyPart);
+        parts.add(treePart);
 
         mainLayout.add(tabs);
         mainLayout.setFlexGrow(1, tabs);
@@ -144,6 +149,12 @@ public class ManuscriptDialog extends Dialog {
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    public void selectStoryPart() {
+        if (tabs != null && storyPartComponent != null) {
+            tabs.setSelectedTab(tabs.getTab(storyPartComponent));
         }
     }
 

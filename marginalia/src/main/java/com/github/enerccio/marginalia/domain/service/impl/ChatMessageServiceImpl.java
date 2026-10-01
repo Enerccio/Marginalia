@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
@@ -20,6 +21,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    private SummaryService summaryService;
 
     @Override
     @CommonTx
@@ -80,6 +84,21 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         ChatMessage deepestLeaf = findDeepestActiveLeaf(targetMessage);
         manuscript.setActiveLeaf(deepestLeaf);
         return deepestLeaf;
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage branch(Manuscript manuscript, ChatMessage branched) throws Exception {
+        ChatMessage clone = new ChatMessage();
+        clone.loadFrom(branched);
+        clone.setSummary(summaryService.copySummary(branched.getSummary()));
+        return save(clone);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception {
+        return getRepository().getAllMessages(manuscript);
     }
 
     private ChatMessage findDeepestActiveLeaf(ChatMessage node) throws Exception {

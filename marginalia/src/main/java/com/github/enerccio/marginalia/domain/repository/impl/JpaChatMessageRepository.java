@@ -110,12 +110,19 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
 
     @Override
     public boolean hasAnyMessages(Manuscript manuscript) throws Exception {
-        return !getAllMessages(manuscript).isEmpty();
+        return !getAllMessageIds(manuscript).isEmpty();
     }
 
     @Override
-    public List<Long> getAllMessages(Manuscript manuscript) throws Exception {
+    public List<Long> getAllMessageIds(Manuscript manuscript) throws Exception {
         return getEntityManager().createQuery("SELECT m.id FROM ChatMessage m WHERE m.parentScript = ?1 AND m.deleted = false ORDER BY m.creation", Long.class)
+                .setParameter(1, manuscript)
+                .getResultList();
+    }
+
+    @Override
+    public List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception {
+        return getEntityManager().createQuery("SELECT m FROM ChatMessage m WHERE m.parentScript = ?1 AND m.deleted = false ORDER BY m.creation", ChatMessage.class)
                 .setParameter(1, manuscript)
                 .getResultList();
     }

@@ -187,3 +187,100 @@ body {
     letter-spacing: 0.5em;
     color: var(--lumo-contrast-40pct, #888888);
 }
+
+/* branch tree */
+.Treant {
+    position: relative !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+.Treant > .node {
+    position: absolute !important;
+    display: block !important;
+}
+
+.Treant > svg,
+.Treant > .SVG {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Connector lines styling */
+.Treant > svg path,
+.Treant > .SVG path {
+    stroke: var(--lumo-contrast-50pct, #8c8c8c) !important;
+    stroke-width: 2px !important;
+}
+
+.Treant .node {
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    border: 1px solid var(--lumo-contrast-20pct, #ccc) !important;
+    background-color: var(--lumo-base-color, #fff) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+    max-width: 250px !important;
+    box-sizing: border-box !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.Treant .node.active-path {
+    border: 2px solid var(--lumo-primary-color, #1677ff) !important;
+    background-color: var(--lumo-primary-color-10pct, rgba(22, 119, 255, 0.08)) !important;
+}
+
+.Treant .node.active-leaf {
+    border: 2px solid var(--lumo-primary-color, #1677ff) !important;
+    background-color: var(--lumo-primary-color-20pct, rgba(22, 119, 255, 0.18)) !important;
+    box-shadow: 0 0 8px rgba(22, 119, 255, 0.35) !important;
+}
+
+.Treant .node.clickable-leaf {
+    cursor: pointer !important;
+    border-color: var(--lumo-success-color, #52c41a) !important;
+}
+
+.Treant .node.clickable-leaf:hover {
+    box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3) !important;
+    transform: translateY(-2px) !important;
+}
+
+.Treant .node.non-clickable {
+    cursor: default !important;
+}
+
+.tree-node-card {
+    font-family: var(--lumo-font-family, sans-serif) !important;
+    text-align: left !important;
+}
+
+.tree-node-date {
+    font-size: 0.75em !important;
+    color: var(--lumo-secondary-text-color, #888) !important;
+    margin-bottom: 4px !important;
+    border-bottom: 1px solid var(--lumo-contrast-10pct, #eee) !important;
+    padding-bottom: 2px !important;
+}
+
+.tree-node-field {
+    font-size: 0.82em !important;
+    margin-bottom: 2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.tree-node-instructions {
+    font-size: 0.78em !important;
+    line-height: 1.25em !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin-top: 4px !important;
+    color: var(--lumo-secondary-text-color, #666) !important;
+}

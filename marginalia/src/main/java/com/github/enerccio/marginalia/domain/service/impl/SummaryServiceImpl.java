@@ -127,6 +127,19 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         return cancellationToken;
     }
 
+    @Override
+    @CommonTx
+    public Summary copySummary(Summary summary) throws Exception {
+        if (summary == null) return null;
+        Summary copy = new Summary();
+        copy.setReasoning(summary.getReasoning());
+        copy.setReasoningTokens(summary.getReasoningTokens());
+        copy.setSummary(summary.getSummary());
+        copy.setSummaryTokens(summary.getSummaryTokens());
+        copy.setSummaryMessageHash(summary.getSummaryMessageHash());
+        return save(summary);
+    }
+
     private List<LLMChatMessage> createSummaryPayload(Manuscript manuscript, ChatMessage from, AI ai, InferenceService inferenceService, Summary newSummary) throws Exception {
         String systemPrompt = manuscriptService.getSummaryPrompt(manuscript);
         List<ChatMessage> tree = chatMessageService.getBranchFromLeaf(from);

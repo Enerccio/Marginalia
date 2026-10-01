@@ -20,6 +20,10 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     ChatMessage swipeTo(Manuscript manuscript, ChatMessage targetMessage) throws Exception;
 
+    ChatMessage branch(Manuscript manuscript, ChatMessage branched) throws Exception;
+
+    List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception;
+
     int getBranchWordCount(ChatMessage leaf) throws Exception;
 
     long getBranchTokenCount(ChatMessage leaf) throws Exception;

@@ -19,7 +19,9 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
 
     boolean hasAnyMessages(Manuscript manuscript) throws Exception;
 
-    List<Long> getAllMessages(Manuscript manuscript) throws Exception;
+    List<Long> getAllMessageIds(Manuscript manuscript) throws Exception;
+
+    List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception;
 
     int getTotalWordCount(Long manuscriptId) throws Exception;
 

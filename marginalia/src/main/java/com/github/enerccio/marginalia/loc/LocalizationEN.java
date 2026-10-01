@@ -146,6 +146,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_ACTIONS, "Actions");
         setValue(L.LABEL_REFRESH_EXTENSIONS, "Refresh");
         setValue(L.LABEL_EXTENSION_SETTINGS, "Extension Settings");
+        setValue(L.LABEL_BRANCH_TREE, "Branch view");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");

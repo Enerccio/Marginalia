@@ -100,6 +100,30 @@ public class ChatMessage extends ExtendableEntity {
     @Transient
     private String backgroundLore;
 
+    public void loadFrom(ChatMessage source) {
+        this.backgroundLore = source.backgroundLore;
+        this.builtPrompt = source.builtPrompt;
+        this.builtPromptTokens = source.builtPromptTokens;
+        this.instructions = source.instructions;
+        this.modelUsed = source.modelUsed;
+        this.parent = source.parent;
+        this.parentScript = source.parentScript;
+        this.povCharacter = source.povCharacter;
+        this.presentCharacters = source.presentCharacters;
+        this.promptTokens = source.promptTokens;
+        this.protocolUsed = source.protocolUsed;
+        this.reasoningEnd = source.reasoningEnd;
+        this.request = source.request;
+        this.response = source.response;
+        this.responseReasoning = source.responseReasoning;
+        this.sceneSetting = source.sceneSetting;
+        this.scrollPosition = source.scrollPosition;
+        this.tokenCount = source.tokenCount;
+        this.tokenReasoningCount = source.tokenReasoningCount;
+        this.ttft = source.ttft;
+        this.wordCount = source.wordCount;
+    }
+
     public Summary getSummary() {
         return summary;
     }
@@ -283,4 +307,5 @@ public class ChatMessage extends ExtendableEntity {
     public void setBackgroundLore(String backgroundLore) {
         this.backgroundLore = backgroundLore;
     }
+
 }
