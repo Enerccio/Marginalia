@@ -161,6 +161,11 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_NEW_MANUSCRIPT_NAME, "New Book Name");
         setValue(L.LABEL_RESTORE_OPTION_TITLE, "Select Restore Option");
         setValue(L.LABEL_RESTORE_OPTION_MSG, "Choose how you want to restore this backup:");
+        setValue(L.LABEL_BACKUP_STRATEGY, "Backup Strategy");
+        setValue(L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES, "Number of messages");
+        setValue(L.LABEL_BACKUP_STRATEGY_VALUE_MINUTES, "Number of minutes");
+        setValue(L.LABEL_PER_MANUSCRIPT_BACKUP, "Per manuscript override");
+        setValue(L.LABEL_DELETE_BACKUP, "Delete Backup");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");
@@ -198,6 +203,9 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ENUM_REASONING_LOW, "Low");
         setValue(L.ENUM_REASONING_MEDIUM, "Medium");
         setValue(L.ENUM_REASONING_HIGH, "High");
+        setValue(L.ENUM_BACKUP_STRATEGY_NONE, "No Backups");
+        setValue(L.ENUM_BACKUP_STRATEGY_AFTER_N_MESSAGES, "After N Messages");
+        setValue(L.ENUM_BACKUP_STRATEGY_AFTER_N_MINUTES, "After N Minutes");
 
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
         setValue(L.DESC_TEMPLATE_MANUSCRIPT, "The ongoing manuscript content for summary.");

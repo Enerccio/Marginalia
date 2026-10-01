@@ -77,4 +77,12 @@ public interface BackupService {
         }
     }
 
+    enum BackupStrategy {
+
+        DISABLED,
+        AFTER_N_MESSAGES,
+        AFTER_N_MINUTES
+
+    }
+
 }

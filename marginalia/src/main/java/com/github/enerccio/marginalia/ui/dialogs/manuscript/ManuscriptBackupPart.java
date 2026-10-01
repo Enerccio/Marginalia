@@ -2,9 +2,12 @@ package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.BackupService;
+import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.BackupService.ManuscriptBackup;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -15,13 +18,17 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.server.streams.DownloadResponse;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
@@ -50,11 +57,19 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
     @Autowired
     private ManuscriptService manuscriptService;
 
+    @Autowired
+    private SettingService settingService;
+
     private final ManuscriptDialog parent;
     private Grid<ManuscriptBackup> grid;
     private Button takeBackupBtn;
     private Button importBackupBtn;
     private Button refreshBtn;
+
+    private Checkbox perManuscriptCheckbox;
+    private ComboBox<BackupStrategy> backupStrategyCombo;
+    private IntegerField backupStrategyValueField;
+    private boolean loadingStrategy = false;
 
     public ManuscriptBackupPart(ManuscriptDialog parent) {
         this.parent = parent;
@@ -66,6 +81,62 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
         mainLayout.setSizeFull();
         mainLayout.setPadding(true);
         mainLayout.setSpacing(true);
+
+        FormLayout strategyForm = new FormLayout();
+        strategyForm.setWidthFull();
+
+        perManuscriptCheckbox = new Checkbox(loc.getValue(L.LABEL_PER_MANUSCRIPT_BACKUP));
+
+        backupStrategyCombo = new ComboBox<>(loc.getValue(L.LABEL_BACKUP_STRATEGY));
+        backupStrategyCombo.setWidthFull();
+        backupStrategyCombo.setItems(BackupStrategy.values());
+        backupStrategyCombo.setClearButtonVisible(true);
+        backupStrategyCombo.setItemLabelGenerator(s -> {
+            if (s == null) {
+                return loc.getValue(L.ENUM_BACKUP_STRATEGY_NONE);
+            }
+            return loc.getValue(loc.getBackupStrategy(s));
+        });
+
+        backupStrategyValueField = new IntegerField(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
+        backupStrategyValueField.setWidthFull();
+        backupStrategyValueField.setMin(1);
+        backupStrategyValueField.setStepButtonsVisible(true);
+
+        perManuscriptCheckbox.addValueChangeListener(e -> {
+            if (loadingStrategy) return;
+            if (Boolean.TRUE.equals(e.getValue())) {
+                backupStrategyCombo.setReadOnly(false);
+                saveManuscriptStrategy();
+            } else {
+                try {
+                    Manuscript manuscript = parent.refreshManuscript();
+                    manuscript.setBackupStrategy(null);
+                    manuscript.setBackupStrategyValue(null);
+                    parent.save();
+                    loadBackupStrategyUI();
+                } catch (Exception ex) {
+                    UIUtils.internalServerError(loc, ex);
+                }
+            }
+        });
+
+        backupStrategyCombo.addValueChangeListener(e -> {
+            if (loadingStrategy) return;
+            updateStrategyValueFieldState(e.getValue());
+            if (perManuscriptCheckbox.getValue()) {
+                saveManuscriptStrategy();
+            }
+        });
+
+        backupStrategyValueField.addValueChangeListener(e -> {
+            if (loadingStrategy) return;
+            if (e.isFromClient() && perManuscriptCheckbox.getValue()) {
+                saveManuscriptStrategy();
+            }
+        });
+
+        strategyForm.add(perManuscriptCheckbox, new HorizontalLayout(backupStrategyCombo, backupStrategyValueField));
 
         HorizontalLayout toolbar = new HorizontalLayout();
         toolbar.setWidthFull();
@@ -125,11 +196,77 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
             return actions;
         }).setHeader("").setFlexGrow(0).setWidth("380px");
 
-        mainLayout.add(toolbar, grid);
+        mainLayout.add(strategyForm, toolbar, grid);
         mainLayout.setFlexGrow(1, grid);
 
         container.add(loc.getValue(L.LABEL_BACKUPS), mainLayout);
         return mainLayout;
+    }
+
+    private void updateStrategyValueFieldState(BackupStrategy strategy) {
+        if (strategy == null || strategy == BackupStrategy.DISABLED) {
+            backupStrategyValueField.setVisible(false);
+        } else if (strategy == BackupStrategy.AFTER_N_MESSAGES) {
+            backupStrategyValueField.setVisible(true);
+            backupStrategyValueField.setLabel(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
+        } else if (strategy == BackupStrategy.AFTER_N_MINUTES) {
+            backupStrategyValueField.setVisible(true);
+            backupStrategyValueField.setLabel(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MINUTES));
+        }
+        if (!perManuscriptCheckbox.getValue()) {
+            backupStrategyValueField.setReadOnly(true);
+        } else {
+            backupStrategyValueField.setReadOnly(strategy == null);
+        }
+    }
+
+    private void loadBackupStrategyUI() {
+        loadingStrategy = true;
+        try {
+            Manuscript manuscript = parent.refreshManuscript();
+            UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+
+            boolean hasOverride = manuscript.getBackupStrategy() != null || manuscript.getBackupStrategyValue() != null;
+            perManuscriptCheckbox.setValue(hasOverride);
+
+            BackupStrategy strategy;
+            String valStr;
+
+            if (hasOverride) {
+                strategy = manuscript.getBackupStrategy();
+                valStr = manuscript.getBackupStrategyValue();
+                backupStrategyCombo.setReadOnly(false);
+            } else {
+                strategy = userSetting.getBackupStrategy();
+                valStr = userSetting.getBackupStrategyValue();
+                backupStrategyCombo.setReadOnly(true);
+            }
+
+            backupStrategyCombo.setValue(strategy);
+            if (StringUtils.isNotBlank(valStr) && StringUtils.isNumeric(valStr)) {
+                backupStrategyValueField.setValue(Integer.parseInt(valStr));
+            } else {
+                backupStrategyValueField.setValue(1);
+            }
+
+            updateStrategyValueFieldState(strategy);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        } finally {
+            loadingStrategy = false;
+        }
+    }
+
+    private void saveManuscriptStrategy() {
+        try {
+            Manuscript manuscript = parent.refreshManuscript();
+            BackupStrategy strategy = backupStrategyCombo.getValue();
+            manuscript.setBackupStrategy(strategy);
+            manuscript.setBackupStrategyValue(strategy != null && backupStrategyValueField.getValue() != null ? String.valueOf(backupStrategyValueField.getValue()) : null);
+            parent.save();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     private String getBackupFileName(ManuscriptBackup backup) {
@@ -261,6 +398,7 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
                 List<ManuscriptBackup> backups = backupService.getBackups(manuscript);
                 grid.setItems(backups != null ? backups : new ArrayList<>());
             }
+            loadBackupStrategyUI();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -268,10 +406,7 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
 
     @Override
     public void setFrozen(boolean frozen) {
-        if (takeBackupBtn != null) takeBackupBtn.setEnabled(!frozen);
-        if (importBackupBtn != null) importBackupBtn.setEnabled(!frozen);
-        if (refreshBtn != null) refreshBtn.setEnabled(!frozen);
-        if (grid != null) grid.setEnabled(!frozen);
+        // no need
     }
 
     @Override

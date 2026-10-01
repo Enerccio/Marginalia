@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.UserPromptData;
@@ -32,6 +33,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
@@ -72,6 +74,8 @@ public class UserPart implements WorkspaceComponent {
     // Tab 1 fields
     private ComboBox<AI> defaultModelCombo;
     private ComboBox<Protocol> defaultProtocolCombo;
+    private ComboBox<BackupStrategy> backupStrategyCombo;
+    private IntegerField backupStrategyValueField;
 
     // Tab 2 fields
     private TextAreaPopoverComponent masterTemplateField;
@@ -127,6 +131,7 @@ public class UserPart implements WorkspaceComponent {
         FormLayout defaultsFormLayout = new FormLayout();
         defaultsFormLayout.setWidthFull();
         defaultsFormLayout.add(defaultModelCombo, defaultProtocolCombo);
+        defaultsFormLayout.add(new HorizontalLayout(backupStrategyCombo, backupStrategyValueField));
 
         tabSheet.add(loc.getValue(L.LABEL_GENERAL_SETTINGS), defaultsFormLayout);
 
@@ -173,6 +178,24 @@ public class UserPart implements WorkspaceComponent {
         defaultProtocolCombo.setItemLabelGenerator(Protocol::getName);
         defaultProtocolCombo.setClearButtonVisible(true);
 
+        backupStrategyCombo = new ComboBox<>(loc.getValue(L.LABEL_BACKUP_STRATEGY));
+        backupStrategyCombo.setWidthFull();
+        backupStrategyCombo.setItems(BackupStrategy.values());
+        backupStrategyCombo.setClearButtonVisible(true);
+        backupStrategyCombo.setItemLabelGenerator(s -> {
+            if (s == null) {
+                return loc.getValue(L.ENUM_BACKUP_STRATEGY_NONE);
+            }
+            return loc.getValue(loc.getBackupStrategy(s));
+        });
+
+        backupStrategyValueField = new IntegerField(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
+        backupStrategyValueField.setWidthFull();
+        backupStrategyValueField.setMin(1);
+        backupStrategyValueField.setStepButtonsVisible(true);
+
+        backupStrategyCombo.addValueChangeListener(e -> updateBackupStrategyValueField(e.getValue()));
+
         masterTemplateField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_MASTER_TEMPLATE));
         masterTemplateField.setWidthFull();
         masterTemplateField.setMinHeight("180px");
@@ -212,6 +235,18 @@ public class UserPart implements WorkspaceComponent {
         defaultSummaryPromptField.setPlaceholder(Defaults.DEFAULT_SUMMARY_PROMPT);
         defaultSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultSummaryPromptField, defaultSummaryPromptField.getPopover(), null, Defaults.DEFAULT_SUMMARY_PROMPT));
+    }
+
+    private void updateBackupStrategyValueField(BackupStrategy strategy) {
+        if (strategy == null || strategy == BackupStrategy.DISABLED) {
+            backupStrategyValueField.setVisible(false);
+        } else if (strategy == BackupStrategy.AFTER_N_MESSAGES) {
+            backupStrategyValueField.setVisible(true);
+            backupStrategyValueField.setLabel(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MESSAGES));
+        } else if (strategy == BackupStrategy.AFTER_N_MINUTES) {
+            backupStrategyValueField.setVisible(true);
+            backupStrategyValueField.setLabel(loc.getValue(L.LABEL_BACKUP_STRATEGY_VALUE_MINUTES));
+        }
     }
 
     private Component createTemplateHintPopoverContent(HasValue<?, String> field, Popover popover, Class<? extends TemplateData> clazz, String defaultValue) {
@@ -312,6 +347,16 @@ public class UserPart implements WorkspaceComponent {
                 defaultProtocolCombo.setValue(null);
             }
 
+            BackupStrategy strategy = userSetting.getBackupStrategy();
+            backupStrategyCombo.setValue(strategy);
+            String stratVal = userSetting.getBackupStrategyValue();
+            if (StringUtils.isNotBlank(stratVal) && StringUtils.isNumeric(stratVal)) {
+                backupStrategyValueField.setValue(Integer.parseInt(stratVal));
+            } else {
+                backupStrategyValueField.setValue(1);
+            }
+            updateBackupStrategyValueField(strategy);
+
             masterTemplateField.setValue(StringUtils.defaultString(userSetting.getMasterTemplate()));
             defaultPovField.setValue(StringUtils.defaultString(userSetting.getDefaultPov()));
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
@@ -325,6 +370,12 @@ public class UserPart implements WorkspaceComponent {
 
     private void save() {
         if (userSetting == null) {
+            return;
+        }
+
+        BackupStrategy strategy = backupStrategyCombo.getValue();
+        if (strategy != null && (backupStrategyValueField.getValue() == null || backupStrategyValueField.getValue() < 1)) {
+            Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
             return;
         }
 
@@ -404,6 +455,9 @@ public class UserPart implements WorkspaceComponent {
 
             Protocol selectedProtocol = defaultProtocolCombo.getValue();
             userSetting.setDefaultProtocol(selectedProtocol != null ? selectedProtocol.getId() : null);
+
+            userSetting.setBackupStrategy(strategy);
+            userSetting.setBackupStrategyValue(strategy != null && backupStrategyValueField.getValue() != null ? String.valueOf(backupStrategyValueField.getValue()) : null);
 
             userSetting.setMasterTemplate(masterTemplate);
             userSetting.setDefaultPov(defaultPov);

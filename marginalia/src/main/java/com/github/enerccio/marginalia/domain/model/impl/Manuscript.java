@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
 
@@ -53,6 +54,18 @@ public class Manuscript extends ExtendableEntity {
     @ExtendedAttribute
     @Transient
     private String summaryPrompt;
+
+    @ExtendedAttribute
+    @Transient
+    private BackupStrategy backupStrategy;
+
+    @ExtendedAttribute
+    @Transient
+    private String backupStrategyValue;
+
+    @ExtendedAttribute
+    @Transient
+    private String backupStrategyCurrentValue;
 
     public String getName() {
         return name;
@@ -156,5 +169,29 @@ public class Manuscript extends ExtendableEntity {
 
     public void setSummaryPrompt(String summaryPrompt) {
         this.summaryPrompt = summaryPrompt;
+    }
+
+    public BackupStrategy getBackupStrategy() {
+        return backupStrategy;
+    }
+
+    public void setBackupStrategy(BackupStrategy backupStrategy) {
+        this.backupStrategy = backupStrategy;
+    }
+
+    public String getBackupStrategyValue() {
+        return backupStrategyValue;
+    }
+
+    public void setBackupStrategyValue(String backupStrategyValue) {
+        this.backupStrategyValue = backupStrategyValue;
+    }
+
+    public String getBackupStrategyCurrentValue() {
+        return backupStrategyCurrentValue;
+    }
+
+    public void setBackupStrategyCurrentValue(String backupStrategyCurrentValue) {
+        this.backupStrategyCurrentValue = backupStrategyCurrentValue;
     }
 }

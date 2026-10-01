@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
@@ -67,6 +68,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     @Autowired
     private SummaryService summaryService;
+
+    @Autowired
+    private BackupService backupService;
+
+    @Autowired
+    private SettingService settingService;
 
     private final ManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
@@ -461,6 +468,92 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         startGeneration(GenerationRequest.newMessage(), input);
     }
 
+    private void checkAndApplyBackupStrategy() {
+        try {
+            Manuscript manuscript = parent.refreshManuscript();
+            if (manuscript == null) {
+                return;
+            }
+
+            BackupStrategy strategy = manuscriptService.getBackupStrategy(manuscript);
+            String strategyValStr = manuscriptService.getBackupStrategyValue(manuscript);
+
+            if (strategy == null || strategy == BackupStrategy.DISABLED) {
+                if (manuscript.getBackupStrategyCurrentValue() != null) {
+                    manuscript.setBackupStrategyCurrentValue(null);
+                    manuscriptService.save(manuscript);
+                }
+                return;
+            }
+
+            int limit = 1;
+            if (StringUtils.isNotBlank(strategyValStr)) {
+                try {
+                    limit = Math.max(1, Integer.parseInt(strategyValStr.trim()));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            String prefix = strategy.name() + ":" + limit + ":";
+            String currentVal = manuscript.getBackupStrategyCurrentValue();
+
+            if (strategy == BackupStrategy.AFTER_N_MESSAGES) {
+                int count = 0;
+                if (currentVal != null && currentVal.startsWith(prefix)) {
+                    try {
+                        count = Integer.parseInt(currentVal.substring(prefix.length()));
+                    } catch (NumberFormatException ignored) {}
+                }
+
+                count++;
+
+                if (count >= limit) {
+                    try {
+                        backupService.takeBackup(manuscript);
+                    } catch (Exception e) {
+                        UIUtils.internalServerError(loc, e);
+                    }
+                    count = 0;
+                }
+
+                manuscript.setBackupStrategyCurrentValue(prefix + count);
+                manuscriptService.save(manuscript);
+
+            } else if (strategy == BackupStrategy.AFTER_N_MINUTES) {
+                long lastBackupTime = System.currentTimeMillis();
+                boolean prefixValid = currentVal != null && currentVal.startsWith(prefix);
+
+                if (prefixValid) {
+                    try {
+                        lastBackupTime = Long.parseLong(currentVal.substring(prefix.length()));
+                    } catch (NumberFormatException ignored) {
+                        prefixValid = false;
+                    }
+                }
+
+                if (!prefixValid) {
+                    lastBackupTime = System.currentTimeMillis();
+                }
+
+                long now = System.currentTimeMillis();
+                long elapsedMinutes = (now - lastBackupTime) / (1000 * 60);
+
+                if (elapsedMinutes >= limit) {
+                    try {
+                        backupService.takeBackup(manuscript);
+                    } catch (Exception e) {
+                        UIUtils.internalServerError(loc, e);
+                    }
+                    lastBackupTime = now;
+                }
+
+                manuscript.setBackupStrategyCurrentValue(prefix + lastBackupTime);
+                manuscriptService.save(manuscript);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
     private void startGeneration(GenerationRequest request, TurnInput turnInput) {
         autosaveAndSwapAllToMarkdown();
         UI ui = UI.getCurrent();
@@ -553,6 +646,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                             activeGenerationToken = null;
                             streamingCard = null;
                             parent.unfreeze();
+
+                            checkAndApplyBackupStrategy();
 
                             centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
                                     .then(Integer.class, scrollTop -> {

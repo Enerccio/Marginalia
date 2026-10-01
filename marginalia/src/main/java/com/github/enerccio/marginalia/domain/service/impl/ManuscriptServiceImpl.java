@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.JsonArray;
@@ -119,6 +120,26 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             return userSetting.getDefaultSummaryPrompt();
         }
         return Defaults.DEFAULT_SUMMARY_PROMPT;
+    }
+
+    @Override
+    public BackupStrategy getBackupStrategy(Manuscript manuscript) throws Exception {
+        if (manuscript.getBackupStrategy() != null)
+            return manuscript.getBackupStrategy();
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (userSetting.getBackupStrategy() != null)
+            return userSetting.getBackupStrategy();
+        return null;
+    }
+
+    @Override
+    public String getBackupStrategyValue(Manuscript manuscript) throws Exception {
+        if (manuscript.getBackupStrategy() != null)
+            return manuscript.getBackupStrategyValue();
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (userSetting.getBackupStrategy() != null)
+            return userSetting.getBackupStrategyValue();
+        return null;
     }
 
     @Override

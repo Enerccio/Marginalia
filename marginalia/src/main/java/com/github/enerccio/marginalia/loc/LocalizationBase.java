@@ -4,6 +4,7 @@ package com.github.enerccio.marginalia.loc;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ProtocolType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
+import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,7 @@ public abstract class LocalizationBase implements Localization {
     private final Map<AIType, L> aiTypes = new HashMap<>();
     private final Map<ProtocolType, L> protocolTypes = new HashMap<>();
     private final Map<ReasoningEffort, L> reasoningEfforts = new HashMap<>();
+    private final Map<BackupStrategy, L> backupStrategies = new HashMap<>();
 
     protected abstract void loadMessages();
 
@@ -42,6 +44,10 @@ public abstract class LocalizationBase implements Localization {
         reasoningEfforts.put(ReasoningEffort.LOW, L.ENUM_REASONING_LOW);
         reasoningEfforts.put(ReasoningEffort.MEDIUM, L.ENUM_REASONING_MEDIUM);
         reasoningEfforts.put(ReasoningEffort.HIGH, L.ENUM_REASONING_HIGH);
+
+        backupStrategies.put(BackupStrategy.DISABLED, L.ENUM_BACKUP_STRATEGY_NONE);
+        backupStrategies.put(BackupStrategy.AFTER_N_MESSAGES, L.ENUM_BACKUP_STRATEGY_AFTER_N_MESSAGES);
+        backupStrategies.put(BackupStrategy.AFTER_N_MINUTES, L.ENUM_BACKUP_STRATEGY_AFTER_N_MINUTES);
     }
 
     protected void checkLocalization() {
@@ -146,5 +152,9 @@ public abstract class LocalizationBase implements Localization {
     @Override
     public L getReasoningEffort(ReasoningEffort type) {
         return reasoningEfforts.get(type);
+    }
+    @Override
+    public L getBackupStrategy(BackupStrategy type) {
+        return backupStrategies.get(type);
     }
 }

@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
+import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.google.gson.JsonObject;
 
 public interface ManuscriptService extends ExtendableService<Manuscript, ManuscriptRepository> {
@@ -12,6 +13,8 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     String getStyle(Manuscript manuscript) throws Exception;
     String getUserPrompt(Manuscript manuscript) throws Exception;
     String getSummaryPrompt(Manuscript manuscript) throws Exception;
+    BackupStrategy getBackupStrategy(Manuscript manuscript) throws Exception;
+    String getBackupStrategyValue(Manuscript manuscript) throws Exception;
 
     JsonObject createBackup(Manuscript manuscript) throws Exception;
     Manuscript cloneFromBackup(JsonObject backup) throws Exception;
