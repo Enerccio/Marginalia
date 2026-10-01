@@ -8,7 +8,6 @@ import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class BaseServiceImpl<T extends BaseEntity, R extends BaseRepository<T>> implements BaseService<T, R> {
@@ -53,6 +52,12 @@ public class BaseServiceImpl<T extends BaseEntity, R extends BaseRepository<T>> 
     @CommonTx
     public T save(T t) throws Exception {
         return getRepository().save(t);
+    }
+
+    @Override
+    @CommonTx
+    public T saveWithoutEvent(T t) throws Exception {
+        return getRepository().saveWithoutEvent(t);
     }
 
     @Override

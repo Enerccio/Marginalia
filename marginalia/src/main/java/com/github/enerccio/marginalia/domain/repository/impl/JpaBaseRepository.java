@@ -58,7 +58,7 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
     }
 
     @Override
-    public T save(T entity) throws Exception {
+    public T saveWithoutEvent(T entity) throws Exception {
         if (entity.getUuid() == null) {
             entity.setUuid(UUID.randomUUID().toString());
         }
@@ -76,6 +76,11 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
             entityManager.flush();
             return entity;
         }
+    }
+
+    @Override
+    public T save(T entity) throws Exception {
+        return saveWithoutEvent(entity);
     }
 
     @Override

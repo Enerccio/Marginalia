@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.repository.OwnedRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.OwnedService;
+import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,6 +49,15 @@ public class OwnedServiceImpl<T extends OwnedEntity, R extends OwnedRepository<T
             t.setOwner(userService.find(currentUser.getId()));
         }
         return super.save(t);
+    }
+
+    @Override
+    @CommonTx
+    public T saveWithoutEvent(T t) throws Exception {
+        if (t.getOwner() == null && t.getId() == null) {
+            t.setOwner(userService.find(currentUser.getId()));
+        }
+        return super.saveWithoutEvent(t);
     }
 
     protected T saveWithoutOwner(T t) throws Exception {

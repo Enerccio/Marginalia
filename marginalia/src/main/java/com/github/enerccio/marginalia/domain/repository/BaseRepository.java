@@ -11,6 +11,7 @@ public interface BaseRepository<T extends BaseEntity> {
     List<T> findAll() throws Exception;
     List<Long> findAllIds() throws Exception;
     T save(T t) throws Exception;
+    T saveWithoutEvent(T t) throws Exception;
     T delete(T entity, boolean hard) throws Exception;
     void evict(T entity) throws Exception;
 

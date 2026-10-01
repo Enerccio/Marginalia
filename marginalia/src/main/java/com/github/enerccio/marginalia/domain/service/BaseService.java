@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.repository.BaseRepository;
 
 import java.util.List;
@@ -14,6 +13,7 @@ public interface BaseService<T extends BaseEntity, R extends BaseRepository<T>> 
     List<T> findAll() throws Exception;
     List<Long> findAllIds() throws Exception;
     T save(T t) throws Exception;
+    T saveWithoutEvent(T t) throws Exception;
     T delete(T entity, boolean hard) throws Exception;
     void evict(T entity) throws Exception;
 

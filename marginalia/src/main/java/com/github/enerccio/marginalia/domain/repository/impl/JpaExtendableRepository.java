@@ -15,4 +15,11 @@ public abstract class JpaExtendableRepository<T extends ExtendableEntity> extend
         listener.deserialize(entity);
         return entity;
     }
+
+    @Override
+    public T saveWithoutEvent(T entity) throws Exception {
+        entity = super.saveWithoutEvent(entity);
+        listener.deserialize(entity);
+        return entity;
+    }
 }
