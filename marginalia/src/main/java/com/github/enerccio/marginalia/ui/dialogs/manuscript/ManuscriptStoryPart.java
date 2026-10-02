@@ -101,6 +101,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private String pendingPovCharacter = "";
     private String pendingPresentCharacters = "";
     private String pendingInstructions = "";
+    private boolean editedByUser = false;
 
     private Manuscript currentManuscript;
     private boolean isFrozen = false;
@@ -309,25 +310,38 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         sceneSettingField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING));
         sceneSettingField.setWidthFull();
         sceneSettingField.setMinHeight("60px");
-        sceneSettingField.addValueChangeListener(e -> pendingSceneSetting = e.getValue());
+        sceneSettingField.addValueChangeListener(e -> {
+            pendingSceneSetting = e.getValue();
+            editedByUser = true;
+        });
 
         povCharacterField = new TextField(loc.getValue(L.LABEL_POV_CHARACTER));
         povCharacterField.setWidthFull();
-        povCharacterField.addValueChangeListener(e -> pendingPovCharacter = e.getValue());
+        povCharacterField.addValueChangeListener(e -> {
+            pendingPovCharacter = e.getValue();
+            editedByUser = true;
+        });
 
         presentCharactersField = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS));
         presentCharactersField.setWidthFull();
         presentCharactersField.setMinHeight("50px");
-        presentCharactersField.addValueChangeListener(e -> pendingPresentCharacters = e.getValue());
+        presentCharactersField.addValueChangeListener(e -> {
+            pendingPresentCharacters = e.getValue();
+            editedByUser = true;
+        });
 
         instructionsField = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS));
         instructionsField.setWidthFull();
         instructionsField.setMinHeight("80px");
-        instructionsField.addValueChangeListener(e -> pendingInstructions = e.getValue());
+        instructionsField.addValueChangeListener(e -> {
+            pendingInstructions = e.getValue();
+            editedByUser = true;
+        });
 
         Button generateBtn = new Button(loc.getValue(L.LABEL_GENERATE), Solid.PLAY.create(), event -> {
             popover.close();
             if (parent != null) {
+                editedByUser = false;
                 autosaveAndSwapAllToMarkdown();
                 startGeneration();
             }
@@ -339,7 +353,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         popover.add(content);
 
         popover.addOpenedChangeListener(event -> {
-            if (event.isOpened()) {
+            if (event.isOpened() && !editedByUser) {
                 syncFieldsFromState();
             }
         });
