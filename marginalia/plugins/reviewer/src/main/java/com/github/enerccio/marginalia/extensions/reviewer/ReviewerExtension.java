@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.extensions.reviewer.ui.ReviewDialog;
 import com.github.enerccio.marginalia.extensions.reviewer.ui.ReviewerSettingsForm;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
@@ -25,11 +26,16 @@ import org.osgi.framework.Bundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 @Configurable
 public class ReviewerExtension implements MarginaliaExtension {
+
+    private static final String REVIEW_MENU_ITEM_KEY = "reviewer_root_menu_item";
+    private static final String DELETE_MENU_ITEM_KEY = "reviewer_delete_menu_item";
+    private static final String SETTINGS_PANEL_KEY = "reviewer_settings_panel";
 
     @Autowired
     private Localization loc;
@@ -46,8 +52,8 @@ public class ReviewerExtension implements MarginaliaExtension {
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
 
-    private final Map<ContextMenu, MenuItem> existingMenus = new HashMap<>();
-    private final Map<Accordion, AccordionPanel> settingItems = new HashMap<>();
+    private final Set<ContextMenu> activeMenus = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -65,26 +71,35 @@ public class ReviewerExtension implements MarginaliaExtension {
                     ChatMessage message = context.getReflectiveFieldValue(instrumented, "message", ChatMessage.class);
 
                     if (hamburgerMenu != null && message != null) {
-                        Manuscript manuscript = manuscriptService.find(message.getParentScript());
+                        if (ComponentUtil.getData(hamburgerMenu, REVIEW_MENU_ITEM_KEY) != null) {
+                            return;
+                        }
 
                         MenuItem reviewMenuItem = hamburgerMenu.addItem("Review");
                         reviewMenuItem.addComponentAsFirst(VaadinIcon.STAR.create());
 
+                        // Lazy evaluation inside click listeners prevents capturing heavy Manuscript/Tokenizer objects early
                         reviewMenuItem.getSubMenu().addItem("View / Generate Review", e -> {
-                            ReviewDialog dialog = new ReviewDialog(reviewerService,
-                                    message, manuscript, null);
-                            dialog.open();
+                            try {
+                                Manuscript manuscript = manuscriptService.find(message.getParentScript());
+                                ReviewDialog dialog = new ReviewDialog(reviewerService, message, manuscript, null);
+                                dialog.open();
+                            } catch (Exception ex) {
+                                UIUtils.internalServerError(loc, ex);
+                            }
                         });
 
                         reviewMenuItem.getSubMenu().addItem("Advanced Options", e -> {
                             try {
+                                Manuscript manuscript = manuscriptService.find(message.getParentScript());
                                 ReviewerSettings settings = reviewerService.getSettings();
                                 AI targetAi = reviewerService.resolveAI(settings, manuscript);
                                 InferenceService service = inferenceServices.forAI(targetAi);
-                                AdvancedOptionsDialog dialog = new AdvancedOptionsDialog(reviewerService, service, manuscript, settings.getSettings().get(settings.getDefaultSetting()),
+                                AdvancedOptionsDialog dialog = new AdvancedOptionsDialog(
+                                        reviewerService, service, manuscript,
+                                        settings.getSettings().get(settings.getDefaultSetting()),
                                         message, null, opts -> {
-                                    ReviewDialog rDialog = new ReviewDialog(reviewerService,
-                                            message, manuscript, opts);
+                                    ReviewDialog rDialog = new ReviewDialog(reviewerService, message, manuscript, opts);
                                     rDialog.open();
                                 });
                                 dialog.open();
@@ -102,7 +117,13 @@ public class ReviewerExtension implements MarginaliaExtension {
                             }
                         });
                         deleteItem.setEnabled(hasReview);
-                        existingMenus.put(hamburgerMenu, deleteItem);
+
+                        // Attach component data to Vaadin components directly
+                        ComponentUtil.setData(hamburgerMenu, REVIEW_MENU_ITEM_KEY, reviewMenuItem);
+                        ComponentUtil.setData(hamburgerMenu, DELETE_MENU_ITEM_KEY, deleteItem);
+
+                        // Register menu softly for unload cleanup
+                        activeMenus.add(hamburgerMenu);
                     }
                 }
             };
@@ -125,9 +146,10 @@ public class ReviewerExtension implements MarginaliaExtension {
                     ContextMenu hamburgerMenu = context.getReflectiveFieldValue(instrumented, "hamburgerMenu", ContextMenu.class);
                     ChatMessage message = context.getReflectiveFieldValue(instrumented, "message", ChatMessage.class);
                     if (hamburgerMenu != null && message != null) {
-                        if (existingMenus.containsKey(hamburgerMenu)) {
+                        MenuItem deleteItem = (MenuItem) ComponentUtil.getData(hamburgerMenu, DELETE_MENU_ITEM_KEY);
+                        if (deleteItem != null) {
                             boolean hasReview = reviewerService.getReviewData(message) != null;
-                            existingMenus.get(hamburgerMenu).setEnabled(hasReview);
+                            deleteItem.setEnabled(hasReview);
                         }
                     }
                 }
@@ -150,18 +172,18 @@ public class ReviewerExtension implements MarginaliaExtension {
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
                     Accordion extensionSettings = context.getReflectiveFieldValue(instrumented, "extensionSettings", Accordion.class);
                     if (extensionSettings != null) {
-                        if (settingItems.containsKey(extensionSettings)) {
-                            AccordionPanel contentPanel = settingItems.get(extensionSettings);
+                        AccordionPanel contentPanel = (AccordionPanel) ComponentUtil.getData(extensionSettings, SETTINGS_PANEL_KEY);
+                        if (contentPanel != null) {
                             contentPanel.getContent().findFirst().ifPresent(content -> {
                                 if (content instanceof ReviewerSettingsForm form) {
                                     form.refresh();
                                 }
                             });
                         } else {
-                            ReviewerSettingsForm form = new ReviewerSettingsForm(
-                                    reviewerService);
-                            AccordionPanel contentPanel = extensionSettings.add("Reviewer Settings", form);
-                            settingItems.put(extensionSettings, contentPanel);
+                            ReviewerSettingsForm form = new ReviewerSettingsForm(reviewerService);
+                            contentPanel = extensionSettings.add("Reviewer Settings", form);
+                            ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, contentPanel);
+                            activeAccordions.add(extensionSettings);
                         }
                     }
                 }
@@ -180,13 +202,15 @@ public class ReviewerExtension implements MarginaliaExtension {
                     UserSetting userSetting = context.getReflectiveFieldValue(instrumented, "userSetting", UserSetting.class);
                     Accordion extensionSettings = context.getReflectiveFieldValue(instrumented, "extensionSettings", Accordion.class);
                     if (extensionSettings != null && userSetting != null) {
-                        AccordionPanel contentPanel = settingItems.get(extensionSettings);
-                        contentPanel.getContent().findFirst().ifPresent(content -> {
-                            if (content instanceof ReviewerSettingsForm form) {
-                                ReviewerSettings settings = form.save();
-                                reviewerService.saveSettings(settings, userSetting);
-                            }
-                        });
+                        AccordionPanel contentPanel = (AccordionPanel) ComponentUtil.getData(extensionSettings, SETTINGS_PANEL_KEY);
+                        if (contentPanel != null) {
+                            contentPanel.getContent().findFirst().ifPresent(content -> {
+                                if (content instanceof ReviewerSettingsForm form) {
+                                    ReviewerSettings settings = form.save();
+                                    reviewerService.saveSettings(settings, userSetting);
+                                }
+                            });
+                        }
                     }
                 }
 
@@ -216,12 +240,32 @@ public class ReviewerExtension implements MarginaliaExtension {
         }
         if (userPartDecorator != null) {
             extensionService.unregisterDecorator(userPartDecorator);
-            for (Accordion accordion : settingItems.keySet()) {
-                accordion.remove(settingItems.get(accordion));
-            }
         }
         if (userPartSaveDecorator != null) {
             extensionService.unregisterDecorator(userPartSaveDecorator);
+        }
+
+        synchronized (activeMenus) {
+            for (ContextMenu menu : activeMenus) {
+                MenuItem reviewMenuItem = (MenuItem) ComponentUtil.getData(menu, REVIEW_MENU_ITEM_KEY);
+                if (reviewMenuItem != null) {
+                    menu.remove(reviewMenuItem);
+                    ComponentUtil.setData(menu, REVIEW_MENU_ITEM_KEY, null);
+                    ComponentUtil.setData(menu, DELETE_MENU_ITEM_KEY, null);
+                }
+            }
+            activeMenus.clear();
+        }
+
+        synchronized (activeAccordions) {
+            for (Accordion accordion : activeAccordions) {
+                AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(accordion, SETTINGS_PANEL_KEY);
+                if (panel != null) {
+                    accordion.remove(panel);
+                    ComponentUtil.setData(accordion, SETTINGS_PANEL_KEY, null);
+                }
+            }
+            activeAccordions.clear();
         }
     }
 }

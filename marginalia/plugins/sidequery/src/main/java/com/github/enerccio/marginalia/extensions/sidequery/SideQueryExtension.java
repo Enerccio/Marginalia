@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.extensions.sidequery.ui.SideQuerySettingsF
 import com.github.enerccio.marginalia.extensions.sidequery.ui.SideQueryView;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
 
@@ -22,11 +23,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 @Configurable
 public class SideQueryExtension implements MarginaliaExtension {
+
+    private static final String SIDE_QUERY_VIEW_KEY = "sidequery_view_component";
+    private static final String SETTINGS_PANEL_KEY = "sidequery_settings_panel";
 
     @Autowired
     private Localization loc;
@@ -37,7 +42,8 @@ public class SideQueryExtension implements MarginaliaExtension {
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
 
-    private final Map<Accordion, AccordionPanel> settingItems = new HashMap<>();
+    private final Set<VTabSheet> activeTabSheets = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -53,8 +59,15 @@ public class SideQueryExtension implements MarginaliaExtension {
                     Manuscript currentManuscript = context.getReflectiveFieldValue(instrumented, "currentManuscript", Manuscript.class);
 
                     if (leftBar != null && currentManuscript != null) {
+                        if (ComponentUtil.getData(leftBar, SIDE_QUERY_VIEW_KEY) != null) {
+                            return;
+                        }
+
                         SideQueryView sideQueryView = new SideQueryView(currentManuscript, sideQueryService);
                         leftBar.add("Side Query", sideQueryView);
+
+                        ComponentUtil.setData(leftBar, SIDE_QUERY_VIEW_KEY, sideQueryView);
+                        activeTabSheets.add(leftBar);
                     }
                 }
             };
@@ -74,8 +87,8 @@ public class SideQueryExtension implements MarginaliaExtension {
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
                     Accordion extensionSettings = context.getReflectiveFieldValue(instrumented, "extensionSettings", Accordion.class);
                     if (extensionSettings != null) {
-                        if (settingItems.containsKey(extensionSettings)) {
-                            AccordionPanel contentPanel = settingItems.get(extensionSettings);
+                        AccordionPanel contentPanel = (AccordionPanel) ComponentUtil.getData(extensionSettings, SETTINGS_PANEL_KEY);
+                        if (contentPanel != null) {
                             contentPanel.getContent().findFirst().ifPresent(content -> {
                                 if (content instanceof SideQuerySettingsForm form) {
                                     form.refresh();
@@ -83,8 +96,9 @@ public class SideQueryExtension implements MarginaliaExtension {
                             });
                         } else {
                             SideQuerySettingsForm form = new SideQuerySettingsForm(sideQueryService);
-                            AccordionPanel contentPanel = extensionSettings.add("SideQuery Settings", form);
-                            settingItems.put(extensionSettings, contentPanel);
+                            contentPanel = extensionSettings.add("SideQuery Settings", form);
+                            ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, contentPanel);
+                            activeAccordions.add(extensionSettings);
                         }
                     }
                 }
@@ -102,13 +116,15 @@ public class SideQueryExtension implements MarginaliaExtension {
                     UserSetting userSetting = context.getReflectiveFieldValue(instrumented, "userSetting", UserSetting.class);
                     Accordion extensionSettings = context.getReflectiveFieldValue(instrumented, "extensionSettings", Accordion.class);
                     if (extensionSettings != null && userSetting != null) {
-                        AccordionPanel contentPanel = settingItems.get(extensionSettings);
-                        contentPanel.getContent().findFirst().ifPresent(content -> {
-                            if (content instanceof SideQuerySettingsForm form) {
-                                SideQuerySettings settings = form.save();
-                                sideQueryService.saveSettings(settings, userSetting);
-                            }
-                        });
+                        AccordionPanel contentPanel = (AccordionPanel) ComponentUtil.getData(extensionSettings, SETTINGS_PANEL_KEY);
+                        if (contentPanel != null) {
+                            contentPanel.getContent().findFirst().ifPresent(content -> {
+                                if (content instanceof SideQuerySettingsForm form) {
+                                    SideQuerySettings settings = form.save();
+                                    sideQueryService.saveSettings(settings, userSetting);
+                                }
+                            });
+                        }
                     }
                 }
 
@@ -134,12 +150,33 @@ public class SideQueryExtension implements MarginaliaExtension {
         }
         if (userPartDecorator != null) {
             extensionService.unregisterDecorator(userPartDecorator);
-            for (Accordion accordion : settingItems.keySet()) {
-                accordion.remove(settingItems.get(accordion));
-            }
         }
         if (userPartSaveDecorator != null) {
             extensionService.unregisterDecorator(userPartSaveDecorator);
+        }
+
+        // Clean up living tabs from leftBar UI instances on unload
+        synchronized (activeTabSheets) {
+            for (VTabSheet leftBar : activeTabSheets) {
+                SideQueryView sideQueryView = (SideQueryView) ComponentUtil.getData(leftBar, SIDE_QUERY_VIEW_KEY);
+                if (sideQueryView != null) {
+                    leftBar.remove(sideQueryView);
+                    ComponentUtil.setData(leftBar, SIDE_QUERY_VIEW_KEY, null);
+                }
+            }
+            activeTabSheets.clear();
+        }
+
+        // Clean up settings panels from accordion UI instances on unload
+        synchronized (activeAccordions) {
+            for (Accordion accordion : activeAccordions) {
+                AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(accordion, SETTINGS_PANEL_KEY);
+                if (panel != null) {
+                    accordion.remove(panel);
+                    ComponentUtil.setData(accordion, SETTINGS_PANEL_KEY, null);
+                }
+            }
+            activeAccordions.clear();
         }
     }
 }
