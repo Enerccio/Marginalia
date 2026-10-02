@@ -45,6 +45,17 @@ body {
     overflow: hidden !important;
 }
 
+.chat-message {
+    contain-intrinsic-size: auto 200px;
+    overflow-anchor: auto;
+}
+
+.chat-message {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
+    overflow-anchor: auto;
+}
+
 /* ==========================================================================
    MANUSCRIPT READING MODE (Hybrid Style)
    ========================================================================== */
@@ -283,4 +294,30 @@ body {
     text-overflow: ellipsis !important;
     margin-top: 4px !important;
     color: var(--lumo-secondary-text-color, #666) !important;
+}
+
+/* Block Node styling */
+.Treant .node.block-node {
+    cursor: pointer !important;
+    border: 1px dashed var(--lumo-primary-color, #1677ff) !important;
+    background-color: var(--lumo-contrast-5pct, rgba(0, 0, 0, 0.03)) !important;
+    text-align: center !important;
+    transition: all 0.2s ease !important;
+}
+
+.Treant .node.block-node:hover {
+    background-color: var(--lumo-primary-color-10pct, rgba(22, 119, 255, 0.1)) !important;
+    box-shadow: 0 4px 10px rgba(22, 119, 255, 0.25) !important;
+    transform: translateY(-2px) !important;
+}
+
+.tree-block-count {
+    font-size: 0.85em !important;
+    color: var(--lumo-primary-text-color, #1677ff) !important;
+}
+
+.tree-block-subtitle {
+    font-size: 0.72em !important;
+    color: var(--lumo-secondary-text-color, #888) !important;
+    margin-top: 2px !important;
 }

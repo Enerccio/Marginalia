@@ -19,6 +19,44 @@ function resolveTreantConstructor() {
     return window.Treant;
 }
 
+function buildTreeFromFlatNodes(flatNodes) {
+    if (!flatNodes || flatNodes.length === 0) {
+        return null;
+    }
+
+    const nodeMap = new Map();
+    let rootNode = null;
+
+    for (let i = 0; i < flatNodes.length; i++) {
+        const item = flatNodes[i];
+        const nodeObj = {
+            HTMLid: item.HTMLid || ('node-' + item.id),
+            HTMLclass: item.HTMLclass || 'tree-node',
+            innerHTML: item.innerHTML || '',
+            data: item.data || {},
+            children: []
+        };
+        nodeMap.set(String(item.id), nodeObj);
+    }
+
+    for (let i = 0; i < flatNodes.length; i++) {
+        const item = flatNodes[i];
+        const nodeObj = nodeMap.get(String(item.id));
+        const parentId = item.parentId ? String(item.parentId) : null;
+
+        if (parentId && nodeMap.has(parentId)) {
+            const parentObj = nodeMap.get(parentId);
+            parentObj.children.push(nodeObj);
+        } else {
+            if (!rootNode) {
+                rootNode = nodeObj;
+            }
+        }
+    }
+
+    return rootNode;
+}
+
 export function renderTreant(element, chartConfig) {
     element.innerHTML = '';
 
@@ -28,6 +66,11 @@ export function renderTreant(element, chartConfig) {
 
     chartConfig.chart = chartConfig.chart || {};
     chartConfig.chart.container = '#' + element.id;
+
+    if (chartConfig.nodes && Array.isArray(chartConfig.nodes)) {
+        chartConfig.nodeStructure = buildTreeFromFlatNodes(chartConfig.nodes);
+        delete chartConfig.nodes;
+    }
 
     const TreantConstructor = resolveTreantConstructor();
 

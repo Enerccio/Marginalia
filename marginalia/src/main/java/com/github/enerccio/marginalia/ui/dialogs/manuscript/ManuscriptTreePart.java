@@ -40,6 +40,8 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
     private TreantTree treantTree;
     private Manuscript manuscript;
 
+    private final Set<String> expandedBlocks = new HashSet<>();
+
     public ManuscriptTreePart(ManuscriptDialog parent) {
         this.parent = parent;
     }
@@ -64,6 +66,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
     @Override
     public void load(Manuscript manuscript) {
         this.manuscript = manuscript;
+        this.expandedBlocks.clear();
     }
 
     @Override
@@ -75,6 +78,16 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
     public void onTabEnter() throws Exception {
         this.manuscript = parent.refreshManuscript();
         renderTree();
+    }
+
+    private static class StructuralTask {
+        final ChatMessage message;
+        final String parentNodeId;
+
+        StructuralTask(ChatMessage message, String parentNodeId) {
+            this.message = message;
+            this.parentNodeId = parentNodeId;
+        }
     }
 
     private void renderTree() {
@@ -105,6 +118,10 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                 }
             }
 
+            if (rootMessages.isEmpty()) {
+                return;
+            }
+
             ChatMessage activeLeaf = manuscript.getActiveLeaf();
             Long activeLeafId = (activeLeaf != null) ? activeLeaf.getId() : null;
 
@@ -116,23 +133,118 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                 currentId = (msg.getParent() != null) ? msg.getParent().getId() : null;
             }
 
-            if (rootMessages.isEmpty()) {
-                return;
+            JsonArray flatNodes = new JsonArray();
+            Queue<StructuralTask> queue = new ArrayDeque<>();
+
+            if (rootMessages.size() == 1) {
+                queue.add(new StructuralTask(rootMessages.getFirst(), null));
+            } else {
+                JsonObject syntheticRoot = new JsonObject();
+                syntheticRoot.addProperty("id", "synthetic-root");
+                syntheticRoot.addProperty("HTMLid", "synthetic-root");
+                syntheticRoot.addProperty("HTMLclass", "tree-node non-clickable");
+                syntheticRoot.addProperty("innerHTML", buildSyntheticRootHtml());
+                flatNodes.add(syntheticRoot);
+
+                for (ChatMessage rootMsg : rootMessages) {
+                    queue.add(new StructuralTask(rootMsg, "synthetic-root"));
+                }
             }
 
-            JsonObject rootNodeJson;
-            if (rootMessages.size() == 1) {
-                rootNodeJson = buildNodeJson(rootMessages.getFirst(), childrenMap, activePathIds, activeLeafId);
-            } else {
-                rootNodeJson = new JsonObject();
-                rootNodeJson.addProperty("HTMLid", "synthetic-root");
-                rootNodeJson.addProperty("HTMLclass", "tree-node non-clickable");
-                rootNodeJson.addProperty("innerHTML", "<div class=\"tree-node-card\"><strong>Root</strong></div>");
-                JsonArray childrenArray = new JsonArray();
-                for (ChatMessage rootMsg : rootMessages) {
-                    childrenArray.add(buildNodeJson(rootMsg, childrenMap, activePathIds, activeLeafId));
+            while (!queue.isEmpty()) {
+                StructuralTask task = queue.poll();
+                ChatMessage structMsg = task.message;
+                String parentNodeId = task.parentNodeId;
+
+                String structNodeId = String.valueOf(structMsg.getId());
+                flatNodes.add(buildSingleMsgJsonObject(structMsg, structNodeId, parentNodeId, childrenMap, activePathIds, activeLeafId));
+
+                List<ChatMessage> structChildren = childrenMap.getOrDefault(structMsg.getId(), Collections.emptyList());
+
+                for (ChatMessage child : structChildren) {
+                    List<ChatMessage> section = new ArrayList<>();
+                    ChatMessage curr = child;
+
+                    while (curr != null) {
+                        List<ChatMessage> currChildren = childrenMap.getOrDefault(curr.getId(), Collections.emptyList());
+                        if (currChildren.size() == 1) {
+                            section.add(curr);
+                            curr = currChildren.getFirst();
+                        } else {
+                            break;
+                        }
+                    }
+
+                    String lastEmittedNodeId = structNodeId;
+                    int n = section.size();
+                    String blockKey = "block-" + structMsg.getId() + "-" + (curr != null ? curr.getId() : (section.isEmpty() ? "end" : section.getLast().getId()));
+
+                    if (n > 20 && !expandedBlocks.contains(blockKey)) {
+                        for (int i = 0; i < 10; i++) {
+                            ChatMessage m = section.get(i);
+                            String mId = String.valueOf(m.getId());
+                            flatNodes.add(buildSingleMsgJsonObject(m, mId, lastEmittedNodeId, childrenMap, activePathIds, activeLeafId));
+                            lastEmittedNodeId = mId;
+                        }
+
+                        List<ChatMessage> collapsedSection = section.subList(10, n - 10);
+                        boolean blockHasActivePath = false;
+                        boolean blockHasActiveLeaf = false;
+                        for (ChatMessage cm : collapsedSection) {
+                            if (activePathIds.contains(cm.getId())) {
+                                blockHasActivePath = true;
+                            }
+                            if (activeLeafId != null && activeLeafId.equals(cm.getId())) {
+                                blockHasActiveLeaf = true;
+                            }
+                        }
+
+                        JsonObject blockJson = new JsonObject();
+                        blockJson.addProperty("id", blockKey);
+                        blockJson.addProperty("parentId", lastEmittedNodeId);
+                        blockJson.addProperty("HTMLid", blockKey);
+
+                        List<String> blockCssList = new ArrayList<>();
+                        blockCssList.add("tree-node");
+                        blockCssList.add("block-node");
+                        if (blockHasActivePath) {
+                            blockCssList.add("active-path");
+                        }
+                        if (blockHasActiveLeaf) {
+                            blockCssList.add("active-leaf");
+                        }
+                        blockJson.addProperty("HTMLclass", String.join(" ", blockCssList));
+
+                        JsonObject dataJson = new JsonObject();
+                        dataJson.addProperty("nodeId", blockKey);
+                        blockJson.add("data", dataJson);
+
+                        int startIdx = 11;
+                        int endIdx = n - 10;
+                        blockJson.addProperty("innerHTML", buildBlockNodeHtml(blockKey, collapsedSection.size(), startIdx, endIdx));
+                        flatNodes.add(blockJson);
+
+                        lastEmittedNodeId = blockKey;
+
+                        for (int i = n - 10; i < n; i++) {
+                            ChatMessage m = section.get(i);
+                            String mId = String.valueOf(m.getId());
+                            flatNodes.add(buildSingleMsgJsonObject(m, mId, lastEmittedNodeId, childrenMap, activePathIds, activeLeafId));
+                            lastEmittedNodeId = mId;
+                        }
+
+                    } else {
+                        for (ChatMessage m : section) {
+                            String mId = String.valueOf(m.getId());
+                            flatNodes.add(buildSingleMsgJsonObject(m, mId, lastEmittedNodeId, childrenMap, activePathIds, activeLeafId));
+                            lastEmittedNodeId = mId;
+                        }
+                    }
+
+                    if (curr != null) {
+                        queue.add(new StructuralTask(curr, lastEmittedNodeId));
+                    }
                 }
-                rootNodeJson.add("children", childrenArray);
             }
 
             JsonObject chartConfig = new JsonObject();
@@ -147,7 +259,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
             chart.add("node", nodeConfig);
 
             chartConfig.add("chart", chart);
-            chartConfig.add("nodeStructure", rootNodeJson);
+            chartConfig.add("nodes", flatNodes);
 
             treantTree.setTreeConfig(chartConfig.toString());
         } catch (Exception e) {
@@ -155,13 +267,21 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         }
     }
 
-    private JsonObject buildNodeJson(ChatMessage msg, Map<Long, List<ChatMessage>> childrenMap, Set<Long> activePathIds, Long activeLeafId) {
+    private JsonObject buildSingleMsgJsonObject(ChatMessage msg,
+                                                String nodeId,
+                                                String parentNodeId,
+                                                Map<Long, List<ChatMessage>> childrenMap,
+                                                Set<Long> activePathIds,
+                                                Long activeLeafId) {
         JsonObject nodeJson = new JsonObject();
-
-        nodeJson.addProperty("HTMLid", "node-" + msg.getId());
+        nodeJson.addProperty("id", nodeId);
+        if (parentNodeId != null) {
+            nodeJson.addProperty("parentId", parentNodeId);
+        }
+        nodeJson.addProperty("HTMLid", "node-" + nodeId);
 
         JsonObject dataJson = new JsonObject();
-        dataJson.addProperty("nodeId", String.valueOf(msg.getId()));
+        dataJson.addProperty("nodeId", nodeId);
         nodeJson.add("data", dataJson);
 
         List<ChatMessage> children = childrenMap.getOrDefault(msg.getId(), Collections.emptyList());
@@ -169,88 +289,115 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         boolean isActiveLeaf = (activeLeafId != null && activeLeafId.equals(msg.getId()));
         boolean isActivePath = activePathIds.contains(msg.getId());
 
-        StringBuilder cssClasses = new StringBuilder("tree-node");
+        List<String> classes = new ArrayList<>();
+        classes.add("tree-node");
         if (isActivePath) {
-            cssClasses.append(" active-path");
+            classes.add("active-path");
         }
         if (isActiveLeaf) {
-            cssClasses.append(" active-leaf");
+            classes.add("active-leaf");
         }
         if (isLeaf && !isActiveLeaf) {
-            cssClasses.append(" clickable-leaf");
+            classes.add("clickable-leaf");
         } else {
-            cssClasses.append(" non-clickable");
+            classes.add("non-clickable");
         }
-        nodeJson.addProperty("HTMLclass", cssClasses.toString());
-
+        nodeJson.addProperty("HTMLclass", String.join(" ", classes));
         nodeJson.addProperty("innerHTML", buildNodeHtml(msg));
-
-        JsonArray childrenArray = new JsonArray();
-        for (ChatMessage child : children) {
-            childrenArray.add(buildNodeJson(child, childrenMap, activePathIds, activeLeafId));
-        }
-        nodeJson.add("children", childrenArray);
 
         return nodeJson;
     }
 
-    private String buildNodeHtml(ChatMessage msg) {
-        String dateStr = "";
-        if (msg.getCreation() != null) {
-            dateStr = loc.getDateHourFormat().format(msg.getCreation());
-        }
+    private String buildSyntheticRootHtml() {
+        return """
+               <div class="tree-node-card">
+                   <strong>Root</strong>
+               </div>
+               """;
+    }
 
+    private String buildBlockNodeHtml(String blockId, int messageCount, int startIdx, int endIdx) {
+        String title = HtmlUtils.htmlEscape("""
+            Collapsed block (%d messages, [%d–%d]). Click to expand.
+            """.formatted(messageCount, startIdx, endIdx).trim());
+
+        return """
+               <div class="tree-node-card tree-node-block" data-node-id="%s" title="%s">
+                   <div class="tree-block-count"><strong>%d messages</strong></div>
+                   <div class="tree-block-subtitle">[%d–%d] • Click to expand</div>
+               </div>
+               """.formatted(blockId, title, messageCount, startIdx, endIdx);
+    }
+
+    private String buildNodeHtml(ChatMessage msg) {
+        String dateStr = (msg.getCreation() != null) ? loc.getDateHourFormat().format(msg.getCreation()) : "";
         String scene = Objects.toString(msg.getSceneSetting(), "");
         String presentChars = Objects.toString(msg.getPresentCharacters(), "");
         String instructions = Objects.toString(msg.getInstructions(), "");
 
-        StringBuilder fullTooltip = new StringBuilder();
+        List<String> tooltipLines = new ArrayList<>();
         if (StringUtils.isNotBlank(dateStr)) {
-            fullTooltip.append("Date: ").append(dateStr).append("\n");
+            tooltipLines.add("Date: " + dateStr);
         }
         if (StringUtils.isNotBlank(scene)) {
-            fullTooltip.append("Scene: ").append(scene).append("\n");
+            tooltipLines.add("Scene: " + scene);
         }
         if (StringUtils.isNotBlank(presentChars)) {
-            fullTooltip.append("Present: ").append(presentChars).append("\n");
+            tooltipLines.add("Present: " + presentChars);
         }
         if (StringUtils.isNotBlank(instructions)) {
-            fullTooltip.append("Instructions: ").append(instructions);
+            tooltipLines.add("Instructions: " + instructions);
         }
 
-        String cardTooltip = HtmlUtils.htmlEscape(fullTooltip.toString().trim());
+        String cardTooltip = HtmlUtils.htmlEscape(String.join("\n", tooltipLines));
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("<div class=\"tree-node-card\" data-node-id=\"").append(msg.getId())
-                .append("\" title=\"").append(cardTooltip).append("\">");
+        String dateHtml = StringUtils.isNotBlank(dateStr)
+                ? """
+                  <div class="tree-node-date">%s</div>
+                  """.formatted(HtmlUtils.htmlEscape(dateStr))
+                : "";
 
-        if (StringUtils.isNotBlank(dateStr)) {
-            sb.append("<div class=\"tree-node-date\">").append(HtmlUtils.htmlEscape(dateStr)).append("</div>");
-        }
+        String sceneHtml = StringUtils.isNotBlank(scene)
+                ? """
+                  <div class="tree-node-field"><strong>Scene:</strong> %s</div>
+                  """.formatted(HtmlUtils.htmlEscape(scene))
+                : "";
 
-        if (StringUtils.isNotBlank(scene)) {
-            sb.append("<div class=\"tree-node-field\"><strong>Scene:</strong> ")
-                    .append(HtmlUtils.htmlEscape(scene)).append("</div>");
-        }
+        String presentHtml = StringUtils.isNotBlank(presentChars)
+                ? """
+                  <div class="tree-node-field"><strong>Present:</strong> %s</div>
+                  """.formatted(HtmlUtils.htmlEscape(presentChars))
+                : "";
 
-        if (StringUtils.isNotBlank(presentChars)) {
-            sb.append("<div class=\"tree-node-field\"><strong>Present:</strong> ")
-                    .append(HtmlUtils.htmlEscape(presentChars)).append("</div>");
-        }
+        String instructionsHtml = StringUtils.isNotBlank(instructions)
+                ? """
+                  <div class="tree-node-instructions" title="%s"><strong>Instructions:</strong> %s</div>
+                  """.formatted(HtmlUtils.htmlEscape(instructions), HtmlUtils.htmlEscape(instructions))
+                : "";
 
-        if (StringUtils.isNotBlank(instructions)) {
-            sb.append("<div class=\"tree-node-instructions\" title=\"").append(HtmlUtils.htmlEscape(instructions)).append("\">")
-                    .append("<strong>Instructions:</strong> ").append(HtmlUtils.htmlEscape(instructions))
-                    .append("</div>");
-        }
-
-        sb.append("</div>");
-        return sb.toString();
+        return """
+               <div class="tree-node-card" data-node-id="%s" title="%s">
+                   %s
+                   %s
+                   %s
+                   %s
+               </div>
+               """.formatted(msg.getId(), cardTooltip, dateHtml, sceneHtml, presentHtml, instructionsHtml);
     }
 
     private void onNodeClick(TreantTree.NodeClickEvent event) {
         String nodeIdStr = event.getNodeId();
         if (StringUtils.isBlank(nodeIdStr)) {
+            return;
+        }
+
+        if (nodeIdStr.startsWith("block-")) {
+            if (expandedBlocks.contains(nodeIdStr)) {
+                expandedBlocks.remove(nodeIdStr);
+            } else {
+                expandedBlocks.add(nodeIdStr);
+            }
+            renderTree();
             return;
         }
 

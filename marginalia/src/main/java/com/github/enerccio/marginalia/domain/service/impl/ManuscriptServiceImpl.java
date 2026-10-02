@@ -214,20 +214,56 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         }
         backup.add("tags", tagsArray);
 
-        // Build and save message tree
+        // Save flat list of messages
         List<ChatMessage> allMessages = chatMessageService.getAllMessages(m);
-        Map<Long, List<ChatMessage>> childrenMap = new HashMap<>();
-        List<ChatMessage> roots = new ArrayList<>();
+        JsonArray messagesArray = new JsonArray();
+        ExtendableEntityListener listener = new ExtendableEntityListener();
 
         for (ChatMessage msg : allMessages) {
-            if (msg.getParent() == null) {
-                roots.add(msg);
-            } else {
-                childrenMap.computeIfAbsent(msg.getParent().getId(), k -> new ArrayList<>()).add(msg);
+            JsonObject msgObj = new JsonObject();
+            msgObj.addProperty("uuid", msg.getUuid());
+            msgObj.addProperty("tokenCount", msg.getTokenCount());
+            msgObj.addProperty("wordCount", msg.getWordCount());
+            msgObj.addProperty("edited", msg.isEdited());
+
+            if (msg.getParent() != null) {
+                msgObj.addProperty("parentUuid", msg.getParent().getUuid());
             }
+
+            if (msg.getExtendedContent() == null || msg.getExtendedContent().length == 0) {
+                listener.serialize(msg);
+            }
+            if (msg.getExtendedContent() != null && msg.getExtendedContent().length > 0) {
+                try {
+                    msgObj.add("extendedContent", JsonParser.parseString(new String(msg.getExtendedContent(), StandardCharsets.UTF_8)));
+                } catch (Exception e) {
+                    msgObj.addProperty("extendedContent", new String(msg.getExtendedContent(), StandardCharsets.UTF_8));
+                }
+            }
+
+            if (msg.getSummary() != null) {
+                Summary summary = summaryService.find(msg.getSummary());
+                if (summary != null) {
+                    JsonObject sumObj = new JsonObject();
+                    sumObj.addProperty("uuid", summary.getUuid());
+                    if (summary.getExtendedContent() == null || summary.getExtendedContent().length == 0) {
+                        listener.serialize(summary);
+                    }
+                    if (summary.getExtendedContent() != null && summary.getExtendedContent().length > 0) {
+                        try {
+                            sumObj.add("extendedContent", JsonParser.parseString(new String(summary.getExtendedContent(), StandardCharsets.UTF_8)));
+                        } catch (Exception e) {
+                            sumObj.addProperty("extendedContent", new String(summary.getExtendedContent(), StandardCharsets.UTF_8));
+                        }
+                    }
+                    msgObj.add("summary", sumObj);
+                }
+            }
+
+            messagesArray.add(msgObj);
         }
 
-        backup.add("messages", buildMessageTree(roots, childrenMap));
+        backup.add("messages", messagesArray);
 
         return backup;
     }
@@ -317,7 +353,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
-            restoreMessageTree(backup.getAsJsonArray("messages"), manuscript, null, uuidToNodeMap);
+            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), manuscript);
         }
 
         if (backup.has("activeLeafUuid") && !backup.get("activeLeafUuid").isJsonNull()) {
@@ -434,7 +470,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         // 2. Restore all backed up messages
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
-            restoreMessageTree(backup.getAsJsonArray("messages"), m, null, uuidToNodeMap);
+            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), m);
         }
 
         // Link active leaf
@@ -465,74 +501,18 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         return m;
     }
 
-    private JsonArray buildMessageTree(List<ChatMessage> nodes, Map<Long, List<ChatMessage>> childrenMap) throws Exception {
-        JsonArray array = new JsonArray();
-        if (nodes == null) {
-            return array;
-        }
-
-        ExtendableEntityListener listener = new ExtendableEntityListener();
-
-        for (ChatMessage msg : nodes) {
-            JsonObject msgObj = new JsonObject();
-            msgObj.addProperty("uuid", msg.getUuid());
-            msgObj.addProperty("tokenCount", msg.getTokenCount());
-            msgObj.addProperty("wordCount", msg.getWordCount());
-            msgObj.addProperty("edited", msg.isEdited());
-
-            if (msg.getExtendedContent() == null || msg.getExtendedContent().length == 0) {
-                listener.serialize(msg);
-            }
-            if (msg.getExtendedContent() != null && msg.getExtendedContent().length > 0) {
-                try {
-                    msgObj.add("extendedContent", JsonParser.parseString(new String(msg.getExtendedContent(), StandardCharsets.UTF_8)));
-                } catch (Exception e) {
-                    msgObj.addProperty("extendedContent", new String(msg.getExtendedContent(), StandardCharsets.UTF_8));
-                }
-            }
-
-            if (msg.getSummary() != null) {
-                Summary summary = summaryService.find(msg.getSummary());
-                if (summary != null) {
-                    JsonObject sumObj = new JsonObject();
-                    sumObj.addProperty("uuid", summary.getUuid());
-                    if (summary.getExtendedContent() == null || summary.getExtendedContent().length == 0) {
-                        listener.serialize(summary);
-                    }
-                    if (summary.getExtendedContent() != null && summary.getExtendedContent().length > 0) {
-                        try {
-                            sumObj.add("extendedContent", JsonParser.parseString(new String(summary.getExtendedContent(), StandardCharsets.UTF_8)));
-                        } catch (Exception e) {
-                            sumObj.addProperty("extendedContent", new String(summary.getExtendedContent(), StandardCharsets.UTF_8));
-                        }
-                    }
-                    msgObj.add("summary", sumObj);
-                }
-            }
-
-            List<ChatMessage> children = childrenMap.get(msg.getId());
-            msgObj.add("children", buildMessageTree(children, childrenMap));
-
-            array.add(msgObj);
-        }
-
-        return array;
-    }
-
-    private void restoreMessageTree(JsonArray messagesArray, Manuscript manuscript, ChatMessage parent, Map<String, ChatMessage> uuidToNodeMap) throws Exception {
+    private Map<String, ChatMessage> restoreMessages(JsonArray messagesArray, Manuscript manuscript) throws Exception {
+        Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (messagesArray == null) {
-            return;
+            return uuidToNodeMap;
         }
+
+        Map<ChatMessage, String> parentUuidMap = new HashMap<>();
 
         for (JsonElement elem : messagesArray) {
-            if (!elem.isJsonObject()) {
-                continue;
-            }
-
             JsonObject msgObj = elem.getAsJsonObject();
             ChatMessage msg = new ChatMessage();
             msg.setParentScript(manuscript);
-            msg.setParent(parent);
 
             if (msgObj.has("tokenCount") && !msgObj.get("tokenCount").isJsonNull()) {
                 msg.setTokenCount(msgObj.get("tokenCount").getAsLong());
@@ -563,12 +543,25 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             msg = chatMessageService.saveWithoutEvent(msg);
 
             if (msgObj.has("uuid") && !msgObj.get("uuid").isJsonNull()) {
-                uuidToNodeMap.put(msgObj.get("uuid").getAsString(), msg);
+                String uuid = msgObj.get("uuid").getAsString();
+                uuidToNodeMap.put(uuid, msg);
             }
 
-            if (msgObj.has("children") && msgObj.get("children").isJsonArray()) {
-                restoreMessageTree(msgObj.getAsJsonArray("children"), manuscript, msg, uuidToNodeMap);
+            if (msgObj.has("parentUuid") && !msgObj.get("parentUuid").isJsonNull()) {
+                parentUuidMap.put(msg, msgObj.get("parentUuid").getAsString());
             }
         }
+
+        for (Map.Entry<ChatMessage, String> entry : parentUuidMap.entrySet()) {
+            ChatMessage msg = entry.getKey();
+            String parentUuid = entry.getValue();
+            ChatMessage parent = uuidToNodeMap.get(parentUuid);
+            if (parent != null) {
+                msg.setParent(parent);
+                chatMessageService.saveWithoutEvent(msg);
+            }
+        }
+
+        return uuidToNodeMap;
     }
 }
