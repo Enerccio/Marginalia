@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.vaadin.flow.component.Component;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -35,6 +37,8 @@ public interface OsgiService {
     void removeSubscriber(ExtensionObserver observer);
 
     String getExtensionsPath();
+
+    <T extends Component> T bindAttachableComponent(T component, Runnable callback, MarginaliaExtension extension) throws Exception;
 
     interface ExtensionObserver {
 

@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.vaadin.flow.component.Component;
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.NonNull;
 import org.osgi.framework.*;
@@ -36,6 +37,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private BundleContext context;
 
     private final Map<ServiceReference<?>, MarginaliaExtension> activeExtensions = new ConcurrentHashMap<>();
+    private final Map<MarginaliaExtension, Set<Runnable>> componentCallbacks = new ConcurrentHashMap<>();
     private final Set<WeakReference<ExtensionObserver>> observers = new HashSet<>();
 
     @Override
@@ -230,6 +232,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         for (ServiceReference<?> sr : getServices(b, MarginaliaExtension.class)) {
             MarginaliaExtension extension = (MarginaliaExtension) getContext().getService(sr);
             if (extension != null) {
+                componentCallbacks.put(extension, ConcurrentHashMap.newKeySet());
                 activeExtensions.put(sr, extension);
                 extension.onExtensionLoad(b, this, extensionService);
             }
@@ -240,6 +243,13 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         for (ServiceReference<?> sr : getServices(b, MarginaliaExtension.class)) {
             MarginaliaExtension extension = activeExtensions.remove(sr);
             if (extension != null) {
+                for (Runnable callback : new HashSet<>(componentCallbacks.get(extension))) {
+                    try {
+                        callback.run();
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                    }
+                }
                 try {
                     extension.onExtensionUnload(b, this, extensionService);
                 } finally {
@@ -247,6 +257,16 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 }
             }
         }
+    }
+
+
+    @Override
+    public <T extends Component> T bindAttachableComponent(T component, Runnable callback, MarginaliaExtension extension) throws Exception {
+        componentCallbacks.get(extension).add(callback);
+        component.addDetachListener(event -> {
+            componentCallbacks.get(extension).remove(callback);
+        });
+        return component;
     }
 
     @Override
