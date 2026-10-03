@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -38,13 +39,13 @@ public class ExtensionServiceImpl implements ExtensionService {
     }
 
     @Override
-    public void onExtendableMethodEnter(Class<?> cls, Object extendableSelf, String method) {
+    public void onExtendableMethodEnter(Class<?> cls, Object extendableSelf, ExtendableMethodContext context, String method) {
         List<ExtensionDecorator> decorators = getDecorators(cls, method);
         if (decorators.isEmpty()) return;
 
         for (ExtensionDecorator decorator : decorators) {
             try {
-                decorator.onMethodEnter(extendableSelf, new ContextImpl(extendableSelf));
+                decorator.onMethodEnter(extendableSelf, context);
             } catch (Throwable t) {
                 log.error("Unhandled exception in extension '{}' while decorating {}.{}:",
                         decorator.getClass().getName(),
@@ -81,13 +82,16 @@ public class ExtensionServiceImpl implements ExtensionService {
         return decorators != null ? decorators : Collections.emptyList();
     }
 
+    @SuppressWarnings({"DuplicateExpressions", "unchecked"})
     private static class ContextImpl implements ExtendableMethodContext {
         private final Map<String, Pair<Object, Class<?>>> localVariables;
+        private final Map<String, Pair<Object, Class<?>>> methodArguments;
         private final Object targetInstance;
 
         private ContextImpl(Object targetInstance) {
             this.targetInstance = targetInstance;
             this.localVariables = new HashMap<>();
+            this.methodArguments = new HashMap<>();
         }
 
         @Override
@@ -131,11 +135,95 @@ public class ExtensionServiceImpl implements ExtensionService {
             return registeredPair != null && isOfType.isAssignableFrom(registeredPair.getB());
         }
 
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> T getMethodArgument(String name, Class<T> expectedType) throws Exception {
+            Pair<Object, Class<?>> registeredPair = methodArguments.get(name);
+            if (registeredPair == null) {
+                throw new ModCompatibilityException(String.format(
+                        "Required component argument '%s' was not found in %s. " +
+                                "The core UI code may have been refactored or renamed.",
+                        name, targetInstance.getClass().getSimpleName()
+                ));
+            }
+
+            Object val = registeredPair.getA();
+            Class<?> registeredClass = registeredPair.getB();
+
+            if (!expectedType.isAssignableFrom(registeredClass)) {
+                throw new ModCompatibilityException(String.format(
+                        "Component argument '%s' in %s is of type %s, but extension expected %s.",
+                        name, targetInstance.getClass().getSimpleName(),
+                        registeredClass.getName(), expectedType.getName()
+                ));
+            }
+            return (T) val;
+        }
+
+        @Override
+        public MethodArgumentRefresher registerMethodArgument(String name, Object value, Class<?> cls) {
+            methodArguments.put(name, Pair.of(value, cls));
+            return () -> methodArguments.get(name).getA();
+        }
+
+        @Override
+        public boolean hasMethodArgument(String name) {
+            return methodArguments.containsKey(name);
+        }
+
+        @Override
+        public boolean hasMethodArgument(String name, Class<?> isOfType) {
+            Pair<Object, Class<?>> registeredPair = methodArguments.get(name);
+            return registeredPair != null && isOfType.isAssignableFrom(registeredPair.getB());
+        }
+
+        @Override
+        public <T> T callReflectiveMethod(Object object, String methodName, Class<?>[] argumentTypes, Object[] arguments, Class<T> returnType) {
+            try {
+                Method method = ReflectUtils.getMethod(object.getClass(), methodName, argumentTypes);
+                if (method == null) {
+                    throw new ModCompatibilityException(String.format(
+                            "Required methodName '%s' was not found in %s. " +
+                                    "The core UI code may have been refactored or renamed.",
+                            methodName, targetInstance.getClass().getSimpleName()
+                    ));
+                }
+                if (!returnType.isAssignableFrom(method.getReturnType())) {
+                    throw new ModCompatibilityException(String.format(
+                            "Method '%s' in %s is of return type %s, but extension expected %s.",
+                            methodName, targetInstance.getClass().getSimpleName(),
+                            method.getReturnType().getName(), returnType.getName()
+                    ));
+                }
+                try {
+                    return (T) method.invoke(object, arguments);
+                } catch (Throwable e) {
+                    throw new ModCompatibilityException(String.format("Method %s.%s threw an exception",
+                            targetInstance.getClass().getSimpleName(), methodName), e);
+                }
+            } catch (ModCompatibilityException e) {
+                throw e;
+            } catch (Throwable t) {
+                throw new ModCompatibilityException(String.format(
+                        "Required methodName '%s' was not found in %s. " +
+                                "The core UI code may have been refactored or renamed.",
+                        methodName, targetInstance.getClass().getSimpleName()
+                ));
+            }
+        }
+
         @SuppressWarnings("unchecked")
         @Override
         public <T> T getReflectiveFieldValue(Object object, String field, Class<T> fieldReturnType) {
             try {
                 Field f = ReflectUtils.getField(object.getClass(), field);
+                if (f == null) {
+                    throw new ModCompatibilityException(String.format(
+                            "Required field '%s' was not found in %s. " +
+                                    "The core UI code may have been refactored or renamed.",
+                            field, targetInstance.getClass().getSimpleName()
+                    ));
+                }
                 if (!fieldReturnType.isAssignableFrom(f.getType())) {
                     throw new ModCompatibilityException(String.format(
                             "Field '%s' in %s is of type %s, but extension expected %s.",
@@ -143,8 +231,9 @@ public class ExtensionServiceImpl implements ExtensionService {
                             f.getType().getName(), fieldReturnType.getName()
                     ));
                 }
-                f.setAccessible(true);
                 return (T) f.get(object);
+            } catch (ModCompatibilityException e) {
+                throw e;
             } catch (Throwable t) {
                 throw new ModCompatibilityException(String.format(
                         "Required field '%s' was not found in %s. " +
@@ -158,6 +247,13 @@ public class ExtensionServiceImpl implements ExtensionService {
         public <T> void setReflectiveFieldValue(Object object, String field, T value, Class<T> fieldReturnType) {
             try {
                 Field f = ReflectUtils.getField(object.getClass(), field);
+                if (f == null) {
+                    throw new ModCompatibilityException(String.format(
+                            "Required field '%s' was not found in %s. " +
+                                    "The core UI code may have been refactored or renamed.",
+                            field, targetInstance.getClass().getSimpleName()
+                    ));
+                }
                 if (!fieldReturnType.isAssignableFrom(f.getType())) {
                     throw new ModCompatibilityException(String.format(
                             "Field '%s' in %s is of type %s, but extension expected %s.",
@@ -165,7 +261,6 @@ public class ExtensionServiceImpl implements ExtensionService {
                             f.getType().getName(), fieldReturnType.getName()
                     ));
                 }
-                f.setAccessible(true);
                 f.set(object, value);
             } catch (Throwable t) {
                 throw new ModCompatibilityException(String.format(
@@ -180,6 +275,10 @@ public class ExtensionServiceImpl implements ExtensionService {
     private static class ModCompatibilityException extends RuntimeException {
         public ModCompatibilityException(String text) {
             super(text);
+        }
+
+        public ModCompatibilityException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

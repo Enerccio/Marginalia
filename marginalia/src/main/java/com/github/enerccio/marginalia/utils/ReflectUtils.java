@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.utils;
 
+import com.github.enerccio.tools.Pair;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -8,9 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ReflectUtils {
 
+    private static final Map<Class<?>, Map<Pair<String, List<Class<?>>>, Method>> methodCache = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Map<String, Field>> fieldCache = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Map<Class<? extends Annotation>, List<Field>>> fieldAnnotCache = new ConcurrentHashMap<>();
-    private static final Map<Class<?>, Map<Class<? extends Annotation>, List<Method>>> methodCache = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Map<Class<? extends Annotation>, List<Method>>> methodAnnotCache = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Map<Class<?>, List<Field>>> fieldTypeCache = new ConcurrentHashMap<>();
 
     public static List<Field> getAnnotatedFields(Class<?> clazz, Class<? extends Annotation> annotation) {
@@ -40,8 +43,8 @@ public class ReflectUtils {
     public static List<Method> getAnnotatedMethods(Class<?> clazz, Class<? extends Annotation> annotation) {
         if (clazz == null || annotation == null)
             return Collections.emptyList();
-        if (methodCache.containsKey(clazz) && methodCache.get(clazz).containsKey(annotation)) {
-            return methodCache.get(clazz).get(annotation);
+        if (methodAnnotCache.containsKey(clazz) && methodAnnotCache.get(clazz).containsKey(annotation)) {
+            return methodAnnotCache.get(clazz).get(annotation);
         }
 
         List<Method> methods = new ArrayList<>();
@@ -56,7 +59,7 @@ public class ReflectUtils {
         if (clazz.getSuperclass() != null)
             methods.addAll(getAnnotatedMethods(clazz.getSuperclass(), annotation));
 
-        methodCache.computeIfAbsent(clazz, cls -> new HashMap<>())
+        methodAnnotCache.computeIfAbsent(clazz, cls -> new HashMap<>())
                 .put(annotation, methods);
 
         return methods;
@@ -104,20 +107,6 @@ public class ReflectUtils {
         }
     }
 
-    public static Field getField(Object object, Class<?> clazz, String fieldName) throws Exception {
-        try {
-            Field f = clazz.getDeclaredField(fieldName);
-
-            return  f;
-        }
-        catch (NoSuchFieldException e) {
-            if (clazz.getSuperclass() != null)
-                return getField(object, clazz.getSuperclass(), fieldName);
-            else
-                throw e;
-        }
-    }
-
     public static Field getField(Class<?> clazz, String fieldName) throws Exception {
         if (clazz == null)
             return null;
@@ -141,7 +130,7 @@ public class ReflectUtils {
     }
 
     public static void setFieldValue(Object object, Class<?> clazz, String fieldName, Object fieldValue) throws Exception {
-        Field f = getField(object, clazz, fieldName);
+        Field f = getField(clazz, fieldName);
 
         f.setAccessible(true);
         f.set(object, fieldValue);
@@ -211,5 +200,29 @@ public class ReflectUtils {
                 .put(type, fieldsInstanceOf);
 
         return fieldsInstanceOf;
+    }
+
+    public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] methodArguments) throws Exception {
+        if (clazz == null)
+            return null;
+        Pair<String, List<Class<?>>> key = Pair.of(methodName, List.of(methodArguments));
+        if (methodCache.containsKey(clazz) && methodCache.get(clazz).containsKey(key)) {
+            return methodCache.get(clazz).get(key);
+        }
+
+        Map<Pair<String, List<Class<?>>>, Method> methods = new HashMap<>();
+
+        Class<?> p = clazz;
+        while (p != null) {
+            for (Method method : p.getDeclaredMethods()) {
+                method.setAccessible(true);
+                methods.put(Pair.of(method.getName(), List.of(method.getParameterTypes())), method);
+            }
+            p = p.getSuperclass();
+        }
+
+        methodCache.put(clazz, methods);
+
+        return methodCache.get(clazz).get(key);
     }
 }

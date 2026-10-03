@@ -30,12 +30,13 @@ public class RuntimeInstrumentationInitializer implements InitializingBean {
                                                 .and(ElementMatchers.not(ElementMatchers.isSynthetic()))
                                                 .and(ElementMatchers.not(ElementMatchers.isStatic())),
                                         (instrumentedType, instrumentedMethod, methodVisitor, implementationContext, typePool, writerFlags, readerFlags) ->
-                                                new LocalVarTrackingMethodVisitor(
+                                                new ExtendableMethodVisitor(
                                                         Opcodes.ASM9,
                                                         methodVisitor,
                                                         instrumentedMethod.getStackSize(),
                                                         instrumentedType.getInternalName(),
-                                                        instrumentedMethod.getName()
+                                                        instrumentedMethod.getName(),
+                                                        instrumentedMethod.getDescriptor()
                                                 )
                                 )
                         ))
