@@ -119,6 +119,7 @@ public class ReflectUtils {
         Class<?> p = clazz;
         while (p != null) {
             for (Field field : p.getDeclaredFields()) {
+                field.setAccessible(true);
                 fields.put(field.getName(), field);
             }
             p = p.getSuperclass();
