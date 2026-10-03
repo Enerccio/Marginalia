@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
+@Extendable
 public class LorebookPart implements WorkspaceComponent {
 
     @Autowired

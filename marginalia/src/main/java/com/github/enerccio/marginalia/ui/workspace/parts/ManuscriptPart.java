@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
@@ -31,6 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Configurable
+@Extendable
 public class ManuscriptPart implements WorkspaceComponent {
 
     @Autowired

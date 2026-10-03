@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.List;
 
 @Configurable
+@Extendable
 public class AIDialog extends Dialog {
     private static final Gson gson = new GsonBuilder().create();
 

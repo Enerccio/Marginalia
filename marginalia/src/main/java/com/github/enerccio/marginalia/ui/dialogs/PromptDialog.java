@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.Gson;
@@ -20,6 +21,7 @@ import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
 @Configurable
+@Extendable
 public class PromptDialog extends Dialog {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();

@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.ProtocolType;
 import com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
+@Extendable
 public class ProtocolDialog extends Dialog {
 
     @Autowired

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.DomEvent;
@@ -14,6 +15,7 @@ import com.vaadin.flow.shared.Registration;
 @NpmPackage(value = "treant-js", version = "^1.0.1")
 @CssImport("treant-js/Treant.css")
 @JsModule("./treant-connector.js")
+@Extendable
 public class TreantTree extends Div {
 
     public void setTreeConfig(String jsonConfig) {

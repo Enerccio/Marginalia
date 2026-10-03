@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
@@ -29,6 +30,7 @@ import java.io.File;
 import java.util.List;
 
 @Configurable
+@Extendable
 public class AdminPart implements WorkspaceComponent {
 
     private static final Logger log = LoggerFactory.getLogger(AdminPart.class);
