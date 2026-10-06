@@ -20,6 +20,7 @@ public interface BackupService {
     class ManuscriptBackup {
 
         private transient String file;
+        private transient boolean loaded = false;
 
         private String manuscriptName;
         private Date backupCreationDate;
@@ -74,6 +75,14 @@ public interface BackupService {
 
         public void setFile(String file) {
             this.file = file;
+        }
+
+        public boolean isLoaded() {
+            return loaded;
+        }
+
+        public void setLoaded(boolean loaded) {
+            this.loaded = loaded;
         }
     }
 

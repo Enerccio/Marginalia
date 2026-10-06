@@ -8,13 +8,19 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -66,6 +72,7 @@ public class BackupServiceImpl implements BackupService {
         }
 
         backup.setBackup(backupJson);
+        backup.setLoaded(true);
 
         File backupFile = createBackupFileHandle(folder, backup.getBackupCreationDate());
         FileUtils.writeStringToFile(backupFile, gson.toJson(backup), StandardCharsets.UTF_8);
@@ -82,15 +89,9 @@ public class BackupServiceImpl implements BackupService {
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
         if (files != null) {
             for (File file : files) {
-                try {
-                    String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-                    ManuscriptBackup backup = gson.fromJson(content, ManuscriptBackup.class);
-                    if (backup != null) {
-                        backup.setFile(file.getAbsolutePath());
-                        backups.add(backup);
-                    }
-                } catch (Exception ignored) {
-                    // Skip corrupt or unparseable backup files during directory scan
+                ManuscriptBackup backup = parseMetadataOnly(file);
+                if (backup != null) {
+                    backups.add(backup);
                 }
             }
         }
@@ -101,7 +102,13 @@ public class BackupServiceImpl implements BackupService {
 
     @Override
     public Manuscript applyBackup(Manuscript manuscript, ManuscriptBackup backup, boolean messagesOnly) throws Exception {
-        if (manuscript == null || backup == null || backup.getBackup() == null) {
+        if (manuscript == null || backup == null) {
+            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
+        }
+
+        ensureLoaded(backup);
+
+        if (backup.getBackup() == null) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
         }
 
@@ -161,7 +168,7 @@ public class BackupServiceImpl implements BackupService {
         if (backup.getManuscriptName() == null) {
             if (hasName) {
                 backup.setManuscriptName(innerBackup.get("name").getAsString());
-            } else if (manuscript != null && manuscript.getName() != null) {
+            } else if (manuscript.getName() != null) {
                 backup.setManuscriptName(manuscript.getName());
             } else {
                 backup.setManuscriptName("Imported Backup");
@@ -175,7 +182,7 @@ public class BackupServiceImpl implements BackupService {
         if (backup.getOwnerName() == null) {
             if (currentUser != null && currentUser.getLogin() != null) {
                 backup.setOwnerName(currentUser.getLogin());
-            } else if (manuscript != null && manuscript.getOwner() != null) {
+            } else if (manuscript.getOwner() != null) {
                 backup.setOwnerName(manuscript.getOwner().getLogin());
             }
         }
@@ -183,6 +190,8 @@ public class BackupServiceImpl implements BackupService {
         if (backup.getTotalMessagesCount() <= 0 && hasMessages) {
             backup.setTotalMessagesCount(countMessages(innerBackup.getAsJsonArray("messages")));
         }
+
+        backup.setLoaded(true);
 
         File backupFile = createBackupFileHandle(folder, backup.getBackupCreationDate());
         FileUtils.writeStringToFile(backupFile, gson.toJson(backup), StandardCharsets.UTF_8);
@@ -229,8 +238,14 @@ public class BackupServiceImpl implements BackupService {
 
     @Override
     public Manuscript cloneBackup(ManuscriptBackup backup, String newName) throws Exception {
+        if (backup == null) {
+            throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
+        }
+
+        ensureLoaded(backup);
+
         JsonObject backupObj = backup.getBackup();
-        if (backupObj.has("backup") && backupObj.get("backup").isJsonObject()) {
+        if (backupObj != null && backupObj.has("backup") && backupObj.get("backup").isJsonObject()) {
             backupObj = backupObj.getAsJsonObject("backup");
         }
         Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj);
@@ -243,7 +258,98 @@ public class BackupServiceImpl implements BackupService {
 
     @Override
     public String serializeBackup(ManuscriptBackup backup) throws Exception {
+        if (backup != null) {
+            ensureLoaded(backup);
+        }
         return gson.toJson(backup);
+    }
+
+    /**
+     * Lazy-loads the full backup JsonObject from disk if it hasn't been loaded yet.
+     */
+    private void ensureLoaded(ManuscriptBackup backup) throws Exception {
+        if (backup == null || backup.isLoaded() || backup.getBackup() != null) {
+            return;
+        }
+
+        if (backup.getFile() == null) {
+            return;
+        }
+
+        File file = new File(backup.getFile());
+        if (!file.exists()) {
+            return;
+        }
+
+        try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+            JsonObject rootObj = JsonParser.parseReader(reader).getAsJsonObject();
+            if (rootObj.has("backup") && rootObj.get("backup").isJsonObject()) {
+                backup.setBackup(rootObj.getAsJsonObject("backup"));
+            } else {
+                backup.setBackup(rootObj);
+            }
+            backup.setLoaded(true);
+        }
+    }
+
+    /**
+     * Streams only metadata fields from JSON file, skipping the heavy 'backup' tree using JsonReader.skipValue().
+     */
+    private ManuscriptBackup parseMetadataOnly(File file) {
+        try (InputStream is = Files.newInputStream(file.toPath());
+             InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+             JsonReader reader = new JsonReader(isr)) {
+
+            ManuscriptBackup backup = new ManuscriptBackup();
+            backup.setFile(file.getAbsolutePath());
+            backup.setLoaded(false);
+
+            reader.beginObject();
+            while (reader.hasNext()) {
+                String name = reader.nextName();
+                switch (name) {
+                    case "manuscriptName":
+                        if (reader.peek() != JsonToken.NULL) {
+                            backup.setManuscriptName(reader.nextString());
+                        } else {
+                            reader.nextNull();
+                        }
+                        break;
+                    case "ownerName":
+                        if (reader.peek() != JsonToken.NULL) {
+                            backup.setOwnerName(reader.nextString());
+                        } else {
+                            reader.nextNull();
+                        }
+                        break;
+                    case "totalMessagesCount":
+                        if (reader.peek() != JsonToken.NULL) {
+                            backup.setTotalMessagesCount(reader.nextInt());
+                        } else {
+                            reader.nextNull();
+                        }
+                        break;
+                    case "backupCreationDate":
+                        if (reader.peek() != JsonToken.NULL) {
+                            backup.setBackupCreationDate(gson.fromJson(reader, Date.class));
+                        } else {
+                            reader.nextNull();
+                        }
+                        break;
+                    case "backup":
+                        reader.skipValue(); // Fast-forwards stream past huge subtree with 0 allocations
+                        break;
+                    default:
+                        reader.skipValue();
+                        break;
+                }
+            }
+            reader.endObject();
+            return backup;
+        } catch (Exception e) {
+            // Skip corrupt or unparseable files
+            return null;
+        }
     }
 
     private synchronized File getManuscriptBackupFolder(Manuscript manuscript) {
