@@ -248,7 +248,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         }
 
         String summaryPrompt = summaryField.getValue();
-        if (StringUtils.isNotBlank(userPrompt)) {
+        if (StringUtils.isNotBlank(summaryPrompt)) {
             try {
                 TemplateService.ValidationResult result = templateService.isValidTemplate(summaryPrompt, "summaryPrompt");
                 if (!result.isValid()) {
@@ -272,7 +272,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             manuscript.setTense(tenseField.getValue());
             manuscript.setStyle(styleField.getValue());
             manuscript.setUserPrompt(userPrompt);
-            manuscript.setUserPrompt(summaryPrompt);
+            manuscript.setSummaryPrompt(summaryPrompt);
 
             parent.save();
         } catch (Exception e) {
