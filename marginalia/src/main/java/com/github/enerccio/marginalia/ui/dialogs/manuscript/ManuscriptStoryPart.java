@@ -72,6 +72,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @Autowired
     private BackupService backupService;
 
+    @Autowired
+    private InferenceServices inferenceServices;
+
     private final ManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
 
@@ -1305,22 +1308,24 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         public void autosaveAndSwapToMarkdown() {
             if (editing) {
-                String newResponse = responseTextArea.getValue();
-                message.setResponse(newResponse);
-                message.setEdited(true);
                 try {
+                    InferenceService inferenceService = inferenceServices.forAI(currentManuscript.getAi());
+                    String newResponse = responseTextArea.getValue();
+                    message.setResponse(newResponse);
+                    message.setTokenCount(inferenceService.countTokens(newResponse));
+                    message.setEdited(true);
                     message = chatMessageService.save(message);
+                    responseMarkdown.setContent(StringUtils.defaultString(newResponse));
+                    responseTextArea.setVisible(false);
+                    responseMarkdown.setVisible(true);
+                    editing = false;
+                    editItem.setText(loc.getValue(L.LABEL_EDIT));
+                    updateMetrics(message);
+                    if (currentPanelWidth > 0) {
+                        updateIntrinsicSizeEstimate(currentPanelWidth);
+                    }
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
-                }
-                responseMarkdown.setContent(StringUtils.defaultString(newResponse));
-                responseTextArea.setVisible(false);
-                responseMarkdown.setVisible(true);
-                editing = false;
-                editItem.setText(loc.getValue(L.LABEL_EDIT));
-                updateMetrics(message);
-                if (currentPanelWidth > 0) {
-                    updateIntrinsicSizeEstimate(currentPanelWidth);
                 }
             }
         }
