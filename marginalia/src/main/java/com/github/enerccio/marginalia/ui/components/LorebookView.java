@@ -99,8 +99,10 @@ public class LorebookView extends VerticalLayout {
         lorebookCombo.setWidth("280px");
         lorebookCombo.setVisible(!pinnedLorebook);
         lorebookCombo.addValueChangeListener(event -> {
-            currentLorebook = event.getValue();
-            updateSelectedLorebook();
+            if (event.isFromClient()) {
+                currentLorebook = event.getValue();
+                updateSelectedLorebook();
+            }
         });
 
         addLorebookButton = new Button(loc.getValue(L.LABEL_ADD_LOREBOOK), Solid.PLUS_CIRCLE.create(),event -> createNewLorebook());
