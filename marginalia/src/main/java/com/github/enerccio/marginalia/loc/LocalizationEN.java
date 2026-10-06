@@ -235,7 +235,7 @@ public class LocalizationEN extends LocalizationBase {
 
     @Override
     public DateFormat getDateFormat() {
-        return new SimpleDateFormat("MM.dd.yyyy");
+        return new SimpleDateFormat("MM/dd/yyyy");
     }
 
     @Override
@@ -245,6 +245,6 @@ public class LocalizationEN extends LocalizationBase {
 
     @Override
     public DateFormat getDateHourFormat() {
-        return new SimpleDateFormat("MM.dd.yyyy HH:mm:ss");
+        return new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
     }
 }
