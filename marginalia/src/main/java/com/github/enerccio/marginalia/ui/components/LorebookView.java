@@ -353,82 +353,84 @@ public class LorebookView extends VerticalLayout {
             return actions;
         }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
 
-        grid.setItemDetailsRenderer(new ComponentRenderer<>(entry -> {
-            VerticalLayout detailsLayout = new VerticalLayout();
-            detailsLayout.setWidthFull();
-            detailsLayout.setPadding(true);
-            detailsLayout.setSpacing(true);
-            detailsLayout.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
-            detailsLayout.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
+        grid.setItemDetailsRenderer(new ComponentRenderer<>(this::createEntryDetailLayout));
+    }
 
-            TextArea payloadField = new TextArea(loc.getValue(L.LABEL_CONTENT));
-            payloadField.setWidthFull();
-            payloadField.setMinHeight("100px");
-            payloadField.setValue(StringUtils.defaultString(entry.getPayload()));
-            payloadField.addValueChangeListener(e -> {
-                if (e.isFromClient()) {
-                    entry.setPayload(e.getValue());
-                    saveEntry(entry);
-                }
-            });
+    public Component createEntryDetailLayout(LorebookEntry entry) {
+        VerticalLayout detailsLayout = new VerticalLayout();
+        detailsLayout.setWidthFull();
+        detailsLayout.setPadding(true);
+        detailsLayout.setSpacing(true);
+        detailsLayout.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
+        detailsLayout.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
 
-            FormLayout settingsForm = new FormLayout();
-            settingsForm.setWidthFull();
+        TextArea payloadField = new TextArea(loc.getValue(L.LABEL_CONTENT));
+        payloadField.setWidthFull();
+        payloadField.setMinHeight("100px");
+        payloadField.setValue(StringUtils.defaultString(entry.getPayload()));
+        payloadField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setPayload(e.getValue());
+                saveEntry(entry);
+            }
+        });
 
-            ComboBox<FilteringMode> filteringModeCombo = new ComboBox<>(loc.getValue(L.LABEL_FILTERING_MODE));
-            filteringModeCombo.setItems(FilteringMode.values());
-            filteringModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getFilteringMode(mode)));
-            filteringModeCombo.setValue(entry.getFilteringMode());
-            filteringModeCombo.setWidthFull();
-            filteringModeCombo.addValueChangeListener(e -> {
-                if (e.isFromClient()) {
-                    entry.setFilteringMode(e.getValue());
-                    saveEntry(entry);
-                }
-            });
+        FormLayout settingsForm = new FormLayout();
+        settingsForm.setWidthFull();
 
-            TextField filteringField = new TextField(loc.getValue(L.LABEL_FILTERING));
-            filteringField.setWidthFull();
-            filteringField.setValue(StringUtils.defaultString(entry.getFiltering()));
-            filteringField.addValueChangeListener(e -> {
-                if (e.isFromClient()) {
-                    entry.setFiltering(e.getValue());
-                    saveEntry(entry);
-                }
-            });
+        ComboBox<FilteringMode> filteringModeCombo = new ComboBox<>(loc.getValue(L.LABEL_FILTERING_MODE));
+        filteringModeCombo.setItems(FilteringMode.values());
+        filteringModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getFilteringMode(mode)));
+        filteringModeCombo.setValue(entry.getFilteringMode());
+        filteringModeCombo.setWidthFull();
+        filteringModeCombo.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setFilteringMode(e.getValue());
+                saveEntry(entry);
+            }
+        });
 
-            ComboBox<InsertionMode> insertionModeCombo = new ComboBox<>(loc.getValue(L.LABEL_INSERTION_MODE));
-            insertionModeCombo.setItems(InsertionMode.values());
-            insertionModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getInsertionMode(mode)));
-            insertionModeCombo.setValue(entry.getInsertionMode());
-            insertionModeCombo.setWidthFull();
-            insertionModeCombo.addValueChangeListener(e -> {
-                if (e.isFromClient()) {
-                    entry.setInsertionMode(e.getValue());
-                    saveEntry(entry);
-                }
-            });
+        TextField filteringField = new TextField(loc.getValue(L.LABEL_FILTERING));
+        filteringField.setWidthFull();
+        filteringField.setValue(StringUtils.defaultString(entry.getFiltering()));
+        filteringField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setFiltering(e.getValue());
+                saveEntry(entry);
+            }
+        });
 
-            settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo);
+        ComboBox<InsertionMode> insertionModeCombo = new ComboBox<>(loc.getValue(L.LABEL_INSERTION_MODE));
+        insertionModeCombo.setItems(InsertionMode.values());
+        insertionModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getInsertionMode(mode)));
+        insertionModeCombo.setValue(entry.getInsertionMode());
+        insertionModeCombo.setWidthFull();
+        insertionModeCombo.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setInsertionMode(e.getValue());
+                saveEntry(entry);
+            }
+        });
 
-            TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_NEGATIVE_TAGS), true);
-            negativeTagCombo.setWidthFull();
-            negativeTagCombo.setForEntity(entry, true);
+        settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo);
 
-            TextArea commentField = new TextArea(loc.getValue(L.LABEL_NOTE));
-            commentField.setWidthFull();
-            commentField.setMinHeight("60px");
-            commentField.setValue(StringUtils.defaultString(entry.getComment()));
-            commentField.addValueChangeListener(e -> {
-                if (e.isFromClient()) {
-                    entry.setComment(e.getValue());
-                    saveEntry(entry);
-                }
-            });
+        TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_NEGATIVE_TAGS), true);
+        negativeTagCombo.setWidthFull();
+        negativeTagCombo.setForEntity(entry, true);
 
-            detailsLayout.add(payloadField, settingsForm, negativeTagCombo, commentField);
-            return detailsLayout;
-        }));
+        TextArea commentField = new TextArea(loc.getValue(L.LABEL_NOTE));
+        commentField.setWidthFull();
+        commentField.setMinHeight("60px");
+        commentField.setValue(StringUtils.defaultString(entry.getComment()));
+        commentField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setComment(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        detailsLayout.add(payloadField, settingsForm, negativeTagCombo, commentField);
+        return detailsLayout;
     }
 
     public void refresh() throws Exception {
