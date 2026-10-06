@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
+import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
@@ -34,6 +36,18 @@ public class LorebookEntry extends ExtendableEntity {
 
     @Transient
     private List<String> cachedNegativeTags = new ArrayList<>();
+
+    @Transient
+    @ExtendedAttribute
+    private String filtering;
+
+    @Transient
+    @ExtendedAttribute
+    private FilteringMode filteringMode = FilteringMode.TEXT;
+
+    @Transient
+    @ExtendedAttribute
+    private InsertionMode insertionMode= InsertionMode.IN_LORE_BLOCK;
 
     public Lorebook getLorebook() {
         return lorebook;
@@ -97,6 +111,30 @@ public class LorebookEntry extends ExtendableEntity {
 
     public void setCachedNegativeTags(List<String> cachedNegativeTags) {
         this.cachedNegativeTags = cachedNegativeTags;
+    }
+
+    public String getFiltering() {
+        return filtering;
+    }
+
+    public void setFiltering(String filtering) {
+        this.filtering = filtering;
+    }
+
+    public FilteringMode getFilteringMode() {
+        return filteringMode;
+    }
+
+    public void setFilteringMode(FilteringMode filteringMode) {
+        this.filteringMode = filteringMode;
+    }
+
+    public InsertionMode getInsertionMode() {
+        return insertionMode;
+    }
+
+    public void setInsertionMode(InsertionMode insertionMode) {
+        this.insertionMode = insertionMode;
     }
 
     @Override

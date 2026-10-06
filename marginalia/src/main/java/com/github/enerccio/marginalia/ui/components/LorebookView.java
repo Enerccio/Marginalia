@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.ui.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
+import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -21,6 +23,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -367,6 +370,45 @@ public class LorebookView extends VerticalLayout {
                 }
             });
 
+            FormLayout settingsForm = new FormLayout();
+            settingsForm.setWidthFull();
+
+            ComboBox<FilteringMode> filteringModeCombo = new ComboBox<>(loc.getValue(L.LABEL_FILTERING_MODE));
+            filteringModeCombo.setItems(FilteringMode.values());
+            filteringModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getFilteringMode(mode)));
+            filteringModeCombo.setValue(entry.getFilteringMode());
+            filteringModeCombo.setWidthFull();
+            filteringModeCombo.addValueChangeListener(e -> {
+                if (e.isFromClient()) {
+                    entry.setFilteringMode(e.getValue());
+                    saveEntry(entry);
+                }
+            });
+
+            TextField filteringField = new TextField(loc.getValue(L.LABEL_FILTERING));
+            filteringField.setWidthFull();
+            filteringField.setValue(StringUtils.defaultString(entry.getFiltering()));
+            filteringField.addValueChangeListener(e -> {
+                if (e.isFromClient()) {
+                    entry.setFiltering(e.getValue());
+                    saveEntry(entry);
+                }
+            });
+
+            ComboBox<InsertionMode> insertionModeCombo = new ComboBox<>(loc.getValue(L.LABEL_INSERTION_MODE));
+            insertionModeCombo.setItems(InsertionMode.values());
+            insertionModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getInsertionMode(mode)));
+            insertionModeCombo.setValue(entry.getInsertionMode());
+            insertionModeCombo.setWidthFull();
+            insertionModeCombo.addValueChangeListener(e -> {
+                if (e.isFromClient()) {
+                    entry.setInsertionMode(e.getValue());
+                    saveEntry(entry);
+                }
+            });
+
+            settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo);
+
             TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_NEGATIVE_TAGS), true);
             negativeTagCombo.setWidthFull();
             negativeTagCombo.setForEntity(entry, true);
@@ -382,7 +424,7 @@ public class LorebookView extends VerticalLayout {
                 }
             });
 
-            detailsLayout.add(payloadField, negativeTagCombo, commentField);
+            detailsLayout.add(payloadField, settingsForm, negativeTagCombo, commentField);
             return detailsLayout;
         }));
     }

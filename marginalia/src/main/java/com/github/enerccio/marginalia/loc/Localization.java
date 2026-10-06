@@ -1,8 +1,6 @@
 package com.github.enerccio.marginalia.loc;
 
-import com.github.enerccio.marginalia.domain.collections.AIType;
-import com.github.enerccio.marginalia.domain.collections.ProtocolType;
-import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
+import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 
 import java.text.DateFormat;
@@ -25,4 +23,6 @@ public interface Localization {
     L getProtocolType(ProtocolType t);
     L getReasoningEffort(ReasoningEffort t);
     L getBackupStrategy(BackupStrategy t);
+    L getFilteringMode(FilteringMode t);
+    L getInsertionMode(InsertionMode t);
 }

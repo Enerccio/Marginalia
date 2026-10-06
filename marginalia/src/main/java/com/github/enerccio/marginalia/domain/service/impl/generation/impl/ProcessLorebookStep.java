@@ -1,19 +1,24 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
+import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
-import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
+import com.vaadin.copilot.shaded.commons.lang3.Strings;
 import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class ProcessLorebookStep extends GenerationStepBase {
     private static final Logger log = LoggerFactory.getLogger(ProcessLorebookStep.class);
@@ -89,6 +94,8 @@ public class ProcessLorebookStep extends GenerationStepBase {
                                 log.debug("Entry {} not added because negative tags {} matches book tags {}.", entry.getName(), entry.getCachedNegativeTags(), manuscriptTags);
                             } else if (!entry.getCachedTags().isEmpty() && !hasPositiveTags(entry.getCachedTags(), manuscriptTags)) {
                                 log.debug("Entry {} not added because tags {} defined and not match book tags {}.", entry.getName(), entry.getCachedTags(), manuscriptTags);
+                            } else if (StringUtils.isNotBlank(entry.getFiltering()) && !promptMatches(entry, controller.getPrePromptData().getUserPromptProcessed())) {
+                                log.debug("Entry {} not added because it does not match filtering ({}, {})", entry.getName(), entry.getFiltering(), entry.getFilteringMode());
                             } else {
                                 log.debug("Entry {} added to activated entries.", entry.getName());
                                 activatedEntries.add(entry);
@@ -100,14 +107,27 @@ public class ProcessLorebookStep extends GenerationStepBase {
                         controller.emitEvent(Events.PROCESS_ACTIVATED_ENTRIES, () -> {
                             List<LorebookEntry> finalActivatedEntries = (List<LorebookEntry>) controller.getProperties().get(ACTIVATED_LOREBOOK_ENTRIES);
                             StringBuilder builder = new StringBuilder();
+                            StringBuilder builderUserPrompt = new StringBuilder();
                             for (LorebookEntry entry : finalActivatedEntries) {
-                                builder.append(entry.getPayload());
-                                builder.append("\n\n");
+                                if (entry.getInsertionMode() == InsertionMode.IN_LORE_BLOCK) {
+                                    builder.append(entry.getPayload());
+                                    builder.append("\n\n");
+                                } else {
+                                    builderUserPrompt.append(entry.getPayload());
+                                    builderUserPrompt.append("\n\n");
+                                }
                             }
                             String lorebookContent = builder.toString().trim();
-                            log.debug("Final lorebook content: {}", lorebookContent);
+                            String lorebookUserContent = builderUserPrompt.toString().trim();
+                            log.debug("Final lorebook content: {}, {}", lorebookContent, lorebookUserContent);
                             controller.getPrePromptData().setBackgroundLore(lorebookContent);
                             controller.getPrePromptData().setBackgroundLoreTokens(inferenceService.countTokens(lorebookContent));
+                            controller.getPrePromptData().setBackgroundUserLore(lorebookUserContent);
+                            controller.getPrePromptData().setBackgroundUserLoreTokens(inferenceService.countTokens(lorebookUserContent));
+                            if (StringUtils.isNotBlank(controller.getPrePromptData().getBackgroundUserLore())) {
+                                controller.getPrePromptData().setUserPromptProcessed(controller.getPrePromptData().getBackgroundUserLore() + "\n\n" + controller.getPrePromptData().getUserPromptProcessed());
+                                controller.getPrePromptData().setUserPromptProcessedTokens(controller.getPrePromptData().getBackgroundUserLoreTokens() + controller.getPrePromptData().getUserPromptProcessedTokens());
+                            }
                             controller.emitEvent(Events.AFTER_PROCESS_LOREBOOK, controller::next);
                         });
                     });
@@ -116,6 +136,30 @@ public class ProcessLorebookStep extends GenerationStepBase {
                 controller.emitEvent(Events.AFTER_PROCESS_LOREBOOK, controller::next);
             }
         });
+    }
+
+    private boolean promptMatches(LorebookEntry entry, String textToSearch) {
+        if (StringUtils.isBlank(entry.getFiltering())) {
+            return true;
+        }
+
+        String content = Objects.toString(textToSearch, "");
+
+        if (entry.getFilteringMode() == FilteringMode.TEXT) {
+            return Strings.CI.contains(content, entry.getFiltering());
+        } else {
+            try {
+                Pattern pattern = Pattern.compile(
+                        entry.getFiltering(),
+                        Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.DOTALL
+                );
+                return pattern.matcher(content).find();
+            } catch (PatternSyntaxException e) {
+                log.warn("Invalid regex pattern '{}' in lorebook entry '{}': {}",
+                        entry.getFiltering(), entry.getName(), e.getMessage());
+                return false;
+            }
+        }
     }
 
     private boolean hasNegativeTag(List<String> cachedNegativeTags, List<String> manuscriptTags) {

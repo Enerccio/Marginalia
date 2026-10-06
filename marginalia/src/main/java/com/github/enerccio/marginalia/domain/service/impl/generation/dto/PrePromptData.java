@@ -8,6 +8,8 @@ public class PrePromptData {
     private long jailbreakTokens;
     private String backgroundLore;
     private long backgroundLoreTokens;
+    private String backgroundUserLore;
+    private long backgroundUserLoreTokens;
     private String generalTemplate;
     private String pov;
     private String style;
@@ -129,5 +131,21 @@ public class PrePromptData {
 
     public void setUserPromptProcessedTokens(long userPromptProcessedTokens) {
         this.userPromptProcessedTokens = userPromptProcessedTokens;
+    }
+
+    public String getBackgroundUserLore() {
+        return backgroundUserLore;
+    }
+
+    public void setBackgroundUserLore(String backgroundUserLore) {
+        this.backgroundUserLore = backgroundUserLore;
+    }
+
+    public long getBackgroundUserLoreTokens() {
+        return backgroundUserLoreTokens;
+    }
+
+    public void setBackgroundUserLoreTokens(long backgroundUserLoreTokens) {
+        this.backgroundUserLoreTokens = backgroundUserLoreTokens;
     }
 }

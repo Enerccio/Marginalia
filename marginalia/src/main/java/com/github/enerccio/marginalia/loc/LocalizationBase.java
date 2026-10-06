@@ -1,9 +1,7 @@
 package com.github.enerccio.marginalia.loc;
 
 
-import com.github.enerccio.marginalia.domain.collections.AIType;
-import com.github.enerccio.marginalia.domain.collections.ProtocolType;
-import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
+import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +23,8 @@ public abstract class LocalizationBase implements Localization {
     private final Map<ProtocolType, L> protocolTypes = new HashMap<>();
     private final Map<ReasoningEffort, L> reasoningEfforts = new HashMap<>();
     private final Map<BackupStrategy, L> backupStrategies = new HashMap<>();
+    private final Map<FilteringMode, L> filteringModes = new HashMap<>();
+    private final Map<InsertionMode, L> insertionModes = new HashMap<>();
 
     protected abstract void loadMessages();
 
@@ -48,6 +48,12 @@ public abstract class LocalizationBase implements Localization {
         backupStrategies.put(BackupStrategy.DISABLED, L.ENUM_BACKUP_STRATEGY_NONE);
         backupStrategies.put(BackupStrategy.AFTER_N_MESSAGES, L.ENUM_BACKUP_STRATEGY_AFTER_N_MESSAGES);
         backupStrategies.put(BackupStrategy.AFTER_N_MINUTES, L.ENUM_BACKUP_STRATEGY_AFTER_N_MINUTES);
+
+        filteringModes.put(FilteringMode.TEXT, L.ENUM_FILTERING_MODE_TEXT);
+        filteringModes.put(FilteringMode.REGEX, L.ENUM_FILTERING_MODE_REGEX);
+
+        insertionModes.put(InsertionMode.IN_LORE_BLOCK, L.ENUM_INSERTION_MODE_IN_LORE_BLOCK);
+        insertionModes.put(InsertionMode.BEFORE_USER_PROMPT, L.ENUM_INSERTION_MODE_BEFORE_USER_PROMPT);
     }
 
     protected void checkLocalization() {
@@ -140,8 +146,8 @@ public abstract class LocalizationBase implements Localization {
     }
 
     @Override
-    public L getAIType(AIType aiType) {
-        return aiTypes.get(aiType);
+    public L getAIType(AIType type) {
+        return aiTypes.get(type);
     }
 
     @Override
@@ -156,5 +162,15 @@ public abstract class LocalizationBase implements Localization {
     @Override
     public L getBackupStrategy(BackupStrategy type) {
         return backupStrategies.get(type);
+    }
+
+    @Override
+    public L getFilteringMode(FilteringMode type) {
+        return filteringModes.get(type);
+    }
+
+    @Override
+    public L getInsertionMode(InsertionMode type) {
+        return insertionModes.get(type);
     }
 }

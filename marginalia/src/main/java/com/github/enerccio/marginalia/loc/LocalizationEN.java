@@ -168,6 +168,9 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_DELETE_BACKUP, "Delete Backup");
         setValue(L.LABEL_CREATED, "Created");
         setValue(L.LABEL_LAST_MODIFIED, "Last Modified");
+        setValue(L.LABEL_FILTERING_MODE, "Filtering Mode");
+        setValue(L.LABEL_FILTERING, "Filtering Text/Pattern");
+        setValue(L.LABEL_INSERTION_MODE, "Insertion Mode");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");
@@ -208,6 +211,10 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ENUM_BACKUP_STRATEGY_NONE, "No Backups");
         setValue(L.ENUM_BACKUP_STRATEGY_AFTER_N_MESSAGES, "After N Messages");
         setValue(L.ENUM_BACKUP_STRATEGY_AFTER_N_MINUTES, "After N Minutes");
+        setValue(L.ENUM_FILTERING_MODE_TEXT, "Text");
+        setValue(L.ENUM_FILTERING_MODE_REGEX, "Regex");
+        setValue(L.ENUM_INSERTION_MODE_IN_LORE_BLOCK, "In Lore Block");
+        setValue(L.ENUM_INSERTION_MODE_BEFORE_USER_PROMPT, "Before User Prompt");
 
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
         setValue(L.DESC_TEMPLATE_MANUSCRIPT, "The ongoing manuscript content for summary.");
