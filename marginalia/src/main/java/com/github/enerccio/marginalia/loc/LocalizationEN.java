@@ -171,6 +171,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_FILTERING_MODE, "Filtering Mode");
         setValue(L.LABEL_FILTERING, "Filtering Text/Pattern");
         setValue(L.LABEL_INSERTION_MODE, "Insertion Mode");
+        setValue(L.LABEL_VIEWER_TITLE, "Marginalia - Viewer");
+        setValue(L.LABEL_VIEWER_DESC, "Manuscript Viewer");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");
