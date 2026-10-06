@@ -26,9 +26,12 @@ public class SideQueryView extends VerticalLayout {
     private final Manuscript manuscript;
     private SideQueryData data;
 
+    private HorizontalLayout tabHeader;
     private Tabs tabs;
     private Button addTabBtn;
     private VerticalLayout contentHolder;
+
+    private boolean generating = false;
 
     private final Map<Tab, SideQuerySession> tabSessionMap = new HashMap<>();
 
@@ -63,7 +66,7 @@ public class SideQueryView extends VerticalLayout {
     }
 
     private void buildUI() {
-        HorizontalLayout tabHeader = new HorizontalLayout();
+        tabHeader = new HorizontalLayout();
         tabHeader.setWidthFull();
         tabHeader.setAlignItems(Alignment.CENTER);
         tabHeader.getStyle().set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
@@ -71,6 +74,9 @@ public class SideQueryView extends VerticalLayout {
         tabs = new Tabs();
         tabs.setWidthFull();
         tabs.addSelectedChangeListener(e -> {
+            if (generating) {
+                return;
+            }
             Tab selected = e.getSelectedTab();
             if (selected != null && tabSessionMap.containsKey(selected)) {
                 SideQuerySession session = tabSessionMap.get(selected);
@@ -131,11 +137,23 @@ public class SideQueryView extends VerticalLayout {
 
     private void showSessionContent(SideQuerySession session) {
         contentHolder.removeAll();
-        SideQueryTabContent tabContent = new SideQueryTabContent(sideQueryService, manuscript, session, this::saveData);
+        SideQueryTabContent tabContent = new SideQueryTabContent(
+                sideQueryService,
+                manuscript,
+                session,
+                this::saveData,
+                this::setGenerating
+        );
         contentHolder.add(tabContent);
     }
 
+    public void setGenerating(boolean generating) {
+        this.generating = generating;
+        tabHeader.setEnabled(!generating);
+    }
+
     private void addNewTab() {
+        if (generating) return;
         SideQuerySession newSession = new SideQuerySession();
         newSession.setName("Tab " + (data.getSessions().size() + 1));
         data.getSessions().add(newSession);
@@ -145,6 +163,7 @@ public class SideQueryView extends VerticalLayout {
     }
 
     private void renameTab(SideQuerySession session) {
+        if (generating) return;
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Rename Tab");
 
@@ -172,6 +191,7 @@ public class SideQueryView extends VerticalLayout {
     }
 
     private void closeTab(SideQuerySession session) {
+        if (generating) return;
         if (data.getSessions().size() <= 1) {
             Notification.warning("Cannot close the last tab");
             return;

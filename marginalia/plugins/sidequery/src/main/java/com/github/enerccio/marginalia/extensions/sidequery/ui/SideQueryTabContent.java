@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.List;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 
 @Configurable(preConstruction = true)
 public class SideQueryTabContent extends VerticalLayout {
@@ -41,9 +42,12 @@ public class SideQueryTabContent extends VerticalLayout {
     private final Manuscript manuscript;
     private final SideQuerySession session;
     private final Runnable onSaveCallback;
+    private final Consumer<Boolean> generationStateListener;
 
+    private HorizontalLayout optionsBar;
     private ScrollPanel messagesScrollPanel;
     private VerticalLayout messagesListLayout;
+    private HorizontalLayout storagePanel;
     private ComboBox<String> savedQueriesCombo;
     private TextArea userInputArea;
     private Button sendBtn;
@@ -62,10 +66,19 @@ public class SideQueryTabContent extends VerticalLayout {
                                Manuscript manuscript,
                                SideQuerySession session,
                                Runnable onSaveCallback) {
+        this(sideQueryService, manuscript, session, onSaveCallback, null);
+    }
+
+    public SideQueryTabContent(SideQueryService sideQueryService,
+                               Manuscript manuscript,
+                               SideQuerySession session,
+                               Runnable onSaveCallback,
+                               Consumer<Boolean> generationStateListener) {
         this.sideQueryService = sideQueryService;
         this.manuscript = manuscript;
         this.session = session;
         this.onSaveCallback = onSaveCallback;
+        this.generationStateListener = generationStateListener;
 
         setSizeFull();
         setPadding(false);
@@ -76,7 +89,7 @@ public class SideQueryTabContent extends VerticalLayout {
     }
 
     private void buildUI() {
-        HorizontalLayout optionsBar = new HorizontalLayout();
+        optionsBar = new HorizontalLayout();
         optionsBar.setWidthFull();
         optionsBar.setAlignItems(Alignment.CENTER);
         optionsBar.getStyle().set("padding", "6px 12px");
@@ -149,7 +162,7 @@ public class SideQueryTabContent extends VerticalLayout {
         controlsLayout.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
 
         // Query Storage Selector Row
-        HorizontalLayout storagePanel = new HorizontalLayout();
+        storagePanel = new HorizontalLayout();
         storagePanel.setWidthFull();
         storagePanel.setAlignItems(Alignment.CENTER);
 
@@ -340,7 +353,7 @@ public class SideQueryTabContent extends VerticalLayout {
         if (activeToken != null) {
             activeToken.cancel();
             activeToken = null;
-            updateButtonStates();
+            setGeneratingState(false);
             return;
         }
 
@@ -402,6 +415,9 @@ public class SideQueryTabContent extends VerticalLayout {
             // Display messages once to mount the card in the UI
             displayMessages();
 
+            // Lock input controls and notify parent view to lock tabs
+            setGeneratingState(true);
+
             // Obtain reference to the newly added AI card for in-place updates during streaming
             SideQueryMessageCard aiCard = (SideQueryMessageCard) messagesListLayout.getComponentAt(messagesListLayout.getComponentCount() - 1);
 
@@ -429,7 +445,7 @@ public class SideQueryTabContent extends VerticalLayout {
                     ui.access(() -> {
                         activeToken = null;
                         triggerSave();
-                        updateButtonStates();
+                        setGeneratingState(false);
                         updateTokenCount();
                         UIPushGuard.push(ui);
                     });
@@ -440,7 +456,7 @@ public class SideQueryTabContent extends VerticalLayout {
                     ui.access(() -> {
                         activeToken = null;
                         triggerSave();
-                        updateButtonStates();
+                        setGeneratingState(false);
                         updateTokenCount();
                         UIPushGuard.push(ui);
                     });
@@ -452,7 +468,7 @@ public class SideQueryTabContent extends VerticalLayout {
                         activeToken = null;
                         aiCard.updateContent("Error: " + exception.getMessage());
                         triggerSave();
-                        updateButtonStates();
+                        setGeneratingState(false);
                         updateTokenCount();
                         UIPushGuard.push(ui);
                     });
@@ -460,7 +476,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
                 @Override
                 public boolean isDead() {
-                    return activeToken != null && activeToken.isCancelled();
+                    return activeToken == null || activeToken.isCancelled();
                 }
             });
 
@@ -471,14 +487,44 @@ public class SideQueryTabContent extends VerticalLayout {
             session.getMessages().add(aiMsg);
             triggerSave();
             displayMessages();
+            setGeneratingState(false);
+        }
+    }
+
+    private void setGeneratingState(boolean generating) {
+        if (generationStateListener != null) {
+            generationStateListener.accept(generating);
+        }
+
+        optionsBar.setEnabled(!generating);
+        if (!generating && session != null) {
+            SideQueryOptions opts = session.getOptions();
+            boolean incMsgs = opts.isIncludeMessages();
+            messagesFromField.setEnabled(incMsgs);
+            messagesToField.setEnabled(incMsgs);
+        }
+
+        storagePanel.setEnabled(!generating);
+        userInputArea.setEnabled(!generating);
+        messagesListLayout.setEnabled(!generating);
+
+        if (generating) {
+            sendBtn.setText("STOP");
+            sendBtn.setThemeName("error primary");
+            sendBtn.setEnabled(true);
+            undoBtn.setEnabled(false);
+            generateAgainBtn.setEnabled(false);
+        } else {
+            sendBtn.setText("SEND");
+            sendBtn.setThemeName("primary");
+            sendBtn.setEnabled(true);
+            undoBtn.setEnabled(!session.getMessages().isEmpty());
+            generateAgainBtn.setEnabled(!session.getMessages().isEmpty() && !session.getMessages().getLast().isFromUser());
         }
     }
 
     private void updateButtonStates() {
-        boolean generating = activeToken != null;
-        sendBtn.setText(generating ? "STOP" : "SEND");
-        undoBtn.setEnabled(!generating && !session.getMessages().isEmpty());
-        generateAgainBtn.setEnabled(!generating && !session.getMessages().isEmpty() && !session.getMessages().getLast().isFromUser());
+        setGeneratingState(activeToken != null);
     }
 
     private void updateTokenCount() {
