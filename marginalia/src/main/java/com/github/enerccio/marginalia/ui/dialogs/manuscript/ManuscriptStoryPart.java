@@ -72,9 +72,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @Autowired
     private BackupService backupService;
 
-    @Autowired
-    private SettingService settingService;
-
     private final ManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
 
@@ -391,7 +388,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
             centerContentPanel.add(UIUtils.centerComponent(emptyLabel));
         } else {
-
             try {
                 List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf());
                 int total = branch.size();
@@ -402,19 +398,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     int orderId = i + 1;
                     Long dbId = msg.getId();
 
-                    Button sidebarBtn = new Button(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
-                    sidebarBtn.setThemeName("tertiary small");
-                    sidebarBtn.setWidthFull();
-                    sidebarBtn.getStyle().set("text-align", "left");
-                    sidebarBtn.getStyle().set("justify-content", "flex-start");
-                    sidebarBtn.getStyle().set("padding-left", "12px");
-
-                    sidebarBtn.addClickListener(event -> {
-                        if (dbId != null && activeCardMap.containsKey(dbId)) {
-                            activeCardMap.get(dbId).scrollIntoView();
-                        }
-                    });
-                    sidebarList.add(sidebarBtn);
+                    createSidebarButton(msg, orderId, dbId);
 
                     boolean isLast = (i == total - 1);
                     ChatMessageCard card = new ChatMessageCard(msg, isLast, orderId);
@@ -430,6 +414,22 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             restoreScrollPosition();
         }
+    }
+
+    private void createSidebarButton(ChatMessage msg, int orderId, Long dbId) {
+        Button sidebarBtn = new Button(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
+        sidebarBtn.setThemeName("tertiary small");
+        sidebarBtn.setWidthFull();
+        sidebarBtn.getStyle().set("text-align", "left");
+        sidebarBtn.getStyle().set("justify-content", "flex-start");
+        sidebarBtn.getStyle().set("padding-left", "12px");
+
+        sidebarBtn.addClickListener(event -> {
+            if (dbId != null && activeCardMap.containsKey(dbId)) {
+                activeCardMap.get(dbId).scrollIntoView();
+            }
+        });
+        sidebarList.add(sidebarBtn);
     }
 
     private void createStoryOutlineTab() {
