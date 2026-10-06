@@ -264,6 +264,12 @@ public class BackupServiceImpl implements BackupService {
         return gson.toJson(backup);
     }
 
+    @Override
+    public ManuscriptBackup loadBackup(ManuscriptBackup b) throws Exception {
+        ensureLoaded(b);
+        return b;
+    }
+
     /**
      * Lazy-loads the full backup JsonObject from disk if it hasn't been loaded yet.
      */

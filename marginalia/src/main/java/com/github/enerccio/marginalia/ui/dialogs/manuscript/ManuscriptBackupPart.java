@@ -177,7 +177,11 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
 
             Anchor exportAnchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
                 try {
-                    byte[] data = backup.getBackup() != null ? backupService.serializeBackup(backup).getBytes(StandardCharsets.UTF_8) : new byte[0];
+                    ManuscriptBackup b = backup;
+                    if (!b.isLoaded()) {
+                        b = backupService.loadBackup(b);
+                    }
+                    byte[] data = b.getBackup() != null ? backupService.serializeBackup(b).getBytes(StandardCharsets.UTF_8) : new byte[0];
                     return new DownloadResponse(new ByteArrayInputStream(data),
                             getBackupFileName(backup), "application/json", data.length);
                 } catch (Exception e) {
