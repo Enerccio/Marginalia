@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.JsonArray;
@@ -44,6 +46,18 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Autowired
     private LorebookService lorebookService;
+
+    @Override
+    @CommonTxReadOnly
+    public List<Long> searchManuscripts(Sorter... sorters) throws Exception {
+        return searchManuscripts(null, sorters);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Long> searchManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
+        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser);
+    }
 
     @Override
     @CommonTxReadOnly

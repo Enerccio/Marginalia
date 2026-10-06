@@ -5,35 +5,50 @@ import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.domain.service.AIService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.Sorter;
+import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
+import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
+import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.Grid.Column;
+import com.vaadin.flow.component.grid.GridSortOrder;
+import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Configurable
 @Extendable
 public class ManuscriptPart implements WorkspaceComponent {
+    private static final Logger log = LoggerFactory.getLogger(ManuscriptPart.class);
 
     @Autowired
     private Localization loc;
@@ -50,9 +65,25 @@ public class ManuscriptPart implements WorkspaceComponent {
     @Autowired
     private ProtocolService protocolService;
 
+    @Autowired
+    private TagService tagService;
+
+    @Autowired
+    private TagRelationService tagRelationService;
+
     private final Workspace workspace;
-    private Grid<Manuscript> grid;
+    private Grid<ManuscriptWrapper> grid;
     private VerticalLayout mainLayout;
+
+    private Column<ManuscriptWrapper> nameColumn;
+    private TextField nameFilter;
+    private Column<ManuscriptWrapper> tagsColumn;
+    private MultiSelectComboBox<Tag> tagFilter;
+    private Column<ManuscriptWrapper> creationColumn;
+    private Column<ManuscriptWrapper> modificationColumn;
+
+    private final List<GridSortOrder<ManuscriptWrapper>> sorters = new ArrayList<>();
+    private final ManuscriptFilterValues filterValues = new ManuscriptFilterValues();
 
     public ManuscriptPart(Workspace workspace) {
         this.workspace = workspace;
@@ -116,15 +147,59 @@ public class ManuscriptPart implements WorkspaceComponent {
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-        grid = new Grid<>(Manuscript.class, false);
+        grid = new Grid<>();
         grid.setSizeFull();
+        grid.setMultiSort(true);
 
-        grid.addColumn(Manuscript::getName)
-                .setHeader(loc.getValue(L.LABEL_NAME));
+        nameColumn = grid.addColumn(ManuscriptWrapper::getName)
+                .setHeader(loc.getValue(L.LABEL_NAME))
+                .setFlexGrow(4)
+                .setSortProperty("name")
+                .setSortable(true);
+        nameFilter = new TextField();
+        nameFilter.setWidthFull();
+        nameFilter.setValueChangeMode(ValueChangeMode.TIMEOUT);
+        nameFilter.setValueChangeTimeout(200);
+        nameFilter.addValueChangeListener(event -> {
+            filterValues.setName(event.getValue());
+            refreshGrid();
+        });
 
-        grid.addComponentColumn(manuscript -> new Button(Solid.PENCIL.create(),event -> {
+        tagsColumn = grid.addColumn(ManuscriptWrapper::getTags)
+                .setHeader(loc.getValue(L.LABEL_TAGS))
+                .setFlexGrow(2)
+                .setSortable(false);
+        tagFilter = new MultiSelectComboBox<>();
+        tagFilter.setWidthFull();
+        tagFilter.setItemLabelGenerator(Tag::getValue);
+        tagFilter.setClearButtonVisible(true);
+        tagFilter.setItems(query -> {
             try {
-                ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
+                String filter = query.getFilter().orElse("");
+                return tagService.searchTagsForUser(filter, query.getOffset(), query.getLimit()).stream();
+            } catch (Exception e) {
+                log.error("Failed to fetch tags for filter: {}", query.getFilter().orElse(""), e);
+                return Stream.empty();
+            }
+        });
+        tagFilter.addValueChangeListener(event -> {
+            filterValues.setTags(event.getValue().stream().map(Tag::getValue).sorted().toList());
+            refreshGrid();
+        });
+
+        creationColumn = grid.addColumn(ManuscriptWrapper::getCreation)
+                .setHeader(loc.getValue(L.LABEL_CREATED))
+                .setSortProperty("creation")
+                .setSortable(true);
+
+        modificationColumn = grid.addColumn(ManuscriptWrapper::getModification)
+                .setHeader(loc.getValue(L.LABEL_LAST_MODIFIED))
+                .setSortProperty("modification")
+                .setSortable(true);
+
+        Column<ManuscriptWrapper> toolColumn = grid.addComponentColumn(manuscriptWrapper -> new Button(Solid.PENCIL.create(),_ -> {
+            try {
+                ManuscriptDialog dialog = new ManuscriptDialog(manuscriptWrapper.getManuscript());
                 dialog.setOnClose(this::refreshGrid);
                 dialog.create();
                 dialog.open();
@@ -133,9 +208,25 @@ public class ManuscriptPart implements WorkspaceComponent {
             }
         })).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
 
+        grid.sort(List.of(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING)));
+        sorters.add(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING));
+
+        grid.addSortListener(event -> {
+            sorters.clear();
+            sorters.addAll(event.getSortOrder());
+            refreshGrid();
+        });
+
         mainLayout.add(headerLayout, grid);
         mainLayout.setFlexGrow(1, grid);
 
+        HeaderRow filterRow = grid.appendHeaderRow();
+        filterRow.getCell(nameColumn).setComponent(nameFilter);
+        filterRow.getCell(tagsColumn).setComponent(tagFilter);
+
+        Button refresh = new Button(Solid.REFRESH.create());
+        refresh.addClickListener(_ -> refreshGrid());
+        filterRow.getCell(toolColumn).setComponent(refresh);
         refreshGrid();
 
         return mainLayout;
@@ -151,9 +242,14 @@ public class ManuscriptPart implements WorkspaceComponent {
             return;
         }
         try {
-            List<Manuscript> manuscripts = manuscriptService.findAllForUser();
-            manuscripts.sort(Comparator.comparing(Manuscript::getModification));
-            grid.setItems(manuscripts);
+            List<Sorter> sortInfos = new ArrayList<>();
+            for (GridSortOrder<ManuscriptWrapper> sortOrder : sorters) {
+                sortOrder.getSorted().getSortOrder(sortOrder.getDirection())
+                        .forEach(so -> sortInfos.add(Sorter.sorter(so.getSorted(),
+                                so.getDirection().equals(SortDirection.ASCENDING) ? Ordering.ASC : Ordering.DESC)));
+            }
+            List<Long> ids = manuscriptService.searchManuscripts(filterValues, sortInfos.toArray(Sorter[]::new));
+            grid.setItems(new ManuscriptBackendProvider(ids));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -166,6 +262,60 @@ public class ManuscriptPart implements WorkspaceComponent {
 
     @Override
     public void onTabClosed() throws Exception {
+
+    }
+
+    private class ManuscriptWrapper extends BackendTableItem {
+
+        private final Manuscript manuscript;
+        private List<String> tags;
+
+        public ManuscriptWrapper(Manuscript manuscript) {
+            super(manuscript.getId());
+            this.manuscript = manuscript;
+        }
+
+        public Manuscript getManuscript() {
+            return manuscript;
+        }
+
+        public String getName() {
+            return manuscript.getName();
+        }
+
+        public String getCreation() {
+            return loc.getDateHourFormat().format(manuscript.getCreation());
+        }
+
+        public String getModification() {
+            return loc.getDateHourFormat().format(manuscript.getModification());
+        }
+
+        public String getTags() {
+            if (tags == null) {
+                try {
+                    tags = tagRelationService.getTagsForObject(manuscript).stream().map(Tag::getValue).sorted().toList();
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                    return "ERROR";
+                }
+            }
+            return String.join(", ", tags);
+        }
+
+    }
+
+    private class ManuscriptBackendProvider extends BackendTableProviderBase<ManuscriptWrapper, Manuscript, ManuscriptRepository> {
+
+        public ManuscriptBackendProvider(List<Long> ids) {
+            super();
+            setIds(ids);
+        }
+
+        @Override
+        protected ManuscriptWrapper entityToTableItem(Manuscript entity) throws Exception {
+            return new ManuscriptWrapper(entity);
+        }
 
     }
 }

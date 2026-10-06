@@ -166,6 +166,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_BACKUP_STRATEGY_VALUE_MINUTES, "Number of minutes");
         setValue(L.LABEL_PER_MANUSCRIPT_BACKUP, "Per manuscript override");
         setValue(L.LABEL_DELETE_BACKUP, "Delete Backup");
+        setValue(L.LABEL_CREATED, "Created");
+        setValue(L.LABEL_LAST_MODIFIED, "Last Modified");
 
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
         setValue(L.ERROR_AI_NOT_SET, "Book is missing model.");

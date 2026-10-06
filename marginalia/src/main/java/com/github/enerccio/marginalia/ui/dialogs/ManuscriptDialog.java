@@ -144,6 +144,7 @@ public class ManuscriptDialog extends Dialog {
         super.open();
         try {
             refreshManuscript();
+            save();
             if (chatMessageService.hasAnyMessages(manuscript)) {
                 tabs.setSelectedTab(tabs.getTab(storyPartComponent));
             } else {

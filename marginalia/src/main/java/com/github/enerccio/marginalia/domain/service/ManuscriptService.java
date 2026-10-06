@@ -3,9 +3,16 @@ package com.github.enerccio.marginalia.domain.service;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.google.gson.JsonObject;
 
+import java.util.List;
+
 public interface ManuscriptService extends ExtendableService<Manuscript, ManuscriptRepository> {
+
+    List<Long> searchManuscripts(Sorter... sorters) throws Exception;
+    List<Long> searchManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception;
 
     String getMasterTemplate(Manuscript manuscript) throws Exception;
     String getPov(Manuscript manuscript) throws Exception;
