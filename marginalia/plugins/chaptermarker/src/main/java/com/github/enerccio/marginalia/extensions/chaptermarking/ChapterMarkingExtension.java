@@ -106,7 +106,7 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
 
                 @Override
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    ChatMessage chatMessage = context.getReflectiveFieldValue(instrumented, "chatMessage", ChatMessage.class);
+                    ChatMessage chatMessage = context.getReflectiveFieldValue(instrumented, "message", ChatMessage.class);
                     if (chatMessage != null) {
                         ManuscriptStoryPart parentPart = context.getReflectiveFieldValue(instrumented, "this$0", ManuscriptStoryPart.class);
                         if (parentPart != null) {
