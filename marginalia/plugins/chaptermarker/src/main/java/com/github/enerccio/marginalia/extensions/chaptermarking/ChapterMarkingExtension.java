@@ -8,7 +8,9 @@ import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -23,11 +25,16 @@ import java.util.regex.Pattern;
 public class ChapterMarkingExtension implements MarginaliaExtension {
 
     private static final Pattern HEADER_PATTERN = Pattern.compile("(?m)^\\s*#+\\s*(.+)$");
+    private static final String MSG_UUID = "com.github.enerccio.marginalia.extensions.chaptermarking.ChapterMarkingExtension.MSG_UUID";
+    private static final String MSG_SET = "com.github.enerccio.marginalia.extensions.chaptermarking.ChapterMarkingExtension.MSG_SET";
+    private static final String MSG_OLD_TEXT = "com.github.enerccio.marginalia.extensions.chaptermarking.ChapterMarkingExtension.MSG_OLD_TEXT";
+    private static final String MSG_ORDER = "com.github.enerccio.marginalia.extensions.chaptermarking.ChapterMarkingExtension.MSG_ORDER";
 
     @Autowired
     private Localization loc;
 
     private ExtensionDecorator sidebarDecorator;
+    private ExtensionDecorator sidebarEditDecorator;
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -52,11 +59,6 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                         return;
                     }
 
-                    String chapterTitle = extractChapterTitle(msg.getResponse());
-                    if (chapterTitle == null) {
-                        return;
-                    }
-
                     VerticalLayout sidebarList = context.getReflectiveFieldValue(instrumented, "sidebarList", VerticalLayout.class);
                     if (sidebarList == null || sidebarList.getComponentCount() == 0) {
                         return;
@@ -70,11 +72,21 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                     }
 
                     if (sidebarBtn != null) {
-                        String formattedText = String.format("%d. %s", orderId != null ? orderId : 0, chapterTitle);
-                        sidebarBtn.setText(formattedText);
+                        ComponentUtil.setData(sidebarBtn, MSG_OLD_TEXT, sidebarBtn.getText());
+                        ComponentUtil.setData(sidebarBtn, MSG_ORDER, orderId);
 
-                        sidebarBtn.getStyle().set("color", "var(--lumo-primary-color)");
-                        sidebarBtn.getStyle().set("font-weight", "600");
+                        String chapterTitle = extractChapterTitle(msg.getResponse());
+                        if (chapterTitle == null) {
+                            ComponentUtil.setData(sidebarBtn, MSG_SET, false);
+                        } else {
+                            String formattedText = String.format("%d. %s", orderId != null ? orderId : 0, chapterTitle);
+                            sidebarBtn.setText(formattedText);
+
+                            sidebarBtn.getStyle().set("color", "var(--lumo-primary-color)");
+                            sidebarBtn.getStyle().set("font-weight", "600");
+                            ComponentUtil.setData(sidebarBtn, MSG_SET, true);
+                        }
+                        ComponentUtil.setData(sidebarBtn, MSG_UUID, msg.getUuid());
                     }
                 }
             };
@@ -86,6 +98,55 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                     "createSidebarButton"
             );
 
+            sidebarEditDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+
+                }
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    ChatMessage chatMessage = context.getReflectiveFieldValue(instrumented, "chatMessage", ChatMessage.class);
+                    if (chatMessage != null) {
+                        ManuscriptStoryPart parentPart = context.getReflectiveFieldValue(instrumented, "this$0", ManuscriptStoryPart.class);
+                        if (parentPart != null) {
+                            VerticalLayout sidebarList = context.getReflectiveFieldValue(parentPart, "sidebarList", VerticalLayout.class);
+                            if (sidebarList != null) {
+                                sidebarList.getChildren().forEach(c -> {
+                                    String uuid = (String) ComponentUtil.getData(c, MSG_UUID);
+                                    if (chatMessage.getUuid().equals(uuid)) {
+                                        Button sidebarBtn = (Button) c;
+
+                                        String chapterTitle = extractChapterTitle(chatMessage.getResponse());
+                                        if (chapterTitle == null) {
+                                            if ((Boolean) ComponentUtil.getData(sidebarBtn, MSG_SET)) {
+                                                sidebarBtn.getStyle().remove("color");
+                                                sidebarBtn.getStyle().remove("font-weight");
+                                                sidebarBtn.setText((String) ComponentUtil.getData(sidebarBtn, MSG_OLD_TEXT));
+                                            }
+                                            ComponentUtil.setData(sidebarBtn, MSG_SET, false);
+                                        } else {
+                                            Integer orderId = (Integer) ComponentUtil.getData(sidebarBtn, MSG_ORDER);
+                                            String formattedText = String.format("%d. %s", orderId != null ? orderId : 0, chapterTitle);
+                                            sidebarBtn.setText(formattedText);
+
+                                            sidebarBtn.getStyle().set("color", "var(--lumo-primary-color)");
+                                            sidebarBtn.getStyle().set("font-weight", "600");
+                                            ComponentUtil.setData(sidebarBtn, MSG_SET, true);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            };
+
+            extensionService.registerDecorator(
+                    sidebarEditDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart$ChatMessageCard",
+                    "autosaveAndSwapToMarkdown"
+            );
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -96,6 +157,10 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
         if (sidebarDecorator != null) {
             extensionService.unregisterDecorator(sidebarDecorator);
             sidebarDecorator = null;
+        }
+        if (sidebarEditDecorator != null) {
+            extensionService.unregisterDecorator(sidebarEditDecorator);
+            sidebarEditDecorator = null;
         }
     }
 
