@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.extensions.lorebookvcs.service.LorebookVCS
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Span;
@@ -66,6 +67,13 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
         buildUI();
         initData();
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        // Automatically sync live edits into active revision when panel closes/detaches
+        syncCurrentRevisionFromEntry();
     }
 
     private void buildUI() {
@@ -133,10 +141,9 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
                 vcsService.saveVCSData(lorebook, vcsData);
             } else {
                 LoreEntryRevision activeRev = entryVcsData.getCurrent();
-                if (activeRev != null && !activeRev.matches(entry, currentSnap.getPositiveTags(), currentSnap.getNegativeTags())) {
-                    // Offline desynchronization safety check: auto-create recovery snapshot
-                    entryVcsData.getRevisions().add(currentSnap);
-                    entryVcsData.setCurrentRevision(entryVcsData.getRevisions().size() - 1);
+                if (activeRev != null) {
+                    // Sync active revision in-place with entry state rather than appending a new revision
+                    copyRevisionState(currentSnap, activeRev);
                     vcsService.saveVCSData(lorebook, vcsData);
                 }
             }
@@ -157,23 +164,25 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
         try {
             LoreEntryRevision liveState = vcsService.createSnapshot(entry);
             LoreEntryRevision activeRev = entryVcsData.getRevisions().get(currentIdx);
-
-            activeRev.setName(liveState.getName());
-            activeRev.setEnabled(liveState.isEnabled());
-            activeRev.setOrder(liveState.getOrder());
-            activeRev.setPayload(liveState.getPayload());
-            activeRev.setComment(liveState.getComment());
-            activeRev.setFilteringMode(liveState.getFilteringMode());
-            activeRev.setFiltering(liveState.getFiltering());
-            activeRev.setInsertionMode(liveState.getInsertionMode());
-            activeRev.setPositiveTags(liveState.getPositiveTags());
-            activeRev.setNegativeTags(liveState.getNegativeTags());
-            activeRev.setLastModified(System.currentTimeMillis());
-
+            copyRevisionState(liveState, activeRev);
             vcsService.saveVCSData(lorebook, vcsData);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    private void copyRevisionState(LoreEntryRevision source, LoreEntryRevision target) {
+        target.setName(source.getName());
+        target.setEnabled(source.isEnabled());
+        target.setOrder(source.getOrder());
+        target.setPayload(source.getPayload());
+        target.setComment(source.getComment());
+        target.setFilteringMode(source.getFilteringMode());
+        target.setFiltering(source.getFiltering());
+        target.setInsertionMode(source.getInsertionMode());
+        target.setPositiveTags(source.getPositiveTags());
+        target.setNegativeTags(source.getNegativeTags());
+        target.setLastModified(System.currentTimeMillis());
     }
 
     private void refreshDisplay() {
