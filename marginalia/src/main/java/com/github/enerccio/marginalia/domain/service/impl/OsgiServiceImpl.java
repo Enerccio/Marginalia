@@ -108,8 +108,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         if (bundleInternalStorage.exists())
             FileUtils.deleteDirectory(bundleInternalStorage);
 
-        config.put(Constants.FRAMEWORK_STORAGE, extensionPath);
+        config.put(Constants.FRAMEWORK_STORAGE, bundleInternalStorage.getAbsolutePath());
         config.put(Constants.FRAMEWORK_STORAGE_CLEAN, "true");
+        config.put(Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT, "true");
         config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK);
         config.put(Constants.FRAMEWORK_BOOTDELEGATION, "*");
 
