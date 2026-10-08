@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -53,6 +54,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
     private TextArea descriptionField;
     private ComboBox<AI> aiCombo;
     private ComboBox<Protocol> protocolCombo;
+    private Checkbox publishedCheckbox;
 
     private IntegerField totalWordCountField;
     private IntegerField totalTokenCountField;
@@ -78,7 +80,8 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         formLayout.setWidthFull();
         formLayout.add(nameField, tags, descriptionField);
         formLayout.setColspan(descriptionField, 2);
-        formLayout.add(aiCombo, protocolCombo);
+        formLayout.add(aiCombo, protocolCombo, publishedCheckbox);
+        formLayout.setColspan(publishedCheckbox, 2);
 
         FormLayout syntheticFormLayout = new FormLayout();
         syntheticFormLayout.setWidthFull();
@@ -130,6 +133,14 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
             }
         });
 
+        publishedCheckbox = new Checkbox(loc.getValue(L.LABEL_PUBLISHED));
+        publishedCheckbox.setHelperText(loc.getValue(L.MSG_PUBLISHED_HELP));
+        publishedCheckbox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
+
         totalWordCountField = new IntegerField(loc.getValue(L.LABEL_TOTAL_WORD_COUNT));
         totalWordCountField.setWidthFull();
         totalWordCountField.setReadOnly(true);
@@ -165,6 +176,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
             manuscript.setDescription(descriptionField.getValue());
             manuscript.setAi(aiCombo.getValue());
             manuscript.setProtocol(protocolCombo.getValue());
+            manuscript.setPublished(Boolean.TRUE.equals(publishedCheckbox.getValue()));
 
             manuscript = parent.save();
             parent.setHeaderTitle(manuscript.getName());
@@ -213,6 +225,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
             protocolCombo.setItems(protocols);
 
             nameField.setValue(StringUtils.defaultString(manuscript.getName()));
+            publishedCheckbox.setValue(manuscript.isPublished());
             descriptionField.setValue(StringUtils.defaultString(manuscript.getDescription()));
             aiCombo.setValue(manuscript.getAi());
             protocolCombo.setValue(manuscript.getProtocol());

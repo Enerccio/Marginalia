@@ -13,4 +13,10 @@ public interface OwnedService<T extends OwnedEntity, R extends OwnedRepository<T
     List<T> findAllForUser() throws Exception;
     List<Long> findAllIdsForUser() throws Exception;
 
+    /**
+     * Finds entity by uuid owned by current user. Entities of other users and deleted entities are treated as
+     * not found and null is returned.
+     */
+    T findForUser(String uuid) throws Exception;
+
 }

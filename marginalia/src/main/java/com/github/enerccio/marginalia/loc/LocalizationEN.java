@@ -342,6 +342,10 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ENUM_LOREBOOK_DECISION_LINK, "Link to existing");
         setValue(L.ENUM_LOREBOOK_DECISION_CREATE, "Create new");
         setValue(L.ENUM_LOREBOOK_DECISION_SKIP, "Skip");
+        setValue(L.LABEL_LAST_OPENED, "Last Opened");
+        setValue(L.LABEL_PUBLISHED, "Published");
+        setValue(L.MSG_PUBLISHED_HELP, "Published books can be read by other users through the reader link.");
+        setValue(L.MSG_MANUSCRIPT_NOT_FOUND, "Book not found.");
     }
 
     @Override

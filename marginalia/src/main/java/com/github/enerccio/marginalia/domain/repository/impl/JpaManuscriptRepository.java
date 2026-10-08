@@ -8,16 +8,35 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import jakarta.persistence.TypedQuery;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript> implements ManuscriptRepository {
 
     @Override
     protected Class<Manuscript> getEntityClass() {
         return Manuscript.class;
+    }
+
+    @Override
+    public Manuscript findViewable(String uuid, User user) throws Exception {
+        List<Manuscript> results = getEntityManager().createQuery(
+                        "SELECT m FROM Manuscript m WHERE m.uuid = :uuid AND m.deleted = false AND (m.owner.id = :ownerId OR m.published = true)",
+                        Manuscript.class)
+                .setParameter("uuid", uuid)
+                .setParameter("ownerId", user.getId())
+                .setMaxResults(1)
+                .getResultList();
+        return results.isEmpty() ? null : hydrate(results.getFirst());
+    }
+
+    @Override
+    public void markOpened(Long id, User user) throws Exception {
+        // bulk update, so opening a book doesn't touch modification or extended content
+        getEntityManager().createQuery("UPDATE Manuscript m SET m.lastOpened = :now WHERE m.id = :id AND m.owner.id = :ownerId")
+                .setParameter("now", new Date())
+                .setParameter("id", id)
+                .setParameter("ownerId", user.getId())
+                .executeUpdate();
     }
 
     @SuppressWarnings("SqlSourceToSinkFlow")

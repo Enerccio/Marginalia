@@ -9,5 +9,6 @@ public interface OwnedRepository<T extends OwnedEntity> extends BaseRepository<T
 
     List<T> findAll(User user) throws Exception;
     List<Long> findAllIds(User user) throws Exception;
+    T findByUuid(String uuid, User user) throws Exception;
 
 }

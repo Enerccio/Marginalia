@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -74,7 +75,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
     private TextField nameFilter;
     private MultiSelectComboBox<Tag> tagFilter;
 
-    private String currentSortField = "modification";
+    private String currentSortField = "lastOpened";
     private Ordering currentSortOrdering = Ordering.DESC;
     private final ManuscriptFilterValues filterValues = new ManuscriptFilterValues();
 
@@ -193,17 +194,17 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         sortButtonsLayout.setWidthFull();
         sortButtonsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Button sortDateBtn = new Button(loc.getValue(L.LABEL_LAST_MODIFIED), Solid.SORT_AMOUNT_DOWN.create());
+        Button sortDateBtn = new Button(loc.getValue(L.LABEL_LAST_OPENED), Solid.SORT_AMOUNT_DOWN.create());
         sortDateBtn.setThemeName("small primary");
 
         Button sortNameBtn = new Button(loc.getValue(L.LABEL_NAME), Solid.SORT_ALPHA_DOWN.create());
         sortNameBtn.setThemeName("small tertiary");
 
         sortDateBtn.addClickListener(e -> {
-            if ("modification".equals(currentSortField)) {
+            if ("lastOpened".equals(currentSortField)) {
                 currentSortOrdering = (currentSortOrdering == Ordering.DESC) ? Ordering.ASC : Ordering.DESC;
             } else {
-                currentSortField = "modification";
+                currentSortField = "lastOpened";
                 currentSortOrdering = Ordering.DESC;
             }
             sortDateBtn.setThemeName("small primary");
@@ -254,7 +255,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                 subRow.add(tagsSpan);
             }
 
-            String modText = wrapper.getModification();
+            String modText = wrapper.getLastOpened();
             if (StringUtils.isNotBlank(modText)) {
                 Span modSpan = new Span(modText);
                 modSpan.getStyle().set("margin-left", "auto");
@@ -269,10 +270,12 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
             ManuscriptWrapper wrapper = event.getItem();
             if (wrapper != null && wrapper.getManuscript() != null) {
                 Manuscript manuscript = wrapper.getManuscript();
-                String identifier = manuscript.getUuid() != null
-                        ? manuscript.getUuid()
-                        : String.valueOf(manuscript.getId());
-                UI.getCurrent().navigate(Viewer.class, identifier);
+                try {
+                    manuscriptService.markOpened(manuscript);
+                } catch (Exception e) {
+                    log.warn("Failed to mark manuscript {} as opened", manuscript.getUuid(), e);
+                }
+                UI.getCurrent().navigate(Viewer.class, manuscript.getUuid());
             }
         });
 
@@ -290,6 +293,10 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         try {
             List<Sorter> sorters = new ArrayList<>();
             sorters.add(Sorter.sorter(currentSortField, currentSortOrdering));
+            if ("lastOpened".equals(currentSortField)) {
+                // never opened books have no lastOpened, order them by modification
+                sorters.add(Sorter.sorter("modification", currentSortOrdering));
+            }
 
             List<Long> ids = manuscriptService.searchManuscripts(filterValues, sorters.toArray(Sorter[]::new));
             grid.setItems(new ManuscriptBackendProvider(ids));
@@ -307,20 +314,13 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
             notFoundLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
             notFoundLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            Span errorSpan = new Span(loc.getValue(L.ERROR_MANUSCRIPT_NULL));
+            Span errorSpan = new Span(loc.getValue(L.MSG_MANUSCRIPT_NOT_FOUND));
             Button backButton = new Button(Solid.ARROW_LEFT.create(), event -> UI.getCurrent().navigate(Viewer.class));
             backButton.setThemeName("primary");
 
             notFoundLayout.add(errorSpan, backButton);
             add(notFoundLayout);
             return;
-        }
-
-        try {
-            // Resave manuscript to update modification timestamp
-            manuscript = manuscriptService.save(manuscript);
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
         }
 
         VerticalLayout container = new VerticalLayout();
@@ -426,44 +426,17 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         add(container);
     }
 
+    /**
+     * Only uuid is accepted, manuscripts that are not published are visible only to their owner. Anything else
+     * looks the same as nonexistent manuscript.
+     */
     private Manuscript findManuscript(String param) {
-        if (StringUtils.isBlank(param)) {
-            return null;
-        }
         try {
-            try {
-                Long id = manuscriptService.find(param);
-                if (id != null) {
-                    Manuscript m = manuscriptService.find(id);
-                    if (m != null) {
-                        return m;
-                    }
-                }
-            } catch (Exception ignored) {
-            }
-
-            try {
-                Long id = Long.parseLong(param);
-                Manuscript m = manuscriptService.find(id);
-                if (m != null) {
-                    return m;
-                }
-            } catch (NumberFormatException ignored) {
-            }
-
-            List<Manuscript> all = manuscriptService.findAllForUser();
-            for (Manuscript m : all) {
-                if (m.getUuid() != null && m.getUuid().equalsIgnoreCase(param)) {
-                    return m;
-                }
-                if (m.getId() != null && m.getId().toString().equals(param)) {
-                    return m;
-                }
-            }
+            return manuscriptService.findViewable(param);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+            return null;
         }
-        return null;
     }
 
     private class ManuscriptWrapper extends BackendTableItem {
@@ -484,10 +457,9 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
             return manuscript.getName();
         }
 
-        public String getModification() {
-            return manuscript.getModification() != null
-                    ? loc.getDateHourFormat().format(manuscript.getModification())
-                    : "";
+        public String getLastOpened() {
+            Date date = manuscript.getLastOpened() != null ? manuscript.getLastOpened() : manuscript.getModification();
+            return date != null ? loc.getDateHourFormat().format(date) : "";
         }
 
         public String getTags() {

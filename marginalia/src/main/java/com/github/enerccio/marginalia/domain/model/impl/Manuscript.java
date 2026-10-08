@@ -5,6 +5,8 @@ import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrateg
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
 
+import java.util.Date;
+
 @Entity
 @Table(name = "manuscripts")
 public class Manuscript extends ExtendableEntity {
@@ -26,6 +28,13 @@ public class Manuscript extends ExtendableEntity {
 
     @OneToOne
     private ChatMessage activeLeaf;
+
+    private boolean published = false;
+
+    // touched only by the owner opening the book from UI, keeps modification for content changes
+    @SuppressWarnings("deprecation")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastOpened;
 
     @ExtendedAttribute
     @Transient
@@ -153,6 +162,22 @@ public class Manuscript extends ExtendableEntity {
 
     public void setLorebook(Lorebook lorebook) {
         this.lorebook = lorebook;
+    }
+
+    public boolean isPublished() {
+        return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
+    }
+
+    public Date getLastOpened() {
+        return lastOpened;
+    }
+
+    public void setLastOpened(Date lastOpened) {
+        this.lastOpened = lastOpened;
     }
 
     public Boolean getShowBookStyles() {

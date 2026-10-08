@@ -408,14 +408,18 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                 return;
             }
 
-            ChatMessage targetMessage = chatMessageService.find(messageId);
+            // node id comes from client, resolve it only among messages of this manuscript
+            List<ChatMessage> allMessages = chatMessageService.getAllMessages(currentManuscript);
+            ChatMessage targetMessage = allMessages.stream()
+                    .filter(m -> messageId.equals(m.getId()))
+                    .findFirst()
+                    .orElse(null);
             if (targetMessage == null) {
                 return;
             }
 
             ChatMessage activeLeaf = currentManuscript.getActiveLeaf();
 
-            List<ChatMessage> allMessages = chatMessageService.getAllMessages(currentManuscript);
             boolean isLeaf = true;
             for (ChatMessage m : allMessages) {
                 if (m.getParent() != null && messageId.equals(m.getParent().getId())) {

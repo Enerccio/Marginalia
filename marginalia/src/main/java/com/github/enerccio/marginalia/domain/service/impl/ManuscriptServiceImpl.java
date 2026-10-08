@@ -61,6 +61,23 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Override
     @CommonTxReadOnly
+    public Manuscript findViewable(String uuid) throws Exception {
+        if (StringUtils.isBlank(uuid)) {
+            return null;
+        }
+        return getRepository().findViewable(uuid, currentUser);
+    }
+
+    @Override
+    @CommonTx
+    public void markOpened(Manuscript manuscript) throws Exception {
+        if (manuscript != null && manuscript.getId() != null) {
+            getRepository().markOpened(manuscript.getId(), currentUser);
+        }
+    }
+
+    @Override
+    @CommonTxReadOnly
     public String getMasterTemplate(Manuscript manuscript) throws Exception {
         if (StringUtils.isNotBlank(manuscript.getTemplate())) {
             return manuscript.getTemplate();
@@ -308,9 +325,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 JsonObject aiObj = backup.getAsJsonObject("ai");
                 if (aiObj.has("uuid") && !aiObj.get("uuid").isJsonNull()) {
                     String aiUuid = aiObj.get("uuid").getAsString();
-                    Long aiId = aiService.find(aiUuid);
-                    if (aiId != null) {
-                        manuscript.setAi(aiService.find(aiId));
+                    // only own entities can be linked, missing ones are left as they are
+                    AI ai = aiService.findForUser(aiUuid);
+                    if (ai != null) {
+                        manuscript.setAi(ai);
                     }
                 }
             } catch (Exception ignored) {
@@ -322,9 +340,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 JsonObject protoObj = backup.getAsJsonObject("protocol");
                 if (protoObj.has("uuid") && !protoObj.get("uuid").isJsonNull()) {
                     String protoUuid = protoObj.get("uuid").getAsString();
-                    Long protoId = protocolService.find(protoUuid);
-                    if (protoId != null) {
-                        manuscript.setProtocol(protocolService.find(protoId));
+                    // only own entities can be linked, missing ones are left as they are
+                    Protocol protocol = protocolService.findForUser(protoUuid);
+                    if (protocol != null) {
+                        manuscript.setProtocol(protocol);
                     }
                 }
             } catch (Exception ignored) {
@@ -336,9 +355,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 JsonObject lbObj = backup.getAsJsonObject("lorebook");
                 if (lbObj.has("uuid") && !lbObj.get("uuid").isJsonNull()) {
                     String lbUuid = lbObj.get("uuid").getAsString();
-                    Long lbId = lorebookService.find(lbUuid);
-                    if (lbId != null) {
-                        manuscript.setLorebook(lorebookService.find(lbId));
+                    // only own entities can be linked, missing ones are left as they are
+                    Lorebook lorebook = lorebookService.findForUser(lbUuid);
+                    if (lorebook != null) {
+                        manuscript.setLorebook(lorebook);
                     }
                 }
             } catch (Exception ignored) {
@@ -416,9 +436,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                     JsonObject aiObj = backup.getAsJsonObject("ai");
                     if (aiObj.has("uuid") && !aiObj.get("uuid").isJsonNull()) {
                         String aiUuid = aiObj.get("uuid").getAsString();
-                        Long aiId = aiService.find(aiUuid);
-                        if (aiId != null) {
-                            m.setAi(aiService.find(aiId));
+                        // only own entities can be linked, missing ones are left as they are
+                        AI ai = aiService.findForUser(aiUuid);
+                        if (ai != null) {
+                            m.setAi(ai);
                         }
                     }
                 } catch (Exception ignored) {
@@ -431,9 +452,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                     JsonObject protoObj = backup.getAsJsonObject("protocol");
                     if (protoObj.has("uuid") && !protoObj.get("uuid").isJsonNull()) {
                         String protoUuid = protoObj.get("uuid").getAsString();
-                        Long protoId = protocolService.find(protoUuid);
-                        if (protoId != null) {
-                            m.setProtocol(protocolService.find(protoId));
+                        // only own entities can be linked, missing ones are left as they are
+                        Protocol protocol = protocolService.findForUser(protoUuid);
+                        if (protocol != null) {
+                            m.setProtocol(protocol);
                         }
                     }
                 } catch (Exception ignored) {
@@ -446,9 +468,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                     JsonObject lbObj = backup.getAsJsonObject("lorebook");
                     if (lbObj.has("uuid") && !lbObj.get("uuid").isJsonNull()) {
                         String lbUuid = lbObj.get("uuid").getAsString();
-                        Long lbId = lorebookService.find(lbUuid);
-                        if (lbId != null) {
-                            m.setLorebook(lorebookService.find(lbId));
+                        // only own entities can be linked, missing ones are left as they are
+                        Lorebook lorebook = lorebookService.findForUser(lbUuid);
+                        if (lorebook != null) {
+                            m.setLorebook(lorebook);
                         }
                     }
                 } catch (Exception ignored) {

@@ -285,9 +285,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             candidate.setRoot(candidate.getUuid() != null && candidate.getUuid().equals(rootUuid));
             candidate.setEntryCount(bookObj.has("entries") && bookObj.get("entries").isJsonArray() ? bookObj.getAsJsonArray("entries").size() : 0);
 
-            Lorebook byUuid = userLorebooks.stream()
-                    .filter(l -> l.getUuid().equals(candidate.getUuid()))
-                    .findFirst().orElse(null);
+            Lorebook byUuid = findForUser(candidate.getUuid());
             Lorebook byName = userLorebooks.stream()
                     .filter(l -> StringUtils.equalsIgnoreCase(StringUtils.trim(l.getName()), StringUtils.trim(candidate.getName())))
                     .findFirst().orElse(null);

@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.OwnedService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -41,6 +42,15 @@ public class OwnedServiceImpl<T extends OwnedEntity, R extends OwnedRepository<T
     @CommonTxReadOnly
     public List<Long> findAllIdsForUser() throws Exception {
         return findAllIds(currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public T findForUser(String uuid) throws Exception {
+        if (StringUtils.isBlank(uuid)) {
+            return null;
+        }
+        return getRepository().findByUuid(uuid, currentUser);
     }
 
     @Override

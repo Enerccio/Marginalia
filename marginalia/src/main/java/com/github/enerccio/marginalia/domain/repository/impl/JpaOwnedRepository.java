@@ -20,6 +20,16 @@ public abstract class JpaOwnedRepository<T extends OwnedEntity> extends JpaBaseR
     }
 
     @Override
+    public T findByUuid(String uuid, User user) throws Exception {
+        List<T> results = entityManager.createQuery("SELECT e FROM " + getEntityType() + " e WHERE e.uuid = :uuid AND e.deleted = false AND e.owner.id = :owner", getEntityClass())
+                .setParameter("uuid", uuid)
+                .setParameter("owner", user.getId())
+                .setMaxResults(1)
+                .getResultList();
+        return results.isEmpty() ? null : hydrate(results.getFirst());
+    }
+
+    @Override
     public List<Long> findAllIds(User user) throws Exception {
         TypedQuery<Long> query = entityManager.createQuery("SELECT e.id FROM " + getEntityType() + " e WHERE e.deleted = false AND e.owner.id = :owner", Long.class)
                 .setParameter("owner", user.getId());

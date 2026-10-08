@@ -14,6 +14,16 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     List<Long> searchManuscripts(Sorter... sorters) throws Exception;
     List<Long> searchManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception;
 
+    /**
+     * Finds manuscript by uuid if current user can view it (owns it or it is published), null otherwise.
+     */
+    Manuscript findViewable(String uuid) throws Exception;
+
+    /**
+     * Marks manuscript as opened by its owner, used to order recently opened books.
+     */
+    void markOpened(Manuscript manuscript) throws Exception;
+
     String getMasterTemplate(Manuscript manuscript) throws Exception;
     String getPov(Manuscript manuscript) throws Exception;
     String getTense(Manuscript manuscript) throws Exception;

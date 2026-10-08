@@ -11,4 +11,8 @@ public interface ManuscriptRepository extends ExtendableRepository<Manuscript> {
 
     List<Long> searchManuscripts(ManuscriptFilterValues filterValues, List<Sorter> sorters, User user) throws Exception;
 
+    Manuscript findViewable(String uuid, User user) throws Exception;
+
+    void markOpened(Long id, User user) throws Exception;
+
 }

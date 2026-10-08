@@ -132,6 +132,7 @@ public class ManuscriptPart implements WorkspaceComponent {
                     }
 
                     manuscript = manuscriptService.save(manuscript);
+                    manuscriptService.markOpened(manuscript);
                     ManuscriptDialog manuscriptDialog = new ManuscriptDialog(manuscript);
                     manuscriptDialog.setOnClose(this::refreshGrid);
                     manuscriptDialog.create();
@@ -204,6 +205,7 @@ public class ManuscriptPart implements WorkspaceComponent {
 
             Button editButton = new Button(Solid.PENCIL.create(), _ -> {
                 try {
+                    manuscriptService.markOpened(manuscriptWrapper.getManuscript());
                     ManuscriptDialog dialog = new ManuscriptDialog(manuscriptWrapper.getManuscript());
                     dialog.setOnClose(this::refreshGrid);
                     dialog.create();
