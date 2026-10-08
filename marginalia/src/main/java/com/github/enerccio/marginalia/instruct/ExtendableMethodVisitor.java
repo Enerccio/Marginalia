@@ -1,9 +1,6 @@
 package com.github.enerccio.marginalia.instruct;
 
-import net.bytebuddy.jar.asm.Label;
-import net.bytebuddy.jar.asm.MethodVisitor;
-import net.bytebuddy.jar.asm.Opcodes;
-import net.bytebuddy.jar.asm.Type;
+import net.bytebuddy.jar.asm.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +31,9 @@ public class ExtendableMethodVisitor extends MethodVisitor {
     private final int extraSlotsCount;
 
     private final Map<Integer, String> slotToNameMap = new HashMap<>();
+    private final List<LocalVariable> localVariables = new ArrayList<>();
+    private final Map<Label, Integer> labelPositions = new HashMap<>();
+    private boolean hasCode;
     private final List<String> parameterNames = new ArrayList<>();
     private final List<Consumer<MethodVisitor>> tryCatchBlocks = new ArrayList<>();
     private final List<Consumer<MethodVisitor>> instructions = new ArrayList<>();
@@ -63,12 +63,52 @@ public class ExtendableMethodVisitor extends MethodVisitor {
         this.extraSlotsCount = 3 + this.argumentTypes.length;
     }
 
+    private record LocalVariable(String name, Label start, Label end, int index) {
+    }
+
+    // --- 0. Method header (annotations, parameters) is not part of the body, pass it through ---
+
     @Override
     public void visitParameter(String name, int access) {
         if (name != null) {
             parameterNames.add(name);
         }
-        instructions.add(mv -> mv.visitParameter(name, access));
+        targetVisitor.visitParameter(name, access);
+    }
+
+    @Override
+    public AnnotationVisitor visitAnnotationDefault() {
+        return targetVisitor.visitAnnotationDefault();
+    }
+
+    @Override
+    public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+        return targetVisitor.visitAnnotation(descriptor, visible);
+    }
+
+    @Override
+    public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+        return targetVisitor.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
+    }
+
+    @Override
+    public void visitAnnotableParameterCount(int parameterCount, boolean visible) {
+        targetVisitor.visitAnnotableParameterCount(parameterCount, visible);
+    }
+
+    @Override
+    public AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
+        return targetVisitor.visitParameterAnnotation(parameter, descriptor, visible);
+    }
+
+    @Override
+    public void visitAttribute(Attribute attribute) {
+        targetVisitor.visitAttribute(attribute);
+    }
+
+    @Override
+    public void visitCode() {
+        hasCode = true;
     }
 
     // --- 1. Buffer Method Body Instructions ---
@@ -90,12 +130,13 @@ public class ExtendableMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitVarInsn(int opcode, int var) {
+        int position = instructions.size();
         instructions.add(mv -> {
             int remappedVar = (var >= argSlots) ? var + extraSlotsCount : var;
             mv.visitVarInsn(opcode, remappedVar);
 
             if (opcode == Opcodes.ASTORE) {
-                String varName = slotToNameMap.getOrDefault(var, "var" + var);
+                String varName = localName(var, position);
 
                 Label skipRegister = new Label();
                 mv.visitVarInsn(Opcodes.ALOAD, contextSlot);
@@ -158,6 +199,7 @@ public class ExtendableMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitLabel(Label label) {
+        labelPositions.put(label, instructions.size());
         instructions.add(mv -> mv.visitLabel(label));
     }
 
@@ -205,6 +247,7 @@ public class ExtendableMethodVisitor extends MethodVisitor {
     public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
         if (name != null && !name.equals("this")) {
             slotToNameMap.put(index, name);
+            localVariables.add(new LocalVariable(name, start, end, index));
         }
         localVarsToReplay.add(mv -> {
             int remappedIndex = (index >= argSlots) ? index + extraSlotsCount : index;
@@ -216,6 +259,13 @@ public class ExtendableMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitEnd() {
+        if (!hasCode) {
+            // abstract or native method, nothing to instrument
+            targetVisitor.visitEnd();
+            super.visitEnd();
+            return;
+        }
+
         targetVisitor.visitCode();
 
         for (Consumer<MethodVisitor> action : tryCatchBlocks) {
@@ -294,8 +344,7 @@ public class ExtendableMethodVisitor extends MethodVisitor {
 
         // 3. Call onExtendableMethodEnter with context
         targetVisitor.visitVarInsn(Opcodes.ALOAD, serviceSlot);
-        targetVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-        targetVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass", "()Ljava/lang/Class;", false);
+        targetVisitor.visitLdcInsn(Type.getObjectType(ownerClassName));
         targetVisitor.visitVarInsn(Opcodes.ALOAD, 0);
         targetVisitor.visitVarInsn(Opcodes.ALOAD, contextSlot);
         targetVisitor.visitLdcInsn(ownerName);
@@ -363,14 +412,41 @@ public class ExtendableMethodVisitor extends MethodVisitor {
         super.visitEnd();
     }
 
+    /**
+     * Name of the local variable stored to {@code slot} by the instruction at {@code position}. Javac reuses slots
+     * for variables in different scopes, so the slot alone is ambiguous: the matching LocalVariableTable entry is the
+     * one whose scope contains the store, or starts right after it (the initializing store).
+     */
+    private String localName(int slot, int position) {
+        LocalVariable best = null;
+        int bestStart = -1;
+        for (LocalVariable variable : localVariables) {
+            if (variable.index() != slot) {
+                continue;
+            }
+            Integer start = labelPositions.get(variable.start());
+            Integer end = labelPositions.get(variable.end());
+            if (start == null || end == null) {
+                continue;
+            }
+            if (start <= position + 1 && position < end && start > bestStart) {
+                best = variable;
+                bestStart = start;
+            }
+        }
+        if (best != null) {
+            return best.name();
+        }
+        return slotToNameMap.getOrDefault(slot, "var" + slot);
+    }
+
     private void emitLeaveCall(MethodVisitor mv) {
         Label skipLeave = new Label();
         mv.visitVarInsn(Opcodes.ALOAD, serviceSlot);
         mv.visitJumpInsn(Opcodes.IFNULL, skipLeave);
 
         mv.visitVarInsn(Opcodes.ALOAD, serviceSlot);
-        mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass", "()Ljava/lang/Class;", false);
+        mv.visitLdcInsn(Type.getObjectType(ownerClassName));
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitVarInsn(Opcodes.ALOAD, contextSlot);
         mv.visitLdcInsn(ownerName);
