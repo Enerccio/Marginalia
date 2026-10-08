@@ -1,0 +1,10 @@
+#!/bin/sh
+# Starts Marginalia on the bundled Java runtime. Options: marginalia --help
+# Extra JVM options can be passed in MARGINALIA_JAVA_OPTS (e.g. -Xmx2g).
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# MARGINALIA_JAVA_OPTS is split into separate JVM options on purpose
+# shellcheck disable=SC2086
+exec "$DIR/runtime/bin/java" \
+  -Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading --enable-native-access=ALL-UNNAMED \
+  $MARGINALIA_JAVA_OPTS \
+  -jar "$DIR/app/marginalia-launcher.jar" "$@"

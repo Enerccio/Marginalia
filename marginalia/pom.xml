@@ -515,7 +515,8 @@
                                                server/ (jetty-home + marginalia.war), runtime/ (jlink)
         target/desktop/package/                native app made by jpackage (Marginalia.app on macOS,
                                                Marginalia/ with an .exe on Windows, bin/Marginalia on Linux)
-        target/desktop/marginalia-<version>-<os>.tar.gz|zip   archive of the portable folder
+        target/desktop/marginalia-<version>-<os>-<arch>.tar.gz|zip       archive of the portable folder
+        target/desktop/marginalia-<version>-<os>-<arch>-app.tar.gz|zip   archive of the native app
 
       The WAR is the same as for the server, packaged in Vaadin production mode, and it runs on jetty-home (the
       Jetty distribution the Docker image uses) started in-process by DesktopLauncher (src/desktop/java). The
@@ -642,19 +643,32 @@
                       <arg value="${desktop.dir}/package"/>
                     </exec>
 
-                    <!-- tar keeps file permissions, Windows 10+ tar writes zip -->
-                    <condition property="desktop.archive" value="marginalia-${project.version}-${desktop.os}.zip"
-                               else="marginalia-${project.version}-${desktop.os}.tar.gz">
+                    <!-- archives of the portable folder and of the app image: tar keeps file permissions (an
+                         app bundle or launcher without its executable bit is broken), Windows tar (bsdtar from
+                         System32, not Git's GNU tar that may come first on PATH) writes zip -->
+                    <property environment="env"/>
+                    <condition property="desktop.archiveExt" value="zip" else="tar.gz">
                       <os family="windows"/>
                     </condition>
                     <condition property="desktop.tarFlags" value="-a -c -f" else="-c -z -f">
                       <os family="windows"/>
                     </condition>
-                    <delete file="${desktop.dir}/${desktop.archive}"/>
-                    <exec executable="tar" dir="${desktop.dir}" failonerror="true">
+                    <condition property="desktop.tar" value="${env.SystemRoot}\System32\tar.exe" else="tar">
+                      <os family="windows"/>
+                    </condition>
+                    <property name="desktop.archiveBase" value="marginalia-${project.version}-${desktop.os}-${os.arch}"/>
+                    <delete>
+                      <fileset dir="${desktop.dir}" includes="marginalia-*.tar.gz,marginalia-*.zip"/>
+                    </delete>
+                    <exec executable="${desktop.tar}" dir="${desktop.dir}" failonerror="true">
                       <arg line="${desktop.tarFlags}"/>
-                      <arg value="${desktop.archive}"/>
+                      <arg value="${desktop.archiveBase}.${desktop.archiveExt}"/>
                       <arg value="marginalia-${project.version}"/>
+                    </exec>
+                    <exec executable="${desktop.tar}" dir="${desktop.dir}/package" failonerror="true">
+                      <arg line="${desktop.tarFlags}"/>
+                      <arg value="../${desktop.archiveBase}-app.${desktop.archiveExt}"/>
+                      <arg value="."/>
                     </exec>
                   </target>
                 </configuration>

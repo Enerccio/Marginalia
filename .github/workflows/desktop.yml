@@ -1,0 +1,152 @@
+# Builds the desktop distribution (mvn package -Pdesktop) on every platform jlink/jpackage can target.
+# jlink and jpackage only produce a runtime / app for the OS and CPU they run on, hence one job per platform.
+#
+# Artifacts per platform (downloadable from the run, attached to the release for v* tags):
+#   marginalia-<version>-<os>-<arch>.tar.gz|zip       portable folder (bin/marginalia, app/, server/, runtime/)
+#   marginalia-<version>-<os>-<arch>-app.tar.gz|zip   native app image (Marginalia.app / Marginalia.exe / bin/Marginalia)
+
+name: Desktop
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+    paths:
+      - 'marginalia/**'
+      - '.github/workflows/desktop.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: marginalia
+
+env:
+  JAVA_VERSION: '25'
+  MAVEN_ARGS: '-B -ntp'
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # git-commit-id-plugin reads commit and closest tag
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Test
+        run: mvn test
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: marginalia/target/surefire-reports/
+          retention-days: 7
+
+  desktop:
+    name: Desktop ${{ matrix.name }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-latest
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+          - name: windows-x64
+            os: windows-latest
+          - name: macos-arm64
+            os: macos-latest
+          - name: macos-x64
+            os: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Build desktop distribution
+        # tests ran in the test job; quoted for PowerShell on Windows
+        run: mvn "-Pdesktop" "-DskipTests" package
+
+      - name: Smoke test
+        # the native app and the portable launcher script must start the bundled server and serve Marginalia
+        shell: bash
+        run: |
+          smoke() {
+            local name="$1" port="$2"; shift 2
+            "$@" --home "$RUNNER_TEMP/home-$port" --port "$port" --no-browser --no-tray > "$RUNNER_TEMP/smoke-$port.log" 2>&1 &
+            for i in $(seq 1 180); do
+              if curl -s "http://127.0.0.1:$port/" | grep -q "<title>Marginalia</title>"; then
+                echo "$name: Marginalia is up after ${i}s"
+                return 0
+              fi
+              sleep 1
+            done
+            echo "$name: Marginalia did not start"
+            cat "$RUNNER_TEMP/smoke-$port.log"
+            return 1
+          }
+          case "$RUNNER_OS" in
+            Windows) app="target/desktop/package/Marginalia/Marginalia.exe" ;;
+            macOS)   app="target/desktop/package/Marginalia.app/Contents/MacOS/Marginalia" ;;
+            *)       app="target/desktop/package/Marginalia/bin/Marginalia" ;;
+          esac
+          smoke "app image" 18765 "$app"
+          if [ "$RUNNER_OS" != "Windows" ]; then
+            dists=(target/desktop/marginalia-*/)
+            smoke "portable" 18766 "${dists[0]}bin/marginalia"
+          fi
+
+      - name: Upload distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: marginalia-desktop-${{ matrix.name }}
+          path: |
+            marginalia/target/desktop/marginalia-*.tar.gz
+            marginalia/target/desktop/marginalia-*.zip
+          if-no-files-found: error
+          # archives are already compressed
+          compression-level: 0
+          retention-days: 14
+
+  release:
+    name: Attach to release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: desktop
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: marginalia-desktop-*
+          merge-multiple: true
+          path: dist
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
