@@ -174,11 +174,18 @@ public class LorebookView extends VerticalLayout {
         lorebookNameField.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
                 try {
-                    currentLorebook.setName(e.getValue());
-                    lorebookService.save(currentLorebook);
-                    if (!pinnedLorebook) {
-                        loadLorebooks();
-                        lorebookCombo.setValue(currentLorebook);
+                    if (StringUtils.isBlank(e.getValue())) {
+                        lorebookNameField.setInvalid(true);
+                        lorebookNameField.setErrorMessage(loc.getValue(L.ERROR_NAME_CANT_BE_EMPTY));
+                    } else {
+                        lorebookNameField.setInvalid(false);
+                        lorebookNameField.setErrorMessage("");
+                        currentLorebook.setName(e.getValue());
+                        lorebookService.save(currentLorebook);
+                        if (!pinnedLorebook) {
+                            loadLorebooks();
+                            lorebookCombo.setValue(currentLorebook);
+                        }
                     }
                 } catch (Exception ex) {
                     UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);

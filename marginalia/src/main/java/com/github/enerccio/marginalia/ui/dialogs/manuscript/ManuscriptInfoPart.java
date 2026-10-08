@@ -98,6 +98,13 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         nameField.setWidthFull();
         nameField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
+                if (StringUtils.isBlank(e.getValue())) {
+                    nameField.setInvalid(true);
+                    nameField.setErrorMessage(loc.getValue(L.ERROR_NAME_CANT_BE_EMPTY));
+                } else {
+                    nameField.setInvalid(false);
+                    nameField.setErrorMessage("");
+                }
                 autosave();
             }
         });
@@ -172,7 +179,8 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
                 return;
             }
 
-            manuscript.setName(nameField.getValue());
+            if (StringUtils.isNotBlank(nameField.getValue()))
+                manuscript.setName(nameField.getValue());
             manuscript.setDescription(descriptionField.getValue());
             manuscript.setAi(aiCombo.getValue());
             manuscript.setProtocol(protocolCombo.getValue());
