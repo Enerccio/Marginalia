@@ -112,19 +112,7 @@ public class LorebookVCSService {
     }
 
     private Tag getOrCreateTag(String value) throws Exception {
-        if (StringUtils.isBlank(value)) return null;
-        String trimmed = value.trim();
-        List<Tag> matches = tagService.searchTagsForUser(trimmed, 0, 10);
-        Tag tag = matches.stream()
-                .filter(t -> StringUtils.equalsIgnoreCase(t.getValue(), trimmed))
-                .findFirst()
-                .orElse(null);
-        if (tag == null) {
-            tag = new Tag();
-            tag.setValue(trimmed);
-            tag = tagService.save(tag);
-        }
-        return tag;
+        return tagService.getOrCreateForUser(value);
     }
 
     public String exportVCSJson(Lorebook lorebook) {

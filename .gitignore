@@ -5,3 +5,4 @@
 /data/
 /marginalia/src/main/bundles/
 /marginalia/target
+/marginalia/plugins/*/target
