@@ -100,7 +100,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         lorebook = save(lorebook);
 
         if (!rootObj.has("entries")) {
-            return lorebook;
+            throw new IllegalArgumentException("Format invalid");
         }
 
         JsonElement entriesElement = rootObj.get("entries");
