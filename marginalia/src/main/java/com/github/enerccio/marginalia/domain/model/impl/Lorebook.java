@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ public class Lorebook extends ExtendableEntity {
     private String name;
 
     @OneToMany(fetch = FetchType.EAGER)
+    @CleanupReference(Policy.WEAK)
     private List<Lorebook> subbooks;
 
     @Transient

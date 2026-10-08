@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
 
@@ -17,12 +19,15 @@ import java.util.Date;
 public class ChatMessage extends ExtendableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @CleanupReference(Policy.OWNED_BY)
     private Manuscript parentScript;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @CleanupReference(Policy.OWNED_BY)
     private ChatMessage parent;
 
     @OneToOne
+    @CleanupReference(Policy.OWNS)
     private Summary summary;
 
     @ExtendedAttribute

@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.loc;
 
 import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 
 import java.text.DateFormat;
 import java.util.Comparator;
@@ -25,4 +26,5 @@ public interface Localization {
     L getBackupStrategy(BackupStrategy t);
     L getFilteringMode(FilteringMode t);
     L getInsertionMode(InsertionMode t);
+    L getCleanupPolicy(CleanupReference.Policy t);
 }

@@ -132,5 +132,11 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.BackupServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.DatabaseBackupServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.CleanupServiceImpl">
+        <property name="entityManager" ref="em" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.instruct.RuntimeInstrumentationInitializer" />
 </beans>

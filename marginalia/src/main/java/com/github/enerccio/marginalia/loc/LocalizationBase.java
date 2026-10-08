@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.loc;
 
 import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,7 @@ public abstract class LocalizationBase implements Localization {
     private final Map<BackupStrategy, L> backupStrategies = new HashMap<>();
     private final Map<FilteringMode, L> filteringModes = new HashMap<>();
     private final Map<InsertionMode, L> insertionModes = new HashMap<>();
+    private final Map<CleanupReference.Policy, L> cleanupPolicies = new HashMap<>();
 
     protected abstract void loadMessages();
 
@@ -54,6 +56,11 @@ public abstract class LocalizationBase implements Localization {
 
         insertionModes.put(InsertionMode.IN_LORE_BLOCK, L.ENUM_INSERTION_MODE_IN_LORE_BLOCK);
         insertionModes.put(InsertionMode.BEFORE_USER_PROMPT, L.ENUM_INSERTION_MODE_BEFORE_USER_PROMPT);
+
+        cleanupPolicies.put(CleanupReference.Policy.STRONG, L.ENUM_CLEANUP_POLICY_STRONG);
+        cleanupPolicies.put(CleanupReference.Policy.OWNED_BY, L.ENUM_CLEANUP_POLICY_OWNED_BY);
+        cleanupPolicies.put(CleanupReference.Policy.OWNS, L.ENUM_CLEANUP_POLICY_OWNS);
+        cleanupPolicies.put(CleanupReference.Policy.WEAK, L.ENUM_CLEANUP_POLICY_WEAK);
     }
 
     protected void checkLocalization() {
@@ -172,5 +179,10 @@ public abstract class LocalizationBase implements Localization {
     @Override
     public L getInsertionMode(InsertionMode type) {
         return insertionModes.get(type);
+    }
+
+    @Override
+    public L getCleanupPolicy(CleanupReference.Policy type) {
+        return cleanupPolicies.get(type);
     }
 }

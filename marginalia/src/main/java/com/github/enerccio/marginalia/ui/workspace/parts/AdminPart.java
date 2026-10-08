@@ -12,6 +12,8 @@ import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.ui.workspace.parts.admin.CleanupPanel;
+import com.github.enerccio.marginalia.ui.workspace.parts.admin.DatabaseBackupPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -59,6 +61,8 @@ public class AdminPart implements WorkspaceComponent {
 
     private Grid<Bundle> extensionsGrid;
     private Grid<User> usersGrid;
+    private final DatabaseBackupPanel databaseBackupPanel = new DatabaseBackupPanel();
+    private final CleanupPanel cleanupPanel = new CleanupPanel();
 
     public AdminPart(Workspace workspace) {
         this.workspace = workspace;
@@ -72,6 +76,12 @@ public class AdminPart implements WorkspaceComponent {
         Tab usersTab = new Tab(loc.getValue(L.LABEL_USERS));
         Component usersContent = createUsersTab();
         tabSheet.add(usersTab, usersContent);
+
+        Tab databaseTab = new Tab(loc.getValue(L.LABEL_DATABASE_BACKUPS));
+        tabSheet.add(databaseTab, databaseBackupPanel.create());
+
+        Tab cleanupTab = new Tab(loc.getValue(L.LABEL_CLEANUP));
+        tabSheet.add(cleanupTab, cleanupPanel.create());
 
         Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
         Component extensionsContent = createExtensionsTab();
@@ -295,6 +305,8 @@ public class AdminPart implements WorkspaceComponent {
     public void refresh() throws Exception {
         refreshGrid();
         refreshUsersGrid();
+        databaseBackupPanel.refresh();
+        cleanupPanel.refresh();
     }
 
     @Override

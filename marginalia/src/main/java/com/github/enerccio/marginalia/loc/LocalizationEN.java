@@ -291,6 +291,40 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_CANNOT_DELETE_SELF, "You cannot delete your own account.");
         setValue(L.MSG_CANNOT_DELETE_LAST_ADMIN, "The last administrator cannot be deleted or demoted.");
         setValue(L.MSG_INVALID_LOREBOOK_FILE, "File is not a valid Marginalia lorebook export.");
+        setValue(L.LABEL_DATABASE_BACKUPS, "Database Backups");
+        setValue(L.LABEL_CREATE_BACKUP, "Create Backup");
+        setValue(L.LABEL_UPLOAD_BACKUP, "Upload Backup");
+        setValue(L.LABEL_DOWNLOAD, "Download");
+        setValue(L.LABEL_SIZE, "Size");
+        setValue(L.LABEL_DATABASE_SIZE, "Current database size: %s");
+        setValue(L.LABEL_RESTORE_ON_RESTART, "Restore on restart");
+        setValue(L.LABEL_CANCEL_RESTORE, "Cancel Restore");
+        setValue(L.MSG_DATABASE_BACKUP_CREATED, "Database backup created.");
+        setValue(L.MSG_CONFIRM_DATABASE_RESTORE, "Database will be replaced with backup \"%s\" on next application start. Current database will be kept in backup folder. Continue?");
+        setValue(L.MSG_DATABASE_RESTORE_PENDING, "Database restore is scheduled. Restart the application to apply it.");
+        setValue(L.MSG_INVALID_DATABASE_FILE, "File is not a valid SQLite database.");
+        setValue(L.LABEL_CLEANUP, "Cleanup");
+        setValue(L.LABEL_ANALYZE, "Analyze");
+        setValue(L.LABEL_RUN_CLEANUP, "Run Cleanup");
+        setValue(L.LABEL_ENTITY, "Entity");
+        setValue(L.LABEL_SOFT_DELETED, "Deleted");
+        setValue(L.LABEL_PURGEABLE, "To purge");
+        setValue(L.LABEL_BLOCKED, "Blocked");
+        setValue(L.LABEL_BLOCKED_ENTITIES, "Deleted objects still in use");
+        setValue(L.LABEL_REFERENCED_BY, "Referenced by");
+        setValue(L.LABEL_REFERENCE_MODEL, "Reference Model");
+        setValue(L.LABEL_REFERRER, "Referrer");
+        setValue(L.LABEL_FIELD, "Field");
+        setValue(L.LABEL_TARGET, "Target");
+        setValue(L.LABEL_POLICY, "Policy");
+        setValue(L.MSG_CLEANUP_DESCRIPTION, "Cleanup permanently removes deleted objects that are no longer used anywhere, together with data that belongs only to them (messages, entries, tag relations...). Deleted objects that are still referenced are kept.");
+        setValue(L.MSG_CONFIRM_CLEANUP, "%d objects will be permanently removed. Consider creating database backup first. Continue?");
+        setValue(L.MSG_CLEANUP_DONE, "Cleanup removed %d objects.");
+        setValue(L.MSG_NOTHING_TO_CLEANUP, "There is nothing to clean up.");
+        setValue(L.ENUM_CLEANUP_POLICY_STRONG, "Blocks purge");
+        setValue(L.ENUM_CLEANUP_POLICY_OWNED_BY, "Purged with target");
+        setValue(L.ENUM_CLEANUP_POLICY_OWNS, "Owns target");
+        setValue(L.ENUM_CLEANUP_POLICY_WEAK, "Cleared on purge");
     }
 
     @Override

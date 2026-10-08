@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.domain.model.impl;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
 
@@ -14,6 +16,7 @@ import java.util.List;
 public class LorebookEntry extends ExtendableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @CleanupReference(Policy.OWNED_BY)
     private Lorebook lorebook;
 
     @Lob

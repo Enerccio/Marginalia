@@ -1,7 +1,11 @@
 package com.github.enerccio.marginalia.domain.model.impl.settings;
 
 import com.github.enerccio.marginalia.domain.model.Setting;
+import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -13,10 +17,12 @@ public class UserSetting extends Setting {
 
     @ExtendedAttribute
     @Transient
+    @CleanupReference(value = Policy.WEAK, target = AI.class)
     private Long defaultModel;
 
     @ExtendedAttribute
     @Transient
+    @CleanupReference(value = Policy.WEAK, target = Protocol.class)
     private Long defaultProtocol;
 
     // templates
