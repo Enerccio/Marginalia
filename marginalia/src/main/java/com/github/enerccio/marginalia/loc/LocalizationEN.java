@@ -79,6 +79,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_ADD_LOREBOOK, "Add Lorebook");
         setValue(L.LABEL_EDIT_LOREBOOK, "Edit Lorebook");
         setValue(L.LABEL_NEW_LOREBOOK, "New Lorebook");
+        setValue(L.LABEL_NEW_LOREBOOK_ENTRY, "New Entry");
         setValue(L.LABEL_DELETE_LOREBOOK, "Delete Lorebook");
         setValue(L.LABEL_SUB_LOREBOOKS, "Sub Lorebooks");
         setValue(L.LABEL_ADD_ENTRY, "Add Entry");

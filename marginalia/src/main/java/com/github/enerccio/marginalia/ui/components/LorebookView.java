@@ -644,7 +644,7 @@ public class LorebookView extends VerticalLayout {
         try {
             LorebookEntry entry = new LorebookEntry();
             entry.setLorebook(currentLorebook);
-            entry.setName(loc.getValue(L.LABEL_NEW_LOREBOOK));
+            entry.setName(loc.getValue(L.LABEL_NEW_LOREBOOK_ENTRY));
             entry.setEnabled(true);
             entry.setOrder(100);
             lorebookEntryService.save(entry);
