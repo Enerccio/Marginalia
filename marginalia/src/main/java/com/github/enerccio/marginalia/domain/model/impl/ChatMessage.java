@@ -127,6 +127,7 @@ public class ChatMessage extends ExtendableEntity {
         this.tokenReasoningCount = source.tokenReasoningCount;
         this.ttft = source.ttft;
         this.wordCount = source.wordCount;
+        this.setAttributes(source.getAttributes().deepCopy());
     }
 
     public Summary getSummary() {
