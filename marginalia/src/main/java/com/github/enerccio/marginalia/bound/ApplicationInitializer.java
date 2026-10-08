@@ -35,7 +35,7 @@ public class ApplicationInitializer implements InitializingBean {
         }
 
         int appVer = settings.getAppVersion();
-        if (dbVer < appVersion) {
+        if (appVer < appVersion) {
             for (Migration migration : migrations) {
                 appVer = migration.migrate(appVer, MigrationType.APP);
             }
