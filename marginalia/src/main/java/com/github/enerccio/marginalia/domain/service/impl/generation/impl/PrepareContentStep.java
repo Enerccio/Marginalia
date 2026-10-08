@@ -77,7 +77,7 @@ public class PrepareContentStep extends GenerationStepBase {
 
                     if (activeMessage != null) {
                         List<ChatMessage> chain = finalFromRoot;
-                        if (!chain.isEmpty() && controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE) {
+                        if (!chain.isEmpty() && controller.getRequest().getRequestType() == GenerationRequestType.NEW_MESSAGE) {
                             // remove last since we are regenerating
                             chain = chain.subList(0, chain.size() - 1);
                         }

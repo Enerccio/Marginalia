@@ -27,7 +27,7 @@ public class GenerationRequest {
 
     public static GenerationRequest newSwipe(ChatMessage sibling) {
         GenerationRequest generationRequest = new GenerationRequest();
-        generationRequest.requestType = GenerationRequestType.NEW_MESSAGE;
+        generationRequest.requestType = GenerationRequestType.SWIPE;
         generationRequest.node = sibling;
         return generationRequest;
     }
