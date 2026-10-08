@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Macro reference</title>
+    <meta name="title" content="Macro reference">
+    <meta name="description" content="Marginalia understands the macros of SillyTavern, so prompts and world info written for SillyTavern work without changes. Macros work in every template: master template, user prompt, summary prompt and lorebook entries.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/templates/macros/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/templates/macros/">
+    <meta property="og:title" content="Macro reference">
+    <meta property="og:description" content="Marginalia understands the macros of SillyTavern, so prompts and world info written for SillyTavern work without changes. Macros work in every template: master template, user prompt, summary prompt and lorebook entries.">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/templates/macros/">
+    <meta name="twitter:title" content="Macro reference">
+    <meta name="twitter:description" content="Marginalia understands the macros of SillyTavern, so prompts and world info written for SillyTavern work without changes. Macros work in every template: master template, user prompt, summary prompt and lorebook entries.">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/templates/macros.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844806904216" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="macro-reference">Macro reference</h1>
+<p>Marginalia understands the macros of <a href="https://docs.sillytavern.app/usage/core-concepts/macros/">SillyTavern</a>, so
+prompts and world info written for SillyTavern work without changes. Macros work in every
+<a href="../templates/">template</a>: master template, user prompt, summary prompt and lorebook entries.</p>
+<h2 id="syntax">Syntax</h2>
+<retype-table copy-text="| Form | Example |
+|---|---|
+| without arguments | `{{user}}` |
+| arguments separated by `::` | `{{setvar::mood::nervous}}` |
+| first argument after a space | `{{getvar mood}}`, `{{setvar greeting::Hello}}` |
+| legacy single `:` | `{{getvar:mood}}`, `{{random:north,south}}` |
+| nested macros | `{{getvar::{{user}}_mood}}` |
+| scoped (content as the last argument) | `{{setvar backstory}}Long text...{{/setvar}}` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Form</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>without arguments</td>
+<td><code translate="no" v-pre>{{user}}</code></td>
+</tr>
+<tr>
+<td>arguments separated by <code translate="no" v-pre>::</code></td>
+<td><code translate="no" v-pre>{{setvar::mood::nervous}}</code></td>
+</tr>
+<tr>
+<td>first argument after a space</td>
+<td><code translate="no" v-pre>{{getvar mood}}</code>, <code translate="no" v-pre>{{setvar greeting::Hello}}</code></td>
+</tr>
+<tr>
+<td>legacy single <code translate="no" v-pre>:</code></td>
+<td><code translate="no" v-pre>{{getvar:mood}}</code>, <code translate="no" v-pre>{{random:north,south}}</code></td>
+</tr>
+<tr>
+<td>nested macros</td>
+<td><code translate="no" v-pre>{{getvar::{{user}}_mood}}</code></td>
+</tr>
+<tr>
+<td>scoped (content as the last argument)</td>
+<td><code translate="no" v-pre>{{setvar backstory}}Long text...{{/setvar}}</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<ul>
+<li>Macro names are case-insensitive: <code translate="no" v-pre>{{User}}</code> and <code translate="no" v-pre>{{USER}}</code> work.</li>
+<li>Spaces around names and arguments are ignored: <code translate="no" v-pre>{{ getvar :: mood }}</code>.</li>
+<li>Extra <code translate="no" v-pre>::</code> go into the last argument: <code translate="no" v-pre>{{setvar::x::a::b}}</code> sets <code translate="no" v-pre>x</code> to <code translate="no" v-pre>a::b</code>.</li>
+<li>Scoped content is evaluated first, then dedented and trimmed. With <code translate="no" v-pre>#</code> after the braces,
+<code translate="no" v-pre>{{#setvar name}}...{{/setvar}}</code>, the whitespace is kept exactly.</li>
+</ul>
+<h2 id="names-and-participants">Names and participants</h2>
+<p>Marginalia has no personas or character cards; the names come from the turn instructions of the part being written.</p>
+<retype-table copy-text="| Macro | Result |
+|---|---|
+| `{{user}}` | The POV character. |
+| `{{char}}` | The POV character. Alias `{{charIfNotGroup}}`. |
+| `{{group}}` | The present characters, or the POV character when none are given. Alias `{{groupNotMuted}}`. |
+| `{{notChar}}` | The present characters except the POV character (comma or line separated, joined with `, `). |
+| `{{description}}` | The book's description. |
+| `{{scenario}}` | The scene setting. |
+| `{{input}}` | The instructions for the part. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Macro</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{user}}</code></td>
+<td>The POV character.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{char}}</code></td>
+<td>The POV character. Alias <code translate="no" v-pre>{{charIfNotGroup}}</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{group}}</code></td>
+<td>The present characters, or the POV character when none are given. Alias <code translate="no" v-pre>{{groupNotMuted}}</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{notChar}}</code></td>
+<td>The present characters except the POV character (comma or line separated, joined with <code translate="no" v-pre>, </code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{description}}</code></td>
+<td>The book&#x27;s description.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{scenario}}</code></td>
+<td>The scene setting.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{input}}</code></td>
+<td>The instructions for the part.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The SillyTavern markers <code translate="no" v-pre>&lt;USER&gt;</code>, <code translate="no" v-pre>&lt;BOT&gt;</code>, <code translate="no" v-pre>&lt;CHAR&gt;</code>, <code translate="no" v-pre>&lt;GROUP&gt;</code> and <code translate="no" v-pre>&lt;CHARIFNOTGROUP&gt;</code> (any case) work as well.</p>
+<p>With POV character <em>Alice</em> and present characters <em>Alice, Bob, Carol</em>:
+<code translate="no" v-pre>{{user}}</code> → <em>Alice</em>, <code translate="no" v-pre>{{group}}</code> → <em>Alice, Bob, Carol</em>, <code translate="no" v-pre>{{notChar}}</code> → <em>Bob, Carol</em>.</p>
+<h2 id="story-history">Story history</h2>
+<retype-table copy-text="| Macro | Result |
+|---|---|
+| `{{lastMessage}}` | The text of the last part of the active branch. Alias `{{lastCharMessage}}`. |
+| `{{lastMessageId}}` | The position of the last part, counted from 0. |
+| `{{lastUserMessage}}` | The instructions of the last part. |
+| `{{summary}}` | The newest [summary](../books/summaries.md) of the active branch. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Macro</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{lastMessage}}</code></td>
+<td>The text of the last part of the active branch. Alias <code translate="no" v-pre>{{lastCharMessage}}</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{lastMessageId}}</code></td>
+<td>The position of the last part, counted from 0.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{lastUserMessage}}</code></td>
+<td>The instructions of the last part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{summary}}</code></td>
+<td>The newest <a href="../../books/summaries/">summary</a> of the active branch.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>For the first part of a book they are empty. For <em>Regenerate</em>, &quot;last part&quot; is the one before the regenerated part.</p>
+<h2 id="date-and-time">Date and time</h2>
+<retype-table copy-text="| Macro | Example result |
+|---|---|
+| `{{time}}` | `2:30 PM` |
+| `{{time::UTC+2}}` | `4:30 PM` - the time at a UTC offset (`UTC-5:30` works too) |
+| `{{date}}` | `March 15, 2026` |
+| `{{weekday}}` | `Sunday` |
+| `{{isodate}}` | `2026-03-15` |
+| `{{isotime}}` | `14:30` |
+| `{{datetimeformat::YYYY-MM-DD HH:mm}}` | `2026-03-15 14:30` - [moment.js format tokens](https://momentjs.com/docs/#/displaying/format/), text in `[brackets]` is printed as it is: `{{datetimeformat::dddd [the] D. MMMM}}` → `Sunday the 15. March` |
+| `{{idleDuration}}` | `2 hours` - time since the last part was written, `just now` for the first part. Alias `{{idle_duration}}`. |
+| `{{timeDiff::2026-01-01 12:00::2026-01-01 10:00}}` | `in 2 hours` - the difference between two times; `now`, dates (`2026-01-08`) and ISO times work. Unknown values give nothing. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Macro</th>
+<th>Example result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{time}}</code></td>
+<td><code translate="no" v-pre>2:30 PM</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{time::UTC+2}}</code></td>
+<td><code translate="no" v-pre>4:30 PM</code> - the time at a UTC offset (<code translate="no" v-pre>UTC-5:30</code> works too)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{date}}</code></td>
+<td><code translate="no" v-pre>March 15, 2026</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{weekday}}</code></td>
+<td><code translate="no" v-pre>Sunday</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{isodate}}</code></td>
+<td><code translate="no" v-pre>2026-03-15</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{isotime}}</code></td>
+<td><code translate="no" v-pre>14:30</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{datetimeformat::YYYY-MM-DD HH:mm}}</code></td>
+<td><code translate="no" v-pre>2026-03-15 14:30</code> - <a href="https://momentjs.com/docs/#/displaying/format/">moment.js format tokens</a>, text in <code translate="no" v-pre>[brackets]</code> is printed as it is: <code translate="no" v-pre>{{datetimeformat::dddd [the] D. MMMM}}</code> → <code translate="no" v-pre>Sunday the 15. March</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{idleDuration}}</code></td>
+<td><code translate="no" v-pre>2 hours</code> - time since the last part was written, <code translate="no" v-pre>just now</code> for the first part. Alias <code translate="no" v-pre>{{idle_duration}}</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{timeDiff::2026-01-01 12:00::2026-01-01 10:00}}</code></td>
+<td><code translate="no" v-pre>in 2 hours</code> - the difference between two times; <code translate="no" v-pre>now</code>, dates (<code translate="no" v-pre>2026-01-08</code>) and ISO times work. Unknown values give nothing.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Times are in the time zone of the computer or server Marginalia runs on, and always in English. For the
+<a href="../../getting-started/docker-server/">Docker version</a>, set the time zone with the <code translate="no" v-pre>TZ</code> environment variable, e.g.
+<code translate="no" v-pre>TZ=Europe/Prague</code>.</p>
+<h2 id="variables">Variables</h2>
+<p>Variables store values between parts: counters, a character&#x27;s mood, things the story has established. There are two
+kinds:</p>
+<ul>
+<li>
+<p><strong>local</strong> variables belong to the story branch: each part remembers their values, and a new part starts with the
+values of the part before it;</p>
+</li>
+<li>
+<p><strong>global</strong> variables belong to the book, shared by all branches.</p>
+</li>
+</ul>
+<p>See <a href="../templates/#what-is-kept-between-parts">What is kept between parts</a>.</p>
+<retype-table copy-text="| Local | Global | |
+|---|---|---|
+| `{{getvar::name}}` | `{{getglobalvar::name}}` | The value; empty when not set. |
+| `{{setvar::name::value}}` | `{{setglobalvar::name::value}}` | Sets the value. Prints nothing. |
+| `{{addvar::name::value}}` | `{{addglobalvar::name::value}}` | Adds a number, or appends text when either isn't a number. Prints nothing. |
+| `{{incvar::name}}` | `{{incglobalvar::name}}` | Adds 1 and prints the new value. A value that isn't a number starts from 0. |
+| `{{decvar::name}}` | `{{decglobalvar::name}}` | Subtracts 1 and prints the new value. |
+| `{{hasvar::name}}` | `{{hasglobalvar::name}}` | `true` or `false`. |
+| `{{deletevar::name}}` | `{{deleteglobalvar::name}}` | Removes the variable. Alias `flushvar` / `flushglobalvar`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Local</th>
+<th>Global</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{getvar::name}}</code></td>
+<td><code translate="no" v-pre>{{getglobalvar::name}}</code></td>
+<td>The value; empty when not set.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{setvar::name::value}}</code></td>
+<td><code translate="no" v-pre>{{setglobalvar::name::value}}</code></td>
+<td>Sets the value. Prints nothing.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{addvar::name::value}}</code></td>
+<td><code translate="no" v-pre>{{addglobalvar::name::value}}</code></td>
+<td>Adds a number, or appends text when either isn&#x27;t a number. Prints nothing.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{incvar::name}}</code></td>
+<td><code translate="no" v-pre>{{incglobalvar::name}}</code></td>
+<td>Adds 1 and prints the new value. A value that isn&#x27;t a number starts from 0.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{decvar::name}}</code></td>
+<td><code translate="no" v-pre>{{decglobalvar::name}}</code></td>
+<td>Subtracts 1 and prints the new value.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{hasvar::name}}</code></td>
+<td><code translate="no" v-pre>{{hasglobalvar::name}}</code></td>
+<td><code translate="no" v-pre>true</code> or <code translate="no" v-pre>false</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{deletevar::name}}</code></td>
+<td><code translate="no" v-pre>{{deleteglobalvar::name}}</code></td>
+<td>Removes the variable. Alias <code translate="no" v-pre>flushvar</code> / <code translate="no" v-pre>flushglobalvar</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Numbers are printed without trailing zeros: <code translate="no" v-pre>1.50</code> plus <code translate="no" v-pre>1.5</code> is <code translate="no" v-pre>3</code>.</p>
+<div id="variables-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-handlebars"><code v-pre class="language-handlebars">{{setvar::hp::10}}{{addvar::hp::5}}HP: {{getvar::hp}}      → HP: 15
+{{setvar::items::a rope}}{{addvar::items::, a lamp}}{{getvar::items}}   → a rope, a lamp</code></pre>
+</doc-codeblock></div>
+<h3 id="shorthands">Shorthands</h3>
+<p><code translate="no" v-pre>{{.name}}</code> is a local variable, <code translate="no" v-pre>{{$name}}</code> a global one. On its own, a shorthand prints the value. With an operator:</p>
+<retype-table copy-text="| Shorthand | Effect | Prints |
+|---|---|---|
+| `{{.hp = 20}}` | sets the value | nothing |
+| `{{.hp += 5}}`, `{{.hp -= 5}}` | adds / subtracts (`+=` appends text to text) | nothing |
+| `{{.turn++}}`, `{{.turn--}}` | adds / subtracts 1 | the new value |
+| `{{.hp == 17}}`, `{{.hp != 17}}` | compares | `true` / `false` |
+| `{{.hp &gt; 10}}`, `&gt;=`, `&lt;`, `&lt;=` | compares numbers (`false` for text) | `true` / `false` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Shorthand</th>
+<th>Effect</th>
+<th>Prints</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{.hp = 20}}</code></td>
+<td>sets the value</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{.hp += 5}}</code>, <code translate="no" v-pre>{{.hp -= 5}}</code></td>
+<td>adds / subtracts (<code translate="no" v-pre>+=</code> appends text to text)</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{.turn++}}</code>, <code translate="no" v-pre>{{.turn--}}</code></td>
+<td>adds / subtracts 1</td>
+<td>the new value</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{.hp == 17}}</code>, <code translate="no" v-pre>{{.hp != 17}}</code></td>
+<td>compares</td>
+<td><code translate="no" v-pre>true</code> / <code translate="no" v-pre>false</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{.hp &gt; 10}}</code>, <code translate="no" v-pre>&gt;=</code>, <code translate="no" v-pre>&lt;</code>, <code translate="no" v-pre>&lt;=</code></td>
+<td>compares numbers (<code translate="no" v-pre>false</code> for text)</td>
+<td><code translate="no" v-pre>true</code> / <code translate="no" v-pre>false</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Fallbacks and defaults:</p>
+<ul>
+<li><code translate="no" v-pre>{{.name || Guest}}</code> prints <em>Guest</em> when the variable is empty or falsy (<code translate="no" v-pre>0</code>, <code translate="no" v-pre>false</code>, <code translate="no" v-pre>no</code>, <code translate="no" v-pre>off</code>);</li>
+<li><code translate="no" v-pre>{{.name ?? Guest}}</code> prints <em>Guest</em> only when the variable isn&#x27;t set at all;</li>
+<li><code translate="no" v-pre>{{.title ||= Wanderer}}</code> sets the variable to <em>Wanderer</em> if it is empty or falsy, then prints it;</li>
+<li><code translate="no" v-pre>{{.title ??= Wanderer}}</code> sets it only when it isn&#x27;t set at all, then prints it.</li>
+</ul>
+<p>Values can contain macros: <code translate="no" v-pre>{{.log += -&gt; {{user}}}}</code>.</p>
+<p>A part counter, for example, at the top of the user prompt (<code translate="no" v-pre>+=</code> prints nothing, and <code translate="no" v-pre>{{trim}}</code> removes the empty
+line it leaves):</p>
+<div id="shorthands-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-handlebars"><code v-pre class="language-handlebars">{{.part += 1}}{{trim}}
+This is part {{.part}} of the story.</code></pre>
+</doc-codeblock></div>
+<h2 id="conditionals">Conditionals</h2>
+<div id="conditionals-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-handlebars"><code v-pre class="language-handlebars">{{if presentCharacters}}
+  Present: {{presentCharacters}}
+{{else}}
+  {{user}} is alone.
+{{/if}}</code></pre>
+</doc-codeblock></div>
+<p>The condition can be:</p>
+<retype-table copy-text="| Condition | True when |
+|---|---|
+| a macro name - `{{if user}}` | the macro gives a value |
+| a variable - `{{if .mood}}`, `{{if $chapter}}` | the variable has a value |
+| a template variable - `{{if sceneSetting}}` | the variable has a value |
+| a comparison - `{{if .hp &gt; 20}}` | the comparison is true |
+| any text - `{{if yes}}` | always, except for the falsy values |
+| negation - `{{if !user}}`, `{{if !.mood}}` | the opposite |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Condition</th>
+<th>True when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a macro name - <code translate="no" v-pre>{{if user}}</code></td>
+<td>the macro gives a value</td>
+</tr>
+<tr>
+<td>a variable - <code translate="no" v-pre>{{if .mood}}</code>, <code translate="no" v-pre>{{if $chapter}}</code></td>
+<td>the variable has a value</td>
+</tr>
+<tr>
+<td>a template variable - <code translate="no" v-pre>{{if sceneSetting}}</code></td>
+<td>the variable has a value</td>
+</tr>
+<tr>
+<td>a comparison - <code translate="no" v-pre>{{if .hp &gt; 20}}</code></td>
+<td>the comparison is true</td>
+</tr>
+<tr>
+<td>any text - <code translate="no" v-pre>{{if yes}}</code></td>
+<td>always, except for the falsy values</td>
+</tr>
+<tr>
+<td>negation - <code translate="no" v-pre>{{if !user}}</code>, <code translate="no" v-pre>{{if !.mood}}</code></td>
+<td>the opposite</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Falsy are an empty value and <code translate="no" v-pre>0</code>, <code translate="no" v-pre>false</code>, <code translate="no" v-pre>no</code>, <code translate="no" v-pre>off</code> (any case). Everything else is true.</p>
+<ul>
+<li>
+<p>The short form <code translate="no" v-pre>{{if user::text}}</code> prints <em>text</em> when the condition is true.</p>
+</li>
+<li>
+<p>Only the branch that is taken is evaluated: a <code translate="no" v-pre>{{setvar}}</code> in the other branch doesn&#x27;t happen.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>{{if}}</code> blocks are dedented and trimmed like scoped macros, so they can be indented for readability. <code translate="no" v-pre>{{#if}}</code>
+(the <a href="../templates/#conditions">Handlebars if</a>) keeps the whitespace.</p>
+</li>
+<li>
+<p>A <code translate="no" v-pre>{{if}}</code> without <code translate="no" v-pre>{{/if}}</code> is printed as text.</p>
+</li>
+</ul>
+<h2 id="randomness">Randomness</h2>
+<retype-table copy-text="| Macro | Result |
+|---|---|
+| `{{random::red::green::blue}}` | One of the options, different every time. Also `{{random:red,green,blue}}` and `{{random}}red, green{{/random}}`. |
+| `{{pick::sword::axe::bow}}` | One of the options, but always **the same one** for the same book and the same place in the template. Use it for things that must stay consistent, like a randomly chosen name. |
+| `{{roll::2d6+3}}` | A dice roll: `1d20`, `3d4-10`, `d100`; also `{{roll d100}}`, `{{roll:6}}` (one six-sided die). Invalid rolls give nothing. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Macro</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{random::red::green::blue}}</code></td>
+<td>One of the options, different every time. Also <code translate="no" v-pre>{{random:red,green,blue}}</code> and <code translate="no" v-pre>{{random}}red, green{{/random}}</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{pick::sword::axe::bow}}</code></td>
+<td>One of the options, but always <strong>the same one</strong> for the same book and the same place in the template. Use it for things that must stay consistent, like a randomly chosen name.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{roll::2d6+3}}</code></td>
+<td>A dice roll: <code translate="no" v-pre>1d20</code>, <code translate="no" v-pre>3d4-10</code>, <code translate="no" v-pre>d100</code>; also <code translate="no" v-pre>{{roll d100}}</code>, <code translate="no" v-pre>{{roll:6}}</code> (one six-sided die). Invalid rolls give nothing.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="generation-info">Generation info</h2>
+<retype-table copy-text="| Macro | Result |
+|---|---|
+| `{{model}}` | The name of the [inference provider](../inference-providers.md) of the book. |
+| `{{maxContextTokens}}` | The context limit in tokens (protocol or provider, see [Limits](../protocols.md#limits)). Alias `{{maxContext}}`. |
+| `{{maxResponseTokens}}` | The response limit in tokens. Alias `{{maxResponse}}`. |
+| `{{maxPrompt}}` | Context minus response: the room for the prompt. |
+| `{{lastGenerationType}}` | `normal` for a new part, `regenerate`, `swipe`, or `quiet` in summaries. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Macro</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{model}}</code></td>
+<td>The name of the <a href="../../inference-providers/">inference provider</a> of the book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{maxContextTokens}}</code></td>
+<td>The context limit in tokens (protocol or provider, see <a href="../../protocols/#limits">Limits</a>). Alias <code translate="no" v-pre>{{maxContext}}</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{maxResponseTokens}}</code></td>
+<td>The response limit in tokens. Alias <code translate="no" v-pre>{{maxResponse}}</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{maxPrompt}}</code></td>
+<td>Context minus response: the room for the prompt.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{lastGenerationType}}</code></td>
+<td><code translate="no" v-pre>normal</code> for a new part, <code translate="no" v-pre>regenerate</code>, <code translate="no" v-pre>swipe</code>, or <code translate="no" v-pre>quiet</code> in summaries.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="utility">Utility</h2>
+<retype-table copy-text="| Macro | Result |
+|---|---|
+| `{{newline}}`, `{{newline::2}}` | One or more line breaks. |
+| `{{space}}`, `{{space::4}}` | One or more spaces. |
+| `{{trim}}` | Removes the line breaks around it. Useful after lines that only set variables. |
+| `{{noop}}` | Nothing. |
+| `{{reverse::text}}` | The text reversed. |
+| `{{// comment}}` | A comment, removed. `{{//}}` ... `{{///}}` comments out everything between them, macros included. |
+| `\{\{user\}\}` | Prints `{{user}}` literally. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Macro</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{newline}}</code>, <code translate="no" v-pre>{{newline::2}}</code></td>
+<td>One or more line breaks.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{space}}</code>, <code translate="no" v-pre>{{space::4}}</code></td>
+<td>One or more spaces.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{trim}}</code></td>
+<td>Removes the line breaks around it. Useful after lines that only set variables.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{noop}}</code></td>
+<td>Nothing.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{reverse::text}}</code></td>
+<td>The text reversed.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{// comment}}</code></td>
+<td>A comment, removed. <code translate="no" v-pre>{{//}}</code> ... <code translate="no" v-pre>{{///}}</code> comments out everything between them, macros included.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>\{\{user\}\}</code></td>
+<td>Prints <code translate="no" v-pre>{{user}}</code> literally.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="sillytavern-only-macros">SillyTavern-only macros</h2>
+<p>Macros that only make sense in SillyTavern chats - personas and character card fields (<code translate="no" v-pre>{{persona}}</code>,
+<code translate="no" v-pre>{{personality}}</code>, <code translate="no" v-pre>{{charPrompt}}</code>, <code translate="no" v-pre>{{mesExamples}}</code>...), instruct mode sequences (<code translate="no" v-pre>{{instructUserPrefix}}</code>...),
+author&#x27;s notes, swipe IDs, <code translate="no" v-pre>{{outlet}}</code> and the like - are recognized and print <strong>nothing</strong>, so imported world info
+doesn&#x27;t leak them into the prompt. <code translate="no" v-pre>{{isMobile}}</code> and <code translate="no" v-pre>{{hasExtension}}</code> print <code translate="no" v-pre>false</code>.</p>
+<p>A macro Marginalia doesn&#x27;t know:</p>
+<ul>
+<li>with arguments (<code translate="no" v-pre>{{fooBar::x}}</code>) is printed as it is, like SillyTavern does;</li>
+<li>without arguments (<code translate="no" v-pre>{{fooBar}}</code>) is printed as <strong><code translate="no" v-pre>Error</code></strong>, the same as an unknown
+<a href="../templates/#typos">template variable</a>.</li>
+</ul>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/templates/templates/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Prompt templates</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Extensions</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Macro reference", level: 3, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/templates/macros.md" }</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 
 import java.util.List;
@@ -9,7 +10,16 @@ public interface InferenceService {
     List<String> getModels();
     long countTokens(String text) throws Exception;
     long countTokensApprox(String text) throws Exception;
-    CancellationToken stream(List<LLMChatMessage> payload, InferenceAsyncCallback callback) throws Exception;
+
+    default CancellationToken stream(List<LLMChatMessage> payload, InferenceAsyncCallback callback) throws Exception {
+        return stream(payload, null, callback);
+    }
+
+    /**
+     * Streams a response for the payload. Sampling parameters and the response limit come from the protocol, the
+     * response limit falls back to the AI (see {@link TokenLimits}). The protocol may be null.
+     */
+    CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, InferenceAsyncCallback callback) throws Exception;
 
 
     enum ChunkType {

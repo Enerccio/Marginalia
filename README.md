@@ -9,7 +9,9 @@ It runs in your browser - either as a small server for you and your friends (Doc
 computer - and works with any OpenAI-compatible API: OpenAI, OpenRouter, LiteLLM, llama.cpp, LM Studio, Ollama, vLLM and
 others.
 
-![Marginalia story editor](docs/images/hero-story-editor.png)
+The manual is at **[enerccio.github.io/Marginalia](https://enerccio.github.io/Marginalia)**.
+
+![Marginalia story editor](manual/images/hero-story-editor.png)
 
 ## Features
 
@@ -31,14 +33,14 @@ others.
 
 | Books | Lorebook | Story tree |
 |---|---|---|
-| ![Books](docs/images/books.png) | ![Lorebook editor](docs/images/lorebook.png) | ![Story tree](docs/images/story-tree.png) |
+| ![Books](manual/images/books.png) | ![Lorebook editor](manual/images/lorebook.png) | ![Story tree](manual/images/story-tree.png) |
 
 ## Installation
 
 Marginalia stores everything (database, backups, extensions) in a `.marginalia` folder in the home directory of the
 user that runs it. On first start it asks you to create the administrator account.
 
-![First start](docs/images/first-start.png)
+![First start](manual/images/first-start.png)
 
 ### Desktop app (Windows, macOS, Linux)
 
@@ -66,7 +68,7 @@ marginalia --home /path       # keep the .marginalia folder somewhere else
 marginalia --no-browser --no-tray
 ```
 
-![Tray icon](docs/images/desktop-tray.png)
+![Tray icon](manual/images/desktop-tray.png)
 
 ### Server (Docker)
 
@@ -102,7 +104,7 @@ In *Inference Providers*, add the base URL of your OpenAI-compatible API (for ex
 `https://openrouter.ai/api/v1` or `http://localhost:8080/v1` for llama.cpp), an API key if it needs one, and pick the
 model. Then create a book, choose the provider and a protocol, and start writing.
 
-![Inference provider](docs/images/inference-provider.png)
+![Inference provider](manual/images/inference-provider.png)
 
 ## Extensions
 

@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +39,13 @@ public class PreparePayloadStep extends GenerationStepBase {
     private LLMChatMessage createSystemPrompt(GenerationController controller) {
         LLMChatMessage message = new LLMChatMessage();
         message.setRole(LLMRole.SYSTEM);
-        message.setContent(controller.getPrePromptData().getSystemPrompt());
+        PrePromptData data = controller.getPrePromptData();
+        // the jailbreak goes first, before everything else in the prompt (its tokens are counted in PrepareContentStep)
+        if (StringUtils.isNotBlank(data.getJailbreak())) {
+            message.setContent(data.getJailbreak() + "\n\n" + StringUtils.defaultString(data.getSystemPrompt()));
+        } else {
+            message.setContent(data.getSystemPrompt());
+        }
         return message;
     }
 

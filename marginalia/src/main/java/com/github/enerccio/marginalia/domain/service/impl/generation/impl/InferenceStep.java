@@ -27,7 +27,7 @@ public class InferenceStep extends GenerationStepBase {
             controller.getMessage().setPromptTokens(inferenceService.countTokens(gson.toJson(controller.getPayload())));
             controller.setMessage(chatMessageService.save(controller.getMessage()));
 
-            inferenceService.stream(controller.getPayload(), new InferenceAsyncCallback() {
+            inferenceService.stream(controller.getPayload(), controller.getManuscript().getProtocol(), new InferenceAsyncCallback() {
 
                 @Override
                 public void onChunk(InferenceAsyncController inferenceController, ChunkType chunkType, String text) throws Exception {

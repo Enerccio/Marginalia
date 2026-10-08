@@ -261,10 +261,8 @@ public class ReviewerService {
     public Integer getTokenLimit(ReviewerSetting setting, Manuscript manuscript) throws Exception {
         AI ai = resolveAI(setting, manuscript);
         Protocol protocol = resolveProtocol(setting, manuscript);
-        if (protocol.getMaxTokens() != null) {
-            return protocol.getMaxTokens();
-        }
-        return ai.getMaxContext();
+        // room for the response is reserved, the prompt gets the rest of the context
+        return TokenLimits.promptTokens(ai, protocol);
     }
 
     public List<AI> getAvailableAiModels() throws Exception {

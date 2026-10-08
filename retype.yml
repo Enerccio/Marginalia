@@ -1,0 +1,21 @@
+# Marginalia manual - https://retype.com
+# Sources are in manual/, the generated site is written to docs/ and served by GitHub Pages
+# (Settings → Pages → Deploy from a branch → master, /docs). Rebuild with `retype build` and commit docs/.
+input: manual
+output: docs
+
+url: https://enerccio.github.io/Marginalia
+
+branding:
+  title: Marginalia
+  label: Manual
+
+links:
+  - text: GitHub
+    link: https://github.com/Enerccio/Marginalia
+    icon: mark-github
+  - text: Releases
+    link: https://github.com/Enerccio/Marginalia/releases
+
+footer:
+  copyright: "&copy; Copyright 2026. MIT License."

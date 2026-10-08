@@ -67,7 +67,7 @@ public class ProtocolDialog extends Dialog {
         boolean isEdit = protocol != null && protocol.getId() != null;
         setHeaderTitle(isEdit ? loc.getValue(L.LABEL_EDIT_PROTOCOL) : loc.getValue(L.LABEL_NEW_PROTOCOL));
         setWidth("600px");
-        setHeight("680px");
+        setHeight("760px");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
@@ -129,9 +129,15 @@ public class ProtocolDialog extends Dialog {
         typeCombo.setWidthFull();
 
         maxTokensField = new IntegerField(loc.getValue(L.LABEL_MAX_TOKENS));
+        maxTokensField.setMin(1);
+        maxTokensField.setClearButtonVisible(true);
+        maxTokensField.setHelperText(loc.getValue(L.HELP_PROTOCOL_MAX_TOKENS));
         maxTokensField.setWidthFull();
 
         replyTokensField = new IntegerField(loc.getValue(L.LABEL_REPLY_TOKENS));
+        replyTokensField.setMin(1);
+        replyTokensField.setClearButtonVisible(true);
+        replyTokensField.setHelperText(loc.getValue(L.HELP_PROTOCOL_REPLY_TOKENS));
         replyTokensField.setWidthFull();
 
         temperatureEnabledCheckbox = new Checkbox(loc.getValue(L.LABEL_ENABLE_TEMPERATURE));
@@ -166,8 +172,9 @@ public class ProtocolDialog extends Dialog {
 
         nameField.setValue(StringUtils.defaultString(protocol.getName()));
         typeCombo.setValue(protocol.getProtocolType());
-        maxTokensField.setValue(protocol.getMaxTokens());
-        replyTokensField.setValue(protocol.getReplyTokens());
+        // 0 / negative were stored by older versions for "not set"
+        maxTokensField.setValue(limitOrNull(protocol.getMaxTokens()));
+        replyTokensField.setValue(limitOrNull(protocol.getReplyTokens()));
 
         temperatureEnabledCheckbox.setValue(Boolean.TRUE.equals(protocol.getTemperatureEnabled()));
         temperatureField.setValue(protocol.getTemperature());
@@ -205,8 +212,9 @@ public class ProtocolDialog extends Dialog {
 
             protocol.setName(name.trim());
             protocol.setProtocolType(type);
-            protocol.setMaxTokens(maxTokensField.getValue() != null ? maxTokensField.getValue() : 0);
-            protocol.setReplyTokens(replyTokensField.getValue() != null ? replyTokensField.getValue() : 0);
+            // empty means "use the inference provider's limit"
+            protocol.setMaxTokens(limitOrNull(maxTokensField.getValue()));
+            protocol.setReplyTokens(limitOrNull(replyTokensField.getValue()));
 
             protocol.setTemperatureEnabled(temperatureEnabledCheckbox.getValue());
             protocol.setTemperature(temperatureField.getValue());
@@ -229,6 +237,10 @@ public class ProtocolDialog extends Dialog {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    private static Integer limitOrNull(Integer value) {
+        return value != null && value > 0 ? value : null;
     }
 
     public Runnable getOnSave() {

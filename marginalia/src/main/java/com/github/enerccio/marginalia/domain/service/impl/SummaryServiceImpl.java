@@ -1,9 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.domain.model.impl.AI;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Summary;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.repository.SummaryRepository;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
@@ -44,6 +41,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     private AIService aiService;
 
     @Autowired
+    private ProtocolService protocolService;
+
+    @Autowired
     private ManuscriptService manuscriptService;
 
     @Autowired
@@ -56,6 +56,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             return null;
 
         AI ai = aiService.find(manuscript.getAi());
+        Protocol protocol = protocolService.find(manuscript.getProtocol());
         InferenceService inferenceService = inferenceServices.forAI(ai);
         CancellationToken cancellationToken = new CancellationToken();
         Summary newSummary = new Summary();
@@ -64,13 +65,13 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         newSummary.setReasoningTokens(0L);
         newSummary.setSummaryTokens(0L);
 
-        List<LLMChatMessage> payload = createSummaryPayload(manuscript, from, ai, inferenceService, newSummary);
+        List<LLMChatMessage> payload = createSummaryPayload(manuscript, from, ai, protocol, inferenceService, newSummary);
         if (payload == null)
             return null;
 
         newSummary = save(newSummary);
         Summary finalSummary = newSummary;
-        inferenceService.stream(payload, new InferenceAsyncCallback() {
+        inferenceService.stream(payload, protocol, new InferenceAsyncCallback() {
 
             Summary summary = finalSummary;
             final ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
@@ -142,14 +143,19 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         return save(copy);
     }
 
-    private List<LLMChatMessage> createSummaryPayload(Manuscript manuscript, ChatMessage from, AI ai, InferenceService inferenceService, Summary newSummary) throws Exception {
+    private List<LLMChatMessage> createSummaryPayload(Manuscript manuscript, ChatMessage from, AI ai, Protocol protocol, InferenceService inferenceService, Summary newSummary) throws Exception {
         String systemPrompt = manuscriptService.getSummaryPrompt(manuscript);
         List<ChatMessage> tree = chatMessageService.getBranchFromLeaf(from);
         tree = tree.reversed();
 
-        int maxTokens = ai.getMaxContext();
+        // room for the response is reserved, the prompt gets the rest of the context
+        int maxTokens = TokenLimits.promptTokens(ai, protocol);
         SummaryTemplateData template = new SummaryTemplateData();
-        template.setTemplateContext(createTemplateContext(manuscript, from, ai, tree));
+        template.setTemplateContext(createTemplateContext(manuscript, from, ai, protocol, tree));
+
+        // the jailbreak goes first, before everything else in the prompt
+        String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
+                ? ai.getJailbreak() + "\n\n" : "";
 
         if (StringUtils.isNotBlank(from.getBackgroundLore())) {
             template.setBackgroundLore(from.getBackgroundLore());
@@ -157,7 +163,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             template.setBackgroundLore("");
         }
 
-        String prompt = templateService.processTemplate(systemPrompt, "summaryPrompt", template);
+        String prompt = jailbreak + templateService.processTemplate(systemPrompt, "summaryPrompt", template);
         long tokens = inferenceService.countTokens(prompt);
 
         if (tokens > maxTokens) {
@@ -186,7 +192,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         messagesToSummarize.stream().map(ChatMessage::getResponse).map(s -> s.getBytes(StandardCharsets.UTF_8)).forEach(digest::update);
         newSummary.setSummaryMessageHash(HexFormat.of().formatHex(digest.digest()));
         template.setText(messagesToSummarize.reversed().stream().map(ChatMessage::getResponse).collect(Collectors.joining("\n\n")));
-        String fullPrompt = templateService.processTemplate(systemPrompt, "summaryPrompt", template);
+        String fullPrompt = jailbreak + templateService.processTemplate(systemPrompt, "summaryPrompt", template);
         tokens = inferenceService.countTokens(fullPrompt);
 
         if (tokens > maxTokens) {
@@ -203,7 +209,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
      *
      * @param newestFirst branch from {@code from} back to the root
      */
-    private TemplateContext createTemplateContext(Manuscript manuscript, ChatMessage from, AI ai, List<ChatMessage> newestFirst) {
+    private TemplateContext createTemplateContext(Manuscript manuscript, ChatMessage from, AI ai, Protocol protocol, List<ChatMessage> newestFirst) {
         TemplateContext context = new TemplateContext();
         context.setPovCharacter(from.getPovCharacter());
         context.setPresentCharacters(from.getPresentCharacters());
@@ -215,11 +221,13 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         context.setManuscriptDescription(manuscript.getDescription());
         context.setPickSeed(String.valueOf(manuscript.getId()));
         context.setModelName(ai.getName());
-        if (ai.getMaxContext() != null && ai.getMaxContext() > 0) {
-            context.setMaxContextTokens(ai.getMaxContext());
+        int contextTokens = TokenLimits.contextTokens(ai, protocol);
+        if (contextTokens > 0) {
+            context.setMaxContextTokens(contextTokens);
         }
-        if (ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0) {
-            context.setMaxResponseTokens(ai.getMaxCompletionTokens());
+        int responseTokens = TokenLimits.responseTokens(ai, protocol);
+        if (responseTokens > 0) {
+            context.setMaxResponseTokens(responseTokens);
         }
         context.setGenerationType("quiet");
         context.setStoryMessages(newestFirst.reversed().stream()

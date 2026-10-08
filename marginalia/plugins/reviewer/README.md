@@ -3,7 +3,7 @@
 Lets the model review what you've written - get reader reactions, critique or anything else you prompt it for, right
 next to the story.
 
-![Message review](../../../docs/images/plugin-reviewer.png)
+![Message review](../../../manual/images/plugin-reviewer.png)
 
 ## Usage
 
@@ -13,9 +13,10 @@ Every story part gets a **Review** item in its menu:
   while generating); a part can have several reviews and you can page through them.
 - **Advanced Options** changes how this part is reviewed:
   - *Prompt Override* - a different review prompt for this part,
-  - *Use standard prompt info* - include the book's usual prompt information (style, POV, scene...),
-  - *Include Lorebook* - include the activated lore,
-  - *Token Limit* - maximum length of the review.
+  - *Use standard prompt info* - review with the prompt the part was written from (system prompt, lore, earlier
+    parts); when off, only the story parts and the options below are sent,
+  - *Include Lorebook* - include the lore that was active for the part (with standard prompt info off),
+  - *Token Limit* - how many tokens of the story (parts up to the reviewed one) are sent along.
 - **Delete Review** removes the reviews of the part.
 
 ## Settings
