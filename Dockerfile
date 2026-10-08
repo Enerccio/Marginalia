@@ -9,6 +9,9 @@ RUN mvn dependency:go-offline -B
 # Copy source code and build the application
 COPY marginalia/src ./src
 COPY .git ./.git
+RUN rm src/main/resources/log4j.properties
+RUN cp src/main/resources/log4j.properties.RELEASE \
+       src/main/resources/log4j.properties
 RUN cp src/main/resources/META-INF/VAADIN/config/flow-build-info.json.PRODUCTION \
        src/main/resources/META-INF/VAADIN/config/flow-build-info.json
 RUN mvn clean package -DskipTests
