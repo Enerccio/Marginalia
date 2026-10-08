@@ -188,6 +188,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ERROR_BACKUP_MISSING_CONTENT, "Invalid backup structure: Missing manuscript backup content.");
         setValue(L.ERROR_BACKUP_MISSING_METADATA, "Invalid backup metadata: Missing required fields.");
         setValue(L.ERROR_MANUSCRIPT_UUID_NULL, "Manuscript and its UUID cannot be null.");
+        setValue(L.ERROR_SUMMARY_FAILED, "Failed to reach inference service for generating summary.");
 
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT, "Cannot save form. Invalid fields: ");

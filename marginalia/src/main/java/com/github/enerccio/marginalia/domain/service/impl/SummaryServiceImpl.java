@@ -52,12 +52,15 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     @Override
     @CommonTx
     public CancellationToken createSummary(Manuscript manuscript, ChatMessage from, AsyncCallback callback) throws Exception {
-        if (manuscript == null || from == null || callback == null)
+        if (manuscript == null || from == null || callback == null || manuscript.getAi() == null)
             return null;
 
         AI ai = aiService.find(manuscript.getAi());
         Protocol protocol = protocolService.find(manuscript.getProtocol());
         InferenceService inferenceService = inferenceServices.forAI(ai);
+        if (inferenceService == null)
+            return null;
+        
         CancellationToken cancellationToken = new CancellationToken();
         Summary newSummary = new Summary();
         newSummary.setReasoning("");
