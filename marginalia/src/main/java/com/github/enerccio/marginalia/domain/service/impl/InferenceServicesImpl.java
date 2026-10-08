@@ -44,6 +44,9 @@ public class InferenceServicesImpl implements InferenceServices, InitializingBea
 
     @Override
     public InferenceService forAI(AI ai) throws Exception {
+        if (ai == null)
+            return null;
+
         if (ai.getInferenceService() != null) {
             return ai.getInferenceService();
         }
