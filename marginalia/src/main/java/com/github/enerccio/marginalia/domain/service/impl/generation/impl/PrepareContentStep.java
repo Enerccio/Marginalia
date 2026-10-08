@@ -72,6 +72,8 @@ public class PrepareContentStep extends GenerationStepBase {
 
                     if (baseTokens >= limit) {
                         controller.getUIListener().onSimpleError(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+                        controller.jumpTo(GenerationStepType.CLEANUP);
+                        return;
                     }
 
                     if (activeMessage != null) {
