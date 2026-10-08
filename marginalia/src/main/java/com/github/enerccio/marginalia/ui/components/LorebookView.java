@@ -92,11 +92,19 @@ public class LorebookView extends VerticalLayout {
         this(null);
     }
 
+    public LorebookView(boolean pinnedLorebook) {
+        this(null, pinnedLorebook);
+    }
+
     public LorebookView(Lorebook lorebook) {
+        this(lorebook, lorebook != null);
+    }
+
+    public LorebookView(Lorebook lorebook, boolean pinnedLorebook) {
         if (lorebook != null) {
             this.currentLorebook = lorebook;
-            this.pinnedLorebook = true;
         }
+        this.pinnedLorebook = pinnedLorebook;
     }
 
     public Component create() throws Exception {
@@ -125,6 +133,7 @@ public class LorebookView extends VerticalLayout {
 
         deleteLorebookButton = new Button(loc.getValue(L.LABEL_DELETE_LOREBOOK), Solid.TRASH.create(), event -> deleteCurrentLorebook());
         deleteLorebookButton.setThemeName("error");
+        deleteLorebookButton.setVisible(!pinnedLorebook);
 
         importLorebookButton = new Button(Solid.FILE_IMPORT.create());
         importLorebookButton.setVisible(!pinnedLorebook);
