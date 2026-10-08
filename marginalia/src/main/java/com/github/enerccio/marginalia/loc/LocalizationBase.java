@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.loc;
 
 import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
+import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,8 @@ public abstract class LocalizationBase implements Localization {
     private final Map<FilteringMode, L> filteringModes = new HashMap<>();
     private final Map<InsertionMode, L> insertionModes = new HashMap<>();
     private final Map<CleanupReference.Policy, L> cleanupPolicies = new HashMap<>();
+    private final Map<LorebookMatch, L> lorebookMatches = new HashMap<>();
+    private final Map<LorebookDecision, L> lorebookDecisions = new HashMap<>();
 
     protected abstract void loadMessages();
 
@@ -61,6 +65,14 @@ public abstract class LocalizationBase implements Localization {
         cleanupPolicies.put(CleanupReference.Policy.OWNED_BY, L.ENUM_CLEANUP_POLICY_OWNED_BY);
         cleanupPolicies.put(CleanupReference.Policy.OWNS, L.ENUM_CLEANUP_POLICY_OWNS);
         cleanupPolicies.put(CleanupReference.Policy.WEAK, L.ENUM_CLEANUP_POLICY_WEAK);
+
+        lorebookMatches.put(LorebookMatch.EXISTING, L.ENUM_LOREBOOK_MATCH_EXISTING);
+        lorebookMatches.put(LorebookMatch.SAME_NAME, L.ENUM_LOREBOOK_MATCH_SAME_NAME);
+        lorebookMatches.put(LorebookMatch.NOT_FOUND, L.ENUM_LOREBOOK_MATCH_NOT_FOUND);
+
+        lorebookDecisions.put(LorebookDecision.LINK, L.ENUM_LOREBOOK_DECISION_LINK);
+        lorebookDecisions.put(LorebookDecision.CREATE, L.ENUM_LOREBOOK_DECISION_CREATE);
+        lorebookDecisions.put(LorebookDecision.SKIP, L.ENUM_LOREBOOK_DECISION_SKIP);
     }
 
     protected void checkLocalization() {
@@ -184,5 +196,15 @@ public abstract class LocalizationBase implements Localization {
     @Override
     public L getCleanupPolicy(CleanupReference.Policy type) {
         return cleanupPolicies.get(type);
+    }
+
+    @Override
+    public L getLorebookMatch(LorebookMatch type) {
+        return lorebookMatches.get(type);
+    }
+
+    @Override
+    public L getLorebookDecision(LorebookDecision type) {
+        return lorebookDecisions.get(type);
     }
 }

@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.templates.UserPromptData;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
 import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
@@ -432,9 +433,15 @@ public class UserPart implements WorkspaceComponent {
                 return;
             }
             try {
-                Manuscript newManuscript = backupService.restoreAsNewManuscript(data, newName);
-                dialog.close();
-                Notification.success(loc.getValue(L.LABEL_IMPORT_BACKUP) + ": " + newManuscript.getName());
+                LorebookImportDialog.resolve(backupService.analyzeLorebooks(data), decisions -> {
+                    try {
+                        Manuscript newManuscript = backupService.restoreAsNewManuscript(data, newName, decisions);
+                        dialog.close();
+                        Notification.success(loc.getValue(L.LABEL_IMPORT_BACKUP) + ": " + newManuscript.getName());
+                    } catch (Exception e) {
+                        UIUtils.internalServerError(loc, e);
+                    }
+                });
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }

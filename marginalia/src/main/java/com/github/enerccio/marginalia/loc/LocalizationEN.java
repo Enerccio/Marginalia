@@ -325,6 +325,23 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ENUM_CLEANUP_POLICY_OWNED_BY, "Purged with target");
         setValue(L.ENUM_CLEANUP_POLICY_OWNS, "Owns target");
         setValue(L.ENUM_CLEANUP_POLICY_WEAK, "Cleared on purge");
+        setValue(L.LABEL_LOREBOOKS_SAME_NAME, "Lorebooks with the same name found");
+        setValue(L.LABEL_IMPORT_LOREBOOKS, "Import lorebooks");
+        setValue(L.MSG_LOREBOOKS_SAME_NAME, "Some lorebooks in the backup have the same name as your existing lorebooks. Choose whether to link to the existing lorebook or create a new one from the backup.");
+        setValue(L.MSG_IMPORT_LOREBOOKS, "Some lorebooks in the backup were not found. Do you want to import them as well?");
+        setValue(L.LABEL_STATUS, "Status");
+        setValue(L.LABEL_ENTRIES, "Entries");
+        setValue(L.LABEL_ACTION, "Action");
+        setValue(L.LABEL_USED_BY_BOOK, "Used by book");
+        setValue(L.LABEL_CONTINUE, "Continue");
+        setValue(L.LABEL_IMPORT, "Import");
+        setValue(L.LABEL_DONT_IMPORT, "Don't import");
+        setValue(L.ENUM_LOREBOOK_MATCH_EXISTING, "Already exists");
+        setValue(L.ENUM_LOREBOOK_MATCH_SAME_NAME, "Same name exists");
+        setValue(L.ENUM_LOREBOOK_MATCH_NOT_FOUND, "Not found");
+        setValue(L.ENUM_LOREBOOK_DECISION_LINK, "Link to existing");
+        setValue(L.ENUM_LOREBOOK_DECISION_CREATE, "Create new");
+        setValue(L.ENUM_LOREBOOK_DECISION_SKIP, "Skip");
     }
 
     @Override

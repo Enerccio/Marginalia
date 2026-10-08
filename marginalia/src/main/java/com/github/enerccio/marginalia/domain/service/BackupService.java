@@ -1,20 +1,26 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
+import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
 import com.google.gson.JsonObject;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public interface BackupService {
 
     ManuscriptBackup takeBackup(Manuscript manuscript) throws Exception;
     List<ManuscriptBackup> getBackups(Manuscript manuscript) throws Exception;
-    Manuscript applyBackup(Manuscript manuscript, ManuscriptBackup backup, boolean messagesOnly) throws Exception;
+    Manuscript applyBackup(Manuscript manuscript, ManuscriptBackup backup, boolean messagesOnly,
+                           Map<String, LorebookDecision> lorebookDecisions) throws Exception;
     ManuscriptBackup importBackup(Manuscript manuscript, byte[] backupData) throws Exception;
     void deleteBackup(ManuscriptBackup backup) throws Exception;
-    Manuscript restoreAsNewManuscript(byte[] backupData, String newName) throws Exception;
-    Manuscript cloneBackup(ManuscriptBackup backup, String newName) throws Exception;
+    Manuscript restoreAsNewManuscript(byte[] backupData, String newName, Map<String, LorebookDecision> lorebookDecisions) throws Exception;
+    Manuscript cloneBackup(ManuscriptBackup backup, String newName, Map<String, LorebookDecision> lorebookDecisions) throws Exception;
+    List<LorebookImportCandidate> analyzeLorebooks(ManuscriptBackup backup) throws Exception;
+    List<LorebookImportCandidate> analyzeLorebooks(byte[] backupData) throws Exception;
     String serializeBackup(ManuscriptBackup backup) throws Exception;
     ManuscriptBackup loadBackup(ManuscriptBackup b) throws Exception;
 

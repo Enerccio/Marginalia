@@ -6,12 +6,14 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.BackupService;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.BackupService.ManuscriptBackup;
+import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -43,6 +45,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Configurable
 @Extendable
@@ -198,7 +201,7 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
 
             actions.add(restoreBtn, cloneBtn, exportAnchor, deleteBtn);
             return actions;
-        }).setHeader("").setFlexGrow(0).setWidth("380px");
+        }).setHeader("").setFlexGrow(0).setWidth("440px");
 
         mainLayout.add(strategyForm, toolbar, grid);
         mainLayout.setFlexGrow(1, grid);
@@ -333,14 +336,19 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
 
         Button fullRestoreBtn = new Button(loc.getValue(L.LABEL_FULL_RESTORE), Solid.CHECK_DOUBLE.create(), event -> {
             dialog.close();
-            performRestore(backup, false);
+            try {
+                LorebookImportDialog.resolve(backupService.analyzeLorebooks(backup),
+                        decisions -> performRestore(backup, false, decisions));
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         });
         fullRestoreBtn.setThemeName("primary");
         fullRestoreBtn.setWidthFull();
 
         Button messagesOnlyBtn = new Button(loc.getValue(L.LABEL_MESSAGES_ONLY_RESTORE), Solid.COMMENT_ALT.create(), event -> {
             dialog.close();
-            performRestore(backup, true);
+            performRestore(backup, true, null);
         });
         messagesOnlyBtn.setWidthFull();
 
@@ -353,10 +361,10 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
         dialog.open();
     }
 
-    private void performRestore(ManuscriptBackup backup, boolean messagesOnly) {
+    private void performRestore(ManuscriptBackup backup, boolean messagesOnly, Map<String, LorebookDecision> lorebookDecisions) {
         try {
             Manuscript current = parent.refreshManuscript();
-            Manuscript restored = backupService.applyBackup(current, backup, messagesOnly);
+            Manuscript restored = backupService.applyBackup(current, backup, messagesOnly, lorebookDecisions);
             Runnable onClose = parent.getOnClose();
 
             parent.close();
@@ -374,9 +382,15 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
     private void cloneBackup(ManuscriptBackup backup) {
         TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_MANUSCRIPT_NAME), newName -> {
             try {
-                Manuscript cloned = backupService.cloneBackup(backup, newName);
-                Notification.success(loc.getValue(L.LABEL_CLONE_BACKUP) + ": " + cloned.getName());
-                refreshBackups();
+                LorebookImportDialog.resolve(backupService.analyzeLorebooks(backup), decisions -> {
+                    try {
+                        Manuscript cloned = backupService.cloneBackup(backup, newName, decisions);
+                        Notification.success(loc.getValue(L.LABEL_CLONE_BACKUP) + ": " + cloned.getName());
+                        refreshBackups();
+                    } catch (Exception e) {
+                        UIUtils.internalServerError(loc, e);
+                    }
+                });
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }

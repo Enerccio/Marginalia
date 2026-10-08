@@ -15,7 +15,10 @@ public class Lorebook extends ExtendableEntity {
     @Lob
     private String name;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "lorebooks_lorebooks",
+            joinColumns = @JoinColumn(name = "Lorebook_id"),
+            inverseJoinColumns = @JoinColumn(name = "subbooks_id"))
     @CleanupReference(Policy.WEAK)
     private List<Lorebook> subbooks;
 

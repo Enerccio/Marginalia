@@ -207,7 +207,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
         }
 
-        // Save linked Lorebook (uuid and name only, ignoring lorebook entries)
+        // Save linked Lorebook reference and flat list of the lorebook with all its subbooks
         if (m.getLorebook() != null) {
             Lorebook lorebook = lorebookService.find(m.getLorebook());
             if (lorebook != null) {
@@ -215,6 +215,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 lbObj.addProperty("uuid", lorebook.getUuid());
                 lbObj.addProperty("name", lorebook.getName());
                 backup.add("lorebook", lbObj);
+                backup.add("lorebooks", lorebookService.marshalLorebooks(lorebook));
             }
         }
 

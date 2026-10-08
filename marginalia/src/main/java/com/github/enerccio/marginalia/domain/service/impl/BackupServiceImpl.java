@@ -1,9 +1,13 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.BackupService;
+import com.github.enerccio.marginalia.domain.service.LorebookService;
+import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
+import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -21,10 +25,7 @@ import java.io.Reader;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class BackupServiceImpl implements BackupService {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting()
@@ -38,6 +39,9 @@ public class BackupServiceImpl implements BackupService {
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    private LorebookService lorebookService;
 
     @Autowired
     private Localization loc;
@@ -101,7 +105,8 @@ public class BackupServiceImpl implements BackupService {
     }
 
     @Override
-    public Manuscript applyBackup(Manuscript manuscript, ManuscriptBackup backup, boolean messagesOnly) throws Exception {
+    public Manuscript applyBackup(Manuscript manuscript, ManuscriptBackup backup, boolean messagesOnly,
+                                  Map<String, LorebookDecision> lorebookDecisions) throws Exception {
         if (manuscript == null || backup == null) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
         }
@@ -115,7 +120,13 @@ public class BackupServiceImpl implements BackupService {
         // Ensure target manuscript backup directory exists
         getManuscriptBackupFolder(manuscript);
 
-        return manuscriptService.restoreBackup(manuscript, messagesOnly, backup.getBackup());
+        if (messagesOnly) {
+            return manuscriptService.restoreBackup(manuscript, true, backup.getBackup());
+        }
+        Lorebook previousLorebook = manuscriptService.find(manuscript).getLorebook();
+        Map<String, Lorebook> lorebooks = importLorebooks(backup.getBackup(), lorebookDecisions);
+        Manuscript restored = manuscriptService.restoreBackup(manuscript, false, backup.getBackup());
+        return linkLorebook(restored, backup.getBackup(), lorebooks, previousLorebook);
     }
 
     @Override
@@ -213,22 +224,12 @@ public class BackupServiceImpl implements BackupService {
     }
 
     @Override
-    public Manuscript restoreAsNewManuscript(byte[] backupData, String newName) throws Exception {
-        String jsonStr = new String(backupData, StandardCharsets.UTF_8);
-        JsonElement element = JsonParser.parseString(jsonStr);
-        JsonObject backupObj;
-        if (element.isJsonObject()) {
-            JsonObject root = element.getAsJsonObject();
-            if (root.has("backup") && root.get("backup").isJsonObject()) {
-                backupObj = root.getAsJsonObject("backup");
-            } else {
-                backupObj = root;
-            }
-        } else {
-            throw new IllegalArgumentException("Invalid backup JSON payload");
-        }
+    public Manuscript restoreAsNewManuscript(byte[] backupData, String newName, Map<String, LorebookDecision> lorebookDecisions) throws Exception {
+        JsonObject backupObj = parseBackupData(backupData);
 
+        Map<String, Lorebook> lorebooks = importLorebooks(backupObj, lorebookDecisions);
         Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj);
+        manuscript = linkLorebook(manuscript, backupObj, lorebooks, null);
         if (StringUtils.isNotBlank(newName)) {
             manuscript.setName(newName.trim());
             manuscript = manuscriptService.save(manuscript);
@@ -237,7 +238,7 @@ public class BackupServiceImpl implements BackupService {
     }
 
     @Override
-    public Manuscript cloneBackup(ManuscriptBackup backup, String newName) throws Exception {
+    public Manuscript cloneBackup(ManuscriptBackup backup, String newName, Map<String, LorebookDecision> lorebookDecisions) throws Exception {
         if (backup == null) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
         }
@@ -248,12 +249,82 @@ public class BackupServiceImpl implements BackupService {
         if (backupObj != null && backupObj.has("backup") && backupObj.get("backup").isJsonObject()) {
             backupObj = backupObj.getAsJsonObject("backup");
         }
+        Map<String, Lorebook> lorebooks = importLorebooks(backupObj, lorebookDecisions);
         Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj);
+        manuscript = linkLorebook(manuscript, backupObj, lorebooks, null);
         if (StringUtils.isNotBlank(newName)) {
             manuscript.setName(newName.trim());
             manuscript = manuscriptService.save(manuscript);
         }
         return manuscript;
+    }
+
+    @Override
+    public List<LorebookImportCandidate> analyzeLorebooks(ManuscriptBackup backup) throws Exception {
+        ensureLoaded(backup);
+        JsonObject backupObj = backup.getBackup();
+        if (backupObj != null && backupObj.has("backup") && backupObj.get("backup").isJsonObject()) {
+            backupObj = backupObj.getAsJsonObject("backup");
+        }
+        return analyzeLorebooks(backupObj);
+    }
+
+    @Override
+    public List<LorebookImportCandidate> analyzeLorebooks(byte[] backupData) throws Exception {
+        return analyzeLorebooks(parseBackupData(backupData));
+    }
+
+    private List<LorebookImportCandidate> analyzeLorebooks(JsonObject backupObj) throws Exception {
+        if (backupObj == null || !backupObj.has("lorebooks") || !backupObj.get("lorebooks").isJsonArray()) {
+            return Collections.emptyList();
+        }
+        return lorebookService.analyzeImport(backupObj.getAsJsonArray("lorebooks"), getRootLorebookUuid(backupObj));
+    }
+
+    /**
+     * Imports or links lorebooks stored in backup, old backups without lorebooks or missing decisions import nothing.
+     */
+    private Map<String, Lorebook> importLorebooks(JsonObject backupObj, Map<String, LorebookDecision> decisions) throws Exception {
+        if (decisions == null || backupObj == null || !backupObj.has("lorebooks") || !backupObj.get("lorebooks").isJsonArray()) {
+            return null;
+        }
+        return lorebookService.importLorebooks(backupObj.getAsJsonArray("lorebooks"), decisions);
+    }
+
+    /**
+     * Manuscript restore links lorebook only by uuid, when backup carries lorebooks the resolved root wins.
+     */
+    private Manuscript linkLorebook(Manuscript manuscript, JsonObject backupObj, Map<String, Lorebook> lorebooks, Lorebook fallback) throws Exception {
+        if (lorebooks == null) {
+            return manuscript;
+        }
+        Lorebook root = lorebooks.get(getRootLorebookUuid(backupObj));
+        Manuscript m = manuscriptService.find(manuscript);
+        m.setLorebook(root != null ? root : fallback);
+        return manuscriptService.save(m);
+    }
+
+    private String getRootLorebookUuid(JsonObject backupObj) {
+        if (backupObj.has("lorebook") && backupObj.get("lorebook").isJsonObject()) {
+            JsonObject lbObj = backupObj.getAsJsonObject("lorebook");
+            if (lbObj.has("uuid") && !lbObj.get("uuid").isJsonNull()) {
+                return lbObj.get("uuid").getAsString();
+            }
+        }
+        return null;
+    }
+
+    private JsonObject parseBackupData(byte[] backupData) {
+        String jsonStr = new String(backupData, StandardCharsets.UTF_8);
+        JsonElement element = JsonParser.parseString(jsonStr);
+        if (!element.isJsonObject()) {
+            throw new IllegalArgumentException("Invalid backup JSON payload");
+        }
+        JsonObject root = element.getAsJsonObject();
+        if (root.has("backup") && root.get("backup").isJsonObject()) {
+            return root.getAsJsonObject("backup");
+        }
+        return root;
     }
 
     @Override

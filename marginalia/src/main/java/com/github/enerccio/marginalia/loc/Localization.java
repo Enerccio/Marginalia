@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.loc;
 
 import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
+import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 
 import java.text.DateFormat;
@@ -27,4 +29,6 @@ public interface Localization {
     L getFilteringMode(FilteringMode t);
     L getInsertionMode(InsertionMode t);
     L getCleanupPolicy(CleanupReference.Policy t);
+    L getLorebookMatch(LorebookMatch t);
+    L getLorebookDecision(LorebookDecision t);
 }

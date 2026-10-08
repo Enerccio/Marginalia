@@ -22,7 +22,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
 
     public static final String EXPORT_FORMAT = "marginalia-lorebook";
-    public static final int EXPORT_VERSION = 1;
+    public static final int EXPORT_VERSION = 2;
 
     @Autowired
     private LorebookEntryService lorebookEntryService;
@@ -185,27 +185,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         JsonObject root = new JsonObject();
         root.addProperty("format", EXPORT_FORMAT);
         root.addProperty("version", EXPORT_VERSION);
-        root.addProperty("name", book.getName());
-        root.addProperty("enabled", book.isEnabled());
-        root.add("tags", toJsonArray(tagRelationService.getTagsForObject(book)));
-
-        JsonArray entries = new JsonArray();
-        for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book)) {
-            JsonObject entryObj = new JsonObject();
-            entryObj.addProperty("name", entry.getName());
-            entryObj.addProperty("payload", entry.getPayload());
-            entryObj.addProperty("comment", entry.getComment());
-            entryObj.addProperty("enabled", entry.isEnabled());
-            entryObj.addProperty("order", entry.getOrder());
-            entryObj.addProperty("filtering", entry.getFiltering());
-            entryObj.addProperty("filteringMode", entry.getFilteringMode() != null ? entry.getFilteringMode().name() : null);
-            entryObj.addProperty("insertionMode", entry.getInsertionMode() != null ? entry.getInsertionMode().name() : null);
-            entryObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(entry)));
-            entryObj.add("negativeTags", toJsonArray(tagRelationService.getTagsForObject(entry, true)));
-            entries.add(entryObj);
-        }
-        root.add("entries", entries);
-
+        root.addProperty("root", book.getUuid());
+        root.add("lorebooks", marshalLorebooks(book));
         return gson.toJson(root);
     }
 
@@ -221,63 +202,248 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             throw new IllegalArgumentException("Not a " + EXPORT_FORMAT + " file");
         }
 
-        Lorebook lorebook = new Lorebook();
-        lorebook.setName(StringUtils.defaultIfBlank(getString(rootObj, "name"), StringUtils.defaultIfBlank(name, "Imported Lorebook")));
-        lorebook.setEnabled(getBoolean(rootObj, "enabled", true));
-        lorebook = save(lorebook);
+        if (!rootObj.has("lorebooks")) {
+            // version 1, single lorebook without subbooks
+            Lorebook lorebook = new Lorebook();
+            lorebook.setName(StringUtils.defaultIfBlank(getString(rootObj, "name"), StringUtils.defaultIfBlank(name, "Imported Lorebook")));
+            lorebook.setEnabled(getBoolean(rootObj, "enabled", true));
+            lorebook = save(lorebook);
+            unmarshalContent(lorebook, rootObj);
+            return lorebook;
+        }
 
-        for (String tagStr : extractStrings(rootObj, "tags")) {
+        // explicit file import always creates new lorebooks
+        JsonArray lorebooks = rootObj.getAsJsonArray("lorebooks");
+        Map<String, LorebookDecision> decisions = new HashMap<>();
+        for (JsonElement element : lorebooks) {
+            String uuid = element.isJsonObject() ? getString(element.getAsJsonObject(), "uuid") : null;
+            if (uuid != null) {
+                decisions.put(uuid, LorebookDecision.CREATE);
+            }
+        }
+        Map<String, Lorebook> imported = importLorebooks(lorebooks, decisions);
+        Lorebook root = imported.get(getString(rootObj, "root"));
+        if (root == null) {
+            throw new IllegalArgumentException("Root lorebook missing in " + EXPORT_FORMAT + " file");
+        }
+        return root;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public JsonArray marshalLorebooks(Lorebook root) throws Exception {
+        JsonArray array = new JsonArray();
+        Set<Long> visited = new HashSet<>();
+        Deque<Lorebook> queue = new ArrayDeque<>();
+        Lorebook rootBook = find(root);
+        if (rootBook != null) {
+            queue.add(rootBook);
+        }
+        while (!queue.isEmpty()) {
+            Lorebook book = queue.remove();
+            if (!visited.add(book.getId())) {
+                continue;
+            }
+            List<Lorebook> subbooks = getSubbooks(book);
+            JsonObject bookObj = new JsonObject();
+            bookObj.addProperty("uuid", book.getUuid());
+            bookObj.addProperty("name", book.getName());
+            bookObj.addProperty("enabled", book.isEnabled());
+            bookObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(book)));
+            JsonArray subbookRefs = new JsonArray();
+            for (Lorebook subbook : subbooks) {
+                subbookRefs.add(subbook.getUuid());
+                queue.add(subbook);
+            }
+            bookObj.add("subbooks", subbookRefs);
+            JsonArray entries = new JsonArray();
+            for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book)) {
+                entries.add(marshalEntry(entry));
+            }
+            bookObj.add("entries", entries);
+            array.add(bookObj);
+        }
+        return array;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<LorebookImportCandidate> analyzeImport(JsonArray lorebooks, String rootUuid) throws Exception {
+        List<LorebookImportCandidate> candidates = new ArrayList<>();
+        if (lorebooks == null) {
+            return candidates;
+        }
+        List<Lorebook> userLorebooks = findAllForUser();
+        for (JsonElement element : lorebooks) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject bookObj = element.getAsJsonObject();
+            LorebookImportCandidate candidate = new LorebookImportCandidate();
+            candidate.setUuid(getString(bookObj, "uuid"));
+            candidate.setName(getString(bookObj, "name"));
+            candidate.setRoot(candidate.getUuid() != null && candidate.getUuid().equals(rootUuid));
+            candidate.setEntryCount(bookObj.has("entries") && bookObj.get("entries").isJsonArray() ? bookObj.getAsJsonArray("entries").size() : 0);
+
+            Lorebook byUuid = userLorebooks.stream()
+                    .filter(l -> l.getUuid().equals(candidate.getUuid()))
+                    .findFirst().orElse(null);
+            Lorebook byName = userLorebooks.stream()
+                    .filter(l -> StringUtils.equalsIgnoreCase(StringUtils.trim(l.getName()), StringUtils.trim(candidate.getName())))
+                    .findFirst().orElse(null);
+            if (byUuid != null) {
+                candidate.setMatch(LorebookMatch.EXISTING);
+                candidate.setMatchedLorebook(byUuid);
+                candidate.setDecision(LorebookDecision.LINK);
+            } else if (byName != null) {
+                candidate.setMatch(LorebookMatch.SAME_NAME);
+                candidate.setMatchedLorebook(byName);
+                candidate.setDecision(LorebookDecision.LINK);
+            } else {
+                candidate.setMatch(LorebookMatch.NOT_FOUND);
+                candidate.setDecision(LorebookDecision.CREATE);
+            }
+            candidates.add(candidate);
+        }
+        return candidates;
+    }
+
+    @Override
+    @CommonTx
+    public Map<String, Lorebook> importLorebooks(JsonArray lorebooks, Map<String, LorebookDecision> decisions) throws Exception {
+        Map<String, Lorebook> resolved = new HashMap<>();
+        if (lorebooks == null) {
+            return resolved;
+        }
+        Map<String, LorebookImportCandidate> candidates = new HashMap<>();
+        for (LorebookImportCandidate candidate : analyzeImport(lorebooks, null)) {
+            candidates.put(candidate.getUuid(), candidate);
+        }
+
+        Map<String, JsonObject> created = new LinkedHashMap<>();
+        for (JsonElement element : lorebooks) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject bookObj = element.getAsJsonObject();
+            String uuid = getString(bookObj, "uuid");
+            LorebookImportCandidate candidate = candidates.get(uuid);
+            if (uuid == null || candidate == null || resolved.containsKey(uuid)) {
+                continue;
+            }
+            LorebookDecision decision = decisions != null ? decisions.get(uuid) : null;
+            if (candidate.getMatch() == LorebookMatch.EXISTING && decision != LorebookDecision.CREATE) {
+                decision = LorebookDecision.LINK;
+            }
+            if (decision == null || decision == LorebookDecision.SKIP) {
+                continue;
+            }
+            if (decision == LorebookDecision.LINK && candidate.getMatchedLorebook() != null) {
+                resolved.put(uuid, candidate.getMatchedLorebook());
+                continue;
+            }
+
+            Lorebook lorebook = new Lorebook();
+            lorebook.setName(StringUtils.defaultIfBlank(getString(bookObj, "name"), "Imported Lorebook"));
+            lorebook.setEnabled(getBoolean(bookObj, "enabled", true));
+            // keep original uuid when free, so later restores link to this copy
+            if (find(uuid) == null) {
+                lorebook.setUuid(uuid);
+            }
+            lorebook = save(lorebook);
+            unmarshalContent(lorebook, bookObj);
+            resolved.put(uuid, lorebook);
+            created.put(uuid, bookObj);
+        }
+
+        // existing (linked) lorebooks keep their own subbooks, only newly created ones are wired
+        for (Map.Entry<String, JsonObject> entry : created.entrySet()) {
+            Lorebook lorebook = find(resolved.get(entry.getKey()));
+            List<Lorebook> subbooks = new ArrayList<>();
+            for (String subbookUuid : extractStrings(entry.getValue(), "subbooks")) {
+                Lorebook subbook = resolved.get(subbookUuid);
+                if (subbook != null && !subbook.equals(lorebook) && !subbooks.contains(subbook)) {
+                    subbooks.add(subbook);
+                }
+            }
+            if (!subbooks.isEmpty()) {
+                lorebook.setSubbooks(subbooks);
+                resolved.put(entry.getKey(), save(lorebook));
+            }
+        }
+        return resolved;
+    }
+
+    private JsonObject marshalEntry(LorebookEntry entry) throws Exception {
+        JsonObject entryObj = new JsonObject();
+        entryObj.addProperty("name", entry.getName());
+        entryObj.addProperty("payload", entry.getPayload());
+        entryObj.addProperty("comment", entry.getComment());
+        entryObj.addProperty("enabled", entry.isEnabled());
+        entryObj.addProperty("order", entry.getOrder());
+        entryObj.addProperty("filtering", entry.getFiltering());
+        entryObj.addProperty("filteringMode", entry.getFilteringMode() != null ? entry.getFilteringMode().name() : null);
+        entryObj.addProperty("insertionMode", entry.getInsertionMode() != null ? entry.getInsertionMode().name() : null);
+        entryObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(entry)));
+        entryObj.add("negativeTags", toJsonArray(tagRelationService.getTagsForObject(entry, true)));
+        return entryObj;
+    }
+
+    /**
+     * Imports tags and entries of marshalled lorebook into already saved lorebook.
+     */
+    private void unmarshalContent(Lorebook lorebook, JsonObject bookObj) throws Exception {
+        for (String tagStr : extractStrings(bookObj, "tags")) {
             Tag tag = getOrCreateTag(tagStr);
             if (tag != null) {
                 tagRelationService.createRelation(tag, lorebook, false);
             }
         }
 
-        if (rootObj.has("entries") && rootObj.get("entries").isJsonArray()) {
-            for (JsonElement item : rootObj.getAsJsonArray("entries")) {
-                if (item == null || !item.isJsonObject()) {
-                    continue;
-                }
-                JsonObject entryObj = item.getAsJsonObject();
+        if (!bookObj.has("entries") || !bookObj.get("entries").isJsonArray()) {
+            return;
+        }
+        for (JsonElement item : bookObj.getAsJsonArray("entries")) {
+            if (item == null || !item.isJsonObject()) {
+                continue;
+            }
+            JsonObject entryObj = item.getAsJsonObject();
 
-                LorebookEntry entry = new LorebookEntry();
-                entry.setLorebook(lorebook);
-                entry.setName(StringUtils.defaultIfBlank(getString(entryObj, "name"), "Entry"));
-                entry.setPayload(getString(entryObj, "payload"));
-                entry.setComment(getString(entryObj, "comment"));
-                entry.setEnabled(getBoolean(entryObj, "enabled", true));
-                entry.setFiltering(getString(entryObj, "filtering"));
+            LorebookEntry entry = new LorebookEntry();
+            entry.setLorebook(lorebook);
+            entry.setName(StringUtils.defaultIfBlank(getString(entryObj, "name"), "Entry"));
+            entry.setPayload(getString(entryObj, "payload"));
+            entry.setComment(getString(entryObj, "comment"));
+            entry.setEnabled(getBoolean(entryObj, "enabled", true));
+            entry.setFiltering(getString(entryObj, "filtering"));
 
-                if (entryObj.has("order") && !entryObj.get("order").isJsonNull()) {
-                    entry.setOrder(entryObj.get("order").getAsInt());
-                }
-                String filteringMode = getString(entryObj, "filteringMode");
-                if (StringUtils.isNotBlank(filteringMode)) {
-                    entry.setFilteringMode(FilteringMode.valueOf(filteringMode));
-                }
-                String insertionMode = getString(entryObj, "insertionMode");
-                if (StringUtils.isNotBlank(insertionMode)) {
-                    entry.setInsertionMode(InsertionMode.valueOf(insertionMode));
-                }
+            if (entryObj.has("order") && !entryObj.get("order").isJsonNull()) {
+                entry.setOrder(entryObj.get("order").getAsInt());
+            }
+            String filteringMode = getString(entryObj, "filteringMode");
+            if (StringUtils.isNotBlank(filteringMode)) {
+                entry.setFilteringMode(FilteringMode.valueOf(filteringMode));
+            }
+            String insertionMode = getString(entryObj, "insertionMode");
+            if (StringUtils.isNotBlank(insertionMode)) {
+                entry.setInsertionMode(InsertionMode.valueOf(insertionMode));
+            }
 
-                entry = lorebookEntryService.save(entry);
+            entry = lorebookEntryService.save(entry);
 
-                for (String tagStr : extractStrings(entryObj, "tags")) {
-                    Tag tag = getOrCreateTag(tagStr);
-                    if (tag != null) {
-                        tagRelationService.createRelation(tag, entry, false);
-                    }
+            for (String tagStr : extractStrings(entryObj, "tags")) {
+                Tag tag = getOrCreateTag(tagStr);
+                if (tag != null) {
+                    tagRelationService.createRelation(tag, entry, false);
                 }
-                for (String tagStr : extractStrings(entryObj, "negativeTags")) {
-                    Tag tag = getOrCreateTag(tagStr);
-                    if (tag != null) {
-                        tagRelationService.createRelation(tag, entry, true);
-                    }
+            }
+            for (String tagStr : extractStrings(entryObj, "negativeTags")) {
+                Tag tag = getOrCreateTag(tagStr);
+                if (tag != null) {
+                    tagRelationService.createRelation(tag, entry, true);
                 }
             }
         }
-
-        return lorebook;
     }
 
     private JsonArray toJsonArray(List<Tag> tags) {
