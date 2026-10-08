@@ -10,4 +10,11 @@ public interface TagService extends ExtendableService<Tag, TagRepository> {
     List<Tag> searchTagsForUser(String filter, int offset, int limit) throws Exception;
 
     int countTagsForUser(String filter) throws Exception;
+
+    /**
+     * Tag of the current user with given value (trimmed, matched case-insensitively), created when missing.
+     *
+     * @return {@code null} for a blank value
+     */
+    Tag getOrCreateForUser(String value) throws Exception;
 }

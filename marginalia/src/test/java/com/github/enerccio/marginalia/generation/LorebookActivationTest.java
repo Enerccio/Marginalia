@@ -10,8 +10,10 @@ import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
+import com.github.enerccio.marginalia.domain.service.impl.generation.impl.ProcessLorebookStep;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables.Scope;
+import com.github.enerccio.marginalia.test.ExpectedLog;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMRequest;
@@ -432,7 +434,11 @@ class LorebookActivationTest extends GenerationTestBase {
         });
         entry(book, "fine");
 
-        assertThat(activate(book(book), "([unclosed").activated()).containsExactly("fine");
+        try (ExpectedLog log = ExpectedLog.capture(ProcessLorebookStep.class)) {
+            assertThat(activate(book(book), "([unclosed").activated()).containsExactly("fine");
+
+            assertThat(log.warnings()).singleElement().asString().contains("([unclosed").contains("broken");
+        }
     }
 
     @Test
@@ -603,9 +609,45 @@ class LorebookActivationTest extends GenerationTestBase {
         });
         entry(book, "fine", e -> e.setOrder(2));
 
-        Lore lore = activate(book(book));
+        try (ExpectedLog log = ExpectedLog.capture(ProcessLorebookStep.class)) {
+            Lore lore = activate(book(book));
 
-        assertThat(lore.lore()).isEqualTo("{{#each}} raw {{user}}\n\n<fine>");
+            assertThat(lore.lore()).isEqualTo("{{#each}} raw {{user}}\n\n<fine>");
+            assertThat(log.warnings()).singleElement().asString().contains("broken");
+        }
+    }
+
+    @Test
+    void importedSillyTavernKeysActivateEntries() throws Exception {
+        String worldInfo = """
+                {"name": "ST world", "entries": {
+                  "0": {"uid": 0, "comment": "always", "content": "<always>", "key": [], "order": 1},
+                  "1": {"uid": 1, "comment": "dragons", "content": "<dragons>", "key": ["dragon", "wyrm"], "order": 2},
+                  "2": {"uid": 2, "comment": "crowned king", "content": "<crowned king>", "key": ["king"],
+                        "keysecondary": ["crown"], "selective": true, "selectiveLogic": 3, "order": 3},
+                  "3": {"uid": 3, "comment": "living king", "content": "<living king>", "key": ["king"],
+                        "keysecondary": ["dead"], "selectiveLogic": 2, "order": 4, "matchWholeWords": true},
+                  "4": {"uid": 4, "comment": "hint", "content": "<hint>", "key": ["/storm(s)?/i"], "order": 5,
+                        "position": 4},
+                  "5": {"uid": 5, "comment": "constant", "content": "<constant>", "key": ["nothing"], "constant": true,
+                        "order": 6},
+                  "6": {"uid": 6, "comment": "off", "content": "<off>", "disable": true, "order": 7}
+                }}
+                """;
+        Lorebook imported = lorebookService.importFromSillytavern(worldInfo, "upload.json");
+        Manuscript manuscript = book(imported);
+
+        assertThat(activate(manuscript, "A quiet morning.").activated()).containsExactly("always", "constant");
+        assertThat(activate(manuscript, "A WYRM circles.").activated()).containsExactly("always", "dragons", "constant");
+        assertThat(activate(manuscript, "The king takes the crown.").activated())
+                .containsExactly("always", "crowned king", "living king", "constant");
+        assertThat(activate(manuscript, "The king is dead.").activated()).containsExactly("always", "constant");
+        assertThat(activate(manuscript, "The kingdom waits.").activated()).containsExactly("always", "constant");
+
+        Lore lore = activate(manuscript, "Storms gather.");
+        assertThat(lore.activated()).containsExactly("always", "hint", "constant");
+        assertThat(lore.lore()).isEqualTo("<always>\n\n<constant>");
+        assertThat(lore.userLore()).isEqualTo("<hint>");
     }
 
     @Test

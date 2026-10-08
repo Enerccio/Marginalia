@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.test.ExpectedLog;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
@@ -186,7 +187,11 @@ class ExtendableEntityListenerTest {
         ChatMessage message = new ChatMessage();
         setStored(message, "{\"promptTokens\": \"not a number\", \"backgroundLore\": \"ok\", \"unknownField\": 1}");
 
-        listener.deserialize(message);
+        try (ExpectedLog log = ExpectedLog.capture(ExtendableEntityListener.class)) {
+            listener.deserialize(message);
+
+            assertThat(log.errors()).singleElement().asString().contains("ChatMessage").contains("not a number");
+        }
 
         assertThat(message.getPromptTokens()).isNull();
         assertThat(message.getBackgroundLore()).isEqualTo("ok");
@@ -197,7 +202,11 @@ class ExtendableEntityListenerTest {
         LorebookEntry entry = new LorebookEntry();
         setStored(entry, "{\"filteringMode\": \"NO_SUCH_MODE\"}");
 
-        listener.deserialize(entry);
+        try (ExpectedLog log = ExpectedLog.capture(ExtendableEntityListener.class)) {
+            listener.deserialize(entry);
+
+            assertThat(log.errors()).singleElement().asString().contains("NO_SUCH_MODE");
+        }
 
         assertThat(entry.getFilteringMode()).isEqualTo(FilteringMode.TEXT);
     }

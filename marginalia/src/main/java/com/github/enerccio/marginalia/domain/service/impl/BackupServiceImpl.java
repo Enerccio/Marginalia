@@ -100,7 +100,9 @@ public class BackupServiceImpl implements BackupService {
             }
         }
 
-        backups.sort(Comparator.comparing(ManuscriptBackup::getBackupCreationDate, Comparator.nullsLast(Comparator.reverseOrder())));
+        // stored dates have second precision, the file name (creation time in millis) orders backups within a second
+        backups.sort(Comparator.comparing(ManuscriptBackup::getBackupCreationDate, Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(b -> new File(b.getFile()).getName(), Comparator.reverseOrder()));
         return backups;
     }
 

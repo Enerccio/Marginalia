@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.instruct.fixture.AbstractSubject;
 import com.github.enerccio.marginalia.instruct.fixture.InstrumentedSubject;
 import com.github.enerccio.marginalia.instruct.fixture.InstrumentedSubjectChild;
 import com.github.enerccio.marginalia.instruct.fixture.Marker;
+import com.github.enerccio.marginalia.test.ExpectedLog;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -643,7 +644,15 @@ class ExtendableMethodVisitorTest {
             }
         };
 
-        assertThat(call(newInstrumented(), "add", 2, 2)).isEqualTo(4);
+        try (ExpectedLog log = ExpectedLog.capture(ExtensionServiceImpl.class)) {
+            assertThat(call(newInstrumented(), "add", 2, 2)).isEqualTo(4);
+
+            // both failures are reported against the extension, with their cause
+            assertThat(log.errors()).hasSize(2).allMatch(m -> m.contains(Recorder.class.getName()) && m.contains("add"));
+            assertThat(log.entries()).extracting(e -> e.throwable().getMessage())
+                    .anyMatch(m -> m.contains("broken extension on enter"))
+                    .anyMatch(m -> m.contains("doesNotExist"));
+        }
         assertThat(recorder.events).containsExactly("enter", "leave");
     }
 

@@ -39,4 +39,18 @@ public class JpaTagRepository extends JpaExtendableRepository<Tag> implements Ta
                 .getSingleResult();
         return count.intValue();
     }
+
+    @Override
+    public Tag findByValue(String value, User user) throws Exception {
+        if (value == null || user == null || user.getId() == null) {
+            return null;
+        }
+        String jpql = "SELECT t FROM Tag t WHERE t.deleted = false AND t.owner.id = :userId AND LOWER(t.value) = :value ORDER BY t.id ASC";
+        List<Tag> tags = getEntityManager().createQuery(jpql, Tag.class)
+                .setParameter("userId", user.getId())
+                .setParameter("value", value.toLowerCase())
+                .setMaxResults(1)
+                .getResultList();
+        return tags.isEmpty() ? null : tags.getFirst();
+    }
 }

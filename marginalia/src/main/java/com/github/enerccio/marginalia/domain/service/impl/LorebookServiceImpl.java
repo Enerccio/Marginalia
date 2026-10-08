@@ -14,11 +14,14 @@ import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.*;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
 public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, LorebookRepository> implements LorebookService {
+    private static final Logger log = LoggerFactory.getLogger(LorebookServiceImpl.class);
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
 
     public static final String EXPORT_FORMAT = "marginalia-lorebook";
@@ -74,20 +77,28 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         if (StringUtils.isBlank(json)) {
             throw new IllegalArgumentException("JSON content cannot be empty");
         }
+        JsonObject rootObj = gson.fromJson(json, JsonObject.class);
+        if (rootObj == null) {
+            throw new IllegalArgumentException("JSON content cannot be empty");
+        }
 
-        String bookName = name;
+        // world info name stored in the file wins over the uploaded file name
+        String bookName = SillyTavernEntryConverter.string(rootObj, "name");
+        if (StringUtils.isBlank(bookName)) {
+            bookName = name;
+        }
         if (StringUtils.isBlank(bookName)) {
             bookName = "Imported Lorebook";
         } else if (bookName.toLowerCase().endsWith(".json")) {
             bookName = bookName.substring(0, bookName.length() - 5);
         }
+        bookName = bookName.trim();
 
         Lorebook lorebook = new Lorebook();
         lorebook.setName(bookName);
         lorebook.setEnabled(true);
         lorebook = save(lorebook);
 
-        JsonObject rootObj = gson.fromJson(json, JsonObject.class);
         if (!rootObj.has("entries")) {
             return lorebook;
         }
@@ -114,49 +125,31 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         entryObjects.sort(Comparator.comparingInt(this::extractUid));
 
         for (JsonObject entryObj : entryObjects) {
+            List<String> primaryKeys = extractStrings(entryObj, "key");
+            List<String> secondaryKeys = extractStrings(entryObj, "keysecondary");
+
             LorebookEntry lorebookEntry = new LorebookEntry();
             lorebookEntry.setLorebook(lorebook);
+            lorebookEntry.setName(SillyTavernEntryConverter.name(entryObj, primaryKeys));
+            lorebookEntry.setComment(SillyTavernEntryConverter.unsupportedSettings(entryObj));
+            lorebookEntry.setPayload(StringUtils.defaultString(SillyTavernEntryConverter.string(entryObj, "content")));
+            lorebookEntry.setOrder(SillyTavernEntryConverter.order(entryObj));
+            lorebookEntry.setEnabled(SillyTavernEntryConverter.enabled(entryObj));
+            lorebookEntry.setInsertionMode(SillyTavernEntryConverter.insertionMode(entryObj));
 
-            // Map comment -> name
-            String comment = entryObj.has("comment") && !entryObj.get("comment").isJsonNull()
-                    ? entryObj.get("comment").getAsString() : "";
-            lorebookEntry.setName(StringUtils.defaultIfBlank(comment, "Entry"));
-            lorebookEntry.setComment(comment);
-
-            // Map content -> content (payload)
-            String content = entryObj.has("content") && !entryObj.get("content").isJsonNull()
-                    ? entryObj.get("content").getAsString() : "";
-            lorebookEntry.setPayload(content);
-
-            // Map order -> order
-            int order = entryObj.has("order") && !entryObj.get("order").isJsonNull()
-                    ? entryObj.get("order").getAsInt() : 100;
-            lorebookEntry.setOrder(order);
-
-            // Map disable -> enabled
-            boolean disable = entryObj.has("disable") && !entryObj.get("disable").isJsonNull()
-                    && entryObj.get("disable").getAsBoolean();
-            lorebookEntry.setEnabled(!disable);
+            // trigger keys are matched against the prompt text, like SillyTavern scans the chat
+            SillyTavernEntryConverter.Filter filter = SillyTavernEntryConverter.filter(entryObj, primaryKeys, secondaryKeys);
+            if (filter != null) {
+                lorebookEntry.setFiltering(filter.filtering());
+                lorebookEntry.setFilteringMode(filter.mode());
+            }
 
             lorebookEntry = lorebookEntryService.save(lorebookEntry);
 
-            // Process trigger keys as positive/include tags
-            List<String> positiveTags = new ArrayList<>();
-            positiveTags.addAll(extractStrings(entryObj, "key"));
-            positiveTags.addAll(extractStrings(entryObj, "keysecondary"));
-
-            for (String tagStr : positiveTags) {
-                Tag tag = getOrCreateTag(tagStr);
-                if (tag != null) {
-                    tagRelationService.createRelation(tag, lorebookEntry, false);
-                }
-            }
-
-            // Process characterFilter as positive or negative tags depending on isExclude
+            // character filter restricts the entry to certain characters/tags - the closest concept are book tags
             if (entryObj.has("characterFilter") && entryObj.get("characterFilter").isJsonObject()) {
                 JsonObject filterObj = entryObj.getAsJsonObject("characterFilter");
-                boolean isExclude = filterObj.has("isExclude") && !filterObj.get("isExclude").isJsonNull()
-                        && filterObj.get("isExclude").getAsBoolean();
+                boolean isExclude = getBoolean(filterObj, "isExclude", false);
 
                 List<String> filterTags = new ArrayList<>();
                 filterTags.addAll(extractStrings(filterObj, "names"));
@@ -318,7 +311,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             candidates.put(candidate.getUuid(), candidate);
         }
 
-        Map<String, JsonObject> created = new LinkedHashMap<>();
+        Map<String, JsonObject> processed = new LinkedHashMap<>();
         for (JsonElement element : lorebooks) {
             if (!element.isJsonObject()) {
                 continue;
@@ -338,6 +331,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             }
             if (decision == LorebookDecision.LINK && candidate.getMatchedLorebook() != null) {
                 resolved.put(uuid, candidate.getMatchedLorebook());
+                processed.put(uuid, bookObj);
                 continue;
             }
 
@@ -351,20 +345,24 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             lorebook = save(lorebook);
             unmarshalContent(lorebook, bookObj);
             resolved.put(uuid, lorebook);
-            created.put(uuid, bookObj);
+            processed.put(uuid, bookObj);
         }
 
-        // existing (linked) lorebooks keep their own subbooks, only newly created ones are wired
-        for (Map.Entry<String, JsonObject> entry : created.entrySet()) {
+        // rebuild the backup's subbook structure between the resolved lorebooks; linked lorebooks get the missing
+        // subbooks added and keep the ones they already have
+        for (Map.Entry<String, JsonObject> entry : processed.entrySet()) {
             Lorebook lorebook = find(resolved.get(entry.getKey()));
-            List<Lorebook> subbooks = new ArrayList<>();
+            List<Lorebook> subbooks = lorebook.getSubbooks() == null ? new ArrayList<>() : new ArrayList<>(lorebook.getSubbooks());
+            boolean changed = false;
             for (String subbookUuid : extractStrings(entry.getValue(), "subbooks")) {
                 Lorebook subbook = resolved.get(subbookUuid);
-                if (subbook != null && !subbook.equals(lorebook) && !subbooks.contains(subbook)) {
+                if (subbook != null && !subbook.getId().equals(lorebook.getId())
+                        && subbooks.stream().noneMatch(l -> l.getId().equals(subbook.getId()))) {
                     subbooks.add(subbook);
+                    changed = true;
                 }
             }
-            if (!subbooks.isEmpty()) {
+            if (changed) {
                 lorebook.setSubbooks(subbooks);
                 resolved.put(entry.getKey(), save(lorebook));
             }
@@ -418,13 +416,13 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             if (entryObj.has("order") && !entryObj.get("order").isJsonNull()) {
                 entry.setOrder(entryObj.get("order").getAsInt());
             }
-            String filteringMode = getString(entryObj, "filteringMode");
-            if (StringUtils.isNotBlank(filteringMode)) {
-                entry.setFilteringMode(FilteringMode.valueOf(filteringMode));
+            FilteringMode filteringMode = getEnum(entryObj, "filteringMode", FilteringMode.class);
+            if (filteringMode != null) {
+                entry.setFilteringMode(filteringMode);
             }
-            String insertionMode = getString(entryObj, "insertionMode");
-            if (StringUtils.isNotBlank(insertionMode)) {
-                entry.setInsertionMode(InsertionMode.valueOf(insertionMode));
+            InsertionMode insertionMode = getEnum(entryObj, "insertionMode", InsertionMode.class);
+            if (insertionMode != null) {
+                entry.setInsertionMode(insertionMode);
             }
 
             entry = lorebookEntryService.save(entry);
@@ -457,6 +455,23 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             return null;
         }
         return parent.get(fieldName).getAsString();
+    }
+
+    /**
+     * Enum value of a field, {@code null} when missing or unknown (e.g. a mode added in a newer version), so the
+     * entry keeps its default instead of failing the whole import.
+     */
+    private <E extends Enum<E>> E getEnum(JsonObject parent, String fieldName, Class<E> type) {
+        String value = getString(parent, fieldName);
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        try {
+            return Enum.valueOf(type, value.trim());
+        } catch (IllegalArgumentException e) {
+            log.warn("Unknown {} '{}' in imported lorebook entry, using default", fieldName, value);
+            return null;
+        }
     }
 
     private boolean getBoolean(JsonObject parent, String fieldName, boolean defaultValue) {
@@ -505,20 +520,6 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     }
 
     private Tag getOrCreateTag(String value) throws Exception {
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
-        String trimmed = value.trim();
-        List<Tag> matches = tagService.searchTagsForUser(trimmed, 0, 10);
-        Tag tag = matches.stream()
-                .filter(t -> StringUtils.equalsIgnoreCase(t.getValue(), trimmed))
-                .findFirst()
-                .orElse(null);
-        if (tag == null) {
-            tag = new Tag();
-            tag.setValue(trimmed);
-            tag = tagService.save(tag);
-        }
-        return tag;
+        return tagService.getOrCreateForUser(value);
     }
 }

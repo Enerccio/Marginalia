@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -34,5 +35,21 @@ public class TagServiceImpl extends ExtendableServiceImpl<Tag, TagRepository> im
     @CommonTxReadOnly
     public int countTagsForUser(String filter) throws Exception {
         return getRepository().countByValue(filter != null ? filter.trim() : "", currentUser);
+    }
+
+    @Override
+    @CommonTx
+    public Tag getOrCreateForUser(String value) throws Exception {
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        String trimmed = value.trim();
+        Tag tag = getRepository().findByValue(trimmed, currentUser);
+        if (tag == null) {
+            tag = new Tag();
+            tag.setValue(trimmed);
+            tag = save(tag);
+        }
+        return tag;
     }
 }

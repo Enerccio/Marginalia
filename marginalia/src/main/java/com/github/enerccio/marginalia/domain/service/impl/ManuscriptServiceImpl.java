@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
+import com.github.enerccio.marginalia.domain.model.BaseEntity;
+import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
@@ -16,12 +18,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
 
 public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, ManuscriptRepository> implements ManuscriptService {
+    private static final Logger log = LoggerFactory.getLogger(ManuscriptServiceImpl.class);
+
 
     @Autowired
     private SettingService settingService;
@@ -185,6 +192,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         backup.addProperty("uuid", m.getUuid());
         backup.addProperty("name", m.getName());
         backup.addProperty("description", m.getDescription());
+        backup.addProperty("published", m.isPublished());
 
         // Save extended content
         if (m.getExtendedContent() == null || m.getExtendedContent().length == 0) {
@@ -315,39 +323,21 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (backup.has("description") && !backup.get("description").isJsonNull()) {
             manuscript.setDescription(backup.get("description").getAsString());
         }
+        if (backup.has("published") && !backup.get("published").isJsonNull()) {
+            manuscript.setPublished(backup.get("published").getAsBoolean());
+        }
         if (backup.has("extendedContent") && !backup.get("extendedContent").isJsonNull()) {
             JsonElement ext = backup.get("extendedContent");
             manuscript.setExtendedContent(ext.toString().getBytes(StandardCharsets.UTF_8));
         }
 
-        if (backup.has("ai") && backup.get("ai").isJsonObject()) {
-            try {
-                JsonObject aiObj = backup.getAsJsonObject("ai");
-                if (aiObj.has("uuid") && !aiObj.get("uuid").isJsonNull()) {
-                    String aiUuid = aiObj.get("uuid").getAsString();
-                    // only own entities can be linked, missing ones are left as they are
-                    AI ai = aiService.findForUser(aiUuid);
-                    if (ai != null) {
-                        manuscript.setAi(ai);
-                    }
-                }
-            } catch (Exception ignored) {
-            }
+        AI ai = resolveLinked(backup, "ai", aiService, AI::getName);
+        if (ai != null) {
+            manuscript.setAi(ai);
         }
-
-        if (backup.has("protocol") && backup.get("protocol").isJsonObject()) {
-            try {
-                JsonObject protoObj = backup.getAsJsonObject("protocol");
-                if (protoObj.has("uuid") && !protoObj.get("uuid").isJsonNull()) {
-                    String protoUuid = protoObj.get("uuid").getAsString();
-                    // only own entities can be linked, missing ones are left as they are
-                    Protocol protocol = protocolService.findForUser(protoUuid);
-                    if (protocol != null) {
-                        manuscript.setProtocol(protocol);
-                    }
-                }
-            } catch (Exception ignored) {
-            }
+        Protocol protocol = resolveLinked(backup, "protocol", protocolService, Protocol::getName);
+        if (protocol != null) {
+            manuscript.setProtocol(protocol);
         }
 
         if (backup.has("lorebook") && backup.get("lorebook").isJsonObject()) {
@@ -367,24 +357,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
         manuscript = saveWithoutEvent(manuscript);
 
-        if (backup.has("tags") && backup.get("tags").isJsonArray()) {
-            for (JsonElement tagElem : backup.getAsJsonArray("tags")) {
-                try {
-                    String tagVal = tagElem.getAsString();
-                    if (StringUtils.isNotBlank(tagVal)) {
-                        List<Tag> matches = tagService.searchTagsForUser(tagVal.trim(), 0, 10);
-                        Tag tag = matches.stream()
-                                .filter(t -> StringUtils.equals(t.getValue(), tagVal.trim()))
-                                .findFirst()
-                                .orElse(null);
-                        if (tag != null) {
-                            tagRelationService.createRelation(tag, manuscript);
-                        }
-                    }
-                } catch (Exception ignored) {
-                }
-            }
-        }
+        restoreTags(backup, manuscript);
 
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
@@ -425,41 +398,23 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             if (backup.has("description") && !backup.get("description").isJsonNull()) {
                 m.setDescription(backup.get("description").getAsString());
             }
+            // older backups don't carry the flag, keep the current state then
+            if (backup.has("published") && !backup.get("published").isJsonNull()) {
+                m.setPublished(backup.get("published").getAsBoolean());
+            }
             if (backup.has("extendedContent") && !backup.get("extendedContent").isJsonNull()) {
                 JsonElement ext = backup.get("extendedContent");
                 m.setExtendedContent(ext.toString().getBytes(StandardCharsets.UTF_8));
             }
 
-            // Try to find linked AI by UUID, ignore if failed
-            if (backup.has("ai") && backup.get("ai").isJsonObject()) {
-                try {
-                    JsonObject aiObj = backup.getAsJsonObject("ai");
-                    if (aiObj.has("uuid") && !aiObj.get("uuid").isJsonNull()) {
-                        String aiUuid = aiObj.get("uuid").getAsString();
-                        // only own entities can be linked, missing ones are left as they are
-                        AI ai = aiService.findForUser(aiUuid);
-                        if (ai != null) {
-                            m.setAi(ai);
-                        }
-                    }
-                } catch (Exception ignored) {
-                }
+            // missing AI/protocol keeps the current one
+            AI ai = resolveLinked(backup, "ai", aiService, AI::getName);
+            if (ai != null) {
+                m.setAi(ai);
             }
-
-            // Try to find linked Protocol by UUID, ignore if failed
-            if (backup.has("protocol") && backup.get("protocol").isJsonObject()) {
-                try {
-                    JsonObject protoObj = backup.getAsJsonObject("protocol");
-                    if (protoObj.has("uuid") && !protoObj.get("uuid").isJsonNull()) {
-                        String protoUuid = protoObj.get("uuid").getAsString();
-                        // only own entities can be linked, missing ones are left as they are
-                        Protocol protocol = protocolService.findForUser(protoUuid);
-                        if (protocol != null) {
-                            m.setProtocol(protocol);
-                        }
-                    }
-                } catch (Exception ignored) {
-                }
+            Protocol protocol = resolveLinked(backup, "protocol", protocolService, Protocol::getName);
+            if (protocol != null) {
+                m.setProtocol(protocol);
             }
 
             // Try to find linked Lorebook by UUID, ignore if failed
@@ -480,26 +435,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
             // Restore tags
             if (backup.has("tags") && backup.get("tags").isJsonArray()) {
-                try {
-                    List<Tag> existingTags = tagRelationService.getTagsForObject(m);
-                    for (Tag tag : existingTags) {
-                        tagRelationService.removeRelation(tag, m);
-                    }
-                    for (JsonElement tagElem : backup.getAsJsonArray("tags")) {
-                        String tagVal = tagElem.getAsString();
-                        if (StringUtils.isNotBlank(tagVal)) {
-                            List<Tag> matches = tagService.searchTagsForUser(tagVal.trim(), 0, 10);
-                            Tag tag = matches.stream()
-                                    .filter(t -> StringUtils.equals(t.getValue(), tagVal.trim()))
-                                    .findFirst()
-                                    .orElse(null);
-                            if (tag != null) {
-                                tagRelationService.createRelation(tag, m);
-                            }
-                        }
-                    }
-                } catch (Exception ignored) {
+                for (Tag tag : tagRelationService.getTagsForObject(m)) {
+                    tagRelationService.removeRelation(tag, m);
                 }
+                restoreTags(backup, m);
             }
 
             m = saveWithoutEvent(m);
@@ -537,6 +476,54 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         }
 
         return m;
+    }
+
+    /**
+     * Links the backup's tags to the manuscript, tags the user doesn't have (anymore) are created.
+     */
+    private void restoreTags(JsonObject backup, Manuscript manuscript) throws Exception {
+        if (!backup.has("tags") || !backup.get("tags").isJsonArray()) {
+            return;
+        }
+        for (JsonElement tagElem : backup.getAsJsonArray("tags")) {
+            if (tagElem == null || !tagElem.isJsonPrimitive()) {
+                continue;
+            }
+            Tag tag = tagService.getOrCreateForUser(tagElem.getAsString());
+            if (tag != null) {
+                tagRelationService.createRelation(tag, manuscript);
+            }
+        }
+    }
+
+    /**
+     * Entity referenced by backup ({"uuid": ..., "name": ...}) among the current user's own entities: first by uuid,
+     * then by name (case-insensitive, like lorebook import), {@code null} when there is no match.
+     */
+    private <T extends OwnedEntity> T resolveLinked(JsonObject backup, String key, OwnedService<T, ?> service,
+                                                    Function<T, String> nameOf) {
+        if (!backup.has(key) || !backup.get(key).isJsonObject()) {
+            return null;
+        }
+        try {
+            JsonObject ref = backup.getAsJsonObject(key);
+            if (ref.has("uuid") && !ref.get("uuid").isJsonNull()) {
+                T byUuid = service.findForUser(ref.get("uuid").getAsString());
+                if (byUuid != null) {
+                    return byUuid;
+                }
+            }
+            if (ref.has("name") && !ref.get("name").isJsonNull()) {
+                String name = StringUtils.trim(ref.get("name").getAsString());
+                return service.findAllForUser().stream()
+                        .filter(e -> StringUtils.equalsIgnoreCase(StringUtils.trim(nameOf.apply(e)), name))
+                        .min(Comparator.comparing(BaseEntity::getId))
+                        .orElse(null);
+            }
+        } catch (Exception e) {
+            log.warn("Cannot resolve {} of backup: {}", key, e.getMessage());
+        }
+        return null;
     }
 
     private Map<String, ChatMessage> restoreMessages(JsonArray messagesArray, Manuscript manuscript) throws Exception {

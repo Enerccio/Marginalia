@@ -75,6 +75,48 @@ class TagCrudTest extends ExtendableCrudContract<Tag> {
     }
 
     @Test
+    void getOrCreateCreatesMissingTag() throws Exception {
+        String value = uniqueName("fresh");
+
+        Tag created = tagService.getOrCreateForUser("  " + value + " ");
+
+        assertThat(created.getId()).isNotNull();
+        assertThat(created.getValue()).isEqualTo(value);
+        assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
+        assertThat(tagService.getOrCreateForUser(value).getId()).isEqualTo(created.getId());
+        assertThat(tagService.getOrCreateForUser(value.toUpperCase()).getId()).isEqualTo(created.getId());
+        assertThat(tagService.getOrCreateForUser("  ")).isNull();
+        assertThat(tagService.getOrCreateForUser(null)).isNull();
+    }
+
+    @Test
+    void getOrCreateFindsExactMatchAmongManySimilarTags() throws Exception {
+        String base = uniqueName("dark");
+        for (int i = 0; i < 12; i++) {
+            tag(base + "-variant-" + i);
+        }
+        Tag exact = tag(base);
+
+        assertThat(tagService.getOrCreateForUser(base).getId()).isEqualTo(exact.getId());
+        assertThat(tagService.countTagsForUser(base)).isEqualTo(13);
+    }
+
+    @Test
+    void getOrCreateIgnoresDeletedAndForeignTags() throws Exception {
+        String value = uniqueName("gone");
+        Tag deleted = tag(value);
+        tagService.delete(deleted, false);
+
+        Tag recreated = tagService.getOrCreateForUser(value);
+        assertThat(recreated.getId()).isNotEqualTo(deleted.getId());
+
+        login();
+        Tag foreign = tagService.getOrCreateForUser(value);
+        assertThat(foreign.getId()).isNotEqualTo(recreated.getId());
+        assertThat(foreign.getOwner().getId()).isEqualTo(currentUser.getId());
+    }
+
+    @Test
     void deletingTagDeletesItsRelations() throws Exception {
         Lorebook lorebook = new Lorebook();
         lorebook.setName("lore");

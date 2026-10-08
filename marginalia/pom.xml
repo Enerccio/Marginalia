@@ -318,6 +318,14 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- CheckClassAdapter for verifying instrumented bytecode -->
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>9.8</version>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
@@ -363,6 +371,8 @@
           <source>${java.version}</source>
           <target>${java.version}</target>
           <encoding>UTF-8</encoding>
+          <!-- same as the aspectj compiler, extensions resolve method arguments by name -->
+          <parameters>true</parameters>
         </configuration>
       </plugin>
 
@@ -371,6 +381,8 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.4</version>
         <configuration>
+          <!-- RuntimeInstrumentationTest installs the ByteBuddy agent into the test JVM -->
+          <argLine>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true</argLine>
           <systemPropertyVariables>
             <marginalia.test.home>${project.build.directory}/test-home</marginalia.test.home>
           </systemPropertyVariables>

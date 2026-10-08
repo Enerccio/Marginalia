@@ -2,8 +2,10 @@ package com.github.enerccio.marginalia.templates;
 
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
+import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables.Scope;
 import com.github.enerccio.marginalia.domain.templates.macros.Macros;
+import com.github.enerccio.marginalia.test.ExpectedLog;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -258,7 +260,11 @@ class MacroRenderingTest extends TemplateTestBase {
 
         @Test
         void minusWithNonNumberIsIgnored() throws Exception {
-            assertThat(render("{{.hp = 5}}{{.hp -= lots}}{{.hp}}")).isEqualTo("5");
+            try (ExpectedLog log = ExpectedLog.capture(TemplateData.class)) {
+                assertThat(render("{{.hp = 5}}{{.hp -= lots}}{{.hp}}")).isEqualTo("5");
+
+                assertThat(log.warnings()).singleElement().asString().contains("hp");
+            }
         }
 
         @Test
