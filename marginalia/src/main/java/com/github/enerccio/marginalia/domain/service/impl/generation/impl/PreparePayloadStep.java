@@ -1,9 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
-import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
+import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 
@@ -18,7 +15,7 @@ public class PreparePayloadStep extends GenerationStepBase {
         controller.emitEvent(Events.BEFORE_PREPARE_PAYLOAD, () -> {
             List<LLMChatMessage> payload = new ArrayList<>();
             payload.add(createSystemPrompt(controller));
-            List<String> story = (List<String>) controller.getProperties().get(PrepareContentStep.MANUSCRIPT_CHRONICLE);
+            List<String> story = (List<String>) controller.getProperties().get(GenerationProperties.MANUSCRIPT_CHRONICLE);
             if (story != null) {
                 boolean first = true;
                 for (String blob : story) {

@@ -3,3 +3,5 @@
 /marginalia/src/main/frontend/index.html
 /marginalia/src/main/resources/META-INF/VAADIN/config/flow-build-info.json
 /data/
+/marginalia/src/main/bundles/
+/marginalia/target

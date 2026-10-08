@@ -7,10 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.TurnInput;
-import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
+import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import org.apache.commons.collections4.SetUtils;
@@ -25,10 +22,6 @@ import java.util.regex.PatternSyntaxException;
 
 public class ProcessLorebookStep extends GenerationStepBase {
     private static final Logger log = LoggerFactory.getLogger(ProcessLorebookStep.class);
-    public static final String LOREBOOKS = "LOREBOOKS";
-    public static final String LOREBOOK_ENTRY = "LOREBOOK_ENTRY";
-    public static final String ACTIVATED_LOREBOOK_ENTRIES = "ACTIVATED_LOREBOOK_ENTRIES";
-    public static final String LOREBOOK_TEMPLATE_DATA = "LOREBOOK_TEMPLATE_DATA";
 
     @SuppressWarnings("unchecked")
     @Override
@@ -66,10 +59,10 @@ public class ProcessLorebookStep extends GenerationStepBase {
                     }
                 }
 
-                controller.getProperties().put(LOREBOOKS, foundLorebooks);
+                controller.getProperties().put(GenerationProperties.LOREBOOKS, foundLorebooks);
                 log.debug("Lorebooks found: {}", foundLorebooks);
                 controller.emitEvent(Events.PROCESS_LOREBOOKS, () -> {
-                    List<Lorebook> lorebooks = (List<Lorebook>) controller.getProperties().get(LOREBOOKS);
+                    List<Lorebook> lorebooks = (List<Lorebook>) controller.getProperties().get(GenerationProperties.LOREBOOKS);
                     log.debug("Lorebooks to be processed: {}", foundLorebooks);
 
                     Map<Integer, List<LorebookEntry>> lorebookEntries = new TreeMap<>();
@@ -92,7 +85,7 @@ public class ProcessLorebookStep extends GenerationStepBase {
 
                     List<LorebookEntry> activatedEntries = new ArrayList<>();
                     forEachAsync(controller, entries, (entry, next) -> {
-                        controller.getProperties().put(LOREBOOK_ENTRY, entry);
+                        controller.getProperties().put(GenerationProperties.LOREBOOK_ENTRY, entry);
                         controller.emitEvent(Events.PROCESS_LOREBOOK_ENTRY, () -> {
                             log.debug("Processing entry: {} ", entry.getName());
 
@@ -111,13 +104,13 @@ public class ProcessLorebookStep extends GenerationStepBase {
                             next.returnFromEvent();
                         });
                     }, () -> {
-                        controller.getProperties().put(ACTIVATED_LOREBOOK_ENTRIES, activatedEntries);
+                        controller.getProperties().put(GenerationProperties.ACTIVATED_LOREBOOK_ENTRIES, activatedEntries);
                         controller.emitEvent(Events.PROCESS_ACTIVATED_ENTRIES, () -> {
-                            List<LorebookEntry> finalActivatedEntries = (List<LorebookEntry>) controller.getProperties().get(ACTIVATED_LOREBOOK_ENTRIES);
+                            List<LorebookEntry> finalActivatedEntries = (List<LorebookEntry>) controller.getProperties().get(GenerationProperties.ACTIVATED_LOREBOOK_ENTRIES);
                             // one template data (and so one context) for all entries - variables set in an entry
                             // are visible in the following ones
                             LorebookTemplateData templateData = createTemplateData(controller);
-                            controller.getProperties().put(LOREBOOK_TEMPLATE_DATA, templateData);
+                            controller.getProperties().put(GenerationProperties.LOREBOOK_TEMPLATE_DATA, templateData);
                             StringBuilder builder = new StringBuilder();
                             StringBuilder builderUserPrompt = new StringBuilder();
                             for (LorebookEntry entry : finalActivatedEntries) {

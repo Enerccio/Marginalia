@@ -22,11 +22,6 @@ import java.util.List;
 public abstract class GenerationStepBase implements GenerationStep {
     private static final Logger log = LoggerFactory.getLogger(GenerationStepBase.class);
 
-    /**
-     * Property holding {@link TemplateContext} shared by all templates of the generation.
-     */
-    public static final String TEMPLATE_CONTEXT = "TEMPLATE_CONTEXT";
-
     @Autowired
     protected Localization loc;
 
@@ -92,10 +87,10 @@ public abstract class GenerationStepBase implements GenerationStep {
      * master template), creating it on first use. Must be called after {@link PrePromptData} is prepared.
      */
     protected TemplateContext getTemplateContext(GenerationController controller) throws Exception {
-        TemplateContext context = (TemplateContext) controller.getProperties().get(TEMPLATE_CONTEXT);
+        TemplateContext context = (TemplateContext) controller.getProperties().get(GenerationProperties.TEMPLATE_CONTEXT);
         if (context == null) {
             context = createTemplateContext(controller);
-            controller.getProperties().put(TEMPLATE_CONTEXT, context);
+            controller.getProperties().put(GenerationProperties.TEMPLATE_CONTEXT, context);
         }
         return context;
     }

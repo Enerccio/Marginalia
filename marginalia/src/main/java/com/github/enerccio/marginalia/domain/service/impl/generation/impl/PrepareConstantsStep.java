@@ -40,6 +40,8 @@ public class PrepareConstantsStep extends GenerationStepBase {
             controller.setPrePromptData(data);
 
             controller.emitEvent(Events.AFTER_STATIC_TEMPLATE_DATA, () -> {
+                // listeners may have replaced prompt data
+                PrePromptData currentData = controller.getPrePromptData();
                 UserPromptData userPromptData = new UserPromptData();
                 userPromptData.setInstructions(controller.getInput().instructions());
                 userPromptData.setPovCharacter(controller.getInput().povCharacter());
@@ -47,10 +49,10 @@ public class PrepareConstantsStep extends GenerationStepBase {
                 userPromptData.setSceneSetting(controller.getInput().sceneSetting());
                 userPromptData.setTemplateContext(getTemplateContext(controller));
 
-                String userPrompt = templateService.processTemplate(data.getUserPrompt(), "userPrompt", userPromptData);
-                data.setUserPromptProcessed(userPrompt);
+                String userPrompt = templateService.processTemplate(currentData.getUserPrompt(), "userPrompt", userPromptData);
+                currentData.setUserPromptProcessed(userPrompt);
                 if (StringUtils.isNotBlank(userPrompt)) {
-                    data.setUserPromptProcessedTokens(inferenceService.countTokens(userPrompt));
+                    currentData.setUserPromptProcessedTokens(inferenceService.countTokens(userPrompt));
                 }
 
                 controller.emitEvent(Events.AFTER_PREPARE_CONSTANT_DATA, controller::next);

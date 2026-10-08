@@ -6,11 +6,8 @@ import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
-import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
+import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,8 +18,6 @@ import java.util.Date;
 public class InferenceStep extends GenerationStepBase {
     private static final Gson gson = new GsonBuilder().create();
 
-    public static final String REASONING_CHUNK = "REASONING_CHUNK";
-    public static final String CHUNK = "CHUNK";
 
     @Override
     protected void onStep(GenerationController controller) throws Exception {
@@ -47,14 +42,14 @@ public class InferenceStep extends GenerationStepBase {
                     }
 
                     if (chunkType == ChunkType.REASONING) {
-                        controller.getProperties().put(REASONING_CHUNK, text);
+                        controller.getProperties().put(GenerationProperties.REASONING_CHUNK, text);
                         controller.emitEvent(Events.REASONING_CHUNK_RECEIVED, () -> {
                             Manuscript manuscript = controller.getManuscript();
                             ChatMessage chatMessage = controller.getMessage();
                             if (chatMessage.getTtft() == null) {
                                 chatMessage.setTtft(new Date());
                             }
-                            String t = (String) controller.getProperties().get(REASONING_CHUNK);
+                            String t = (String) controller.getProperties().get(GenerationProperties.REASONING_CHUNK);
                             long deltaTokenIncrease = inferenceService.countTokensApprox(t);
                             String existingReasoning = StringUtils.defaultString(chatMessage.getResponseReasoning());
                             chatMessage.setResponseReasoning(existingReasoning + t);
@@ -66,7 +61,7 @@ public class InferenceStep extends GenerationStepBase {
                             inferenceController.continueInference();
                         });
                     } else {
-                        controller.getProperties().put(CHUNK, text);
+                        controller.getProperties().put(GenerationProperties.CHUNK, text);
                         controller.emitEvent(Events.CHUNK_RECEIVED, () -> {
                             Manuscript manuscript = controller.getManuscript();
                             ChatMessage chatMessage = controller.getMessage();
@@ -76,7 +71,7 @@ public class InferenceStep extends GenerationStepBase {
                             if (chatMessage.getReasoningEnd() == null) {
                                 chatMessage.setReasoningEnd(new Date());
                             }
-                            String t = (String) controller.getProperties().get(CHUNK);
+                            String t = (String) controller.getProperties().get(GenerationProperties.CHUNK);
                             long deltaTokenIncrease = inferenceService.countTokensApprox(t);
                             String existingResponse = StringUtils.defaultString(chatMessage.getResponse());
                             chatMessage.setResponse(existingResponse + t);

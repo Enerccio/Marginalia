@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 public class PrepareContentStep extends GenerationStepBase {
     private static final Logger log = LoggerFactory.getLogger(PrepareContentStep.class);
 
-    public static final String MANUSCRIPT_CHRONICLE = "MANUSCRIPT_CHRONICLE";
-    public static final String SUMMARIES = "SUMMARIES";
 
     @SuppressWarnings("unchecked")
     @Override
@@ -39,9 +37,9 @@ public class PrepareContentStep extends GenerationStepBase {
             if (activeMessage != null) {
                 fromRoot = chatMessageService.getBranchFromLeaf(activeMessage);
                 List<String> currentSummaries = gatherSummaries(fromRoot, invalidatedSummaries, stopMessage);
-                controller.getProperties().put(SUMMARIES, currentSummaries);
+                controller.getProperties().put(GenerationProperties.SUMMARIES, currentSummaries);
             } else {
-                controller.getProperties().put(SUMMARIES, new ArrayList<>());
+                controller.getProperties().put(GenerationProperties.SUMMARIES, new ArrayList<>());
             }
 
             List<ChatMessage> finalFromRoot = fromRoot;
@@ -52,7 +50,7 @@ public class PrepareContentStep extends GenerationStepBase {
                         limit = controller.getManuscript().getAi().getMaxContext();
                     }
 
-                    List<String> summaries = (List<String>) controller.getProperties().get(SUMMARIES);
+                    List<String> summaries = (List<String>) controller.getProperties().get(GenerationProperties.SUMMARIES);
                     String sumText = "";
                     if (summaries != null) {
                         sumText = String.join("\n", summaries);
@@ -106,7 +104,7 @@ public class PrepareContentStep extends GenerationStepBase {
                         }
 
                         Collections.reverse(storyText);
-                        controller.getProperties().put(MANUSCRIPT_CHRONICLE, storyText);
+                        controller.getProperties().put(GenerationProperties.MANUSCRIPT_CHRONICLE, storyText);
 
                         controller.emitEvent(Events.AFTER_MANUSCRIPT_CONCATENATION, () -> {
                             String systemPrompt = templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData);

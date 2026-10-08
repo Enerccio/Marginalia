@@ -401,6 +401,41 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         }
 
         @Override
+        public GenerationRequest getRequest() {
+            return controller.getRequest();
+        }
+
+        @Override
+        public TurnInput getInput() {
+            return controller.getInput();
+        }
+
+        @Override
+        public PrePromptData getPrePromptData() {
+            return controller.getPrePromptData();
+        }
+
+        @Override
+        public void setPrePromptData(PrePromptData prePromptData) {
+            controller.setPrePromptData(prePromptData);
+        }
+
+        @Override
+        public List<LLMChatMessage> getPayload() {
+            return controller.getPayload();
+        }
+
+        @Override
+        public void setPayload(List<LLMChatMessage> payload) {
+            controller.setPayload(payload);
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return controller.getProperties();
+        }
+
+        @Override
         public void terminateEvents() {
             this.terminated = true;
         }
