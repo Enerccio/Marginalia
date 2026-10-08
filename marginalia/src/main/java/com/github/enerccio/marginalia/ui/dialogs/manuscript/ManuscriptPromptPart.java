@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
+import com.github.enerccio.marginalia.domain.templates.SummaryTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.UserPromptData;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
@@ -241,18 +242,22 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
                     ? userSetting.getDefaultStyle() : Defaults.DEFAULT_STYLE;
             String defaultUserPrompt = StringUtils.isNotBlank(userSetting.getDefaultUserPrompt())
                     ? userSetting.getDefaultUserPrompt() : Defaults.DEFAULT_USER_PROMPT;
+            String defaultSummaryPrompt = StringUtils.isNotBlank(userSetting.getDefaultSummaryPrompt())
+                    ? userSetting.getDefaultSummaryPrompt() : Defaults.DEFAULT_SUMMARY_PROMPT;
 
             masterTemplateField.setPlaceholder(defaultMasterTemplate);
             povField.setPlaceholder(defaultPov);
             tenseField.setPlaceholder(defaultTense);
             styleField.setPlaceholder(defaultStyle);
             userPromptField.setPlaceholder(defaultUserPrompt);
+            summaryField.setPlaceholder(defaultSummaryPrompt);
 
             masterTemplateField.setValue(StringUtils.defaultString(manuscript.getTemplate()));
             povField.setValue(StringUtils.defaultString(manuscript.getPov()));
             tenseField.setValue(StringUtils.defaultString(manuscript.getTense()));
             styleField.setValue(StringUtils.defaultString(manuscript.getStyle()));
             userPromptField.setValue(StringUtils.defaultString(manuscript.getUserPrompt()));
+            summaryField.setValue(StringUtils.defaultString(manuscript.getSummaryPrompt()));
 
             masterTemplateField.setPopoverContent(createTemplateHintPopoverContent(
                     masterTemplateField, masterTemplateField.getPopover(), MasterTemplateData.class, defaultMasterTemplate));
@@ -264,6 +269,8 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
                     povField, povField.getPopover(), null, defaultPov));
             tenseField.setPopoverContent(createTemplateHintPopoverContent(
                     tenseField, tenseField.getPopover(), null, defaultTense));
+            summaryField.setPopoverContent(createTemplateHintPopoverContent(
+                    summaryField, summaryField.getPopover(), SummaryTemplateData.class, defaultSummaryPrompt));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         } finally {
