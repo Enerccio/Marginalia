@@ -42,6 +42,36 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
 
     @Override
     @CommonTxReadOnly
+    public boolean isLoginAvailable(User user, String login) throws Exception {
+        User existing = findByName(login);
+        return existing == null || (user != null && existing.getId().equals(user.getId()));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public boolean isLastAdmin(User user) throws Exception {
+        User current = find(user);
+        return current != null && current.isAdmin() && getRepository().countAdmins() <= 1;
+    }
+
+    @Override
+    @CommonTx
+    public void deleteUser(User user) throws Exception {
+        User current = find(user);
+        if (current == null || current.isDeleted()) {
+            return;
+        }
+        if (isLastAdmin(current)) {
+            throw new IllegalStateException("Cannot delete last administrator");
+        }
+        // free the unique login for reuse and drop all remembered logins
+        current.setLogin(StringUtils.left(current.getLogin(), 27) + "#" + current.getUuid());
+        current.setSavedLogins(null);
+        delete(current, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
     public boolean authenticate(String username, String password) throws Exception {
         User user = findByName(username);
         if (user == null) {

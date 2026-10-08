@@ -1,11 +1,18 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.UIConstants;
+import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -27,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.List;
 
 @Configurable
@@ -41,9 +49,16 @@ public class AdminPart implements WorkspaceComponent {
     private OsgiService osgiService;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
+    private User currentUser;
+
+    @Autowired
     private Localization loc;
 
     private Grid<Bundle> extensionsGrid;
+    private Grid<User> usersGrid;
 
     public AdminPart(Workspace workspace) {
         this.workspace = workspace;
@@ -54,6 +69,10 @@ public class AdminPart implements WorkspaceComponent {
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
+        Tab usersTab = new Tab(loc.getValue(L.LABEL_USERS));
+        Component usersContent = createUsersTab();
+        tabSheet.add(usersTab, usersContent);
+
         Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
         Component extensionsContent = createExtensionsTab();
         tabSheet.add(extensionsTab, extensionsContent);
@@ -61,6 +80,102 @@ public class AdminPart implements WorkspaceComponent {
         Div container = new Div(tabSheet);
         container.setSizeFull();
         return container;
+    }
+
+    private Component createUsersTab() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setSizeFull();
+
+        HorizontalLayout toolbar = new HorizontalLayout();
+        toolbar.setWidthFull();
+        toolbar.setAlignItems(HorizontalLayout.Alignment.CENTER);
+
+        Button addUserButton = new Button(loc.getValue(L.LABEL_ADD_USER), Solid.PLUS_CIRCLE.create(), e -> openUserDialog(new User()));
+        addUserButton.setThemeName("primary");
+        toolbar.add(addUserButton);
+
+        usersGrid = new Grid<>(User.class, false);
+        usersGrid.setSizeFull();
+
+        usersGrid.addColumn(User::getLogin)
+                .setHeader(loc.getValue(L.LABEL_USERNAME))
+                .setFlexGrow(1);
+
+        usersGrid.addColumn(User::getFullName)
+                .setHeader(loc.getValue(L.LABEL_USER_FULLNAME))
+                .setFlexGrow(1);
+
+        usersGrid.addColumn(user -> loc.getValue(user.isAdmin() ? L.LABEL_YES : L.LABEL_NO))
+                .setHeader(loc.getValue(L.LABEL_ADMINISTRATOR))
+                .setFlexGrow(0)
+                .setWidth("150px");
+
+        usersGrid.addComponentColumn(user -> {
+                    HorizontalLayout actions = new HorizontalLayout();
+                    actions.setSpacing(true);
+
+                    Button editButton = new Button(Solid.PEN.create(), e -> openUserDialog(user));
+
+                    Button deleteButton = new Button(Solid.TRASH.create(), e -> deleteUser(user));
+                    deleteButton.setThemeName("error tertiary");
+                    deleteButton.setEnabled(!user.getId().equals(currentUser.getId()));
+
+                    actions.add(editButton, deleteButton);
+                    return actions;
+                })
+                .setHeader("")
+                .setFlexGrow(0)
+                .setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
+
+        layout.add(toolbar, usersGrid);
+        layout.setFlexGrow(1, usersGrid);
+        refreshUsersGrid();
+
+        return layout;
+    }
+
+    private void openUserDialog(User user) {
+        UserDialog dialog = new UserDialog(user);
+        dialog.setOnSave(this::refreshUsersGrid);
+        dialog.create();
+        dialog.open();
+    }
+
+    private void deleteUser(User user) {
+        try {
+            if (user.getId().equals(currentUser.getId())) {
+                com.github.enerccio.marginalia.ui.widgets.Notification.warning(loc.getValue(L.MSG_CANNOT_DELETE_SELF));
+                return;
+            }
+            if (userService.isLastAdmin(user)) {
+                com.github.enerccio.marginalia.ui.widgets.Notification.warning(loc.getValue(L.MSG_CANNOT_DELETE_LAST_ADMIN));
+                return;
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return;
+        }
+        ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+            try {
+                userService.deleteUser(user);
+                refreshUsersGrid();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+    }
+
+    private void refreshUsersGrid() {
+        if (usersGrid == null) {
+            return;
+        }
+        try {
+            List<User> users = userService.findAll();
+            users.sort(Comparator.comparing(User::getLogin, String.CASE_INSENSITIVE_ORDER));
+            usersGrid.setItems(users);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     private Component createExtensionsTab() {
@@ -179,11 +294,12 @@ public class AdminPart implements WorkspaceComponent {
     @Override
     public void refresh() throws Exception {
         refreshGrid();
+        refreshUsersGrid();
     }
 
     @Override
     public void onTabSwitched() throws Exception {
-        refreshGrid();
+        refresh();
     }
 
     @Override

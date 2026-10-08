@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ProtocolDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
@@ -84,12 +85,31 @@ public class ProtocolPart implements WorkspaceComponent {
                 .setHeader(loc.getValue(L.LABEL_NAME))
                 .setFlexGrow(1);
 
-        grid.addComponentColumn(protocol -> new Button(Solid.PEN.create(), event -> {
-            ProtocolDialog dialog = new ProtocolDialog(protocol);
-            dialog.setOnSave(this::refreshGrid);
-            dialog.create();
-            dialog.open();
-        })).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
+        grid.addComponentColumn(protocol -> {
+            HorizontalLayout actions = new HorizontalLayout();
+            actions.setSpacing(true);
+
+            Button editButton = new Button(Solid.PEN.create(), event -> {
+                ProtocolDialog dialog = new ProtocolDialog(protocol);
+                dialog.setOnSave(this::refreshGrid);
+                dialog.create();
+                dialog.open();
+            });
+
+            Button deleteButton = new Button(Solid.TRASH.create(), event ->
+                    ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+                        try {
+                            protocolService.delete(protocol, false);
+                            refreshGrid();
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    }));
+            deleteButton.setThemeName("error tertiary");
+
+            actions.add(editButton, deleteButton);
+            return actions;
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
 
         mainLayout.add(headerLayout, grid);
         mainLayout.setFlexGrow(1, grid);

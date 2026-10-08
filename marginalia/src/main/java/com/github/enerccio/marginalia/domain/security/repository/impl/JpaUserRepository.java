@@ -16,7 +16,7 @@ public class JpaUserRepository extends JpaBaseRepository<User> implements UserRe
     @Override
     public Long findByName(String name) throws Exception {
         List<Long> results = getEntityManager().createQuery(
-                "SELECT u.id FROM User u WHERE u.login = :name",
+                "SELECT u.id FROM User u WHERE u.login = :name AND u.deleted = false",
                 Long.class
         ).setParameter("name", name).setMaxResults(1).getResultList();
         if (results.isEmpty()) {
@@ -26,8 +26,14 @@ public class JpaUserRepository extends JpaBaseRepository<User> implements UserRe
     }
 
     @Override
+    public long countAdmins() throws Exception {
+        return getEntityManager().createQuery("SELECT count(u) FROM User u WHERE u.deleted = false AND u.isAdmin = true", Long.class)
+                .getSingleResult();
+    }
+
+    @Override
     public boolean existsUsers() throws Exception {
-        return getEntityManager().createQuery("SELECT count(u) FROM User u", Long.class)
+        return getEntityManager().createQuery("SELECT count(u) FROM User u WHERE u.deleted = false", Long.class)
                 .setMaxResults(1)
                 .getSingleResult() > 0L;
     }

@@ -24,7 +24,7 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
     @Override
     public List<Long> searchManuscripts(ManuscriptFilterValues filterValues, List<Sorter> sorters, User user) throws Exception {
         if (filterValues == null) {
-            return getEntityManager().createQuery("SELECT m.id FROM Manuscript m WHERE m.owner.id = :id " + Sorter.toOrderBy("m", sorters), Long.class)
+            return getEntityManager().createQuery("SELECT m.id FROM Manuscript m WHERE m.deleted = false AND m.owner.id = :ownerId " + Sorter.toOrderBy("m", sorters), Long.class)
                     .setParameter("ownerId", user.getId())
                     .getResultList();
         } else {
@@ -33,6 +33,7 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
 
             List<String> ands = new ArrayList<>();
 
+            ands.add("m.deleted = false");
             ands.add("m.owner.id = :ownerId");
             parameters.put("ownerId", user.getId());
 

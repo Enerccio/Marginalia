@@ -20,6 +20,7 @@ import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
 import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
 import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.JsonParseException;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -29,6 +30,7 @@ import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -37,7 +39,10 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.server.streams.DownloadResponse;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
+import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -71,6 +76,8 @@ public class LorebookView extends VerticalLayout {
     private Button addLorebookButton;
     private Button deleteLorebookButton;
     private Button importLorebookButton;
+    private Anchor exportLorebookAnchor;
+    private Button exportLorebookButton;
 
     private TextField lorebookNameField;
     private Checkbox lorebookEnabledCheckbox;
@@ -125,7 +132,24 @@ public class LorebookView extends VerticalLayout {
         ContextMenu importMenu = new ContextMenu();
         importMenu.setTarget(importLorebookButton);
         importMenu.setOpenOnClick(true);
-        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), event -> openImportSillyTavernDialog());
+        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_LOREBOOK), event ->
+                openImportDialog(loc.getValue(L.LABEL_IMPORT_LOREBOOK), lorebookService::importLorebook));
+        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), event ->
+                openImportDialog(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
+
+        exportLorebookAnchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
+            try {
+                byte[] data = lorebookService.exportLorebook(currentLorebook).getBytes(StandardCharsets.UTF_8);
+                return new DownloadResponse(new ByteArrayInputStream(data),
+                        getExportFileName(), "application/json", data.length);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }), "");
+        exportLorebookAnchor.getElement().setAttribute("download", true);
+        exportLorebookButton = new Button(Solid.FILE_EXPORT.create());
+        exportLorebookButton.setTooltipText(loc.getValue(L.LABEL_EXPORT_LOREBOOK));
+        exportLorebookAnchor.add(exportLorebookButton);
 
         addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createNewEntry());
         addEntryButton.setThemeName("primary");
@@ -138,7 +162,7 @@ public class LorebookView extends VerticalLayout {
             }
         });
 
-        controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, importLorebookButton, addEntryButton, refreshButton);
+        controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, addEntryButton, refreshButton);
         controlsLayout.setAlignItems(Alignment.END);
 
         HorizontalLayout lorebookHeaderLayout = new HorizontalLayout();
@@ -223,9 +247,19 @@ public class LorebookView extends VerticalLayout {
         return this;
     }
 
-    private void openImportSillyTavernDialog() {
+    private String getExportFileName() {
+        String name = currentLorebook != null ? StringUtils.defaultIfBlank(currentLorebook.getName(), "lorebook") : "lorebook";
+        return name.replaceAll("[\\\\/:*?\"<>|]", "_") + ".json";
+    }
+
+    @FunctionalInterface
+    private interface LorebookImporter {
+        Lorebook importLorebook(String json, String name) throws Exception;
+    }
+
+    private void openImportDialog(String title, LorebookImporter importer) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
+        dialog.setHeaderTitle(title);
         dialog.setWidth("450px");
 
         InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
@@ -236,7 +270,7 @@ public class LorebookView extends VerticalLayout {
                     fileName = fileName.substring(0, fileName.length() - 5);
                 }
 
-                Lorebook importedLorebook = lorebookService.importFromSillytavern(jsonContent, fileName);
+                Lorebook importedLorebook = importer.importLorebook(jsonContent, fileName);
                 dialog.close();
 
                 this.currentLorebook = importedLorebook;
@@ -245,6 +279,8 @@ public class LorebookView extends VerticalLayout {
                 } else {
                     updateSelectedLorebook();
                 }
+            } catch (IllegalArgumentException | JsonParseException e) {
+                Notification.warning(loc.getValue(L.MSG_INVALID_LOREBOOK_FILE));
             } catch (Exception e) {
                 UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
             }
@@ -492,6 +528,8 @@ public class LorebookView extends VerticalLayout {
         subLorebooksCombo.setEnabled(hasLorebook);
         addEntryButton.setEnabled(hasLorebook);
         deleteLorebookButton.setEnabled(hasLorebook);
+        exportLorebookButton.setEnabled(hasLorebook);
+        exportLorebookAnchor.setEnabled(hasLorebook);
         refreshButton.setEnabled(hasLorebook);
 
         if (hasLorebook) {

@@ -11,6 +11,9 @@ public interface UserService extends BaseService<User, UserRepository> {
 
     boolean existsUsers() throws Exception;
     User findByName(String name) throws Exception;
+    boolean isLoginAvailable(User user, String login) throws Exception;
+    boolean isLastAdmin(User user) throws Exception;
+    void deleteUser(User user) throws Exception;
     boolean authenticate(String username, String password) throws Exception;
     User changePassword(User user, String password) throws Exception;
     PersistedLoginInfo authenticateFromCookie(User user, String cookieIdentifier, String cookieSecret) throws Exception;

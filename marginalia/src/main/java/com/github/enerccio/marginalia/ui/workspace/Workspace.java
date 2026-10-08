@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.HTabSheet;
 import com.github.enerccio.marginalia.ui.workspace.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -59,6 +60,7 @@ public class Workspace {
 
     private WorkspaceComponent activeComponent;
     private boolean internalEvent = false;
+    private Runnable onLogout;
 
     public Workspace() {
 
@@ -127,9 +129,7 @@ public class Workspace {
         tabToComponent.put(aiTab, aiPart);
 
         User user = userService.find(currentUser.getId());
-        if (user != null && user.isAdmin()) {
-            tabs.setFooterComponent(createAdminFooter());
-        }
+        tabs.setFooterComponent(createFooter(user));
 
         tabs.addSelectedChangeListener(e -> {
             if (internalEvent)
@@ -159,6 +159,40 @@ public class Workspace {
         return vl;
     }
 
+    private Component createFooter(User user) {
+        VerticalLayout footer = new VerticalLayout();
+        footer.setPadding(false);
+        footer.setSpacing(true);
+        footer.setWidthFull();
+
+        if (user != null && user.isAdmin()) {
+            footer.add(createAdminFooter());
+        }
+
+        Button changePasswordButton = new Button(loc.getValue(L.LABEL_CHANGE_PASSWORD), Solid.KEY.create());
+        changePasswordButton.setWidthFull();
+        changePasswordButton.addClickListener(e -> {
+            try {
+                UserDialog dialog = new UserDialog(userService.find(currentUser.getId()));
+                dialog.setSelfEdit(true);
+                dialog.create();
+                dialog.open();
+            } catch (Exception ex) {
+                UIUtils.internalServerError(loc, ex);
+            }
+        });
+        footer.add(changePasswordButton);
+
+        if (onLogout != null) {
+            Button logoutButton = new Button(loc.getValue(L.LABEL_LOGOUT), Solid.SIGN_OUT_ALT.create());
+            logoutButton.setWidthFull();
+            logoutButton.addClickListener(e -> onLogout.run());
+            footer.add(logoutButton);
+        }
+
+        return footer;
+    }
+
     private Component createAdminFooter() {
         Button adminButton = new Button(loc.getValue(L.LABEL_ADMIN), Solid.USER_TIE.create());
         adminButton.setWidthFull();
@@ -179,6 +213,14 @@ public class Workspace {
             }
         });
         return adminButton;
+    }
+
+    public Runnable getOnLogout() {
+        return onLogout;
+    }
+
+    public void setOnLogout(Runnable onLogout) {
+        this.onLogout = onLogout;
     }
 
     public void refresh() throws Exception {

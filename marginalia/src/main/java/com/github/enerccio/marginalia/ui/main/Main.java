@@ -57,6 +57,7 @@ public class Main extends LoginCheckRoute {
             user.setFullName(u.getFullName());
 
             Workspace workspace = new Workspace();
+            workspace.setOnLogout(this::logout);
             add(workspace.create());
             workspace.refresh();
         } catch (Exception e) {

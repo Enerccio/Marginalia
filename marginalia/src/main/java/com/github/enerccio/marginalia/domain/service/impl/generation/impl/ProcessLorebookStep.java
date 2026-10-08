@@ -46,6 +46,10 @@ public class ProcessLorebookStep extends GenerationStepBase {
                 toProcess.add(lorebook);
                 while (!toProcess.isEmpty()) {
                     Lorebook l = toProcess.remove();
+                    if (l.isDeleted() || !l.isEnabled()) {
+                        log.debug("Lorebook {} skipped because it's deleted or not enabled", l.getName());
+                        continue;
+                    }
                     if (!processedLorebooks.contains(l.getId())) {
                         processedLorebooks.add(l.getId());
                         lorebookStack.add(l);

@@ -31,6 +31,7 @@ public class UserDialog extends Dialog {
     private UserService userService;
 
     private boolean firstTime; // forces admin creation, admin should be checked, cancel should be disabled
+    private boolean selfEdit; // user edits own account, admin flag can't be changed
     private Runnable onSave;
 
     private User user;
@@ -55,7 +56,13 @@ public class UserDialog extends Dialog {
         setWidth("450px");
         setModality(ModalityMode.STRICT);
 
-        setHeaderTitle(user.getId() == null ? loc.getValue(L.LABEL_LOGIN) : loc.getValue(L.LABEL_USERNAME));
+        if (firstTime) {
+            setHeaderTitle(loc.getValue(L.LABEL_LOGIN));
+        } else if (selfEdit) {
+            setHeaderTitle(loc.getValue(L.LABEL_CHANGE_PASSWORD));
+        } else {
+            setHeaderTitle(user.getId() == null ? loc.getValue(L.LABEL_NEW_USER) : loc.getValue(L.LABEL_EDIT_USER));
+        }
 
         FormLayout formLayout = new FormLayout();
 
@@ -81,6 +88,7 @@ public class UserDialog extends Dialog {
             isAdminCheckbox.setEnabled(false);
         } else {
             isAdminCheckbox.setValue(user.isAdmin());
+            isAdminCheckbox.setVisible(!selfEdit);
         }
 
         if (user.getId() != null) {
@@ -120,12 +128,21 @@ public class UserDialog extends Dialog {
 
         if (user.getId() == null || StringUtils.isNotBlank(password) || StringUtils.isNotBlank(passwordRepeat)) {
             if (!StringUtils.equals(password, passwordRepeat)) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
+                Notification.warning(loc.getValue(L.MSG_PASSWORDS_DO_NOT_MATCH));
                 return;
             }
         }
 
         try {
+            if (!userService.isLoginAvailable(user, login.trim())) {
+                Notification.warning(loc.getValue(L.MSG_LOGIN_ALREADY_EXISTS));
+                return;
+            }
+            if (user.getId() != null && !isAdminCheckbox.getValue() && userService.isLastAdmin(user)) {
+                Notification.warning(loc.getValue(L.MSG_CANNOT_DELETE_LAST_ADMIN));
+                return;
+            }
+
             user.setLogin(login.trim());
             user.setFullName(fullName != null ? fullName.trim() : null);
             user.setAdmin(isAdminCheckbox.getValue());
@@ -156,6 +173,14 @@ public class UserDialog extends Dialog {
 
     public void setFirstTime(boolean firstTime) {
         this.firstTime = firstTime;
+    }
+
+    public boolean isSelfEdit() {
+        return selfEdit;
+    }
+
+    public void setSelfEdit(boolean selfEdit) {
+        this.selfEdit = selfEdit;
     }
 
     public Runnable getOnSave() {

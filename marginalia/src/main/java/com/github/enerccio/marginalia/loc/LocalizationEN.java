@@ -279,6 +279,18 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.DESC_MACRO_COMMENT, "Comment, removed from the output.");
         setValue(L.LABEL_AVAILABLE_MACROS, "Available Macros");
         setValue(L.MSG_INVALID_TEMPLATE, "Invalid template: ");
+        setValue(L.LABEL_USERS, "Users");
+        setValue(L.LABEL_ADD_USER, "Add User");
+        setValue(L.LABEL_EDIT_USER, "Edit User");
+        setValue(L.LABEL_NEW_USER, "New User");
+        setValue(L.LABEL_CHANGE_PASSWORD, "Change Password");
+        setValue(L.LABEL_EXPORT_LOREBOOK, "Export Lorebook");
+        setValue(L.LABEL_IMPORT_LOREBOOK, "Import Marginalia Lorebook");
+        setValue(L.MSG_LOGIN_ALREADY_EXISTS, "User with this login already exists.");
+        setValue(L.MSG_PASSWORDS_DO_NOT_MATCH, "Passwords do not match.");
+        setValue(L.MSG_CANNOT_DELETE_SELF, "You cannot delete your own account.");
+        setValue(L.MSG_CANNOT_DELETE_LAST_ADMIN, "The last administrator cannot be deleted or demoted.");
+        setValue(L.MSG_INVALID_LOREBOOK_FILE, "File is not a valid Marginalia lorebook export.");
     }
 
     @Override

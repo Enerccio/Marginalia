@@ -9,4 +9,6 @@ public interface UserRepository extends BaseRepository<User> {
 
     boolean existsUsers() throws Exception;
 
+    long countAdmins() throws Exception;
+
 }

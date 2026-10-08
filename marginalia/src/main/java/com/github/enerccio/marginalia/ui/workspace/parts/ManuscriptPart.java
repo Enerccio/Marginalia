@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
@@ -197,16 +198,35 @@ public class ManuscriptPart implements WorkspaceComponent {
                 .setSortProperty("modification")
                 .setSortable(true);
 
-        Column<ManuscriptWrapper> toolColumn = grid.addComponentColumn(manuscriptWrapper -> new Button(Solid.PENCIL.create(),_ -> {
-            try {
-                ManuscriptDialog dialog = new ManuscriptDialog(manuscriptWrapper.getManuscript());
-                dialog.setOnClose(this::refreshGrid);
-                dialog.create();
-                dialog.open();
-            } catch (Exception e) {
-                UIUtils.internalServerError(loc, e);
-            }
-        })).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
+        Column<ManuscriptWrapper> toolColumn = grid.addComponentColumn(manuscriptWrapper -> {
+            HorizontalLayout actions = new HorizontalLayout();
+            actions.setSpacing(true);
+
+            Button editButton = new Button(Solid.PENCIL.create(), _ -> {
+                try {
+                    ManuscriptDialog dialog = new ManuscriptDialog(manuscriptWrapper.getManuscript());
+                    dialog.setOnClose(this::refreshGrid);
+                    dialog.create();
+                    dialog.open();
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            });
+
+            Button deleteButton = new Button(Solid.TRASH.create(), _ ->
+                    ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+                        try {
+                            manuscriptService.delete(manuscriptWrapper.getManuscript(), false);
+                            refreshGrid();
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    }));
+            deleteButton.setThemeName("error tertiary");
+
+            actions.add(editButton, deleteButton);
+            return actions;
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
 
         grid.sort(List.of(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING)));
         sorters.add(new GridSortOrder<>(modificationColumn, SortDirection.DESCENDING));
