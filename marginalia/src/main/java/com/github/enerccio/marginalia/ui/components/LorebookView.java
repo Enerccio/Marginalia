@@ -82,6 +82,7 @@ public class LorebookView extends VerticalLayout {
     private TextField lorebookNameField;
     private Checkbox lorebookEnabledCheckbox;
     private MultiSelectComboBox<Lorebook> subLorebooksCombo;
+    private TagMultiComboBox tagMultiComboBox;
 
     private Button addEntryButton;
     private Button refreshButton;
@@ -237,6 +238,9 @@ public class LorebookView extends VerticalLayout {
             }
         });
 
+        tagMultiComboBox = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
+        tagMultiComboBox.setWidthFull();
+
         lorebookEnabledCheckbox = new Checkbox(loc.getValue(L.LABEL_ENABLED));
         lorebookEnabledCheckbox.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
@@ -249,9 +253,10 @@ public class LorebookView extends VerticalLayout {
             }
         });
 
-        lorebookHeaderLayout.add(lorebookNameField, subLorebooksCombo, lorebookEnabledCheckbox);
+        lorebookHeaderLayout.add(lorebookNameField, subLorebooksCombo, tagMultiComboBox, lorebookEnabledCheckbox);
         lorebookHeaderLayout.setFlexGrow(1, lorebookNameField);
         lorebookHeaderLayout.setFlexGrow(1, subLorebooksCombo);
+        lorebookHeaderLayout.setFlexGrow(1, tagMultiComboBox);
 
         setupGrid();
 
@@ -547,6 +552,8 @@ public class LorebookView extends VerticalLayout {
         exportLorebookButton.setEnabled(hasLorebook);
         exportLorebookAnchor.setEnabled(hasLorebook);
         refreshButton.setEnabled(hasLorebook);
+        tagMultiComboBox.setEnabled(hasLorebook);
+        tagMultiComboBox.setForEntity(currentLorebook);
 
         if (hasLorebook) {
             lorebookNameField.setValue(StringUtils.defaultString(currentLorebook.getName()));
