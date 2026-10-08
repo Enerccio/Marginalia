@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
+import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -1309,10 +1310,17 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         public void autosaveAndSwapToMarkdown() {
             if (editing) {
                 try {
-                    InferenceService inferenceService = inferenceServices.forAI(currentManuscript.getAi());
                     String newResponse = responseTextArea.getValue();
                     message.setResponse(newResponse);
-                    message.setTokenCount(inferenceService.countTokens(newResponse));
+
+                    InferenceService inferenceService = inferenceServices.forAI(currentManuscript.getAi());
+                    if (inferenceService == null) {
+                        JavaTokkitStrategy strategy = new JavaTokkitStrategy();
+                        message.setTokenCount(strategy.countTokens(null, newResponse));
+                    } else {
+                        message.setTokenCount(inferenceService.countTokens(newResponse));
+                    }
+                    message.setWordCount(chatMessageService.countWords(newResponse));
                     message.setEdited(true);
                     message = chatMessageService.save(message);
                     responseMarkdown.setContent(StringUtils.defaultString(newResponse));
