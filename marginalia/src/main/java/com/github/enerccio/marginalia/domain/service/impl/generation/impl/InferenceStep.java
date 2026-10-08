@@ -33,11 +33,13 @@ public class InferenceStep extends GenerationStepBase {
                 public void onChunk(InferenceAsyncController inferenceController, ChunkType chunkType, String text) throws Exception {
                     if (controller.getCancellationToken().isCancelled()) {
                         controller.jumpTo(GenerationStepType.CLEANUP);
+                        inferenceController.terminateInference();
                         return;
                     }
                     if (Thread.interrupted()) {
                         controller.getUIListener().onSimpleError(loc.getValue(L.MSG_INTERRUPTED));
                         controller.jumpTo(GenerationStepType.CLEANUP);
+                        inferenceController.terminateInference();
                         return;
                     }
 
