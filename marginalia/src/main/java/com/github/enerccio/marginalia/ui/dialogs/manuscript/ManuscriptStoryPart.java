@@ -1535,6 +1535,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                         });
                     }
                 });
+
+                if (cancellationToken == null) {
+                    Notification.error(loc.getValue(L.ERROR_SUMMARY_FAILED));
+                }
             } catch (Exception e) {
                 setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
                 updateActionButtonState(false);
