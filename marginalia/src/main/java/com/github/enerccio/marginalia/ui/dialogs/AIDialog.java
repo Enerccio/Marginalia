@@ -35,6 +35,8 @@ import java.util.List;
 @Extendable
 public class AIDialog extends Dialog {
     private static final Gson gson = new GsonBuilder().create();
+    private static final int DEFAULT_MAX_CONTEXT = 16384;
+    private static final int DEFAULT_MAX_RESPONSE = 2048;
 
     @Autowired
     protected Localization loc;
@@ -127,6 +129,8 @@ public class AIDialog extends Dialog {
             populateFields();
         } else {
             typeCombo.setValue(AIType.OPEN_AI_COMPATIBLE);
+            maxContextField.setValue(DEFAULT_MAX_CONTEXT);
+            maxResponseField.setValue(DEFAULT_MAX_RESPONSE);
             apiKeyField.setEnabled(true);
             resetApiKeyButton.setVisible(false);
             needsJailbreakCheckbox.setValue(false);
@@ -162,9 +166,15 @@ public class AIDialog extends Dialog {
         typeCombo.setWidthFull();
 
         maxContextField = new IntegerField(loc.getValue(L.LABEL_MAX_CONTEXT));
+        maxContextField.setRequired(true);
+        maxContextField.setMin(1);
+        maxContextField.setHelperText(loc.getValue(L.HELP_AI_MAX_CONTEXT));
         maxContextField.setWidthFull();
 
         maxResponseField = new IntegerField(loc.getValue(L.LABEL_MAX_RESPONSE));
+        maxResponseField.setRequired(true);
+        maxResponseField.setMin(1);
+        maxResponseField.setHelperText(loc.getValue(L.HELP_AI_MAX_RESPONSE));
         maxResponseField.setWidthFull();
 
         needsJailbreakCheckbox = new Checkbox(loc.getValue(L.LABEL_NEEDS_JAILBREAK));
@@ -236,8 +246,9 @@ public class AIDialog extends Dialog {
 
         nameField.setValue(StringUtils.defaultString(ai.getName()));
         typeCombo.setValue(ai.getAiType());
-        maxContextField.setValue(ai.getMaxContext());
-        maxResponseField.setValue(ai.getMaxCompletionTokens());
+        // older providers may have no limits stored - offer the defaults, saving requires a value
+        maxContextField.setValue(ai.getMaxContext() != null && ai.getMaxContext() > 0 ? ai.getMaxContext() : DEFAULT_MAX_CONTEXT);
+        maxResponseField.setValue(ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0 ? ai.getMaxCompletionTokens() : DEFAULT_MAX_RESPONSE);
         jailbreakField.setValue(StringUtils.defaultString(ai.getJailbreak()));
         needsJailbreakCheckbox.setValue(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
         jailbreakField.setEnabled(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
@@ -305,8 +316,17 @@ public class AIDialog extends Dialog {
         String name = nameField.getValue();
         AIType type = typeCombo.getValue();
 
-        if (StringUtils.isBlank(name) || type == null) {
+        Integer maxContext = maxContextField.getValue();
+        Integer maxResponse = maxResponseField.getValue();
+
+        if (StringUtils.isBlank(name) || type == null || maxContext == null || maxContext <= 0
+                || maxResponse == null || maxResponse <= 0) {
             Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
+            return;
+        }
+
+        if (maxResponse >= maxContext) {
+            Notification.warning(loc.getValue(L.MSG_AI_RESPONSE_EXCEEDS_CONTEXT));
             return;
         }
 
@@ -341,8 +361,8 @@ public class AIDialog extends Dialog {
 
             ai.setName(name.trim());
             ai.setAiType(type);
-            ai.setMaxContext(maxContextField.getValue());
-            ai.setMaxCompletionTokens(maxResponseField.getValue());
+            ai.setMaxContext(maxContext);
+            ai.setMaxCompletionTokens(maxResponse);
             ai.setJailbreak(jailbreakField.getValue());
             ai.setNeedsJailbreak(needsJailbreakCheckbox.getValue());
             ai.setEnabledReasoning(enabledReasoningCheckbox.getValue());

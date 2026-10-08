@@ -1,15 +1,19 @@
 package com.github.enerccio.marginalia.domain.service.impl.inference;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.concurrent.AsyncRunnableWrapper;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.TokenLimits;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
+import com.google.gson.JsonElement;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.core.JsonValue;
@@ -29,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 @Configurable
 public class OpenAICompatibleInferenceService implements InferenceService {
     private static final Logger log = LoggerFactory.getLogger(OpenAICompatibleInferenceService.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private TokenizerService tokenizerService;
@@ -69,7 +74,7 @@ public class OpenAICompatibleInferenceService implements InferenceService {
     }
 
     @Override
-    public CancellationToken stream(List<LLMChatMessage> payload, InferenceAsyncCallback callback) throws Exception {
+    public CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, InferenceAsyncCallback callback) throws Exception {
         OpenAIClient client = openClient();
         CancellationToken cancellationToken = new CancellationToken();
 
@@ -92,11 +97,37 @@ public class OpenAICompatibleInferenceService implements InferenceService {
                 .model(ai.getModel())
                 .messages(messages);
 
-        if (ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0) {
-            paramsBuilder.maxCompletionTokens(ai.getMaxCompletionTokens());
+        // additional parameters go into the request body as they are and win over the same settings below
+        Set<String> overridden = new HashSet<>();
+        if (ai.getAdditionalParameters() != null) {
+            for (Map.Entry<String, JsonElement> parameter : ai.getAdditionalParameters().entrySet()) {
+                paramsBuilder.putAdditionalBodyProperty(parameter.getKey(),
+                        JsonValue.fromJsonNode(objectMapper.readTree(parameter.getValue().toString())));
+                overridden.add(parameter.getKey());
+            }
         }
 
-        if (Boolean.TRUE.equals(ai.getEnabledReasoning()) && ai.getReasoningEffort() != null) {
+        int responseTokens = TokenLimits.responseTokens(ai, protocol);
+        if (responseTokens > 0 && !overridden.contains("max_completion_tokens")) {
+            paramsBuilder.maxCompletionTokens(responseTokens);
+        }
+
+        if (protocol != null) {
+            if (protocol.getTemperatureEnabled() && protocol.getTemperature() != null && !overridden.contains("temperature")) {
+                paramsBuilder.temperature(protocol.getTemperature());
+            }
+            if (protocol.getTopPEnabled() && protocol.getTopP() != null && !overridden.contains("top_p")) {
+                paramsBuilder.topP(protocol.getTopP());
+            }
+            if (protocol.getFrequencyPenaltyEnabled() && protocol.getFrequencyPenalty() != null && !overridden.contains("frequency_penalty")) {
+                paramsBuilder.frequencyPenalty(protocol.getFrequencyPenalty());
+            }
+            if (protocol.getPresencePenaltyEnabled() && protocol.getPresencePenalty() != null && !overridden.contains("presence_penalty")) {
+                paramsBuilder.presencePenalty(protocol.getPresencePenalty());
+            }
+        }
+
+        if (Boolean.TRUE.equals(ai.getEnabledReasoning()) && ai.getReasoningEffort() != null && !overridden.contains("reasoning_effort")) {
             String effortValue = ai.getReasoningEffort().toString().toLowerCase();
             paramsBuilder.putAdditionalBodyProperty("reasoning_effort", JsonValue.from(effortValue));
             paramsBuilder.putAdditionalBodyProperty("allowed_openai_params", JsonValue.from(List.of("reasoning_effort")));

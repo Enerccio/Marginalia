@@ -362,6 +362,11 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_PUBLISHED, "Published");
         setValue(L.MSG_PUBLISHED_HELP, "Published books can be read by other users through the reader link.");
         setValue(L.MSG_MANUSCRIPT_NOT_FOUND, "Book not found.");
+        setValue(L.HELP_AI_MAX_CONTEXT, "Total tokens the model accepts - prompt and response together.");
+        setValue(L.HELP_AI_MAX_RESPONSE, "Longest response. This much of the context is kept free for the response.");
+        setValue(L.MSG_AI_RESPONSE_EXCEEDS_CONTEXT, "Max Response Tokens must be lower than Max Context Size.");
+        setValue(L.HELP_PROTOCOL_MAX_TOKENS, "Optional. Empty uses Max Context Size of the inference provider.");
+        setValue(L.HELP_PROTOCOL_REPLY_TOKENS, "Optional. Empty uses Max Response Tokens of the inference provider.");
     }
 
     @Override

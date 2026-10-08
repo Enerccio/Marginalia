@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.sidequery.ui;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
@@ -403,6 +404,7 @@ public class SideQueryTabContent extends VerticalLayout {
             SideQuerySetting profileSetting = settings.getSettings().get(settings.getDefaultSetting());
 
             AI targetAi = sideQueryService.resolveAI(profileSetting, manuscript);
+            Protocol targetProtocol = sideQueryService.resolveProtocol(profileSetting, manuscript);
             InferenceService service = inferenceServices.forAI(targetAi);
 
             List<LLMChatMessage> payload = sideQueryService.buildPromptPayload(manuscript, profileSetting, session);
@@ -421,7 +423,7 @@ public class SideQueryTabContent extends VerticalLayout {
             // Obtain reference to the newly added AI card for in-place updates during streaming
             SideQueryMessageCard aiCard = (SideQueryMessageCard) messagesListLayout.getComponentAt(messagesListLayout.getComponentCount() - 1);
 
-            activeToken = service.stream(payload, new InferenceService.InferenceAsyncCallback() {
+            activeToken = service.stream(payload, targetProtocol, new InferenceService.InferenceAsyncCallback() {
                 private final StringBuilder responseBuf = new StringBuilder();
                 private final StringBuilder reasoningBuf = new StringBuilder();
 
@@ -532,6 +534,7 @@ public class SideQueryTabContent extends VerticalLayout {
             SideQuerySettings settings = sideQueryService.getSettings();
             SideQuerySetting profileSetting = settings.getSettings().get(settings.getDefaultSetting());
             AI targetAi = sideQueryService.resolveAI(profileSetting, manuscript);
+            Protocol targetProtocol = sideQueryService.resolveProtocol(profileSetting, manuscript);
             InferenceService service = inferenceServices.forAI(targetAi);
 
             List<LLMChatMessage> payload = sideQueryService.buildPromptPayload(manuscript, profileSetting, session);

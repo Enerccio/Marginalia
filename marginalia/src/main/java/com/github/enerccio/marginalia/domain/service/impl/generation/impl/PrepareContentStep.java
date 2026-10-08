@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.TokenLimits;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.FromEventCallback;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
@@ -45,10 +46,8 @@ public class PrepareContentStep extends GenerationStepBase {
             List<ChatMessage> finalFromRoot = fromRoot;
             FromEventCallback callback = () -> {
                 controller.emitEvent(Events.BEFORE_SUMMARIES, () -> {
-                    int limit = controller.getManuscript().getProtocol().getMaxTokens();
-                    if (limit < 0) {
-                        limit = controller.getManuscript().getAi().getMaxContext();
-                    }
+                    // room for the response is reserved, the prompt gets the rest of the context
+                    int limit = TokenLimits.promptTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol());
 
                     List<String> summaries = (List<String>) controller.getProperties().get(GenerationProperties.SUMMARIES);
                     String sumText = "";

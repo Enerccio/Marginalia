@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
@@ -219,6 +220,7 @@ public class ReviewDialog extends Dialog {
         try {
             ReviewerSettings settings = reviewerService.getSettings();
             AI targetAi = reviewerService.resolveAI(settings, manuscript);
+            Protocol targetProtocol = reviewerService.resolveProtocol(settings, manuscript);
             InferenceService service = inferenceServices.forAI(targetAi);
 
             AdvancedOptions opts = pendingAdvancedOptions != null ? pendingAdvancedOptions : new AdvancedOptions();
@@ -229,7 +231,7 @@ public class ReviewDialog extends Dialog {
             ReviewItem currentItem = reviewData.getReviews().get(reviewData.getCurrent());
             currentItem.getMetadata().setAdvancedInfo(opts);
 
-            isGenerating = service.stream(payload, new InferenceService.InferenceAsyncCallback() {
+            isGenerating = service.stream(payload, targetProtocol, new InferenceService.InferenceAsyncCallback() {
                 private final StringBuilder responseBuf = new StringBuilder();
                 private final StringBuilder reasoningBuf = new StringBuilder();
 

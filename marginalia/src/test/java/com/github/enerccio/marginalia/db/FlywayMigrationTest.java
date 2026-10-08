@@ -124,9 +124,18 @@ class FlywayMigrationTest {
         jdbc.update("INSERT INTO lorebooks (id, is_deleted, uuid, name, enabled) VALUES (2, false, 'l-2', 'B', true)");
         jdbc.update("INSERT INTO lorebooks (id, is_deleted, uuid, name, enabled) VALUES (3, false, 'l-3', 'Shared', true)");
         jdbc.update("INSERT INTO lorebooks_lorebooks (Lorebook_id, subbooks_id) VALUES (1, 3)");
+        jdbc.update("INSERT INTO protocols (id, is_deleted, uuid, name, protocolType, maxTokens, replyTokens) VALUES (1, false, 'p-1', 'Set', 0, 8000, 500)");
+        jdbc.update("INSERT INTO protocols (id, is_deleted, uuid, name, protocolType, maxTokens, replyTokens) VALUES (2, false, 'p-2', 'Unset', 0, -1, 0)");
     }
 
     private void assertUpgradedData() {
+        // V5: protocol limits are optional, old "not set" values (0, negative) became NULL
+        assertThat(jdbc.queryForMap("SELECT maxTokens, replyTokens, name FROM protocols WHERE id = 1"))
+                .containsEntry("maxTokens", 8000).containsEntry("replyTokens", 500).containsEntry("name", "Set");
+        assertThat(jdbc.queryForMap("SELECT maxTokens, replyTokens FROM protocols WHERE id = 2"))
+                .containsEntry("maxTokens", null).containsEntry("replyTokens", null);
+        jdbc.update("INSERT INTO protocols (id, is_deleted, uuid, name) VALUES (3, false, 'p-3', 'No limits')");
+
         // V4: new columns with defaults
         assertThat(jdbc.queryForObject("SELECT name FROM manuscripts WHERE id = 1", String.class)).isEqualTo("Old book");
         assertThat(jdbc.queryForObject("SELECT published FROM manuscripts WHERE id = 1", Boolean.class)).isFalse();
