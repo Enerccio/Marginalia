@@ -136,6 +136,8 @@ public abstract class LoginCheckRoute extends Div {
             cookie.setPath("/");
             cookie.setMaxAge((int) ttl);
             cookie.setSecure(true);
+            cookie.setHttpOnly(true);
+            cookie.setAttribute("SameSite", "Lax");
             VaadinService.getCurrentResponse().addCookie(cookie);
         }
     }
