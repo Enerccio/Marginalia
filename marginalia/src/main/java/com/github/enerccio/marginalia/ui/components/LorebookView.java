@@ -9,12 +9,16 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
+import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
+import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
+import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -56,6 +60,9 @@ public class LorebookView extends VerticalLayout {
 
     @Autowired
     private LorebookEntryService lorebookEntryService;
+
+    @Autowired
+    private TemplateService templateService;
 
     private Lorebook currentLorebook;
     private boolean pinnedLorebook = false;
@@ -364,12 +371,16 @@ public class LorebookView extends VerticalLayout {
         detailsLayout.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         detailsLayout.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
 
-        TextArea payloadField = new TextArea(loc.getValue(L.LABEL_CONTENT));
+        TextAreaPopoverComponent payloadField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_CONTENT));
         payloadField.setWidthFull();
         payloadField.setMinHeight("100px");
         payloadField.setValue(StringUtils.defaultString(entry.getPayload()));
+        payloadField.setPopoverContent(TemplateHints.create(loc, payloadField, payloadField.getPopover(), LorebookTemplateData.class, null));
+        validatePayload(payloadField);
         payloadField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
+                // invalid templates are still saved (user may be in the middle of editing), generation uses them as plain text
+                validatePayload(payloadField);
                 entry.setPayload(e.getValue());
                 saveEntry(entry);
             }
@@ -431,6 +442,22 @@ public class LorebookView extends VerticalLayout {
 
         detailsLayout.add(payloadField, settingsForm, negativeTagCombo, commentField);
         return detailsLayout;
+    }
+
+    private void validatePayload(TextArea payloadField) {
+        String payload = payloadField.getValue();
+        if (StringUtils.isBlank(payload)) {
+            payloadField.setInvalid(false);
+            return;
+        }
+        try {
+            TemplateService.ValidationResult result = templateService.isValidTemplate(payload, "lorebookEntry");
+            payloadField.setErrorMessage(result.isValid() ? null : loc.getValue(L.MSG_INVALID_TEMPLATE) + result.errorMessage());
+            payloadField.setInvalid(!result.isValid());
+        } catch (Exception e) {
+            payloadField.setErrorMessage(loc.getValue(L.MSG_INVALID_TEMPLATE) + e.getMessage());
+            payloadField.setInvalid(true);
+        }
     }
 
     public void refresh() throws Exception {

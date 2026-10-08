@@ -8,13 +8,14 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
+import com.github.enerccio.marginalia.domain.templates.SummaryTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.UserPromptData;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
-import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
 import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.github.enerccio.marginalia.ui.widgets.TextFieldPopOverComponent;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
@@ -41,8 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.List;
 
 @Configurable
@@ -234,7 +233,7 @@ public class UserPart implements WorkspaceComponent {
         defaultSummaryPromptField.setMinHeight("120px");
         defaultSummaryPromptField.setPlaceholder(Defaults.DEFAULT_SUMMARY_PROMPT);
         defaultSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultSummaryPromptField, defaultSummaryPromptField.getPopover(), null, Defaults.DEFAULT_SUMMARY_PROMPT));
+                defaultSummaryPromptField, defaultSummaryPromptField.getPopover(), SummaryTemplateData.class, Defaults.DEFAULT_SUMMARY_PROMPT));
     }
 
     private void updateBackupStrategyValueField(BackupStrategy strategy) {
@@ -250,66 +249,7 @@ public class UserPart implements WorkspaceComponent {
     }
 
     private Component createTemplateHintPopoverContent(HasValue<?, String> field, Popover popover, Class<? extends TemplateData> clazz, String defaultValue) {
-        VerticalLayout layout = new VerticalLayout();
-        layout.setPadding(true);
-        layout.setSpacing(true);
-        layout.setWidth("380px");
-
-        if (StringUtils.isNotBlank(defaultValue)) {
-            Button fillDefaultButton = new Button(loc.getValue(L.LABEL_FILL_DEFAULT), event -> {
-                field.setValue(defaultValue);
-                if (popover != null) {
-                    popover.close();
-                }
-            });
-            fillDefaultButton.setThemeName("primary small");
-            fillDefaultButton.setWidthFull();
-            layout.add(fillDefaultButton);
-        }
-
-        if (clazz != null) {
-            Span header = new Span(loc.getValue(L.LABEL_AVAILABLE_VARIABLES));
-            header.getStyle().set("font-weight", "bold");
-            header.getStyle().set("font-size", "var(--lumo-font-size-m)");
-            layout.add(header);
-
-            Field[] fields = clazz.getDeclaredFields();
-            for (Field f : fields) {
-                LocalizedTemplateDescription descAnnot = f.getAnnotation(LocalizedTemplateDescription.class);
-                if (descAnnot == null) {
-                    String getterName = "get" + StringUtils.capitalize(f.getName());
-                    try {
-                        Method method = clazz.getMethod(getterName);
-                        descAnnot = method.getAnnotation(LocalizedTemplateDescription.class);
-                    } catch (Exception ignored) {
-                    }
-                }
-
-                String varName = f.getName();
-                String descriptionText = "";
-                if (descAnnot != null) {
-                    descriptionText = loc.getValue(descAnnot.loc());
-                }
-
-                VerticalLayout itemLayout = new VerticalLayout();
-                itemLayout.setPadding(false);
-                itemLayout.setSpacing(false);
-
-                Span varSpan = new Span("{{" + varName + "}}");
-                varSpan.getStyle().set("font-family", "monospace");
-                varSpan.getStyle().set("font-weight", "bold");
-                varSpan.getStyle().set("color", "var(--lumo-primary-color)");
-
-                Span descSpan = new Span(descriptionText);
-                descSpan.getStyle().set("font-size", "var(--lumo-font-size-s)");
-                descSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
-
-                itemLayout.add(varSpan, descSpan);
-                layout.add(itemLayout);
-            }
-        }
-
-        return layout;
+        return TemplateHints.create(loc, field, popover, clazz, defaultValue);
     }
 
     @Override

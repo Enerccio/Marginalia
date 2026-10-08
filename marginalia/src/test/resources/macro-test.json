@@ -1,0 +1,131 @@
+{
+  "name": "Macro Test",
+  "entries": {
+    "0": {
+      "uid": 0,
+      "comment": "MacroTest 01 - setup",
+      "content": "{{// Runs first. Sets variables for the following entries; only the last line renders.}}{{setvar::hero::{{user}}}}{{setvar::counter::5}}{{.mood = calm}}{{setglobalvar::world::Testland}}{{ setvar backstory }}\n    Line one of backstory.\n    Line two of backstory.\n{{ /setvar }}{{trim}}\n[01 setup] branch turn #{{.turn++}} | manuscript run #{{$totalRuns++}}  (regenerate: turn stays, run grows; new part: both grow)",
+      "order": 10,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "1": {
+      "uid": 1,
+      "comment": "MacroTest 02 - names",
+      "content": "[02 names]\nuser={{user}} | char={{Char}} | legacy=<USER>/<BOT> | group={{group}} | notChar={{notChar}}\ndescription={{description}}\nscenario={{scenario}}\ninput={{input}}\nhandlebars sections: {{#povCharacter}}POV is {{.}}{{/povCharacter}}{{^povCharacter}}no POV set{{/povCharacter}} | manuscript={{manuscriptName}}",
+      "order": 20,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "2": {
+      "uid": 2,
+      "comment": "MacroTest 03 - history",
+      "content": "[03 history]\n{{if lastMessage}}previous part exists, lastMessageId={{lastMessageId}}, its instructions: \"{{lastUserMessage}}\"{{else}}first part of the branch (no lastMessage){{/if}}\nsummary: {{if summary}}present ({{summary}}){{else}}(none){{/if}}",
+      "order": 30,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "3": {
+      "uid": 3,
+      "comment": "MacroTest 04 - time",
+      "content": "[04 time]\ntime={{time}} | UTC+0={{time::UTC+0}} | date={{date}} | weekday={{weekday}} | iso={{isodate}} {{isotime}}\ncustom={{datetimeformat::YYYY-MM-DD HH:mm:ss}} | [{{datetimeformat::dddd [the] D. MMMM}}]\nidle since last part={{idleDuration}}\ntimeDiff={{timeDiff::2026-01-01 12:00::2026-01-01 10:00}} (expect \"in 2 hours\") | {{timeDiff::2026-01-01::2026-01-08}} (expect \"7 days ago\")",
+      "order": 40,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "4": {
+      "uid": 4,
+      "comment": "MacroTest 05 - variables",
+      "content": "[05 variables]\nfrom entry 01: hero={{getvar::hero}} counter={{getvar::counter}} mood={{.mood}} world={{getglobalvar::world}}\nbackstory=\"{{getvar::backstory}}\" (two lines, no indentation)\ncounter: addvar 10 -> {{addvar::counter::10}}{{getvar::counter}} (15), incvar -> {{incvar::counter}} (16), decvar -> {{decvar::counter}} (15)\nstring addvar: {{setvar::list::apples}}{{addvar::list::, pears}}{{getvar::list}} (apples, pears)\nnested name: {{setvar::{{char}}_mood::nervous}}{{getvar::{{char}}_mood}} (nervous)\nhasvar/deletevar: {{hasvar::list}} -> {{deletevar::list}}{{hasvar::list}} (true -> false)\nlocal vs global: [{{getvar::world}}] [{{getglobalvar::world}}] ([] [Testland])\nspace syntax: {{setvar greeting::Hello, {{user}}!}}{{getvar greeting}}",
+      "order": 50,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "5": {
+      "uid": 5,
+      "comment": "MacroTest 06 - shorthands",
+      "content": "[06 shorthands]\n{{.hp = 20}}hp={{.hp}} | -= 5: {{.hp -= 5}}{{.hp}} (15) | += 2: {{.hp += 2}}{{.hp}} (17) | ++: {{.hp++}} (18) | --: {{.hp--}} (17)\nfallbacks: {{.nobody || Guest}} (Guest) | {{.nobody ?? Guest}} (Guest) | {{.empty = }}{{.empty || Guest}} (Guest) | [{{.empty ?? Guest}}] ([])\nassign-if: {{.title ||= Wanderer}} (Wanderer) | {{.title ??= Ignored}} (Wanderer)\ncompare: {{.hp == 17}} {{.hp != 17}} {{.hp > 10}} {{.hp >= 18}} {{.hp < 20}} {{.hp <= 16}} (true false true false true false)\nappend with space: {{.log = start}}{{.log += {{noop}} -> next}}{{.log}} (start -> next)\nglobal: {{$world}} (Testland)",
+      "order": 60,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "6": {
+      "uid": 6,
+      "comment": "MacroTest 07 - conditionals",
+      "content": "[07 conditionals]\n{{if user}}has POV character{{else}}no POV character{{/if}}\n{{if !personality}}ignored macro is empty -> falsy -> negated OK{{/if}}\n{{if .mood}}mood is {{.mood}}{{/if}} | {{if !$nothing}}global \"nothing\" not set OK{{/if}}\n{{if {{.hp > 10}} }}hp above 10 OK{{else}}WRONG{{/if}}\n{{if 0}}WRONG{{else}}0 falsy OK{{/if}} / {{IF off}}WRONG{{else}}off falsy OK{{/if}} / {{if anything}}plain text truthy OK{{/if}}\n{{ if scenario }}\n    scene block (indentation removed):\n    {{ if {{.mood == calm}} }}\n        nested if: mood is calm OK\n    {{ else }}\n        WRONG\n    {{ /if }}\n{{ else }}\n    no scene setting given\n{{ /if }}\ninline: {{if user::short form OK}}{{if !user::WRONG}}\nhandlebars if still works: {{#if povCharacter}}OK{{else}}no POV{{/if}}",
+      "order": 70,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "7": {
+      "uid": 7,
+      "comment": "MacroTest 08 - random",
+      "content": "[08 random]\nrandom (re-rolls every generation): {{random::red::green::blue}} | legacy {{random:north,south,east,west}} | scoped {{random}}one,two,three{{/random}}\npick (same every generation of this manuscript): {{pick::sword::axe::bow::staff}}\ndice: 1d20={{roll::1d20}} | 2d6+3={{roll::2d6+3}} (5-15) | d100={{roll d100}} | 6={{roll:6}} (1-6)",
+      "order": 80,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "8": {
+      "uid": 8,
+      "comment": "MacroTest 09 - runtime",
+      "content": "[09 runtime] model={{model}} | maxContextTokens={{maxContextTokens}} | maxResponseTokens={{maxResponseTokens}} | maxPrompt={{maxPrompt}} | type={{lastGenerationType}} (normal / regenerate / swipe)",
+      "order": 90,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "9": {
+      "uid": 9,
+      "comment": "MacroTest 10 - utility",
+      "content": "[10 utility]\na{{newline}}b{{newline::2}}c (a and b on separate lines, empty line before c)\nx{{space::5}}y (5 spaces) | {{reverse::Marginalia}} (ailanigraM) | {{ reverse }}\n    scoped reverse\n{{ /reverse }} (esrever depocs)\nnoop:[{{noop}}] comment:[{{// invisible}}] escaped:[\\{\\{notAMacro\\}\\}] (shows the braces literally)\npreserve whitespace:[{{# setvar raw }}\n  kept  \n{{ /setvar }}{{getvar::raw}}] (newline, two spaces, kept, two spaces, newline)\n{{//}}\nWRONG - this whole block is a comment and must not appear.\n{{///}}before trim\n\n{{trim}}\n\nafter trim (expect \"before trimafter trim\" on one line)",
+      "order": 100,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "10": {
+      "uid": 10,
+      "comment": "MacroTest 11 - sillytavern-only",
+      "content": "[11 sillytavern-only] persona=[{{persona}}] charPrompt=[{{charPrompt}}] outlet=[{{outlet::x}}] instruct=[{{instructUserPrefix}}] (all empty) isMobile={{isMobile}} hasExtension={{hasExtension::foo}} (false false)\nunknown macro with args stays literal: {{fooBar::baz}}\nunknown variable reports: {{fooBar}} (Error)",
+      "order": 110,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "11": {
+      "uid": 11,
+      "comment": "MacroTest 12 - DISABLED",
+      "content": "[12 WRONG - disabled entry must never appear]{{setvar::disabledRan::yes}}",
+      "order": 120,
+      "disable": true,
+      "key": [],
+      "keysecondary": []
+    },
+    "12": {
+      "uid": 12,
+      "comment": "MacroTest 13 - shared context",
+      "content": "[13 shared context] disabled entry ran: {{if {{hasvar::disabledRan}} }}WRONG{{else}}no OK{{/if}} | hp from 06: {{.hp}} (17) | title from 06: {{.title}} (Wanderer) | turn: {{.turn}}{{setvar::loreMarker::set by lorebook entry 13}}",
+      "order": 130,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    },
+    "13": {
+      "uid": 13,
+      "comment": "MacroTest 14 - broken template",
+      "content": "[14 broken template - must appear RAW, generation must not fail] {{#each}} {{user}}",
+      "order": 140,
+      "disable": false,
+      "key": [],
+      "keysecondary": []
+    }
+  }
+}

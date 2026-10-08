@@ -6,13 +6,16 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.TurnInput;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
-import com.vaadin.copilot.shaded.commons.lang3.Strings;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
+import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +28,7 @@ public class ProcessLorebookStep extends GenerationStepBase {
     public static final String LOREBOOKS = "LOREBOOKS";
     public static final String LOREBOOK_ENTRY = "LOREBOOK_ENTRY";
     public static final String ACTIVATED_LOREBOOK_ENTRIES = "ACTIVATED_LOREBOOK_ENTRIES";
+    public static final String LOREBOOK_TEMPLATE_DATA = "LOREBOOK_TEMPLATE_DATA";
 
     @SuppressWarnings("unchecked")
     @Override
@@ -106,14 +110,22 @@ public class ProcessLorebookStep extends GenerationStepBase {
                         controller.getProperties().put(ACTIVATED_LOREBOOK_ENTRIES, activatedEntries);
                         controller.emitEvent(Events.PROCESS_ACTIVATED_ENTRIES, () -> {
                             List<LorebookEntry> finalActivatedEntries = (List<LorebookEntry>) controller.getProperties().get(ACTIVATED_LOREBOOK_ENTRIES);
+                            // one template data (and so one context) for all entries - variables set in an entry
+                            // are visible in the following ones
+                            LorebookTemplateData templateData = createTemplateData(controller);
+                            controller.getProperties().put(LOREBOOK_TEMPLATE_DATA, templateData);
                             StringBuilder builder = new StringBuilder();
                             StringBuilder builderUserPrompt = new StringBuilder();
                             for (LorebookEntry entry : finalActivatedEntries) {
+                                String payload = processPayload(entry, templateData);
+                                if (StringUtils.isBlank(payload)) {
+                                    continue;
+                                }
                                 if (entry.getInsertionMode() == InsertionMode.IN_LORE_BLOCK) {
-                                    builder.append(entry.getPayload());
+                                    builder.append(payload);
                                     builder.append("\n\n");
                                 } else {
-                                    builderUserPrompt.append(entry.getPayload());
+                                    builderUserPrompt.append(payload);
                                     builderUserPrompt.append("\n\n");
                                 }
                             }
@@ -136,6 +148,38 @@ public class ProcessLorebookStep extends GenerationStepBase {
                 controller.emitEvent(Events.AFTER_PROCESS_LOREBOOK, controller::next);
             }
         });
+    }
+
+    private LorebookTemplateData createTemplateData(GenerationController controller) throws Exception {
+        LorebookTemplateData templateData = new LorebookTemplateData();
+        TurnInput input = controller.getInput();
+        if (input != null) {
+            templateData.setPovCharacter(input.povCharacter());
+            templateData.setSceneSetting(input.sceneSetting());
+            templateData.setPresentCharacters(input.presentCharacters());
+            templateData.setInstructions(input.instructions());
+        }
+        PrePromptData data = controller.getPrePromptData();
+        templateData.setNarrativePov(data.getPov());
+        templateData.setNarrativeTense(data.getTense());
+        templateData.setStyle(data.getStyle());
+        templateData.setTemplateContext(getTemplateContext(controller));
+        return templateData;
+    }
+
+    private String processPayload(LorebookEntry entry, LorebookTemplateData templateData) {
+        String payload = entry.getPayload();
+        if (StringUtils.isBlank(payload)) {
+            return payload;
+        }
+        try {
+            return templateService.processTemplate(payload, "lorebookEntry", templateData);
+        } catch (Exception e) {
+            // a broken entry must not break the generation, use it as it is
+            log.warn("Failed to process template of lorebook entry '{}': {}", entry.getName(), e.getMessage());
+            log.debug(e.getMessage(), e);
+            return payload;
+        }
     }
 
     private boolean promptMatches(LorebookEntry entry, String textToSearch) {
@@ -175,3 +219,4 @@ public class ProcessLorebookStep extends GenerationStepBase {
         return GenerationStepType.PROCESS_LOREBOOK;
     }
 }
+

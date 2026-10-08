@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationC
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
@@ -61,6 +62,11 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             initialNode.setBackgroundLore(controller.getPrePromptData().getBackgroundLore());
             initialNode.setRequest(new Date());
 
+            // persist template variables - local ones follow the branch, global ones belong to the manuscript
+            TemplateVariables variables = getTemplateContext(controller).getVariables();
+            variables.storeTo(TemplateVariables.Scope.LOCAL, initialNode.getAttributes());
+            variables.storeTo(TemplateVariables.Scope.GLOBAL, manuscript.getAttributes());
+
             ChatMessage node;
 
             switch (controller.getRequest().getRequestType()) {
@@ -107,3 +113,4 @@ public class GenerateNewMessageStep extends GenerationStepBase {
         return GenerationStepType.GENERATE_NEW_MESSAGE;
     }
 }
+

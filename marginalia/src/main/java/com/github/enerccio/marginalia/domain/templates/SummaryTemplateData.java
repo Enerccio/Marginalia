@@ -26,3 +26,4 @@ public class SummaryTemplateData extends TemplateData {
         this.text = text;
     }
 }
+

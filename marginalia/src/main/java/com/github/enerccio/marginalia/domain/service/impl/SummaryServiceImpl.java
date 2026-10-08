@@ -12,6 +12,8 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceA
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.templates.SummaryTemplateData;
+import com.github.enerccio.marginalia.domain.templates.TemplateContext;
+import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -147,6 +149,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
         int maxTokens = ai.getMaxContext();
         SummaryTemplateData template = new SummaryTemplateData();
+        template.setTemplateContext(createTemplateContext(manuscript, from, ai, tree));
 
         if (StringUtils.isNotBlank(from.getBackgroundLore())) {
             template.setBackgroundLore(from.getBackgroundLore());
@@ -194,6 +197,38 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     }
 
 
+    /**
+     * Context for macros in the summary prompt. Variables are loaded from the summarized branch, but changes are not
+     * persisted - summaries are side jobs, not story continuations.
+     *
+     * @param newestFirst branch from {@code from} back to the root
+     */
+    private TemplateContext createTemplateContext(Manuscript manuscript, ChatMessage from, AI ai, List<ChatMessage> newestFirst) {
+        TemplateContext context = new TemplateContext();
+        context.setPovCharacter(from.getPovCharacter());
+        context.setPresentCharacters(from.getPresentCharacters());
+        context.setSceneSetting(from.getSceneSetting());
+        context.setInstructions(from.getInstructions());
+        context.setLastInstructions(from.getInstructions());
+        context.setLastMessageTime(from.getRequest());
+        context.setManuscriptName(manuscript.getName());
+        context.setManuscriptDescription(manuscript.getDescription());
+        context.setPickSeed(String.valueOf(manuscript.getId()));
+        context.setModelName(ai.getName());
+        context.setMaxContextTokens(ai.getMaxContext());
+        if (ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0) {
+            context.setMaxResponseTokens(ai.getMaxCompletionTokens());
+        }
+        context.setGenerationType("quiet");
+        context.setStoryMessages(newestFirst.reversed().stream()
+                .map(ChatMessage::getResponse)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toCollection(ArrayList::new)));
+        context.getVariables().loadFrom(TemplateVariables.Scope.LOCAL, from.getAttributes());
+        context.getVariables().loadFrom(TemplateVariables.Scope.GLOBAL, manuscript.getAttributes());
+        return context;
+    }
+
     public static class SummaryContextInsufficient extends Exception {
         private final long contextRequired;
         private final long contextMax;
@@ -212,3 +247,4 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         }
     }
 }
+

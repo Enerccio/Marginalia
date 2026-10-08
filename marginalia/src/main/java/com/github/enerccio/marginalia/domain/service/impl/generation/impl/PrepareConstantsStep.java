@@ -45,6 +45,7 @@ public class PrepareConstantsStep extends GenerationStepBase {
                 userPromptData.setPovCharacter(controller.getInput().povCharacter());
                 userPromptData.setPresentCharacters(controller.getInput().presentCharacters());
                 userPromptData.setSceneSetting(controller.getInput().sceneSetting());
+                userPromptData.setTemplateContext(getTemplateContext(controller));
 
                 String userPrompt = templateService.processTemplate(data.getUserPrompt(), "userPrompt", userPromptData);
                 data.setUserPromptProcessed(userPrompt);
@@ -62,3 +63,4 @@ public class PrepareConstantsStep extends GenerationStepBase {
         return GenerationStepType.PREPARE_CONSTANTS;
     }
 }
+

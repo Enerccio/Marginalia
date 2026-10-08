@@ -3,17 +3,16 @@ package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.FromEventCallback;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
+import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.tools.Pointer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -25,9 +24,6 @@ public class PrepareContentStep extends GenerationStepBase {
 
     public static final String MANUSCRIPT_CHRONICLE = "MANUSCRIPT_CHRONICLE";
     public static final String SUMMARIES = "SUMMARIES";
-
-    @Autowired
-    private SummaryService summaryService;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -69,7 +65,11 @@ public class PrepareContentStep extends GenerationStepBase {
                     templateData.setNarrativeTense(data.getTense());
                     templateData.setSummaries(sumText);
 
+                    // estimation render must not change variables or the real render would apply them twice
+                    TemplateContext templateContext = getTemplateContext(controller);
+                    templateData.setTemplateContext(templateContext.fork());
                     String emptyTemplate = templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData);
+                    templateData.setTemplateContext(templateContext);
                     long baseTokens = inferenceService.countTokens(emptyTemplate) + data.getJailbreakTokens() + data.getUserPromptProcessedTokens() + 100; /* Buffer for HEADERS */
 
                     if (baseTokens >= limit) {
@@ -115,7 +115,7 @@ public class PrepareContentStep extends GenerationStepBase {
                             controller.emitEvent(Events.AFTER_PREPARE_CONTENT, controller::next);
                         });
                     } else {
-                        data.setSystemPrompt(emptyTemplate);
+                        data.setSystemPrompt(templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData));
                         data.setSystemPromptTokens(baseTokens);
                         controller.emitEvent(Events.AFTER_PREPARE_CONTENT, controller::next);
                     }
@@ -201,3 +201,4 @@ public class PrepareContentStep extends GenerationStepBase {
         return GenerationStepType.PREPARE_CONTENT;
     }
 }
+
