@@ -215,7 +215,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         context.setManuscriptDescription(manuscript.getDescription());
         context.setPickSeed(String.valueOf(manuscript.getId()));
         context.setModelName(ai.getName());
-        context.setMaxContextTokens(ai.getMaxContext());
+        if (ai.getMaxContext() != null && ai.getMaxContext() > 0) {
+            context.setMaxContextTokens(ai.getMaxContext());
+        }
         if (ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0) {
             context.setMaxResponseTokens(ai.getMaxCompletionTokens());
         }
