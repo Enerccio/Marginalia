@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.domain.templates;
 import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
 import com.github.enerccio.marginalia.loc.L;
 
-public class UserPromptData implements TemplateData {
+public class UserPromptData extends TemplateData {
 
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_POV_CHARACTER)
     private String povCharacter;

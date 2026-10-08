@@ -4,31 +4,22 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
-import com.github.mustachejava.DefaultMustacheFactory;
-import com.github.mustachejava.Mustache;
-import com.github.mustachejava.MustacheException;
-import com.github.mustachejava.MustacheFactory;
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.HandlebarsException;
+import com.github.jknack.handlebars.Template;
+import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
+import com.github.jknack.handlebars.io.TemplateLoader;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.time.Duration;
 
-public class TemplateServiceImpl implements TemplateService {
+public class TemplateServiceImpl implements TemplateService, InitializingBean {
 
-    private final MustacheFactory mf = new DefaultMustacheFactory() {
-        @Override
-        public void encode(String value, Writer writer) {
-            try {
-                writer.write(value);
-            } catch (IOException e) {
-                throw new MustacheException("Failed to write unescaped template value", e);
-            }
-        }
-    };
+    private Handlebars handlebars;
 
-    private final Cache<String, Mustache> templateCache = Caffeine.newBuilder()
+    private final Cache<String, Template> templateCache = Caffeine.newBuilder()
             .maximumSize(500)
             .expireAfterAccess(Duration.ofHours(24))
             .build();
@@ -40,9 +31,9 @@ public class TemplateServiceImpl implements TemplateService {
         }
 
         try {
-            mf.compile(new StringReader(templateContent), templateName);
+            handlebars.compileInline(templateContent);
             return new ValidationResult(true, null);
-        } catch (MustacheException e) {
+        } catch (HandlebarsException e) {
             String errorMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
             return new ValidationResult(false, errorMsg);
         } catch (Exception e) {
@@ -52,13 +43,25 @@ public class TemplateServiceImpl implements TemplateService {
 
     @Override
     public String processTemplate(String template, String templateName, TemplateData values) throws Exception {
-        Mustache mustache = templateCache.get(template, key ->
-            mf.compile(new StringReader(key), templateName)
+        Template t = templateCache.get(template, key ->
+                {
+                    try {
+                        return handlebars.compileInline(key);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
         );
 
         StringWriter writer = new StringWriter();
-        mustache.execute(writer, values).flush();
+        t.apply(values, writer);
         return writer.toString();
     }
 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        TemplateLoader templateLoader = new ClassPathTemplateLoader();
+        handlebars = new Handlebars(templateLoader);
+        handlebars.registerHelperMissing((_, _) -> "Error");
+    }
 }
