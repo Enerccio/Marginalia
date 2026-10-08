@@ -21,17 +21,23 @@ import com.openai.core.http.StreamResponse;
 import com.openai.models.chat.completions.*;
 import com.openai.models.models.Model;
 import com.openai.models.models.ModelListPage;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 @SupportedAI(AIType.OPEN_AI_COMPATIBLE)
 @Configurable
-public class OpenAICompatibleInferenceService implements InferenceService {
+public class OpenAICompatibleInferenceService implements InferenceService, InitializingBean, DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(OpenAICompatibleInferenceService.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -40,6 +46,8 @@ public class OpenAICompatibleInferenceService implements InferenceService {
 
     @Autowired
     private Configuration configuration;
+
+    private ExecutorService inferenceService;
 
     private final OpenAICompatible ai;
 
@@ -160,6 +168,21 @@ public class OpenAICompatibleInferenceService implements InferenceService {
                 .baseUrl(ai.getUri())
                 .apiKey(ai.getApiKey())
                 .build();
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        AtomicLong tc = new AtomicLong();
+        inferenceService = Executors.newCachedThreadPool(runnable -> {
+            Thread thread = new Thread(runnable);
+            thread.setName("Inference (OAICompat) thread " + StringUtils.leftPad("" + tc.getAndAdd(1), 3, '0'));
+            return thread;
+        });
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        inferenceService.shutdownNow();
     }
 
     private record PendingChunk(ChunkType type, String text) {}
