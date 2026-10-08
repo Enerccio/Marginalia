@@ -208,7 +208,10 @@ public class AIDialog extends Dialog {
         modelCombo.setRequired(true);
         modelCombo.setWidthFull();
         modelCombo.setAllowCustomValue(true);
-        modelCombo.addCustomValueSetListener(event -> modelCombo.setValue(event.getDetail()));
+        modelCombo.addCustomValueSetListener(event -> {
+            modelCombo.setItems(List.of(event.getDetail()));
+            modelCombo.setValue(event.getDetail());
+        });
 
         refreshModelsButton = new Button(loc.getValue(L.LABEL_REFRESH), event -> fetchModels());
 
