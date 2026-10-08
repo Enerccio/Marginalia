@@ -20,6 +20,8 @@
     <vaadin.version>25.2.3</vaadin.version>
     <spring.version>7.0.8</spring.version>
     <junit.version>6.0.3</junit.version>
+    <!-- resources left out of the WAR, the desktop profile swaps the Vaadin build info for the production one -->
+    <war.resources.exclude>none</war.resources.exclude>
   </properties>
 
   <dependencyManagement>
@@ -428,6 +430,9 @@
               <directory>src/main/resources</directory>
               <targetPath>WEB-INF/classes</targetPath>
               <filtering>true</filtering>
+              <excludes>
+                <exclude>${war.resources.exclude}</exclude>
+              </excludes>
             </resource>
 
             <resource>
@@ -501,4 +506,201 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <!--
+      Desktop distribution: mvn package -Pdesktop
+
+      Builds a self-contained Marginalia for personal computers - no installed Java or server needed:
+        target/desktop/marginalia-<version>/   portable folder: bin/marginalia(.bat), app/ (launcher),
+                                               server/ (jetty-home + marginalia.war), runtime/ (jlink)
+        target/desktop/package/                native app made by jpackage (Marginalia.app on macOS,
+                                               Marginalia/ with an .exe on Windows, bin/Marginalia on Linux)
+        target/desktop/marginalia-<version>-<os>.tar.gz|zip   archive of the portable folder
+
+      The WAR is the same as for the server, packaged in Vaadin production mode, and it runs on jetty-home (the
+      Jetty distribution the Docker image uses) started in-process by DesktopLauncher (src/desktop/java). The
+      launcher listens on 127.0.0.1, opens the browser and offers a tray icon to open/quit.
+
+      jlink/jpackage come from the JDK running Maven and produce a runtime for the current OS and CPU only, build on
+      each target platform. jpackage needs a numeric version (no -SNAPSHOT), override with -Ddesktop.appVersion.
+    -->
+    <profile>
+      <id>desktop</id>
+
+      <properties>
+        <war.resources.exclude>META-INF/VAADIN/config/flow-build-info.json</war.resources.exclude>
+        <desktop.dir>${project.build.directory}/desktop</desktop.dir>
+        <desktop.dist>${desktop.dir}/marginalia-${project.version}</desktop.dist>
+        <desktop.appVersion>${project.version}</desktop.appVersion>
+        <desktop.jetty.version>12.1.10</desktop.jetty.version>
+        <!-- JDK modules of the runtime image: the app, Jetty, the ByteBuddy agent (jdk.attach, java.instrument)
+             and the tray icon / browser opening (java.desktop) -->
+        <desktop.modules>java.base,java.compiler,java.datatransfer,java.desktop,java.instrument,java.logging,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.security.sasl,java.sql,java.sql.rowset,java.transaction.xa,java.xml,java.xml.crypto,jdk.attach,jdk.charsets,jdk.crypto.ec,jdk.localedata,jdk.management,jdk.naming.dns,jdk.net,jdk.unsupported,jdk.zipfs</desktop.modules>
+        <desktop.javaOptions>-Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading --enable-native-access=ALL-UNNAMED</desktop.javaOptions>
+      </properties>
+
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+              <!-- production Vaadin build info, packaged instead of the development one from src/main/resources -->
+              <execution>
+                <id>desktop-production-mode</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <copy file="src/main/resources/META-INF/VAADIN/config/flow-build-info.json.PRODUCTION"
+                          tofile="${desktop.dir}/production-resources/META-INF/VAADIN/config/flow-build-info.json"
+                          overwrite="true"/>
+                  </target>
+                </configuration>
+              </execution>
+
+              <execution>
+                <id>desktop-distribution</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <property name="app" value="${desktop.dist}/app"/>
+                    <!-- server files are not on the launcher's classpath (jpackage would put every jar there) -->
+                    <property name="server" value="${desktop.dist}/server"/>
+                    <condition property="desktop.os" value="windows">
+                      <os family="windows"/>
+                    </condition>
+                    <condition property="desktop.os" value="macos">
+                      <os family="mac"/>
+                    </condition>
+                    <property name="desktop.os" value="linux"/>
+
+                    <delete dir="${desktop.dist}"/>
+                    <delete dir="${desktop.dir}/package"/>
+                    <delete dir="${desktop.dir}/classes"/>
+
+                    <!-- launcher: JDK only, compiled apart from the webapp so it never gets into the WAR -->
+                    <mkdir dir="${desktop.dir}/classes"/>
+                    <javac srcdir="src/desktop/java" destdir="${desktop.dir}/classes" release="${java.version}"
+                           includeantruntime="false" encoding="UTF-8" debug="true"/>
+                    <mkdir dir="${app}"/>
+                    <jar destfile="${app}/marginalia-launcher.jar" basedir="${desktop.dir}/classes">
+                      <manifest>
+                        <attribute name="Main-Class" value="com.github.enerccio.marginalia.desktop.DesktopLauncher"/>
+                        <attribute name="Implementation-Version" value="${project.version}"/>
+                      </manifest>
+                    </jar>
+
+                    <copy file="${project.build.directory}/${project.build.finalName}.war" tofile="${server}/marginalia.war"/>
+                    <unzip src="${desktop.dir}/download/jetty-home-${desktop.jetty.version}.zip" dest="${server}/jetty-home">
+                      <cutdirsmapper dirs="1"/>
+                    </unzip>
+
+                    <!-- trimmed Java runtime for this platform -->
+                    <exec executable="${java.home}/bin/jlink" failonerror="true">
+                      <arg value="--add-modules"/>
+                      <arg value="${desktop.modules}"/>
+                      <arg value="--strip-debug"/>
+                      <arg value="--no-header-files"/>
+                      <arg value="--no-man-pages"/>
+                      <arg value="--compress=zip-6"/>
+                      <arg value="--output"/>
+                      <arg value="${desktop.dist}/runtime"/>
+                    </exec>
+
+                    <copy todir="${desktop.dist}/bin">
+                      <fileset dir="src/desktop/bin"/>
+                    </copy>
+                    <chmod file="${desktop.dist}/bin/marginalia" perm="755"/>
+
+                    <!-- native application (app image, no installer - needs no signing to try out) -->
+                    <exec executable="${java.home}/bin/jpackage" failonerror="true">
+                      <arg value="--type"/>
+                      <arg value="app-image"/>
+                      <arg value="--name"/>
+                      <arg value="Marginalia"/>
+                      <arg value="--app-version"/>
+                      <arg value="${desktop.appVersion}"/>
+                      <arg value="--vendor"/>
+                      <arg value="enerccio"/>
+                      <arg value="--input"/>
+                      <arg value="${app}"/>
+                      <arg value="--main-jar"/>
+                      <arg value="marginalia-launcher.jar"/>
+                      <arg value="--app-content"/>
+                      <arg value="${server}"/>
+                      <arg value="--runtime-image"/>
+                      <arg value="${desktop.dist}/runtime"/>
+                      <arg value="--java-options"/>
+                      <arg value="${desktop.javaOptions} -Dapple.awt.UIElement=true"/>
+                      <arg value="--dest"/>
+                      <arg value="${desktop.dir}/package"/>
+                    </exec>
+
+                    <!-- tar keeps file permissions, Windows 10+ tar writes zip -->
+                    <condition property="desktop.archive" value="marginalia-${project.version}-${desktop.os}.zip"
+                               else="marginalia-${project.version}-${desktop.os}.tar.gz">
+                      <os family="windows"/>
+                    </condition>
+                    <condition property="desktop.tarFlags" value="-a -c -f" else="-c -z -f">
+                      <os family="windows"/>
+                    </condition>
+                    <delete file="${desktop.dir}/${desktop.archive}"/>
+                    <exec executable="tar" dir="${desktop.dir}" failonerror="true">
+                      <arg line="${desktop.tarFlags}"/>
+                      <arg value="${desktop.archive}"/>
+                      <arg value="marginalia-${project.version}"/>
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>3.7.0</version>
+            <executions>
+              <execution>
+                <id>desktop-jetty-home</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.eclipse.jetty</groupId>
+                      <artifactId>jetty-home</artifactId>
+                      <version>${desktop.jetty.version}</version>
+                      <type>zip</type>
+                    </artifactItem>
+                  </artifactItems>
+                  <outputDirectory>${desktop.dir}/download</outputDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-war-plugin</artifactId>
+            <configuration>
+              <webResources combine.children="append">
+                <resource>
+                  <directory>${desktop.dir}/production-resources</directory>
+                  <targetPath>WEB-INF/classes</targetPath>
+                  <filtering>false</filtering>
+                </resource>
+              </webResources>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
