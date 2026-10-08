@@ -65,7 +65,7 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
         headerLayout.add(activeLorebookCombo);
 
         // Instantiate pinned LorebookView (hides internal lorebook dropdown and create button)
-        lorebookView = new LorebookView(null);
+        lorebookView = new LorebookView(true);
         Component lorebookViewComponent = lorebookView.create();
 
         mainLayout.add(headerLayout, lorebookViewComponent);
