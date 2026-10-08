@@ -24,10 +24,41 @@ public interface DatabaseBackupService {
 
     long getDatabaseSize() throws Exception;
 
+    /**
+     * Current backup schedule from {@link com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings}.
+     */
+    BackupSchedule getSchedule() throws Exception;
+
+    /**
+     * Saves the schedule and restarts the scheduled job with it. Administrators only.
+     *
+     * @throws IllegalArgumentException when the cron expression is invalid
+     * @throws SecurityException when the current user is not an administrator
+     */
+    BackupSchedule updateSchedule(boolean enabled, String cron, int keep) throws Exception;
+
+    /**
+     * @return when the scheduled job runs next, {@code null} when scheduled backups are off
+     */
+    Date getNextScheduledBackup();
+
+    /**
+     * Creates a scheduled backup and deletes scheduled backups over the configured count. Called by the scheduled
+     * job, never deletes manual backups.
+     */
+    DatabaseBackup createScheduledBackup() throws Exception;
+
+    /**
+     * @param lastRun last scheduled backup, {@code null} if none was made yet
+     */
+    record BackupSchedule(boolean enabled, String cron, int keep, Date lastRun) {
+    }
+
     class DatabaseBackup {
         private String name;
         private Date creation;
         private long size;
+        private boolean scheduled;
 
         public String getName() {
             return name;
@@ -51,6 +82,17 @@ public interface DatabaseBackupService {
 
         public void setSize(long size) {
             this.size = size;
+        }
+
+        /**
+         * Made by the backup schedule (and rotated by it), not by an administrator.
+         */
+        public boolean isScheduled() {
+            return scheduled;
+        }
+
+        public void setScheduled(boolean scheduled) {
+            this.scheduled = scheduled;
         }
     }
 }
