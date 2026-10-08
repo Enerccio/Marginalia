@@ -96,7 +96,7 @@ public class OpenAICompatibleInferenceService implements InferenceService {
             paramsBuilder.maxCompletionTokens(ai.getMaxCompletionTokens());
         }
 
-        if (ai.getEnabledReasoning() && ai.getReasoningEffort() != null) {
+        if (Boolean.TRUE.equals(ai.getEnabledReasoning()) && ai.getReasoningEffort() != null) {
             String effortValue = ai.getReasoningEffort().toString().toLowerCase();
             paramsBuilder.putAdditionalBodyProperty("reasoning_effort", JsonValue.from(effortValue));
             paramsBuilder.putAdditionalBodyProperty("allowed_openai_params", JsonValue.from(List.of("reasoning_effort")));

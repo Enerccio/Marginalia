@@ -144,7 +144,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     public String getSummaryPrompt(Manuscript manuscript) throws Exception {
         if (StringUtils.isNotBlank(manuscript.getSummaryPrompt())) {
-            return manuscript.getUserPrompt();
+            return manuscript.getSummaryPrompt();
         }
         UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
         if (StringUtils.isNotBlank(userSetting.getDefaultSummaryPrompt())) {

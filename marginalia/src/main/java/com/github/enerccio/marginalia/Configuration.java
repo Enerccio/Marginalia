@@ -48,10 +48,18 @@ public class Configuration implements InitializingBean {
         return folder;
     }
 
+    /**
+     * Overrides the application folder (default {@code ~/.marginalia}). Used by tests to keep data in a temp folder.
+     */
+    public void setFolder(File folder) {
+        this.folder = folder;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
-        String homeDir = System.getProperty("user.home");
-        folder = new File(homeDir, ".marginalia");
+        if (folder == null) {
+            folder = new File(System.getProperty("user.home"), ".marginalia");
+        }
         if (!folder.exists() && !folder.mkdirs()) {
             throw new RuntimeException("Cannot create folder " + folder.getAbsolutePath());
         }

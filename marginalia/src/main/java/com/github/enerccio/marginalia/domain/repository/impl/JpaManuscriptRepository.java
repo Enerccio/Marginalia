@@ -62,7 +62,7 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
                         new String[] {"\\", "_", "%", "*"},
                         new String[] {"\\\\", "\\_", "\\%", "%"}
                         );
-                ands.add("m.name LIKE :name");
+                ands.add("m.name LIKE :name ESCAPE '\\'");
                 parameters.put("name", nameFilter + "%");
             }
             if (filterValues.getTags() != null && !filterValues.getTags().isEmpty()) {

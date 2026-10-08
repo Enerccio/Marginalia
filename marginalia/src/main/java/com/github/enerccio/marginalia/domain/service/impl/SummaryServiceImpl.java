@@ -139,7 +139,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         copy.setSummary(summary.getSummary());
         copy.setSummaryTokens(summary.getSummaryTokens());
         copy.setSummaryMessageHash(summary.getSummaryMessageHash());
-        return save(summary);
+        return save(copy);
     }
 
     private List<LLMChatMessage> createSummaryPayload(Manuscript manuscript, ChatMessage from, AI ai, InferenceService inferenceService, Summary newSummary) throws Exception {

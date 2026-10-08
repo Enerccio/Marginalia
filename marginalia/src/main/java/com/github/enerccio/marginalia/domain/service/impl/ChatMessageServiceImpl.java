@@ -167,7 +167,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     @CommonTx
-    public void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean softDelete) throws Exception {
+    public void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception {
         if (message == null) {
             return;
         }
@@ -182,7 +182,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             }
         }
 
-        delete(message, softDelete);
+        delete(message, hard);
     }
 
     @Override
