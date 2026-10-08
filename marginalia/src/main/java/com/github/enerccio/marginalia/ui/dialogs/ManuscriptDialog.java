@@ -114,7 +114,11 @@ public class ManuscriptDialog extends Dialog {
         footerLayout.setWidthFull();
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
-        exitButton = new Button(loc.getValue(L.LABEL_EXIT), event -> close());
+        exitButton = new Button(loc.getValue(L.LABEL_EXIT), event -> {
+            if (onClose != null)
+                onClose.run();
+            close();
+        });
 
         footerLayout.add(exitButton);
         getFooter().add(footerLayout);
