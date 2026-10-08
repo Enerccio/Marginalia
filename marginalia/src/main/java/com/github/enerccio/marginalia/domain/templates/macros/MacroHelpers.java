@@ -141,9 +141,18 @@ public final class MacroHelpers {
 
         @Override
         public Object resolve(Object context, String name) {
-            if (context instanceof TemplateData data && data.hasProperty(name)) {
-                Object value = data.resolveProperty(name);
-                return value == null ? "" : value;
+            if (context instanceof TemplateData data) {
+                if (data.hasProperty(name)) {
+                    Object value = data.resolveProperty(name);
+                    return value == null ? "" : value;
+                }
+                // argument-less macros as values, so {{#if user}} works like {{if user}}
+                MacroDefinition definition = Macros.find(name);
+                if (definition != null && definition.minArgs() == 0 && !Macros.IF.equals(definition.name())) {
+                    return nullToEmpty(definition.function().apply(data, new MacroCall(-1, "", List.of())));
+                }
+                // don't let the default resolvers reflect into TemplateData methods ({{templateContext}})
+                return null;
             }
             return UNRESOLVED;
         }
