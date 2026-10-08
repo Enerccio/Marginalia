@@ -1,2 +1,4 @@
 marginalia/target/
 .idea/
+/data/
+/marginalia/plugins/*
