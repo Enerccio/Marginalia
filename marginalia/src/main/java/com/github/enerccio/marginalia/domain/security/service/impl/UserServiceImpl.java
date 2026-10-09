@@ -198,6 +198,17 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         return user;
     }
 
+    /**
+     * Ends a login lockout and forgets the failed attempts, an administrator's action.
+     */
+    @Override
+    @CommonTx
+    public User unlock(User user) throws Exception {
+        user.setFailedLogins(0);
+        user.setLockedUntil(0);
+        return save(user);
+    }
+
     @Override
     @CommonTx
     public PersistedLoginInfo authenticateFromCookie(User user, String identifier, String secret) throws Exception {

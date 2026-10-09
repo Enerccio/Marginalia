@@ -43,6 +43,7 @@ public class UserDialog extends Dialog {
     private PasswordField passwordField;
     private PasswordField passwordRepeatField;
     private Checkbox clearPasswordCheckbox;
+    private Checkbox unlockCheckbox;
     private Checkbox isAdminCheckbox;
     private final boolean openedFromUser;
 
@@ -101,6 +102,11 @@ public class UserDialog extends Dialog {
             passwordRepeatField.setEnabled(!e.getValue());
         });
 
+        // offered only while the account has failed logins on record
+        unlockCheckbox = new Checkbox(loc.getValue(L.LABEL_UNLOCK_ACCOUNT));
+        unlockCheckbox.setVisible(!openedFromUser && !firstTime && user.getId() != null
+                && (user.getFailedLogins() > 0 || user.getLockedUntil() > 0));
+
         isAdminCheckbox = new Checkbox(loc.getValue(L.LABEL_ADMINISTRATOR));
 
         if (firstTime) {
@@ -119,7 +125,7 @@ public class UserDialog extends Dialog {
         if (openedFromUser)
             formLayout.add(loginField, fullNameField, currentPassword, passwordField, passwordRepeatField, isAdminCheckbox);
         else
-            formLayout.add(loginField, fullNameField, passwordField, passwordRepeatField, clearPasswordCheckbox, isAdminCheckbox);
+            formLayout.add(loginField, fullNameField, passwordField, passwordRepeatField, clearPasswordCheckbox, unlockCheckbox, isAdminCheckbox);
         add(formLayout);
 
         Button saveButton = new Button(loc.getValue(L.LABEL_OK), event -> save());
@@ -196,6 +202,10 @@ public class UserDialog extends Dialog {
                         userService.changePassword(user, password);
                     } else {
                         userService.save(user);
+                    }
+
+                    if (unlockCheckbox.getValue()) {
+                        userService.unlock(user);
                     }
 
                     close();
