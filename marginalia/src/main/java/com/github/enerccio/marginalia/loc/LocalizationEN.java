@@ -207,6 +207,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_SUMMARY_FAILURE, "Invalidated summaries for messages with IDs: [%s]. Continue generation without those summaries?");
         setValue(L.MSG_EXTENSION_INSTALLED_SUCCESS, "Extension loaded successfully.");
         setValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS, "Extension unloaded successfully.");
+        setValue(L.MSG_CONFIRM_UNLOAD_EXTENSION, "Extension \"%s\" will be unloaded and its JAR deleted from the extensions folder. Continue?");
 
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
         setValue(L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION, "Chat Completion");

@@ -58,6 +58,20 @@ public class UIUtils {
         errorDialog.open(true);
     }
 
+    /**
+     * Runs a change of a component that may belong to another user's session (e.g. from an extension unload) while
+     * that session is locked, through {@code ui.access(...)}; directly when the component is not attached to a UI.
+     */
+    public static void accessComponent(Component component, Runnable change) {
+        component.getUI().ifPresentOrElse(ui -> ui.access(() -> {
+            try {
+                change.run();
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }), change);
+    }
+
     public static Component voidComponent() {
         return new Span("");
     }

@@ -12,8 +12,6 @@ COPY .git ./.git
 RUN rm src/main/resources/log4j.properties
 RUN cp src/main/resources/log4j.properties.RELEASE \
        src/main/resources/log4j.properties
-RUN cp src/main/resources/META-INF/VAADIN/config/flow-build-info.json.PRODUCTION \
-       src/main/resources/META-INF/VAADIN/config/flow-build-info.json
 RUN mvn clean package -DskipTests
 
 FROM jetty:12-jdk25-eclipse-temurin

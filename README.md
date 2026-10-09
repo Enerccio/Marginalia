@@ -92,7 +92,7 @@ Requirements: JDK 25 or newer and Maven 3.9+. Node.js for the frontend is downlo
 
 ```sh
 cd marginalia
-mvn package               # WAR in target/, runs the tests
+mvn package               # deployable WAR (Vaadin production mode) in target/, runs the tests
 mvn package -Pdesktop     # desktop app for the current OS in target/desktop/ (see the desktop profile in pom.xml)
 ```
 

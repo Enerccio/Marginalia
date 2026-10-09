@@ -117,7 +117,8 @@ public class LorebookVCSExtension implements MarginaliaExtension {
             );
 
         } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
+            // there may be no UI (loading at startup), the extension service logs it and skips the extension
+            throw new IllegalStateException("Failed to load the Lorebook VCS extension", e);
         }
     }
 

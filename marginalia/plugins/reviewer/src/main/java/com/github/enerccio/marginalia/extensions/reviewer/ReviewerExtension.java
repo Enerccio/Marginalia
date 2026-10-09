@@ -229,7 +229,8 @@ public class ReviewerExtension implements MarginaliaExtension {
                     "save"
             );
         } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
+            // there may be no UI (loading at startup), the extension service logs it and skips the extension
+            throw new IllegalStateException("Failed to load the Reviewer extension", e);
         }
     }
 
@@ -248,25 +249,30 @@ public class ReviewerExtension implements MarginaliaExtension {
             extensionService.unregisterDecorator(userPartSaveDecorator);
         }
 
+        // the components belong to the UIs of all users - change each one in its own session
         synchronized (activeMenus) {
             for (ContextMenu menu : activeMenus) {
-                MenuItem reviewMenuItem = (MenuItem) ComponentUtil.getData(menu, REVIEW_MENU_ITEM_KEY);
-                if (reviewMenuItem != null) {
-                    menu.remove(reviewMenuItem);
-                    ComponentUtil.setData(menu, REVIEW_MENU_ITEM_KEY, null);
-                    ComponentUtil.setData(menu, DELETE_MENU_ITEM_KEY, null);
-                }
+                UIUtils.accessComponent(menu, () -> {
+                    MenuItem reviewMenuItem = (MenuItem) ComponentUtil.getData(menu, REVIEW_MENU_ITEM_KEY);
+                    if (reviewMenuItem != null) {
+                        menu.remove(reviewMenuItem);
+                        ComponentUtil.setData(menu, REVIEW_MENU_ITEM_KEY, null);
+                        ComponentUtil.setData(menu, DELETE_MENU_ITEM_KEY, null);
+                    }
+                });
             }
             activeMenus.clear();
         }
 
         synchronized (activeAccordions) {
             for (Accordion accordion : activeAccordions) {
-                AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(accordion, SETTINGS_PANEL_KEY);
-                if (panel != null) {
-                    accordion.remove(panel);
-                    ComponentUtil.setData(accordion, SETTINGS_PANEL_KEY, null);
-                }
+                UIUtils.accessComponent(accordion, () -> {
+                    AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(accordion, SETTINGS_PANEL_KEY);
+                    if (panel != null) {
+                        accordion.remove(panel);
+                        ComponentUtil.setData(accordion, SETTINGS_PANEL_KEY, null);
+                    }
+                });
             }
             activeAccordions.clear();
         }

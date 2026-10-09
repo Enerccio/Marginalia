@@ -167,9 +167,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     @CommonTx
-    public void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception {
+    public Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception {
         if (message == null) {
-            return;
+            return manuscript;
         }
 
         ChatMessage parent = message.getParent();
@@ -183,6 +183,8 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         }
 
         delete(message, hard);
+        // the active leaf may have moved - it must not stay on the deleted part in the database
+        return manuscript != null ? manuscriptService.save(manuscript) : null;
     }
 
     @Override
