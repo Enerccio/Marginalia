@@ -226,6 +226,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_PUBLISHED, "Published");
         setValue(L.LABEL_CLEAR_PASSWORD, "Clear password");
         setValue(L.LABEL_DISCARD_CHANGES, "Discard Changes");
+        setValue(L.LABEL_UNLOCK_ACCOUNT, "Unlock account (too many failed logins)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
