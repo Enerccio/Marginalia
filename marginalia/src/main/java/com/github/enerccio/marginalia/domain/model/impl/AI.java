@@ -7,12 +7,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceService;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ais",
-        indexes = {
-        @Index(name = "ai_is_deleted_idx", columnList = "is_deleted"),
-        @Index(name = "ai_type_idx", columnList = "ai_type"),
-        @Index(name = "ai_user_id_ix", columnList = "userId")
-})
+@Table(name = "ais")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class AI extends ExtendableEntity {
 

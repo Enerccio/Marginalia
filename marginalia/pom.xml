@@ -20,8 +20,6 @@
     <vaadin.version>25.2.3</vaadin.version>
     <spring.version>7.0.8</spring.version>
     <junit.version>6.0.3</junit.version>
-    <!-- resources left out of the WAR, the desktop profile swaps the Vaadin build info for the production one -->
-    <war.resources.exclude>none</war.resources.exclude>
   </properties>
 
   <dependencyManagement>
@@ -57,11 +55,6 @@
           <artifactId>hilla-dev</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>com.vaadin</groupId>
-      <artifactId>flow-server-production-mode</artifactId>
     </dependency>
 
     <dependency>
@@ -407,14 +400,17 @@
             <filter>${project.build.outputDirectory}/git.properties</filter>
           </filters>
           <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
-          <packagingExcludes>**/gwt-unitCache/**,**/obsb.properties**</packagingExcludes>
+          <!-- the Vaadin build info (flow-build-info.json) comes only from vaadin-maven-plugin: build-frontend
+               writes the production one into the WAR, a development one left in src/main/resources for IDE runs
+               must never get there -->
+          <packagingExcludes>**/gwt-unitCache/**,**/obsb.properties**,WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json.*</packagingExcludes>
           <webResources>
             <resource>
               <directory>src/main/resources</directory>
               <targetPath>WEB-INF/classes</targetPath>
               <filtering>true</filtering>
               <excludes>
-                <exclude>${war.resources.exclude}</exclude>
+                <exclude>META-INF/VAADIN/config/flow-build-info.json*</exclude>
               </excludes>
             </resource>
 
@@ -512,7 +508,6 @@
       <id>desktop</id>
 
       <properties>
-        <war.resources.exclude>META-INF/VAADIN/config/flow-build-info.json</war.resources.exclude>
         <desktop.dir>${project.build.directory}/desktop</desktop.dir>
         <desktop.dist>${desktop.dir}/marginalia-${project.version}</desktop.dist>
         <desktop.appVersion>${project.version}</desktop.appVersion>
@@ -529,22 +524,6 @@
             <artifactId>maven-antrun-plugin</artifactId>
             <version>3.1.0</version>
             <executions>
-              <!-- production Vaadin build info, packaged instead of the development one from src/main/resources -->
-              <execution>
-                <id>desktop-production-mode</id>
-                <phase>prepare-package</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target>
-                    <copy file="src/main/resources/META-INF/VAADIN/config/flow-build-info.json.PRODUCTION"
-                          tofile="${desktop.dir}/production-resources/META-INF/VAADIN/config/flow-build-info.json"
-                          overwrite="true"/>
-                  </target>
-                </configuration>
-              </execution>
-
               <execution>
                 <id>desktop-distribution</id>
                 <phase>package</phase>
@@ -684,18 +663,6 @@
             </executions>
           </plugin>
 
-          <plugin>
-            <artifactId>maven-war-plugin</artifactId>
-            <configuration>
-              <webResources combine.children="append">
-                <resource>
-                  <directory>${desktop.dir}/production-resources</directory>
-                  <targetPath>WEB-INF/classes</targetPath>
-                  <filtering>false</filtering>
-                </resource>
-              </webResources>
-            </configuration>
-          </plugin>
         </plugins>
       </build>
     </profile>
