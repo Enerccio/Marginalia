@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844859808969">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844863335823">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844859808969" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844863335823" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844863335823" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844859808969" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844863335823" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844863335823" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -511,8 +511,8 @@ can&#x27;t do - change what the model gets.</p>
 <retype-table copy-text="| Class | Does |
 |---|---|
 | `AuthorsNoteData` | The note: on/off, the text, a private scratchpad, the insertion depth and the role. Stored in the book's attributes under the package name. |
-| `AuthorsNoteService` | Loads and saves the data, inserts the note into a payload. |
-| `AuthorsNoteView` | The sidebar tab; every change is saved right away. |
+| `AuthorsNoteService` | Loads and saves the data, counts the note's tokens, inserts the note into a payload. |
+| `AuthorsNoteView` | The sidebar tab with a token estimate of the note; every change is saved right away. |
 | `AuthorsNoteExtension` | Adds the tab on leave of `ManuscriptStoryPart.renderStoryContent()` (like Side Query) and registers the listener. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -529,11 +529,11 @@ can&#x27;t do - change what the model gets.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AuthorsNoteService</code></td>
-<td>Loads and saves the data, inserts the note into a payload.</td>
+<td>Loads and saves the data, counts the note&#x27;s tokens, inserts the note into a payload.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AuthorsNoteView</code></td>
-<td>The sidebar tab; every change is saved right away.</td>
+<td>The sidebar tab with a token estimate of the note; every change is saved right away.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AuthorsNoteExtension</code></td>
@@ -543,20 +543,29 @@ can&#x27;t do - change what the model gets.</p>
 </table>
 </div>
 </retype-table>
-<p><strong>Hooking into generation</strong> - <code translate="no" v-pre>onExtensionLoad</code> registers a listener next to the decorator and keeps the
-registration:</p>
+<p><strong>Hooking into generation</strong> - <code translate="no" v-pre>onExtensionLoad</code> registers two listeners next to the decorator and keeps the
+registrations:</p>
 <div id="walkthrough-authors-note-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">payloadRegistration = storyGenerationService.addEventListener(Events.AFTER_PREPARE_PAYLOAD,
+<pre translate="no" class="language-java"><code v-pre class="language-java">reserveRegistration = storyGenerationService.addEventListener(Events.BEFORE_PREPARE_CONTENT,
+        this::reserveAuthorsNote);
+payloadRegistration = storyGenerationService.addEventListener(Events.AFTER_PREPARE_PAYLOAD,
         this::insertAuthorsNote);</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code> comes before the generation decides how much of the story fits into the context. The
+listener loads the note, keeps it in the generation&#x27;s properties and reserves its tokens, so the story gets less room:</p>
+<div id="walkthrough-authors-note-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
+event.getProperties().put(AuthorsNoteData.KEY, data);
+long tokens = authorsNoteService.countTokens(manuscript, data);
+event.getPrePromptData().setReservedTokens(event.getPrePromptData().getReservedTokens() + tokens);</code></pre>
 </doc-codeblock></div>
 <p><code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> comes when the list of chat messages for the model is complete; what the listener sets is
 what is sent:</p>
-<div id="walkthrough-authors-note-code-2" class="codeblock-wrapper"><doc-codeblock>
+<div id="walkthrough-authors-note-code-3" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">private void insertAuthorsNote(GenerationControllerEvent event, EventChain chain) {
     try {
-        Manuscript manuscript = event.getManuscript();
-        if (manuscript != null) {
-            AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
+        AuthorsNoteData data = event.getProperty(AuthorsNoteData.KEY);   // the note that was counted
+        if (data != null) {
             event.setPayload(authorsNoteService.insertNote(event.getPayload(), data));
         }
     } catch (Exception e) {
@@ -566,16 +575,28 @@ what is sent:</p>
     }
 }</code></pre>
 </doc-codeblock></div>
-<p><strong>Unloading</strong> calls <code translate="no" v-pre>payloadRegistration.unregister()</code> besides removing the decorator and the tabs - a listener left
+<p><strong>Unloading</strong> unregisters both listeners besides removing the decorator and the tabs - a listener left
 registered would keep changing the prompts of every user.</p>
 <p>What to take from it:</p>
 <ul>
-<li><code translate="no" v-pre>chain.next()</code> in <code translate="no" v-pre>finally</code> - the generation waits for every listener;</li>
-<li>listeners are global, so act only on the data of the book being generated;</li>
-<li>read data the user may have changed since the generation started again, with the service;</li>
-<li>build a new payload and <code translate="no" v-pre>setPayload(...)</code> it instead of changing the list you got.</li>
+<li>
+<p><code translate="no" v-pre>chain.next()</code> in <code translate="no" v-pre>finally</code> - the generation waits for every listener;</p>
+</li>
+<li>
+<p>listeners are global, so act only on the data of the book being generated;</p>
+</li>
+<li>
+<p>reserve the tokens of what you add (<code translate="no" v-pre>PrePromptData.reservedTokens</code>) before the budget is computed, and add to the
+reservation instead of overwriting it;</p>
+</li>
+<li>
+<p>pass state from one event to the next in <code translate="no" v-pre>event.getProperties()</code>, under your package name;</p>
+</li>
+<li>
+<p>build a new payload and <code translate="no" v-pre>setPayload(...)</code> it instead of changing the list you got.</p>
+</li>
 </ul>
-<p><a href="../generation-events/">Generation events</a> explains the payload, the choice of the event and the token budget in
+<p><a href="../generation-events/">Generation events</a> explains the payload, the choice of the events and reserving tokens in
 detail.</p>
 
                 

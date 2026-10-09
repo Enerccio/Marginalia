@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844859808969">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844863335823">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844859808969" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844863335823" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844863335823" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844859808969" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844863335823" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844863335823" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -409,11 +409,12 @@ with a summary is the <strong>stop part</strong>: it and everything before it is
 <div id="4-prepare_content---preparecontentstep-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-none"><code v-pre class="language-none">limit      = context tokens − response tokens        (protocol overrides, else provider limits)
 baseTokens = system template rendered with lore and summaries (no story)
-           + jailbreak + rendered user prompt + 100</code></pre>
+           + jailbreak + rendered user prompt + 100
+reserved   = PrePromptData.reservedTokens            (set by extensions, 0 by default)</code></pre>
 </doc-codeblock></div>
-<p>If <code translate="no" v-pre>baseTokens ≥ limit</code>, the generation stops with <em>Contextual limit not sufficient.</em> Otherwise parts are taken from the
-newest backwards - skipping the part being regenerated, stopping at the stop part - counting each part as its
-<code translate="no" v-pre>tokenCount + 100</code>. A part is added only if the running total with it stays within <code translate="no" v-pre>limit − 256</code>; the first part that
+<p>If <code translate="no" v-pre>baseTokens + reserved ≥ limit</code>, the generation stops with <em>Contextual limit not sufficient.</em> Otherwise parts are taken from the
+newest backwards - skipping the part being regenerated, stopping at the stop part - starting from
+<code translate="no" v-pre>baseTokens + reserved</code> and counting each part as its <code translate="no" v-pre>tokenCount + 100</code>. A part is added only if the running total with it stays within <code translate="no" v-pre>limit − 256</code>; the first part that
 doesn&#x27;t fit ends the loop. The chosen texts, oldest first, become <code translate="no" v-pre>MANUSCRIPT_CHRONICLE</code>.</p>
 <p><strong>System prompt.</strong> The master template is rendered with <code translate="no" v-pre>MasterTemplateData</code> (<code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaries</code>,
 <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code> + the template context) into <code translate="no" v-pre>systemPrompt</code>. The estimate above renders it
@@ -551,7 +552,8 @@ moves to <code translate="no" v-pre>CLEANUP</code>. An error is reported with <c
 | `userPromptProcessed`, `userPromptProcessedTokens` | `PREPARE_CONSTANTS`, extended in `PROCESS_LOREBOOK` | Rendered user prompt, with the before-user-prompt lore in front. |
 | `backgroundLore`, `backgroundLoreTokens` | `PROCESS_LOREBOOK` | Lore for the master template. |
 | `backgroundUserLore`, `backgroundUserLoreTokens` | `PROCESS_LOREBOOK` | Lore put before the user prompt. |
-| `systemPrompt`, `systemPromptTokens` | `PREPARE_CONTENT` | Rendered master template. |">
+| `systemPrompt`, `systemPromptTokens` | `PREPARE_CONTENT` | Rendered master template. |
+| `reservedTokens` | extensions, up to `BEFORE_SUMMARIES` | Room for text extensions add to the prompt later (e.g. a message inserted into the payload); taken from the room for the story. Add to it, don't overwrite it. See [Generation events](plugins/generation-events.md#reserving-tokens). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -591,6 +593,11 @@ moves to <code translate="no" v-pre>CLEANUP</code>. An error is reported with <c
 <td><code translate="no" v-pre>systemPrompt</code>, <code translate="no" v-pre>systemPromptTokens</code></td>
 <td><code translate="no" v-pre>PREPARE_CONTENT</code></td>
 <td>Rendered master template.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>reservedTokens</code></td>
+<td>extensions, up to <code translate="no" v-pre>BEFORE_SUMMARIES</code></td>
+<td>Room for text extensions add to the prompt later (e.g. a message inserted into the payload); taken from the room for the story. Add to it, don&#x27;t overwrite it. See <a href="../plugins/generation-events/#reserving-tokens">Generation events</a>.</td>
 </tr>
 </tbody>
 </table>
@@ -646,8 +653,9 @@ prefixed with the extension&#x27;s package.</p>
 <p>Unregister on unload - registrations are not removed automatically.</p>
 </li>
 </ul>
-<p>The bundled Author&#x27;s Note plugin is a complete example: it inserts a message into the payload in
-<code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code>, see <a href="../plugins/generation-events/">Generation events</a>.</p>
+<p>The bundled Author&#x27;s Note plugin is a complete example: it reserves tokens in <code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code>
+(<code translate="no" v-pre>PrePromptData.reservedTokens</code>) and inserts a message into the payload in <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code>, see
+<a href="../plugins/generation-events/">Generation events</a>.</p>
 <h3 id="events">Events</h3>
 <retype-table copy-text="| Event | Step | Available / changeable |
 |---|---|---|
@@ -660,7 +668,7 @@ prefixed with the extension&#x27;s package.</p>
 | `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, once per entry |
 | `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back) |
 | `AFTER_PROCESS_LOREBOOK` | 3 | `backgroundLore`, `LOREBOOK_TEMPLATE_DATA` |
-| `BEFORE_PREPARE_CONTENT` | 4 | |
+| `BEFORE_PREPARE_CONTENT` | 4 | `PrePromptData.reservedTokens` - reserve room for text added later |
 | `BEFORE_SUMMARIES` | 4 | `SUMMARIES` (read back) |
 | `AFTER_MANUSCRIPT_CONCATENATION` | 4 | `MANUSCRIPT_CHRONICLE` (read back) |
 | `AFTER_PREPARE_CONTENT` | 4 | `systemPrompt` |
@@ -728,7 +736,7 @@ prefixed with the extension&#x27;s package.</p>
 <tr>
 <td><code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code></td>
 <td>4</td>
-<td> </td>
+<td><code translate="no" v-pre>PrePromptData.reservedTokens</code> - reserve room for text added later</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>BEFORE_SUMMARIES</code></td>

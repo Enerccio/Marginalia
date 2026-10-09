@@ -6,7 +6,6 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService.Extendable
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
-import com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
@@ -127,7 +126,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
     }
 
     @Override
-    public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+    public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
         if (storyPartDecorator != null) {
             extensionService.unregisterDecorator(storyPartDecorator);
         }

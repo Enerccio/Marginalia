@@ -338,16 +338,28 @@ can't do - change what the model gets.
 | Class | Does |
 |---|---|
 | `AuthorsNoteData` | The note: on/off, the text, a private scratchpad, the insertion depth and the role. Stored in the book's attributes under the package name. |
-| `AuthorsNoteService` | Loads and saves the data, inserts the note into a payload. |
-| `AuthorsNoteView` | The sidebar tab; every change is saved right away. |
+| `AuthorsNoteService` | Loads and saves the data, counts the note's tokens, inserts the note into a payload. |
+| `AuthorsNoteView` | The sidebar tab with a token estimate of the note; every change is saved right away. |
 | `AuthorsNoteExtension` | Adds the tab on leave of `ManuscriptStoryPart.renderStoryContent()` (like Side Query) and registers the listener. |
 
-**Hooking into generation** - `onExtensionLoad` registers a listener next to the decorator and keeps the
-registration:
+**Hooking into generation** - `onExtensionLoad` registers two listeners next to the decorator and keeps the
+registrations:
 
 ```java
+reserveRegistration = storyGenerationService.addEventListener(Events.BEFORE_PREPARE_CONTENT,
+        this::reserveAuthorsNote);
 payloadRegistration = storyGenerationService.addEventListener(Events.AFTER_PREPARE_PAYLOAD,
         this::insertAuthorsNote);
+```
+
+`BEFORE_PREPARE_CONTENT` comes before the generation decides how much of the story fits into the context. The
+listener loads the note, keeps it in the generation's properties and reserves its tokens, so the story gets less room:
+
+```java
+AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
+event.getProperties().put(AuthorsNoteData.KEY, data);
+long tokens = authorsNoteService.countTokens(manuscript, data);
+event.getPrePromptData().setReservedTokens(event.getPrePromptData().getReservedTokens() + tokens);
 ```
 
 `AFTER_PREPARE_PAYLOAD` comes when the list of chat messages for the model is complete; what the listener sets is
@@ -356,9 +368,8 @@ what is sent:
 ```java
 private void insertAuthorsNote(GenerationControllerEvent event, EventChain chain) {
     try {
-        Manuscript manuscript = event.getManuscript();
-        if (manuscript != null) {
-            AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
+        AuthorsNoteData data = event.getProperty(AuthorsNoteData.KEY);   // the note that was counted
+        if (data != null) {
             event.setPayload(authorsNoteService.insertNote(event.getPayload(), data));
         }
     } catch (Exception e) {
@@ -369,15 +380,17 @@ private void insertAuthorsNote(GenerationControllerEvent event, EventChain chain
 }
 ```
 
-**Unloading** calls `payloadRegistration.unregister()` besides removing the decorator and the tabs - a listener left
+**Unloading** unregisters both listeners besides removing the decorator and the tabs - a listener left
 registered would keep changing the prompts of every user.
 
 What to take from it:
 
 - `chain.next()` in `finally` - the generation waits for every listener;
 - listeners are global, so act only on the data of the book being generated;
-- read data the user may have changed since the generation started again, with the service;
+- reserve the tokens of what you add (`PrePromptData.reservedTokens`) before the budget is computed, and add to the
+  reservation instead of overwriting it;
+- pass state from one event to the next in `event.getProperties()`, under your package name;
 - build a new payload and `setPayload(...)` it instead of changing the list you got.
 
-[Generation events](generation-events.md) explains the payload, the choice of the event and the token budget in
+[Generation events](generation-events.md) explains the payload, the choice of the events and reserving tokens in
 detail.

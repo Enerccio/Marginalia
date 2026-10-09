@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844859808969">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844863335823">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844859808969" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844863335823" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844863335823" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844863335823" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -176,7 +176,7 @@ Changes are saved to the book as you type and used by the next generation.</p>
 | **Insert into prompt** | Turns the note on or off without deleting it. |
 | **Insertion depth** | Where the note goes, counted in messages from the end of the prompt: `0` - after the instructions of the turn (the very last message), `1` - right before them, `2` - before the last story part, and so on. A large depth puts the note right after the system prompt. |
 | **Role** | Whether the note is sent as a *System*, *User* or *Assistant* message. |
-| **Author's Note** | The text sent to the model. An empty note is not sent. |
+| **Author's Note** | The text sent to the model. An empty note is not sent. Below it, an estimate of its size in tokens. |
 | **Author's Note (private)** | Notes for yourself - plans, reminders. Never sent to the model. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -201,7 +201,7 @@ Changes are saved to the book as you type and used by the next generation.</p>
 </tr>
 <tr>
 <td><strong>Author&#x27;s Note</strong></td>
-<td>The text sent to the model. An empty note is not sent.</td>
+<td>The text sent to the model. An empty note is not sent. Below it, an estimate of its size in tokens.</td>
 </tr>
 <tr>
 <td><strong>Author&#x27;s Note (private)</strong></td>
@@ -239,7 +239,8 @@ instructions:</p>
 <li><strong>the Author&#x27;s Note</strong></li>
 <li>the instructions of the turn</li>
 </ol>
-<p>The note is not counted when Marginalia decides how much of the story fits into the context: keep it short.</p>
+<p>The note&#x27;s tokens are taken from the room for the story: a longer note means fewer story parts in the prompt. A note
+that doesn&#x27;t leave room even for the rest of the prompt stops the generation with <em>Contextual limit not sufficient</em>.</p>
 <h2 id="storage">Storage</h2>
 <p>The note is stored with the book, so it is part of <a href="../../books/backups/">book backups</a> and copies.</p>
 

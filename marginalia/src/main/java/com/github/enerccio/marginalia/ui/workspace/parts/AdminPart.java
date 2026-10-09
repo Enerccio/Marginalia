@@ -217,7 +217,7 @@ public class AdminPart implements WorkspaceComponent {
         upload.setUploadButton(new Button(loc.getValue(L.LABEL_UPLOAD_EXTENSION), VaadinIcon.UPLOAD.create()));
         upload.setDropLabel(new Div(new Button(loc.getValue(L.LABEL_UPLOAD_EXTENSION))));
 
-        Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH_EXTENSIONS), VaadinIcon.REFRESH.create());
+        Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), VaadinIcon.REFRESH.create());
         refreshButton.addClickListener(e -> refreshGrid());
 
         toolbar.add(upload, refreshButton);

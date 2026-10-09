@@ -51,7 +51,7 @@ public class TestExtensionActivator implements BundleActivator {
         }
 
         @Override
-        public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+        public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
             UNLOADED.merge(key(b), 1, Integer::sum);
         }
     }

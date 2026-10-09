@@ -7,7 +7,6 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService.Extendable
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
-import com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LorebookVCSData;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.service.LorebookVCSService;
@@ -143,7 +142,7 @@ public class LorebookVCSExtension implements MarginaliaExtension {
     }
 
     @Override
-    public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+    public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
         if (viewCreateDecorator != null) {
             extensionService.unregisterDecorator(viewCreateDecorator);
         }

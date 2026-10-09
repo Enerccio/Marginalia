@@ -14,7 +14,7 @@ Changes are saved to the book as you type and used by the next generation.
 | **Insert into prompt** | Turns the note on or off without deleting it. |
 | **Insertion depth** | Where the note goes, counted in messages from the end of the prompt: `0` - after the instructions of the turn (the very last message), `1` - right before them, `2` - before the last story part, and so on. A large depth puts the note right after the system prompt. |
 | **Role** | Whether the note is sent as a *System*, *User* or *Assistant* message. |
-| **Author's Note** | The text sent to the model. An empty note is not sent. |
+| **Author's Note** | The text sent to the model. An empty note is not sent. Below it, an estimate of its size in tokens. |
 | **Author's Note (private)** | Notes for yourself - plans, reminders. Never sent to the model. |
 
 !!!
@@ -33,7 +33,8 @@ instructions:
 3. **the Author's Note**
 4. the instructions of the turn
 
-The note is not counted when Marginalia decides how much of the story fits into the context: keep it short.
+The note's tokens are taken from the room for the story: a longer note means fewer story parts in the prompt. A note
+that doesn't leave room even for the rest of the prompt stops the generation with *Contextual limit not sufficient*.
 
 ## Storage
 
