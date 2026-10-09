@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Extending the UI</title>
     <meta name="title" content="Extending the UI">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="Plugins add to the user interface from decorators: when a method that builds part of a screen runs, the plugin's decorator finds the component it built and adds to it.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions/">
     <meta property="og:title" content="Extending the UI">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="Plugins add to the user interface from decorators: when a method that builds part of a screen runs, the plugin's decorator finds the component it built and adds to it.">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +31,19 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions/">
     <meta name="twitter:title" content="Extending the UI">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="Plugins add to the user interface from decorators: when a method that builds part of a screen runs, the plugin's decorator finds the component it built and adds to it.">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,7 +166,230 @@
 
                 <!-- Page content  -->
 <h1 id="extending-the-ui">Extending the UI</h1>
-<!-- Planned content: Adding panels and components to the workspace from a plugin. -->
+<p>Plugins add to the user interface from decorators: when a method that builds part of a screen runs, the plugin&#x27;s
+decorator finds the component it built and adds to it. This page collects the patterns the bundled plugins use. Read
+<a href="../extendable/">@Extendable hooks</a> first, and <a href="../../ui/">User interface</a> for the conventions of the UI code.</p>
+<h2 id="the-basic-pattern">The basic pattern</h2>
+<div id="the-basic-pattern-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Override
+public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+    if (throwing != null) {
+        return;                                                   // the method failed, leave it alone
+    }
+    ContextMenu menu = context.getReflectiveFieldValue(instrumented, &quot;hamburgerMenu&quot;, ContextMenu.class);
+    if (menu == null || ComponentUtil.getData(menu, MY_ITEM_KEY) != null) {
+        return;                                                   // nothing to extend, or already extended
+    }
+    MenuItem item = menu.addItem(&quot;My action&quot;, event -&gt; myAction(...));
+    ComponentUtil.setData(menu, MY_ITEM_KEY, item);               // mark it, keep a handle for unloading
+    trackedMenus.add(menu);                                       // remember it for onExtensionUnload
+}</code></pre>
+</doc-codeblock></div>
+<ol>
+<li>
+<p><strong>Find the component</strong> - a field, a local variable or an argument of the decorated method.</p>
+</li>
+<li>
+<p><strong>Add only once.</strong> Many methods run more than once for the same component (<code translate="no" v-pre>refresh()</code>, <code translate="no" v-pre>UserPart.refresh</code>...),
+so mark the component with <code translate="no" v-pre>ComponentUtil.setData(component, key, value)</code> and check the mark first. Use keys
+prefixed with your plugin&#x27;s name.</p>
+</li>
+<li>
+<p><strong>Remember what you added</strong>, so that <code translate="no" v-pre>onExtensionUnload</code> can remove it (<doc-anchor-trigger to="#unloading">Unloading</doc-anchor-trigger>).</p>
+</li>
+</ol>
+<h2 id="recipes">Recipes</h2>
+<h3 id="menu-items-on-a-story-part">Menu items on a story part</h3>
+<p>Decorate <code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard.createMenuItems</code> (called by the card&#x27;s constructor) and add to the
+<code translate="no" v-pre>hamburgerMenu</code> field. The card&#x27;s <code translate="no" v-pre>message</code> field is the part. Reviewer adds a sub-menu:</p>
+<div id="menu-items-on-a-story-part-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">MenuItem reviewMenuItem = hamburgerMenu.addItem(&quot;Review&quot;);
+reviewMenuItem.addComponentAsFirst(VaadinIcon.STAR.create());
+reviewMenuItem.getSubMenu().addItem(&quot;View / Generate Review&quot;, e -&gt; openReviewDialog(message));</code></pre>
+</doc-codeblock></div>
+<p>To update items each time the menu opens, decorate <code translate="no" v-pre>refreshSummaryMenuItems</code>, which the card runs from the menu&#x27;s
+opened listener.</p>
+<p>The card replaces its <code translate="no" v-pre>message</code> with the saved copy whenever the part is edited, so read the field again in the click
+listener (<code translate="no" v-pre>context.getReflectiveFieldValue(card, &quot;message&quot;, ...)</code>) rather than capturing it when the menu is built.</p>
+<h3 id="a-tab-next-to-the-story">A tab next to the story</h3>
+<p><code translate="no" v-pre>ManuscriptStoryPart.renderStoryContent()</code> rebuilds the whole story view - and the <code translate="no" v-pre>leftBar</code> tab sheet with the story
+outline - every time the story is redrawn (opening the book, after a generation, after a delete). Side Query adds its
+tab on leave:</p>
+<div id="a-tab-next-to-the-story-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">VTabSheet leftBar = context.getReflectiveFieldValue(instrumented, &quot;leftBar&quot;, VTabSheet.class);
+Manuscript book = context.getReflectiveFieldValue(instrumented, &quot;currentManuscript&quot;, Manuscript.class);
+if (leftBar != null &amp;&amp; book != null &amp;&amp; ComponentUtil.getData(leftBar, KEY) == null) {
+    SideQueryView view = new SideQueryView(book, sideQueryService);
+    leftBar.add(&quot;Side Query&quot;, view);
+    ComponentUtil.setData(leftBar, KEY, view);
+}</code></pre>
+</doc-codeblock></div>
+<p>Because the tab sheet is new on every redraw, so is the plugin&#x27;s component - keep state that must survive a redraw
+in the plugin&#x27;s data, not in the component.</p>
+<h3 id="panels-in-an-existing-layout">Panels in an existing layout</h3>
+<p>Find the layout and insert at a position relative to a known child. Lorebook VCS puts its panel above the lorebook
+header that <code translate="no" v-pre>LorebookView.create()</code> builds:</p>
+<div id="panels-in-an-existing-layout-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">HorizontalLayout header = context.getLocalVariable(&quot;lorebookHeaderLayout&quot;, HorizontalLayout.class);
+int index = lorebookView.indexOf(header);
+lorebookView.addComponentAtIndex(Math.max(index, 0), panel);</code></pre>
+</doc-codeblock></div>
+<p>A component created once for a view must not hold on to things that change in it: <code translate="no" v-pre>LorebookView</code> stays the same
+when the user picks another lorebook, so a panel bound to the lorebook it was created with ends up acting on the
+wrong one (BUG-49). Look the current value up when it&#x27;s needed (<code translate="no" v-pre>lorebookView.getCurrentLorebook()</code>), or hook the
+method that switches it.</p>
+<h3 id="changing-what-the-application-built">Changing what the application built</h3>
+<p>The decorator can change any component the method built. Chapter Marker relabels the sidebar button of a part:</p>
+<div id="changing-what-the-application-built-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">ChatMessage msg = context.getMethodArgument(&quot;msg&quot;, ChatMessage.class);
+Button sidebarBtn = context.getLocalVariable(&quot;sidebarBtn&quot;, Button.class);
+sidebarBtn.setText(orderId + &quot;. &quot; + chapterTitle);
+sidebarBtn.getStyle().set(&quot;color&quot;, &quot;var(--lumo-primary-color)&quot;);</code></pre>
+</doc-codeblock></div>
+<p>If more plugins change the same component, they run in the order they were loaded and the last one wins - append
+or prefix rather than replace where you can.</p>
+<h3 id="settings-panels">Settings panels</h3>
+<p>The <em>Settings</em> screen (<code translate="no" v-pre>UserPart</code>) has an <em>Extension Settings</em> tab with an <code translate="no" v-pre>Accordion</code> in the field
+<code translate="no" v-pre>extensionSettings</code>, empty unless plugins add to it. The bundled plugins use two decorators:</p>
+<div id="settings-panels-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">// UserPart.refresh, on leave: add the panel once, refresh it on later calls
+Accordion accordion = context.getReflectiveFieldValue(instrumented, &quot;extensionSettings&quot;, Accordion.class);
+AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(accordion, SETTINGS_PANEL_KEY);
+if (panel == null) {
+    panel = accordion.add(&quot;Reviewer Settings&quot;, new ReviewerSettingsForm(reviewerService));
+    ComponentUtil.setData(accordion, SETTINGS_PANEL_KEY, panel);
+} else {
+    ((ReviewerSettingsForm) panel.getContent().findFirst().orElseThrow()).refresh();
+}
+
+// UserPart.save, on ENTER: put the form's values into the user's settings object...
+UserSetting userSetting = context.getReflectiveFieldValue(instrumented, &quot;userSetting&quot;, UserSetting.class);
+reviewerService.saveSettings(form.save(), userSetting);     // writes into userSetting.getAttributes()
+// ...which the body of save() then stores with settingService.save(userSetting)</code></pre>
+</doc-codeblock></div>
+<p>Saving on enter lets the application&#x27;s own <code translate="no" v-pre>settingService.save(userSetting)</code> store the plugin&#x27;s values too. Note that
+<code translate="no" v-pre>save()</code> returns early when the application&#x27;s own fields don&#x27;t validate - then the plugin&#x27;s values are not stored
+either.</p>
+<h3 id="dialogs-and-own-components">Dialogs and own components</h3>
+<p>Plugin dialogs and components are ordinary Vaadin classes in the bundle. Annotate them <code translate="no" v-pre>@Configurable</code> to inject
+services. Follow the application&#x27;s conventions (<a href="../../ui/#conventions">User interface → Conventions</a>).</p>
+<p>What plugins can&#x27;t do:</p>
+<ul>
+<li>
+<p><strong>Add frontend resources.</strong> The browser side of Marginalia is one bundle built with the WAR. A plugin can use every
+Vaadin component and add-on the application already uses (Vaadin core components, the FontAwesome icons,
+Viritin&#x27;s <code translate="no" v-pre>VTabSheet</code>...), but <code translate="no" v-pre>@CssImport</code>, <code translate="no" v-pre>@JsModule</code>, <code translate="no" v-pre>@NpmPackage</code> and add-ons with their own web
+components don&#x27;t work from a plugin. Style with <code translate="no" v-pre>getStyle()</code> and Lumo CSS variables
+(<code translate="no" v-pre>var(--lumo-primary-color)</code>), or with <code translate="no" v-pre>executeJs</code> if you must.</p>
+</li>
+<li>
+<p><strong>Add localization keys.</strong> <code translate="no" v-pre>Localization</code> knows only the application&#x27;s <code translate="no" v-pre>L</code> keys. The bundled plugins use English
+strings; a plugin that wants translations has to bring its own (a <code translate="no" v-pre>ResourceBundle</code> in the bundle, chosen by
+<code translate="no" v-pre>UI.getCurrent().getLocale()</code>).</p>
+</li>
+<li>
+<p><strong>Add routes.</strong> Routes are registered when the servlet starts. Use dialogs and tabs instead.</p>
+</li>
+</ul>
+<h2 id="errors">Errors</h2>
+<p>Inside click listeners and other event handlers, catch exceptions and report them like the application does:
+<code translate="no" v-pre>UIUtils.internalServerError(loc, e)</code> logs and shows an error dialog - pass an injected <code translate="no" v-pre>Localization</code>, not <code translate="no" v-pre>null</code>
+(BUG-50). Expected problems go to <code translate="no" v-pre>Notification</code>. Exceptions in decorators themselves are logged by the
+<code translate="no" v-pre>ExtensionService</code> and don&#x27;t need handling unless you want to show something.</p>
+<h2 id="threads">Threads</h2>
+<p>Decorators run on the thread that called the decorated method. For UI methods that&#x27;s a request thread holding the
+Vaadin session lock, so decorators can change components directly and services see the current user.</p>
+<p>Anything slow - calling the model, large imports - belongs on another thread, with the same rules as in the
+application (<a href="../../ui/#background-work-and-push">Background work and push</a>): capture <code translate="no" v-pre>UI.getCurrent()</code> on the UI
+thread, change components only inside <code translate="no" v-pre>ui.access(...)</code>, push with <code translate="no" v-pre>UIPushGuard.push(ui)</code>, and wrap service calls that
+need the current user in the request scope.</p>
+<h3 id="calling-the-model">Calling the model</h3>
+<p><code translate="no" v-pre>InferenceServices.forAI(ai)</code> returns the client for a provider; <code translate="no" v-pre>stream(...)</code> sends a list of messages and calls back
+as the answer arrives, on another thread. Reviewer&#x27;s review dialog, shortened:</p>
+<div id="calling-the-model-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">UI ui = UI.getCurrent();
+InferenceService service = inferenceServices.forAI(ai);
+List&lt;LLMChatMessage&gt; payload = List.of(
+        LLMChatMessage.of(LLMRole.SYSTEM, &quot;You are a literary critic.&quot;),
+        LLMChatMessage.of(LLMRole.USER, &quot;Review this:\n\n&quot; + message.getResponse()));
+
+CancellationToken token = service.stream(payload, protocol, new InferenceService.InferenceAsyncCallback() {
+    private final StringBuilder text = new StringBuilder();
+
+    @Override
+    public void onChunk(InferenceService.InferenceAsyncController controller, InferenceService.ChunkType type, String chunk) {
+        ui.access(() -&gt; {
+            if (type == InferenceService.ChunkType.RESPONSE) {
+                text.append(chunk);
+                reviewText.setText(text.toString());
+            }
+            UIPushGuard.push(ui);
+            controller.continueInference();          // ask for the next chunk - the stream is pulled
+        });
+    }
+
+    @Override public void onCompletion() { ui.access(() -&gt; { save(text.toString()); UIPushGuard.push(ui); }); }
+    @Override public void onCancel()     { ui.access(() -&gt; UIPushGuard.push(ui)); }
+    @Override public void onError(Throwable e) { ui.access(() -&gt; { showError(e); UIPushGuard.push(ui); }); }
+    @Override public boolean isDead()    { return ui.isClosing(); }   // nobody left to show it to
+});
+// token.cancel() stops the stream, e.g. when the dialog closes</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p><strong>Call <code translate="no" v-pre>controller.continueInference()</code></strong> after each chunk, or the stream stops after the first one.
+<code translate="no" v-pre>terminateInference()</code> ends it early.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>protocol</code> supplies sampling parameters and the response limit; it may be <code translate="no" v-pre>null</code>.</p>
+</li>
+<li>
+<p>Fit the prompt into the model&#x27;s context yourself: <code translate="no" v-pre>TokenLimits.promptTokens(ai, protocol)</code> is the room left for the
+prompt, <code translate="no" v-pre>service.countTokens(text)</code> (or the cheaper <code translate="no" v-pre>countTokensApprox</code>) counts.</p>
+</li>
+<li>
+<p>The stream stops when the token is cancelled or <code translate="no" v-pre>isDead()</code> returns <code translate="no" v-pre>true</code>, both checked between chunks; the
+callback then gets <code translate="no" v-pre>onCancel()</code>.</p>
+</li>
+</ul>
+<p>To change what a <em>story</em> generation sends or receives, don&#x27;t call the model yourself - register a generation listener
+(<a href="../../generation-pipeline/#events-for-extensions">Generation pipeline → Events for extensions</a>).</p>
+<h2 id="unloading">Unloading</h2>
+<p>When a plugin is unloaded, components it added to open screens stay there - with listeners pointing into a bundle
+that is gone - unless the plugin removes them. There are two ways.</p>
+<p><strong>Track and remove</strong> - what Reviewer and Side Query do. Keep the extended components in weak sets (so that closed
+screens can be garbage collected) and undo the changes in <code translate="no" v-pre>onExtensionUnload</code>:</p>
+<div id="unloading-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">private final Set&lt;ContextMenu&gt; menus = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap&lt;&gt;()));
+
+@Override
+public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+    extensionService.unregisterDecorator(menuDecorator);
+    synchronized (menus) {
+        for (ContextMenu menu : menus) {
+            menu.getUI().ifPresent(ui -&gt; ui.access(() -&gt; {
+                MenuItem item = (MenuItem) ComponentUtil.getData(menu, MY_ITEM_KEY);
+                if (item != null) {
+                    menu.remove(item);
+                    ComponentUtil.setData(menu, MY_ITEM_KEY, null);
+                }
+            }));
+        }
+        menus.clear();
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p><strong>Bind a callback</strong> - <code translate="no" v-pre>OsgiService.bindAttachableComponent(component, callback, extension)</code> registers <code translate="no" v-pre>callback</code> to
+run when the extension is unloaded, and forgets it when <code translate="no" v-pre>component</code> is detached:</p>
+<div id="unloading-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">SideQueryView view = new SideQueryView(book, service);
+leftBar.add(&quot;Side Query&quot;, view);
+osgiService.bindAttachableComponent(view,
+        () -&gt; view.getUI().ifPresent(ui -&gt; ui.access(() -&gt; leftBar.remove(view))), this);</code></pre>
+</doc-codeblock></div>
+<p>(<code translate="no" v-pre>osgiService</code> is the one passed to <code translate="no" v-pre>onExtensionLoad</code>, or injected.) The callbacks run before <code translate="no" v-pre>onExtensionUnload</code>. A
+component that is detached and attached again loses its callback (BUG-54), so use this for components that are
+attached once.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -178,11 +402,14 @@
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
+            <h5>Other users&#x27; sessions</h5>
+<p><code translate="no" v-pre>onExtensionUnload</code> and the bound callbacks run on the request thread of the administrator who clicked <em>Unload</em>, but
+the components belong to every user&#x27;s open screens. Change them inside <code translate="no" v-pre>component.getUI().ifPresent(ui -&gt; ui.access(...))</code>, as above - the bundled Reviewer and Side Query change them directly (BUG-53).</p>
         </div>
     </div>
 </div>
+<p>Data in attributes stays after unloading, so loading the plugin again picks up where it left off. If your plugin is
+uninstalled for good, its data stays in the database (and in backups) - harmless, but say so in its README.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -249,6 +476,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Extending the UI", level: 3, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/plugins/ui-extensions.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Extending the UI", level: 3, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/plugins/ui-extensions.md" }</script>
 </body>
 </html>

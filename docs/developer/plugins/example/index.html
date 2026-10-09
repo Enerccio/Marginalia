@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Example plugin</title>
     <meta name="title" content="Example plugin">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through the smallest bundled plugin, Chapter Marker.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/plugins/example/">
@@ -23,7 +23,11 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/plugins/example/">
     <meta property="og:title" content="Example plugin">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through the smallest bundled plugin, Chapter Marker.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/dev-plugin-bookmarks.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Example plugin">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +35,21 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/plugins/example/">
     <meta name="twitter:title" content="Example plugin">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through the smallest bundled plugin, Chapter Marker.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/dev-plugin-bookmarks.png">
+    <meta name="twitter:image:alt" content="Example plugin">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/plugins/example.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,24 +172,335 @@
 
                 <!-- Page content  -->
 <h1 id="example-plugin">Example plugin</h1>
-<!-- Planned content: Walkthrough of a bundled plugin. -->
+<p>This page builds a small plugin from scratch - <em>Bookmarks</em>, which lets you bookmark story parts - and then walks
+through the smallest bundled plugin, Chapter Marker. Together they use everything from the previous pages: a
+bundle, decorators reading arguments, locals and fields, data in attributes, and cleanup on unload.</p>
+<h2 id="bookmarks">Bookmarks</h2>
+<p>What it does:</p>
+<ul>
+<li>every story part&#x27;s menu gets a <em>Toggle bookmark</em> item,</li>
+<li>bookmarked parts are marked with ★ in the story sidebar,</li>
+<li>the bookmark is stored on the part, so it&#x27;s kept in backups and copied by <em>Branch Story</em>.</li>
+</ul>
+<figure class="content-center">
+    <img src="../../../images/dev-plugin-bookmarks.png" alt="The Bookmarks example: a bookmarked part in the sidebar and the Toggle bookmark menu item" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="1000" />
+    <figcaption class="caption">The Bookmarks example: a bookmarked part in the sidebar and the Toggle bookmark menu item</figcaption>
+</figure>
+<h3 id="1-install-the-application">1. Install the application</h3>
+<p>The plugin compiles against the application&#x27;s classes, installed in the local Maven repository:</p>
+<div id="1-install-the-application-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia
+mvn install -DskipTests</code></pre>
+</doc-codeblock></div>
+<h3 id="2-create-the-project">2. Create the project</h3>
+<div id="2-create-the-project-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">bookmarks/
+├── pom.xml
+└── src/main/java/com/example/marginalia/bookmarks/
+    ├── BookmarksActivator.java
+    └── BookmarksExtension.java</code></pre>
+</doc-codeblock></div>
+<p>Copy <code translate="no" v-pre>marginalia/plugins/chaptermarker/pom.xml</code> and change:</p>
+<ul>
+<li><code translate="no" v-pre>groupId</code> to <code translate="no" v-pre>com.example.marginalia</code>, <code translate="no" v-pre>artifactId</code> to <code translate="no" v-pre>bookmarks</code>,</li>
+<li><code translate="no" v-pre>Bundle-Activator</code> to <code translate="no" v-pre>com.example.marginalia.bookmarks.BookmarksActivator</code>,</li>
+<li><code translate="no" v-pre>Import-Package</code> to <code translate="no" v-pre>!com.example.marginalia.bookmarks.*</code> and <code translate="no" v-pre>Export-Package</code> to
+<code translate="no" v-pre>com.example.marginalia.bookmarks.*</code>.</li>
+</ul>
+<p>Keep the rest - the <code translate="no" v-pre>provided</code> dependencies, the AspectJ plugin (for <code translate="no" v-pre>@Configurable</code>) and the bundle plugin. See
+<a href="../overview/#pomxml">Plugin basics → pom.xml</a> for what each part does.</p>
+<h3 id="3-the-activator">3. The activator</h3>
+<p>It only registers the extension:</p>
+<div id="3-the-activator-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">package com.example.marginalia.bookmarks;
+
+import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+
+public class BookmarksActivator implements BundleActivator {
+
+    private ServiceRegistration&lt;MarginaliaExtension&gt; registration;
+
+    @Override
+    public void start(BundleContext context) {
+        registration = context.registerService(MarginaliaExtension.class, new BookmarksExtension(), null);
+    }
+
+    @Override
+    public void stop(BundleContext context) {
+        if (registration != null) {
+            registration.unregister();
+            registration = null;
+        }
+    }
+}</code></pre>
+</doc-codeblock></div>
+<h3 id="4-the-extension">4. The extension</h3>
+<div id="4-the-extension-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">package com.example.marginalia.bookmarks;
+
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.ExtensionService;
+import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
+import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
+import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl;
+import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
+import com.google.gson.JsonObject;
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.notification.Notification;
+import org.osgi.framework.Bundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
+
+@Configurable
+public class BookmarksExtension implements MarginaliaExtension {
+    private static final Logger log = LoggerFactory.getLogger(BookmarksExtension.class);
+
+    private static final String KEY = &quot;com.example.marginalia.bookmarks&quot;;
+    private static final String MENU_ITEM_KEY = KEY + &quot;.menuItem&quot;;
+
+    private static final String STORY_PART = &quot;com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart&quot;;
+    private static final String MESSAGE_CARD = STORY_PART + &quot;$ChatMessageCard&quot;;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    private final Set&lt;ContextMenu&gt; menus = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap&lt;&gt;()));
+    private List&lt;ExtensionDecorator&gt; decorators = List.of();
+
+    @Override
+    public void onExtensionLoad(Bundle bundle, OsgiService osgiService, ExtensionService extensionService) {
+        ExtensionDecorator menuDecorator = new ExtensionDecorator() {
+            @Override
+            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+            }
+
+            @Override
+            public void onMethodLeave(Object card, ExtendableMethodContext context, Throwable throwing) {
+                if (throwing != null) {
+                    return;
+                }
+                ContextMenu menu = context.getReflectiveFieldValue(card, &quot;hamburgerMenu&quot;, ContextMenu.class);
+                if (menu == null || ComponentUtil.getData(menu, MENU_ITEM_KEY) != null) {
+                    return;
+                }
+                MenuItem item = menu.addItem(&quot;Toggle bookmark&quot;, event -&gt; {
+                    try {
+                        // read the field when clicked - the card replaces its message on every save
+                        ChatMessage shown = context.getReflectiveFieldValue(card, &quot;message&quot;, ChatMessage.class);
+                        ChatMessage fresh = chatMessageService.find(shown.getId());
+                        setBookmarked(fresh, !isBookmarked(fresh));
+                        chatMessageService.save(fresh);
+
+                        // redraw the story so the sidebar shows the change
+                        ManuscriptStoryPart storyPart = context.getReflectiveFieldValue(card, &quot;this$0&quot;, ManuscriptStoryPart.class);
+                        context.callReflectiveMethod(storyPart, &quot;renderStoryContent&quot;, new Class&lt;?&gt;[0], new Object[0], void.class);
+                    } catch (Exception e) {
+                        log.error(&quot;Cannot toggle bookmark&quot;, e);
+                        Notification.show(&quot;Cannot toggle bookmark: &quot; + e.getMessage());
+                    }
+                });
+                ComponentUtil.setData(menu, MENU_ITEM_KEY, item);
+                menus.add(menu);
+            }
+        };
+
+        ExtensionDecorator sidebarDecorator = new ExtensionDecorator() {
+            @Override
+            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+            }
+
+            @Override
+            public void onMethodLeave(Object storyPart, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                if (throwing != null) {
+                    return;
+                }
+                ChatMessage msg = context.getMethodArgument(&quot;msg&quot;, ChatMessage.class);
+                if (isBookmarked(msg) &amp;&amp; context.hasLocalVariable(&quot;sidebarBtn&quot;, Button.class)) {
+                    Button sidebarBtn = context.getLocalVariable(&quot;sidebarBtn&quot;, Button.class);
+                    sidebarBtn.setText(&quot;★ &quot; + sidebarBtn.getText());
+                }
+            }
+        };
+
+        try {
+            extensionService.registerDecorator(menuDecorator, MESSAGE_CARD, &quot;createMenuItems&quot;);
+            extensionService.registerDecorator(sidebarDecorator, STORY_PART, &quot;createSidebarButton&quot;);
+            decorators = List.of(menuDecorator, sidebarDecorator);
+        } catch (Exception e) {
+            log.error(&quot;Bookmarks extension failed to load&quot;, e);
+        }
+    }
+
+    @Override
+    public void onExtensionUnload(Bundle bundle, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+        decorators.forEach(extensionService::unregisterDecorator);
+        decorators = List.of();
+
+        synchronized (menus) {
+            for (ContextMenu menu : menus) {
+                // menus belong to other sessions - change them under their own lock
+                menu.getUI().ifPresent(ui -&gt; ui.access(() -&gt; {
+                    MenuItem item = (MenuItem) ComponentUtil.getData(menu, MENU_ITEM_KEY);
+                    if (item != null) {
+                        menu.remove(item);
+                        ComponentUtil.setData(menu, MENU_ITEM_KEY, null);
+                    }
+                }));
+            }
+            menus.clear();
+        }
+    }
+
+    static boolean isBookmarked(ChatMessage message) {
+        JsonObject attributes = message != null ? message.getAttributes() : null;
+        return attributes != null &amp;&amp; attributes.has(KEY) &amp;&amp; attributes.get(KEY).getAsBoolean();
+    }
+
+    static void setBookmarked(ChatMessage message, boolean bookmarked) {
+        if (message.getAttributes() == null) {
+            message.setAttributes(new JsonObject());
+        }
+        if (bookmarked) {
+            message.getAttributes().addProperty(KEY, true);
+        } else {
+            message.getAttributes().remove(KEY);
+        }
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p>How it works:</p>
+<ul>
+<li>
+<p><strong>Two decorators.</strong> <code translate="no" v-pre>menuDecorator</code> runs after <code translate="no" v-pre>ChatMessageCard.createMenuItems()</code> - the card&#x27;s constructor calls
+it, so every card gets the item. <code translate="no" v-pre>sidebarDecorator</code> runs after <code translate="no" v-pre>ManuscriptStoryPart.createSidebarButton(msg, orderId, dbId)</code>, which <code translate="no" v-pre>renderStoryContent()</code> calls for each part of the branch.</p>
+</li>
+<li>
+<p><strong>Reaching the components.</strong> The menu is the card&#x27;s field <code translate="no" v-pre>hamburgerMenu</code>; the sidebar button is the local
+variable <code translate="no" v-pre>sidebarBtn</code> of <code translate="no" v-pre>createSidebarButton</code>, the part is its argument <code translate="no" v-pre>msg</code>. Both names are checked before use
+(<code translate="no" v-pre>hasLocalVariable</code>) or fail with a logged warning if the application changes.</p>
+</li>
+<li>
+<p><strong>Adding once.</strong> <code translate="no" v-pre>ComponentUtil.setData(menu, MENU_ITEM_KEY, item)</code> marks the menu; a second call for the same menu
+does nothing.</p>
+</li>
+<li>
+<p><strong>Data.</strong> The bookmark is one boolean under the plugin&#x27;s key in the part&#x27;s <code translate="no" v-pre>attributes</code>. The click listener reads
+the card&#x27;s <code translate="no" v-pre>message</code> field at click time and reloads the part (<code translate="no" v-pre>chatMessageService.find(id)</code>) before changing it,
+because the card&#x27;s copy may be stale (<a href="../extended-attributes/#storing-and-reading-data">Extended attributes</a>).</p>
+</li>
+<li>
+<p><strong>Redrawing.</strong> After saving it calls the story part&#x27;s private <code translate="no" v-pre>renderStoryContent()</code> through
+<code translate="no" v-pre>callReflectiveMethod</code>, reaching the outer <code translate="no" v-pre>ManuscriptStoryPart</code> through the inner class&#x27;s <code translate="no" v-pre>this$0</code> field. The
+redraw runs <code translate="no" v-pre>createSidebarButton</code> again, so the sidebar decorator adds the ★.</p>
+</li>
+<li>
+<p><strong>Unloading.</strong> Decorators are unregistered; menu items are removed from the tracked menus inside each menu&#x27;s own
+<code translate="no" v-pre>ui.access(...)</code>, because they belong to other users&#x27; sessions
+(<a href="../ui-extensions/#unloading">Extending the UI → Unloading</a>). Sidebar buttons lose their ★ on the next redraw.</p>
+</li>
+<li>
+<p><strong>Errors.</strong> <code translate="no" v-pre>onExtensionLoad</code> runs without a UI, so it logs instead of opening an error dialog.</p>
+</li>
+</ul>
 <div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
+    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-primary"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
         <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-primary" width="22" height="22" viewBox="0 0 24 24" role="presentation">
                 <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                    <path d="M12 1C5.93 1 1 5.93 1 12s4.93 11 11 11 11-4.93 11-11S18.07 1 12 1zm0 20c-4.96 0-9-4.04-9-9s4.04-9 9-9 9 4.04 9 9-4.04 9-9 9z"></path>
+                    <path d="M12 11c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1s1-.45 1-1v-4c0-.55-.45-1-1-1zM12.01 7c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                    <path fill="none" d="M0 0h24v24H0z"></path>
                 </g></g>
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
+<p>With Chapter Marker installed too, both plugins decorate <code translate="no" v-pre>createSidebarButton</code>, and decorators run in the order the
+plugins were loaded. Bookmarks prefixes the text, so it works after Chapter Marker; Chapter Marker replaces the text
+of chapter parts, so the ★ of a bookmarked chapter is lost when Chapter Marker runs second (and when the part is
+edited).</p>
         </div>
     </div>
 </div>
+<h3 id="5-build-and-load">5. Build and load</h3>
+<div id="5-build-and-load-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd bookmarks
+mvn package                     # target/bookmarks-1.0.0.jar</code></pre>
+</doc-codeblock></div>
+<p>Load <code translate="no" v-pre>target/bookmarks-1.0.0.jar</code> in <em>Admin → Extensions</em> and open a book (books that were already open need to be
+closed and opened again). Open a part&#x27;s menu, choose <em>Toggle bookmark</em> - the part&#x27;s sidebar entry gets the ★.</p>
+<p>If nothing appears, look in the log for <code translate="no" v-pre>Mod 'com.example.marginalia.bookmarks.BookmarksExtension$...' skipped on ...</code> (a name that doesn&#x27;t exist) or <code translate="no" v-pre>Unhandled exception in extension ...</code>.</p>
+<h3 id="where-to-go-from-here">Where to go from here</h3>
+<ul>
+<li>
+<p>Show the bookmarks in a tab of their own: decorate <code translate="no" v-pre>renderStoryContent()</code> and add a tab to <code translate="no" v-pre>leftBar</code>, like Side
+Query (<a href="../ui-extensions/#a-tab-next-to-the-story">A tab next to the story</a>).</p>
+</li>
+<li>
+<p>Put bookmarked parts into the prompt: register a listener for <code translate="no" v-pre>AFTER_MANUSCRIPT_CONCATENATION</code>
+(<a href="../../generation-pipeline/#events-for-extensions">Generation pipeline</a>).</p>
+</li>
+</ul>
+<h2 id="walkthrough-chapter-marker">Walkthrough: Chapter Marker</h2>
+<p><code translate="no" v-pre>marginalia/plugins/chaptermarker</code> turns the story sidebar into a table of contents: a part whose text contains a
+Markdown heading is shown as <code translate="no" v-pre>5. Chapter 3: The Harbour</code>, highlighted. It has two classes and no data of its own -
+the heading is part of the story text.</p>
+<p><code translate="no" v-pre>ChapterMarkingActivator</code> is the same as the Bookmarks activator. <code translate="no" v-pre>ChapterMarkingExtension</code> registers two decorators
+in <code translate="no" v-pre>onExtensionLoad</code>.</p>
+<p><strong>Labelling the sidebar</strong> - after <code translate="no" v-pre>ManuscriptStoryPart.createSidebarButton(msg, orderId, dbId)</code>:</p>
+<div id="walkthrough-chapter-marker-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">ChatMessage msg = context.getMethodArgument(&quot;msg&quot;, ChatMessage.class);
+Integer orderId = context.getMethodArgument(&quot;orderId&quot;, int.class);      // primitive argument: ask for int.class
+
+VerticalLayout sidebarList = context.getReflectiveFieldValue(instrumented, &quot;sidebarList&quot;, VerticalLayout.class);
+
+Button sidebarBtn = null;
+if (context.hasLocalVariable(&quot;sidebarBtn&quot;, Button.class)) {
+    sidebarBtn = context.getLocalVariable(&quot;sidebarBtn&quot;, Button.class);
+} else if (sidebarList.getComponentAt(sidebarList.getComponentCount() - 1) instanceof Button lastBtn) {
+    sidebarBtn = lastBtn;                                                // fallback if the local is renamed
+}</code></pre>
+</doc-codeblock></div>
+<p>It remembers the button&#x27;s original text, the order and the part&#x27;s uuid on the button
+(<code translate="no" v-pre>ComponentUtil.setData(...)</code>), then sets the chapter title and style if the part has a heading.</p>
+<p><strong>Following edits</strong> - after <code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard.autosaveAndSwapToMarkdown()</code>, which saves an edited
+part:</p>
+<div id="walkthrough-chapter-marker-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">ChatMessage chatMessage = context.getReflectiveFieldValue(instrumented, &quot;message&quot;, ChatMessage.class);
+ManuscriptStoryPart parentPart = context.getReflectiveFieldValue(instrumented, &quot;this$0&quot;, ManuscriptStoryPart.class);
+VerticalLayout sidebarList = context.getReflectiveFieldValue(parentPart, &quot;sidebarList&quot;, VerticalLayout.class);</code></pre>
+</doc-codeblock></div>
+<p>It finds the sidebar button whose stored uuid matches the edited part and relabels it - or restores the original
+text when the heading was removed. The data stored on the button in the first decorator is what makes this possible
+without rebuilding the sidebar.</p>
+<p><strong>Unloading</strong> unregisters both decorators. Labels already changed stay until the story is redrawn, which is
+acceptable here: they&#x27;re just text.</p>
+<p>What to take from it:</p>
+<ul>
+<li>arguments, locals and fields are all used, each with the right accessor;</li>
+<li>primitive arguments are read with the primitive type;</li>
+<li>a fallback for the local variable keeps the plugin working if the variable is renamed;</li>
+<li>component data (<code translate="no" v-pre>ComponentUtil</code>) carries state from one hook to another.</li>
+</ul>
+<p>The other bundled plugins build on the same pieces: Reviewer and Side Query add menu items, tabs, settings panels and
+call the model (<a href="../ui-extensions/">Extending the UI</a>); Lorebook VCS stores larger data in a lorebook&#x27;s attributes
+(<a href="../extended-attributes/">Extended attributes</a>).</p>
 
                 
                 <!-- Required only on API pages -->
@@ -249,6 +567,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Example plugin", level: 3, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/plugins/example.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Example plugin", level: 3, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/plugins/example.md" }</script>
 </body>
 </html>

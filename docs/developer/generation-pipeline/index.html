@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Generation pipeline</title>
     <meta name="title" content="Generation pipeline">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="How Marginalia turns the instruction panel into a new story part: the steps that build the prompt, how the prompt is fitted into the model's context, how the answer is streamed into the part, and the events extensions can use to change any of it.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/generation-pipeline/">
@@ -23,7 +23,11 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/generation-pipeline/">
     <meta property="og:title" content="Generation pipeline">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="How Marginalia turns the instruction panel into a new story part: the steps that build the prompt, how the prompt is fitted into the model's context, how the answer is streamed into the part, and the events extensions can use to change any of it.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/dev-view-prompt.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Generation pipeline">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +35,22 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/generation-pipeline/">
     <meta name="twitter:title" content="Generation pipeline">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="How Marginalia turns the instruction panel into a new story part: the steps that build the prompt, how the prompt is fitted into the model's context, how the answer is streamed into the part, and the events extensions can use to change any of it.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/dev-view-prompt.png">
+    <meta name="twitter:image:alt" content="Generation pipeline">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/generation-pipeline.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,7 +173,248 @@
 
                 <!-- Page content  -->
 <h1 id="generation-pipeline">Generation pipeline</h1>
-<!-- Planned content: Prompt assembly, lorebook activation, summaries, tokenizer, inference services, streaming. -->
+<p>How Marginalia turns the instruction panel into a new story part: the steps that build the prompt, how the prompt is
+fitted into the model&#x27;s context, how the answer is streamed into the part, and the events extensions can use to change
+any of it. The code is in <code translate="no" v-pre>domain/service/impl/StoryGenerationServiceImpl.java</code> and
+<code translate="no" v-pre>domain/service/impl/generation/</code>.</p>
+<h2 id="overview">Overview</h2>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart TB
+    UI[&quot;ManuscriptStoryPart&lt;br/&gt;Generate / Swipe / Regenerate&quot;] --&gt;|&quot;generateNextTurn(book, TurnInput, GenerationRequest, GenerationListener)&quot;| E
+    subgraph E[&quot;GenerationEngine (generation threads)&quot;]
+        direction TB
+        S1[&quot;1 PREPARE_GENERATION&lt;br/&gt;provider, protocol&quot;] --&gt; S2[&quot;2 PREPARE_CONSTANTS&lt;br/&gt;book prompts, user prompt&quot;]
+        S2 --&gt; S3[&quot;3 PROCESS_LOREBOOK&lt;br/&gt;activate and render lore&quot;]
+        S3 --&gt; S4[&quot;4 PREPARE_CONTENT&lt;br/&gt;summaries, story, system prompt&quot;]
+        S4 --&gt; S5[&quot;5 PREPARE_PAYLOAD&lt;br/&gt;chat messages&quot;]
+        S5 --&gt; S6[&quot;6 GENERATE_NEW_MESSAGE&lt;br/&gt;create / reset the part&quot;]
+        S6 --&gt; S7[&quot;7 INFERENCE&lt;br/&gt;stream the answer&quot;]
+        S7 --&gt; S8[&quot;8 CLEANUP&lt;br/&gt;finish, roll back on failure&quot;]
+    end
+    S7 &lt;--&gt;|&quot;streaming chat completion&quot;| LLM[&quot;OpenAI-compatible API&quot;]
+    E -.-&gt;|&quot;GenerationListener callbacks&quot;| UI
+    X[&quot;Extensions&quot;] -.-&gt;|&quot;addEventListener(Events.X, ...)&quot;| E</pre></div>
+<p>The steps always run in this order. Any step can jump straight to <code translate="no" v-pre>CLEANUP</code> (on an error, a validation problem or
+cancellation), and <code translate="no" v-pre>CLEANUP</code> always runs last.</p>
+<h2 id="starting-a-generation">Starting a generation</h2>
+<div id="starting-a-generation-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">CancellationToken token = storyGenerationService.generateNextTurn(
+        manuscript,                                  // the book
+        new TurnInput(scene, povCharacter, presentCharacters, instructions),
+        GenerationRequest.newMessage(),              // or newSwipe(part), regenerate(part)
+        listener);                                   // GenerationListener - UI callbacks</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>generateNextTurn</code> is <code translate="no" v-pre>@NoTx</code> and returns immediately with a <code translate="no" v-pre>CancellationToken</code>; <code translate="no" v-pre>token.cancel()</code> stops the
+generation. It must be called on a thread with a request (the UI thread): it captures the session in
+<code translate="no" v-pre>ThreadCopyRequestAttributes</code> so the steps run as the user who started the generation (see
+<a href="../services/#the-current-user">The current user</a>).</p>
+<retype-table copy-text="| `GenerationRequest` | `requestType` | Meaning |
+|---|---|---|
+| `newMessage()` | `NEW_MESSAGE` | Add a part after the book's active leaf. |
+| `regenerate(part)` | `REGENERATE` | Write the given part (the last one) again, in place. |
+| `newSwipe(part)` | `NEW_MESSAGE` (should be `SWIPE`, BUG-14) | Write another version of a part as its sibling. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th><code translate="no" v-pre>GenerationRequest</code></th>
+<th><code translate="no" v-pre>requestType</code></th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>newMessage()</code></td>
+<td><code translate="no" v-pre>NEW_MESSAGE</code></td>
+<td>Add a part after the book&#x27;s active leaf.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>regenerate(part)</code></td>
+<td><code translate="no" v-pre>REGENERATE</code></td>
+<td>Write the given part (the last one) again, in place.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>newSwipe(part)</code></td>
+<td><code translate="no" v-pre>NEW_MESSAGE</code> (should be <code translate="no" v-pre>SWIPE</code>, BUG-14)</td>
+<td>Write another version of a part as its sibling.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>TurnInput</code> holds the four fields of the instruction panel: <code translate="no" v-pre>sceneSetting</code>, <code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>presentCharacters</code>,
+<code translate="no" v-pre>instructions</code>.</p>
+<h2 id="the-engine">The engine</h2>
+<p><code translate="no" v-pre>StoryGenerationServiceImpl</code> holds the installed steps (from <code translate="no" v-pre>services-config.xml</code>, one per <code translate="no" v-pre>GenerationStepType</code>) and
+a cached thread pool (threads named <code translate="no" v-pre>Generation thread NNN</code>). Each call creates a <code translate="no" v-pre>GenerationEngine</code>, which implements
+<code translate="no" v-pre>GenerationController</code> - the object every step works with:</p>
+<retype-table copy-text="| Controller member | |
+|---|---|
+| `getManuscript()` / `setManuscript()` | The book; steps replace it with the saved copy after changes. |
+| `getInput()`, `getRequest()` | The `TurnInput` and `GenerationRequest`. |
+| `getPrePromptData()` | `PrePromptData` - the prompts collected so far (see [Prompt data](#prompt-data)). |
+| `getPayload()` | The chat messages sent to the model (from `PREPARE_PAYLOAD`). |
+| `getMessage()` | The part being generated (from `GENERATE_NEW_MESSAGE`). |
+| `getProperties()` | Shared map for everything else, keys in `GenerationProperties`. |
+| `getState()` | `NOT_SUCCESSFUL` → `PARTIAL_SUCCESS` (part created) → `SUCCESSFUL` (answer complete). |
+| `getUIListener()` | The `GenerationListener` of the caller. |
+| `next()`, `jumpTo(type)` | Continue with the next step, or jump (usually to `CLEANUP`). |
+| `emitEvent(event, continuation)` | Run the listeners of an event, then the continuation. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Controller member</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>getManuscript()</code> / <code translate="no" v-pre>setManuscript()</code></td>
+<td>The book; steps replace it with the saved copy after changes.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getInput()</code>, <code translate="no" v-pre>getRequest()</code></td>
+<td>The <code translate="no" v-pre>TurnInput</code> and <code translate="no" v-pre>GenerationRequest</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getPrePromptData()</code></td>
+<td><code translate="no" v-pre>PrePromptData</code> - the prompts collected so far (see <doc-anchor-trigger to="#prompt-data">Prompt data</doc-anchor-trigger>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getPayload()</code></td>
+<td>The chat messages sent to the model (from <code translate="no" v-pre>PREPARE_PAYLOAD</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getMessage()</code></td>
+<td>The part being generated (from <code translate="no" v-pre>GENERATE_NEW_MESSAGE</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getProperties()</code></td>
+<td>Shared map for everything else, keys in <code translate="no" v-pre>GenerationProperties</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getState()</code></td>
+<td><code translate="no" v-pre>NOT_SUCCESSFUL</code> → <code translate="no" v-pre>PARTIAL_SUCCESS</code> (part created) → <code translate="no" v-pre>SUCCESSFUL</code> (answer complete).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getUIListener()</code></td>
+<td>The <code translate="no" v-pre>GenerationListener</code> of the caller.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>next()</code>, <code translate="no" v-pre>jumpTo(type)</code></td>
+<td>Continue with the next step, or jump (usually to <code translate="no" v-pre>CLEANUP</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>emitEvent(event, continuation)</code></td>
+<td>Run the listeners of an event, then the continuation.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="continuation-style">Continuation style</h3>
+<p>The engine never blocks a thread while it waits - for event listeners, for a question to the user or for the model.
+Every step is written as a chain of callbacks: it emits an event and passes the rest of its work as the
+continuation, which the engine runs on a pool thread once all listeners are done:</p>
+<div id="continuation-style-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">protected void onStep(GenerationController controller) throws Exception {
+    controller.emitEvent(Events.BEFORE_PREPARE_PAYLOAD, () -&gt; {
+        // ... build the payload ...
+        controller.setPayload(payload);
+        controller.emitEvent(Events.AFTER_PREPARE_PAYLOAD, controller::next);
+    });
+}</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>GenerationStepBase</code> wraps each step: it enters the user&#x27;s request scope, checks for cancellation and interruption,
+and turns any exception into <code translate="no" v-pre>listener.onError(e)</code> plus a jump to <code translate="no" v-pre>CLEANUP</code>. Continuations are wrapped the same way.
+<code translate="no" v-pre>forEachAsync</code> iterates a list in this style (used for lorebook entries, which emit an event each).</p>
+<h2 id="the-steps">The steps</h2>
+<h3 id="1-prepare_generation---prepareforgenerationstep">1. <code translate="no" v-pre>PREPARE_GENERATION</code> - <code translate="no" v-pre>PrepareForGenerationStep</code></h3>
+<p>Loads the book&#x27;s inference provider (<code translate="no" v-pre>AI</code>) and protocol and checks that both are set and that <code translate="no" v-pre>InferenceServices</code> has
+an implementation for the provider type. Otherwise the user gets <em>Book is missing model.</em> / <em>Book is missing protocol.</em> and the
+generation ends.</p>
+<p>Events: <code translate="no" v-pre>BEFORE_PREPARE_GENERATION</code>, <code translate="no" v-pre>AFTER_PREPARE_GENERATION</code>.</p>
+<h3 id="2-prepare_constants---prepareconstantsstep">2. <code translate="no" v-pre>PREPARE_CONSTANTS</code> - <code translate="no" v-pre>PrepareConstantsStep</code></h3>
+<p>Fills a new <code translate="no" v-pre>PrePromptData</code> with the parts of the prompt that don&#x27;t depend on the story:</p>
+<ul>
+<li>the provider&#x27;s jailbreak (if <em>Needs Jailbreak</em> is on) and its token count,</li>
+<li>the book&#x27;s effective prompts - master template, POV, tense, style, user prompt - each resolved book → user settings
+→ <code translate="no" v-pre>Defaults</code> by <code translate="no" v-pre>ManuscriptService</code>.</li>
+</ul>
+<p>After <code translate="no" v-pre>AFTER_STATIC_TEMPLATE_DATA</code> (where listeners may replace any of these), it renders the <strong>user prompt</strong> template
+with <code translate="no" v-pre>UserPromptData</code> (the four <code translate="no" v-pre>TurnInput</code> fields) into <code translate="no" v-pre>userPromptProcessed</code> and counts its tokens. The first
+template rendering creates the generation&#x27;s <code translate="no" v-pre>TemplateContext</code> (see <doc-anchor-trigger to="#template-context">Template context</doc-anchor-trigger>).</p>
+<p>Events: <code translate="no" v-pre>BEFORE_PREPARE_CONSTANT_DATA</code>, <code translate="no" v-pre>AFTER_STATIC_TEMPLATE_DATA</code>, <code translate="no" v-pre>AFTER_PREPARE_CONSTANT_DATA</code>.</p>
+<h3 id="3-process_lorebook---processlorebookstep">3. <code translate="no" v-pre>PROCESS_LOREBOOK</code> - <code translate="no" v-pre>ProcessLorebookStep</code></h3>
+<p>Skipped when the book has no lorebook. Otherwise:</p>
+<ol>
+<li><strong>Collect lorebooks</strong>: the book&#x27;s lorebook and, breadth-first, all its sub-lorebooks. Deleted and disabled
+lorebooks are skipped together with their sub-lorebooks; each lorebook is used once, so cycles are harmless. Each
+is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (entries with their effective tags) and detached.</li>
+<li><strong>Order entries</strong> of all collected lorebooks by <code translate="no" v-pre>ordinal</code> (ascending), then by creation time.</li>
+<li>
+<p><strong>Activate</strong> each entry - an entry is active when all of these hold:</p>
+<retype-table copy-text="| Check | Rule |
+   |---|---|
+   | enabled | `entry.enabled` |
+   | negative tags | none of the entry's negative tags is a tag of the book |
+   | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
+   | filter | no filter, or the filter matches the **rendered user prompt**: `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Check</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td><code translate="no" v-pre>entry.enabled</code></td>
+</tr>
+<tr>
+<td>negative tags</td>
+<td>none of the entry&#x27;s negative tags is a tag of the book</td>
+</tr>
+<tr>
+<td>tags</td>
+<td>the entry has no tags, or one of them is a tag of the book (the entry&#x27;s tags include the tags of its lorebook)</td>
+</tr>
+<tr>
+<td>filter</td>
+<td>no filter, or the filter matches the <strong>rendered user prompt</strong>: <code translate="no" v-pre>TEXT</code> - case-insensitive substring; <code translate="no" v-pre>REGEX</code> - case-insensitive <code translate="no" v-pre>find()</code> (<code translate="no" v-pre>DOTALL</code>); an invalid regex never matches</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+</li>
+<li><strong>Render</strong> the active entries&#x27; payloads as templates with one shared <code translate="no" v-pre>LorebookTemplateData</code> - so variables set in
+one entry are visible in the following ones. A payload that fails to render is used as it is.</li>
+<li><strong>Insert</strong>: payloads with <code translate="no" v-pre>IN_LORE_BLOCK</code> are joined into <code translate="no" v-pre>backgroundLore</code> (the master template&#x27;s
+&#x60;&#x60;); payloads with <code translate="no" v-pre>BEFORE_USER_PROMPT</code> are joined into <code translate="no" v-pre>backgroundUserLore</code> and put in front of
+the user prompt.</li>
+</ol>
+<p>Events: <code translate="no" v-pre>BEFORE_PROCESS_LOREBOOK</code>, <code translate="no" v-pre>PROCESS_LOREBOOKS</code> (the list in <code translate="no" v-pre>LOREBOOKS</code> can be changed),
+<code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code> (once per entry, <code translate="no" v-pre>LOREBOOK_ENTRY</code>), <code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code> (<code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code>
+can be changed), <code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code>.</p>
+<h3 id="4-prepare_content---preparecontentstep">4. <code translate="no" v-pre>PREPARE_CONTENT</code> - <code translate="no" v-pre>PrepareContentStep</code></h3>
+<p>Decides which part of the story goes into the prompt and renders the system prompt.</p>
+<p><strong>Summaries.</strong> The branch from the root to the active leaf is read, and the summaries on it are collected (oldest
+first) into <code translate="no" v-pre>SUMMARIES</code>. Each summary stores a hash of the parts it covers; when those parts were edited since, the
+summary is deleted and the user is asked whether to continue without it (<code translate="no" v-pre>listener.askQuestion</code>). The newest part
+with a summary is the <strong>stop part</strong>: it and everything before it is represented by the summaries.</p>
+<p><strong>Token budget.</strong> With <code translate="no" v-pre>TokenLimits</code>:</p>
+<div id="4-prepare_content---preparecontentstep-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">limit      = context tokens − response tokens        (protocol overrides, else provider limits)
+baseTokens = system template rendered with lore and summaries (no story)
+           + jailbreak + rendered user prompt + 100</code></pre>
+</doc-codeblock></div>
+<p>If <code translate="no" v-pre>baseTokens ≥ limit</code>, the generation stops with <em>Contextual limit not sufficient.</em> Otherwise parts are taken from the
+newest backwards - skipping the part being regenerated, stopping at the stop part - while the running total stays
+under <code translate="no" v-pre>limit − 256</code>, counting each part as its <code translate="no" v-pre>tokenCount + 100</code>. The chosen texts, oldest first, become
+<code translate="no" v-pre>MANUSCRIPT_CHRONICLE</code>.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -178,11 +427,411 @@
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
+<p>The check happens <em>before</em> a part is added, so the last part added can push the prompt over the limit by up to its
+own size (BUG-42).</p>
         </div>
     </div>
 </div>
+<p><strong>System prompt.</strong> The master template is rendered with <code translate="no" v-pre>MasterTemplateData</code> (<code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaries</code>,
+<code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code> + the template context) into <code translate="no" v-pre>systemPrompt</code>. The estimate above renders it
+with a <em>fork</em> of the template context, so macros that change variables don&#x27;t run twice.</p>
+<p>Events: <code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code>, <code translate="no" v-pre>BEFORE_SUMMARIES</code> (<code translate="no" v-pre>SUMMARIES</code> can be changed), <code translate="no" v-pre>AFTER_MANUSCRIPT_CONCATENATION</code>
+(<code translate="no" v-pre>MANUSCRIPT_CHRONICLE</code> can be changed), <code translate="no" v-pre>AFTER_PREPARE_CONTENT</code>.</p>
+<h3 id="5-prepare_payload---preparepayloadstep">5. <code translate="no" v-pre>PREPARE_PAYLOAD</code> - <code translate="no" v-pre>PreparePayloadStep</code></h3>
+<p>Builds the chat completion messages:</p>
+<div id="5-prepare_payload---preparepayloadstep-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">system     jailbreak + &quot;\n\n&quot; + system prompt           (master template)
+user       [ Generate story. ]
+assistant  &lt;oldest part in the chronicle&gt;
+user       [ Generate more story. ]
+assistant  &lt;next part&gt;
+...
+user       lore before user prompt + &quot;\n\n&quot; + rendered user prompt</code></pre>
+</doc-codeblock></div>
+<p>Earlier parts are sent as the model&#x27;s own previous answers, each preceded by a short placeholder user turn. The final
+user message carries the instructions.</p>
+<p>The payload is stored in the part (<code translate="no" v-pre>builtPrompt</code>) and can be inspected in the story editor with <em>View prompt</em>:</p>
+<figure class="content-center">
+    <img src="../../images/dev-view-prompt.png" alt="The prompt of a part in the View prompt dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="1000" />
+    <figcaption class="caption">The prompt of a part in the View prompt dialog</figcaption>
+</figure>
+<p>Events: <code translate="no" v-pre>BEFORE_PREPARE_PAYLOAD</code>, <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> (the payload can be changed; what is set here is what is
+sent).</p>
+<h3 id="6-generate_new_message---generatenewmessagestep">6. <code translate="no" v-pre>GENERATE_NEW_MESSAGE</code> - <code translate="no" v-pre>GenerateNewMessageStep</code></h3>
+<p>Prepares the part that receives the answer:</p>
+<retype-table copy-text="| Request | Part |
+|---|---|
+| `NEW_MESSAGE` | A new part, child of the active leaf (or the first part of the book). |
+| `SWIPE` | A new part, sibling of the swiped one. (Not reached today, see BUG-14.) |
+| `REGENERATE` | The existing part, cleared. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Request</th>
+<th>Part</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>NEW_MESSAGE</code></td>
+<td>A new part, child of the active leaf (or the first part of the book).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>SWIPE</code></td>
+<td>A new part, sibling of the swiped one. (Not reached today, see BUG-14.)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>REGENERATE</code></td>
+<td>The existing part, cleared.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The part gets the <code translate="no" v-pre>TurnInput</code>, the model and protocol names, the payload as JSON (<code translate="no" v-pre>builtPrompt</code>, shown by <em>View
+prompt</em>), the activated lore and the request time. The template variables of the generation are stored: local ones in
+the part&#x27;s <code translate="no" v-pre>attributes</code>, global ones in the book&#x27;s. The part becomes the book&#x27;s active leaf, both are saved, the
+state becomes <code translate="no" v-pre>PARTIAL_SUCCESS</code> and <code translate="no" v-pre>listener.onNodeCreated(part)</code> lets the UI show it.</p>
+<p>Events: <code translate="no" v-pre>BEFORE_GENERATE_NEW_MESSAGE</code>, <code translate="no" v-pre>AFTER_GENERATE_NEW_MESSAGE</code> (the part is available as <code translate="no" v-pre>getMessage()</code>).</p>
+<h3 id="7-inference---inferencestep">7. <code translate="no" v-pre>INFERENCE</code> - <code translate="no" v-pre>InferenceStep</code></h3>
+<p>Counts the prompt tokens, then calls <code translate="no" v-pre>InferenceService.stream(payload, protocol, callback)</code>. For each chunk:</p>
+<ul>
+<li>
+<p><strong>reasoning</strong> chunks are appended to <code translate="no" v-pre>responseReasoning</code> (<code translate="no" v-pre>REASONING_CHUNK_RECEIVED</code>, the text in
+<code translate="no" v-pre>REASONING_CHUNK</code>),</p>
+</li>
+<li>
+<p><strong>response</strong> chunks are appended to <code translate="no" v-pre>response</code>, with approximate token and word counts (<code translate="no" v-pre>CHUNK_RECEIVED</code>, the text
+in <code translate="no" v-pre>CHUNK</code>),</p>
+</li>
+<li>
+<p>the first chunk sets the time to first token, the first response chunk the end of reasoning,</p>
+</li>
+<li>
+<p>the part and the book are saved and the UI gets <code translate="no" v-pre>onReasoningChunk</code> / <code translate="no" v-pre>onResponseChunk</code> and <code translate="no" v-pre>onMetricsUpdated</code>.</p>
+</li>
+</ul>
+<p>Listeners of the chunk events can change the chunk text before it is appended. The stream is pulled: the inference
+service delivers the next chunk only after the step calls <code translate="no" v-pre>continueInference()</code>, so a slow listener slows the stream
+down instead of piling up chunks.</p>
+<p>On completion the exact token counts are computed, the state becomes <code translate="no" v-pre>SUCCESSFUL</code> (<code translate="no" v-pre>AFTER_INFERENCE</code>) and the engine
+moves to <code translate="no" v-pre>CLEANUP</code>. An error is reported with <code translate="no" v-pre>onError</code> and goes to <code translate="no" v-pre>CLEANUP</code>.</p>
+<h3 id="8-cleanup---cleanupstep">8. <code translate="no" v-pre>CLEANUP</code> - <code translate="no" v-pre>CleanupStep</code></h3>
+<p>Always the last step. Depending on the state:</p>
+<retype-table copy-text="| State | What happens |
+|---|---|
+| `SUCCESSFUL` | `onComplete(part)`. |
+| `PARTIAL_SUCCESS` | The part exists with whatever text arrived (stopped or failed mid-stream): `onCancelled(part)`. |
+| `NOT_SUCCESSFUL`, no part yet | `onCancelled(null)`. |
+| `NOT_SUCCESSFUL`, part exists | New part: deleted, its children moved to its parent. Swipe: deleted, the previous sibling becomes active. Regenerate: kept. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>State</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>SUCCESSFUL</code></td>
+<td><code translate="no" v-pre>onComplete(part)</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>PARTIAL_SUCCESS</code></td>
+<td>The part exists with whatever text arrived (stopped or failed mid-stream): <code translate="no" v-pre>onCancelled(part)</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>NOT_SUCCESSFUL</code>, no part yet</td>
+<td><code translate="no" v-pre>onCancelled(null)</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>NOT_SUCCESSFUL</code>, part exists</td>
+<td>New part: deleted, its children moved to its parent. Swipe: deleted, the previous sibling becomes active. Regenerate: kept.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Event: <code translate="no" v-pre>BEFORE_CLEANUP</code>.</p>
+<h2 id="prompt-data">Prompt data</h2>
+<p><code translate="no" v-pre>PrePromptData</code> (<code translate="no" v-pre>generation/dto/</code>) collects the prompt as the steps build it:</p>
+<retype-table copy-text="| Field | Set in | |
+|---|---|---|
+| `jailbreak`, `jailbreakTokens` | `PREPARE_CONSTANTS` | |
+| `generalTemplate`, `pov`, `tense`, `style`, `userPrompt` | `PREPARE_CONSTANTS` | Effective templates and values of the book. |
+| `userPromptProcessed`, `userPromptProcessedTokens` | `PREPARE_CONSTANTS`, extended in `PROCESS_LOREBOOK` | Rendered user prompt, with the before-user-prompt lore in front. |
+| `backgroundLore`, `backgroundLoreTokens` | `PROCESS_LOREBOOK` | Lore for the master template. |
+| `backgroundUserLore`, `backgroundUserLoreTokens` | `PROCESS_LOREBOOK` | Lore put before the user prompt. |
+| `systemPrompt`, `systemPromptTokens` | `PREPARE_CONTENT` | Rendered master template. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Set in</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>jailbreak</code>, <code translate="no" v-pre>jailbreakTokens</code></td>
+<td><code translate="no" v-pre>PREPARE_CONSTANTS</code></td>
+<td> </td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>generalTemplate</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>tense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>userPrompt</code></td>
+<td><code translate="no" v-pre>PREPARE_CONSTANTS</code></td>
+<td>Effective templates and values of the book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>userPromptProcessed</code>, <code translate="no" v-pre>userPromptProcessedTokens</code></td>
+<td><code translate="no" v-pre>PREPARE_CONSTANTS</code>, extended in <code translate="no" v-pre>PROCESS_LOREBOOK</code></td>
+<td>Rendered user prompt, with the before-user-prompt lore in front.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>backgroundLoreTokens</code></td>
+<td><code translate="no" v-pre>PROCESS_LOREBOOK</code></td>
+<td>Lore for the master template.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>backgroundUserLore</code>, <code translate="no" v-pre>backgroundUserLoreTokens</code></td>
+<td><code translate="no" v-pre>PROCESS_LOREBOOK</code></td>
+<td>Lore put before the user prompt.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>systemPrompt</code>, <code translate="no" v-pre>systemPromptTokens</code></td>
+<td><code translate="no" v-pre>PREPARE_CONTENT</code></td>
+<td>Rendered master template.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="template-context">Template context</h2>
+<p>All templates of one generation - user prompt, lorebook entries, master template - share one <code translate="no" v-pre>TemplateContext</code>
+(<code translate="no" v-pre>GenerationProperties.TEMPLATE_CONTEXT</code>), created by <code translate="no" v-pre>GenerationStepBase.getTemplateContext</code> on first use. It holds
+what the macros read: the <code translate="no" v-pre>TurnInput</code> fields, POV / tense / style, the book&#x27;s name and description, the model name and
+token limits, the generation type (<code translate="no" v-pre>normal</code>, <code translate="no" v-pre>regenerate</code>, <code translate="no" v-pre>swipe</code>), the story so far (&#x60;&#x60;...), the last
+instructions and time, the latest summary, and the variables - local ones loaded from the last part of the branch,
+global ones from the book. Because it is shared, a variable set in the user prompt is visible in lore entries and the
+master template. See <a href="../templating/">Templating &amp; macros</a>.</p>
+<h2 id="events-for-extensions">Events for extensions</h2>
+<p>Extensions hook into generation by registering listeners:</p>
+<div id="events-for-extensions-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">Registration registration = storyGenerationService.addEventListener(Events.PROCESS_ACTIVATED_ENTRIES,
+        (event, chain) -&gt; {
+            try {
+                List&lt;LorebookEntry&gt; active = event.getProperty(GenerationProperties.ACTIVATED_LOREBOOK_ENTRIES);
+                active.removeIf(entry -&gt; entry.getName().startsWith(&quot;[off]&quot;));
+            } finally {
+                chain.next();                 // always - otherwise the generation never continues
+            }
+        });
+
+// in onExtensionUnload
+registration.unregister();</code></pre>
+</doc-codeblock></div>
+<p>Rules:</p>
+<ul>
+<li>
+<p><strong>Call <code translate="no" v-pre>chain.next()</code> exactly once</strong> in every listener, also when it fails. <code translate="no" v-pre>chain.terminate()</code> skips the remaining
+listeners of this event and continues the generation; <code translate="no" v-pre>event.terminateEvents()</code> marks the event so the remaining
+listeners are skipped when <code translate="no" v-pre>next()</code> is called. A listener that calls neither leaves the generation hanging.</p>
+</li>
+<li>
+<p>A listener may call <code translate="no" v-pre>next()</code> later, from another thread - for example after an asynchronous request of its own.</p>
+</li>
+<li>
+<p>An exception thrown by a listener is logged and the chain continues with the next listener.</p>
+</li>
+<li>
+<p>Listeners are <strong>global</strong>: they receive the events of every generation of every user. Use <code translate="no" v-pre>event.getManuscript()</code>
+and the current user to decide whether to act, and keep per-generation data in <code translate="no" v-pre>event.getProperties()</code> under a key
+prefixed with the extension&#x27;s name.</p>
+</li>
+<li>
+<p>Listeners run on generation threads inside the user&#x27;s request scope, so services work; UI changes need
+<code translate="no" v-pre>ui.access(...)</code>.</p>
+</li>
+<li>
+<p>Unregister on unload - registrations are not removed automatically.</p>
+</li>
+</ul>
+<h3 id="events">Events</h3>
+<retype-table copy-text="| Event | Step | Available / changeable |
+|---|---|---|
+| `BEFORE_PREPARE_GENERATION`, `AFTER_PREPARE_GENERATION` | 1 | book, input, request |
+| `BEFORE_PREPARE_CONSTANT_DATA` | 2 | |
+| `AFTER_STATIC_TEMPLATE_DATA` | 2 | `PrePromptData` with the book's templates - can be replaced |
+| `AFTER_PREPARE_CONSTANT_DATA` | 2 | rendered user prompt, `TEMPLATE_CONTEXT` |
+| `BEFORE_PROCESS_LOREBOOK` | 3 | |
+| `PROCESS_LOREBOOKS` | 3 | `LOREBOOKS` (read back) |
+| `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, once per entry |
+| `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back) |
+| `AFTER_PROCESS_LOREBOOK` | 3 | `backgroundLore`, `LOREBOOK_TEMPLATE_DATA` |
+| `BEFORE_PREPARE_CONTENT` | 4 | |
+| `BEFORE_SUMMARIES` | 4 | `SUMMARIES` (read back) |
+| `AFTER_MANUSCRIPT_CONCATENATION` | 4 | `MANUSCRIPT_CHRONICLE` (read back) |
+| `AFTER_PREPARE_CONTENT` | 4 | `systemPrompt` |
+| `BEFORE_PREPARE_PAYLOAD`, `AFTER_PREPARE_PAYLOAD` | 5 | payload (after) - what is set is sent |
+| `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` | 6 | the part (after) |
+| `BEFORE_INFERENCE` | 7 | |
+| `REASONING_CHUNK_RECEIVED`, `CHUNK_RECEIVED` | 7 | `REASONING_CHUNK` / `CHUNK` (read back), per chunk |
+| `AFTER_INFERENCE` | 7 | complete part |
+| `BEFORE_CLEANUP` | 8 | state |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Event</th>
+<th>Step</th>
+<th>Available / changeable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>BEFORE_PREPARE_GENERATION</code>, <code translate="no" v-pre>AFTER_PREPARE_GENERATION</code></td>
+<td>1</td>
+<td>book, input, request</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BEFORE_PREPARE_CONSTANT_DATA</code></td>
+<td>2</td>
+<td> </td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AFTER_STATIC_TEMPLATE_DATA</code></td>
+<td>2</td>
+<td><code translate="no" v-pre>PrePromptData</code> with the book&#x27;s templates - can be replaced</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AFTER_PREPARE_CONSTANT_DATA</code></td>
+<td>2</td>
+<td>rendered user prompt, <code translate="no" v-pre>TEMPLATE_CONTEXT</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BEFORE_PROCESS_LOREBOOK</code></td>
+<td>3</td>
+<td> </td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>PROCESS_LOREBOOKS</code></td>
+<td>3</td>
+<td><code translate="no" v-pre>LOREBOOKS</code> (read back)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>PROCESS_LOREBOOK_ENTRY</code></td>
+<td>3</td>
+<td><code translate="no" v-pre>LOREBOOK_ENTRY</code>, once per entry</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>PROCESS_ACTIVATED_ENTRIES</code></td>
+<td>3</td>
+<td><code translate="no" v-pre>ACTIVATED_LOREBOOK_ENTRIES</code> (read back)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code></td>
+<td>3</td>
+<td><code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>LOREBOOK_TEMPLATE_DATA</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code></td>
+<td>4</td>
+<td> </td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BEFORE_SUMMARIES</code></td>
+<td>4</td>
+<td><code translate="no" v-pre>SUMMARIES</code> (read back)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AFTER_MANUSCRIPT_CONCATENATION</code></td>
+<td>4</td>
+<td><code translate="no" v-pre>MANUSCRIPT_CHRONICLE</code> (read back)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AFTER_PREPARE_CONTENT</code></td>
+<td>4</td>
+<td><code translate="no" v-pre>systemPrompt</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BEFORE_PREPARE_PAYLOAD</code>, <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code></td>
+<td>5</td>
+<td>payload (after) - what is set is sent</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BEFORE_GENERATE_NEW_MESSAGE</code>, <code translate="no" v-pre>AFTER_GENERATE_NEW_MESSAGE</code></td>
+<td>6</td>
+<td>the part (after)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BEFORE_INFERENCE</code></td>
+<td>7</td>
+<td> </td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>REASONING_CHUNK_RECEIVED</code>, <code translate="no" v-pre>CHUNK_RECEIVED</code></td>
+<td>7</td>
+<td><code translate="no" v-pre>REASONING_CHUNK</code> / <code translate="no" v-pre>CHUNK</code> (read back), per chunk</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AFTER_INFERENCE</code></td>
+<td>7</td>
+<td>complete part</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>BEFORE_CLEANUP</code></td>
+<td>8</td>
+<td>state</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>&quot;Read back&quot; means the step reads the property again after the event, so listeners can replace or modify the value.
+<code translate="no" v-pre>GenerationProperties</code> documents each key.</p>
+<h2 id="cancellation-and-errors">Cancellation and errors</h2>
+<ul>
+<li>
+<p><strong>Stop</strong> in the UI calls <code translate="no" v-pre>CancellationToken.cancel()</code>. Every step, continuation and chunk checks the token and jumps
+to <code translate="no" v-pre>CLEANUP</code>, which keeps what was generated so far (<code translate="no" v-pre>PARTIAL_SUCCESS</code>).</p>
+</li>
+<li>
+<p><strong>Errors</strong> - an exception in a step or continuation, a failed request - are reported with
+<code translate="no" v-pre>GenerationListener.onError</code> and also end in <code translate="no" v-pre>CLEANUP</code>. Validation problems (no provider, context too small) use
+<code translate="no" v-pre>onSimpleError</code> with a localized message.</p>
+</li>
+<li>
+<p><strong>Questions</strong> - <code translate="no" v-pre>listener.askQuestion(text, yes, no)</code> lets a step ask the user and continue in one of two
+continuations (<code translate="no" v-pre>controller.wrapCallback(...)</code>); used for invalidated summaries.</p>
+</li>
+</ul>
+<p>Known problems in this area: a failed request leaves an empty part (BUG-9), and Stop doesn&#x27;t close the connection to
+the model (BUG-43).</p>
+<h2 id="changing-the-pipeline">Changing the pipeline</h2>
+<ul>
+<li>
+<p><strong>Small changes</strong> (prompt wording, lore filtering, post-processing the answer) - an event listener in an extension
+is usually enough; see above.</p>
+</li>
+<li>
+<p><strong>Replacing a step</strong> - <code translate="no" v-pre>installedSteps</code> in <code translate="no" v-pre>services-config.xml</code> lists one implementation per
+<code translate="no" v-pre>GenerationStepType</code>. A replacement must emit the same events and properties, call <code translate="no" v-pre>next()</code> / <code translate="no" v-pre>jumpTo()</code> exactly
+once per path and set the controller state the later steps expect.</p>
+</li>
+<li>
+<p><strong>A new step</strong> needs a new <code translate="no" v-pre>GenerationStepType</code> value at the right position (the order of the enum is the order of
+execution) and an entry in <code translate="no" v-pre>installedSteps</code>. Steps without an implementation make the generation report
+<em>NOT IMPLEMENTED</em>.</p>
+</li>
+</ul>
+<h2 id="testing">Testing</h2>
+<p><code translate="no" v-pre>generation/LorebookActivationTest</code> and <code translate="no" v-pre>generation/GenerationRequestTest</code> run real generations against
+<code translate="no" v-pre>MockLLMServer</code>, an OpenAI-compatible fake with scripted answers, and inspect the request the model received
+(<code translate="no" v-pre>InferenceCollector</code>) and the parts that were stored. <code translate="no" v-pre>GenerationTestBase</code> / <code translate="no" v-pre>GenerationRun</code> start a generation and
+wait for it to finish. See <a href="../testing/">Testing</a>.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -249,6 +898,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Generation pipeline", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/generation-pipeline.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Generation pipeline", level: 2, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/generation-pipeline.md" }</script>
 </body>
 </html>

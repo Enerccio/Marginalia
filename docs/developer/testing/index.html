@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Testing</title>
     <meta name="title" content="Testing">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="Marginalia's tests are integration tests first: most of them start the real Spring XML configuration against a throwaway SQLite database and talk to a fake OpenAI-compatible server.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/testing/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/testing/">
     <meta property="og:title" content="Testing">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="Marginalia's tests are integration tests first: most of them start the real Spring XML configuration against a throwaway SQLite database and talk to a fake OpenAI-compatible server.">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +31,20 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/testing/">
     <meta name="twitter:title" content="Testing">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="Marginalia's tests are integration tests first: most of them start the real Spring XML configuration against a throwaway SQLite database and talk to a fake OpenAI-compatible server.">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/testing.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,7 +167,525 @@
 
                 <!-- Page content  -->
 <h1 id="testing">Testing</h1>
-<!-- Planned content: Test base (MarginaliaTestBase), MockLLMServer, CRUD contracts, running tests. -->
+<p>Marginalia&#x27;s tests are integration tests first: most of them start the real Spring XML configuration against a
+throwaway SQLite database and talk to a fake OpenAI-compatible server. They need no network, no model and no API key,
+and they run in CI on every push and pull request. This page explains the test infrastructure and how to add tests.</p>
+<p>All test code is in <code translate="no" v-pre>marginalia/src/test/java/com/github/enerccio/marginalia/</code>; paths below are relative to it.</p>
+<h2 id="running-the-tests">Running the tests</h2>
+<p>From <code translate="no" v-pre>marginalia/</code>:</p>
+<div id="running-the-tests-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">mvn test                                     # all tests
+mvn test -Dtest=LorebookActivationTest       # one class
+mvn test -Dtest='Backup*Test'                # a pattern
+mvn test -Dtest='MacroRenderingTest#name'    # one method</code></pre>
+</doc-codeblock></div>
+<p>Surefire is configured in <code translate="no" v-pre>pom.xml</code> with:</p>
+<retype-table copy-text="| Setting | Why |
+|---|---|
+| `-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true` | `RuntimeInstrumentationTest` installs the ByteBuddy agent into the test JVM. |
+| `marginalia.test.home=target/test-home` | Folder for the test databases (see [The application folder](#the-application-folder)). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Setting</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true</code></td>
+<td><code translate="no" v-pre>RuntimeInstrumentationTest</code> installs the ByteBuddy agent into the test JVM.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>marginalia.test.home=target/test-home</code></td>
+<td>Folder for the test databases (see <doc-anchor-trigger to="#the-application-folder">The application folder</doc-anchor-trigger>).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Reports are written to <code translate="no" v-pre>target/surefire-reports/</code>; the CI job uploads them as an artifact when a test fails.</p>
+<h3 id="in-the-ide">In the IDE</h3>
+<p>Tests run from IntelliJ IDEA like any JUnit test, with two conditions:</p>
+<ul>
+<li>
+<p>the classes must be compiled with AspectJ (see <a href="../building/#aspectj-weaving">Building from source</a>), otherwise
+UI classes and <code translate="no" v-pre>@Configurable</code> beans miss their dependencies;</p>
+</li>
+<li>
+<p>add <code translate="no" v-pre>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true</code> to the VM options of the JUnit run
+configuration template if you run <code translate="no" v-pre>RuntimeInstrumentationTest</code>.</p>
+</li>
+</ul>
+<p>Without <code translate="no" v-pre>marginalia.test.home</code> the tests fall back to <code translate="no" v-pre>target/test-home</code> relative to the working directory, so run
+them with <code translate="no" v-pre>marginalia/</code> as the working directory (IntelliJ&#x27;s default for the module).</p>
+<h2 id="libraries">Libraries</h2>
+<retype-table copy-text="| Library | Used for |
+|---|---|
+| JUnit Jupiter 6 | Test engine, `@Test`, `@BeforeEach`, `@TempDir`... |
+| AssertJ | All assertions (`assertThat(...)`) - use it instead of JUnit's `Assertions`. |
+| Spring Test | `@SpringJUnitWebConfig`, context caching, `@DirtiesContext`. |
+| JDK `HttpServer` | The fake LLM server (`test/llm/MockLLMServer`). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Library</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JUnit Jupiter 6</td>
+<td>Test engine, <code translate="no" v-pre>@Test</code>, <code translate="no" v-pre>@BeforeEach</code>, <code translate="no" v-pre>@TempDir</code>...</td>
+</tr>
+<tr>
+<td>AssertJ</td>
+<td>All assertions (<code translate="no" v-pre>assertThat(...)</code>) - use it instead of JUnit&#x27;s <code translate="no" v-pre>Assertions</code>.</td>
+</tr>
+<tr>
+<td>Spring Test</td>
+<td><code translate="no" v-pre>@SpringJUnitWebConfig</code>, context caching, <code translate="no" v-pre>@DirtiesContext</code>.</td>
+</tr>
+<tr>
+<td>JDK <code translate="no" v-pre>HttpServer</code></td>
+<td>The fake LLM server (<code translate="no" v-pre>test/llm/MockLLMServer</code>).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>There is no mocking library. Services are tested through the real Spring beans and the real database; the only
+fake is the model server.</p>
+<h2 id="what-is-covered">What is covered</h2>
+<retype-table copy-text="| Package | Tests | What they check |
+|---|---|---|
+| `test` | `TestBaseSmokeTest` | The test infrastructure itself: isolated folder, session user, mock LLM wiring. |
+| `test/llm` | `MockLLMServerTest` | The fake OpenAI server against the real `openai-java` client. |
+| `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
+| `db` | `FlywayMigrationTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation. |
+| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. |
+| `generation` | `GenerationRequestTest`, `LorebookActivationTest` | Full generations: what is sent to the model, which lore is activated and where it goes. |
+| `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
+| `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
+| `backup` | `ManuscriptRestoreTest`, `ManuscriptBackupCopyTest`, `BackupLorebookTest`, `BackupAiProtocolLinkTest`, `DatabaseBackupScheduleTest` | Book backups, restore and copy, lorebook and provider linking, scheduled database backups. |
+| `cleanup` | `CleanupServiceTest` | Purging soft-deleted data, owned data, strong and weak references. |
+| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Package</th>
+<th>Tests</th>
+<th>What they check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>test</code></td>
+<td><code translate="no" v-pre>TestBaseSmokeTest</code></td>
+<td>The test infrastructure itself: isolated folder, session user, mock LLM wiring.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>test/llm</code></td>
+<td><code translate="no" v-pre>MockLLMServerTest</code></td>
+<td>The fake OpenAI server against the real <code translate="no" v-pre>openai-java</code> client.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>crud</code></td>
+<td><code translate="no" v-pre>*CrudTest</code>, <code translate="no" v-pre>OwnedCrudContract</code>, <code translate="no" v-pre>ExtendableCrudContract</code></td>
+<td>Create, update, soft and hard delete, owner isolation and extended attributes of every entity.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>db</code></td>
+<td><code translate="no" v-pre>FlywayMigrationTest</code></td>
+<td>Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>domain</code></td>
+<td><code translate="no" v-pre>ExtendableEntityListenerTest</code>, <code translate="no" v-pre>TokenLimitsTest</code>, <code translate="no" v-pre>CronScheduleTest</code>, <code translate="no" v-pre>SillyTavernEntryConverterTest</code>, <code translate="no" v-pre>TemplateHelpersTest</code></td>
+<td>Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>generation</code></td>
+<td><code translate="no" v-pre>GenerationRequestTest</code>, <code translate="no" v-pre>LorebookActivationTest</code></td>
+<td>Full generations: what is sent to the model, which lore is activated and where it goes.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>templates</code></td>
+<td><code translate="no" v-pre>TemplateServiceTest</code>, <code translate="no" v-pre>MacroRenderingTest</code>, <code translate="no" v-pre>MacroLorebookFixtureTest</code>, <code translate="no" v-pre>DefaultTemplatesTest</code></td>
+<td>Handlebars rendering and SillyTavern macros; the built-in templates.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>lorebook</code></td>
+<td><code translate="no" v-pre>LorebookImportExportTest</code></td>
+<td>Marginalia and SillyTavern lorebook import and export.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>backup</code></td>
+<td><code translate="no" v-pre>ManuscriptRestoreTest</code>, <code translate="no" v-pre>ManuscriptBackupCopyTest</code>, <code translate="no" v-pre>BackupLorebookTest</code>, <code translate="no" v-pre>BackupAiProtocolLinkTest</code>, <code translate="no" v-pre>DatabaseBackupScheduleTest</code></td>
+<td>Book backups, restore and copy, lorebook and provider linking, scheduled database backups.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>cleanup</code></td>
+<td><code translate="no" v-pre>CleanupServiceTest</code></td>
+<td>Purging soft-deleted data, owned data, strong and weak references.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>instruct</code></td>
+<td><code translate="no" v-pre>ExtendableMethodVisitorTest</code>, <code translate="no" v-pre>RuntimeInstrumentationTest</code></td>
+<td>The bytecode instrumentation of <code translate="no" v-pre>@Extendable</code> methods and the runtime agent.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Not covered by automated tests: the Vaadin UI, the OSGi framework and the bundled plugins, and the desktop launcher
+(the <a href="../packaging/#continuous-integration">CI smoke test</a> only checks that the packaged app starts).</p>
+<h2 id="test-bases">Test bases</h2>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">classDiagram
+    MarginaliaTestBase &lt;|-- GenerationTestBase
+    MarginaliaTestBase &lt;|-- OwnedCrudContract
+    OwnedCrudContract &lt;|-- ExtendableCrudContract
+    MarginaliaTestBase &lt;|-- BackupTestBase
+    GenerationTestBase &lt;|-- LorebookActivationTest
+    ExtendableCrudContract &lt;|-- ProtocolCrudTest
+    TemplateTestBase &lt;|-- MacroRenderingTest
+    class MarginaliaTestBase {
+        +llm
+        +createUser()
+        +login()
+        +createAI()
+    }
+    class GenerationTestBase {
+        +ai
+        +protocol
+        +newManuscript()
+        +generate()
+        +onEvent()
+    }
+    class TemplateTestBase {
+        +context
+        +data
+        +render()
+    }</pre></div>
+<p><code translate="no" v-pre>TemplateTestBase</code> doesn&#x27;t start Spring. Pick the lightest base that works:</p>
+<retype-table copy-text="| Base | Spring | Use for |
+|---|---|---|
+| none | no | Pure units (`CronScheduleTest`, `SillyTavernEntryConverterTest`, `FlywayMigrationTest`). |
+| `TemplateTestBase` | no | Anything rendered by `TemplateServiceImpl`. |
+| `MarginaliaTestBase` | yes | Services, repositories, backups, cleanup. |
+| `GenerationTestBase` | yes | Anything that needs a real generation. |
+| `OwnedCrudContract` / `ExtendableCrudContract` | yes | The CRUD contract of a new entity. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Base</th>
+<th>Spring</th>
+<th>Use for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>none</td>
+<td>no</td>
+<td>Pure units (<code translate="no" v-pre>CronScheduleTest</code>, <code translate="no" v-pre>SillyTavernEntryConverterTest</code>, <code translate="no" v-pre>FlywayMigrationTest</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>TemplateTestBase</code></td>
+<td>no</td>
+<td>Anything rendered by <code translate="no" v-pre>TemplateServiceImpl</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>MarginaliaTestBase</code></td>
+<td>yes</td>
+<td>Services, repositories, backups, cleanup.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>GenerationTestBase</code></td>
+<td>yes</td>
+<td>Anything that needs a real generation.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>OwnedCrudContract</code> / <code translate="no" v-pre>ExtendableCrudContract</code></td>
+<td>yes</td>
+<td>The CRUD contract of a new entity.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="marginaliatestbase">MarginaliaTestBase</h3>
+<p><code translate="no" v-pre>test/MarginaliaTestBase</code> starts the application context from
+<code translate="no" v-pre>src/test/resources/META-INF/spring/test-application-config.xml</code>. That file imports the production
+<code translate="no" v-pre>application-config.xml</code> and adds <code translate="no" v-pre>TestContextPostProcessor</code>, which</p>
+<ul>
+<li>removes the OSGi framework (<code translate="no" v-pre>OsgiServiceImpl</code>) and the instrumentation agent (<code translate="no" v-pre>RuntimeInstrumentationInitializer</code>),</li>
+<li>points <code translate="no" v-pre>Configuration</code> to a new folder <code translate="no" v-pre>target/test-home/ctx-&lt;random&gt;/</code> instead of <code translate="no" v-pre>~/.marginalia</code>.</li>
+</ul>
+<p>Everything else is the production wiring: the services, Hibernate, Flyway migrations, the session-scoped current
+user. The base class gives you:</p>
+<retype-table copy-text="| Member | |
+|---|---|
+| `userService`, `aiService`, `inferenceServices` | Autowired services; autowire any other bean in your test. |
+| `currentUser` | The session-scoped `User` bean - the &quot;logged in&quot; user of the test. |
+| `llm` | A [mock LLM scenario](#the-fake-llm-server) for this test method. |
+| `uniqueName(prefix)` | `prefix-1a2b3c4d`, for names that must not collide with other tests. |
+| `createUser()`, `createUser(login, password, admin)` | Saves a user. |
+| `loginAs(user)`, `login()` | Makes a user the current user, like a login in the UI (`login()` creates one first). |
+| `createAI()` | Saves an OpenAI-compatible inference provider pointing to `llm`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Member</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>userService</code>, <code translate="no" v-pre>aiService</code>, <code translate="no" v-pre>inferenceServices</code></td>
+<td>Autowired services; autowire any other bean in your test.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>currentUser</code></td>
+<td>The session-scoped <code translate="no" v-pre>User</code> bean - the &quot;logged in&quot; user of the test.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>llm</code></td>
+<td>A <doc-anchor-trigger to="#the-fake-llm-server">mock LLM scenario</doc-anchor-trigger> for this test method.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>uniqueName(prefix)</code></td>
+<td><code translate="no" v-pre>prefix-1a2b3c4d</code>, for names that must not collide with other tests.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>createUser()</code>, <code translate="no" v-pre>createUser(login, password, admin)</code></td>
+<td>Saves a user.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>loginAs(user)</code>, <code translate="no" v-pre>login()</code></td>
+<td>Makes a user the current user, like a login in the UI (<code translate="no" v-pre>login()</code> creates one first).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>createAI()</code></td>
+<td>Saves an OpenAI-compatible inference provider pointing to <code translate="no" v-pre>llm</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Each test method runs in its own mock HTTP request and session (<code translate="no" v-pre>@SpringJUnitWebConfig</code>), so session-scoped beans
+start empty: call <code translate="no" v-pre>login()</code> before using a service that needs the current user.</p>
+<h4 id="the-shared-database">The shared database</h4>
+<p>Spring caches the application context, and with it the database, for the whole test run. All test classes that use
+<code translate="no" v-pre>MarginaliaTestBase</code> share <strong>one</strong> SQLite database. Write tests so that they don&#x27;t depend on what else is in it:</p>
+<ul>
+<li>create the data a test needs in the test, with <code translate="no" v-pre>uniqueName(...)</code> for anything looked up by name;</li>
+<li>assert on the entities you created (<code translate="no" v-pre>contains</code>, <code translate="no" v-pre>doesNotContain</code>), not on totals (<code translate="no" v-pre>hasSize</code>);</li>
+<li>operations that work on the whole database (cleanup, database backups) must only assert on their own data - see
+<code translate="no" v-pre>CleanupServiceTest</code>.</li>
+</ul>
+<p>When a test really needs an empty database or changes global state, mark it with <code translate="no" v-pre>@DirtiesContext</code>. The next test
+then gets a new context with a new folder and database:</p>
+<div id="the-shared-database-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Test
+@DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)   // starts on an empty database
+void lastAdminIsProtected() throws Exception { ... }
+
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)        // changes the shared backup schedule
+class DatabaseBackupScheduleTest extends MarginaliaTestBase { ... }</code></pre>
+</doc-codeblock></div>
+<p>A new context costs a few seconds (Spring, Hibernate, Flyway), so use it sparingly.</p>
+<h4 id="the-application-folder">The application folder</h4>
+<p>Each context gets its own folder under <code translate="no" v-pre>target/test-home/</code> with the database, data, backup and extension folders.
+They are not deleted after the run, so you can open a test database with any SQLite tool after a failure. <code translate="no" v-pre>mvn clean</code>
+or deleting <code translate="no" v-pre>target/test-home</code> removes them.</p>
+<h3 id="generationtestbase">GenerationTestBase</h3>
+<p><code translate="no" v-pre>test/GenerationTestBase</code> runs real generations through every pipeline step (see
+<a href="../generation-pipeline/">Generation pipeline</a>). Before each test it logs in a new user, creates an AI pointing to
+<code translate="no" v-pre>llm</code>, saves a chat-completion protocol and sets the mock&#x27;s fallback answer to <code translate="no" v-pre>&quot;generated&quot;</code>.</p>
+<retype-table copy-text="| Member | |
+|---|---|
+| `ai`, `protocol` | The saved provider and protocol. |
+| `newManuscript()` | An unsaved book with `ai`, `protocol` and minimal templates: user prompt ``, master template ``. Save it with `manuscriptService.save(...)`. |
+| `generate(manuscript, instructions)`, `generate(manuscript, turnInput)` | Generates a new part and waits up to 30 s for the end. Returns a `GenerationRun`. |
+| `onEvent(event, manuscript, action)` | Runs `action` when this book's generation reaches a pipeline `Events` value; removed after the test. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Member</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>ai</code>, <code translate="no" v-pre>protocol</code></td>
+<td>The saved provider and protocol.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>newManuscript()</code></td>
+<td>An unsaved book with <code translate="no" v-pre>ai</code>, <code translate="no" v-pre>protocol</code> and minimal templates: user prompt <code translate="no" v-pre>, master template </code>. Save it with <code translate="no" v-pre>manuscriptService.save(...)</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>generate(manuscript, instructions)</code>, <code translate="no" v-pre>generate(manuscript, turnInput)</code></td>
+<td>Generates a new part and waits up to 30 s for the end. Returns a <code translate="no" v-pre>GenerationRun</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>onEvent(event, manuscript, action)</code></td>
+<td>Runs <code translate="no" v-pre>action</code> when this book&#x27;s generation reaches a pipeline <code translate="no" v-pre>Events</code> value; removed after the test.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>test/GenerationRun</code> is the <code translate="no" v-pre>GenerationListener</code> that stands in for the story editor. It records the streamed
+response and reasoning, errors (<code translate="no" v-pre>getErrors()</code>) and simple errors (<code translate="no" v-pre>getSimpleErrors()</code>, the messages the UI shows in a
+notification), the created part (<code translate="no" v-pre>getMessage()</code>), and the outcome (<code translate="no" v-pre>COMPLETED</code> or <code translate="no" v-pre>CANCELLED</code>). Questions the
+pipeline asks the user (<code translate="no" v-pre>askQuestion</code>) are answered <em>yes</em>.</p>
+<div id="generationtestbase-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">class MyGenerationTest extends GenerationTestBase {
+
+    @Test
+    void instructionsReachTheModel() throws Exception {
+        Manuscript book = manuscriptService.save(newManuscript());
+        llm.reply(&quot;The lighthouse was dark.&quot;);
+
+        GenerationRun run = generate(book, &quot;The keeper climbs the stairs.&quot;);
+
+        assertThat(run.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.COMPLETED);
+        assertThat(run.getErrors()).isEmpty();
+        assertThat(run.getResponse()).isEqualTo(&quot;The lighthouse was dark.&quot;);
+        assertThat(llm.lastCompletionRequest().getLastMessage().content())
+                .contains(&quot;The keeper climbs the stairs.&quot;);
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p>To look at the pipeline state in the middle of a generation, capture it in an event listener. <code translate="no" v-pre>LorebookActivationTest</code>
+reads the activated entries this way:</p>
+<div id="generationtestbase-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">AtomicReference&lt;List&lt;LorebookEntry&gt;&gt; activated = new AtomicReference&lt;&gt;();
+onEvent(Events.AFTER_PROCESS_LOREBOOK, book,
+        e -&gt; activated.set(e.getProperty(GenerationProperties.ACTIVATED_LOREBOOK_ENTRIES)));
+generate(book, &quot;...&quot;);</code></pre>
+</doc-codeblock></div>
+<p>Listeners are global (<code translate="no" v-pre>StoryGenerationService.addEventListener</code>); <code translate="no" v-pre>onEvent</code> filters by book and always calls
+<code translate="no" v-pre>chain.next()</code>, so a failing assertion inside the action doesn&#x27;t stop the generation. Assert after <code translate="no" v-pre>generate</code> returns,
+not inside the listener - an exception in the listener only ends up in the log.</p>
+<h3 id="crud-contracts">CRUD contracts</h3>
+<p>Every entity that belongs to a user has a CRUD test built from <code translate="no" v-pre>crud/OwnedCrudContract</code>. The contract contains the
+tests; a subclass only says how to make and change an entity:</p>
+<retype-table copy-text="| Method | |
+|---|---|
+| `service()` | The entity's `OwnedService`. |
+| `newEntity()` | A new, unsaved, valid entity (referenced entities may be saved). |
+| `assertCreated(loaded)` | Checks the fields set by `newEntity()` after a reload. |
+| `modify(entity)` | Changes some fields. |
+| `assertModified(loaded)` | Checks the changes after a reload. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>service()</code></td>
+<td>The entity&#x27;s <code translate="no" v-pre>OwnedService</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>newEntity()</code></td>
+<td>A new, unsaved, valid entity (referenced entities may be saved).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>assertCreated(loaded)</code></td>
+<td>Checks the fields set by <code translate="no" v-pre>newEntity()</code> after a reload.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>modify(entity)</code></td>
+<td>Changes some fields.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>assertModified(loaded)</code></td>
+<td>Checks the changes after a reload.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The inherited tests check identity and owner on create, find by id / uuid / for user, update (creation date kept,
+modification date moved), soft delete (hidden from all <code translate="no" v-pre>find*ForUser</code> and <code translate="no" v-pre>findAll*</code> methods), hard delete, isolation
+between users, and that saving as another user keeps the owner.</p>
+<p>Entities extending <code translate="no" v-pre>ExtendableEntity</code> use <code translate="no" v-pre>crud/ExtendableCrudContract</code>, which adds the persistence of plugin
+attributes (<code translate="no" v-pre>getAttributes()</code>): nested JSON, changes and removals, unrelated updates, and <code translate="no" v-pre>saveWithoutEvent</code>
+(used by restore). Put at least one <code translate="no" v-pre>@ExtendedAttribute</code> field into <code translate="no" v-pre>newEntity()</code> and <code translate="no" v-pre>modify()</code>, so the inherited
+tests also cover the extended fields. <code translate="no" v-pre>crud/ProtocolCrudTest</code> is a short, complete example.</p>
+<p>When you add an entity (see <a href="../database/">Database &amp; migrations</a>), add its <code translate="no" v-pre>&lt;Entity&gt;CrudTest</code>.</p>
+<h3 id="templatetestbase">TemplateTestBase</h3>
+<p><code translate="no" v-pre>templates/TemplateTestBase</code> creates a <code translate="no" v-pre>TemplateServiceImpl</code> directly, without Spring, with a deterministic context:
+the clock is fixed at Sunday, 15 March 2026, 14:30:45 UTC, random macros use a seeded <code translate="no" v-pre>Random</code>, and the template data
+describes a scene in the middle of a story (POV <em>Alice</em>, characters <em>Alice, Bob, Carol</em>...). One <code translate="no" v-pre>data</code> object is
+shared by all <code translate="no" v-pre>render(...)</code> calls of a test, the way lorebook entries of one generation share their variables.</p>
+<p><code translate="no" v-pre>MacroLorebookFixtureTest</code> renders <code translate="no" v-pre>src/test/resources/macro-test.json</code>, a SillyTavern lorebook whose entries
+document their expected output. When you change macro behaviour, update the fixture and the expectations together.</p>
+<h2 id="the-fake-llm-server">The fake LLM server</h2>
+<p><code translate="no" v-pre>test/llm/MockLLMServer</code> is a small OpenAI-compatible server on <code translate="no" v-pre>127.0.0.1</code> with a random port, built on the JDK&#x27;s
+<code translate="no" v-pre>HttpServer</code>. One shared server lives for the whole test JVM (<code translate="no" v-pre>MockLLMServer.shared()</code>); each test gets its own
+<strong>scenario</strong> with its own base URL, <code translate="no" v-pre>http://127.0.0.1:&lt;port&gt;/&lt;scenario-id&gt;/v1</code>. A provider created with
+<code translate="no" v-pre>createAI()</code> points to the test&#x27;s scenario, so tests never see each other&#x27;s requests or answers.</p>
+<p>It answers:</p>
+<retype-table copy-text="| Endpoint | |
+|---|---|
+| `GET /models` | The scenario's model list (default `mock-model`; change with `llm.models(...)`). |
+| `POST /chat/completions` | Streaming (server-sent events) and non-streaming chat completions. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Endpoint</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>GET /models</code></td>
+<td>The scenario&#x27;s model list (default <code translate="no" v-pre>mock-model</code>; change with <code translate="no" v-pre>llm.models(...)</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>POST /chat/completions</code></td>
+<td>Streaming (server-sent events) and non-streaming chat completions.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="programming-answers">Programming answers</h3>
+<p>Chat completions are answered in this order:</p>
+<ol>
+<li>queued responses - <code translate="no" v-pre>llm.enqueue(...)</code> or <code translate="no" v-pre>llm.reply(&quot;text&quot;)</code>, one per request;</li>
+<li>the responder function - <code translate="no" v-pre>llm.respondWith(request -&gt; ...)</code>, if set and it returns a response;</li>
+<li>the fallback - <code translate="no" v-pre>llm.fallback(...)</code>;</li>
+<li>otherwise HTTP 500 <em>no response programmed</em>.</li>
+</ol>
+<p><code translate="no" v-pre>MockLLMResponse</code> builds one answer:</p>
+<div id="programming-answers-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">MockLLMResponse.text(&quot;Hello world&quot;)                        // one content chunk
+MockLLMResponse.chunks(&quot;Hel&quot;, &quot;lo&quot;).chunkDelay(ofMillis(50))
+MockLLMResponse.split(longText, 20)                        // chunks of 20 characters
+MockLLMResponse.text(&quot;answer&quot;).withReasoning(&quot;thinking&quot;)   // reasoning chunks first
+MockLLMResponse.text(&quot;answer&quot;).withReasoning(&quot;...&quot;).reasoningField(&quot;reasoning&quot;)  // instead of reasoning_content
+MockLLMResponse.text(&quot;cut&quot;).finishReason(&quot;length&quot;)
+MockLLMResponse.error(429, &quot;slow down&quot;)                    // OpenAI-style error body
+MockLLMResponse.chunks(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;).disconnectAfter(2)   // stream ends abruptly
+MockLLMResponse.text(&quot;late&quot;).waitFor(latch)                // held until the latch is released</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>waitFor(latch)</code> is the tool for &quot;while generating&quot; states: the request is received, the pipeline waits for the
+stream, and the test can stop the generation or inspect the state before releasing the latch.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -178,11 +698,120 @@
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
+            <h5>Retries</h5>
+<p>The <code translate="no" v-pre>openai-java</code> client retries 408, 409, 429 and 5xx responses. A queued error response is consumed once per
+attempt, so enqueue it several times (or use <code translate="no" v-pre>fallback</code>) when a test expects the error to reach Marginalia.</p>
         </div>
     </div>
 </div>
+<h3 id="inspecting-requests">Inspecting requests</h3>
+<p>Every request, including model listing, is recorded:</p>
+<retype-table copy-text="| Method | |
+|---|---|
+| `llm.getRequests()`, `llm.getCompletionRequests()` | All requests / chat completions, in order. |
+| `llm.lastCompletionRequest()` | The last chat completion; fails the test if there was none. |
+| `llm.awaitCompletionRequests(n, timeout)` | Waits for `n` completions - for asynchronous callers. |
+| `request.getMessages()`, `getMessages(&quot;system&quot;)`, `getLastMessage()` | The chat messages (`role`, `content`). |
+| `request.getPromptText()` | All messages as `[role]\ncontent` - handy for `contains` assertions. |
+| `request.getBody()`, `getRawBody()`, `getModel()`, `isStream()`, `getApiKey()` | The raw payload. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>llm.getRequests()</code>, <code translate="no" v-pre>llm.getCompletionRequests()</code></td>
+<td>All requests / chat completions, in order.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>llm.lastCompletionRequest()</code></td>
+<td>The last chat completion; fails the test if there was none.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>llm.awaitCompletionRequests(n, timeout)</code></td>
+<td>Waits for <code translate="no" v-pre>n</code> completions - for asynchronous callers.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>request.getMessages()</code>, <code translate="no" v-pre>getMessages(&quot;system&quot;)</code>, <code translate="no" v-pre>getLastMessage()</code></td>
+<td>The chat messages (<code translate="no" v-pre>role</code>, <code translate="no" v-pre>content</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>request.getPromptText()</code></td>
+<td>All messages as <code translate="no" v-pre>[role]\ncontent</code> - handy for <code translate="no" v-pre>contains</code> assertions.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>request.getBody()</code>, <code translate="no" v-pre>getRawBody()</code>, <code translate="no" v-pre>getModel()</code>, <code translate="no" v-pre>isStream()</code>, <code translate="no" v-pre>getApiKey()</code></td>
+<td>The raw payload.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>For code that calls an <code translate="no" v-pre>InferenceService</code> directly (without the pipeline), <code translate="no" v-pre>test/InferenceCollector</code> is a callback
+that pulls the whole stream and waits for the end.</p>
+<h2 id="expected-errors-in-the-log">Expected errors in the log</h2>
+<p>Tests of failure paths make the code log errors on purpose. To keep them out of the test output (where they look like
+real failures) and to assert on them, capture the logger with <code translate="no" v-pre>test/ExpectedLog</code>:</p>
+<div id="expected-errors-in-the-log-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">try (ExpectedLog log = ExpectedLog.capture(ExtensionServiceImpl.class)) {
+    ...
+    assertThat(log.errors()).anyMatch(m -&gt; m.contains(&quot;broken&quot;));
+}</code></pre>
+</doc-codeblock></div>
+<p>While the capture is open, the logger&#x27;s events are recorded and not passed to the console; <code translate="no" v-pre>errors()</code>, <code translate="no" v-pre>warnings()</code>
+and <code translate="no" v-pre>atLeast(level)</code> return the messages, <code translate="no" v-pre>entries()</code> the full events with their exceptions.</p>
+<h2 id="instrumentation-tests">Instrumentation tests</h2>
+<p>The <code translate="no" v-pre>instruct</code> tests check the bytecode that makes <code translate="no" v-pre>@Extendable</code> methods extensible (see
+<a href="../plugins/extendable/">Plugin development</a>):</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>ExtendableMethodVisitorTest</code> transforms fixture classes from <code translate="no" v-pre>instruct/fixture/</code> with <code translate="no" v-pre>instruct/Instrumenter</code> -
+the same transformation the agent applies, without an agent - and checks that the result verifies, keeps the class
+schema, behaves like the original and exposes arguments and locals to decorators.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>RuntimeInstrumentationTest</code> installs the real agent into the test JVM and checks classes loaded both before and
+after the installation (<code translate="no" v-pre>fixture/agent/</code>).</p>
+</li>
+</ul>
+<p>The fixtures are compiled with the same <code translate="no" v-pre>-parameters</code> and <code translate="no" v-pre>preserveAllLocals</code> options as the application; if you
+change the compiler settings in <code translate="no" v-pre>pom.xml</code>, these tests tell you whether extensions still see names of arguments and
+locals.</p>
+<h2 id="checklist-for-a-new-test">Checklist for a new test</h2>
+<ul>
+<li>
+<p>Name it <code translate="no" v-pre>&lt;Subject&gt;Test</code> and put it in the package of the area it tests; Surefire runs every <code translate="no" v-pre>*Test</code> class.</p>
+</li>
+<li>
+<p>Extend the lightest base that works (<doc-anchor-trigger to="#test-bases">Test bases</doc-anchor-trigger>).</p>
+</li>
+<li>
+<p>Create your own data with unique names; don&#x27;t depend on what other tests left in the shared database.</p>
+</li>
+<li>
+<p>Don&#x27;t call real models or other network services - program <code translate="no" v-pre>llm</code> instead.</p>
+</li>
+<li>
+<p>Assert with AssertJ, with <code translate="no" v-pre>.as(&quot;...&quot;)</code> where the failure message would otherwise be unclear.</p>
+</li>
+<li>
+<p>Capture expected error logs with <code translate="no" v-pre>ExpectedLog</code>.</p>
+</li>
+<li>
+<p>A new entity gets a CRUD contract test; a new migration is covered by <code translate="no" v-pre>FlywayMigrationTest</code> automatically (it runs
+all migrations and validates the schema against the entities).</p>
+</li>
+<li>
+<p>A bug fix comes with a test that fails without the fix, where the area is testable without the UI.</p>
+</li>
+<li>
+<p>Run <code translate="no" v-pre>mvn test</code> before opening a pull request - CI runs the same command.</p>
+</li>
+</ul>
 
                 
                 <!-- Required only on API pages -->
@@ -249,6 +878,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Testing", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/testing.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Testing", level: 2, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/testing.md" }</script>
 </body>
 </html>

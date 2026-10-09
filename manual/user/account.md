@@ -47,7 +47,7 @@ your own computer, but never do it on a server others can reach.
 
 The **Settings** tab holds your defaults for all your books.
 
-![The Settings tab](images/settings-defaults.png)
+![The Settings tab](../images/settings-defaults.png)
 
 At the top are two buttons:
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Packaging &amp; releases</title>
     <meta name="title" content="Packaging & releases">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="Marginalia is built once as a WAR and then shipped in two forms: a Docker image for servers and a desktop app with its own Java runtime and Jetty. This page describes how each is built, what CI does, and how a release is made.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/packaging/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/packaging/">
     <meta property="og:title" content="Packaging & releases">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="Marginalia is built once as a WAR and then shipped in two forms: a Docker image for servers and a desktop app with its own Java runtime and Jetty. This page describes how each is built, what CI does, and how a release is made.">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +31,20 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/packaging/">
     <meta name="twitter:title" content="Packaging & releases">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="Marginalia is built once as a WAR and then shipped in two forms: a Docker image for servers and a desktop app with its own Java runtime and Jetty. This page describes how each is built, what CI does, and how a release is made.">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/packaging.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,24 +167,395 @@
 
                 <!-- Page content  -->
 <h1 id="packaging--releases">Packaging &amp; releases</h1>
-<!-- Planned content: WAR, Docker image, desktop app (jlink/jpackage), CI workflows. -->
-<div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
-    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
-        </div>
-    </div>
+<p>Marginalia is built once as a WAR and then shipped in two forms: a <strong>Docker image</strong> for servers and a <strong>desktop app</strong>
+with its own Java runtime and Jetty. This page describes how each is built, what CI does, and how a release is made.
+For everyday builds see <a href="../building/">Building from source</a>.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    src[&quot;marginalia/ sources&quot;] --&gt; war[&quot;marginalia-1.0.0.war&quot;]
+    war --&gt; docker[&quot;Docker image&lt;br/&gt;Jetty 12 + WAR&quot;]
+    war --&gt; desktop[&quot;Desktop distribution&lt;br/&gt;jlink runtime + Jetty + WAR + launcher&quot;]
+    desktop --&gt; portable[&quot;portable archive&lt;br/&gt;marginalia-&amp;lt;v&amp;gt;-&amp;lt;os&amp;gt;-&amp;lt;arch&amp;gt;&quot;]
+    desktop --&gt; appimage[&quot;native app image&lt;br/&gt;marginalia-&amp;lt;v&amp;gt;-&amp;lt;os&amp;gt;-&amp;lt;arch&amp;gt;-app&quot;]
+    src -.-&gt; plugins[&quot;plugin JARs&lt;br/&gt;(built separately)&quot;]</pre></div>
+<retype-table copy-text="| Artifact | Built by | Where it goes |
+|---|---|---|
+| WAR | `mvn package` | Input of the other two; can be deployed to any Servlet 6.1 container. |
+| Docker image | `Dockerfile`, `docker compose build` | Built from source on the server; no image is published. |
+| Desktop archives | `mvn package -Pdesktop`, `.github/workflows/desktop.yml` | Attached to GitHub releases for `v*` tags. |
+| Plugin JARs | `mvn package` in `marginalia/plugins/&lt;plugin&gt;` | Built by hand; not part of CI or the releases. |
+| Manual | `retype build` | `docs/`, served by GitHub Pages. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Built by</th>
+<th>Where it goes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WAR</td>
+<td><code translate="no" v-pre>mvn package</code></td>
+<td>Input of the other two; can be deployed to any Servlet 6.1 container.</td>
+</tr>
+<tr>
+<td>Docker image</td>
+<td><code translate="no" v-pre>Dockerfile</code>, <code translate="no" v-pre>docker compose build</code></td>
+<td>Built from source on the server; no image is published.</td>
+</tr>
+<tr>
+<td>Desktop archives</td>
+<td><code translate="no" v-pre>mvn package -Pdesktop</code>, <code translate="no" v-pre>.github/workflows/desktop.yml</code></td>
+<td>Attached to GitHub releases for <code translate="no" v-pre>v*</code> tags.</td>
+</tr>
+<tr>
+<td>Plugin JARs</td>
+<td><code translate="no" v-pre>mvn package</code> in <code translate="no" v-pre>marginalia/plugins/&lt;plugin&gt;</code></td>
+<td>Built by hand; not part of CI or the releases.</td>
+</tr>
+<tr>
+<td>Manual</td>
+<td><code translate="no" v-pre>retype build</code></td>
+<td><code translate="no" v-pre>docs/</code>, served by GitHub Pages.</td>
+</tr>
+</tbody>
+</table>
 </div>
+</retype-table>
+<h2 id="the-war">The WAR</h2>
+<p><code translate="no" v-pre>mvn package</code> in <code translate="no" v-pre>marginalia/</code> produces <code translate="no" v-pre>target/marginalia-1.0.0.war</code> (see
+<a href="../building/#building-the-application">Building the application</a>). Two resources differ between a development
+build and a release build:</p>
+<retype-table copy-text="| File | Development | Release |
+|---|---|---|
+| `META-INF/VAADIN/config/flow-build-info.json` | Generated by the Vaadin plugin, `productionMode: false` | `flow-build-info.json.PRODUCTION` - production mode, optimized frontend bundle |
+| `log4j.properties` | `com.github.enerccio` at `DEBUG` | `log4j.properties.RELEASE` - quieter, no story content in the log |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>File</th>
+<th>Development</th>
+<th>Release</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>META-INF/VAADIN/config/flow-build-info.json</code></td>
+<td>Generated by the Vaadin plugin, <code translate="no" v-pre>productionMode: false</code></td>
+<td><code translate="no" v-pre>flow-build-info.json.PRODUCTION</code> - production mode, optimized frontend bundle</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>log4j.properties</code></td>
+<td><code translate="no" v-pre>com.github.enerccio</code> at <code translate="no" v-pre>DEBUG</code></td>
+<td><code translate="no" v-pre>log4j.properties.RELEASE</code> - quieter, no story content in the log</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Both release files are in <code translate="no" v-pre>src/main/resources/</code>. The Docker build swaps both; the <code translate="no" v-pre>desktop</code> profile swaps only
+<code translate="no" v-pre>flow-build-info.json</code>. A plain <code translate="no" v-pre>mvn package</code> WAR is a development build
+(<a href="https://github.com/Enerccio/Marginalia/blob/master/TODO.BUGS.md">BUG-32</a>) - don&#x27;t deploy it to a production server
+as is.</p>
+<p>The build also needs the Git history: <code translate="no" v-pre>git-commit-id-plugin</code> writes the commit id and the closest tag into
+<code translate="no" v-pre>git.properties</code>, and the WAR filters them into its build info. Build from a clone, not from a source archive.</p>
+<h2 id="docker-image">Docker image</h2>
+<p>The <code translate="no" v-pre>Dockerfile</code> in the repository root has two stages:</p>
+<ol>
+<li><strong>builder</strong> (<code translate="no" v-pre>maven:3.9-eclipse-temurin-25</code>)
+<ul>
+<li>
+<p>copies <code translate="no" v-pre>marginalia/pom.xml</code> and runs <code translate="no" v-pre>mvn dependency:go-offline</code>, so the dependency layer is cached while only
+the sources change;</p>
+</li>
+<li>
+<p>copies <code translate="no" v-pre>marginalia/src</code> and <code translate="no" v-pre>.git</code> (for <code translate="no" v-pre>git-commit-id-plugin</code>);</p>
+</li>
+<li>
+<p>replaces <code translate="no" v-pre>log4j.properties</code> with <code translate="no" v-pre>log4j.properties.RELEASE</code> and creates <code translate="no" v-pre>flow-build-info.json</code> from
+<code translate="no" v-pre>flow-build-info.json.PRODUCTION</code>;</p>
+</li>
+<li>
+<p>runs <code translate="no" v-pre>mvn clean package -DskipTests</code>.</p>
+</li>
+</ul>
+</li>
+<li><strong>runtime</strong> (<code translate="no" v-pre>jetty:12-jdk25-eclipse-temurin</code>)
+<ul>
+<li>
+<p>creates a Jetty base with the modules <code translate="no" v-pre>server, http, ee10-deploy, ee10-websocket-jakarta, ee10-webapp, ee10-jsp</code> (the WebSocket module is required for Vaadin push);</p>
+</li>
+<li>
+<p>deploys the WAR as <code translate="no" v-pre>webapps/ROOT.war</code>, so Marginalia is at <code translate="no" v-pre>/</code>;</p>
+</li>
+<li>
+<p>creates <code translate="no" v-pre>/var/marginalia</code> for the data, owned by the <code translate="no" v-pre>jetty</code> user, and runs as <code translate="no" v-pre>jetty</code> on port 8080.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>Tests are skipped in the image build - they run in CI. <code translate="no" v-pre>.dockerignore</code> keeps <code translate="no" v-pre>marginalia/target/</code>, <code translate="no" v-pre>.idea/</code>, the
+server&#x27;s <code translate="no" v-pre>data/</code> folder and the plugin folders out of the build context.</p>
+<p><code translate="no" v-pre>docker-compose.yml</code> builds the image and sets the runtime configuration:</p>
+<retype-table copy-text="| Setting | |
+|---|---|
+| `volumes: ./data:/var/marginalia/.marginalia` | The data folder (database, backups, extensions) on the host. |
+| `JAVA_TOOL_OPTIONS=-Duser.home=/var/marginalia ...` | Marginalia keeps its data in `${user.home}/.marginalia`, so this points it to the volume. Also the heap size and a heap dump on out-of-memory errors. |
+| `ports: 8080:8080` | Jetty's HTTP port. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Setting</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>volumes: ./data:/var/marginalia/.marginalia</code></td>
+<td>The data folder (database, backups, extensions) on the host.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>JAVA_TOOL_OPTIONS=-Duser.home=/var/marginalia ...</code></td>
+<td>Marginalia keeps its data in <code translate="no" v-pre>${user.home}/.marginalia</code>, so this points it to the volume. Also the heap size and a heap dump on out-of-memory errors.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ports: 8080:8080</code></td>
+<td>Jetty&#x27;s HTTP port.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The image is not published to a registry; users build it with <code translate="no" v-pre>docker compose up -d --build</code> from a clone (see
+<a href="../../user/getting-started/docker-server/">Server (Docker)</a>). If you publish one, tag it with the release version and
+keep the data volume and <code translate="no" v-pre>JAVA_TOOL_OPTIONS</code> as in <code translate="no" v-pre>docker-compose.yml</code>.</p>
+<p>To try a change in the image:</p>
+<div id="docker-image-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">docker compose build
+docker compose up        # foreground, logs in the terminal; Ctrl+C stops it</code></pre>
+</doc-codeblock></div>
+<p>Use a different <code translate="no" v-pre>./data</code> folder (edit the volume) when testing, so you don&#x27;t touch a real installation&#x27;s data.</p>
+<h2 id="desktop-app">Desktop app</h2>
+<p>The <code translate="no" v-pre>desktop</code> Maven profile turns the WAR into a self-contained application for the operating system and CPU it is
+built on:</p>
+<div id="desktop-app-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia
+mvn package -Pdesktop -DskipTests</code></pre>
+</doc-codeblock></div>
+<p>It needs a full JDK 25 (with <code translate="no" v-pre>jlink</code> and <code translate="no" v-pre>jpackage</code>) and, on Windows, <code translate="no" v-pre>tar.exe</code> from <code translate="no" v-pre>System32</code> (present on Windows 10
+and later).</p>
+<h3 id="what-the-profile-does">What the profile does</h3>
+<p>In <code translate="no" v-pre>prepare-package</code>:</p>
+<ul>
+<li>
+<p>copies <code translate="no" v-pre>flow-build-info.json.PRODUCTION</code> into <code translate="no" v-pre>target/desktop/production-resources/</code> and leaves the generated file
+out of the WAR, so the WAR is a production build;</p>
+</li>
+<li>
+<p>downloads <code translate="no" v-pre>jetty-home</code> (version <code translate="no" v-pre>desktop.jetty.version</code>) into <code translate="no" v-pre>target/desktop/download/</code>.</p>
+</li>
+</ul>
+<p>In <code translate="no" v-pre>package</code> (after the WAR is built):</p>
+<ol>
+<li>
+<p>compiles <code translate="no" v-pre>src/desktop/java</code> (<code translate="no" v-pre>DesktopLauncher</code>, JDK only) into <code translate="no" v-pre>app/marginalia-launcher.jar</code>;</p>
+</li>
+<li>
+<p>copies the WAR to <code translate="no" v-pre>server/marginalia.war</code> and unpacks <code translate="no" v-pre>jetty-home</code> into <code translate="no" v-pre>server/jetty-home/</code>;</p>
+</li>
+<li>
+<p>builds a trimmed Java runtime with <code translate="no" v-pre>jlink</code> (the modules in <code translate="no" v-pre>desktop.modules</code>) into <code translate="no" v-pre>runtime/</code>;</p>
+</li>
+<li>
+<p>copies the launch scripts from <code translate="no" v-pre>src/desktop/bin/</code> into <code translate="no" v-pre>bin/</code>;</p>
+</li>
+<li>
+<p>builds a native app image with <code translate="no" v-pre>jpackage --type app-image</code> (no installer), with the runtime, the launcher JAR and
+the <code translate="no" v-pre>server/</code> folder as app content;</p>
+</li>
+<li>
+<p>packs both into archives.</p>
+</li>
+</ol>
+<p>Outputs in <code translate="no" v-pre>target/desktop/</code>:</p>
+<retype-table copy-text="| Path | |
+|---|---|
+| `marginalia-1.0.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
+| `package/` | The app image: `Marginalia.app` (macOS), `Marginalia/Marginalia.exe` (Windows), `Marginalia/bin/Marginalia` (Linux). |
+| `marginalia-1.0.0-&lt;os&gt;-&lt;arch&gt;.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
+| `marginalia-1.0.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz` / `.zip` | Archive of the app image. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Path</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>marginalia-1.0.0/</code></td>
+<td>The portable folder: <code translate="no" v-pre>bin/marginalia</code>, <code translate="no" v-pre>bin/marginalia.bat</code>, <code translate="no" v-pre>app/</code>, <code translate="no" v-pre>server/</code>, <code translate="no" v-pre>runtime/</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>package/</code></td>
+<td>The app image: <code translate="no" v-pre>Marginalia.app</code> (macOS), <code translate="no" v-pre>Marginalia/Marginalia.exe</code> (Windows), <code translate="no" v-pre>Marginalia/bin/Marginalia</code> (Linux).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>marginalia-1.0.0-&lt;os&gt;-&lt;arch&gt;.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
+<td>Archive of the portable folder (<code translate="no" v-pre>.zip</code> on Windows).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>marginalia-1.0.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
+<td>Archive of the app image.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>&lt;os&gt;</code> is <code translate="no" v-pre>linux</code>, <code translate="no" v-pre>macos</code> or <code translate="no" v-pre>windows</code>, <code translate="no" v-pre>&lt;arch&gt;</code> is Java&#x27;s <code translate="no" v-pre>os.arch</code> (<code translate="no" v-pre>amd64</code>, <code translate="no" v-pre>aarch64</code>...). Archives are made with
+<code translate="no" v-pre>tar</code> so the executable bits of the launchers survive.</p>
+<h3 id="the-launcher">The launcher</h3>
+<p><code translate="no" v-pre>DesktopLauncher</code> is the main class of the app image and of the portable scripts. It depends on the JDK only and
+starts Jetty in its own JVM by loading <code translate="no" v-pre>start.jar</code> through a class loader, so it never needs Jetty on the classpath
+and never ends up in the WAR. On start it:</p>
+<ol>
+<li>
+<p>resolves the data folder <code translate="no" v-pre>&lt;home&gt;/.marginalia</code> (<code translate="no" v-pre>--home</code> sets <code translate="no" v-pre>user.home</code>) and redirects its output to
+<code translate="no" v-pre>.marginalia/desktop/logs/</code>;</p>
+</li>
+<li>
+<p>finds <code translate="no" v-pre>server/</code> next to or above the launcher JAR (jpackage places app content differently per OS);</p>
+</li>
+<li>
+<p>checks the port (default 8765): if Marginalia already runs there, it just opens the browser; if another program
+uses it, it picks a free port (unless <code translate="no" v-pre>--port</code> was given);</p>
+</li>
+<li>
+<p>writes a Jetty base into <code translate="no" v-pre>.marginalia/desktop/jetty-base/</code> (modules <code translate="no" v-pre>ee11-*</code>, <code translate="no" v-pre>webapps/ROOT.xml</code> pointing to the
+WAR, a persistent work folder) - so the installation itself can stay read-only, e.g. inside a signed app bundle;</p>
+</li>
+<li>
+<p>starts Jetty on <code translate="no" v-pre>127.0.0.1</code>, waits up to three minutes for the start page, then shows the tray icon (or a small
+window where there is no system tray) and opens the browser.</p>
+</li>
+</ol>
+<p>The JVM options needed by the extension agent (<code translate="no" v-pre>-Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading</code>,
+plus <code translate="no" v-pre>--enable-native-access=ALL-UNNAMED</code> for SQLite) are passed by <code translate="no" v-pre>jpackage --java-options</code> and by the scripts in
+<code translate="no" v-pre>bin/</code>. The scripts add <code translate="no" v-pre>MARGINALIA_JAVA_OPTS</code>. Keep the three places in sync - the <code translate="no" v-pre>desktop.javaOptions</code> property
+and both scripts. On macOS, <code translate="no" v-pre>-Dapple.awt.UIElement=true</code> keeps the app out of the Dock; it lives only in the tray.</p>
+<p>Command-line options are described in <a href="../../user/getting-started/desktop-app/#options">Desktop app</a>.</p>
+<h3 id="cross-platform-builds">Cross-platform builds</h3>
+<p><code translate="no" v-pre>jlink</code> and <code translate="no" v-pre>jpackage</code> only build for the platform they run on, so each operating system and CPU is built on its own
+machine. CI does this with a build matrix (below). Locally you get only your own platform.</p>
+<p>If you add a dependency that needs a JDK module not in <code translate="no" v-pre>desktop.modules</code> (a <code translate="no" v-pre>ClassNotFoundException</code> or
+<code translate="no" v-pre>NoClassDefFoundError</code> for a <code translate="no" v-pre>java.*</code> / <code translate="no" v-pre>javax.*</code> / <code translate="no" v-pre>jdk.*</code> class in the desktop log only), add the module to the
+list. <code translate="no" v-pre>jdeps --print-module-deps</code> on the WAR&#x27;s libraries helps to find it.</p>
+<h3 id="signing">Signing</h3>
+<p>The app images are not signed or notarized. macOS Gatekeeper and Windows SmartScreen warn on the first start; the
+<a href="../../user/getting-started/desktop-app/">Desktop app</a> page tells users how to get past it. Signing would be added to
+the <code translate="no" v-pre>jpackage</code> call (<code translate="no" v-pre>--mac-sign</code>, <code translate="no" v-pre>--mac-signing-key-user-name</code>...) and, for Windows, as a separate <code translate="no" v-pre>signtool</code> step
+in CI.</p>
+<h2 id="plugins">Plugins</h2>
+<p>Each plugin in <code translate="no" v-pre>marginalia/plugins/</code> is a Maven project with <code translate="no" v-pre>bundle</code> packaging (Apache Felix
+<code translate="no" v-pre>maven-bundle-plugin</code>) that depends on the application&#x27;s classes JAR with <code translate="no" v-pre>provided</code> scope. They are built against
+one exact version of the application:</p>
+<div id="plugins-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia &amp;&amp; mvn install -DskipTests
+cd plugins/reviewer &amp;&amp; mvn package        # target/reviewer-1.0.0.jar</code></pre>
+</doc-codeblock></div>
+<p>CI doesn&#x27;t build the plugins and releases don&#x27;t contain them. When you change application classes that a plugin
+uses (decorated <code translate="no" v-pre>@Extendable</code> methods, UI classes, services), rebuild the plugin and test it against the new
+application. See <a href="../plugins/">Plugin development</a>.</p>
+<h2 id="continuous-integration">Continuous integration</h2>
+<p><code translate="no" v-pre>.github/workflows/desktop.yml</code> is the only workflow. It runs on pushes to <code translate="no" v-pre>master</code>, on <code translate="no" v-pre>v*</code> tags, on pull requests
+that change <code translate="no" v-pre>marginalia/**</code> or the workflow, and by hand (<em>workflow_dispatch</em>). A newer run on the same ref cancels
+the running one.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    test[&quot;test&lt;br/&gt;mvn test (ubuntu)&quot;] --&gt; matrix
+    subgraph matrix[&quot;desktop (matrix)&quot;]
+        l64[linux-x64]
+        la64[linux-arm64]
+        w64[windows-x64]
+        ma[macos-arm64]
+        mx[macos-x64]
+    end
+    matrix --&gt; release[&quot;release&lt;br/&gt;(v* tags only)&quot;]</pre></div>
+<retype-table copy-text="| Job | Runs on | Does |
+|---|---|---|
+| `test` | `ubuntu-latest` | `mvn test`; uploads `surefire-reports/` when a test fails. |
+| `desktop` | one runner per platform | `mvn -Pdesktop -DskipTests package`, a smoke test, uploads the archives (kept 14 days). |
+| `release` | `ubuntu-latest`, `v*` tags only | Downloads all archives and attaches them to the GitHub release of the tag. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Job</th>
+<th>Runs on</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>test</code></td>
+<td><code translate="no" v-pre>ubuntu-latest</code></td>
+<td><code translate="no" v-pre>mvn test</code>; uploads <code translate="no" v-pre>surefire-reports/</code> when a test fails.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>desktop</code></td>
+<td>one runner per platform</td>
+<td><code translate="no" v-pre>mvn -Pdesktop -DskipTests package</code>, a smoke test, uploads the archives (kept 14 days).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>release</code></td>
+<td><code translate="no" v-pre>ubuntu-latest</code>, <code translate="no" v-pre>v*</code> tags only</td>
+<td>Downloads all archives and attaches them to the GitHub release of the tag.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>All jobs use Temurin JDK 25 with the Maven cache and check out the full history (<code translate="no" v-pre>fetch-depth: 0</code>) for
+<code translate="no" v-pre>git-commit-id-plugin</code>.</p>
+<p>The <strong>smoke test</strong> starts the native app (and on Linux and macOS also the portable <code translate="no" v-pre>bin/marginalia</code>) with a temporary
+<code translate="no" v-pre>--home</code>, a fixed port, <code translate="no" v-pre>--no-browser --no-tray</code>, and waits up to three minutes until the start page contains
+<code translate="no" v-pre>&lt;title&gt;Marginalia&lt;/title&gt;</code>. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
+JDK module, a launcher that can&#x27;t find <code translate="no" v-pre>server/</code>, a WAR that doesn&#x27;t deploy - but doesn&#x27;t test any feature.</p>
+<h2 id="making-a-release">Making a release</h2>
+<ol>
+<li><strong>Version.</strong> Set the new version in <code translate="no" v-pre>marginalia/pom.xml</code> (<code translate="no" v-pre>&lt;version&gt;</code>) and in the plugin POMs (the plugin
+version and the version of the <code translate="no" v-pre>marginalia</code> dependency). The archive names and the app version shown by the OS
+come from the POM, not from the tag, so the two must match
+(<a href="https://github.com/Enerccio/Marginalia/blob/master/TODO.BUGS.md">BUG-58</a>). <code translate="no" v-pre>jpackage</code> on macOS requires a
+version of the form <code translate="no" v-pre>x.y.z</code> with <code translate="no" v-pre>x</code> ≥ 1.</li>
+<li><strong>Database.</strong> If the release changes the schema, check that the migrations upgrade a database of the previous
+release (keep a copy of one around) - <code translate="no" v-pre>FlywayMigrationTest</code> covers only the migrations themselves.</li>
+<li><strong>Manual.</strong> Update the manual for user-visible changes, run <code translate="no" v-pre>retype build</code>, commit <code translate="no" v-pre>docs/</code>.</li>
+<li><strong>Test.</strong> <code translate="no" v-pre>mvn test</code>, and <code translate="no" v-pre>mvn package -Pdesktop</code> on at least your own platform; start the app and generate a part
+against a real model.</li>
+<li>
+<p><strong>Tag.</strong> Commit, then create and push the tag:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">git tag v1.1.0
+git push origin master v1.1.0</code></pre>
+</doc-codeblock></div>
+</li>
+<li><strong>Release.</strong> Create the GitHub release for the tag (by hand or <code translate="no" v-pre>gh release create v1.1.0</code>) with the release
+notes. The workflow attaches the ten desktop archives when the matrix finishes - if the release doesn&#x27;t exist yet,
+<code translate="no" v-pre>softprops/action-gh-release</code> creates it.</li>
+<li><strong>Plugins.</strong> Build the plugin JARs and attach them to the release if they changed.</li>
+<li><strong>Announce upgrades.</strong> Docker users update with <code translate="no" v-pre>git pull &amp;&amp; docker compose up -d --build</code>, desktop users replace
+the app. Remind them to make a <a href="../../user/administration/database-backups/">database backup</a> first when the
+schema changed.</li>
+</ol>
+<h2 id="publishing-the-manual">Publishing the manual</h2>
+<p>The manual is part of the repository: Retype reads <code translate="no" v-pre>manual/</code> and writes the static site to <code translate="no" v-pre>docs/</code> (configured in
+<code translate="no" v-pre>retype.yml</code>). GitHub Pages serves <code translate="no" v-pre>docs/</code> from the <code translate="no" v-pre>master</code> branch, so the published manual changes when a commit
+with a new <code translate="no" v-pre>docs/</code> reaches <code translate="no" v-pre>master</code>. Rebuild and commit <code translate="no" v-pre>docs/</code> in the same change as the sources - see
+<a href="../building/#building-the-manual">Building the manual</a>.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -249,6 +622,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Packaging & releases", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/packaging.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Packaging & releases", level: 2, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/packaging.md" }</script>
 </body>
 </html>

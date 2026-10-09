@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Plugin development</title>
     <meta name="title" content="Plugin development">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="A Marginalia plugin (the user interface calls them extensions) is an OSGi bundle - a JAR with a few extra manifest headers - that Marginalia loads at runtime, without a restart.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/plugins/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/plugins/">
     <meta property="og:title" content="Plugin development">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="A Marginalia plugin (the user interface calls them extensions) is an OSGi bundle - a JAR with a few extra manifest headers - that Marginalia loads at runtime, without a restart.">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +31,19 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/plugins/">
     <meta name="twitter:title" content="Plugin development">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="A Marginalia plugin (the user interface calls them extensions) is an OSGi bundle - a JAR with a few extra manifest headers - that Marginalia loads at runtime, without a restart.">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/plugins/index.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,6 +166,77 @@
 
                 <!-- Page content  -->
 <h1 id="plugin-development">Plugin development</h1>
+<p>A Marginalia plugin (the user interface calls them <em>extensions</em>) is an OSGi bundle - a JAR with a few extra manifest
+headers - that Marginalia loads at runtime, without a restart. A plugin can add menu items, tabs, panels and settings
+to the user interface, keep its own data on books, story parts, lorebooks and user settings, call the model, and take
+part in generation.</p>
+<p>This part of the developer guide explains how plugins work and how to write one. It assumes you can build Marginalia
+from source (<a href="../building/">Building from source</a>) and know a little Vaadin Flow (<a href="../ui/">User interface</a>).</p>
+<h2 id="how-a-plugin-plugs-in">How a plugin plugs in</h2>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    subgraph Bundle[&quot;Plugin JAR (OSGi bundle)&quot;]
+        Act[&quot;BundleActivator&quot;] --&gt;|registers| Ext[&quot;MarginaliaExtension&quot;]
+        Ext --&gt; Dec[&quot;ExtensionDecorators&quot;]
+        Ext --&gt; Lis[&quot;generation listeners&quot;]
+    end
+    subgraph App[&quot;Marginalia&quot;]
+        Osgi[&quot;OsgiService&lt;br/&gt;(Apache Felix)&quot;]
+        ES[&quot;ExtensionService&quot;]
+        UI[&quot;@Extendable UI classes&lt;br/&gt;(instrumented)&quot;]
+        Gen[&quot;StoryGenerationService&quot;]
+        Ent[&quot;entities&lt;br/&gt;attributes JSON&quot;]
+    end
+    Osgi --&gt;|onExtensionLoad| Ext
+    Dec --&gt;|registerDecorator| ES
+    UI --&gt;|method enter / leave| ES
+    ES --&gt;|onMethodEnter / onMethodLeave| Dec
+    Lis --&gt;|addEventListener| Gen
+    Dec -.-&gt;|read / write| Ent</pre></div>
+<p>There is no plugin API in the usual sense - no list of extension points with stable signatures. Instead, a plugin
+gets three general mechanisms and the whole application to use them on:</p>
+<retype-table copy-text="| Mechanism | What it gives you | Page |
+|---|---|---|
+| **Bundles** | Loading, unloading, the `MarginaliaExtension` lifecycle, access to every Spring service through `@Configurable`. | [Plugin basics](overview.md) |
+| **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields. | [@Extendable hooks](extendable.md) |
+| **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
+| **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation pipeline](../generation-pipeline.md#events-for-extensions) |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>What it gives you</th>
+<th>Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Bundles</strong></td>
+<td>Loading, unloading, the <code translate="no" v-pre>MarginaliaExtension</code> lifecycle, access to every Spring service through <code translate="no" v-pre>@Configurable</code>.</td>
+<td><a href="overview/">Plugin basics</a></td>
+</tr>
+<tr>
+<td><strong><code translate="no" v-pre>@Extendable</code> hooks</strong></td>
+<td>Code that runs before and after <em>any</em> method of an instrumented UI class, with access to its arguments, local variables and fields.</td>
+<td><a href="extendable/">@Extendable hooks</a></td>
+</tr>
+<tr>
+<td><strong>Extended attributes</strong></td>
+<td>A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change.</td>
+<td><a href="extended-attributes/">Extended attributes</a></td>
+</tr>
+<tr>
+<td><strong>Generation events</strong></td>
+<td>Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated.</td>
+<td><a href="../generation-pipeline/#events-for-extensions">Generation pipeline</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><a href="ui-extensions/">Extending the UI</a> puts the first three together: adding components, settings panels, threads and
+cleaning up on unload. <a href="example/">Example plugin</a> builds a small plugin from scratch and walks through the bundled
+Chapter Marker.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -177,11 +249,64 @@
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
+            <h5>Plugins are tied to one version of Marginalia</h5>
+<p>Hooks are attached by class and method <em>name</em> and read local variables and fields by name. Renaming a method or a
+variable in the application silently disables the part of a plugin that used it (a warning is logged). Build plugins
+from the same source tree as the application they run in, and test them after every update.</p>
         </div>
     </div>
 </div>
+<h2 id="the-bundled-plugins">The bundled plugins</h2>
+<p>The four plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
+<retype-table copy-text="| Plugin | What it adds | Shows how to |
+|---|---|---|
+| [Chapter Marker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker) | Story parts that start with a Markdown heading are shown as chapters in the story sidebar. | Read method arguments and locals, change a component the method built. The smallest one - start here. |
+| [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
+| [Reviewer](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer) | AI reviews of a story part with configurable reviewer profiles. | Add a sub-menu to every part, add a settings panel, stream an answer from the model. |
+| [Side Query](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery) | A chat panel next to the story for questions about the book. | Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Plugin</th>
+<th>What it adds</th>
+<th>Shows how to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker">Chapter Marker</a></td>
+<td>Story parts that start with a Markdown heading are shown as chapters in the story sidebar.</td>
+<td>Read method arguments and locals, change a component the method built. The smallest one - start here.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs">Lorebook VCS</a></td>
+<td>Revision history of lorebook entries, export and import of the history.</td>
+<td>Insert panels into a view, store data in a lorebook&#x27;s attributes, replace a field of the view.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer">Reviewer</a></td>
+<td>AI reviews of a story part with configurable reviewer profiles.</td>
+<td>Add a sub-menu to every part, add a settings panel, stream an answer from the model.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery">Side Query</a></td>
+<td>A chat panel next to the story for questions about the book.</td>
+<td>Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Users install them as described in <a href="../../user/administration/extensions/">Managing extensions</a>.</p>
+<h2 id="reading-order">Reading order</h2>
+<ol>
+<li><a href="overview/">Plugin basics</a> - project layout, the activator and the extension, building and loading.</li>
+<li><a href="example/">Example plugin</a> - build one, load it, see it work.</li>
+<li><a href="extendable/">@Extendable hooks</a> - the decorator API in detail and its limits.</li>
+<li><a href="extended-attributes/">Extended attributes</a> - storing data.</li>
+<li><a href="ui-extensions/">Extending the UI</a> - patterns for menus, tabs and settings, threads and unloading.</li>
+</ol>
 
                 
                 <!-- Required only on API pages -->
@@ -248,6 +373,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Plugin development", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/plugins/index.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Plugin development", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/plugins/index.md" }</script>
 </body>
 </html>

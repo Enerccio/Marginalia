@@ -1,10 +1,10 @@
-﻿# Home
+﻿# Marginalia
 
-> This page has not been written yet.
+> Marginalia is a self-hosted writing tool for long-form fiction co-written with large language models. You write the instructions for each part of the
 
-- [Home](https://enerccio.github.io/Marginalia/index.md): Home
-- [User guide](https://enerccio.github.io/Marginalia/user/index.md): This page has not been written yet.
-- [Developer guide](https://enerccio.github.io/Marginalia/developer/index.md): This page has not been written yet.
+- [Marginalia](https://enerccio.github.io/Marginalia/index.md): Marginalia
+- [User guide](https://enerccio.github.io/Marginalia/user/index.md): This part of the manual is for people who write with Marginalia and for those who run it for others. It explains every screen and setting, from installing Marginalia and connecting a model to branching a story, building a lorebook and backing up the database.
+- [Developer guide](https://enerccio.github.io/Marginalia/developer/index.md): This part of the manual is for people who want to change Marginalia itself, write an extension for it, or just understand how it works inside. If you only want to install and use Marginalia, see the User guide.
 
 ## User guide
 
@@ -62,24 +62,24 @@
 
 ## Developer guide
 
-- [Building from source](https://enerccio.github.io/Marginalia/developer/building.md): This page has not been written yet.
-- [Architecture](https://enerccio.github.io/Marginalia/developer/architecture.md): This page has not been written yet.
-- [Project structure](https://enerccio.github.io/Marginalia/developer/project-structure.md): This page has not been written yet.
-- [Domain model](https://enerccio.github.io/Marginalia/developer/domain-model.md): This page has not been written yet.
-- [Database & migrations](https://enerccio.github.io/Marginalia/developer/database.md): This page has not been written yet.
-- [Services](https://enerccio.github.io/Marginalia/developer/services.md): This page has not been written yet.
-- [Generation pipeline](https://enerccio.github.io/Marginalia/developer/generation-pipeline.md): This page has not been written yet.
-- [Templating & macros](https://enerccio.github.io/Marginalia/developer/templating.md): This page has not been written yet.
-- [User interface](https://enerccio.github.io/Marginalia/developer/ui.md): This page has not been written yet.
+- [Building from source](https://enerccio.github.io/Marginalia/developer/building.md): This page shows how to build Marginalia, run it on your machine while you work on it, and build the plugins and this manual. Packaging for release (the Docker image, the desktop app, CI) is covered in Packaging & releases.
+- [Architecture](https://enerccio.github.io/Marginalia/developer/architecture.md): Marginalia is one Java web application running in one JVM. There is no separate frontend project, no REST API and no external database: the browser shows Vaadin components that live on the server, the components call Spring services, and the services store everything in a single SQLite file.
+- [Project structure](https://enerccio.github.io/Marginalia/developer/project-structure.md): A tour of the repository: what each folder and package contains and where to look when you want to change something. Architecture explains how the parts work together; this page is the map.
+- [Domain model](https://enerccio.github.io/Marginalia/developer/domain-model.md): The entities Marginalia stores, how they relate, and the rules every entity follows: identity, ownership, soft delete, extended attributes and cleanup. Entities are in domain/model/ (base classes), domain/model/impl/ and domain/security/model/User.java.
+- [Database & migrations](https://enerccio.github.io/Marginalia/developer/database.md): Marginalia keeps all its data in one SQLite file. The schema is created and upgraded by Flyway migrations, and Hibernate maps the entities onto it but never changes it.
+- [Services](https://enerccio.github.io/Marginalia/developer/services.md): The service layer holds Marginalia's logic: everything the UI does to data goes through a service, and services are the main API extensions use. This page describes how services and repositories are built, how transactions and the current user work, and what each service is for.
+- [Generation pipeline](https://enerccio.github.io/Marginalia/developer/generation-pipeline.md): How Marginalia turns the instruction panel into a new story part: the steps that build the prompt, how the prompt is fitted into the model's context, how the answer is streamed into the part, and the events extensions can use to change any of it.
+- [Templating & macros](https://enerccio.github.io/Marginalia/developer/templating.md): Every prompt Marginalia sends is rendered from a template: the master template, the user prompt, lorebook entries and the summary prompt. Templates are Handlebars with SillyTavern-compatible macros on top.
+- [User interface](https://enerccio.github.io/Marginalia/developer/ui.md): Marginalia's UI is written in Java with Vaadin Flow 25: the component tree lives on the server, the browser renders it with Vaadin's web components (Lumo theme, dark color scheme) and sends events back over HTTP and a push WebSocket.
 
 ### Plugin development
 
-- [Plugin development](https://enerccio.github.io/Marginalia/developer/plugins/index.md): This page has not been written yet.
-- [Plugin basics](https://enerccio.github.io/Marginalia/developer/plugins/overview.md): This page has not been written yet.
-- [@Extendable hooks](https://enerccio.github.io/Marginalia/developer/plugins/extendable.md): This page has not been written yet.
-- [Extended attributes](https://enerccio.github.io/Marginalia/developer/plugins/extended-attributes.md): This page has not been written yet.
-- [Extending the UI](https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions.md): This page has not been written yet.
-- [Example plugin](https://enerccio.github.io/Marginalia/developer/plugins/example.md): This page has not been written yet.
-- [Testing](https://enerccio.github.io/Marginalia/developer/testing.md): This page has not been written yet.
-- [Packaging & releases](https://enerccio.github.io/Marginalia/developer/packaging.md): This page has not been written yet.
-- [Contributing](https://enerccio.github.io/Marginalia/developer/contributing.md): This page has not been written yet.
+- [Plugin development](https://enerccio.github.io/Marginalia/developer/plugins/index.md): A Marginalia plugin (the user interface calls them extensions) is an OSGi bundle - a JAR with a few extra manifest headers - that Marginalia loads at runtime, without a restart.
+- [Plugin basics](https://enerccio.github.io/Marginalia/developer/plugins/overview.md): This page covers what every plugin needs: the Maven project, the bundle activator, the MarginaliaExtension and how Marginalia loads, starts and unloads it.
+- [@Extendable hooks](https://enerccio.github.io/Marginalia/developer/plugins/extendable.md): Most of what a plugin does starts with a decorator: an object whose onMethodEnter and onMethodLeave run before and after a method of an application class.
+- [Extended attributes](https://enerccio.github.io/Marginalia/developer/plugins/extended-attributes.md): Plugins can't add tables or columns - there is no way to run their own Flyway migrations. Instead, every data entity carries a JSON object where a plugin can keep whatever it needs: ExtendableEntity.attributes.
+- [Extending the UI](https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions.md): Plugins add to the user interface from decorators: when a method that builds part of a screen runs, the plugin's decorator finds the component it built and adds to it.
+- [Example plugin](https://enerccio.github.io/Marginalia/developer/plugins/example.md): This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through the smallest bundled plugin, Chapter Marker.
+- [Testing](https://enerccio.github.io/Marginalia/developer/testing.md): Marginalia's tests are integration tests first: most of them start the real Spring XML configuration against a throwaway SQLite database and talk to a fake OpenAI-compatible server.
+- [Packaging & releases](https://enerccio.github.io/Marginalia/developer/packaging.md): Marginalia is built once as a WAR and then shipped in two forms: a Docker image for servers and a desktop app with its own Java runtime and Jetty. This page describes how each is built, what CI does, and how a release is made.
+- [Contributing](https://enerccio.github.io/Marginalia/developer/contributing.md): Contributions are welcome: bug reports, fixes, new features, extensions, and corrections to this manual. This page describes how to report a problem, how changes are made and what a pull request should contain.

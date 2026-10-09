@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Database &amp; migrations</title>
     <meta name="title" content="Database & migrations">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="Marginalia keeps all its data in one SQLite file. The schema is created and upgraded by Flyway migrations, and Hibernate maps the entities onto it but never changes it.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/database/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/database/">
     <meta property="og:title" content="Database & migrations">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="Marginalia keeps all its data in one SQLite file. The schema is created and upgraded by Flyway migrations, and Hibernate maps the entities onto it but never changes it.">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +31,20 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/database/">
     <meta name="twitter:title" content="Database & migrations">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="Marginalia keeps all its data in one SQLite file. The schema is created and upgraded by Flyway migrations, and Hibernate maps the entities onto it but never changes it.">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/database.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,7 +167,377 @@
 
                 <!-- Page content  -->
 <h1 id="database--migrations">Database &amp; migrations</h1>
-<!-- Planned content: SQLite, Flyway migrations, schema validation, writing a new migration. -->
+<p>Marginalia keeps all its data in one SQLite file. The schema is created and upgraded by Flyway migrations, and
+Hibernate maps the entities onto it but never changes it. This page explains the setup, the conventions of the schema
+and how to write a migration. What the tables contain is described in <a href="../domain-model/">Domain model</a>.</p>
+<h2 id="the-database-file">The database file</h2>
+<retype-table copy-text="| | |
+|---|---|
+| File | `&lt;user.home&gt;/.marginalia/marginalia.sqlite`, with `marginalia.sqlite-wal` and `-shm` while it runs |
+| JDBC URL | `jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL` (built by `Configuration.resolveDb`) |
+| Driver | `org.sqlite.JDBC` (`sqlite-jdbc`) |
+| Pool | commons-dbcp `BasicDataSource`, 10-20 connections, validated with `SELECT 1` |
+| Journal | WAL - readers don't block the writer; writers wait up to 10 s (`busy_timeout`) for each other |
+| Foreign keys | Not enforced (`PRAGMA foreign_keys` is off), see [Conventions](#schema-conventions) |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th> </th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>File</td>
+<td><code translate="no" v-pre>&lt;user.home&gt;/.marginalia/marginalia.sqlite</code>, with <code translate="no" v-pre>marginalia.sqlite-wal</code> and <code translate="no" v-pre>-shm</code> while it runs</td>
+</tr>
+<tr>
+<td>JDBC URL</td>
+<td><code translate="no" v-pre>jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL</code> (built by <code translate="no" v-pre>Configuration.resolveDb</code>)</td>
+</tr>
+<tr>
+<td>Driver</td>
+<td><code translate="no" v-pre>org.sqlite.JDBC</code> (<code translate="no" v-pre>sqlite-jdbc</code>)</td>
+</tr>
+<tr>
+<td>Pool</td>
+<td>commons-dbcp <code translate="no" v-pre>BasicDataSource</code>, 10-20 connections, validated with <code translate="no" v-pre>SELECT 1</code></td>
+</tr>
+<tr>
+<td>Journal</td>
+<td>WAL - readers don&#x27;t block the writer; writers wait up to 10 s (<code translate="no" v-pre>busy_timeout</code>) for each other</td>
+</tr>
+<tr>
+<td>Foreign keys</td>
+<td>Not enforced (<code translate="no" v-pre>PRAGMA foreign_keys</code> is off), see <doc-anchor-trigger to="#schema-conventions">Conventions</doc-anchor-trigger></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The beans are in <code translate="no" v-pre>src/main/resources/META-INF/spring/datasources-config.xml</code>:</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    conf[&quot;configuration&lt;br/&gt;resolveDb()&quot;] --&gt; ds[&quot;dataSource&lt;br/&gt;BasicDataSource&quot;]
+    ds --&gt; fw[&quot;flyway&lt;br/&gt;init-method=migrate&quot;]
+    ds --&gt; proxy[&quot;ds&lt;br/&gt;TransactionAwareDataSourceProxy&quot;]
+    fw -. &quot;depends-on&quot; .-&gt; emf
+    proxy --&gt; emf[&quot;emf&lt;br/&gt;EntityManagerFactory (PU)&quot;]
+    proxy --&gt; jdbc[&quot;jdbcTemplate&quot;]
+    emf --&gt; em[&quot;em&lt;br/&gt;SharedEntityManagerBean&quot;]
+    emf --&gt; tm[&quot;transactionManager&lt;br/&gt;JpaTransactionManager 'common'&quot;]</pre></div>
+<ul>
+<li>
+<p><code translate="no" v-pre>flyway</code> migrates the database when the context starts; <code translate="no" v-pre>emf</code> depends on it, so Hibernate only sees a migrated
+schema.</p>
+</li>
+<li>
+<p>Hibernate and <code translate="no" v-pre>jdbcTemplate</code> use the data source through <code translate="no" v-pre>TransactionAwareDataSourceProxy</code>, so plain JDBC code
+joins the current JPA transaction.</p>
+</li>
+<li>
+<p>The persistence unit <code translate="no" v-pre>PU</code> is defined in <code translate="no" v-pre>src/main/webapp/config/persistence.xml</code>: the list of entity classes
+(<code translate="no" v-pre>exclude-unlisted-classes</code>), the dialect and <code translate="no" v-pre>hibernate.hbm2ddl.auto=validate</code>.</p>
+</li>
+</ul>
+<h3 id="looking-into-the-database">Looking into the database</h3>
+<p>The file is an ordinary SQLite database. While Marginalia runs, open it read-only so you don&#x27;t hold locks:</p>
+<div id="looking-into-the-database-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">sqlite3 -readonly ~/.marginalia/marginalia.sqlite
+sqlite&gt; .tables
+sqlite&gt; select version, description, success from flyway_schema_history;
+sqlite&gt; select id, name, cast(extendedContent as text) from manuscripts;</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>extendedContent</code> columns hold UTF-8 JSON, so <code translate="no" v-pre>cast(... as text)</code> (or <code translate="no" v-pre>json_extract</code>) shows the
+<a href="../domain-model/#extendableentity---extended-attributes">extended attributes</a>. Timestamps (<code translate="no" v-pre>creation</code>,
+<code translate="no" v-pre>modification</code>, <code translate="no" v-pre>lastOpened</code>) are stored as milliseconds since the epoch, booleans as <code translate="no" v-pre>0</code> / <code translate="no" v-pre>1</code>.</p>
+<h2 id="startup-migrate-then-validate">Startup: migrate, then validate</h2>
+<ol>
+<li>
+<p>Before the data source is created, <code translate="no" v-pre>Configuration.resolveDb</code> swaps in a staged database restore, if there is one
+(see <doc-anchor-trigger to="#database-backups-and-restores">Database backups and restores</doc-anchor-trigger>).</p>
+</li>
+<li>
+<p>Flyway runs every pending migration from <code translate="no" v-pre>classpath:migration</code> (<code translate="no" v-pre>src/main/resources/migration/</code>) and records it in
+<code translate="no" v-pre>flyway_schema_history</code>. <code translate="no" v-pre>baselineOnMigrate=true</code> with baseline version <code translate="no" v-pre>1</code> makes databases created before Flyway
+was introduced (V1 schema without a history table) start at V1 and get V2 onwards.</p>
+</li>
+<li>
+<p>Hibernate builds the <code translate="no" v-pre>EntityManagerFactory</code> and <strong>validates</strong> the schema against the entities: every mapped table
+and column must exist with a compatible type. It never creates or alters anything.</p>
+</li>
+</ol>
+<p>If either step fails, the Spring context doesn&#x27;t start and Marginalia doesn&#x27;t serve any page; the cause is in the
+log. Typical messages:</p>
+<retype-table copy-text="| Message | Cause |
+|---|---|
+| `Schema-validation: missing column [x] in table [y]` | An entity field was mapped as a column without a migration. |
+| `Schema-validation: missing table [x]` | A new entity without a migration, or the migration names the table differently. |
+| `Validate failed: Migrations have failed validation ... checksum mismatch` | An already applied migration file was edited. |
+| `Migration V&lt;n&gt;__... failed` | The SQL of a migration failed; Flyway rolls the migration back. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Message</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>Schema-validation: missing column [x] in table [y]</code></td>
+<td>An entity field was mapped as a column without a migration.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Schema-validation: missing table [x]</code></td>
+<td>A new entity without a migration, or the migration names the table differently.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Validate failed: Migrations have failed validation ... checksum mismatch</code></td>
+<td>An already applied migration file was edited.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Migration V&lt;n&gt;__... failed</code></td>
+<td>The SQL of a migration failed; Flyway rolls the migration back.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>There is also a second, Java-level version check: <code translate="no" v-pre>ApplicationInitializer</code> compares <code translate="no" v-pre>AppSettings.dbVersion</code> /
+<code translate="no" v-pre>appVersion</code> with the versions set in <code translate="no" v-pre>container-config.xml</code> and runs registered <code translate="no" v-pre>Migration</code> beans for data changes
+that are easier in Java than in SQL. None are registered yet (and see BUG-34).</p>
+<h2 id="migrations">Migrations</h2>
+<retype-table copy-text="| Version | File | Change |
+|---|---|---|
+| V1 | `V1__initial.sql` | The initial schema, generated from the entities by Hibernate. |
+| V2 | `V2__summaries.sql` | `messages.summary_id` - parts can have a summary. |
+| V3 | `V3__lorebook_subbooks_shared.sql` | Rebuilds `lorebooks_lorebooks` without the unique constraint, so a lorebook can be a sub-lorebook of several lorebooks. |
+| V4 | `V4__manuscript_published_last_opened.sql` | `manuscripts.published` and `manuscripts.lastOpened`. |
+| V5 | `V5__protocol_optional_limits.sql` | Rebuilds `protocols` with nullable `maxTokens` / `replyTokens` and turns the old &quot;not set&quot; values (0, negative) into `NULL`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Version</th>
+<th>File</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V1</td>
+<td><code translate="no" v-pre>V1__initial.sql</code></td>
+<td>The initial schema, generated from the entities by Hibernate.</td>
+</tr>
+<tr>
+<td>V2</td>
+<td><code translate="no" v-pre>V2__summaries.sql</code></td>
+<td><code translate="no" v-pre>messages.summary_id</code> - parts can have a summary.</td>
+</tr>
+<tr>
+<td>V3</td>
+<td><code translate="no" v-pre>V3__lorebook_subbooks_shared.sql</code></td>
+<td>Rebuilds <code translate="no" v-pre>lorebooks_lorebooks</code> without the unique constraint, so a lorebook can be a sub-lorebook of several lorebooks.</td>
+</tr>
+<tr>
+<td>V4</td>
+<td><code translate="no" v-pre>V4__manuscript_published_last_opened.sql</code></td>
+<td><code translate="no" v-pre>manuscripts.published</code> and <code translate="no" v-pre>manuscripts.lastOpened</code>.</td>
+</tr>
+<tr>
+<td>V5</td>
+<td><code translate="no" v-pre>V5__protocol_optional_limits.sql</code></td>
+<td>Rebuilds <code translate="no" v-pre>protocols</code> with nullable <code translate="no" v-pre>maxTokens</code> / <code translate="no" v-pre>replyTokens</code> and turns the old &quot;not set&quot; values (0, negative) into <code translate="no" v-pre>NULL</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="rules">Rules</h3>
+<ul>
+<li>
+<p><strong>Never change a migration that has been released.</strong> Flyway stores a checksum of each applied file and refuses to
+start when it changes. Fix mistakes with a new migration.</p>
+</li>
+<li>
+<p><strong>Name</strong> files <code translate="no" v-pre>V&lt;next number&gt;__&lt;what_it_does&gt;.sql</code> (two underscores). Versions are plain integers here.</p>
+</li>
+<li>
+<p><strong>One migration per change</strong>, together with the entity change in the same commit.</p>
+</li>
+<li>
+<p><strong>Keep data.</strong> Users upgrade in place - every migration must turn any existing database into the new schema
+without losing data. Convert old values in SQL (V5 is an example).</p>
+</li>
+<li>
+<p><strong>Only SQL that SQLite understands.</strong> See <doc-anchor-trigger to="#sqlite-limitations">SQLite limitations</doc-anchor-trigger>.</p>
+</li>
+<li>
+<p><strong>Prefer extended attributes.</strong> A field stored in <code translate="no" v-pre>extendedContent</code> needs no migration at all; add a column only
+when the value is used in queries (see <a href="../domain-model/#adding-a-field-or-an-entity">Domain model</a>).</p>
+</li>
+</ul>
+<h3 id="adding-a-column">Adding a column</h3>
+<div id="adding-a-column-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-sql"><code v-pre class="language-sql">-- V6__manuscript_archived.sql
+ALTER TABLE manuscripts
+    ADD COLUMN archived boolean not null default false;</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>ADD COLUMN</code> with <code translate="no" v-pre>not null</code> needs a <code translate="no" v-pre>default</code>, otherwise existing rows can&#x27;t get a value. Then map it in the entity:</p>
+<div id="adding-a-column-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Column(nullable = false)
+private boolean archived = false;</code></pre>
+</doc-codeblock></div>
+<h3 id="adding-a-table">Adding a table</h3>
+<p>A new entity needs its table, its sequence table with a first row, and its indexes. Hibernate uses
+<code translate="no" v-pre>GenerationType.AUTO</code>, which on SQLite means a table-backed sequence named <code translate="no" v-pre>&lt;table&gt;_SEQ</code> with a pooled optimizer
+(ids are reserved in blocks of 50 - gaps in ids are normal):</p>
+<div id="adding-a-table-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-sql"><code v-pre class="language-sql">-- V6__bookmarks.sql
+create table bookmarks
+(
+    id              bigint      not null primary key,
+    creation        timestamp,
+    is_deleted      boolean     not null,
+    modification    timestamp,
+    uuid            varchar(36) not null unique,
+    extendedContent blob,
+    userId          bigint,
+    message_id      bigint
+);
+
+create index ix_bookmark_user_id on bookmarks (userId);
+create index ix_bookmark_message on bookmarks (message_id);
+
+create table bookmarks_SEQ
+(
+    next_val bigint
+);
+
+INSERT INTO bookmarks_SEQ (next_val) VALUES (1);</code></pre>
+</doc-codeblock></div>
+<p>The columns of <code translate="no" v-pre>BaseEntity</code> / <code translate="no" v-pre>OwnedEntity</code> / <code translate="no" v-pre>ExtendableEntity</code> are always the same: <code translate="no" v-pre>id</code>, <code translate="no" v-pre>creation</code>,
+<code translate="no" v-pre>is_deleted</code>, <code translate="no" v-pre>modification</code>, <code translate="no" v-pre>uuid</code>, <code translate="no" v-pre>userId</code> (owner) and <code translate="no" v-pre>extendedContent</code>. Then list the class in
+<code translate="no" v-pre>persistence.xml</code>. For joined inheritance (a subtype of <code translate="no" v-pre>AI</code> or <code translate="no" v-pre>Protocol</code>), the subtype table has only <code translate="no" v-pre>id</code> plus its
+own columns.</p>
+<h3 id="changing-or-removing-a-column">Changing or removing a column</h3>
+<p>SQLite can rename a column (<code translate="no" v-pre>ALTER TABLE ... RENAME COLUMN</code>) and, since 3.35, drop a simple one
+(<code translate="no" v-pre>ALTER TABLE ... DROP COLUMN</code>), but it can&#x27;t change a column&#x27;s type, nullability, default or constraints. For those,
+rebuild the table - V3 and V5 show the pattern:</p>
+<div id="changing-or-removing-a-column-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-sql"><code v-pre class="language-sql">CREATE TABLE protocols_new ( ... new definition ... );
+
+INSERT INTO protocols_new (id, ...)
+SELECT id, ... FROM protocols;          -- convert values here
+
+DROP TABLE protocols;
+
+ALTER TABLE protocols_new RENAME TO protocols;
+
+CREATE INDEX protocol_is_deleted_idx ON protocols (is_deleted);   -- indexes are dropped with the old table
+CREATE INDEX protocol_user_id_ix ON protocols (userId);</code></pre>
+</doc-codeblock></div>
+<p>Recreate every index of the old table. Removing an entity field without removing the column is harmless - validation
+only checks that mapped columns exist.</p>
+<h3 id="generating-the-sql">Generating the SQL</h3>
+<p><code translate="no" v-pre>com.github.enerccio.tools.GenerateFlywayDiff</code> (in <code translate="no" v-pre>src/main/java/com/github/enerccio/tools/</code>) asks Hibernate what it
+would change to make an existing database match the entities, and prints the SQL. Run its <code translate="no" v-pre>main</code> from the
+repository root (it reads <code translate="no" v-pre>marginalia/src/main/webapp/config/persistence.xml</code>), with <code translate="no" v-pre>-Duser.home</code> pointing to a
+development home whose database is at the current schema version. Treat the output as a draft:</p>
+<ul>
+<li>Hibernate only creates and adds; it never drops or changes columns.</li>
+<li>It doesn&#x27;t know about data conversion, defaults for existing rows or the table rebuilds SQLite needs.</li>
+<li>It may print Hibernate&#x27;s temporary tables (<code translate="no" v-pre>HT_*</code>, <code translate="no" v-pre>HTE_*</code>) again - leave them out if they already exist.</li>
+</ul>
+<h3 id="testing-a-migration">Testing a migration</h3>
+<p><code translate="no" v-pre>db/FlywayMigrationTest</code> checks, without the rest of the application:</p>
+<ul>
+<li>an empty database migrates through all versions and the schema validates against <code translate="no" v-pre>persistence.xml</code>,</li>
+<li>migrating twice is a no-op,</li>
+<li>a database at V1 with data upgrades to the latest version, keeping the data,</li>
+<li>a pre-Flyway database (V1 schema, no history table) is baselined and upgraded.</li>
+</ul>
+<p>New migrations are picked up automatically by the first two tests. When a migration converts data, add rows to
+<code translate="no" v-pre>insertV1Data()</code> and assertions to <code translate="no" v-pre>assertUpgradedData()</code>, like the existing ones for V3-V5. Run it with
+<code translate="no" v-pre>mvn test -Dtest=FlywayMigrationTest</code>.</p>
+<h2 id="schema-conventions">Schema conventions</h2>
+<p><strong>Names.</strong> Tables are plural (<code translate="no" v-pre>manuscripts</code>, <code translate="no" v-pre>messages</code>, <code translate="no" v-pre>entries</code>), set by <code translate="no" v-pre>@Table(name = ...)</code>. Columns use the Java
+field name (<code translate="no" v-pre>maxTokens</code>, <code translate="no" v-pre>lastOpened</code>); relations end in <code translate="no" v-pre>_id</code> (<code translate="no" v-pre>lorebook_id</code>, <code translate="no" v-pre>parentScript_id</code>), except the owner,
+which is <code translate="no" v-pre>userId</code>, and the soft delete flag, <code translate="no" v-pre>is_deleted</code>. Indexes are named in the entity&#x27;s <code translate="no" v-pre>@Table(indexes = ...)</code>
+and must be created by hand in the migration.</p>
+<p><strong>No foreign key constraints.</strong> The tables have no <code translate="no" v-pre>REFERENCES</code> clauses (V2&#x27;s <code translate="no" v-pre>summary_id</code> declares one, but SQLite
+doesn&#x27;t enforce it because <code translate="no" v-pre>PRAGMA foreign_keys</code> is off). Integrity is kept by the application: rows are soft
+deleted, so references stay valid, and the admin <em>Cleanup</em> follows the
+<a href="../domain-model/#cleanup-references">cleanup references</a> to decide what may be purged. Code that hard deletes must
+clear or move references itself (see <code translate="no" v-pre>ChatMessageService.deleteNodeAndMigrateChildren</code>).</p>
+<p><strong>Enums.</strong> <code translate="no" v-pre>AI.aiType</code> and <code translate="no" v-pre>Protocol.protocolType</code> are stored as ordinals (<code translate="no" v-pre>tinyint</code>), all other enums by name.
+<code translate="no" v-pre>SaneSQLiteDialect</code> turns off the <code translate="no" v-pre>CHECK</code> constraints that Hibernate would otherwise generate for enum columns, so a
+new enum value doesn&#x27;t need a table rebuild.</p>
+<p><strong>Large values.</strong> Text that can be long (<code translate="no" v-pre>name</code>, <code translate="no" v-pre>uri</code>, <code translate="no" v-pre>apiKey</code>...) is <code translate="no" v-pre>@Lob</code> → <code translate="no" v-pre>clob</code>; <code translate="no" v-pre>extendedContent</code> is a
+<code translate="no" v-pre>blob</code> with JSON. SQLite doesn&#x27;t enforce lengths, so <code translate="no" v-pre>varchar(255)</code> is only documentation.</p>
+<p><strong>Hibernate&#x27;s temporary tables.</strong> <code translate="no" v-pre>V1__initial.sql</code> contains <code translate="no" v-pre>HT_*</code> and <code translate="no" v-pre>HTE_*</code> tables. Hibernate uses them for bulk
+updates and deletes on entities with joined inheritance (<code translate="no" v-pre>AI</code>, <code translate="no" v-pre>Protocol</code>) and for inserts into such hierarchies.
+They are part of the schema - don&#x27;t drop them.</p>
+<h2 id="sqlite-limitations">SQLite limitations</h2>
+<retype-table copy-text="| Limitation | Consequence |
+|---|---|
+| One writer at a time | Writes are serialized; long transactions block other users' writes (up to `busy_timeout`, then `SQLITE_BUSY`). Keep transactions short and never call a model inside one - generation runs outside transactions (`@NoTx`). |
+| `ALTER TABLE` is limited | Type, nullability and constraint changes need a table rebuild. |
+| DDL in transactions | SQLite supports transactional DDL, so a failing migration is rolled back completely. |
+| No `VACUUM` inside a transaction | `VACUUM INTO` for backups runs with `@NoTx`. |
+| Dynamic typing | A column accepts any value; the entity mapping is what keeps types consistent. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Limitation</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One writer at a time</td>
+<td>Writes are serialized; long transactions block other users&#x27; writes (up to <code translate="no" v-pre>busy_timeout</code>, then <code translate="no" v-pre>SQLITE_BUSY</code>). Keep transactions short and never call a model inside one - generation runs outside transactions (<code translate="no" v-pre>@NoTx</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ALTER TABLE</code> is limited</td>
+<td>Type, nullability and constraint changes need a table rebuild.</td>
+</tr>
+<tr>
+<td>DDL in transactions</td>
+<td>SQLite supports transactional DDL, so a failing migration is rolled back completely.</td>
+</tr>
+<tr>
+<td>No <code translate="no" v-pre>VACUUM</code> inside a transaction</td>
+<td><code translate="no" v-pre>VACUUM INTO</code> for backups runs with <code translate="no" v-pre>@NoTx</code>.</td>
+</tr>
+<tr>
+<td>Dynamic typing</td>
+<td>A column accepts any value; the entity mapping is what keeps types consistent.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="database-backups-and-restores">Database backups and restores</h2>
+<p><code translate="no" v-pre>DatabaseBackupServiceImpl</code> backs up the live database with SQLite&#x27;s <code translate="no" v-pre>VACUUM INTO '&lt;file&gt;'</code>, which writes a
+consistent, compacted copy without stopping the application. Backups go to <code translate="no" v-pre>&lt;data folder&gt;/db-backups/</code> as
+<code translate="no" v-pre>marginalia-&lt;time&gt;.sqlite</code> (manual) or <code translate="no" v-pre>marginalia-scheduled-&lt;time&gt;.sqlite</code>; scheduled ones are rotated (keep last N).</p>
+<p>A database can&#x27;t be replaced while it&#x27;s open, so restoring is done in two steps:</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">sequenceDiagram
+    participant A as Admin UI
+    participant B as DatabaseBackupService
+    participant C as Configuration (next start)
+    A-&gt;&gt;B: scheduleRestore(backup)
+    B-&gt;&gt;B: copy backup → marginalia.sqlite.restore (tmp file + atomic move)
+    Note over A,C: restart
+    C-&gt;&gt;C: move marginalia.sqlite (+ -wal, -shm) → db-backups/pre-restore-&lt;time&gt;-marginalia.sqlite
+    C-&gt;&gt;C: move marginalia.sqlite.restore → marginalia.sqlite
+    C-&gt;&gt;C: Flyway migrates the restored database, Hibernate validates</pre></div>
+<p>Because Flyway runs after the swap, a backup from an older version is upgraded on start. A backup from a <em>newer</em>
+version than the running code is not supported: its history contains migrations the running code doesn&#x27;t have, and
+the old code may not work with the newer schema.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -178,11 +550,16 @@
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
+<p>An uploaded file is only checked for the SQLite header. If it isn&#x27;t a Marginalia database, the migration fails on
+the next start and Marginalia doesn&#x27;t start (BUG-39). The previous database is kept as
+<code translate="no" v-pre>db-backups/pre-restore-*.sqlite</code>; to recover, stop Marginalia and move it back to <code translate="no" v-pre>marginalia.sqlite</code>.</p>
         </div>
     </div>
 </div>
+<h2 id="tests-and-the-database">Tests and the database</h2>
+<p>Tests don&#x27;t touch your data: <code translate="no" v-pre>MarginaliaTestBase</code> starts the Spring configuration with the data folder in
+<code translate="no" v-pre>target/test-home/ctx-*</code>, so every test context gets a fresh database migrated by the real Flyway configuration. See
+<a href="../testing/">Testing</a>.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -249,6 +626,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Database & migrations", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/database.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Database & migrations", level: 2, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/database.md" }</script>
 </body>
 </html>

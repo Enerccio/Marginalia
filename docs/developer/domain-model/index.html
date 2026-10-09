@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Domain model</title>
     <meta name="title" content="Domain model">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="The entities Marginalia stores, how they relate, and the rules every entity follows: identity, ownership, soft delete, extended attributes and cleanup. Entities are in domain/model/ (base classes), domain/model/impl/ and domain/security/model/User.java.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/domain-model/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/domain-model/">
     <meta property="og:title" content="Domain model">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="The entities Marginalia stores, how they relate, and the rules every entity follows: identity, ownership, soft delete, extended attributes and cleanup. Entities are in domain/model/ (base classes), domain/model/impl/ and domain/security/model/User.java.">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +31,20 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/domain-model/">
     <meta name="twitter:title" content="Domain model">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="The entities Marginalia stores, how they relate, and the rules every entity follows: identity, ownership, soft delete, extended attributes and cleanup. Entities are in domain/model/ (base classes), domain/model/impl/ and domain/security/model/User.java.">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/domain-model.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,7 +167,743 @@
 
                 <!-- Page content  -->
 <h1 id="domain-model">Domain model</h1>
-<!-- Planned content: Entities, ownership (OwnedEntity/OwnedService), soft delete, extendable entities. -->
+<p>The entities Marginalia stores, how they relate, and the rules every entity follows: identity, ownership, soft
+delete, extended attributes and cleanup. Entities are in <code translate="no" v-pre>domain/model/</code> (base classes), <code translate="no" v-pre>domain/model/impl/</code> and
+<code translate="no" v-pre>domain/security/model/User.java</code>. How the tables are created and changed is in <a href="../database/">Database &amp; migrations</a>.</p>
+<h2 id="names-in-code-and-ui">Names in code and UI</h2>
+<p>Some entities kept their early names. The UI and this manual use the names on the right:</p>
+<retype-table copy-text="| Class | Table | In the UI |
+|---|---|---|
+| `Manuscript` | `manuscripts` | Book |
+| `ChatMessage` | `messages` | Part (of the story) |
+| `Summary` | `summaries` | Summary |
+| `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
+| `AI`, `OpenAICompatible` | `ais`, `ais_openaicompat` | Inference provider |
+| `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
+| `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
+| `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
+| `User` | `users` | User |
+| `Resource` | `resources` | - (not used by the UI yet) |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th>Table</th>
+<th>In the UI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>Manuscript</code></td>
+<td><code translate="no" v-pre>manuscripts</code></td>
+<td>Book</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ChatMessage</code></td>
+<td><code translate="no" v-pre>messages</code></td>
+<td>Part (of the story)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Summary</code></td>
+<td><code translate="no" v-pre>summaries</code></td>
+<td>Summary</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Lorebook</code>, <code translate="no" v-pre>LorebookEntry</code></td>
+<td><code translate="no" v-pre>lorebooks</code>, <code translate="no" v-pre>entries</code></td>
+<td>Lorebook, entry</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AI</code>, <code translate="no" v-pre>OpenAICompatible</code></td>
+<td><code translate="no" v-pre>ais</code>, <code translate="no" v-pre>ais_openaicompat</code></td>
+<td>Inference provider</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Protocol</code>, <code translate="no" v-pre>ChatCompletionProtocol</code></td>
+<td><code translate="no" v-pre>protocols</code>, <code translate="no" v-pre>protocols_chatcompletion</code></td>
+<td>Protocol</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Tag</code>, <code translate="no" v-pre>TagRelation</code></td>
+<td><code translate="no" v-pre>tags</code>, <code translate="no" v-pre>t2e</code></td>
+<td>Tag</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Setting</code>, <code translate="no" v-pre>AppSettings</code>, <code translate="no" v-pre>UserSetting</code></td>
+<td><code translate="no" v-pre>settings</code></td>
+<td>Settings page, admin settings</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>User</code></td>
+<td><code translate="no" v-pre>users</code></td>
+<td>User</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Resource</code></td>
+<td><code translate="no" v-pre>resources</code></td>
+<td>- (not used by the UI yet)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="overview">Overview</h2>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">erDiagram
+    User ||--o{ Manuscript : owns
+    User ||--o{ Lorebook : owns
+    User ||--o{ AI : owns
+    User ||--o{ Protocol : owns
+    User ||--o| UserSetting : has
+
+    Manuscript }o--o| AI : &quot;generates with&quot;
+    Manuscript }o--o| Protocol : &quot;generates with&quot;
+    Manuscript }o--o| Lorebook : &quot;uses&quot;
+    Manuscript ||--o{ ChatMessage : &quot;story parts&quot;
+    Manuscript |o--o| ChatMessage : &quot;activeLeaf&quot;
+
+    ChatMessage |o--o{ ChatMessage : &quot;parent / children&quot;
+    ChatMessage |o--o| Summary : &quot;summary&quot;
+
+    Lorebook ||--o{ LorebookEntry : entries
+    Lorebook }o--o{ Lorebook : &quot;subbooks&quot;
+
+    Tag ||--o{ TagRelation : &quot;&quot;
+    TagRelation }o--|| Manuscript : &quot;objectId + clazz&quot;
+    TagRelation }o--|| Lorebook : &quot;objectId + clazz&quot;
+    TagRelation }o--|| LorebookEntry : &quot;objectId + clazz&quot;</pre></div>
+<p>Every entity except <code translate="no" v-pre>User</code> has an owner, so each user has a separate set of books, lorebooks, providers, protocols
+and settings. The relationships between them never cross users: a book can only use the owner&#x27;s provider, protocol
+and lorebook.</p>
+<h2 id="base-classes">Base classes</h2>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">classDiagram
+    class BaseEntity {
+        Long id
+        String uuid
+        boolean deleted
+        Date creation
+        Date modification
+    }
+    class OwnedEntity {
+        User owner
+    }
+    class ExtendableEntity {
+        byte[] extendedContent
+        JsonObject attributes
+    }
+    BaseEntity &lt;|-- User
+    BaseEntity &lt;|-- OwnedEntity
+    OwnedEntity &lt;|-- Resource
+    OwnedEntity &lt;|-- ExtendableEntity
+    ExtendableEntity &lt;|-- Manuscript
+    ExtendableEntity &lt;|-- ChatMessage
+    ExtendableEntity &lt;|-- Summary
+    ExtendableEntity &lt;|-- Lorebook
+    ExtendableEntity &lt;|-- LorebookEntry
+    ExtendableEntity &lt;|-- AI
+    ExtendableEntity &lt;|-- Protocol
+    ExtendableEntity &lt;|-- Tag
+    ExtendableEntity &lt;|-- TagRelation
+    ExtendableEntity &lt;|-- Setting
+    AI &lt;|-- OpenAICompatible
+    Protocol &lt;|-- ChatCompletionProtocol
+    Setting &lt;|-- AppSettings
+    Setting &lt;|-- UserSetting</pre></div>
+<h3 id="baseentity---identity-and-soft-delete"><code translate="no" v-pre>BaseEntity</code> - identity and soft delete</h3>
+<retype-table copy-text="| Field | Column | |
+|---|---|---|
+| `id` | `id` | Database key, generated by Hibernate (`GenerationType.AUTO`, a `&lt;table&gt;_SEQ` table per hierarchy). Used for relations and inside one installation only. |
+| `uuid` | `uuid` (unique) | Stable identity, set on the first save. Used wherever an entity leaves the database or must be found again: URLs (`/view/&lt;uuid&gt;`), backups, exports, imports, extension data. |
+| `deleted` | `is_deleted` | Soft delete flag. |
+| `creation`, `modification` | | Set by the repository on save. Siblings in the story tree are ordered by `creation`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Column</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>id</code></td>
+<td><code translate="no" v-pre>id</code></td>
+<td>Database key, generated by Hibernate (<code translate="no" v-pre>GenerationType.AUTO</code>, a <code translate="no" v-pre>&lt;table&gt;_SEQ</code> table per hierarchy). Used for relations and inside one installation only.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>uuid</code></td>
+<td><code translate="no" v-pre>uuid</code> (unique)</td>
+<td>Stable identity, set on the first save. Used wherever an entity leaves the database or must be found again: URLs (<code translate="no" v-pre>/view/&lt;uuid&gt;</code>), backups, exports, imports, extension data.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>deleted</code></td>
+<td><code translate="no" v-pre>is_deleted</code></td>
+<td>Soft delete flag.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>creation</code>, <code translate="no" v-pre>modification</code></td>
+<td> </td>
+<td>Set by the repository on save. Siblings in the story tree are ordered by <code translate="no" v-pre>creation</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>equals</code> and <code translate="no" v-pre>hashCode</code> use the <code translate="no" v-pre>id</code>, so don&#x27;t put unsaved entities into hash-based collections.</p>
+<p><strong>Soft delete.</strong> <code translate="no" v-pre>delete(entity, false)</code> - the normal delete - only sets <code translate="no" v-pre>deleted = true</code>. All finder queries skip
+deleted rows, so to the application the entity is gone, but the row stays and other rows can still point at it. The
+administrator&#x27;s <em>Cleanup</em> page later purges deleted rows that nothing needs any more (see <doc-anchor-trigger to="#cleanup-references">Cleanup references</doc-anchor-trigger>).
+<code translate="no" v-pre>delete(entity, true)</code> removes the row right away; it is used where nothing can reference the row, e.g. replaced
+messages during a backup restore.</p>
+<h3 id="ownedentity---ownership"><code translate="no" v-pre>OwnedEntity</code> - ownership</h3>
+<p><code translate="no" v-pre>owner</code> (column <code translate="no" v-pre>userId</code>) is the user the entity belongs to; <code translate="no" v-pre>null</code> for installation-wide rows (<code translate="no" v-pre>AppSettings</code>).
+<code translate="no" v-pre>OwnedServiceImpl.save</code> fills it with the current user when a new entity has no owner. Lookups that start from
+user input go through the owner-aware finders:</p>
+<retype-table copy-text="| Method | Returns |
+|---|---|
+| `findAllForUser()`, `findAllIdsForUser()` | Non-deleted entities of the current user. |
+| `findForUser(uuid)` | The entity with this uuid if it belongs to the current user and isn't deleted, otherwise `null`. |
+| `find(id)` | Any entity, regardless of owner and `deleted` - only for ids taken from the user's own data. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>findAllForUser()</code>, <code translate="no" v-pre>findAllIdsForUser()</code></td>
+<td>Non-deleted entities of the current user.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>findForUser(uuid)</code></td>
+<td>The entity with this uuid if it belongs to the current user and isn&#x27;t deleted, otherwise <code translate="no" v-pre>null</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>find(id)</code></td>
+<td>Any entity, regardless of owner and <code translate="no" v-pre>deleted</code> - only for ids taken from the user&#x27;s own data.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="extendableentity---extended-attributes"><code translate="no" v-pre>ExtendableEntity</code> - extended attributes</h3>
+<p>Most of an entity&#x27;s data is not in table columns but in one JSON document stored in the <code translate="no" v-pre>extendedContent</code> blob. Two
+kinds of fields end up there:</p>
+<ul>
+<li>fields annotated <code translate="no" v-pre>@ExtendedAttribute</code> (they are also <code translate="no" v-pre>@Transient</code>, so Hibernate ignores them), and</li>
+<li><code translate="no" v-pre>attributes</code>, a free-form <code translate="no" v-pre>JsonObject</code> for extensions. Its keys are stored with the prefix <code translate="no" v-pre>attributes_</code> next to
+the other fields.</li>
+</ul>
+<div id="extendableentity---extended-attributes-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-json"><code v-pre class="language-json">{
+  &quot;instructions&quot;: &quot;Mara finds the lighthouse logbook.&quot;,
+  &quot;response&quot;: &quot;The logbook was heavier than she expected...&quot;,
+  &quot;modelUsed&quot;: &quot;gpt-4.1&quot;,
+  &quot;request&quot;: &quot;2026.10.08Z14:03:11.512&quot;,
+  &quot;attributes_reviewer&quot;: { &quot;reviews&quot;: [ ... ] }
+}</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>ExtendableEntityListener</code> converts between the fields and the document:</p>
+<ul>
+<li>
+<p><strong>Load</strong> (<code translate="no" v-pre>@PostLoad</code>): the JSON is parsed and the fields are set. Supported field types are <code translate="no" v-pre>String</code>, numbers,
+<code translate="no" v-pre>Boolean</code>, <code translate="no" v-pre>Date</code> (format <code translate="no" v-pre>yyyy.MM.dd'Z'HH:mm:ss.SSS</code>), enums (by name) and <code translate="no" v-pre>JsonObject</code> for <code translate="no" v-pre>inject = true</code>.</p>
+</li>
+<li>
+<p><strong>Save</strong>: <code translate="no" v-pre>JpaExtendableRepository.save</code> serializes the fields into <code translate="no" v-pre>extendedContent</code> before the entity is written.</p>
+</li>
+</ul>
+<p>Because the fields are <code translate="no" v-pre>@Transient</code>, Hibernate&#x27;s dirty checking doesn&#x27;t see them. <strong>A change to an extended attribute
+is only stored by calling the service&#x27;s <code translate="no" v-pre>save</code>.</strong> Changing it on a managed entity and letting the transaction commit
+does nothing.</p>
+<p><code translate="no" v-pre>saveWithoutEvent</code> writes <code translate="no" v-pre>extendedContent</code> as it is, without serializing the fields first. It is used when
+<code translate="no" v-pre>extendedContent</code> was set directly - copying the JSON of a backup into a restored entity - and must not be overwritten
+by the (empty) fields.</p>
+<p>Why most fields live in JSON:</p>
+<ul>
+<li>Adding or removing a field needs no database migration.</li>
+<li>Extensions can store data on any entity (<code translate="no" v-pre>getAttributes().add(&quot;myplugin&quot;, ...)</code>) without their own tables.</li>
+<li>Book backups copy <code translate="no" v-pre>extendedContent</code> as a whole, so extension data and new fields of books and parts travel with
+them (lorebook exports don&#x27;t, see <doc-anchor-trigger to="#backups-and-copies">Backups and copies</doc-anchor-trigger>).</li>
+</ul>
+<p>The price is that extended attributes can&#x27;t be queried or indexed in SQL. Anything the application filters, sorts or
+joins on is a real column: relations, <code translate="no" v-pre>name</code>, <code translate="no" v-pre>enabled</code>, <code translate="no" v-pre>ordinal</code>, <code translate="no" v-pre>published</code>, <code translate="no" v-pre>lastOpened</code>, <code translate="no" v-pre>tokenCount</code>,
+<code translate="no" v-pre>wordCount</code>...</p>
+<h2 id="books-and-the-story">Books and the story</h2>
+<h3 id="manuscript-book"><code translate="no" v-pre>Manuscript</code> (book)</h3>
+<retype-table copy-text="| Field | Stored | |
+|---|---|---|
+| `name` | column | Title. |
+| `description` | column and JSON | Description shown in the book list (it is both a column and an extended attribute; the JSON value wins on load). |
+| `ai`, `protocol` | FK columns | Inference provider and protocol used for generation. |
+| `lorebook` | FK column | The book's lorebook (with its sub-lorebooks). |
+| `activeLeaf` | FK column | The last part of the branch currently shown and continued. |
+| `published` | column | Readable by everyone at `/view/&lt;uuid&gt;`. |
+| `lastOpened` | column | When the owner last opened the book; orders the book lists. |
+| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
+| `showBookStyles` | JSON | Story display option. |
+| `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Stored</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>name</code></td>
+<td>column</td>
+<td>Title.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>description</code></td>
+<td>column and JSON</td>
+<td>Description shown in the book list (it is both a column and an extended attribute; the JSON value wins on load).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ai</code>, <code translate="no" v-pre>protocol</code></td>
+<td>FK columns</td>
+<td>Inference provider and protocol used for generation.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>lorebook</code></td>
+<td>FK column</td>
+<td>The book&#x27;s lorebook (with its sub-lorebooks).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>activeLeaf</code></td>
+<td>FK column</td>
+<td>The last part of the branch currently shown and continued.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>published</code></td>
+<td>column</td>
+<td>Readable by everyone at <code translate="no" v-pre>/view/&lt;uuid&gt;</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>lastOpened</code></td>
+<td>column</td>
+<td>When the owner last opened the book; orders the book lists.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>template</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>tense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>userPrompt</code>, <code translate="no" v-pre>summaryPrompt</code></td>
+<td>JSON</td>
+<td>The book&#x27;s prompt overrides (<em>Prompts</em> tab); empty means the user&#x27;s defaults from <code translate="no" v-pre>UserSetting</code>, then <code translate="no" v-pre>Defaults</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>showBookStyles</code></td>
+<td>JSON</td>
+<td>Story display option.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>backupStrategy</code>, <code translate="no" v-pre>backupStrategyValue</code>, <code translate="no" v-pre>backupStrategyCurrentValue</code></td>
+<td>JSON</td>
+<td>Per-book backup override and its progress counter.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Tags of a book are <code translate="no" v-pre>TagRelation</code>s (see <doc-anchor-trigger to="#tags">Tags</doc-anchor-trigger>).</p>
+<h3 id="chatmessage-part-and-the-story-tree"><code translate="no" v-pre>ChatMessage</code> (part) and the story tree</h3>
+<p>The story is a <strong>tree</strong> of parts. Each part points to its <code translate="no" v-pre>parent</code> (<code translate="no" v-pre>null</code> for the first part) and to its book
+(<code translate="no" v-pre>parentScript</code>). The book&#x27;s <code translate="no" v-pre>activeLeaf</code> selects one path from the root - the branch the user sees.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    P1[&quot;#1&quot;] --&gt; P2[&quot;#2&quot;] --&gt; P3[&quot;#3&quot;] --&gt; P4a[&quot;#4&quot;] --&gt; P5a[&quot;#5 ★ activeLeaf&quot;]
+    P3 --&gt; P4b[&quot;#4 (swipe)&quot;]
+    P3 --&gt; P4c[&quot;#4 (swipe)&quot;] --&gt; P5c[&quot;#5&quot;]</pre></div>
+<retype-table copy-text="| Action in the UI | In the tree |
+|---|---|
+| Generate the next part | New child of the active leaf, which becomes the new active leaf. |
+| Swipe | New sibling of the last part (another child of its parent). Moving between swipes sets `activeLeaf` to the deepest last descendant of the chosen sibling (`ChatMessageService.swipeTo`). |
+| Regenerate | Replaces the text of the last part in place. |
+| Branch story | Copies a part as a new sibling (`ChatMessageService.branch`), so the story can continue differently from there. |
+| Delete a part | Its children are re-attached to its parent, then it is deleted (`deleteNodeAndMigrateChildren`). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Action in the UI</th>
+<th>In the tree</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generate the next part</td>
+<td>New child of the active leaf, which becomes the new active leaf.</td>
+</tr>
+<tr>
+<td>Swipe</td>
+<td>New sibling of the last part (another child of its parent). Moving between swipes sets <code translate="no" v-pre>activeLeaf</code> to the deepest last descendant of the chosen sibling (<code translate="no" v-pre>ChatMessageService.swipeTo</code>).</td>
+</tr>
+<tr>
+<td>Regenerate</td>
+<td>Replaces the text of the last part in place.</td>
+</tr>
+<tr>
+<td>Branch story</td>
+<td>Copies a part as a new sibling (<code translate="no" v-pre>ChatMessageService.branch</code>), so the story can continue differently from there.</td>
+</tr>
+<tr>
+<td>Delete a part</td>
+<td>Its children are re-attached to its parent, then it is deleted (<code translate="no" v-pre>deleteNodeAndMigrateChildren</code>).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Siblings are ordered by <code translate="no" v-pre>creation</code>. The branch from the root to a leaf is read with a recursive SQL query
+(<code translate="no" v-pre>JpaChatMessageRepository.findBranchFromLeaf</code>).</p>
+<retype-table copy-text="| Field | Stored | |
+|---|---|---|
+| `parent`, `parentScript` | FK columns | Tree position and book. |
+| `summary` | FK column | Summary covering this part and the parts before it (see below). |
+| `tokenCount`, `wordCount` | columns | Size of the text, summed for the book statistics. |
+| `edited` | column | The user edited the generated text. |
+| `response` | JSON | The text of the part. |
+| `responseReasoning` | JSON | Reasoning of a reasoning model. |
+| `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` | JSON | The instruction panel it was generated from (`TurnInput`). |
+| `builtPrompt`, `builtPromptTokens`, `backgroundLore` | JSON | The full prompt sent to the model and the activated lore (*View prompt*). |
+| `modelUsed`, `protocolUsed`, `promptTokens`, `tokenReasoningCount` | JSON | Generation metadata. |
+| `request`, `ttft`, `reasoningEnd` | JSON | Timestamps for the timing metrics. |
+| `scrollPosition` | JSON | UI state. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Stored</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>parent</code>, <code translate="no" v-pre>parentScript</code></td>
+<td>FK columns</td>
+<td>Tree position and book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>summary</code></td>
+<td>FK column</td>
+<td>Summary covering this part and the parts before it (see below).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>tokenCount</code>, <code translate="no" v-pre>wordCount</code></td>
+<td>columns</td>
+<td>Size of the text, summed for the book statistics.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>edited</code></td>
+<td>column</td>
+<td>The user edited the generated text.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>response</code></td>
+<td>JSON</td>
+<td>The text of the part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>responseReasoning</code></td>
+<td>JSON</td>
+<td>Reasoning of a reasoning model.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>instructions</code>, <code translate="no" v-pre>sceneSetting</code>, <code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>presentCharacters</code></td>
+<td>JSON</td>
+<td>The instruction panel it was generated from (<code translate="no" v-pre>TurnInput</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>builtPrompt</code>, <code translate="no" v-pre>builtPromptTokens</code>, <code translate="no" v-pre>backgroundLore</code></td>
+<td>JSON</td>
+<td>The full prompt sent to the model and the activated lore (<em>View prompt</em>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>modelUsed</code>, <code translate="no" v-pre>protocolUsed</code>, <code translate="no" v-pre>promptTokens</code>, <code translate="no" v-pre>tokenReasoningCount</code></td>
+<td>JSON</td>
+<td>Generation metadata.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>request</code>, <code translate="no" v-pre>ttft</code>, <code translate="no" v-pre>reasoningEnd</code></td>
+<td>JSON</td>
+<td>Timestamps for the timing metrics.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>scrollPosition</code></td>
+<td>JSON</td>
+<td>UI state.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Template variables are stored when a part is generated (<code translate="no" v-pre>GenerateNewMessageStep</code>): local ones (<code translate="no" v-pre>setvar</code>), which
+follow the branch, in the new part&#x27;s <code translate="no" v-pre>attributes</code>, global ones (<code translate="no" v-pre>setglobalvar</code>) in the book&#x27;s <code translate="no" v-pre>attributes</code>.</p>
+<h3 id="summary"><code translate="no" v-pre>Summary</code></h3>
+<p>A summary belongs to one part and covers that part and all earlier parts back to the previous part with a summary
+(see <a href="../../user/books/summaries/">Summaries</a>).</p>
+<retype-table copy-text="| Field | |
+|---|---|
+| `summary`, `summaryTokens` | The text and its size. |
+| `reasoning`, `reasoningTokens` | Reasoning of a reasoning model. |
+| `summaryMessageHash` | SHA-512 of the texts of the covered parts. When the parts change (edit, regenerate), the hash no longer matches and the generation drops the summary as outdated. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>summary</code>, <code translate="no" v-pre>summaryTokens</code></td>
+<td>The text and its size.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>reasoning</code>, <code translate="no" v-pre>reasoningTokens</code></td>
+<td>Reasoning of a reasoning model.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>summaryMessageHash</code></td>
+<td>SHA-512 of the texts of the covered parts. When the parts change (edit, regenerate), the hash no longer matches and the generation drops the summary as outdated.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A summary is owned by its part (<code translate="no" v-pre>@CleanupReference(OWNS)</code>); branching a part copies its summary.</p>
+<h2 id="lorebooks">Lorebooks</h2>
+<h3 id="lorebook"><code translate="no" v-pre>Lorebook</code></h3>
+<retype-table copy-text="| Field | |
+|---|---|
+| `name`, `enabled` | Columns. A disabled lorebook contributes nothing. |
+| `subbooks` | Other lorebooks included in this one (join table `lorebooks_lorebooks`). A lorebook can be a sub-lorebook of several lorebooks. |
+| `cachedEntries` | Transient; filled by `LorebookService.fillEntries` for generation and the editor. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>name</code>, <code translate="no" v-pre>enabled</code></td>
+<td>Columns. A disabled lorebook contributes nothing.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>subbooks</code></td>
+<td>Other lorebooks included in this one (join table <code translate="no" v-pre>lorebooks_lorebooks</code>). A lorebook can be a sub-lorebook of several lorebooks.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>cachedEntries</code></td>
+<td>Transient; filled by <code translate="no" v-pre>LorebookService.fillEntries</code> for generation and the editor.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="lorebookentry"><code translate="no" v-pre>LorebookEntry</code></h3>
+<retype-table copy-text="| Field | Stored | |
+|---|---|---|
+| `lorebook` | FK column | |
+| `name`, `enabled`, `ordinal` | columns | `ordinal` orders the entries in the prompt. |
+| `payload` | JSON | The lore text (a template). |
+| `comment` | JSON | Note for the author, never sent. |
+| `filtering`, `filteringMode` | JSON | Activation filter: text to find, or a regular expression (`FilteringMode.TEXT` / `REGEX`). |
+| `insertionMode` | JSON | `IN_LORE_BLOCK` or `BEFORE_USER_PROMPT`. |
+| `cachedTags`, `cachedNegativeTags` | transient | Filled by `fillEntries`: the entry's tags plus the tags of its lorebook, and the entry's negative tags. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Stored</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>lorebook</code></td>
+<td>FK column</td>
+<td> </td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>name</code>, <code translate="no" v-pre>enabled</code>, <code translate="no" v-pre>ordinal</code></td>
+<td>columns</td>
+<td><code translate="no" v-pre>ordinal</code> orders the entries in the prompt.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>payload</code></td>
+<td>JSON</td>
+<td>The lore text (a template).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>comment</code></td>
+<td>JSON</td>
+<td>Note for the author, never sent.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>filtering</code>, <code translate="no" v-pre>filteringMode</code></td>
+<td>JSON</td>
+<td>Activation filter: text to find, or a regular expression (<code translate="no" v-pre>FilteringMode.TEXT</code> / <code translate="no" v-pre>REGEX</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>insertionMode</code></td>
+<td>JSON</td>
+<td><code translate="no" v-pre>IN_LORE_BLOCK</code> or <code translate="no" v-pre>BEFORE_USER_PROMPT</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>cachedTags</code>, <code translate="no" v-pre>cachedNegativeTags</code></td>
+<td>transient</td>
+<td>Filled by <code translate="no" v-pre>fillEntries</code>: the entry&#x27;s tags plus the tags of its lorebook, and the entry&#x27;s negative tags.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>How entries are activated is described in <a href="../../user/lorebooks/entries/">Lorebooks</a> and
+<a href="../generation-pipeline/">Generation pipeline</a>.</p>
+<h2 id="tags">Tags</h2>
+<p><code translate="no" v-pre>Tag</code> is a value (<code translate="no" v-pre>value</code>) owned by a user. <code translate="no" v-pre>TagRelation</code> (table <code translate="no" v-pre>t2e</code>) attaches a tag to any entity:</p>
+<retype-table copy-text="| Field | |
+|---|---|
+| `tag` | The tag. |
+| `objectId`, `clazz` | The tagged entity: its id and its fully qualified class name. |
+| `negative` | A negative tag (lorebook entries: the entry is *not* activated when the book has this tag). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>tag</code></td>
+<td>The tag.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>objectId</code>, <code translate="no" v-pre>clazz</code></td>
+<td>The tagged entity: its id and its fully qualified class name.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>negative</code></td>
+<td>A negative tag (lorebook entries: the entry is <em>not</em> activated when the book has this tag).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Books, lorebooks and lorebook entries are tagged. <code translate="no" v-pre>TagRelationService</code> creates and removes relations and finds the
+tags of an object (<code translate="no" v-pre>getTagsForObject(entity)</code>, <code translate="no" v-pre>getTagsForObject(entity, true)</code> for negative ones). Because the
+relation is polymorphic, there is no foreign key from <code translate="no" v-pre>t2e</code> to the tagged table; cleanup follows <code translate="no" v-pre>objectId</code> / <code translate="no" v-pre>clazz</code>
+through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;clazz&quot;)</code>.</p>
+<h2 id="inference-providers-and-protocols">Inference providers and protocols</h2>
+<p>Both use joined inheritance: a base table with the common fields and one table per type. Today each has one type.</p>
+<h3 id="ai--openaicompatible-inference-provider"><code translate="no" v-pre>AI</code> / <code translate="no" v-pre>OpenAICompatible</code> (inference provider)</h3>
+<retype-table copy-text="| Field | Stored | |
+|---|---|---|
+| `aiType` | column (ordinal) | `AIType.OPEN_AI_COMPATIBLE`. `InferenceServices` picks the implementation by this type. |
+| `name` | column | |
+| `maxContext`, `maxCompletionTokens` | columns | Context size and maximum response tokens of the model. |
+| `enabledReasoning`, `reasoningEffort` | columns | Reasoning settings. |
+| `needsJailbreak`, `jailbreak` | columns | Text put before the system prompt. |
+| `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (stored in plain text, BUG-29). |
+| `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Stored</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>aiType</code></td>
+<td>column (ordinal)</td>
+<td><code translate="no" v-pre>AIType.OPEN_AI_COMPATIBLE</code>. <code translate="no" v-pre>InferenceServices</code> picks the implementation by this type.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>name</code></td>
+<td>column</td>
+<td> </td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>maxContext</code>, <code translate="no" v-pre>maxCompletionTokens</code></td>
+<td>columns</td>
+<td>Context size and maximum response tokens of the model.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>enabledReasoning</code>, <code translate="no" v-pre>reasoningEffort</code></td>
+<td>columns</td>
+<td>Reasoning settings.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>needsJailbreak</code>, <code translate="no" v-pre>jailbreak</code></td>
+<td>columns</td>
+<td>Text put before the system prompt.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>uri</code>, <code translate="no" v-pre>model</code>, <code translate="no" v-pre>modelName</code>, <code translate="no" v-pre>apiKey</code></td>
+<td>columns (<code translate="no" v-pre>ais_openaicompat</code>)</td>
+<td>Base URL, the model id sent to the API, its label in the model list, the API key (stored in plain text, BUG-29).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>additionalParameters</code></td>
+<td>JSON (<code translate="no" v-pre>additionalParameters_*</code>)</td>
+<td>Extra fields added to every request; they win over the protocol&#x27;s settings.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="protocol--chatcompletionprotocol"><code translate="no" v-pre>Protocol</code> / <code translate="no" v-pre>ChatCompletionProtocol</code></h3>
+<retype-table copy-text="| Field | Stored | |
+|---|---|---|
+| `name`, `protocolType` | columns | `ProtocolType.CHAT_COMPLETION`. |
+| `maxTokens`, `replyTokens` | columns | Optional overrides of the provider's context and response limits; `null` = use the provider's (`TokenLimits`). |
+| `temperature`, `topP`, `frequencyPenalty`, `presencePenalty` and their `...Enabled` flags | JSON | Sampling settings; a disabled setting is not sent. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Stored</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>name</code>, <code translate="no" v-pre>protocolType</code></td>
+<td>columns</td>
+<td><code translate="no" v-pre>ProtocolType.CHAT_COMPLETION</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>maxTokens</code>, <code translate="no" v-pre>replyTokens</code></td>
+<td>columns</td>
+<td>Optional overrides of the provider&#x27;s context and response limits; <code translate="no" v-pre>null</code> = use the provider&#x27;s (<code translate="no" v-pre>TokenLimits</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>temperature</code>, <code translate="no" v-pre>topP</code>, <code translate="no" v-pre>frequencyPenalty</code>, <code translate="no" v-pre>presencePenalty</code> and their <code translate="no" v-pre>...Enabled</code> flags</td>
+<td>JSON</td>
+<td>Sampling settings; a disabled setting is not sent.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -178,11 +916,199 @@
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
+            <h5>Enum columns</h5>
+<p><code translate="no" v-pre>AI.aiType</code> and <code translate="no" v-pre>Protocol.protocolType</code> are stored as <strong>ordinals</strong>: add new values only at the end of <code translate="no" v-pre>AIType</code> and
+<code translate="no" v-pre>ProtocolType</code>, never reorder them. All other enums (<code translate="no" v-pre>AI.reasoningEffort</code> as a column, <code translate="no" v-pre>FilteringMode</code>,
+<code translate="no" v-pre>InsertionMode</code> and <code translate="no" v-pre>BackupStrategy</code> in the JSON) are stored by <strong>name</strong>: renaming a value breaks existing data.</p>
         </div>
     </div>
 </div>
+<h2 id="settings">Settings</h2>
+<p><code translate="no" v-pre>Setting</code> is one table (<code translate="no" v-pre>settings</code>) for all settings classes, with the class name in <code translate="no" v-pre>DTYPE</code> and in <code translate="no" v-pre>key</code>. Almost all
+values are extended attributes.</p>
+<retype-table copy-text="| Class | Owner | Contains |
+|---|---|---|
+| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`). |
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`), default book backup strategy. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th>Owner</th>
+<th>Contains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>AppSettings</code></td>
+<td>none (one per installation)</td>
+<td>Data versions (<code translate="no" v-pre>dbVersion</code>, <code translate="no" v-pre>appVersion</code>), the database backup schedule (<code translate="no" v-pre>backupScheduleEnabled</code>, <code translate="no" v-pre>backupSchedule</code>, <code translate="no" v-pre>backupKeep</code>, <code translate="no" v-pre>lastScheduledBackup</code>, <code translate="no" v-pre>backupScheduleChanged</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>UserSetting</code></td>
+<td>each user</td>
+<td>Default model and protocol (ids, <code translate="no" v-pre>@CleanupReference(WEAK)</code>), default prompts (<code translate="no" v-pre>masterTemplate</code>, <code translate="no" v-pre>defaultPov</code>, <code translate="no" v-pre>defaultTense</code>, <code translate="no" v-pre>defaultStyle</code>, <code translate="no" v-pre>defaultUserPrompt</code>, <code translate="no" v-pre>defaultSummaryPrompt</code>), default book backup strategy.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>SettingService.getOrCreate(UserSetting.class)</code> returns the current user&#x27;s settings, creating them on first use;
+<code translate="no" v-pre>getOrCreateApp(AppSettings.class)</code> the installation&#x27;s. Extensions keep their settings in the <code translate="no" v-pre>attributes</code> of
+<code translate="no" v-pre>UserSetting</code> (Reviewer and Side Query profiles do).</p>
+<p>The prompt used for a book is resolved in three levels: the book&#x27;s value (<code translate="no" v-pre>Manuscript.template</code>...), else the user&#x27;s
+default (<code translate="no" v-pre>UserSetting.masterTemplate</code>...), else the built-in default (<code translate="no" v-pre>Defaults</code>).</p>
+<h2 id="users">Users</h2>
+<p><code translate="no" v-pre>User</code> extends <code translate="no" v-pre>BaseEntity</code> directly - it has no owner and no extended attributes.</p>
+<retype-table copy-text="| Field | |
+|---|---|
+| `login` | Unique login name. |
+| `fullName` | Display name. |
+| `passwordHash` | Password hash (`UserServiceImpl`). |
+| `savedLogins` | JSON list of `PersistedLoginInfo` - the *Save login* tokens (identifier, hashed secret, timestamps). |
+| `isAdmin` | Administrator. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>login</code></td>
+<td>Unique login name.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>fullName</code></td>
+<td>Display name.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>passwordHash</code></td>
+<td>Password hash (<code translate="no" v-pre>UserServiceImpl</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>savedLogins</code></td>
+<td>JSON list of <code translate="no" v-pre>PersistedLoginInfo</code> - the <em>Save login</em> tokens (identifier, hashed secret, timestamps).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>isAdmin</code></td>
+<td>Administrator.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The current user of a session is the session-scoped <code translate="no" v-pre>user</code> bean (see <a href="../architecture/#spring-wiring">Architecture</a>),
+which holds a copy of the logged-in user&#x27;s id, login and name - load the entity through <code translate="no" v-pre>UserService</code> when you need
+more.</p>
+<h2 id="cleanup-references">Cleanup references</h2>
+<p>Soft-deleted rows are purged by <code translate="no" v-pre>CleanupService</code> (<em>Admin → Cleanup</em>). Before purging, it builds a graph of all
+references between rows and decides what may go. Each reference has a policy (<code translate="no" v-pre>@CleanupReference</code>, in
+<code translate="no" v-pre>domain/traits/</code>):</p>
+<retype-table copy-text="| Policy | Meaning | Used for |
+|---|---|---|
+| `STRONG` (default) | The referenced row can't be purged while the reference exists. | `Manuscript.ai`, `.protocol`, `.lorebook`, `.activeLeaf`, every `owner` |
+| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; `Setting.owner` |
+| `OWNS` | The referenced row belongs to the referencing one and is purged with it, unless referenced elsewhere. | `ChatMessage.summary` |
+| `WEAK` | The reference doesn't block the purge; it is cleared when the referenced row goes. | `Lorebook.subbooks`, `UserSetting.defaultModel`, `.defaultProtocol` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Policy</th>
+<th>Meaning</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>STRONG</code> (default)</td>
+<td>The referenced row can&#x27;t be purged while the reference exists.</td>
+<td><code translate="no" v-pre>Manuscript.ai</code>, <code translate="no" v-pre>.protocol</code>, <code translate="no" v-pre>.lorebook</code>, <code translate="no" v-pre>.activeLeaf</code>, every <code translate="no" v-pre>owner</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>OWNED_BY</code></td>
+<td>The referencing row belongs to the referenced one and is purged with it.</td>
+<td><code translate="no" v-pre>ChatMessage.parentScript</code>, <code translate="no" v-pre>.parent</code>; <code translate="no" v-pre>LorebookEntry.lorebook</code>; <code translate="no" v-pre>TagRelation.tag</code>, <code translate="no" v-pre>.objectId</code>; <code translate="no" v-pre>Setting.owner</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>OWNS</code></td>
+<td>The referenced row belongs to the referencing one and is purged with it, unless referenced elsewhere.</td>
+<td><code translate="no" v-pre>ChatMessage.summary</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>WEAK</code></td>
+<td>The reference doesn&#x27;t block the purge; it is cleared when the referenced row goes.</td>
+<td><code translate="no" v-pre>Lorebook.subbooks</code>, <code translate="no" v-pre>UserSetting.defaultModel</code>, <code translate="no" v-pre>.defaultProtocol</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>JPA associations are found automatically from the Hibernate metamodel and default to <code translate="no" v-pre>STRONG</code>. Plain id fields
+pointing to other entities (&quot;soft references&quot;, including extended attributes) are only seen when annotated with
+<code translate="no" v-pre>target = SomeEntity.class</code> or, for polymorphic ones, <code translate="no" v-pre>targetClassField = &quot;clazz&quot;</code>. On an entity class,
+<code translate="no" v-pre>field = &quot;...&quot;</code> sets the policy of an inherited field (<code translate="no" v-pre>Setting</code> makes its <code translate="no" v-pre>owner</code> <code translate="no" v-pre>OWNED_BY</code>).</p>
+<p>So a deleted provider that a book still uses shows up as <em>blocked</em> on the Cleanup page until the book is switched to
+another provider, while a deleted book takes its parts, their summaries and its tag relations with it.</p>
+<h2 id="backups-and-copies">Backups and copies</h2>
+<p>Book backups (<code translate="no" v-pre>BackupService</code>) serialize a book as JSON: its columns, its <code translate="no" v-pre>extendedContent</code> as is, its tags, all
+parts (with <code translate="no" v-pre>extendedContent</code> and summaries) and references to its provider, protocol and lorebook by uuid and name.
+Restoring or cloning creates new rows (new ids and uuids for the parts) and copies <code translate="no" v-pre>extendedContent</code> unchanged, so
+extended attributes and extension data come back exactly as they were. Linked entities are resolved among the
+current user&#x27;s own entities, first by uuid, then by name.</p>
+<p>Lorebooks are different: lorebook exports (<code translate="no" v-pre>LorebookServiceImpl.exportLorebook</code>) and the lorebooks stored inside book
+backups list their fields one by one (<code translate="no" v-pre>name</code>, <code translate="no" v-pre>payload</code>, <code translate="no" v-pre>comment</code>, <code translate="no" v-pre>filtering</code>...), so the <code translate="no" v-pre>attributes</code> of lorebooks
+and entries - extension data such as the Lorebook VCS history - are <strong>not</strong> included.</p>
+<p>Keep this in mind when adding data: for books and parts anything in <code translate="no" v-pre>extendedContent</code> is backed up automatically,
+while a new column has to be added to the backup and restore code (<code translate="no" v-pre>BackupServiceImpl</code>,
+<code translate="no" v-pre>ManuscriptServiceImpl.restoreBackup</code> / <code translate="no" v-pre>restoreMessages</code>); a new lorebook or entry field has to be added to the
+export and import code in either case.</p>
+<h2 id="adding-a-field-or-an-entity">Adding a field or an entity</h2>
+<p><strong>A field on an existing entity:</strong></p>
+<ol>
+<li>
+<p>Decide where it lives. Prefer an extended attribute (<code translate="no" v-pre>@ExtendedAttribute @Transient</code>) - no migration, backed up
+automatically. Use a column only when you need to query, sort or join on it.</p>
+</li>
+<li>
+<p>For a column: add a Flyway migration (see <a href="../database/">Database &amp; migrations</a>); Hibernate validates the schema on
+start. Extend the backup / restore code if the value should survive a backup.</p>
+</li>
+<li>
+<p>For a reference to another entity: think about its cleanup policy and annotate it if <code translate="no" v-pre>STRONG</code> isn&#x27;t right.
+Soft references (ids) must be annotated with <code translate="no" v-pre>target</code> or <code translate="no" v-pre>targetClassField</code>, otherwise cleanup may purge the
+referenced row.</p>
+</li>
+<li>
+<p>Save it through the service&#x27;s <code translate="no" v-pre>save</code> (not <code translate="no" v-pre>saveWithoutEvent</code>).</p>
+</li>
+</ol>
+<p><strong>A new entity:</strong></p>
+<ol>
+<li>
+<p>Extend <code translate="no" v-pre>ExtendableEntity</code> (or <code translate="no" v-pre>OwnedEntity</code> if it never needs extended data) and annotate the references.</p>
+</li>
+<li>
+<p>List the class in <code translate="no" v-pre>src/main/webapp/config/persistence.xml</code> - unlisted classes are ignored.</p>
+</li>
+<li>
+<p>Write a Flyway migration creating the table, its <code translate="no" v-pre>&lt;table&gt;_SEQ</code> table and indexes.</p>
+</li>
+<li>
+<p>Add a repository (<code translate="no" v-pre>JpaExtendableRepository</code> subclass) and a service (<code translate="no" v-pre>ExtendableServiceImpl</code> subclass), and
+define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
+</li>
+<li>
+<p>Add a CRUD test based on <code translate="no" v-pre>ExtendableCrudContract</code> (see <a href="../testing/">Testing</a>).</p>
+</li>
+<li>
+<p>Decide whether it belongs in book backups or lorebook exports.</p>
+</li>
+</ol>
 
                 
                 <!-- Required only on API pages -->
@@ -249,6 +1175,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Domain model", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/domain-model.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Domain model", level: 2, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/domain-model.md" }</script>
 </body>
 </html>

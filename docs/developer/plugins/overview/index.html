@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Plugin basics</title>
     <meta name="title" content="Plugin basics">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="This page covers what every plugin needs: the Maven project, the bundle activator, the MarginaliaExtension and how Marginalia loads, starts and unloads it.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/plugins/overview/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/plugins/overview/">
     <meta property="og:title" content="Plugin basics">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="This page covers what every plugin needs: the Maven project, the bundle activator, the MarginaliaExtension and how Marginalia loads, starts and unloads it.">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +31,20 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/plugins/overview/">
     <meta name="twitter:title" content="Plugin basics">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="This page covers what every plugin needs: the Maven project, the bundle activator, the MarginaliaExtension and how Marginalia loads, starts and unloads it.">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/plugins/overview.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,7 +167,157 @@
 
                 <!-- Page content  -->
 <h1 id="plugin-basics">Plugin basics</h1>
-<!-- Planned content: OSGi bundle layout, maven-bundle-plugin, MarginaliaExtension, lifecycle. -->
+<p>This page covers what every plugin needs: the Maven project, the bundle activator, the <code translate="no" v-pre>MarginaliaExtension</code> and how
+Marginalia loads, starts and unloads it.</p>
+<h2 id="project-layout">Project layout</h2>
+<p>A plugin is an ordinary Maven project with <code translate="no" v-pre>bundle</code> packaging:</p>
+<div id="project-layout-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">myplugin/
+├── pom.xml
+└── src/main/java/com/example/marginalia/myplugin/
+    ├── MyPluginActivator.java     BundleActivator - registers the extension
+    ├── MyPluginExtension.java     MarginaliaExtension - registers hooks, cleans up
+    ├── model/                     data classes stored as JSON in attributes (optional)
+    ├── service/                   plugin logic, @Configurable (optional)
+    └── ui/                        Vaadin components (optional)</code></pre>
+</doc-codeblock></div>
+<p>Use your own package. The bundled plugins live under <code translate="no" v-pre>com.github.enerccio.marginalia.extensions.&lt;name&gt;</code>; a third-party
+plugin should not.</p>
+<h2 id="pomxml">pom.xml</h2>
+<p>The easiest start is to copy the <code translate="no" v-pre>pom.xml</code> of <code translate="no" v-pre>marginalia/plugins/chaptermarker</code> and change the coordinates and the
+package names. The important parts:</p>
+<div id="pomxml-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-markup"><code v-pre class="language-markup">&lt;packaging&gt;bundle&lt;/packaging&gt;
+
+&lt;dependencies&gt;
+    &lt;!-- the application's classes, installed by `mvn install` in marginalia/ --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;io.github.enerccio&lt;/groupId&gt;
+        &lt;artifactId&gt;marginalia&lt;/artifactId&gt;
+        &lt;version&gt;1.0.0&lt;/version&gt;
+        &lt;classifier&gt;classes&lt;/classifier&gt;
+        &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;!-- plus, all `provided`: org.apache.felix.framework, vaadin-core, and any library
+         of the application you use directly (gson, commons-lang3, font-awesome-iron-iconset...) --&gt;
+&lt;/dependencies&gt;
+
+&lt;build&gt;
+    &lt;plugins&gt;
+        &lt;!-- maven-compiler-plugin, release 25 --&gt;
+        &lt;!-- aspectj-maven-plugin with spring-aspects as aspect library - needed for @Configurable --&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.felix&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-bundle-plugin&lt;/artifactId&gt;
+            &lt;version&gt;6.2.0&lt;/version&gt;
+            &lt;extensions&gt;true&lt;/extensions&gt;
+            &lt;configuration&gt;
+                &lt;instructions&gt;
+                    &lt;Bundle-SymbolicName&gt;${project.artifactId}&lt;/Bundle-SymbolicName&gt;
+                    &lt;Bundle-Version&gt;${project.version}&lt;/Bundle-Version&gt;
+                    &lt;Bundle-Activator&gt;com.example.marginalia.myplugin.MyPluginActivator&lt;/Bundle-Activator&gt;
+                    &lt;Import-Package&gt;!com.example.marginalia.myplugin.*&lt;/Import-Package&gt;
+                    &lt;Export-Package&gt;com.example.marginalia.myplugin.*&lt;/Export-Package&gt;
+                &lt;/instructions&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p><strong>Everything from the application is <code translate="no" v-pre>provided</code>.</strong> Marginalia runs the bundle with boot delegation for all packages
+(see <doc-anchor-trigger to="#class-loading">Class loading</doc-anchor-trigger>), so the bundle sees exactly the classes and libraries of the running WAR.
+Bundling your own copy of Vaadin, Spring or Gson would create a second, incompatible copy of their classes.</p>
+</li>
+<li>
+<p><strong>Versions must match the application.</strong> Take the Vaadin, Gson and commons versions from <code translate="no" v-pre>marginalia/pom.xml</code>.
+Compiling against a different Vaadin version than the one that runs usually works until it doesn&#x27;t.</p>
+</li>
+<li>
+<p><strong><code translate="no" v-pre>Import-Package</code> imports nothing.</strong> The single negated entry stops bnd from generating <code translate="no" v-pre>Import-Package</code> headers -
+they are not needed with boot delegation and would make the bundle fail to resolve.</p>
+</li>
+<li>
+<p><strong>AspectJ</strong> weaves Spring&#x27;s <code translate="no" v-pre>AnnotationBeanConfigurerAspect</code> into the plugin&#x27;s classes, so a plugin class annotated
+<code translate="no" v-pre>@Configurable</code> gets its <code translate="no" v-pre>@Autowired</code> fields injected from the application&#x27;s Spring context, like the
+application&#x27;s own UI classes (<a href="../../building/#aspectj-weaving">AspectJ weaving</a>). Without it, those fields stay
+<code translate="no" v-pre>null</code>.</p>
+</li>
+<li>
+<p>Libraries the application doesn&#x27;t have must be embedded in the bundle (<code translate="no" v-pre>Embed-Dependency</code>, commented out in the
+Reviewer&#x27;s <code translate="no" v-pre>pom.xml</code>) or shaded. Keep this to a minimum.</p>
+</li>
+</ul>
+<p>Build with <code translate="no" v-pre>mvn package</code>; the result is <code translate="no" v-pre>target/&lt;artifactId&gt;-&lt;version&gt;.jar</code>. The application must be installed in the
+local Maven repository first (<code translate="no" v-pre>mvn install -DskipTests</code> in <code translate="no" v-pre>marginalia/</code>), and reinstalled whenever you change
+classes the plugin uses.</p>
+<h2 id="the-activator">The activator</h2>
+<p>The bundle&#x27;s activator registers one <code translate="no" v-pre>MarginaliaExtension</code> as an OSGi service. That&#x27;s all it should do - Marginalia
+discovers the service and calls it:</p>
+<div id="the-activator-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">public class MyPluginActivator implements BundleActivator {
+
+    private ServiceRegistration&lt;MarginaliaExtension&gt; registration;
+
+    @Override
+    public void start(BundleContext context) {
+        registration = context.registerService(MarginaliaExtension.class, new MyPluginExtension(), null);
+    }
+
+    @Override
+    public void stop(BundleContext context) {
+        if (registration != null) {
+            registration.unregister();
+            registration = null;
+        }
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p>Only bundles that register a <code translate="no" v-pre>MarginaliaExtension</code> are listed in <em>Admin → Extensions</em>.</p>
+<h2 id="the-extension">The extension</h2>
+<div id="the-extension-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">public interface MarginaliaExtension {
+
+    void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService);
+
+    void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService);
+}</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p><code translate="no" v-pre>onExtensionLoad</code> registers everything the plugin needs: decorators (<code translate="no" v-pre>extensionService.registerDecorator(...)</code>,
+see <a href="../extendable/">@Extendable hooks</a>), generation listeners
+(<code translate="no" v-pre>storyGenerationService.addEventListener(...)</code>, see <a href="../../generation-pipeline/#events-for-extensions">Generation pipeline</a>),
+cleanup contributors (<a href="../extended-attributes/#references-to-other-entities">Extended attributes</a>). It should not build UI - there is no UI at that moment. UI is added later, from decorators, when the
+user opens the screen the plugin extends.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>onExtensionUnload</code> undoes all of it: unregister every decorator and listener, remove the components the plugin
+added to open screens (<a href="../ui-extensions/#unloading">Unloading</a>), stop background work. Nothing is removed
+automatically - a decorator left registered keeps running, from a bundle that no longer exists.</p>
+</li>
+</ul>
+<p>Annotate the extension <code translate="no" v-pre>@Configurable</code> and inject what you need:</p>
+<div id="the-extension-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Configurable
+public class MyPluginExtension implements MarginaliaExtension {
+
+    @Autowired
+    private Localization loc;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    @Autowired
+    private StoryGenerationService storyGenerationService;
+    ...
+}</code></pre>
+</doc-codeblock></div>
+<p>Any bean of the application can be injected - every service in <code translate="no" v-pre>domain/service</code> (<a href="../../services/">Services</a>),
+<code translate="no" v-pre>Localization</code>, <code translate="no" v-pre>InferenceServices</code>, <code translate="no" v-pre>Configuration</code>, <code translate="no" v-pre>OsgiService</code>... Plugin classes created with <code translate="no" v-pre>new</code> (services,
+dialogs, forms) can be <code translate="no" v-pre>@Configurable</code> too; the bundled plugins create their service object in the extension
+(<code translate="no" v-pre>new ReviewerService()</code>) and it is injected the same way.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -178,11 +330,101 @@
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
+            <h5>Errors in onExtensionLoad</h5>
+<p>At startup <code translate="no" v-pre>onExtensionLoad</code> runs without a UI, so <code translate="no" v-pre>UIUtils.internalServerError(...)</code> (which opens a dialog) can&#x27;t
+show anything - log the error instead. An exception that escapes <code translate="no" v-pre>onExtensionLoad</code> currently stops the extensions
+after it from loading (BUG-47), so catch everything.</p>
         </div>
     </div>
 </div>
+<h2 id="lifecycle">Lifecycle</h2>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">sequenceDiagram
+    participant S as Spring (root context)
+    participant O as OsgiServiceImpl
+    participant F as Felix
+    participant A as Activator
+    participant E as MarginaliaExtension
+
+    S-&gt;&gt;O: ContextRefreshedEvent
+    O-&gt;&gt;F: start framework (storage extensions/org.eclipse.osgi, cleaned)
+    O-&gt;&gt;F: installBundle(file:...) for every *.jar in extensions/
+    loop every bundle
+        O-&gt;&gt;F: bundle.start()
+        F-&gt;&gt;A: start(context)
+        A-&gt;&gt;F: registerService(MarginaliaExtension)
+        O-&gt;&gt;E: onExtensionLoad(bundle, osgiService, extensionService)
+    end
+    Note over O,E: Admin → Extensions → Unload
+    O-&gt;&gt;E: run bound component callbacks, then onExtensionUnload(...)
+    O-&gt;&gt;F: bundle.uninstall() (stops it → Activator.stop), delete the JAR</pre></div>
+<ul>
+<li>
+<p><strong>Startup.</strong> <code translate="no" v-pre>OsgiServiceImpl</code> listens for the root context&#x27;s <code translate="no" v-pre>ContextRefreshedEvent</code>, starts Felix with its
+storage in <code translate="no" v-pre>~/.marginalia/extensions/org.eclipse.osgi</code> (wiped on every start, so the JARs are always read fresh),
+installs every <code translate="no" v-pre>*.jar</code> in <code translate="no" v-pre>~/.marginalia/extensions</code> and starts them. For each <code translate="no" v-pre>MarginaliaExtension</code> service a
+bundle registered, it calls <code translate="no" v-pre>onExtensionLoad</code>.</p>
+</li>
+<li>
+<p><strong>Installing at runtime.</strong> <em>Admin → Extensions → Load Extension (.jar)</em> writes the uploaded file into
+<code translate="no" v-pre>~/.marginalia/extensions</code> under its original name and installs and starts it the same way
+(<code translate="no" v-pre>OsgiService.installPackage</code>). Screens that are already open are not rebuilt: the plugin&#x27;s decorators run the next
+time the decorated methods run (the next time the user opens a book, a tab...).</p>
+</li>
+<li>
+<p><strong>Unloading.</strong> <em>Unload</em> calls the callbacks registered with <code translate="no" v-pre>bindAttachableComponent</code>, then <code translate="no" v-pre>onExtensionUnload</code>,
+uninstalls the bundle and <strong>deletes its JAR</strong> (<code translate="no" v-pre>OsgiService.uninstallPackage</code>).</p>
+</li>
+<li>
+<p><strong>Shutdown.</strong> The framework is not stopped when the application stops (BUG-51): neither the activator&#x27;s <code translate="no" v-pre>stop</code> nor
+<code translate="no" v-pre>onExtensionUnload</code> runs. Don&#x27;t rely on them to save data - save as you go.</p>
+</li>
+</ul>
+<p>There is no update operation: to replace a plugin with a new build, unload it and load the new JAR, or replace the
+JAR in <code translate="no" v-pre>~/.marginalia/extensions</code> and restart Marginalia. Uploading a new build over an installed one doesn&#x27;t load the
+new code (BUG-48).</p>
+<h2 id="class-loading">Class loading</h2>
+<p>Felix is started with <code translate="no" v-pre>org.osgi.framework.bootdelegation=*</code> and the framework class loader as the bundle parent, which
+is the web application&#x27;s class loader. Every class a bundle asks for is therefore looked up in the application
+first: Marginalia&#x27;s own classes, Vaadin, Spring, Hibernate, Gson, everything in <code translate="no" v-pre>WEB-INF/lib</code>. The consequences:</p>
+<ul>
+<li>
+<p>Plugins use the application&#x27;s classes directly - no imports, no service lookups, <code translate="no" v-pre>instanceof</code> and casts work.</p>
+</li>
+<li>
+<p>A plugin can&#x27;t override or replace a library of the application, and can&#x27;t use a different version of one.</p>
+</li>
+<li>
+<p>Plugins don&#x27;t see each other&#x27;s classes through imports either; if two plugins need to cooperate, do it through
+shared data (attributes) or through the application&#x27;s components.</p>
+</li>
+<li>
+<p>The plugin&#x27;s own classes are loaded by the bundle&#x27;s class loader, so the class names you pass to
+<code translate="no" v-pre>registerDecorator</code> must be those of the <strong>application&#x27;s</strong> classes; a plugin&#x27;s own classes are never instrumented.</p>
+</li>
+</ul>
+<h2 id="the-development-loop">The development loop</h2>
+<ol>
+<li>
+<p>Run Marginalia from your IDE or a local Jetty with a separate data folder
+(<a href="../../building/#running-locally">Running locally</a>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>mvn package</code> the plugin.</p>
+</li>
+<li>
+<p>Load the JAR in <em>Admin → Extensions</em>, or copy it into <code translate="no" v-pre>&lt;data folder&gt;/extensions</code> and restart.</p>
+</li>
+<li>
+<p>Open the screen the plugin extends. If nothing happens, check the log: a decorator that can&#x27;t find an argument,
+local variable or field logs <code translate="no" v-pre>Mod '&lt;class&gt;' skipped on &lt;class&gt;.&lt;method&gt;: ...</code> with the missing name; other
+exceptions are logged as <code translate="no" v-pre>Unhandled exception in extension ...</code>.</p>
+</li>
+<li>
+<p>To try a new build: <em>Unload</em> the plugin (it deletes the JAR), load the new one.</p>
+</li>
+</ol>
+<p>When a plugin uses a class or method of the application that changed, the plugin fails at runtime with a
+<code translate="no" v-pre>NoSuchMethodError</code> or <code translate="no" v-pre>NoClassDefFoundError</code>. Rebuild it against the current application.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -249,6 +491,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Plugin basics", level: 3, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/plugins/overview.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Plugin basics", level: 3, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/plugins/overview.md" }</script>
 </body>
 </html>

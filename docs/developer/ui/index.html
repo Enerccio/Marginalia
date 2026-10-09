@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844806904216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>User interface</title>
     <meta name="title" content="User interface">
-    <meta name="description" content="This page has not been written yet.">
+    <meta name="description" content="Marginalia's UI is written in Java with Vaadin Flow 25: the component tree lives on the server, the browser renders it with Vaadin's web components (Lumo theme, dark color scheme) and sends events back over HTTP and a push WebSocket.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/ui/">
@@ -23,7 +23,11 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/ui/">
     <meta property="og:title" content="User interface">
-    <meta property="og:description" content="This page has not been written yet.">
+    <meta property="og:description" content="Marginalia's UI is written in Java with Vaadin Flow 25: the component tree lives on the server, the browser renders it with Vaadin's web components (Lumo theme, dark color scheme) and sends events back over HTTP and a push WebSocket.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="User interface">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,18 +35,22 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/ui/">
     <meta name="twitter:title" content="User interface">
-    <meta name="twitter:description" content="This page has not been written yet.">
+    <meta name="twitter:description" content="Marginalia's UI is written in Java with Vaadin Flow 25: the component tree lives on the server, the browser renders it with Vaadin's web components (Lumo theme, dark color scheme) and sends events back over HTTP and a push WebSocket.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map.png">
+    <meta name="twitter:image:alt" content="User interface">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/ui.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844806904216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844806904216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -165,24 +173,465 @@
 
                 <!-- Page content  -->
 <h1 id="user-interface">User interface</h1>
-<!-- Planned content: Vaadin workspace, parts, dialogs, widgets, push and threading. -->
-<div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
-    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-            <h5>Work in progress</h5>
-<p>This page has not been written yet.</p>
-        </div>
-    </div>
+<p>Marginalia&#x27;s UI is written in Java with <a href="https://vaadin.com/docs/latest/flow">Vaadin Flow</a> 25: the component tree
+lives on the server, the browser renders it with Vaadin&#x27;s web components (Lumo theme, dark color scheme) and sends
+events back over HTTP and a push WebSocket. There is no hand-written frontend code apart from one CSS file and a small
+connector for the story tree. This page explains how the UI code is organized and the conventions to follow when you
+change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
+<h2 id="structure">Structure</h2>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart TB
+    subgraph routes[&quot;Routes&quot;]
+        Main[&quot;Main  /&quot;]
+        Viewer[&quot;Viewer  /view, /view/&amp;lt;uuid&amp;gt;&quot;]
+    end
+    Main --&gt;|after login| WS[&quot;Workspace&lt;br/&gt;HTabSheet with left-hand tabs&quot;]
+    WS --&gt; MP[&quot;ManuscriptPart - Books&quot;]
+    WS --&gt; LP[&quot;LorebookPart - Lorebooks&quot;]
+    WS --&gt; UP[&quot;UserPart - Settings&quot;]
+    WS --&gt; PP[&quot;ProtocolPart - Protocols&quot;]
+    WS --&gt; AP[&quot;AIPart - Inference Providers&quot;]
+    WS --&gt; AdP[&quot;AdminPart - Admin (footer button)&quot;]
+    AdP --&gt; DBP[&quot;DatabaseBackupPanel&quot;]
+    AdP --&gt; CP[&quot;CleanupPanel&quot;]
+    MP --&gt;|open a book| MD[&quot;ManuscriptDialog&lt;br/&gt;VTabSheet&quot;]
+    MD --&gt; Info[&quot;ManuscriptInfoPart - About&quot;]
+    MD --&gt; Prompt[&quot;ManuscriptPromptPart - Prompts&quot;]
+    MD --&gt; Lore[&quot;ManuscriptLorebookPart - Lorebook&quot;]
+    MD --&gt; Story[&quot;ManuscriptStoryPart - Story&quot;]
+    MD --&gt; Tree[&quot;ManuscriptTreePart - Story tree&quot;]
+    MD --&gt; Backup[&quot;ManuscriptBackupPart - Backups&quot;]
+    LP --&gt; LV[&quot;LorebookView&quot;]
+    Lore --&gt; LV</pre></div>
+<figure class="content-center">
+    <img src="../../images/dev-ui-map.png" alt="Map of the UI to the classes that build it" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="1000" />
+    <figcaption class="caption">Map of the UI to the classes that build it</figcaption>
+</figure>
+<retype-table copy-text="| Package | Contains |
+|---|---|
+| `ui.main` | Servlet, app shell, routes, login (`LoginCheckRoute`). |
+| `ui.workspace` | `Workspace` and the `WorkspaceComponent` interface. |
+| `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
+| `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
+| `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
+| `ui.components` | Larger reusable components: `LorebookView`, `TreantTree`, `ThreadCopyRequestAttributes`. |
+| `ui.widgets` | Small reusable widgets. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Package</th>
+<th>Contains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>ui.main</code></td>
+<td>Servlet, app shell, routes, login (<code translate="no" v-pre>LoginCheckRoute</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui.workspace</code></td>
+<td><code translate="no" v-pre>Workspace</code> and the <code translate="no" v-pre>WorkspaceComponent</code> interface.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui.workspace.parts</code>, <code translate="no" v-pre>.admin</code></td>
+<td>The workspace tabs and the admin panels.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui.dialogs</code></td>
+<td>Entity dialogs, the book window and generic dialogs.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui.dialogs.manuscript</code></td>
+<td>The tabs of the book window (<code translate="no" v-pre>ManuscriptDialogPart</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui.components</code></td>
+<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui.widgets</code></td>
+<td>Small reusable widgets.</td>
+</tr>
+</tbody>
+</table>
 </div>
+</retype-table>
+<h2 id="the-shell-routes-and-login">The shell, routes and login</h2>
+<ul>
+<li><code translate="no" v-pre>AppShellConfig</code> (<code translate="no" v-pre>AppShellConfigurator</code>) sets up the page once: <code translate="no" v-pre>@Push</code>, Lumo stylesheet, <code translate="no" v-pre>@ColorScheme(DARK)</code>,
+full-viewport body, <code translate="no" v-pre>shared-styles.css</code>, page title, PWA metadata.</li>
+<li><code translate="no" v-pre>MarginaliaServlet</code> is the <code translate="no" v-pre>VaadinServlet</code> mapped to <code translate="no" v-pre>/*</code> (with <code translate="no" v-pre>asyncSupported</code> for push).</li>
+<li>
+<p>There are two routes, both extending <code translate="no" v-pre>LoginCheckRoute</code>:</p>
+<retype-table copy-text="| Route | Class | Shows |
+  |---|---|---|
+  | `/` | `Main` | The workspace. |
+  | `/view`, `/view/&lt;uuid&gt;` | `Viewer` | The reader: a list of the user's own books, and a book's active branch as text (own or published books, by link). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Route</th>
+<th>Class</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/</code></td>
+<td><code translate="no" v-pre>Main</code></td>
+<td>The workspace.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/view</code>, <code translate="no" v-pre>/view/&lt;uuid&gt;</code></td>
+<td><code translate="no" v-pre>Viewer</code></td>
+<td>The reader: a list of the user&#x27;s own books, and a book&#x27;s active branch as text (own or published books, by link).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+</li>
+</ul>
+<p><code translate="no" v-pre>LoginCheckRoute</code> runs in the route&#x27;s constructor (<code translate="no" v-pre>showLogin()</code>):</p>
+<ol>
+<li>
+<p>On an empty installation it opens <code translate="no" v-pre>UserDialog</code> in <em>first time</em> mode (create the administrator) and reloads.</p>
+</li>
+<li>
+<p>Otherwise it tries the <em>Save login</em> cookies (<code translate="no" v-pre>authenticateFromCookie</code>, rotating the secret on success).</p>
+</li>
+<li>
+<p>Otherwise it shows a <code translate="no" v-pre>LoginOverlay</code> (<code translate="no" v-pre>PermissiveLoginOverlay</code> - allows empty passwords to reach the server-side
+check) with the <em>Save login</em> checkbox.</p>
+</li>
+<li>
+<p>After a successful login it calls <code translate="no" v-pre>VaadinService.reinitializeSession</code> (new session id) and the subclass&#x27;s
+<code translate="no" v-pre>proceedWithLogin(login)</code>, which fills the session-scoped <code translate="no" v-pre>user</code> bean and builds the content.</p>
+</li>
+</ol>
+<p>Logout deletes the cookies, closes the Vaadin session, invalidates the HTTP session and redirects to the context
+root. Cookie names include the context path and the route class (<code translate="no" v-pre>root_Main_llllm_rememberMe_login</code>...), so the workspace
+and the viewer keep separate saved logins.</p>
+<h2 id="building-blocks">Building blocks</h2>
+<h3 id="classes-that-build-components">Classes that build components</h3>
+<p>Most UI classes are <strong>not</strong> Vaadin components themselves. They are plain classes with a <code translate="no" v-pre>create()</code> method that builds
+and returns the component tree, and keep references to the fields they need later:</p>
+<div id="classes-that-build-components-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Configurable
+@Extendable
+public class ProtocolPart implements WorkspaceComponent {
+
+    @Autowired
+    private Localization loc;
+
+    @Autowired
+    private ProtocolService protocolService;
+
+    private Grid&lt;Protocol&gt; grid;
+
+    @Override
+    public Component create() throws Exception {
+        VerticalLayout layout = new VerticalLayout();
+        grid = new Grid&lt;&gt;();
+        ...
+        return layout;
+    }
+
+    @Override
+    public void refresh() throws Exception { ... }
+}</code></pre>
+</doc-codeblock></div>
+<p>This shape is deliberate:</p>
+<ul>
+<li>
+<p><strong><code translate="no" v-pre>@Configurable</code></strong> - the class is created with <code translate="no" v-pre>new</code>, and the AspectJ-woven configurer injects its <code translate="no" v-pre>@Autowired</code>
+fields (services, <code translate="no" v-pre>Localization</code>, the session <code translate="no" v-pre>User</code>). See <a href="../building/#aspectj-weaving">AspectJ weaving</a>.</p>
+</li>
+<li>
+<p><strong><code translate="no" v-pre>@Extendable</code></strong> - the class is instrumented at startup so extensions can run code before and after any of its
+methods and read its local variables (see <doc-anchor-trigger to="#extension-points">Extensions</doc-anchor-trigger>). Small methods with descriptive local
+variable names (<code translate="no" v-pre>menu</code>, <code translate="no" v-pre>toolbar</code>, <code translate="no" v-pre>detailLayout</code>) are what make a class easy to extend.</p>
+</li>
+</ul>
+<p>Dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>ManuscriptDialog</code>...) extend Vaadin&#x27;s <code translate="no" v-pre>Dialog</code>
+but follow the same pattern: construct with the entity, call <code translate="no" v-pre>create()</code>, then <code translate="no" v-pre>open()</code>.</p>
+<h3 id="the-workspace">The workspace</h3>
+<p><code translate="no" v-pre>Workspace</code> builds an <code translate="no" v-pre>HTabSheet</code> (tabs on the left, a footer with <em>Admin</em>, <em>Change Password</em>, <em>Logout</em>) and creates
+all tab components up front. Each tab is a <code translate="no" v-pre>WorkspaceComponent</code>:</p>
+<retype-table copy-text="| Method | Called |
+|---|---|
+| `create()` | Once, when the workspace is built. |
+| `refresh()` | To reload data (after login, after changes elsewhere). |
+| `onTabSwitched()` | When the tab becomes active - parts reload their lists here. |
+| `onTabClosed()` | When another tab is selected. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th>Called</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>create()</code></td>
+<td>Once, when the workspace is built.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>refresh()</code></td>
+<td>To reload data (after login, after changes elsewhere).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>onTabSwitched()</code></td>
+<td>When the tab becomes active - parts reload their lists here.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>onTabClosed()</code></td>
+<td>When another tab is selected.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The <em>Admin</em> button is only added for administrators; <code translate="no" v-pre>AdminPart</code> shows the users grid and the
+<code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code> and extensions tab. Note that the admin UI being hidden is not a permission
+check - services must check <code translate="no" v-pre>isAdmin()</code> themselves (TODO.md, item 14).</p>
+<h3 id="the-book-window">The book window</h3>
+<p>Opening a book creates a <code translate="no" v-pre>ManuscriptDialog</code> - a full-screen, strictly modal dialog with a <code translate="no" v-pre>VTabSheet</code> of
+<code translate="no" v-pre>ManuscriptDialogPart</code>s:</p>
+<retype-table copy-text="| Method | Purpose |
+|---|---|
+| `create(VTabSheet)` | Build the tab content and add the tab. |
+| `load(Manuscript)` | (Re)load the part from the book; called for all parts when the dialog opens. |
+| `onTabEnter()` / `onTabLeave()` | Tab switching - parts save pending edits on leave. |
+| `setFrozen(boolean)` | Disable editing while a generation runs. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>create(VTabSheet)</code></td>
+<td>Build the tab content and add the tab.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>load(Manuscript)</code></td>
+<td>(Re)load the part from the book; called for all parts when the dialog opens.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>onTabEnter()</code> / <code translate="no" v-pre>onTabLeave()</code></td>
+<td>Tab switching - parts save pending edits on leave.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>setFrozen(boolean)</code></td>
+<td>Disable editing while a generation runs.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The dialog holds the book (<code translate="no" v-pre>getManuscript()</code>, <code translate="no" v-pre>refreshManuscript()</code> reloads it, <code translate="no" v-pre>save()</code> saves it) and
+<code translate="no" v-pre>freeze()</code> / <code translate="no" v-pre>unfreeze()</code>, which disable the tabs, the exit button and every part during generation.</p>
+<p><code translate="no" v-pre>ManuscriptStoryPart</code> is the story editor and the largest UI class: the sidebar with one button per part, a
+<code translate="no" v-pre>ChatMessageCard</code> per part (Markdown view, edit mode, menu with Edit / Regenerate / Swipe / Branch / View prompt /
+Summary / Delete), the <em>New Turn Instructions</em> popover, starting generations and applying the result, and the
+automatic book backups.</p>
+<h3 id="grids">Grids</h3>
+<p>Lists of entities use Vaadin <code translate="no" v-pre>Grid</code> with a lazy data provider. <code translate="no" v-pre>BackendTableProviderBase</code> (in <code translate="no" v-pre>ui.widgets</code>) is the
+common base: the owning part searches for the ids to show (<code translate="no" v-pre>ManuscriptService.searchManuscripts(...)</code> returns ids,
+already filtered and sorted), passes them with <code translate="no" v-pre>setIds(ids)</code>, and the provider loads only the entities of the visible
+page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <code translate="no" v-pre>BackendTableItem</code> subclass. It also tracks checked rows.</p>
+<h3 id="widgets">Widgets</h3>
+<retype-table copy-text="| Widget | Used for |
+|---|---|
+| `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
+| `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
+| `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
+| `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
+| `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
+| `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Widget</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>HTabSheet</code></td>
+<td>The workspace&#x27;s left-hand tab sheet with a footer area.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>TagMultiComboBox</code></td>
+<td>Tag selection with lazy search (<code translate="no" v-pre>TagService.searchTagsForUser</code>) and creation of new tags.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>TextAreaPopoverComponent</code>, <code translate="no" v-pre>TextFieldPopOverComponent</code></td>
+<td>Prompt fields with a hints popover.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>TemplateHints</code></td>
+<td>Content of the hints popover: <em>Insert Default Template</em>, the template&#x27;s variables (from <code translate="no" v-pre>@LocalizedTemplateDescription</code>) and the macros (from <code translate="no" v-pre>Macros.hints()</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ScrollPanel</code>, <code translate="no" v-pre>HtmlText</code></td>
+<td>Scrollable container; text with HTML.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Notification</code></td>
+<td><code translate="no" v-pre>Notification.success(...)</code> / <code translate="no" v-pre>error(...)</code> with Marginalia&#x27;s durations and variants.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Generic dialogs: <code translate="no" v-pre>ConfirmDialog.show(message, onYes)</code>, <code translate="no" v-pre>TextInputDialog.Builder</code>, <code translate="no" v-pre>ListSelectDialog</code>,
+<code translate="no" v-pre>ErrorDialog</code> (message and expandable stack trace), <code translate="no" v-pre>ProgressBarDialog</code>.</p>
+<h2 id="conventions">Conventions</h2>
+<h3 id="text">Text</h3>
+<p>Never hard-code user-visible text. Add a key to <code translate="no" v-pre>loc/L.java</code> and the English text to <code translate="no" v-pre>LocalizationEN</code>, and use
+<code translate="no" v-pre>loc.getValue(L.KEY)</code> (<code translate="no" v-pre>Localization</code> is injected into every UI class). Date formats come from the same bean
+(<code translate="no" v-pre>loc.getDateFormat()</code>...).</p>
+<h3 id="errors">Errors</h3>
+<p>Wrap event handlers in <code translate="no" v-pre>try</code>/<code translate="no" v-pre>catch</code> and report unexpected exceptions with
+<code translate="no" v-pre>UIUtils.internalServerError(loc, e)</code> - it logs the exception and opens an <code translate="no" v-pre>ErrorDialog</code> with the stack trace.
+Expected problems (validation, missing configuration) are shown with <code translate="no" v-pre>Notification.error(...)</code> or a message next to
+the field; <code translate="no" v-pre>UIUtils.showValidationErrors(loc, e)</code> formats a binder&#x27;s <code translate="no" v-pre>ValidationException</code>.</p>
+<h3 id="saving">Saving</h3>
+<p>Most forms save automatically: value change listeners call an <code translate="no" v-pre>autosave()</code> method of the part (guarded so that
+loading values into the fields doesn&#x27;t trigger a save). The story editor saves an edited part when the edit is
+closed (<code translate="no" v-pre>autosaveAndSwapToMarkdown</code>) and before a generation starts (<code translate="no" v-pre>autosaveAndSwapAllToMarkdown</code>). Entities held
+by the UI are detached copies - reload them through the service before changing them, and keep the object returned
+by <code translate="no" v-pre>save</code>.</p>
+<h3 id="background-work-and-push">Background work and push</h3>
+<p>Vaadin component state may only be touched on a thread holding the session lock. The rules:</p>
+<ul>
+<li>
+<p>Long work (generation, summaries, backups, imports) runs on another thread; the UI thread returns immediately.</p>
+</li>
+<li>
+<p>Updates from that thread go through <code translate="no" v-pre>ui.access(() -&gt; ...)</code>, with the <code translate="no" v-pre>UI</code> captured on the UI thread
+(<code translate="no" v-pre>UI.getCurrent()</code> is <code translate="no" v-pre>null</code> elsewhere). <code translate="no" v-pre>UIPushGuard.push(ui)</code> sends them right away.</p>
+</li>
+<li>
+<p>Service calls on that thread need the user&#x27;s request scope - capture <code translate="no" v-pre>ThreadCopyRequestAttributes.create()</code> on the
+UI thread and wrap the work in <code translate="no" v-pre>InRequestScope</code> (see <a href="../services/#the-current-user">The current user</a>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>ThreadAccessDialog</code> packages all of this for dialogs: <code translate="no" v-pre>run()</code> starts <code translate="no" v-pre>runInThread()</code> on a new thread in the
+request scope, and <code translate="no" v-pre>vaadinLocked(...)</code> / <code translate="no" v-pre>vaadinLockedSync(...)</code> run UI updates with <code translate="no" v-pre>ui.access</code> /
+<code translate="no" v-pre>ui.accessSynchronously</code> and push. <code translate="no" v-pre>ProgressBarDialog</code> builds on it.</p>
+</li>
+</ul>
+<p>The story editor is the main example: <code translate="no" v-pre>startGeneration</code> freezes the book window, calls
+<code translate="no" v-pre>StoryGenerationService.generateNextTurn</code> with a <code translate="no" v-pre>GenerationListener</code>, and every callback (<code translate="no" v-pre>onNodeCreated</code>,
+<code translate="no" v-pre>onResponseChunk</code>, <code translate="no" v-pre>onComplete</code>...) updates the cards inside <code translate="no" v-pre>ui.access(...)</code> and pushes.</p>
+<h3 id="browser-side-code">Browser-side code</h3>
+<p>Prefer Java components. When the browser has to do something (scroll positions, element sizes), use
+<code translate="no" v-pre>element.executeJs(...)</code> and read the result with <code translate="no" v-pre>.then(...)</code> - see <code translate="no" v-pre>UIUtils.getPositionAndSizeOfElement</code> and the
+scroll handling in <code translate="no" v-pre>ManuscriptStoryPart</code>.</p>
+<p>The only JavaScript module is <code translate="no" v-pre>src/main/frontend/treant-connector.js</code>, loaded by <code translate="no" v-pre>TreantTree</code> (<code translate="no" v-pre>@JsModule</code>) together
+with the npm packages <code translate="no" v-pre>treant-js</code> and <code translate="no" v-pre>raphael</code> (<code translate="no" v-pre>@NpmPackage</code>) and treant&#x27;s CSS (<code translate="no" v-pre>@CssImport</code>). It draws the story
+tree; <code translate="no" v-pre>TreantTree</code> sends the tree as JSON and receives clicks back.</p>
+<h3 id="styles">Styles</h3>
+<p>Global styles are in <code translate="no" v-pre>src/main/frontend/styles/shared-styles.css</code> (imported by <code translate="no" v-pre>AppShellConfig</code>): spacing helpers,
+the loading indicator, the story text (<code translate="no" v-pre>.chat-message</code>, and <code translate="no" v-pre>.manuscript-styles .chat-message-markdown</code> for the book
+style of the reader and editor) and the story tree (<code translate="no" v-pre>.Treant</code>). Class names used from Java are constants in
+<code translate="no" v-pre>SharedStyles</code>; column widths and offsets in <code translate="no" v-pre>UIConstants</code>. Use Lumo&#x27;s CSS custom properties (<code translate="no" v-pre>--lumo-space-m</code>,
+<code translate="no" v-pre>--lumo-contrast-10pct</code>...) instead of fixed colors, so the dark theme stays consistent.</p>
+<h2 id="extension-points">Extension points</h2>
+<p>Every class annotated <code translate="no" v-pre>@Extendable</code> can be extended by plugins: a decorator registered for a class and method name
+runs before and after that method and can read its arguments and local variables. The UI classes that are
+<code translate="no" v-pre>@Extendable</code>:</p>
+<retype-table copy-text="| Area | Classes |
+|---|---|
+| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
+| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `LorebookView`, `TreantTree` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Area</th>
+<th>Classes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Workspace</td>
+<td><code translate="no" v-pre>Workspace</code>, <code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code>, <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code>, <code translate="no" v-pre>AdminPart</code>, <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code></td>
+</tr>
+<tr>
+<td>Book window</td>
+<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>ManuscriptStoryPart</code> (and its <code translate="no" v-pre>ChatMessageCard</code>), <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code></td>
+</tr>
+<tr>
+<td>Dialogs and components</td>
+<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>TreantTree</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The bundled plugins hook into these methods:</p>
+<retype-table copy-text="| Plugin | Class | Methods |
+|---|---|---|
+| Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
+| Lorebook VCS | `LorebookView` | `create`, `createEntryDetailLayout` |
+| Reviewer | `ManuscriptStoryPart$ChatMessageCard`, `UserPart` | `createMenuItems`, `refreshSummaryMenuItems`; `refresh`, `save` |
+| Side Query | `ManuscriptStoryPart`, `UserPart` | `renderStoryContent`; `refresh`, `save` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Plugin</th>
+<th>Class</th>
+<th>Methods</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chapter Marker</td>
+<td><code translate="no" v-pre>ManuscriptStoryPart</code>, <code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code></td>
+<td><code translate="no" v-pre>createSidebarButton</code>; <code translate="no" v-pre>autosaveAndSwapToMarkdown</code></td>
+</tr>
+<tr>
+<td>Lorebook VCS</td>
+<td><code translate="no" v-pre>LorebookView</code></td>
+<td><code translate="no" v-pre>create</code>, <code translate="no" v-pre>createEntryDetailLayout</code></td>
+</tr>
+<tr>
+<td>Reviewer</td>
+<td><code translate="no" v-pre>ManuscriptStoryPart$ChatMessageCard</code>, <code translate="no" v-pre>UserPart</code></td>
+<td><code translate="no" v-pre>createMenuItems</code>, <code translate="no" v-pre>refreshSummaryMenuItems</code>; <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>save</code></td>
+</tr>
+<tr>
+<td>Side Query</td>
+<td><code translate="no" v-pre>ManuscriptStoryPart</code>, <code translate="no" v-pre>UserPart</code></td>
+<td><code translate="no" v-pre>renderStoryContent</code>; <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>save</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Because plugins depend on method names and local variable names, <strong>renaming or restructuring these methods breaks
+plugins</strong>. When you change an <code translate="no" v-pre>@Extendable</code> class, check the plugins in <code translate="no" v-pre>marginalia/plugins/</code> and mention the change
+in the release notes. New UI that should be extensible: put it in an <code translate="no" v-pre>@Extendable</code> class, build it in small,
+well-named methods, and keep the components extensions will want (menus, toolbars, layouts) in local variables or
+fields with clear names. See <a href="../plugins/ui-extensions/">Extending the UI</a>.</p>
+<h2 id="viewer">Viewer</h2>
+<p><code translate="no" v-pre>Viewer</code> (<code translate="no" v-pre>/view</code>) is a separate, reader-only route. It requires a login like the workspace (with its own saved-login
+cookies). Without a parameter it lists the user&#x27;s own books, with name and tag filters and sorting by last opened or
+name; other users&#x27; published books are opened by their link; with <code translate="no" v-pre>/view/&lt;uuid&gt;</code> it shows the book&#x27;s active branch as Markdown in
+the book&#x27;s reading style. Books are resolved only through <code translate="no" v-pre>ManuscriptService.findViewable(uuid)</code> (owner or
+published, never deleted). The layout is made for phones.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -249,6 +698,6 @@
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "User interface", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/developer/ui.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "User interface", level: 2, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/ui.md" }</script>
 </body>
 </html>
