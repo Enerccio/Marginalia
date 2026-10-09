@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -46,6 +47,9 @@ public class AIDialog extends Dialog {
 
     @Autowired
     private InferenceServices inferenceServices;
+
+    @Autowired
+    private TokenizerService tokenizerService;
 
     private AI ai;
     private Runnable onSave;
@@ -384,7 +388,8 @@ public class AIDialog extends Dialog {
                 compatible.setAdditionalParameters(gson.fromJson(additionalParametersField.getValue(), JsonObject.class));
             }
 
-            aiService.save(ai);
+            ai = aiService.save(ai);
+            tokenizerService.invalidateCache(ai.getId());
             close();
 
             if (onSave != null) {

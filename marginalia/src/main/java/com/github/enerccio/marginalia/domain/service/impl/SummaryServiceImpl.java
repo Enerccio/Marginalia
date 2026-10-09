@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.repository.SummaryRepository;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -77,6 +78,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         inferenceService.stream(payload, protocol, new InferenceAsyncCallback() {
 
             Summary summary = finalSummary;
+            long lastSave = System.currentTimeMillis();
             final ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
 
             @Override
@@ -89,7 +91,11 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
                         summary.setSummary(summary.getSummary() + text);
                         summary.setSummaryTokens(inferenceService.countTokensApprox(summary.getSummary()));
                     }
-                    summary = self.save(summary);
+                    long now = System.currentTimeMillis();
+                    if (now - Constants.WRITE_TIMEOUT > lastSave) {
+                        lastSave = now;
+                        summary = self.save(summary);
+                    }
                     callback.onSummaryProgress(summary.getReasoning(), summary.getSummary());
                     controller.continueInference();
                 }
@@ -154,7 +160,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         // room for the response is reserved, the prompt gets the rest of the context
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
         SummaryTemplateData template = new SummaryTemplateData();
-        template.setTemplateContext(createTemplateContext(manuscript, from, ai, protocol, tree));
+        TemplateContext templateContext = createTemplateContext(manuscript, from, ai, protocol, tree);
+        // estimation render must not change variables or the real render would apply them twice
+        template.setTemplateContext(templateContext.fork());
 
         // the jailbreak goes first, before everything else in the prompt
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
@@ -195,6 +203,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         messagesToSummarize.stream().map(ChatMessage::getResponse).map(s -> s.getBytes(StandardCharsets.UTF_8)).forEach(digest::update);
         newSummary.setSummaryMessageHash(HexFormat.of().formatHex(digest.digest()));
         template.setText(messagesToSummarize.reversed().stream().map(ChatMessage::getResponse).collect(Collectors.joining("\n\n")));
+        template.setTemplateContext(templateContext);
         String fullPrompt = jailbreak + templateService.processTemplate(systemPrompt, "summaryPrompt", template);
         tokens = inferenceService.countTokens(fullPrompt);
 
