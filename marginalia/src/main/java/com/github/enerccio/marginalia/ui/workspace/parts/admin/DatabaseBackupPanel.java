@@ -28,6 +28,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.server.streams.DownloadHandler;
 import com.vaadin.flow.server.streams.UploadHandler;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -156,6 +157,7 @@ public class DatabaseBackupPanel {
         scheduleCron.setWidth("26em");
         scheduleCron.setValueChangeMode(ValueChangeMode.LAZY);
         scheduleCron.addValueChangeListener(e -> previewSchedule());
+        scheduleEnabled.addValueChangeListener(e -> previewSchedule());
 
         scheduleKeep = new IntegerField(loc.getValue(L.LABEL_BACKUP_KEEP));
         scheduleKeep.setHelperText(loc.getValue(L.HELP_BACKUP_KEEP));
@@ -194,9 +196,15 @@ public class DatabaseBackupPanel {
     }
 
     /**
-     * Validates the typed expression and shows when it would run.
+     * Validates the typed expression and shows when it would run. An empty expression is valid while the schedule is
+     * off, a set one is always validated so it can be turned on later.
      */
     private boolean previewSchedule() {
+        if (!scheduleEnabled.getValue() && StringUtils.isBlank(scheduleCron.getValue())) {
+            scheduleCron.setInvalid(false);
+            schedulePreview.setText("");
+            return true;
+        }
         try {
             CronSchedule schedule = CronSchedule.parse(scheduleCron.getValue());
             List<ZonedDateTime> next = schedule.next(ZonedDateTime.now(schedule.getZone()), 3);

@@ -199,15 +199,19 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
         if (keep < 0) {
             throw new IllegalArgumentException("Number of kept backups can't be negative");
         }
-        CronSchedule parsed = CronSchedule.parse(cron);
+        // a schedule that is off may have no expression, a set one is always validated so it can be turned on later
+        String expression = StringUtils.trimToEmpty(cron);
+        if (enabled || !expression.isEmpty()) {
+            expression = CronSchedule.parse(expression).getExpression();
+        }
         synchronized (scheduleLock) {
             AppSettings settings = settingService.getOrCreateApp(AppSettings.class);
             settings.setBackupScheduleEnabled(enabled);
-            settings.setBackupSchedule(parsed.getExpression());
+            settings.setBackupSchedule(expression);
             settings.setBackupKeep(keep);
             settings.setBackupScheduleChanged(new Date());
             settingService.save(settings);
-            log.info("Backup schedule changed: enabled={}, cron='{}', keep={}", enabled, parsed.getExpression(), keep);
+            log.info("Backup schedule changed: enabled={}, cron='{}', keep={}", enabled, expression, keep);
             restartSchedule(false);
         }
         return getSchedule();

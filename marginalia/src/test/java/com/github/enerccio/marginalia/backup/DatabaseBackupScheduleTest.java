@@ -118,6 +118,40 @@ class DatabaseBackupScheduleTest extends MarginaliaTestBase {
     }
 
     @Test
+    void disabledScheduleKeepsItsExpression() throws Exception {
+        BackupSchedule saved = backupService.updateSchedule(false, " 30 2 * * 1 ", 3);
+
+        assertThat(saved.enabled()).isFalse();
+        assertThat(saved.cron()).isEqualTo("30 2 * * 1");
+        assertThat(backupService.getNextScheduledBackup()).isNull();
+
+        backupService.updateSchedule(true, saved.cron(), 3);
+        assertThat(backupService.getNextScheduledBackup()).isNotNull();
+    }
+
+    @Test
+    void disabledScheduleMayHaveNoExpression() throws Exception {
+        backupService.updateSchedule(true, "0 3 * * *", 5);
+
+        BackupSchedule saved = backupService.updateSchedule(false, "  ", 5);
+
+        assertThat(saved.enabled()).isFalse();
+        assertThat(saved.cron()).isEmpty();
+        assertThat(backupService.getNextScheduledBackup()).isNull();
+    }
+
+    @Test
+    void invalidScheduleIsRejectedEvenWhenDisabled() throws Exception {
+        backupService.updateSchedule(false, "0 3 * * *", 5);
+
+        assertThatThrownBy(() -> backupService.updateSchedule(false, "garbage", 5)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> backupService.updateSchedule(true, "", 5)).isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(backupService.getSchedule().enabled()).isFalse();
+        assertThat(backupService.getSchedule().cron()).isEqualTo("0 3 * * *");
+    }
+
+    @Test
     void invalidScheduleIsRejectedAndNothingChanges() throws Exception {
         backupService.updateSchedule(true, "0 3 * * *", 5);
 
