@@ -7,7 +7,6 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
-import com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
@@ -235,7 +234,7 @@ public class ReviewerExtension implements MarginaliaExtension {
     }
 
     @Override
-    public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+    public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
         if (cardDecorator != null) {
             extensionService.unregisterDecorator(cardDecorator);
         }
