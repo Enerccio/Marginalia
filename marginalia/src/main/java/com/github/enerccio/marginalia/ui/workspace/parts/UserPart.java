@@ -303,8 +303,10 @@ public class UserPart implements WorkspaceComponent {
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
             defaultStyleField.setValue(StringUtils.defaultString(userSetting.getDefaultStyle()));
             defaultUserPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultUserPrompt()));
+            defaultSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultSummaryPrompt()));
             validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class);
             validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class);
+            validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class);
 
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -323,12 +325,14 @@ public class UserPart implements WorkspaceComponent {
         }
 
         if (!validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class)
-                || !validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class)) {
+                || !validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class)
+                || !validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class)) {
             return;
         }
 
         String masterTemplate = masterTemplateField.getValue();
         String userPrompt = defaultUserPromptField.getValue();
+        String summaryPrompt = defaultSummaryPromptField.getValue();
 
         String defaultPov = defaultPovField.getValue();
         String defaultTense = defaultTenseField.getValue();
@@ -349,6 +353,7 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultTense(defaultTense);
             userSetting.setDefaultStyle(defaultStyle);
             userSetting.setDefaultUserPrompt(userPrompt);
+            userSetting.setDefaultSummaryPrompt(summaryPrompt);
 
             settingService.save(userSetting);
             Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
