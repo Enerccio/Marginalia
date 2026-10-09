@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.sidequery.model.SideQueryData;
 import com.github.enerccio.marginalia.extensions.sidequery.model.SideQuerySession;
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
@@ -15,11 +16,17 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Configurable(preConstruction = true)
 public class SideQueryView extends VerticalLayout {
+
+    @Autowired
+    private Localization loc;
 
     private SideQueryService sideQueryService;
 
@@ -60,7 +67,7 @@ public class SideQueryView extends VerticalLayout {
             try {
                 sideQueryService.saveSideQueryData(manuscript, data);
             } catch (Exception e) {
-                UIUtils.internalServerError(null, e);
+                UIUtils.internalServerError(loc, e);
             }
         }
     }

@@ -22,6 +22,10 @@ import org.osgi.framework.Bundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 @Configurable
 public class LorebookVCSExtension implements MarginaliaExtension {
 
@@ -37,6 +41,9 @@ public class LorebookVCSExtension implements MarginaliaExtension {
     private final LorebookVCSService vcsService = new LorebookVCSService();
     private ExtensionDecorator viewCreateDecorator;
     private ExtensionDecorator detailLayoutDecorator;
+
+    private final Set<LorebookView> activeViews = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private final Set<VerticalLayout> activeDetailLayouts = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -70,6 +77,7 @@ public class LorebookVCSExtension implements MarginaliaExtension {
                             }
 
                             ComponentUtil.setData(lorebookView, GLOBAL_PANEL_KEY, globalPanel);
+                            activeViews.add(lorebookView);
                         }
                     }
                 }
@@ -105,6 +113,7 @@ public class LorebookVCSExtension implements MarginaliaExtension {
 
                             detailsLayout.addComponentAsFirst(revPanel);
                             ComponentUtil.setData(detailsLayout, REVISION_PANEL_KEY, revPanel);
+                            activeDetailLayouts.add(detailsLayout);
                         }
                     }
                 }
@@ -139,6 +148,33 @@ public class LorebookVCSExtension implements MarginaliaExtension {
         }
         if (detailLayoutDecorator != null) {
             extensionService.unregisterDecorator(detailLayoutDecorator);
+        }
+
+        // Remove the panels from the lorebook views of all users - change each one in its own session
+        synchronized (activeViews) {
+            for (LorebookView lorebookView : activeViews) {
+                UIUtils.accessComponent(lorebookView, () -> {
+                    LorebookVCSGlobalPanel globalPanel = (LorebookVCSGlobalPanel) ComponentUtil.getData(lorebookView, GLOBAL_PANEL_KEY);
+                    if (globalPanel != null) {
+                        lorebookView.remove(globalPanel);
+                        ComponentUtil.setData(lorebookView, GLOBAL_PANEL_KEY, null);
+                    }
+                });
+            }
+            activeViews.clear();
+        }
+
+        synchronized (activeDetailLayouts) {
+            for (VerticalLayout detailsLayout : activeDetailLayouts) {
+                UIUtils.accessComponent(detailsLayout, () -> {
+                    LoreEntryRevisionPanel revPanel = (LoreEntryRevisionPanel) ComponentUtil.getData(detailsLayout, REVISION_PANEL_KEY);
+                    if (revPanel != null) {
+                        detailsLayout.remove(revPanel);
+                        ComponentUtil.setData(detailsLayout, REVISION_PANEL_KEY, null);
+                    }
+                });
+            }
+            activeDetailLayouts.clear();
         }
     }
 }

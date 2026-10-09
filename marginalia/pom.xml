@@ -405,12 +405,21 @@
                must never get there -->
           <packagingExcludes>**/gwt-unitCache/**,**/obsb.properties**,WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json.*</packagingExcludes>
           <webResources>
+            <!-- release logging (INFO, no story content) - the WAR gets it instead of the development
+                 log4j.properties, which stays in target/classes for IDE runs and mvn jetty:run -->
+            <resource>
+              <directory>src/main/resources-release</directory>
+              <targetPath>WEB-INF/classes</targetPath>
+              <filtering>false</filtering>
+            </resource>
+
             <resource>
               <directory>src/main/resources</directory>
               <targetPath>WEB-INF/classes</targetPath>
               <filtering>true</filtering>
               <excludes>
                 <exclude>META-INF/VAADIN/config/flow-build-info.json*</exclude>
+                <exclude>log4j.properties</exclude>
               </excludes>
             </resource>
 
