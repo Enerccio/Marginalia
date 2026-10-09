@@ -1,12 +1,13 @@
 package com.github.enerccio.marginalia.ui.main;
 
-import com.github.enerccio.marginalia.bound.SessionPoint;
+import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -18,10 +19,7 @@ public class Main extends LoginCheckRoute {
     private User user;
 
     @Autowired
-    private SessionPoint sessionPoint;
-
-    @Autowired
-    private SettingService settingService;
+    private ApplicationPoint applicationPoint;
 
     public Main() {
         showLogin();
@@ -56,7 +54,14 @@ public class Main extends LoginCheckRoute {
             user.setLogin(u.getLogin());
             user.setFullName(u.getFullName());
 
+            sessionManager.userLoggedIn(user, VaadinSession.getCurrent());
+
             Workspace workspace = new Workspace();
+            User referenceCopy = new User();
+            referenceCopy.setId(u.getId());
+            referenceCopy.setLogin(u.getLogin());
+            referenceCopy.setFullName(u.getFullName());
+            applicationPoint.register(UI.getCurrent(), workspace, referenceCopy);
             workspace.setOnLogout(this::logout);
             add(workspace.create());
             workspace.refresh();

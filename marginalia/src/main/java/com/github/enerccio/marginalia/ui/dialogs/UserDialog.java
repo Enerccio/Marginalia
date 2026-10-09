@@ -17,6 +17,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -38,22 +39,26 @@ public class UserDialog extends Dialog {
 
     private TextField loginField;
     private TextField fullNameField;
+    private PasswordField currentPassword;
     private PasswordField passwordField;
     private PasswordField passwordRepeatField;
+    private Checkbox clearPasswordCheckbox;
     private Checkbox isAdminCheckbox;
+    private final boolean openedFromUser;
 
-    public UserDialog() {
-        this(new User());
+    public UserDialog(boolean openedFromUser) {
+        this(new User(), openedFromUser);
     }
 
-    public UserDialog(User user) {
+    public UserDialog(User user, boolean openedFromUser) {
         this.user = user != null ? user : new User();
+        this.openedFromUser = openedFromUser;
     }
 
     public void create() {
         setCloseOnEsc(!firstTime);
         setCloseOnOutsideClick(!firstTime);
-        setWidth("450px");
+        setWidth("480px");
         setModality(ModalityMode.STRICT);
 
         if (firstTime) {
@@ -73,6 +78,11 @@ public class UserDialog extends Dialog {
         fullNameField = new TextField(loc.getValue(L.LABEL_USER_FULLNAME));
         fullNameField.setWidthFull();
 
+        if (openedFromUser) {
+            currentPassword = new PasswordField(loc.getValue(L.LABEL_CURRENT_PASSWORD));
+            currentPassword.setWidthFull();
+        }
+
         passwordField = new PasswordField(loc.getValue(L.LABEL_PASSWORD));
         passwordField.setRequired(true);
         passwordField.setWidthFull();
@@ -80,6 +90,16 @@ public class UserDialog extends Dialog {
         passwordRepeatField = new PasswordField(loc.getValue(L.LABEL_PASSWORD_AGAIN));
         passwordRepeatField.setRequired(true);
         passwordRepeatField.setWidthFull();
+
+        // only an administrator editing an existing account can remove its password (forgotten password reset)
+        clearPasswordCheckbox = new Checkbox(loc.getValue(L.LABEL_CLEAR_PASSWORD));
+        clearPasswordCheckbox.setVisible(!openedFromUser && !firstTime && user.getId() != null);
+        clearPasswordCheckbox.addValueChangeListener(e -> {
+            passwordField.clear();
+            passwordRepeatField.clear();
+            passwordField.setEnabled(!e.getValue());
+            passwordRepeatField.setEnabled(!e.getValue());
+        });
 
         isAdminCheckbox = new Checkbox(loc.getValue(L.LABEL_ADMINISTRATOR));
 
@@ -96,7 +116,10 @@ public class UserDialog extends Dialog {
             fullNameField.setValue(StringUtils.defaultString(user.getFullName()));
         }
 
-        formLayout.add(loginField, fullNameField, passwordField, passwordRepeatField, isAdminCheckbox);
+        if (openedFromUser)
+            formLayout.add(loginField, fullNameField, currentPassword, passwordField, passwordRepeatField, isAdminCheckbox);
+        else
+            formLayout.add(loginField, fullNameField, passwordField, passwordRepeatField, clearPasswordCheckbox, isAdminCheckbox);
         add(formLayout);
 
         Button saveButton = new Button(loc.getValue(L.LABEL_OK), event -> save());
@@ -120,14 +143,28 @@ public class UserDialog extends Dialog {
         String fullName = fullNameField.getValue();
         String password = passwordField.getValue();
         String passwordRepeat = passwordRepeatField.getValue();
+        boolean clearPassword = clearPasswordCheckbox.getValue();
 
         if (StringUtils.isBlank(login)) {
             Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
             return;
         }
 
+        if (openedFromUser) {
+            String currentPasswordValue = currentPassword.getValue();
+            try {
+                if (!userService.authenticate(user.getLogin(), currentPasswordValue)) {
+                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
+                    return;
+                }
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+                return;
+            }
+        }
+
         if (user.getId() == null || StringUtils.isNotBlank(password) || StringUtils.isNotBlank(passwordRepeat)) {
-            if (!StringUtils.equals(password, passwordRepeat)) {
+            if (!Strings.CS.equals(password, passwordRepeat)) {
                 Notification.warning(loc.getValue(L.MSG_PASSWORDS_DO_NOT_MATCH));
                 return;
             }
@@ -153,7 +190,9 @@ public class UserDialog extends Dialog {
                         user = userService.save(user);
                     }
 
-                    if (StringUtils.isNotBlank(password)) {
+                    if (clearPassword) {
+                        userService.clearPassword(user);
+                    } else if (StringUtils.isNotBlank(password)) {
                         userService.changePassword(user, password);
                     } else {
                         userService.save(user);
@@ -169,7 +208,10 @@ public class UserDialog extends Dialog {
                 }
             };
 
-            if (StringUtils.isBlank(password)) {
+            // existing user with empty password fields keeps the current password
+            if (clearPassword) {
+                ConfirmDialog.show(loc.getValue(L.MSG_CLEAR_PASSWORD_WARNING), continueWithSave);
+            } else if (user.getId() == null && StringUtils.isBlank(password)) {
                 ConfirmDialog.show(loc.getValue(L.MSG_NO_PASSWORD_WARNING), continueWithSave);
             } else {
                 continueWithSave.run();

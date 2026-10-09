@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.security.service.impl;
 
+import com.github.enerccio.marginalia.bound.SessionManager;
 import com.github.enerccio.marginalia.domain.security.PersistedLoginInfo;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.repository.UserRepository;
@@ -9,11 +10,17 @@ import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.*;
@@ -22,11 +29,16 @@ import java.util.stream.Collectors;
 
 public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> implements UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+
     private static final int ITERATIONS = 65536;
     private static final int KEY_LENGTH = 256;
     private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
 
     private final SecureRandom secureRandom = new SecureRandom();
+
+    @Autowired
+    private SessionManager sessionManager;
 
     @Override
     @CommonTxReadOnly
@@ -64,10 +76,31 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         if (isLastAdmin(current)) {
             throw new IllegalStateException("Cannot delete last administrator");
         }
+        String login = current.getLogin();
         // free the unique login for reuse and drop all remembered logins
-        current.setLogin(StringUtils.left(current.getLogin(), 27) + "#" + current.getUuid());
+        current.setLogin(StringUtils.left(login, 27) + "#" + current.getUuid());
         current.setSavedLogins(null);
         delete(current, false);
+        retireDataFolder(login);
+    }
+
+    /**
+     * Data folder is named by login, it is moved away so a new user with the same login does not inherit the files.
+     */
+    private void retireDataFolder(String login) {
+        File folder = new File(configuration.getDataFolder(), login);
+        if (!folder.exists()) {
+            return;
+        }
+        File target = new File(configuration.getDataFolder(), login + "-deleted");
+        for (int i = 2; target.exists(); i++) {
+            target = new File(configuration.getDataFolder(), login + "-deleted-" + i);
+        }
+        try {
+            Files.move(folder.toPath(), target.toPath());
+        } catch (IOException e) {
+            log.warn("Failed to move data folder of deleted user {} to {}", login, target, e);
+        }
     }
 
     @Override
@@ -110,6 +143,24 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         user.setPasswordHash(salt + ":" + hash);
         user.setSavedLogins(null);
         save(user);
+        sessionManager.runForUsers(u -> user.getId().equals(u.getId()), (sessionInformation) -> {
+            sessionInformation.boundVaadinSession.getSession().invalidate();
+        }, true, true);
+        return user;
+    }
+
+    /**
+     * Removes the password, the user then logs in with the user name only and sets a new password themselves.
+     */
+    @Override
+    @CommonTx
+    public User clearPassword(User user) throws Exception {
+        user.setPasswordHash(null);
+        user.setSavedLogins(null);
+        save(user);
+        sessionManager.runForUsers(u -> user.getId().equals(u.getId()), (sessionInformation) -> {
+            sessionInformation.boundVaadinSession.getSession().invalidate();
+        }, true, true);
         return user;
     }
 

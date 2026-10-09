@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.main;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.SharedStyles;
+import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
@@ -35,6 +36,7 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +69,9 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
     @Autowired
     private TagRelationService tagRelationService;
+
+    @Autowired
+    private ApplicationPoint applicationPoint;
 
     private String manuscriptParam;
     private boolean isUserLoggedIn = false;
@@ -113,6 +118,12 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
             user.setFullName(u.getFullName());
 
             isUserLoggedIn = true;
+            sessionManager.userLoggedIn(user, VaadinSession.getCurrent());
+            User referenceCopy = new User();
+            referenceCopy.setId(u.getId());
+            referenceCopy.setLogin(u.getLogin());
+            referenceCopy.setFullName(u.getFullName());
+            applicationPoint.register(UI.getCurrent(), null, referenceCopy);
             renderContent();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

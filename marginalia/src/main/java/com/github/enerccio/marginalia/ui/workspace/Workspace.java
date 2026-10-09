@@ -59,6 +59,9 @@ public class Workspace {
     private Component adminPartComponent;
 
     private WorkspaceComponent activeComponent;
+    private Button adminButton;
+    private Button logoutButton;
+    private boolean navigationLocked;
     private boolean internalEvent = false;
     private Runnable onLogout;
 
@@ -173,7 +176,7 @@ public class Workspace {
         changePasswordButton.setWidthFull();
         changePasswordButton.addClickListener(e -> {
             try {
-                UserDialog dialog = new UserDialog(userService.find(currentUser.getId()));
+                UserDialog dialog = new UserDialog(userService.find(currentUser.getId()), true);
                 dialog.setSelfEdit(true);
                 dialog.create();
                 dialog.open();
@@ -184,7 +187,7 @@ public class Workspace {
         footer.add(changePasswordButton);
 
         if (onLogout != null) {
-            Button logoutButton = new Button(loc.getValue(L.LABEL_LOGOUT), Solid.SIGN_OUT_ALT.create());
+            logoutButton = new Button(loc.getValue(L.LABEL_LOGOUT), Solid.SIGN_OUT_ALT.create());
             logoutButton.setWidthFull();
             logoutButton.addClickListener(e -> onLogout.run());
             footer.add(logoutButton);
@@ -194,7 +197,7 @@ public class Workspace {
     }
 
     private Component createAdminFooter() {
-        Button adminButton = new Button(loc.getValue(L.LABEL_ADMIN), Solid.USER_TIE.create());
+        adminButton = new Button(loc.getValue(L.LABEL_ADMIN), Solid.USER_TIE.create());
         adminButton.setWidthFull();
         adminButton.addClickListener(e -> {
             if (activeComponent != null) {
@@ -213,6 +216,27 @@ public class Workspace {
             }
         });
         return adminButton;
+    }
+
+    /**
+     * Locks the navigation (other tabs, admin and logout) while the active tab has unsaved changes.
+     */
+    public void setNavigationLocked(boolean locked) {
+        navigationLocked = locked;
+        Tab selectedTab = tabs.getSelectedTab();
+        for (Tab tab : tabToComponent.keySet()) {
+            tab.setEnabled(!locked || tab.equals(selectedTab));
+        }
+        if (adminButton != null) {
+            adminButton.setEnabled(!locked);
+        }
+        if (logoutButton != null) {
+            logoutButton.setEnabled(!locked);
+        }
+    }
+
+    public boolean isNavigationLocked() {
+        return navigationLocked;
     }
 
     public Runnable getOnLogout() {
