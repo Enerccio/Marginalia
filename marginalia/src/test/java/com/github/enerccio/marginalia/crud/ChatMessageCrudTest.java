@@ -230,6 +230,23 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
     }
 
     @Test
+    void deletingActiveLeafSavesTheBook() throws Exception {
+        ChatMessage a = chatMessageService.createRoot(manuscript, message("A", 1));
+        ChatMessage b = chatMessageService.addChild(a, message("B", 1));
+        Manuscript m = manuscriptService.find(manuscript.getId());
+        m.setActiveLeaf(b);
+        m = manuscriptService.save(m);
+
+        // the way the story editor deletes a part: on its own copy of the book, then reloads the book
+        chatMessageService.deleteNodeAndMigrateChildren(reload(b), m, false);
+
+        Manuscript reloaded = manuscriptService.find(manuscript.getId());
+        assertThat(idOf(reloaded.getActiveLeaf())).isEqualTo(a.getId());
+        assertThat(chatMessageService.getBranchFromLeaf(reloaded.getActiveLeaf())).extracting(BaseEntity::getId)
+                .containsExactly(a.getId());
+    }
+
+    @Test
     void hardDeleteNodeRemovesIt() throws Exception {
         ChatMessage root = chatMessageService.createRoot(manuscript, message("root", 1));
         ChatMessage leaf = chatMessageService.addChild(root, message("leaf", 1));

@@ -7,7 +7,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 
-import java.io.File;
 import java.util.List;
 
 public interface OsgiService {
@@ -22,10 +21,21 @@ public interface OsgiService {
 
     void restart() throws Exception;
 
-    void installPackage(File f) throws Exception;
+    /**
+     * Stores an uploaded JAR in the extensions folder (under a sanitized file name) and loads it. An installed bundle
+     * with the same symbolic name or file name is unloaded and replaced. When the new bundle can't be installed or
+     * started, the uploaded file is deleted and the replaced bundle is restored.
+     */
+    Bundle installPackage(String fileName, byte[] data) throws Exception;
 
+    /**
+     * Unloads the bundle, uninstalls it and deletes its JAR.
+     */
     void uninstallPackage(Bundle b) throws Exception;
 
+    /**
+     * Every installed bundle except the framework itself, also the ones that failed to start.
+     */
     List<Bundle> getBundles();
 
     List<ServiceReference<?>> getServices(Bundle b, Class<?> service) throws InvalidSyntaxException;
@@ -38,6 +48,13 @@ public interface OsgiService {
 
     String getExtensionsPath();
 
+    /**
+     * Registers a cleanup callback for a component the extension added to the UI. When the extension is unloaded, the
+     * callback runs for every bound component that is attached, inside {@code ui.access(...)} of the component's UI;
+     * a component that is detached at that moment runs it when it is attached again.
+     *
+     * @throws IllegalStateException when the extension is not loaded
+     */
     <T extends Component> T bindAttachableComponent(T component, Runnable callback, MarginaliaExtension extension) throws Exception;
 
     interface ExtensionObserver {

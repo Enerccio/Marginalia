@@ -16,7 +16,8 @@ a restart.
 2. In Marginalia, as an administrator, open *Admin → Extensions* and use *Load Extension (.jar)*.
 
 The JAR is stored in `~/.marginalia/extensions` and loaded on every start. JARs can also be copied into that folder
-directly - they are picked up on the next start. Uninstall a plugin from the same page.
+directly - they are picked up on the next start. Load a new build the same way to update a plugin, uninstall it from
+the same page.
 
 Plugins are built for one Marginalia version: they extend parts of the user interface, so a plugin built for a
 different version may stop working. Use plugins built from the same source tree as the application.

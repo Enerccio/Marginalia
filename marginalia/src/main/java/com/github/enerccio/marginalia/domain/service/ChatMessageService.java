@@ -34,7 +34,7 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     boolean hasAnyMessages(Manuscript manuscript) throws Exception;
 
-    void deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception;
+    Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception;
 
     int countWords(String text);
 

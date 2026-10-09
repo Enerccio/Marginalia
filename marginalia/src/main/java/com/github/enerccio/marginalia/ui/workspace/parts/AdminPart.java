@@ -28,14 +28,12 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
-import org.apache.commons.io.FileUtils;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.io.File;
 import java.util.Comparator;
 import java.util.List;
 
@@ -198,15 +196,13 @@ public class AdminPart implements WorkspaceComponent {
 
         InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
             try {
-                File targetFile = new File(osgiService.getExtensionsPath(), metadata.fileName());
-                FileUtils.writeByteArrayToFile(targetFile, data);
-
-                osgiService.installPackage(targetFile);
+                osgiService.installPackage(metadata.fileName(), data);
 
                 Notification.show(loc.getValue(L.MSG_EXTENSION_INSTALLED_SUCCESS));
                 refreshGrid();
             } catch (Exception e) {
                 log.error("Failed to load extension bundle", e);
+                refreshGrid();
                 Notification.show(
                         String.format(loc.getValue(L.ERROR_EXTENSION_INSTALL_FAILED), e.getMessage()),
                         5000,
@@ -268,18 +264,22 @@ public class AdminPart implements WorkspaceComponent {
     }
 
     private void unloadExtension(Bundle bundle) {
-        try {
-            osgiService.uninstallPackage(bundle);
-            Notification.show(loc.getValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS));
+        String name = bundle.getHeaders().get("Bundle-Name");
+        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_UNLOAD_EXTENSION),
+                (name != null && !name.isBlank()) ? name : bundle.getSymbolicName()), () -> {
+            try {
+                osgiService.uninstallPackage(bundle);
+                Notification.show(loc.getValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS));
+            } catch (Exception e) {
+                log.error("Failed to unload extension", e);
+                Notification.show(
+                        String.format(loc.getValue(L.ERROR_EXTENSION_UNINSTALL_FAILED), e.getMessage()),
+                        5000,
+                        Notification.Position.MIDDLE
+                );
+            }
             refreshGrid();
-        } catch (Exception e) {
-            log.error("Failed to unload extension", e);
-            Notification.show(
-                    String.format(loc.getValue(L.ERROR_EXTENSION_UNINSTALL_FAILED), e.getMessage()),
-                    5000,
-                    Notification.Position.MIDDLE
-            );
-        }
+        });
     }
 
     private void refreshGrid() {

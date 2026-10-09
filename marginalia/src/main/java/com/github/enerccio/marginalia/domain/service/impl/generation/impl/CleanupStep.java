@@ -92,7 +92,7 @@ public class CleanupStep extends GenerationStepBase {
             controller.getUIListener().onCancelled(previousVersion);
             controller.getUIListener().onMetricsUpdated(previousVersion);
         } else {
-            chatMessageService.deleteNodeAndMigrateChildren(message, controller.getManuscript(), true);
+            controller.setManuscript(chatMessageService.deleteNodeAndMigrateChildren(message, controller.getManuscript(), true));
             controller.getUIListener().onCancelled(null);
         }
         controller.setMessage(null);

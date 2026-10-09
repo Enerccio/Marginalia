@@ -12,14 +12,12 @@ import com.github.enerccio.marginalia.extensions.sidequery.model.SideQuerySettin
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
 import com.github.enerccio.marginalia.extensions.sidequery.ui.SideQuerySettingsForm;
 import com.github.enerccio.marginalia.extensions.sidequery.ui.SideQueryView;
-import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
 
 import org.osgi.framework.Bundle;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
@@ -32,9 +30,6 @@ public class SideQueryExtension implements MarginaliaExtension {
 
     private static final String SIDE_QUERY_VIEW_KEY = "sidequery_view_component";
     private static final String SETTINGS_PANEL_KEY = "sidequery_settings_panel";
-
-    @Autowired
-    private Localization loc;
 
     private final SideQueryService sideQueryService = new SideQueryService();
 
@@ -139,7 +134,8 @@ public class SideQueryExtension implements MarginaliaExtension {
             );
 
         } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
+            // there may be no UI (loading at startup), the extension service logs it and skips the extension
+            throw new IllegalStateException("Failed to load the Side Query extension", e);
         }
     }
 
@@ -158,11 +154,14 @@ public class SideQueryExtension implements MarginaliaExtension {
         // Clean up living tabs from leftBar UI instances on unload
         synchronized (activeTabSheets) {
             for (VTabSheet leftBar : activeTabSheets) {
-                SideQueryView sideQueryView = (SideQueryView) ComponentUtil.getData(leftBar, SIDE_QUERY_VIEW_KEY);
-                if (sideQueryView != null) {
-                    leftBar.remove(sideQueryView);
-                    ComponentUtil.setData(leftBar, SIDE_QUERY_VIEW_KEY, null);
-                }
+                // the components belong to the UIs of all users - change each one in its own session
+                UIUtils.accessComponent(leftBar, () -> {
+                    SideQueryView sideQueryView = (SideQueryView) ComponentUtil.getData(leftBar, SIDE_QUERY_VIEW_KEY);
+                    if (sideQueryView != null) {
+                        leftBar.remove(sideQueryView);
+                        ComponentUtil.setData(leftBar, SIDE_QUERY_VIEW_KEY, null);
+                    }
+                });
             }
             activeTabSheets.clear();
         }
@@ -170,11 +169,13 @@ public class SideQueryExtension implements MarginaliaExtension {
         // Clean up settings panels from accordion UI instances on unload
         synchronized (activeAccordions) {
             for (Accordion accordion : activeAccordions) {
-                AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(accordion, SETTINGS_PANEL_KEY);
-                if (panel != null) {
-                    accordion.remove(panel);
-                    ComponentUtil.setData(accordion, SETTINGS_PANEL_KEY, null);
-                }
+                UIUtils.accessComponent(accordion, () -> {
+                    AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(accordion, SETTINGS_PANEL_KEY);
+                    if (panel != null) {
+                        accordion.remove(panel);
+                        ComponentUtil.setData(accordion, SETTINGS_PANEL_KEY, null);
+                    }
+                });
             }
             activeAccordions.clear();
         }

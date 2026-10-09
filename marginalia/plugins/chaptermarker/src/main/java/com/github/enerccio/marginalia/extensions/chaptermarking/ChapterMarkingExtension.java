@@ -7,15 +7,12 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionD
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
-import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
-import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.regex.Matcher;
@@ -29,9 +26,6 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
     private static final String MSG_SET = "com.github.enerccio.marginalia.extensions.chaptermarking.ChapterMarkingExtension.MSG_SET";
     private static final String MSG_OLD_TEXT = "com.github.enerccio.marginalia.extensions.chaptermarking.ChapterMarkingExtension.MSG_OLD_TEXT";
     private static final String MSG_ORDER = "com.github.enerccio.marginalia.extensions.chaptermarking.ChapterMarkingExtension.MSG_ORDER";
-
-    @Autowired
-    private Localization loc;
 
     private ExtensionDecorator sidebarDecorator;
     private ExtensionDecorator sidebarEditDecorator;
@@ -148,7 +142,8 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                     "autosaveAndSwapToMarkdown"
             );
         } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
+            // there may be no UI (loading at startup), the extension service logs it and skips the extension
+            throw new IllegalStateException("Failed to load the Chapter Marking extension", e);
         }
     }
 
