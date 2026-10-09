@@ -99,7 +99,7 @@ public class PrepareContentStep extends GenerationStepBase {
                                     break;
                             }
                             if (StringUtils.isNotBlank(message.getResponse())) {
-                                if (tokens + message.getTokenCount() + 100 < limit - 256)
+                                if (tokens + message.getTokenCount() + 100 > limit - 256)
                                     break;
                                 storyText.add(message.getResponse());
                                 tokens += message.getTokenCount() + 100; /* Buffer for dummy messages */

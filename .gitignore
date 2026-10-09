@@ -7,3 +7,10 @@
 /marginalia/target
 /marginalia/plugins/*/target
 retype.manifest
+/marginalia/package.json
+/marginalia/package-lock.json
+/marginalia/node_modules
+/marginalia/tsconfig.json
+/marginalia/types.d.ts
+/marginalia/tsconfig.json
+/marginalia/types.d.ts

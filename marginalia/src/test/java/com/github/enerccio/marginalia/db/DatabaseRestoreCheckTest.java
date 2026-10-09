@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * BUG-39: a database is checked before it is restored, and a restore that fails on start puts the previous database
+ * A database is checked before it is restored, and a restore that fails on start puts the previous database
  * back instead of stopping the application.
  */
 class DatabaseRestoreCheckTest {
