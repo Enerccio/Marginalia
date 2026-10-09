@@ -373,6 +373,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_AI_RESPONSE_EXCEEDS_CONTEXT, "Max Response Tokens must be lower than Max Context Size.");
         setValue(L.HELP_PROTOCOL_MAX_TOKENS, "Optional. Empty uses Max Context Size of the inference provider.");
         setValue(L.HELP_PROTOCOL_REPLY_TOKENS, "Optional. Empty uses Max Response Tokens of the inference provider.");
+        setValue(L.MSG_NO_PASSWORD_WARNING, "Warning! No password provided. If this is a server instance, please provide password for every user. Are you sure you want to save user with blank password?");
     }
 
     @Override

@@ -143,24 +143,36 @@ public class UserDialog extends Dialog {
                 return;
             }
 
-            user.setLogin(login.trim());
-            user.setFullName(fullName != null ? fullName.trim() : null);
-            user.setAdmin(isAdminCheckbox.getValue());
+            Runnable continueWithSave = () -> {
+                try {
+                    user.setLogin(login.trim());
+                    user.setFullName(fullName != null ? fullName.trim() : null);
+                    user.setAdmin(isAdminCheckbox.getValue());
 
-            if (user.getId() == null) {
-                user = userService.save(user);
-            }
+                    if (user.getId() == null) {
+                        user = userService.save(user);
+                    }
 
-            if (StringUtils.isNotBlank(password)) {
-                userService.changePassword(user, password);
+                    if (StringUtils.isNotBlank(password)) {
+                        userService.changePassword(user, password);
+                    } else {
+                        userService.save(user);
+                    }
+
+                    close();
+
+                    if (onSave != null) {
+                        onSave.run();
+                    }
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            };
+
+            if (StringUtils.isBlank(password)) {
+                ConfirmDialog.show(loc.getValue(L.MSG_NO_PASSWORD_WARNING), continueWithSave);
             } else {
-                userService.save(user);
-            }
-
-            close();
-
-            if (onSave != null) {
-                onSave.run();
+                continueWithSave.run();
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

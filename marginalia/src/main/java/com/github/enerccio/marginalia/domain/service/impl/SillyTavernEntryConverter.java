@@ -28,7 +28,7 @@ import java.util.regex.PatternSyntaxException;
  * <p>
  * Entries without primary keys and {@code constant} entries get no filter, so they are always active.
  */
-final class SillyTavernEntryConverter {
+public final class SillyTavernEntryConverter {
 
     /**
      * SillyTavern {@code selectiveLogic} values.
@@ -48,13 +48,13 @@ final class SillyTavernEntryConverter {
 
     private static final Pattern REGEX_KEY = Pattern.compile("^/(.+)/([a-z]*)$", Pattern.DOTALL);
 
-    record Filter(String filtering, FilteringMode mode) {
+    public record Filter(String filtering, FilteringMode mode) {
     }
 
     private SillyTavernEntryConverter() {
     }
 
-    static String name(JsonObject entry, List<String> primaryKeys) {
+    public static String name(JsonObject entry, List<String> primaryKeys) {
         String comment = string(entry, "comment");
         if (StringUtils.isNotBlank(comment)) {
             return comment.trim();
@@ -65,7 +65,7 @@ final class SillyTavernEntryConverter {
         return "Entry";
     }
 
-    static int order(JsonObject entry) {
+    public static int order(JsonObject entry) {
         JsonElement order = entry.get("order");
         if (order == null || order.isJsonNull()) {
             return 100;
@@ -77,11 +77,11 @@ final class SillyTavernEntryConverter {
         }
     }
 
-    static boolean enabled(JsonObject entry) {
+    public static boolean enabled(JsonObject entry) {
         return !bool(entry, "disable", false);
     }
 
-    static InsertionMode insertionMode(JsonObject entry) {
+    public static InsertionMode insertionMode(JsonObject entry) {
         Integer position = integer(entry, "position");
         if (position != null && (position == POSITION_AN_TOP || position == POSITION_AN_BOTTOM || position == POSITION_AT_DEPTH)) {
             return InsertionMode.BEFORE_USER_PROMPT;
@@ -92,7 +92,7 @@ final class SillyTavernEntryConverter {
     /**
      * @return filter for the entry, {@code null} when the entry is always active
      */
-    static Filter filter(JsonObject entry, List<String> primaryKeys, List<String> secondaryKeys) {
+    public static Filter filter(JsonObject entry, List<String> primaryKeys, List<String> secondaryKeys) {
         if (bool(entry, "constant", false) || primaryKeys.isEmpty()) {
             return null;
         }
@@ -131,7 +131,7 @@ final class SillyTavernEntryConverter {
     /**
      * Settings that have no Marginalia counterpart, so they are visible to the user instead of silently dropped.
      */
-    static String unsupportedSettings(JsonObject entry) {
+    public static String unsupportedSettings(JsonObject entry) {
         List<String> notes = new ArrayList<>();
         Integer position = integer(entry, "position");
         if (position != null && position == POSITION_AT_DEPTH) {
@@ -178,7 +178,7 @@ final class SillyTavernEntryConverter {
      * One key as a regex fragment: {@code /pattern/flags} keys keep their pattern (case-sensitive unless flagged
      * {@code i}, as in JavaScript), plain keys are quoted.
      */
-    static String keyExpression(String key, boolean wholeWords) {
+    public static String keyExpression(String key, boolean wholeWords) {
         Matcher m = REGEX_KEY.matcher(key);
         if (m.matches()) {
             String pattern = m.group(1);
@@ -198,7 +198,7 @@ final class SillyTavernEntryConverter {
         return wholeWords ? "(?<!\\w)" + quoted + "(?!\\w)" : quoted;
     }
 
-    static String string(JsonObject parent, String field) {
+    public static String string(JsonObject parent, String field) {
         JsonElement value = parent.get(field);
         return value == null || value.isJsonNull() || !value.isJsonPrimitive() ? null : value.getAsString();
     }
