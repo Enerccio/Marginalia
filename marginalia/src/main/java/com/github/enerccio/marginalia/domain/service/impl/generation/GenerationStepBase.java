@@ -142,7 +142,8 @@ public abstract class GenerationStepBase implements GenerationStep {
         ChatMessage activeMessage = chatMessageService.find(manuscript.getActiveLeaf());
         if (activeMessage != null) {
             List<ChatMessage> branch = new ArrayList<>(chatMessageService.getBranchFromLeaf(activeMessage));
-            if (!branch.isEmpty() && controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE) {
+            if (!branch.isEmpty() && (controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE
+                    || controller.getRequest().getRequestType() == GenerationRequestType.SWIPE)) {
                 branch.removeLast();
             }
 
