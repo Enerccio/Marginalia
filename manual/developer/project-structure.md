@@ -24,7 +24,6 @@ Marginalia/
 ├── retype.yml               manual configuration (input manual/, output docs/)
 ├── README.md, LICENSE
 ├── TODO.md                  release plan
-├── TODO.BUGS.md             known bugs (BUG-<n>)
 └── TODO.IMAGES.md           screenshots still to be made
 ```
 
@@ -41,6 +40,7 @@ marginalia/
 ├── pom.xml                       dependencies, build plugins, the desktop profile
 ├── src/main/java/                application code
 ├── src/main/resources/           Spring XML, Flyway migrations, log4j, Vaadin build info
+├── src/main/resources-release/   WAR-only resources: the release log4j.properties
 ├── src/main/resources-raw/       copied into WEB-INF/classes without filtering (empty)
 ├── src/main/webapp/config/       configuration.properties, persistence.xml
 ├── src/main/frontend/            CSS and JavaScript for the Vaadin frontend
@@ -63,23 +63,28 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 |---|---|
 | `Configuration.java` | The `configuration` bean: data folder and its subfolders, database URL, staged database restore, saved login settings. |
 | `Defaults.java` | Built-in prompt defaults: master template, POV, tense, style, user prompt and summary prompt - used when neither the book nor the user's settings override them. |
-| `Constants.java` | Story tree ordering constants (not used at the moment). |
+| `Constants.java` | Application constants: `DEAD_SESSION_CHECK_TIMEOUT` (seconds without a heartbeat before `SessionManager` closes a UI, default 120). |
 | `UIConstants.java`, `SharedStyles.java` | Column widths and dialog offsets; CSS class names defined in `shared-styles.css`. |
 | `SaneSQLiteDialect.java` | Hibernate's community SQLite dialect without generated `CHECK` constraints. |
 
-### `bound` - startup
+### `bound` - startup and sessions
 
 | File | |
 |---|---|
 | `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (none are registered yet). |
 | `Migration.java` | Interface of data migrations in Java (schema migrations are Flyway SQL). |
+| `SessionManager.java` | The `sessionManager` bean: registry of all HTTP sessions, binds the logged-in user to them, runs code in other users' sessions (`runForUsers`) and closes dead UIs and sessions on its watcher thread. See [Sessions](architecture.md#sessions). |
+| `SessionTrackingListener.java` | `HttpSessionListener` registered by `WebappApplicationInitializer`; forwards session creation and destruction to `SessionManager`. |
+| `SessionInformation.java` | What `SessionManager` knows about one session: HTTP and Vaadin session, user, main UI, captured request attributes, close listeners. |
+| `SessionCloseListener.java`, `RunInSession.java` | Callbacks: another session was closed; code to run for a session in `runForUsers`. |
+| `ApplicationPoint.java` | The `applicationPoint` bean: application-wide maps of open UIs to their `Workspace` (only `Main`) and to a copy of their logged-in user. `Main` and `Viewer` `register` the UI after login; the entries are removed when the UI detaches. |
 | `SessionPoint.java` | Empty session-scoped bean. |
 
 ### `ui` - user interface
 
 | Package | Files |
 |---|---|
-| `ui.main` | `WebappApplicationInitializer` (creates the Spring context), `MarginaliaServlet` (the `VaadinServlet`), `AppShellConfig` (push, theme, global CSS), `LoginCheckRoute` (login overlay, saved logins, first-start dialog), `Main` (route `/`), `Viewer` (route `/view`, published books). |
+| `ui.main` | `WebappApplicationInitializer` (creates the Spring context, registers the session listener), `MarginaliaServlet` (the `VaadinServlet`), `AppShellConfig` (push, theme, global CSS), `LoginCheckRoute` (login overlay, saved logins, first-start dialog), `Main` (route `/`), `Viewer` (route `/view`, published books). |
 | `ui.workspace` | `Workspace` (the tabbed workspace after login, footer buttons) and `WorkspaceComponent` (interface of its tabs). |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `AdminPart`. |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
@@ -181,7 +186,7 @@ See [Templating & macros](templating.md).
 | `instruct` | `RuntimeInstrumentationInitializer` (installs the ByteBuddy agent), `ExtendableMethodVisitor` (the bytecode rewrite), `ExtensionServiceHolder` (static access to `ExtensionService` from instrumented code). |
 | `loc` | `L` (all text keys), `Localization` / `LocalizationBase` / `LocalizationEN`, `NaturalOrderComparator`. |
 | `concurrent` | `AsyncRunnableWrapper` (keeps the submitting stack trace for errors on worker threads), `ThrowingRunnable`. |
-| `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies), `ReflectUtils` (cached reflection). |
+| `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies), `ReflectUtils` (cached reflection), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
 | `com.github.enerccio.tools` | `Pair`, `Pointer` (small holders used across the code) and `GenerateFlywayDiff` (development tool, see [Database schema changes](building.md#database-schema-changes)). |
 
 ## Resources and configuration
@@ -189,13 +194,14 @@ See [Templating & macros](templating.md).
 | Path | |
 |---|---|
 | `src/main/resources/META-INF/spring/application-config.xml` | Root of the Spring configuration; imports the three files below. |
-| `.../spring/container-config.xml` | Localization, configuration, session beans, application initializer. |
+| `.../spring/container-config.xml` | Localization, configuration, `applicationPoint`, `sessionManager`, session beans, application initializer. |
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
 | `src/main/resources/migration/V<n>__<name>.sql` | Flyway migrations - currently `V1__initial` to `V5__protocol_optional_limits`. |
-| `src/main/resources/log4j.properties` | Logging. |
+| `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
+| `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging & releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
-| `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.*` | Templates for Vaadin development / production mode (see [Development and production mode](building.md#development-and-production-mode)). |
+| `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.DEVELOPMENT` | Template of a development build info for IDE runs; never packaged into the WAR (see [Development and production mode](building.md#development-and-production-mode)). |
 | `src/main/webapp/config/configuration.properties` | Application settings (`localization`, saved logins). |
 | `src/main/webapp/config/persistence.xml` | The persistence unit: list of entity classes, dialect, `hbm2ddl.auto=validate`. |
 

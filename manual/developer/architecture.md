@@ -93,8 +93,9 @@ sequenceDiagram
 
 1. The container finds Spring's `SpringServletContainerInitializer`, which calls
    `ui/main/WebappApplicationInitializer`. It creates an `XmlWebApplicationContext` from
-   `META-INF/spring/application-config.xml` and registers the `ContextLoaderListener` and `RequestContextListener`
-   (the latter makes request and session scoped beans work).
+   `META-INF/spring/application-config.xml` and registers the `ContextLoaderListener`, the `RequestContextListener`
+   (makes request and session scoped beans work) and the `SessionTrackingListener` (feeds HTTP sessions to the
+   `SessionManager`, see [Sessions](#sessions)).
 2. `application-config.xml` loads `config/configuration.properties`, the build info and `git.properties`, enables
    annotation config, `@Configurable` (`context:spring-configured`), `@Async`/`@Scheduled`
    (`task:annotation-driven`) and AspectJ auto-proxies, scans `com.github.enerccio` for components, and imports three
@@ -102,7 +103,7 @@ sequenceDiagram
 
    | File | Defines |
    |---|---|
-   | `container-config.xml` | `localization`, `configuration`, the session-scoped `user` and `sessionPoint`, `ApplicationInitializer` |
+   | `container-config.xml` | `localization`, `configuration`, `applicationPoint`, `sessionManager`, the session-scoped `user` and `sessionPoint`, `ApplicationInitializer` |
    | `datasources-config.xml` | SQLite data source (commons-dbcp), Flyway, the `EntityManagerFactory`, the `common` transaction manager |
    | `services-config.xml` | Every repository and service, the generation steps, OSGi, extensions, backups, cleanup, the instrumentation initializer |
 
@@ -115,7 +116,8 @@ sequenceDiagram
    annotated `@Extendable` (see [Extensions](#extensions)). Classes already loaded are retransformed.
 6. When the root context is refreshed, `OsgiServiceImpl` starts Apache Felix with `~/.marginalia/extensions` as its
    storage, installs and starts every JAR in that folder and calls `onExtensionLoad` on each registered
-   `MarginaliaExtension`.
+   `MarginaliaExtension`. A JAR that fails is logged and skipped. When the root context closes, the extensions are
+   unloaded and the framework is stopped.
 7. `MarginaliaServlet` (`@WebServlet("/*")`, a `VaadinServlet`) serves the UI. `AppShellConfig` configures the page:
    push enabled, dark Lumo theme, `shared-styles.css`.
 
@@ -138,7 +140,7 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 | `domain.security` | Data / services | `User`, its repository and service, saved logins. |
 | `domain.traits`, `domain.collections`, `domain.listener` | Shared | Annotations (`@CommonTx`, `@Extendable`, `@CleanupReference`...), enums, the entity listener for extended attributes. |
 | `extensions`, `instruct` | Extensions | The `MarginaliaExtension` interface, the bytecode instrumentation. |
-| `bound` | Startup | Application initializer and migrations hook. |
+| `bound` | Startup, sessions | Application initializer and migrations hook, the `SessionManager` and its session bookkeeping. |
 | `loc` | Shared | Localization: the `L` keys and the English texts. |
 | `concurrent`, `utils` | Shared | Helpers. |
 
@@ -222,7 +224,9 @@ flowchart TB
   (`ManuscriptStoryPart`) is the largest UI class: the parts sidebar, the text, the instruction panel, generation.
 - `Viewer` is a separate route for reading published books without the workspace.
 
-![Map of the UI to the classes that build it](../images/dev-ui-map.png)
+![Map of the workspace to the classes that build it](../images/dev-ui-map-workspace.png)
+
+![Map of the book window to the classes that build it](../images/dev-ui-map-book.png)
 
 Most of these classes are `@Extendable`, which is what makes them extension points. See
 [User interface](ui.md) for details.
@@ -322,6 +326,59 @@ Background threads have no HTTP request, so session-scoped beans (the current `u
 its work in `ThreadCopyRequestAttributes.InRequestScope`, which makes the session of the user who started the
 generation current on the worker thread.
 
+## Sessions
+
+`bound/SessionManager` (bean `sessionManager`, defined in `container-config.xml`) knows every HTTP session of the
+application and which user is logged into it.
+
+```mermaid
+sequenceDiagram
+    participant C as Servlet container
+    participant L as SessionTrackingListener
+    participant M as SessionManager
+    participant R as LoginCheckRoute
+
+    C->>L: sessionCreated
+    L->>M: onSessionCreate → new SessionInformation
+    R->>M: userLoggedIn(user, VaadinSession) after login
+    Note over M: binds user, Vaadin session, main UI, request attributes
+    loop every DEAD_SESSION_CHECK_TIMEOUT / 10
+        M->>M: close UIs without heartbeat, invalidate sessions with no open UI
+    end
+    C->>L: sessionDestroyed (logout, timeout, invalidate)
+    L->>M: onSessionDestroy → SessionCloseListeners of the other sessions
+```
+
+- **Tracking.** `SessionTrackingListener` is an `HttpSessionListener` registered in `WebappApplicationInitializer`;
+  it looks the bean up in the root context and calls `onSessionCreate` / `onSessionDestroy`. Each session gets a
+  `SessionInformation`. After a successful login `Main` and `Viewer` call `userLoggedIn(user, VaadinSession)`, which
+  fills it in once: the Vaadin session, the user, the current UI as the *main UI* and a `ThreadCopyRequestAttributes`
+  copy of the request. Note that login calls `VaadinService.reinitializeSession` - the old session is destroyed and a
+  new one created, so the bound session is the new one.
+- **Running code in other sessions.** `runForUsers(test, runnable, uiBound)` runs a `RunInSession` for every session
+  whose user matches the predicate, with that session's request attributes in scope (so the session-scoped `user`
+  resolves to *that* user). With `uiBound` the runnable is queued with `VaadinSession.access` on a live UI of the
+  session (the main UI, or any other open one if it was closed) - it runs asynchronously, once the session lock is
+  free, and changes are pushed when the lock is released. The sessions are processed on a separate thread
+  (`ThreadUtils.executeInThread`), so the caller's Vaadin and request thread locals don't leak into them; the call
+  waits for the dispatch, not for the queued `access` tasks. The `skipCurrent` overload leaves out the caller's own
+  Vaadin session. `UserServiceImpl.changePassword` / `clearPassword` use it to invalidate the other sessions of the
+  user whose password changed - a user changing their own password stays logged in in the current session.
+- **Open UIs.** After login `Main` and `Viewer` register their UI in `ApplicationPoint` (bean `applicationPoint`)
+  with the workspace (`Main` only) and a copy of the user. `SessionInformation.getUI(workspaceClass, applicationPoint)`
+  / `getWorkspace(...)` find the session's UI showing a given workspace type.
+- **Dead UI detection.** `SessionManager` is also a daemon thread (*Inactive session watcher*), started by
+  `afterPropertiesSet` and stopped on context shutdown. Every `DEAD_SESSION_CHECK_TIMEOUT / 10` seconds (see
+  `Constants`) it `tryLock`s each logged-in session - a locked session is in use and skipped - and closes UIs whose
+  last heartbeat is older than the timeout. Threads queued on the session lock count as activity. The timeout is
+  never shorter than three Vaadin heartbeat intervals (5 minutes by default), otherwise an open but idle tab would be
+  closed between two heartbeats. When every UI of the session is closing, the HTTP session is invalidated.
+- **Close notifications.** `addSessionCloseListener` registers a `SessionCloseListener` on the current session. When
+  another session is destroyed, every listener of every remaining session is called inside its own session's
+  `access` and request scope with the `SessionInformation` of the closed session.
+- `getActiveUsers()`, `getOpenedSessions(user)`, `getSessionInformation(id)` and `getActiveSessionIds()` expose the
+  registry, e.g. for admin views.
+
 ## Extensions
 
 ```mermaid
@@ -356,7 +413,8 @@ sequenceDiagram
   the data is part of backups. They can also listen to generation events and take part in cleanup
   (`CleanupService.registerContributor`).
 - **UI lifetime.** An extension registers the components it adds with `OsgiService.bindAttachableComponent` together
-  with a callback that removes them; the callbacks of components still attached run when the extension is unloaded.
+  with a callback that removes them; the callbacks of components still attached run when the extension is unloaded,
+  each inside `ui.access(...)` of the component's UI.
 
 Because hooks are attached by class and method *name* and read local variables by name, extensions are tied to one
 version of the application. See [Plugin development](plugins/index.md).
@@ -368,8 +426,9 @@ Everything is in `<user.home>/.marginalia/` (see also [The data folder](../user/
 | Path | Written by |
 |---|---|
 | `marginalia.sqlite`, `-wal`, `-shm` | The database. |
+| `secret.key` | Key for encrypted database values (API keys), generated by `Configuration` on the first start. |
 | `marginalia.sqlite.restore` | A database restore staged by `DatabaseBackupService`, applied on the next start. |
-| `db-backups/` | Database backups (manual, scheduled, `pre-restore-*`). |
+| `db-backups/` | Database backups (manual, scheduled, `pre-restore-*`, refused restores `rejected-restore-*`). |
 | `data/<login>/backups/manuscripts/<book id>/` | Book backups (`BackupService`), one JSON file each. |
 | `data/<login>/images/`, `data/<login>/resources/` | Per-user folders for files (created on demand). |
 | `extensions/` | Extension JARs, plus Felix's bundle cache in `org.eclipse.osgi/` (deleted and rebuilt on every start). |

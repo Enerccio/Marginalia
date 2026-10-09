@@ -28,6 +28,7 @@ Below the toolbar are the settings of the selected lorebook:
 |---|---|
 | **Name** | The name of the lorebook, shown when you pick it for a book or as a sub lorebook. |
 | **Sub Lorebooks** | Other lorebooks whose entries are included with this one, see [below](#sub-lorebooks). |
+| **Tags** | Tags of the whole lorebook; they count as tags of each of its entries, see [Tags](entries.md#tags). |
 | **Enabled** | When unchecked, the lorebook contributes nothing - neither its entries nor those of its sub lorebooks. |
 
 The rest of the editor is the list of [entries](entries.md). All changes are saved as you make them.
@@ -36,11 +37,6 @@ The rest of the editor is the list of [entries](entries.md). All changes are sav
 
 Open the book and its **Lorebook** tab, and pick the lorebook in the **Lorebook** field. The editor below shows the
 lorebook, so you can add and change entries while you write. Clear the field to write without a lorebook.
-
-!!!warning Two Lorebook fields
-The editor in the book's tab currently shows its own *Lorebook* selector (and *Add Lorebook*) as well. It only
-switches what the editor shows; the lorebook the book **uses** is the one in the field at the top of the tab.
-!!!
 
 A book uses one lorebook. To use several, create a lorebook that includes them as sub lorebooks, and use that one.
 

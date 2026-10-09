@@ -31,11 +31,12 @@ on the host with the [Docker setup](../getting-started/docker-server.md)):
 | Path | |
 |---|---|
 | `marginalia.sqlite` (with `-wal`, `-shm`) | The database: users, books, lorebooks, settings, everything. |
+| `secret.key` | Key that encrypts the API keys in the database. Created on the first start; without it, saved API keys can't be read. |
 | `db-backups/` | [Database backups](database-backups.md). |
 | `data/<login>/backups/manuscripts/<book id>/` | [Book backups](../books/backups.md) of each user. |
 | `extensions/` | Installed [extension](extensions.md) JARs. |
 | `desktop/logs/` | Logs of the [desktop app](../getting-started/desktop-app.md). |
 
-To back up a whole installation, stop Marginalia and copy this folder. While it runs, use
+To back up a whole installation, stop Marginalia and copy this folder (including `secret.key`). While it runs, use
 [database backups](database-backups.md) for the database; book backups and extensions are plain files and can be
 copied at any time.

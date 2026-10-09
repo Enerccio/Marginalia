@@ -67,8 +67,8 @@ Use them to share one lorebook between books that need different parts of it:
 
 Tags must match exactly. A negative tag always wins over a tag.
 
-Tags can also be given to a whole lorebook (lorebooks imported from files can carry them). They then count as tags of
-each of its entries.
+Tags can also be given to a whole lorebook (the **Tags** field of the [lorebook](lorebooks.md); lorebooks imported
+from files can carry them). They then count as tags of each of its entries.
 
 ### Filters
 

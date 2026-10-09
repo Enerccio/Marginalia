@@ -78,7 +78,16 @@ log. Typical messages:
 
 There is also a second, Java-level version check: `ApplicationInitializer` compares `AppSettings.dbVersion` /
 `appVersion` with the versions set in `container-config.xml` and runs registered `Migration` beans for data changes
-that are easier in Java than in SQL. None are registered yet (and see BUG-34).
+that are easier in Java than in SQL. It runs after Hibernate is up, so a migration can use `jdbcTemplate` or services.
+Each migration gets the current version and returns the new one (or the same one when it has nothing to do), so a
+migration is written for one version step and ignores the others.
+
+| Type | Version | Class | Change |
+|---|---|---|---|
+| APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |
+
+To add one: implement `Migration`, register the bean in the `migrations` list of `applicationInitializer` and raise
+`appVersion` (or `dbVersion`). A fresh database starts at version 1, so it goes through all migrations too.
 
 ## Migrations
 
@@ -89,6 +98,7 @@ that are easier in Java than in SQL. None are registered yet (and see BUG-34).
 | V3 | `V3__lorebook_subbooks_shared.sql` | Rebuilds `lorebooks_lorebooks` without the unique constraint, so a lorebook can be a sub-lorebook of several lorebooks. |
 | V4 | `V4__manuscript_published_last_opened.sql` | `manuscripts.published` and `manuscripts.lastOpened`. |
 | V5 | `V5__protocol_optional_limits.sql` | Rebuilds `protocols` with nullable `maxTokens` / `replyTokens` and turns the old "not set" values (0, negative) into `NULL`. |
+| V6 | `V6__indexes.sql` | Indexes matching the queries: tag relations by object and by tag, owner lookups `(userId, is_deleted)`, lorebook entries in order, parts of a book in order, resources by owner and hash, settings by key. Drops the unused and duplicate ones. See [Indexes](#indexes). |
 
 ### Rules
 
@@ -105,7 +115,7 @@ that are easier in Java than in SQL. None are registered yet (and see BUG-34).
 ### Adding a column
 
 ```sql
--- V6__manuscript_archived.sql
+-- V7__manuscript_archived.sql
 ALTER TABLE manuscripts
     ADD COLUMN archived boolean not null default false;
 ```
@@ -124,7 +134,7 @@ A new entity needs its table, its sequence table with a first row, and its index
 (ids are reserved in blocks of 50 - gaps in ids are normal):
 
 ```sql
--- V6__bookmarks.sql
+-- V7__bookmarks.sql
 create table bookmarks
 (
     id              bigint      not null primary key,
@@ -137,8 +147,8 @@ create table bookmarks
     message_id      bigint
 );
 
-create index ix_bookmark_user_id on bookmarks (userId);
-create index ix_bookmark_message on bookmarks (message_id);
+create index ix_bookmarks_user on bookmarks (userId, is_deleted);
+create index ix_bookmarks_message on bookmarks (message_id);
 
 create table bookmarks_SEQ
 (
@@ -204,8 +214,8 @@ New migrations are picked up automatically by the first two tests. When a migrat
 
 **Names.** Tables are plural (`manuscripts`, `messages`, `entries`), set by `@Table(name = ...)`. Columns use the Java
 field name (`maxTokens`, `lastOpened`); relations end in `_id` (`lorebook_id`, `parentScript_id`), except the owner,
-which is `userId`, and the soft delete flag, `is_deleted`. Indexes are named in the entity's `@Table(indexes = ...)`
-and must be created by hand in the migration.
+which is `userId`, and the soft delete flag, `is_deleted`. Indexes exist only in the migrations, see
+[Indexes](#indexes).
 
 **No foreign key constraints.** The tables have no `REFERENCES` clauses (V2's `summary_id` declares one, but SQLite
 doesn't enforce it because `PRAGMA foreign_keys` is off). Integrity is kept by the application: rows are soft
@@ -220,9 +230,49 @@ new enum value doesn't need a table rebuild.
 **Large values.** Text that can be long (`name`, `uri`, `apiKey`...) is `@Lob` → `clob`; `extendedContent` is a
 `blob` with JSON. SQLite doesn't enforce lengths, so `varchar(255)` is only documentation.
 
+**Encrypted columns.** Secrets are stored encrypted, see [Encrypted columns](#encrypted-columns).
+
 **Hibernate's temporary tables.** `V1__initial.sql` contains `HT_*` and `HTE_*` tables. Hibernate uses them for bulk
 updates and deletes on entities with joined inheritance (`AI`, `Protocol`) and for inserts into such hierarchies.
 They are part of the schema - don't drop them.
+
+## Indexes
+
+Indexes are created only by Flyway migrations; the entities don't declare any (`@Table(indexes = ...)`), because
+Hibernate only validates the schema and never creates them. Name them `ix_<table>_<what>`.
+
+Index what the queries filter on, in the order of the `WHERE` clause, with the equality columns first and the
+`ORDER BY` column last:
+
+| Index | Used by |
+|---|---|
+| `t2e (objectId, clazz, negative)` | Tags of a book, lorebook or entry (`findTagsForObject`, lorebook activation on every generation). |
+| `t2e (tag_id, clazz, negative)` | Objects with a tag (`findObjectIdsForTag`, tag filters). |
+| `<table> (userId, is_deleted)` | Listing and finding the owner's entities (`ais`, `protocols`, `manuscripts`, `lorebooks`, `tags`). |
+| `entries (lorebook_id, ordinal)` | Entries of a lorebook in order. |
+| `messages (parentScript_id, creation)`, `messages (parent_id)` | Parts of a book in order, children of a part. |
+| `resources (userId, hash)` | Deduplication of uploaded files. |
+| `settings (key, userId)` | Loading a settings object. |
+
+A single-column index on `is_deleted` alone helps only the *Cleanup* (few rows are deleted); don't add new ones.
+Check a query with `EXPLAIN QUERY PLAN` in SQLite - `SCAN <table>` means a full table scan, `SEARCH ... USING INDEX`
+means the index is used. `FlywayMigrationTest.tagRelationLookupsUseIndexes` does that for the main lookups.
+
+## Encrypted columns
+
+`OpenAICompatible.apiKey` is mapped with `@Convert(converter = EncryptedStringConverter.class)`. The converter calls
+`Configuration.encrypt` / `decrypt`:
+
+- On the first start `Configuration` writes a random UUID to `<data folder>/secret.key`; the AES-256 key is the
+  SHA-256 of that UUID. The file is outside the database, so a database backup alone doesn't reveal the secrets.
+- A stored value is `enc:` + Base64 of a random 12-byte IV and the AES/GCM ciphertext. Values without the prefix are
+  read as they are (plain values from before the migration); a value that can't be decrypted (a database from another
+  installation, a different `secret.key`) is logged and read as `null` - the user enters the key again.
+- The converter is a Spring bean: `emf` sets `hibernate.resource.beans.container` to a `SpringBeanContainer`, so
+  Hibernate asks Spring for converters (and entity listeners) and `@Autowired` fields are injected. Use the same
+  converter for any new secret column.
+- Code outside JPA (`jdbcTemplate`, migrations) sees the encrypted value and must use `Configuration` itself, as
+  `EncryptApiKeysMigration` does.
 
 ## SQLite limitations
 
@@ -248,22 +298,36 @@ sequenceDiagram
     participant B as DatabaseBackupService
     participant C as Configuration (next start)
     A->>B: scheduleRestore(backup)
+    B->>B: DatabaseCheck.check(backup)
     B->>B: copy backup → marginalia.sqlite.restore (tmp file + atomic move)
     Note over A,C: restart
+    C->>C: DatabaseCheck.check(marginalia.sqlite.restore)
     C->>C: move marginalia.sqlite (+ -wal, -shm) → db-backups/pre-restore-<time>-marginalia.sqlite
     C->>C: move marginalia.sqlite.restore → marginalia.sqlite
-    C->>C: Flyway migrates the restored database, Hibernate validates
+    C->>C: Flyway migrates the restored database
+    Note over C: datasource, Flyway bean (nothing left to migrate), Hibernate validates
 ```
 
-Because Flyway runs after the swap, a backup from an older version is upgraded on start. A backup from a *newer*
-version than the running code is not supported: its history contains migrations the running code doesn't have, and
-the old code may not work with the newer schema.
+`DatabaseCheck.check(File)` is run on *Upload Backup* (`importBackup`), on `scheduleRestore` and on start. It opens the
+file read-only and refuses it (`InvalidDatabaseException`, an `IllegalArgumentException` with the reason) when:
 
-!!!warning
-An uploaded file is only checked for the SQLite header. If it isn't a Marginalia database, the migration fails on
-the next start and Marginalia doesn't start (BUG-39). The previous database is kept as
-`db-backups/pre-restore-*.sqlite`; to recover, stop Marginalia and move it back to `marginalia.sqlite`.
-!!!
+- it doesn't start with the SQLite header,
+- `PRAGMA integrity_check` reports problems,
+- core tables (`users`, `settings`, `manuscripts`, `messages`, `lorebooks`, `entries`, `ais`, `protocols`, `tags`,
+  `t2e`) are missing - another application's database,
+- `flyway_schema_history` has a failed migration or a version newer than the newest bundled `migration/V*__*.sql` -
+  a database of a newer Marginalia version. A database without the history table predates Flyway and is baselined at
+  V1 as usual.
+
+`Configuration.applyPendingRestore()` migrates the restored database itself, before the datasource is created, with
+the same Flyway configuration as the `flyway` bean (`DatabaseCheck.flywayConfiguration(DataSource)`, used by
+`datasources-config.xml` too). If the check fails, the staged file is moved to
+`db-backups/rejected-restore-<time>-marginalia.sqlite` and the current database stays. If the migration fails, the
+restored file is moved there as well and the `pre-restore-*` database is moved back. Either way the reason is logged
+as an error and Marginalia starts with the previous database. A backup from an older version is upgraded on start.
+
+API keys in a backup are encrypted with the installation's `secret.key` (see [Encrypted columns](#encrypted-columns)).
+A backup restored on another installation loses them unless `secret.key` is copied along.
 
 ## Tests and the database
 

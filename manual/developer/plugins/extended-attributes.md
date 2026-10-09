@@ -74,12 +74,15 @@ Rules:
   Lorebook saved = lorebookService.save(fresh);
   ```
 
+  The same goes for the plugin's own data: when several components edit parts of one JSON tree, each change should
+  re-read the stored tree, change only its part and save it (Lorebook VCS's `updateEntryData`), not save a copy it
+  loaded earlier.
+
 - **Version your data.** There are no migrations; if the format changes, read old formats too (a `version` field in
   your JSON tree makes this easy) and never fail on data you don't understand.
 - **Keep it small.** The whole JSON object is serialized on every save of the entity, and some entities are saved
-  often - a story part is saved with every streamed chunk while it's generated (BUG-40). Megabytes of history in a
-  part's attributes slow generation down. Lorebook VCS stores the history once per lorebook, not per entry, for
-  this reason.
+  often - a story part is saved up to every 250 ms while it's generated. Megabytes of history in a part's attributes
+  slow generation down. Lorebook VCS stores the history once per lorebook, not per entry, for this reason.
 
 ### Settings
 
@@ -133,7 +136,7 @@ Two things follow from this:
   changes to `attributes` saved that way are lost. Always use `save`.
 - `@ExtendedAttribute` is the application's own way of adding fields to an entity without a migration - many fields
   of `ChatMessage`, `Manuscript`, `Protocol` and the settings are stored like this. It works for `String`, the
-  numeric types, `boolean`, `Date` and enums, stored as strings (dates in the server's time zone, BUG-38).
+  numeric types, `boolean`, `Date` and enums, stored as strings (dates as ISO-8601 instants in UTC).
   `@ExtendedAttribute(inject = true, injectPrefix = ...)` on a `JsonObject` field spreads its keys with that prefix,
   which is how `attributes` itself is declared. This is for application code: a plugin can't add fields to an entity
   class, it uses `attributes`.
@@ -145,7 +148,7 @@ Two things follow from this:
 | Database backup / restore (*Admin → Database Backups*) | Included - it's the whole database file. |
 | Book backup, export, restore, clone | Included for the book, its parts and their summaries (the `extendedContent` of each). |
 | Branch Story | The part's attributes are copied to the new branch. |
-| Regenerate | The part is reused: its attributes stay, also data that described the old text. |
+| Regenerate | The part is reused: its attributes stay, also data that described the old text. If the request fails before any text arrived, the part is restored with the attributes it had before. |
 | Swipe | A new part - starts with no plugin data. |
 | Lorebook export / import | **Not included** - only the entries' content is exported. Lorebook VCS has its own history export for this reason. |
 | Lorebooks inside a book backup | Not included, same as lorebook export. |
