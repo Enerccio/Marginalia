@@ -15,7 +15,7 @@ import java.io.File;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * API keys are stored encrypted with the installation key (BUG-29), plain keys are encrypted by the app migration.
+ * API keys are stored encrypted with the installation key, plain keys are encrypted by the app migration.
  */
 class ApiKeyEncryptionTest extends MarginaliaTestBase {
 
