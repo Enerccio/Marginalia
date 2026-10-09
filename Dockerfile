@@ -23,7 +23,9 @@ COPY --from=builder /build/target/*.war $JETTY_BASE/webapps/ROOT.war
 
 USER root
 RUN mkdir -p /var/marginalia/.marginalia && chown -R jetty:jetty /var/marginalia
-COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/marginalia-entrypoint.sh
+# no COPY --chmod: it needs BuildKit, which the classic builder of older docker/docker-compose v1 lacks
+COPY docker-entrypoint.sh /usr/local/bin/marginalia-entrypoint.sh
+RUN chmod 755 /usr/local/bin/marginalia-entrypoint.sh
 
 # starts as root to fix the owner of the data folder (a bind mount created by Docker is owned by root), then runs
 # Jetty as jetty, see docker-entrypoint.sh
