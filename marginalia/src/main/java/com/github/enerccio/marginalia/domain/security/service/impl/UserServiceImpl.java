@@ -108,6 +108,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         String salt = Base64.getEncoder().encodeToString(saltBytes);
         String hash = hashPassword(password, salt);
         user.setPasswordHash(salt + ":" + hash);
+        user.setSavedLogins(null);
         save(user);
         return user;
     }
