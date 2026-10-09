@@ -42,8 +42,8 @@ public class ReviewDialog extends Dialog {
     @Autowired
     private Localization loc;
 
-    private final ChatMessage message;
-    private final Manuscript manuscript;
+    private ChatMessage message;
+    private Manuscript manuscript;
     private final ReviewerService reviewerService;
 
     private ReviewData reviewData;
@@ -96,7 +96,7 @@ public class ReviewDialog extends Dialog {
 
     private void persistData() {
         try {
-            reviewerService.saveReviewData(message, reviewData);
+            message = reviewerService.saveReviewData(message, reviewData);
         } catch (Exception ignored) {}
     }
 

@@ -231,6 +231,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.DESC_TEMPLATE_PRESENT_CHARACTERS, "Characters currently present in the scene.");
         setValue(L.DESC_TEMPLATE_INSTRUCTIONS, "Plot specifications and instructions for continuation.");
         setValue(L.DESC_TEMPLATE_SUMMARIES, "Summaries.");
+        setValue(L.DESC_TEMPLATE_MANUSCRIPT_NAME, "Name of the book.");
+        setValue(L.DESC_TEMPLATE_MANUSCRIPT_DESCRIPTION, "Description of the book.");
         setValue(L.DESC_MACRO_USER, "Protagonist of the scene (the POV character). SillyTavern's persona name.");
         setValue(L.DESC_MACRO_CHAR, "Character name - the POV character.");
         setValue(L.DESC_MACRO_GROUP, "Characters present in the scene (POV character if not set).");
@@ -282,6 +284,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.DESC_MACRO_COMMENT, "Comment, removed from the output.");
         setValue(L.LABEL_AVAILABLE_MACROS, "Available Macros");
         setValue(L.MSG_INVALID_TEMPLATE, "Invalid template: ");
+        setValue(L.MSG_TEMPLATE_UNKNOWN_NAMES, "Unknown names (sent to the model as \"Error\"): ");
         setValue(L.LABEL_USERS, "Users");
         setValue(L.LABEL_ADD_USER, "Add User");
         setValue(L.LABEL_EDIT_USER, "Edit User");

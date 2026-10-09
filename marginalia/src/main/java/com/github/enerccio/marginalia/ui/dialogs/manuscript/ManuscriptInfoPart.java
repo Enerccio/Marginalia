@@ -11,16 +11,22 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
+import com.github.enerccio.marginalia.ui.main.Viewer;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.RouteConfiguration;
+import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.server.VaadinRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -141,10 +147,27 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         });
 
         publishedCheckbox = new Checkbox(loc.getValue(L.LABEL_PUBLISHED));
-        publishedCheckbox.setHelperText(loc.getValue(L.MSG_PUBLISHED_HELP));
+        publishedCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_PUBLISHED_HELP)));
         publishedCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
+            }
+            if (e.getValue()) {
+                String relativeUrl = RouteConfiguration.forSessionScope().getUrl(Viewer.class) + "/" + parent.getManuscript().getUuid();
+                RouterLink routerLink = new RouterLink(relativeUrl, Viewer.class, parent.getManuscript().getUuid());
+                VerticalLayout verticalLayout = new VerticalLayout(new Span(loc.getValue(L.MSG_PUBLISHED_HELP)),
+                        routerLink);
+                verticalLayout.setWidthFull();
+                verticalLayout.setSpacing(false);
+                verticalLayout.setMargin(false);
+                publishedCheckbox.setHelperComponent(verticalLayout);
+                UI.getCurrent().getPage().fetchCurrentURL(url -> {
+                    String baseUri = url.getProtocol() + "://" + url.getAuthority();
+                    String fullPath = baseUri + VaadinRequest.getCurrent().getContextPath() + relativeUrl;
+                    routerLink.setText(fullPath);
+                });
+            } else {
+                publishedCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_PUBLISHED_HELP)));
             }
         });
 

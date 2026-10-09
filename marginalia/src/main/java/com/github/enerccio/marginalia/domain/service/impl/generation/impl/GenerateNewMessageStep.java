@@ -4,11 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.TurnInput;
-import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepBase;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationStepType;
+import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.google.gson.Gson;
@@ -41,6 +37,8 @@ public class GenerateNewMessageStep extends GenerationStepBase {
                 }
                 case REGENERATE -> {
                     initialNode = chatMessageService.find(controller.getRequest().getNode());
+                    // the part is cleared below, keep a full copy so cleanup can restore it if no text arrives
+                    controller.getProperties().put(GenerationProperties.ORIGINAL_MESSAGE, ChatMessage.copyOf(initialNode));
                 }
                 default -> throw new RuntimeException("FIX STATES!");
             }
@@ -96,11 +94,13 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             }
 
             log.debug("ChatMessage created: {}", node.getId());
+            // set right away, so cleanup removes (or restores) the part if anything below fails
+            controller.setMessage(node);
 
             manuscript.setActiveLeaf(node);
             controller.setManuscript(manuscriptService.save(manuscript));
-            controller.setMessage(node);
-            controller.setState(State.PARTIAL_SUCCESS);
+            // state stays NOT_SUCCESSFUL until the first text arrives (InferenceStep), so a failed request doesn't
+            // leave an empty part behind
             controller.emitEvent(Events.AFTER_GENERATE_NEW_MESSAGE, () -> {
                 controller.getUIListener().onNodeCreated(controller.getMessage());
                 controller.next();

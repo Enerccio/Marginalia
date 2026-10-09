@@ -105,6 +105,20 @@ public class ChatMessage extends ExtendableEntity {
     @Transient
     private String backgroundLore;
 
+    /**
+     * @return detached copy of all values of given message (extended attributes deep copied, summary not included),
+     * meant to be restored later with {@link #loadFrom(ChatMessage)}, not to be saved itself
+     */
+    public static ChatMessage copyOf(ChatMessage source) {
+        ChatMessage copy = new ChatMessage();
+        copy.loadFrom(source);
+        return copy;
+    }
+
+    /**
+     * Replaces all values of this message (except identity and summary) with values of the source, including null
+     * ones, so nothing of the previous content is kept. Extended attributes are deep copied.
+     */
     public void loadFrom(ChatMessage source) {
         this.backgroundLore = source.backgroundLore;
         this.builtPrompt = source.builtPrompt;
@@ -127,6 +141,7 @@ public class ChatMessage extends ExtendableEntity {
         this.tokenReasoningCount = source.tokenReasoningCount;
         this.ttft = source.ttft;
         this.wordCount = source.wordCount;
+        this.edited = source.edited;
         this.setAttributes(source.getAttributes().deepCopy());
     }
 

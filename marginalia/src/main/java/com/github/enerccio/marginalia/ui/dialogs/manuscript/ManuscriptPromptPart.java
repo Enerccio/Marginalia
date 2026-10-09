@@ -157,47 +157,15 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             return;
         }
 
+        if (!validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class)
+                || !validateTemplate(userPromptField, "userPrompt", UserPromptData.class)
+                || !validateTemplate(summaryField, "summaryPrompt", SummaryTemplateData.class)) {
+            return;
+        }
+
         String masterTemplate = masterTemplateField.getValue();
-        if (StringUtils.isNotBlank(masterTemplate)) {
-            try {
-                TemplateService.ValidationResult result = templateService.isValidTemplate(masterTemplate, "masterTemplate");
-                if (!result.isValid()) {
-                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
-                    return;
-                }
-            } catch (Exception e) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
-                return;
-            }
-        }
-
         String userPrompt = userPromptField.getValue();
-        if (StringUtils.isNotBlank(userPrompt)) {
-            try {
-                TemplateService.ValidationResult result = templateService.isValidTemplate(userPrompt, "userPrompt");
-                if (!result.isValid()) {
-                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
-                    return;
-                }
-            } catch (Exception e) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
-                return;
-            }
-        }
-
         String summaryPrompt = summaryField.getValue();
-        if (StringUtils.isNotBlank(summaryPrompt)) {
-            try {
-                TemplateService.ValidationResult result = templateService.isValidTemplate(summaryPrompt, "summaryPrompt");
-                if (!result.isValid()) {
-                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
-                    return;
-                }
-            } catch (Exception e) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
-                return;
-            }
-        }
 
         try {
             Manuscript manuscript = refreshModel();
@@ -215,6 +183,29 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             parent.save();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * @return false if the template is invalid and must not be saved; unknown names are only shown as a warning
+     */
+    private boolean validateTemplate(TextAreaPopoverComponent field, String templateName, Class<? extends TemplateData> dataClass) {
+        String template = field.getValue();
+        if (StringUtils.isBlank(template)) {
+            TemplateHints.showWarnings(loc, field, null);
+            return true;
+        }
+        try {
+            TemplateService.ValidationResult result = templateService.isValidTemplate(template, templateName, dataClass);
+            if (!result.isValid()) {
+                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
+                return false;
+            }
+            TemplateHints.showWarnings(loc, field, result);
+            return true;
+        } catch (Exception e) {
+            Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
+            return false;
         }
     }
 
@@ -258,6 +249,10 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             styleField.setValue(StringUtils.defaultString(manuscript.getStyle()));
             userPromptField.setValue(StringUtils.defaultString(manuscript.getUserPrompt()));
             summaryField.setValue(StringUtils.defaultString(manuscript.getSummaryPrompt()));
+
+            validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class);
+            validateTemplate(userPromptField, "userPrompt", UserPromptData.class);
+            validateTemplate(summaryField, "summaryPrompt", SummaryTemplateData.class);
 
             masterTemplateField.setPopoverContent(createTemplateHintPopoverContent(
                     masterTemplateField, masterTemplateField.getPopover(), MasterTemplateData.class, defaultMasterTemplate));

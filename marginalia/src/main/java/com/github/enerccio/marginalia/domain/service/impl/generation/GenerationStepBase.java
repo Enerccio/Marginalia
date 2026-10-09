@@ -66,7 +66,7 @@ public abstract class GenerationStepBase implements GenerationStep {
                 return;
             }
             if (controller.getCancellationToken().isCancelled() && getType() != GenerationStepType.CLEANUP) {
-                controller.getUIListener().onCancelled(controller.getMessage());
+                // cleanup reports the cancellation, with the part that is left (if any)
                 controller.jumpTo(GenerationStepType.CLEANUP);
                 return;
             }
