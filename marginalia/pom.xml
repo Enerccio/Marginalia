@@ -395,12 +395,6 @@
             <artifactId>jetty-server</artifactId>
             <version>12.1.14</version>
           </dependency>
-
-          <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>12.1.14</version>
-          </dependency>
         </dependencies>
       </plugin>
 
