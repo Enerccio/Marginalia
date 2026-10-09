@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LorebookVCSData;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.service.LorebookVCSService;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.ui.LoreEntryRevisionPanel;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.ui.LorebookVCSGlobalPanel;
@@ -29,8 +30,8 @@ import java.util.WeakHashMap;
 @Configurable
 public class LorebookVCSExtension implements MarginaliaExtension {
 
-    private static final String GLOBAL_PANEL_KEY = "lorebookvcs_global_panel";
-    private static final String REVISION_PANEL_KEY = "lorebookvcs_revision_panel";
+    private static final String GLOBAL_PANEL_KEY = LorebookVCSData.KEY + ".globalPanel";
+    private static final String REVISION_PANEL_KEY = LorebookVCSData.KEY + ".revisionPanel";
 
     @Autowired
     private Localization loc;

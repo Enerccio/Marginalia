@@ -44,7 +44,8 @@
 
 ### Extensions
 
-- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Four extensions come with Marginalia:
+- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Five extensions come with Marginalia:
+- [Author's Note](https://enerccio.github.io/Marginalia/user/extensions/authors-note.md): A note to the model that is sent with every generation of the book: the tone you want right now, what the current chapter is about, a reminder the model keeps forgetting.
 - [Chapter Marker](https://enerccio.github.io/Marginalia/user/extensions/chapter-marker.md): Turns the Outline of the story editor into a table of contents.
 - [Lorebook VCS](https://enerccio.github.io/Marginalia/user/extensions/lorebook-vcs.md): Revision history for lorebook entries: keep earlier versions of your lore and switch between them - for example the state of the world before and after a war, or a character at different points of the story.
 - [Reviewer](https://enerccio.github.io/Marginalia/user/extensions/reviewer.md): Lets the model review what you've written: reader reactions, an editor's critique, a continuity check - whatever you prompt it for. Reviews are kept with the part, next to the story, and never become part of the book.
@@ -79,7 +80,8 @@
 - [@Extendable hooks](https://enerccio.github.io/Marginalia/developer/plugins/extendable.md): Most of what a plugin does starts with a decorator: an object whose onMethodEnter and onMethodLeave run before and after a method of an application class.
 - [Extended attributes](https://enerccio.github.io/Marginalia/developer/plugins/extended-attributes.md): Plugins can't add tables or columns - there is no way to run their own Flyway migrations. Instead, every data entity carries a JSON object where a plugin can keep whatever it needs: ExtendableEntity.attributes.
 - [Extending the UI](https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions.md): Plugins add to the user interface from decorators: when a method that builds part of a screen runs, the plugin's decorator finds the component it built and adds to it.
-- [Example plugin](https://enerccio.github.io/Marginalia/developer/plugins/example.md): This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through the smallest bundled plugin, Chapter Marker.
+- [Generation events](https://enerccio.github.io/Marginalia/developer/plugins/generation-events.md): @Extendable hooks change what the user sees; generation events change what the model sees. A plugin registers listeners with
+- [Example plugin](https://enerccio.github.io/Marginalia/developer/plugins/example.md): This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to the model.
 - [Testing](https://enerccio.github.io/Marginalia/developer/testing.md): Marginalia's tests are integration tests first: most of them start the real Spring XML configuration against a throwaway SQLite database and talk to a fake OpenAI-compatible server.
 - [Packaging & releases](https://enerccio.github.io/Marginalia/developer/packaging.md): Marginalia is built once as a WAR and then shipped in two forms: a Docker image for servers and a desktop app with its own Java runtime and Jetty. This page describes how each is built, what CI does, and how a release is made.
 - [Contributing](https://enerccio.github.io/Marginalia/developer/contributing.md): Contributions are welcome: bug reports, fixes, new features, extensions, and corrections to this manual. This page describes how to report a problem, how changes are made and what a pull request should contain.

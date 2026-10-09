@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844859808969">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Example plugin</title>
     <meta name="title" content="Example plugin">
-    <meta name="description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through the smallest bundled plugin, Chapter Marker.">
+    <meta name="description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to the model.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/plugins/example/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/plugins/example/">
     <meta property="og:title" content="Example plugin">
-    <meta property="og:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through the smallest bundled plugin, Chapter Marker.">
+    <meta property="og:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to the model.">
     <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/dev-plugin-bookmarks.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -35,7 +35,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/plugins/example/">
     <meta name="twitter:title" content="Example plugin">
-    <meta name="twitter:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through the smallest bundled plugin, Chapter Marker.">
+    <meta name="twitter:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to the model.">
     <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/dev-plugin-bookmarks.png">
     <meta name="twitter:image:alt" content="Example plugin">
 
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844859808969" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844859808969" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -173,8 +173,9 @@
                 <!-- Page content  -->
 <h1 id="example-plugin">Example plugin</h1>
 <p>This page builds a small plugin from scratch - <em>Bookmarks</em>, which lets you bookmark story parts - and then walks
-through the smallest bundled plugin, Chapter Marker. Together they use everything from the previous pages: a
-bundle, decorators reading arguments, locals and fields, data in attributes, and cleanup on unload.</p>
+through two bundled plugins: Chapter Marker, the smallest one, and Author&#x27;s Note, which changes the prompt sent to
+the model. Together they use everything from the previous pages: a bundle, decorators reading arguments, locals and
+fields, data in attributes, generation listeners, and cleanup on unload.</p>
 <h2 id="bookmarks">Bookmarks</h2>
 <p>What it does:</p>
 <ul>
@@ -455,8 +456,8 @@ closed and opened again). Open a part&#x27;s menu, choose <em>Toggle bookmark</e
 Query (<a href="../ui-extensions/#a-tab-next-to-the-story">A tab next to the story</a>).</p>
 </li>
 <li>
-<p>Put bookmarked parts into the prompt: register a listener for <code translate="no" v-pre>AFTER_MANUSCRIPT_CONCATENATION</code>
-(<a href="../../generation-pipeline/#events-for-extensions">Generation pipeline</a>).</p>
+<p>Put bookmarked parts into the prompt: register a generation listener, like Author&#x27;s Note
+(<doc-anchor-trigger to="#walkthrough-authors-note">Walkthrough: Author&#x27;s Note</doc-anchor-trigger>, <a href="../generation-events/">Generation events</a>).</p>
 </li>
 </ul>
 <h2 id="walkthrough-chapter-marker">Walkthrough: Chapter Marker</h2>
@@ -502,7 +503,80 @@ acceptable here: they&#x27;re just text.</p>
 </ul>
 <p>The other bundled plugins build on the same pieces: Reviewer and Side Query add menu items, tabs, settings panels and
 call the model (<a href="../ui-extensions/">Extending the UI</a>); Lorebook VCS stores larger data in a lorebook&#x27;s attributes
-(<a href="../extended-attributes/">Extended attributes</a>).</p>
+(<a href="../extended-attributes/">Extended attributes</a>); Author&#x27;s Note, below, changes the prompt of every generation.</p>
+<h2 id="walkthrough-authors-note">Walkthrough: Author&#x27;s Note</h2>
+<p><code translate="no" v-pre>marginalia/plugins/authorsnote</code> sends a per-book note to the model with every generation: an <em>Author&#x27;s Note</em> tab next
+to the story outline edits it, a generation listener inserts it into the prompt. It shows the one thing decorators
+can&#x27;t do - change what the model gets.</p>
+<retype-table copy-text="| Class | Does |
+|---|---|
+| `AuthorsNoteData` | The note: on/off, the text, a private scratchpad, the insertion depth and the role. Stored in the book's attributes under the package name. |
+| `AuthorsNoteService` | Loads and saves the data, inserts the note into a payload. |
+| `AuthorsNoteView` | The sidebar tab; every change is saved right away. |
+| `AuthorsNoteExtension` | Adds the tab on leave of `ManuscriptStoryPart.renderStoryContent()` (like Side Query) and registers the listener. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>AuthorsNoteData</code></td>
+<td>The note: on/off, the text, a private scratchpad, the insertion depth and the role. Stored in the book&#x27;s attributes under the package name.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AuthorsNoteService</code></td>
+<td>Loads and saves the data, inserts the note into a payload.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AuthorsNoteView</code></td>
+<td>The sidebar tab; every change is saved right away.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AuthorsNoteExtension</code></td>
+<td>Adds the tab on leave of <code translate="no" v-pre>ManuscriptStoryPart.renderStoryContent()</code> (like Side Query) and registers the listener.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><strong>Hooking into generation</strong> - <code translate="no" v-pre>onExtensionLoad</code> registers a listener next to the decorator and keeps the
+registration:</p>
+<div id="walkthrough-authors-note-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">payloadRegistration = storyGenerationService.addEventListener(Events.AFTER_PREPARE_PAYLOAD,
+        this::insertAuthorsNote);</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> comes when the list of chat messages for the model is complete; what the listener sets is
+what is sent:</p>
+<div id="walkthrough-authors-note-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">private void insertAuthorsNote(GenerationControllerEvent event, EventChain chain) {
+    try {
+        Manuscript manuscript = event.getManuscript();
+        if (manuscript != null) {
+            AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
+            event.setPayload(authorsNoteService.insertNote(event.getPayload(), data));
+        }
+    } catch (Exception e) {
+        log.warn(&quot;Failed to insert the author's note: {}&quot;, e.getMessage(), e);
+    } finally {
+        chain.next();
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p><strong>Unloading</strong> calls <code translate="no" v-pre>payloadRegistration.unregister()</code> besides removing the decorator and the tabs - a listener left
+registered would keep changing the prompts of every user.</p>
+<p>What to take from it:</p>
+<ul>
+<li><code translate="no" v-pre>chain.next()</code> in <code translate="no" v-pre>finally</code> - the generation waits for every listener;</li>
+<li>listeners are global, so act only on the data of the book being generated;</li>
+<li>read data the user may have changed since the generation started again, with the service;</li>
+<li>build a new payload and <code translate="no" v-pre>setPayload(...)</code> it instead of changing the list you got.</li>
+</ul>
+<p><a href="../generation-events/">Generation events</a> explains the payload, the choice of the event and the token budget in
+detail.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -512,11 +586,11 @@ call the model (<a href="../ui-extensions/">Extending the UI</a>); Lorebook VCS 
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../developer/plugins/ui-extensions/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../developer/plugins/generation-events/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Extending the UI</span>
+                                <span class="block mt-1">Generation events</span>
                             </span>
                         </a>
                     </div>

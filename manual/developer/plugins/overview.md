@@ -128,7 +128,7 @@ public interface MarginaliaExtension {
 
 - `onExtensionLoad` registers everything the plugin needs: decorators (`extensionService.registerDecorator(...)`,
   see [@Extendable hooks](extendable.md)), generation listeners
-  (`storyGenerationService.addEventListener(...)`, see [Generation pipeline](../generation-pipeline.md#events-for-extensions)),
+  (`storyGenerationService.addEventListener(...)`, see [Generation events](generation-events.md)),
   cleanup contributors ([Extended attributes](extended-attributes.md#references-to-other-entities)). It should not build UI - there is no UI at that moment. UI is added later, from decorators, when the
   user opens the screen the plugin extends.
 - `onExtensionUnload` undoes all of it: unregister every decorator and listener, remove the components the plugin

@@ -301,10 +301,13 @@ Rules:
 - An exception thrown by a listener is logged and the chain continues with the next listener.
 - Listeners are **global**: they receive the events of every generation of every user. Use `event.getManuscript()`
   and the current user to decide whether to act, and keep per-generation data in `event.getProperties()` under a key
-  prefixed with the extension's name.
+  prefixed with the extension's package.
 - Listeners run on generation threads inside the user's request scope, so services work; UI changes need
   `ui.access(...)`.
 - Unregister on unload - registrations are not removed automatically.
+
+The bundled Author's Note plugin is a complete example: it inserts a message into the payload in
+`AFTER_PREPARE_PAYLOAD`, see [Generation events](plugins/generation-events.md).
 
 ### Events
 

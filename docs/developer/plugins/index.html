@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844859808969">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844859808969" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844859808969" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -199,7 +199,7 @@ gets three general mechanisms and the whole application to use them on:</p>
 | **Bundles** | Loading, unloading, the `MarginaliaExtension` lifecycle, access to every Spring service through `@Configurable`. | [Plugin basics](overview.md) |
 | **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields. | [@Extendable hooks](extendable.md) |
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
-| **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation pipeline](../generation-pipeline.md#events-for-extensions) |">
+| **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -228,15 +228,16 @@ gets three general mechanisms and the whole application to use them on:</p>
 <tr>
 <td><strong>Generation events</strong></td>
 <td>Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated.</td>
-<td><a href="../generation-pipeline/#events-for-extensions">Generation pipeline</a></td>
+<td><a href="generation-events/">Generation events</a>, <a href="../generation-pipeline/#events-for-extensions">Generation pipeline</a></td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
 <p><a href="ui-extensions/">Extending the UI</a> puts the first three together: adding components, settings panels, threads and
-cleaning up on unload. <a href="example/">Example plugin</a> builds a small plugin from scratch and walks through the bundled
-Chapter Marker.</p>
+cleaning up on unload. <a href="generation-events/">Generation events</a> shows how a plugin changes the prompt sent to the
+model, on the bundled Author&#x27;s Note. <a href="example/">Example plugin</a> builds a small plugin from scratch and walks through
+the bundled Chapter Marker and Author&#x27;s Note.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -257,9 +258,10 @@ from the same source tree as the application they run in, and test them after ev
     </div>
 </div>
 <h2 id="the-bundled-plugins">The bundled plugins</h2>
-<p>The four plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
+<p>The five plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
 <retype-table copy-text="| Plugin | What it adds | Shows how to |
 |---|---|---|
+| [Author's Note](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. | Listen to generation events and change the payload sent to the model; add a tab to the story editor. |
 | [Chapter Marker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker) | Story parts that start with a Markdown heading are shown as chapters in the story sidebar. | Read method arguments and locals, change a component the method built. The smallest one - start here. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
 | [Reviewer](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer) | AI reviews of a story part with configurable reviewer profiles. | Add a sub-menu to every part, add a settings panel, stream an answer from the model. |
@@ -274,6 +276,11 @@ from the same source tree as the application they run in, and test them after ev
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote">Author&#x27;s Note</a></td>
+<td>A per-book note inserted into the prompt of every generation, at a chosen depth and role.</td>
+<td>Listen to generation events and change the payload sent to the model; add a tab to the story editor.</td>
+</tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker">Chapter Marker</a></td>
 <td>Story parts that start with a Markdown heading are shown as chapters in the story sidebar.</td>
@@ -306,6 +313,7 @@ from the same source tree as the application they run in, and test them after ev
 <li><a href="extendable/">@Extendable hooks</a> - the decorator API in detail and its limits.</li>
 <li><a href="extended-attributes/">Extended attributes</a> - storing data.</li>
 <li><a href="ui-extensions/">Extending the UI</a> - patterns for menus, tabs and settings, threads and unloading.</li>
+<li><a href="generation-events/">Generation events</a> - changing the prompt and the answer during generation.</li>
 </ol>
 
                 

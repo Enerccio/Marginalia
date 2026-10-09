@@ -24,8 +24,9 @@ public void onMethodLeave(Object instrumented, ExtendableMethodContext context, 
 
 1. **Find the component** - a field, a local variable or an argument of the decorated method.
 2. **Add only once.** Many methods run more than once for the same component (`refresh()`, `UserPart.refresh`...),
-   so mark the component with `ComponentUtil.setData(component, key, value)` and check the mark first. Use keys
-   prefixed with your plugin's name.
+   so mark the component with `ComponentUtil.setData(component, key, value)` and check the mark first. Prefix the
+   keys with your plugin's package (`KEY + ".menuItem"`, see [Extended attributes](extended-attributes.md)) - the
+   components are shared with the application and every other plugin.
 3. **Remember what you added**, so that `onExtensionUnload` can remove it ([Unloading](#unloading)).
 
 ## Recipes
@@ -203,7 +204,7 @@ CancellationToken token = service.stream(payload, protocol, new InferenceService
   callback then gets `onCancel()`.
 
 To change what a *story* generation sends or receives, don't call the model yourself - register a generation listener
-([Generation pipeline → Events for extensions](../generation-pipeline.md#events-for-extensions)).
+like Author's Note does ([Generation events](generation-events.md)).
 
 ## Unloading
 

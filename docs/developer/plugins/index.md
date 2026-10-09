@@ -40,11 +40,12 @@ gets three general mechanisms and the whole application to use them on:
 | **Bundles** | Loading, unloading, the `MarginaliaExtension` lifecycle, access to every Spring service through `@Configurable`. | [Plugin basics](overview.md) |
 | **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields. | [@Extendable hooks](extendable.md) |
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
-| **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation pipeline](../generation-pipeline.md#events-for-extensions) |
+| **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |
 
 [Extending the UI](ui-extensions.md) puts the first three together: adding components, settings panels, threads and
-cleaning up on unload. [Example plugin](example.md) builds a small plugin from scratch and walks through the bundled
-Chapter Marker.
+cleaning up on unload. [Generation events](generation-events.md) shows how a plugin changes the prompt sent to the
+model, on the bundled Author's Note. [Example plugin](example.md) builds a small plugin from scratch and walks through
+the bundled Chapter Marker and Author's Note.
 
 !!!warning Plugins are tied to one version of Marginalia
 Hooks are attached by class and method *name* and read local variables and fields by name. Renaming a method or a
@@ -54,10 +55,11 @@ from the same source tree as the application they run in, and test them after ev
 
 ## The bundled plugins
 
-The four plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
+The five plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
 
 | Plugin | What it adds | Shows how to |
 |---|---|---|
+| [Author's Note](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. | Listen to generation events and change the payload sent to the model; add a tab to the story editor. |
 | [Chapter Marker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker) | Story parts that start with a Markdown heading are shown as chapters in the story sidebar. | Read method arguments and locals, change a component the method built. The smallest one - start here. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
 | [Reviewer](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer) | AI reviews of a story part with configurable reviewer profiles. | Add a sub-menu to every part, add a settings panel, stream an answer from the model. |
@@ -72,3 +74,4 @@ Users install them as described in [Managing extensions](../../user/administrati
 3. [@Extendable hooks](extendable.md) - the decorator API in detail and its limits.
 4. [Extended attributes](extended-attributes.md) - storing data.
 5. [Extending the UI](ui-extensions.md) - patterns for menus, tabs and settings, threads and unloading.
+6. [Generation events](generation-events.md) - changing the prompt and the answer during generation.
