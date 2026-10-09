@@ -1,10 +1,7 @@
 package com.github.enerccio.marginalia.templates;
 
 import com.github.enerccio.marginalia.domain.service.TemplateService.ValidationResult;
-import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
-import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
-import com.github.enerccio.marginalia.domain.templates.TemplateContext;
-import com.github.enerccio.marginalia.domain.templates.UserPromptData;
+import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.jknack.handlebars.HandlebarsException;
 import org.junit.jupiter.api.Test;
 
@@ -156,6 +153,31 @@ class TemplateServiceTest extends TemplateTestBase {
 
         ValidationResult broken = templateService.isValidTemplate("{{#if user}}", "test");
         assertThat(broken.errorMessage()).isNotBlank();
+    }
+
+    @Test
+    void validationReportsUnknownNames() throws Exception {
+        ValidationResult result = templateService.isValidTemplate("""
+                {{instruction}} {{povCharachter}} {{{style}}} {{manuscriptName}} {{user}} {{lastMessage}}
+                {{#if sceneSetting}}{{scenario}}{{else}}{{typoInElse}}{{/if}}
+                {{#each storyMessages}}{{this}} {{.}} {{@index}}{{/each}}
+                {{templateContext.variables}} {{getvar::x}} {{.local}} {{$global}} {{noSuchMacro::a}}""",
+                "userPrompt", UserPromptData.class);
+
+        assertThat(result.isValid()).isTrue();
+        assertThat(result.hasWarnings()).isTrue();
+        assertThat(result.unknownNames()).containsExactly("instruction", "povCharachter", "typoInElse", "templateContext.variables");
+    }
+
+    @Test
+    void unknownNamesDependOnTemplateData() throws Exception {
+        String template = "{{backgroundLore}} {{instructions}}";
+
+        assertThat(templateService.isValidTemplate(template, "masterTemplate", MasterTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(template, "summaryPrompt", SummaryTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate("{{text}}", "masterTemplate", MasterTemplateData.class).unknownNames())
+                .containsExactly("text");
+        assertThat(templateService.isValidTemplate("{{noSuchVariable}}", "test").unknownNames()).isEmpty();
     }
 
     @Test

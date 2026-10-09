@@ -14,8 +14,15 @@ import org.springframework.beans.factory.InitializingBean;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 public class TemplateServiceImpl implements TemplateService, InitializingBean {
+
+    private static final Pattern ROOT_NAME = Pattern.compile("[./\\[]");
 
     private Handlebars handlebars;
 
@@ -29,13 +36,19 @@ public class TemplateServiceImpl implements TemplateService, InitializingBean {
 
     @Override
     public ValidationResult isValidTemplate(String templateContent, String templateName) throws Exception {
+        return isValidTemplate(templateContent, templateName, null);
+    }
+
+    @Override
+    public ValidationResult isValidTemplate(String templateContent, String templateName, Class<? extends TemplateData> dataClass) throws Exception {
         if (templateContent == null || templateContent.isBlank()) {
             return new ValidationResult(false, "Template cannot be empty.");
         }
 
         try {
-            compile(templateContent);
-            return new ValidationResult(true, null);
+            CompiledTemplate compiled = compile(templateContent);
+            List<String> unknownNames = dataClass == null ? List.of() : findUnknownNames(compiled.template(), dataClass);
+            return new ValidationResult(true, null, unknownNames);
         } catch (HandlebarsException e) {
             String errorMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
             return new ValidationResult(false, errorMsg);
@@ -69,6 +82,37 @@ public class TemplateServiceImpl implements TemplateService, InitializingBean {
         } finally {
             context.destroy();
         }
+    }
+
+    /**
+     * Names of variables and sections that would end in the missing helper (rendered as "Error"). Checked statically,
+     * so names in branches that are not rendered are found too. Paths are checked by their first segment, names relative
+     * to the current context ({{this}}, {{.}}, {{../x}}, {{@index}}) are skipped since they depend on the data being
+     * iterated.
+     */
+    private List<String> findUnknownNames(Template template, Class<? extends TemplateData> dataClass) throws Exception {
+        TemplateData sample = dataClass.getDeclaredConstructor().newInstance();
+        Set<String> unknown = new LinkedHashSet<>();
+        for (String name : template.collect(TagType.VAR, TagType.TRIPLE_VAR, TagType.SECTION)) {
+            String root = rootName(name);
+            if (root == null || handlebars.helper(root) != null || MacroHelpers.resolves(sample, root)) {
+                continue;
+            }
+            unknown.add(name);
+        }
+        return new ArrayList<>(unknown);
+    }
+
+    private static String rootName(String name) {
+        if (name == null) {
+            return null;
+        }
+        String n = name.strip();
+        if (n.isEmpty() || n.startsWith(".") || n.startsWith("@") || n.equals("this") || n.startsWith("this.") || n.startsWith("this/")) {
+            return null;
+        }
+        String root = ROOT_NAME.split(n, 2)[0];
+        return root.isEmpty() ? null : root;
     }
 
     private CompiledTemplate compile(String template) throws IOException {

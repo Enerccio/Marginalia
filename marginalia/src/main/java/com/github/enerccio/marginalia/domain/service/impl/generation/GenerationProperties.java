@@ -59,6 +59,13 @@ public final class GenerationProperties {
      */
     public static final String CHUNK = "CHUNK";
 
+    /**
+     * {@code ChatMessage} detached copy of the regenerated part as it was before it was cleared, set for
+     * {@link GenerationRequestType#REGENERATE} from {@link Events#BEFORE_GENERATE_NEW_MESSAGE} on. Cleanup restores the
+     * part from it when generation ends before any text arrived.
+     */
+    public static final String ORIGINAL_MESSAGE = "ORIGINAL_MESSAGE";
+
     private GenerationProperties() {
 
     }

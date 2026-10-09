@@ -1,11 +1,13 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.macros.Macros;
 import com.github.enerccio.marginalia.domain.traits.LocalizedTemplateDescription;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasHelper;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.details.Details;
@@ -16,11 +18,32 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Content of template hint popovers: "fill default" button, template variables and supported macros.
  */
 public final class TemplateHints {
+
+    /**
+     * Properties of the shared template context, available in every template (see TemplateContext.property()).
+     */
+    private static final Map<String, L> CONTEXT_VARIABLES = new LinkedHashMap<>();
+
+    static {
+        CONTEXT_VARIABLES.put("povCharacter", L.DESC_TEMPLATE_POV_CHARACTER);
+        CONTEXT_VARIABLES.put("sceneSetting", L.DESC_TEMPLATE_SCENE_SETTING);
+        CONTEXT_VARIABLES.put("presentCharacters", L.DESC_TEMPLATE_PRESENT_CHARACTERS);
+        CONTEXT_VARIABLES.put("instructions", L.DESC_TEMPLATE_INSTRUCTIONS);
+        CONTEXT_VARIABLES.put("narrativePov", L.DESC_TEMPLATE_NARRATIVE_POV);
+        CONTEXT_VARIABLES.put("narrativeTense", L.DESC_TEMPLATE_NARRATIVE_TENSE);
+        CONTEXT_VARIABLES.put("style", L.DESC_TEMPLATE_STYLE);
+        CONTEXT_VARIABLES.put("manuscriptName", L.DESC_TEMPLATE_MANUSCRIPT_NAME);
+        CONTEXT_VARIABLES.put("manuscriptDescription", L.DESC_TEMPLATE_MANUSCRIPT_DESCRIPTION);
+    }
 
     private TemplateHints() {
     }
@@ -50,6 +73,7 @@ public final class TemplateHints {
             header.getStyle().set("font-size", "var(--lumo-font-size-m)");
             layout.add(header);
 
+            Set<String> declared = new HashSet<>();
             for (Field f : clazz.getDeclaredFields()) {
                 LocalizedTemplateDescription descAnnot = f.getAnnotation(LocalizedTemplateDescription.class);
                 if (descAnnot == null) {
@@ -63,12 +87,31 @@ public final class TemplateHints {
 
                 String descriptionText = descAnnot != null ? loc.getValue(descAnnot.loc()) : "";
                 layout.add(createItem("{{" + f.getName() + "}}", descriptionText));
+                declared.add(f.getName());
+            }
+
+            for (Map.Entry<String, L> variable : CONTEXT_VARIABLES.entrySet()) {
+                if (!declared.contains(variable.getKey())) {
+                    layout.add(createItem("{{" + variable.getKey() + "}}", loc.getValue(variable.getValue())));
+                }
             }
 
             layout.add(createMacroList(loc));
         }
 
         return layout;
+    }
+
+    /**
+     * Shows names the template uses but that aren't defined (they render as "Error") as helper text of the field. It's
+     * only a warning, the template can still be saved. Null or result without warnings clears it.
+     */
+    public static void showWarnings(Localization loc, HasHelper field, TemplateService.ValidationResult result) {
+        if (result == null || !result.hasWarnings()) {
+            field.setHelperText(null);
+            return;
+        }
+        field.setHelperText(loc.getValue(L.MSG_TEMPLATE_UNKNOWN_NAMES) + String.join(", ", result.unknownNames()));
     }
 
     /**

@@ -22,7 +22,7 @@ USER jetty
 WORKDIR $JETTY_BASE
 
 RUN java -jar "$JETTY_HOME/start.jar" --create-startd \
-    --add-modules=server,http,ee10-deploy,ee10-websocket-jakarta,ee10-webapp,ee10-jsp
+    --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
 
 COPY --from=builder /build/target/*.war $JETTY_BASE/webapps/ROOT.war
 

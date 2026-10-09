@@ -22,27 +22,9 @@ public class CleanupStep extends GenerationStepBase {
                 } else {
                     message = chatMessageService.find(message);
                     if (controller.getRequest().getRequestType() == GenerationRequestType.REGENERATE) {
-                        // treat it as partial success because it was modified
-                        controller.getUIListener().onCancelled(message);
-                        controller.getUIListener().onMetricsUpdated(controller.getMessage());
+                        restoreRegenerated(controller, message);
                     } else {
-                        Manuscript manuscript = manuscriptService.find(controller.getManuscript());
-                        if (controller.getRequest().getRequestType() == GenerationRequestType.NEW_MESSAGE) {
-                            chatMessageService.deleteNodeAndMigrateChildren(message, manuscript, true);
-                            controller.getUIListener().onCancelled(null);
-                        } else {
-                            List<ChatMessage> family = chatMessageService.getSwipesForMessage(message);
-                            Collections.reverse(family);
-                            for (ChatMessage m : family) {
-                                if (!m.getId().equals(message.getId())) {
-                                    chatMessageService.swipeTo(manuscript, m);
-                                    controller.getUIListener().onCancelled(m);
-                                    controller.getUIListener().onMetricsUpdated(m);
-                                    break;
-                                }
-                            }
-                            chatMessageService.delete(message, true);
-                        }
+                        removeEmptyPart(controller, message);
                     }
                 }
             } else if (controller.getState() == State.PARTIAL_SUCCESS) {
@@ -55,6 +37,65 @@ public class CleanupStep extends GenerationStepBase {
 
             controller.next();
         });
+    }
+
+    /**
+     * No text arrived - puts back the content the part had before it was cleared for regeneration.
+     */
+    private void restoreRegenerated(GenerationController controller, ChatMessage message) throws Exception {
+        ChatMessage original = (ChatMessage) controller.getProperties().get(GenerationProperties.ORIGINAL_MESSAGE);
+        if (message != null && original != null) {
+            // replaces every value (attributes included), so nothing of the failed attempt stays in the part
+            message.loadFrom(original);
+            message = chatMessageService.save(message);
+            controller.setMessage(message);
+        }
+        controller.getUIListener().onCancelled(message);
+        controller.getUIListener().onMetricsUpdated(message);
+    }
+
+    /**
+     * No text arrived - removes the new part (or swipe) and makes the previous part (or version) active again.
+     */
+    private void removeEmptyPart(GenerationController controller, ChatMessage message) throws Exception {
+        if (message == null) {
+            controller.getUIListener().onCancelled(null);
+            return;
+        }
+
+        Manuscript manuscript = manuscriptService.find(controller.getManuscript());
+        ChatMessage previousVersion = null;
+        if (controller.getRequest().getRequestType() == GenerationRequestType.SWIPE) {
+            previousVersion = chatMessageService.find(controller.getRequest().getNode());
+            if (previousVersion == null) {
+                List<ChatMessage> family = chatMessageService.getSwipesForMessage(message);
+                Collections.reverse(family);
+                for (ChatMessage m : family) {
+                    if (!m.getId().equals(message.getId())) {
+                        previousVersion = m;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // active leaf must stop pointing at the part before it is deleted
+        if (previousVersion != null) {
+            chatMessageService.swipeTo(manuscript, previousVersion);
+        } else {
+            manuscript.setActiveLeaf(message.getParent());
+        }
+        controller.setManuscript(manuscriptService.save(manuscript));
+
+        if (previousVersion != null) {
+            chatMessageService.delete(message, true);
+            controller.getUIListener().onCancelled(previousVersion);
+            controller.getUIListener().onMetricsUpdated(previousVersion);
+        } else {
+            chatMessageService.deleteNodeAndMigrateChildren(message, controller.getManuscript(), true);
+            controller.getUIListener().onCancelled(null);
+        }
+        controller.setMessage(null);
     }
 
     @Override

@@ -737,7 +737,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                                     if (streamingCard != null)
                                         centerContentPanel.remove(streamingCard);
                                 } else {
-                                    if (!partialMessage.getId().equals(streamingCard.message.getId())) {
+                                    if (streamingCard != null && !partialMessage.getId().equals(streamingCard.message.getId())) {
                                         centerContentPanel.remove(streamingCard);
                                         ChatMessageCard card = new ChatMessageCard(partialMessage, true, activeCardMap.size() + 1);
                                         card.setFrozen(true);
@@ -759,6 +759,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                                                     chatMessageService.save(partialMessage);
                                                 } catch (Exception ignored) {
                                                 }
+                                            }
+                                            try {
+                                                // cleanup may have removed the new part and changed the active one
+                                                currentManuscript = parent.refreshManuscript();
+                                            } catch (Exception e) {
+                                                UIUtils.internalServerError(loc, e);
                                             }
                                             renderStoryContent();
                                             UIPushGuard.push(ui);

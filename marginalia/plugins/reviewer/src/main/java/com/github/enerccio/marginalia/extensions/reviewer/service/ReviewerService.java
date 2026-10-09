@@ -130,22 +130,25 @@ public class ReviewerService {
         return null;
     }
 
-    public void saveReviewData(ChatMessage message, ReviewData data) throws Exception {
+    public ChatMessage saveReviewData(ChatMessage message, ReviewData data) throws Exception {
+        message = chatMessageService.find(message);
         JsonObject attrs = message.getAttributes();
         if (attrs == null) {
             attrs = new JsonObject();
             message.setAttributes(attrs);
         }
         attrs.add(ReviewerSettings.KEY, gson.toJsonTree(data));
-        chatMessageService.save(message);
+        return chatMessageService.save(message);
     }
 
-    public void deleteReviewData(ChatMessage message) throws Exception {
+    public ChatMessage deleteReviewData(ChatMessage message) throws Exception {
+        message = chatMessageService.find(message);
         JsonObject attrs = message.getAttributes();
         if (attrs != null && attrs.has(ReviewerSettings.KEY)) {
             attrs.remove(ReviewerSettings.KEY);
-            chatMessageService.save(message);
+            message = chatMessageService.save(message);
         }
+        return message;
     }
 
     public List<LLMChatMessage> buildChatCompletePrompts(
@@ -279,5 +282,9 @@ public class ReviewerService {
 
     public Protocol findProtocol(Long id) throws Exception {
         return id != null ? protocolService.find(id) : null;
+    }
+
+    public ChatMessage refreshMessage(ChatMessage message) throws Exception {
+        return chatMessageService.find(message);
     }
 }

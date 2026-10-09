@@ -303,6 +303,8 @@ public class UserPart implements WorkspaceComponent {
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
             defaultStyleField.setValue(StringUtils.defaultString(userSetting.getDefaultStyle()));
             defaultUserPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultUserPrompt()));
+            validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class);
+            validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class);
 
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -320,75 +322,17 @@ public class UserPart implements WorkspaceComponent {
             return;
         }
 
-        String masterTemplate = masterTemplateField.getValue();
-        if (StringUtils.isNotBlank(masterTemplate)) {
-            try {
-                TemplateService.ValidationResult result = templateService.isValidTemplate(masterTemplate, "masterTemplate");
-                if (!result.isValid()) {
-                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
-                    return;
-                }
-            } catch (Exception e) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
-                return;
-            }
+        if (!validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class)
+                || !validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class)) {
+            return;
         }
 
+        String masterTemplate = masterTemplateField.getValue();
         String userPrompt = defaultUserPromptField.getValue();
-        if (StringUtils.isNotBlank(userPrompt)) {
-            try {
-                TemplateService.ValidationResult result = templateService.isValidTemplate(userPrompt, "defaultUserPrompt");
-                if (!result.isValid()) {
-                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
-                    return;
-                }
-            } catch (Exception e) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
-                return;
-            }
-        }
 
         String defaultPov = defaultPovField.getValue();
-        if (StringUtils.isNotBlank(defaultPov)) {
-            try {
-                TemplateService.ValidationResult result = templateService.isValidTemplate(defaultPov, "defaultPov");
-                if (!result.isValid()) {
-                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
-                    return;
-                }
-            } catch (Exception e) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
-                return;
-            }
-        }
-
         String defaultTense = defaultTenseField.getValue();
-        if (StringUtils.isNotBlank(defaultTense)) {
-            try {
-                TemplateService.ValidationResult result = templateService.isValidTemplate(defaultTense, "defaultTense");
-                if (!result.isValid()) {
-                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
-                    return;
-                }
-            } catch (Exception e) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
-                return;
-            }
-        }
-
         String defaultStyle = defaultStyleField.getValue();
-        if (StringUtils.isNotBlank(defaultStyle)) {
-            try {
-                TemplateService.ValidationResult result = templateService.isValidTemplate(defaultStyle, "defaultStyle");
-                if (!result.isValid()) {
-                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
-                    return;
-                }
-            } catch (Exception e) {
-                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
-                return;
-            }
-        }
 
         try {
             AI selectedModel = defaultModelCombo.getValue();
@@ -410,6 +354,29 @@ public class UserPart implements WorkspaceComponent {
             Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * @return false if the template is invalid and must not be saved; unknown names are only shown as a warning
+     */
+    private boolean validateTemplate(TextAreaPopoverComponent field, String templateName, Class<? extends TemplateData> dataClass) {
+        String template = field.getValue();
+        if (StringUtils.isBlank(template)) {
+            TemplateHints.showWarnings(loc, field, null);
+            return true;
+        }
+        try {
+            TemplateService.ValidationResult result = templateService.isValidTemplate(template, templateName, dataClass);
+            if (!result.isValid()) {
+                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + result.errorMessage());
+                return false;
+            }
+            TemplateHints.showWarnings(loc, field, result);
+            return true;
+        } catch (Exception e) {
+            Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + e.getMessage());
+            return false;
         }
     }
 

@@ -29,6 +29,9 @@ class DefaultTemplatesTest extends TemplateTestBase {
                 Defaults.DEFAULT_SUMMARY_PROMPT}) {
             assertThat(templateService.isValidTemplate(template, "default").isValid()).isTrue();
         }
+        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_MASTER_TEMPLATE, "default", MasterTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_USER_PROMPT, "default", UserPromptData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_SUMMARY_PROMPT, "default", SummaryTemplateData.class).unknownNames()).isEmpty();
     }
 
     @Test

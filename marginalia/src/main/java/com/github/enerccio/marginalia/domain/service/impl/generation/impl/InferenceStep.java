@@ -80,6 +80,10 @@ public class InferenceStep extends GenerationStepBase {
                             chatMessage.setTokenCount(chatMessage.getTokenCount() + deltaTokenIncrease);
                             chatMessage.setWordCount(countWords(chatMessage.getResponse()));
                             controller.setMessage(chatMessageService.save(chatMessage));
+                            if (StringUtils.isNotBlank(chatMessage.getResponse())) {
+                                // from now on stop or error keeps what arrived
+                                controller.setState(State.PARTIAL_SUCCESS);
+                            }
                             controller.setManuscript(manuscriptService.save(manuscript));
                             controller.getUIListener().onResponseChunk(t, controller.getMessage());
                             controller.getUIListener().onMetricsUpdated(controller.getMessage());

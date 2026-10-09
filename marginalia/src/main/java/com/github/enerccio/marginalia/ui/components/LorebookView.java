@@ -505,12 +505,14 @@ public class LorebookView extends VerticalLayout {
         String payload = payloadField.getValue();
         if (StringUtils.isBlank(payload)) {
             payloadField.setInvalid(false);
+            TemplateHints.showWarnings(loc, payloadField, null);
             return;
         }
         try {
-            TemplateService.ValidationResult result = templateService.isValidTemplate(payload, "lorebookEntry");
+            TemplateService.ValidationResult result = templateService.isValidTemplate(payload, "lorebookEntry", LorebookTemplateData.class);
             payloadField.setErrorMessage(result.isValid() ? null : loc.getValue(L.MSG_INVALID_TEMPLATE) + result.errorMessage());
             payloadField.setInvalid(!result.isValid());
+            TemplateHints.showWarnings(loc, payloadField, result);
         } catch (Exception e) {
             payloadField.setErrorMessage(loc.getValue(L.MSG_INVALID_TEMPLATE) + e.getMessage());
             payloadField.setInvalid(true);

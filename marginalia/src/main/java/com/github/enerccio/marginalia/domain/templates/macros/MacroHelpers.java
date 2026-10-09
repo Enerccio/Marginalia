@@ -49,6 +49,18 @@ public final class MacroHelpers {
         return TRIM.matcher(output).replaceAll("");
     }
 
+    /**
+     * @return true if a handlebars value of given name resolves for given data (declared or context property, or
+     * argument-less macro), so it doesn't end in the missing helper
+     */
+    public static boolean resolves(TemplateData data, String name) {
+        if (data.hasProperty(name)) {
+            return true;
+        }
+        MacroDefinition definition = Macros.find(name);
+        return definition != null && definition.minArgs() == 0 && !Macros.IF.equals(definition.name());
+    }
+
     public static void register(Handlebars handlebars) {
         for (MacroDefinition definition : Macros.all()) {
             if (Macros.IF.equals(definition.name())) {
@@ -146,6 +158,7 @@ public final class MacroHelpers {
                     Object value = data.resolveProperty(name);
                     return value == null ? "" : value;
                 }
+                // keep in sync with resolves()
                 // argument-less macros as values, so {{#if user}} works like {{if user}}
                 MacroDefinition definition = Macros.find(name);
                 if (definition != null && definition.minArgs() == 0 && !Macros.IF.equals(definition.name())) {

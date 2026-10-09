@@ -81,8 +81,9 @@ public class ReviewerExtension implements MarginaliaExtension {
                         // Lazy evaluation inside click listeners prevents capturing heavy Manuscript/Tokenizer objects early
                         reviewMenuItem.getSubMenu().addItem("View / Generate Review", e -> {
                             try {
-                                Manuscript manuscript = manuscriptService.find(message.getParentScript());
-                                ReviewDialog dialog = new ReviewDialog(reviewerService, message, manuscript, null);
+                                ChatMessage freshMessage = reviewerService.refreshMessage(message);
+                                Manuscript manuscript = manuscriptService.find(freshMessage.getParentScript());
+                                ReviewDialog dialog = new ReviewDialog(reviewerService, freshMessage, manuscript, null);
                                 dialog.open();
                             } catch (Exception ex) {
                                 UIUtils.internalServerError(loc, ex);
@@ -91,15 +92,16 @@ public class ReviewerExtension implements MarginaliaExtension {
 
                         reviewMenuItem.getSubMenu().addItem("Advanced Options", e -> {
                             try {
-                                Manuscript manuscript = manuscriptService.find(message.getParentScript());
+                                ChatMessage freshMessage = reviewerService.refreshMessage(message);
+                                Manuscript manuscript = manuscriptService.find(freshMessage.getParentScript());
                                 ReviewerSettings settings = reviewerService.getSettings();
                                 AI targetAi = reviewerService.resolveAI(settings, manuscript);
                                 InferenceService service = inferenceServices.forAI(targetAi);
                                 AdvancedOptionsDialog dialog = new AdvancedOptionsDialog(
                                         reviewerService, service, manuscript,
                                         settings.getSettings().get(settings.getDefaultSetting()),
-                                        message, null, opts -> {
-                                    ReviewDialog rDialog = new ReviewDialog(reviewerService, message, manuscript, opts);
+                                        freshMessage, null, opts -> {
+                                    ReviewDialog rDialog = new ReviewDialog(reviewerService, freshMessage, manuscript, opts);
                                     rDialog.open();
                                 });
                                 dialog.open();
@@ -111,7 +113,8 @@ public class ReviewerExtension implements MarginaliaExtension {
                         boolean hasReview = reviewerService.getReviewData(message) != null;
                         MenuItem deleteItem = reviewMenuItem.getSubMenu().addItem("Delete Review", e -> {
                             try {
-                                reviewerService.deleteReviewData(message);
+                                ChatMessage freshMessage = reviewerService.refreshMessage(message);
+                                reviewerService.deleteReviewData(freshMessage);
                             } catch (Exception ex) {
                                 UIUtils.internalServerError(loc, ex);
                             }
