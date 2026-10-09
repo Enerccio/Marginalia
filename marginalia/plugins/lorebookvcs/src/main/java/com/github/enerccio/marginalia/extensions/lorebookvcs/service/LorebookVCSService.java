@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.lorebookvcs.service;
 
+import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
@@ -7,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
+import com.github.enerccio.marginalia.domain.service.impl.SillyTavernEntryConverter;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LoreEntryRevision;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LoreEntryVCSData;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LorebookVCSData;
@@ -15,8 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Consumer;
 
 @Configurable
 public class LorebookVCSService {
@@ -47,7 +49,13 @@ public class LorebookVCSService {
         JsonObject attrs = lorebook.getAttributes();
         if (attrs != null && attrs.has(LorebookVCSData.KEY)) {
             try {
-                return gson.fromJson(attrs.get(LorebookVCSData.KEY), LorebookVCSData.class);
+                LorebookVCSData stored = gson.fromJson(attrs.get(LorebookVCSData.KEY), LorebookVCSData.class);
+                if (stored != null) {
+                    if (stored.getEntries() == null) {
+                        stored.setEntries(new HashMap<>());
+                    }
+                    return stored;
+                }
             } catch (Exception ignored) {}
         }
         LorebookVCSData data = new LorebookVCSData();
@@ -76,6 +84,89 @@ public class LorebookVCSService {
         }
         lorebook.getAttributes().add(LorebookVCSData.KEY, gson.toJsonTree(data));
         lorebook.setExtendedContent(saved.getExtendedContent());
+    }
+
+    /**
+     * Re-reads the stored history, lets {@code change} modify the history of one entry and saves it. Only that entry's
+     * part is touched, so several open entries don't overwrite each other's revisions.
+     *
+     * @return the entry's history as saved
+     */
+    public LoreEntryVCSData updateEntryData(Lorebook lorebook, String entryUuid, Consumer<LoreEntryVCSData> change) throws Exception {
+        LorebookVCSData data = getVCSData(lorebook);
+        LoreEntryVCSData entryData = data.getOrCreateEntry(entryUuid);
+        change.accept(entryData);
+        saveVCSData(lorebook, data);
+        return entryData;
+    }
+
+    public boolean hasHistory(Lorebook lorebook) {
+        return !getVCSData(lorebook).getEntries().isEmpty();
+    }
+
+    /**
+     * Maps an imported history onto the entries of {@code lorebook}. Entries are matched by uuid first, then - for
+     * histories exported from another copy of the lorebook, whose entries have different uuids - by the name and order
+     * of the entry's current revision, then by the name alone when it is unique.
+     *
+     * @return number of imported entry histories that match no entry and were dropped
+     */
+    public int remapEntries(LorebookVCSData data, Lorebook lorebook) throws Exception {
+        List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(lorebook);
+        Map<String, LorebookEntry> byUuid = new HashMap<>();
+        for (LorebookEntry entry : entries) {
+            byUuid.put(entry.getUuid(), entry);
+        }
+
+        Map<String, LoreEntryVCSData> imported = data.getEntries() != null ? data.getEntries() : new HashMap<>();
+        Map<String, LoreEntryVCSData> mapped = new HashMap<>();
+        Set<String> used = new HashSet<>();
+        List<LoreEntryVCSData> unmatched = new ArrayList<>();
+
+        for (Map.Entry<String, LoreEntryVCSData> e : imported.entrySet()) {
+            if (e.getValue() != null && byUuid.containsKey(e.getKey())) {
+                e.getValue().setEntryUuid(e.getKey());
+                mapped.put(e.getKey(), e.getValue());
+                used.add(e.getKey());
+            } else if (e.getValue() != null) {
+                unmatched.add(e.getValue());
+            }
+        }
+
+        int dropped = 0;
+        for (LoreEntryVCSData entryData : unmatched) {
+            LoreEntryRevision current = entryData.getCurrent();
+            if (current == null && !entryData.getRevisions().isEmpty()) {
+                current = entryData.getRevisions().getLast();
+            }
+            LorebookEntry match = null;
+            if (current != null) {
+                LoreEntryRevision rev = current;
+                List<LorebookEntry> free = entries.stream().filter(en -> !used.contains(en.getUuid())).toList();
+                match = free.stream()
+                        .filter(en -> Objects.equals(StringUtils.defaultString(en.getName()), rev.getName()) && en.getOrder() == rev.getOrder())
+                        .findFirst().orElse(null);
+                if (match == null) {
+                    List<LorebookEntry> sameName = free.stream()
+                            .filter(en -> Objects.equals(StringUtils.defaultString(en.getName()), rev.getName()))
+                            .toList();
+                    if (sameName.size() == 1) {
+                        match = sameName.getFirst();
+                    }
+                }
+            }
+            if (match == null) {
+                dropped++;
+                continue;
+            }
+            entryData.setEntryUuid(match.getUuid());
+            mapped.put(match.getUuid(), entryData);
+            used.add(match.getUuid());
+        }
+
+        data.setEntries(mapped);
+        data.setLorebookUuid(lorebook.getUuid());
+        return dropped;
     }
 
     public void applyRevisionToEntry(LorebookEntry entry, LoreEntryRevision revision) throws Exception {
@@ -186,13 +277,14 @@ public class LorebookVCSService {
 
         if (stRev.has("data") && stRev.get("data").isJsonObject()) {
             JsonObject data = stRev.getAsJsonObject("data");
+            JsonObject flat = flattenSTData(data);
 
             rev.setPayload(extractSTValueString(data, "content", fallbackEntry.getPayload()));
             rev.setComment(extractSTValueString(data, "comment", fallbackEntry.getComment()));
             rev.setName(fallbackEntry.getName());
 
-            if (data.has("disable") && !data.get("disable").isJsonNull()) {
-                rev.setEnabled(!data.get("disable").getAsBoolean());
+            if (flat.has("disable") && !flat.get("disable").isJsonNull()) {
+                rev.setEnabled(SillyTavernEntryConverter.enabled(flat));
             } else {
                 rev.setEnabled(fallbackEntry.isEnabled());
             }
@@ -207,22 +299,40 @@ public class LorebookVCSService {
                 rev.setOrder(fallbackEntry.getOrder());
             }
 
-            rev.setFilteringMode(fallbackEntry.getFilteringMode());
-            rev.setFiltering(fallbackEntry.getFiltering());
-            rev.setInsertionMode(fallbackEntry.getInsertionMode());
-
-            List<String> posTags = new ArrayList<>();
-            posTags.addAll(extractSTStringList(data, "key"));
-            posTags.addAll(extractSTStringList(data, "keysecondary"));
-
-            boolean isExclude = data.has("character_exclusion") && data.get("character_exclusion").getAsBoolean();
-            List<String> charFilter = extractSTStringList(data, "characterFilter");
-            List<String> negTags = new ArrayList<>();
-
-            if (isExclude) {
-                negTags.addAll(charFilter);
+            // trigger keys become the entry's filter, as in the SillyTavern lorebook import
+            if (flat.has("key") || flat.has("constant")) {
+                List<String> primaryKeys = extractSTStringList(data, "key");
+                List<String> secondaryKeys = extractSTStringList(data, "keysecondary");
+                SillyTavernEntryConverter.Filter filter = SillyTavernEntryConverter.filter(flat, primaryKeys, secondaryKeys);
+                if (filter != null) {
+                    rev.setFiltering(filter.filtering());
+                    rev.setFilteringMode(filter.mode());
+                } else {
+                    rev.setFiltering("");
+                    rev.setFilteringMode(FilteringMode.TEXT);
+                }
             } else {
-                posTags.addAll(charFilter);
+                rev.setFiltering(fallbackEntry.getFiltering());
+                rev.setFilteringMode(fallbackEntry.getFilteringMode());
+            }
+            rev.setInsertionMode(flat.has("position") ? SillyTavernEntryConverter.insertionMode(flat) : fallbackEntry.getInsertionMode());
+
+            // character filter restricts the entry to certain characters/tags - the closest concept are tags
+            List<String> posTags = new ArrayList<>();
+            List<String> negTags = new ArrayList<>();
+            JsonElement charFilterElem = flat.get("characterFilter");
+            if (charFilterElem != null && charFilterElem.isJsonObject()) {
+                JsonObject charFilter = charFilterElem.getAsJsonObject();
+                boolean isExclude = charFilter.has("isExclude") && !charFilter.get("isExclude").isJsonNull()
+                        && charFilter.get("isExclude").getAsBoolean();
+                List<String> filterTags = new ArrayList<>();
+                filterTags.addAll(extractSTStringList(charFilter, "names"));
+                filterTags.addAll(extractSTStringList(charFilter, "tags"));
+                (isExclude ? negTags : posTags).addAll(filterTags);
+            } else {
+                boolean isExclude = flat.has("character_exclusion") && !flat.get("character_exclusion").isJsonNull()
+                        && flat.get("character_exclusion").getAsBoolean();
+                (isExclude ? negTags : posTags).addAll(extractSTStringList(data, "characterFilter"));
             }
 
             rev.setPositiveTags(posTags);
@@ -230,6 +340,21 @@ public class LorebookVCSService {
         }
 
         return rev;
+    }
+
+    /**
+     * Revision data wraps the values as {@code {"value": ...}}, the SillyTavern entry converter expects them plain.
+     */
+    private JsonObject flattenSTData(JsonObject data) {
+        JsonObject flat = new JsonObject();
+        for (Map.Entry<String, JsonElement> e : data.entrySet()) {
+            JsonElement value = e.getValue();
+            if (value != null && value.isJsonObject() && value.getAsJsonObject().has("value")) {
+                value = value.getAsJsonObject().get("value");
+            }
+            flat.add(e.getKey(), value);
+        }
+        return flat;
     }
 
     private String extractSTValueString(JsonObject data, String fieldName, String fallback) {

@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LorebookVCSData;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.service.LorebookVCSService;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -20,19 +21,31 @@ import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
 import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
+@Configurable
 public class LorebookVCSGlobalPanel extends HorizontalLayout {
 
+    @Autowired
+    private Localization loc;
+
     private final LorebookVCSService vcsService;
-    private final Lorebook lorebook;
+    private final Supplier<Lorebook> lorebookSupplier;
     private final Runnable onDataImported;
 
-    public LorebookVCSGlobalPanel(LorebookVCSService vcsService, Lorebook lorebook, Runnable onDataImported) {
+    /**
+     * @param lorebookSupplier the lorebook selected in the view, read on every action
+     */
+    public LorebookVCSGlobalPanel(LorebookVCSService vcsService, Supplier<Lorebook> lorebookSupplier, Runnable onDataImported) {
         this.vcsService = vcsService;
-        this.lorebook = lorebook;
+        this.lorebookSupplier = lorebookSupplier;
         this.onDataImported = onDataImported;
 
         setWidthFull();
@@ -52,9 +65,10 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
 
         Anchor exportAnchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
             try {
+                Lorebook lorebook = lorebookSupplier.get();
                 String json = vcsService.exportVCSJson(lorebook);
                 byte[] data = json.getBytes(StandardCharsets.UTF_8);
-                String fileName = (lorebook.getName() != null ? lorebook.getName().replaceAll("[^a-zA-Z0-9.-]", "_") : "lorebook") + "_vcs_history.json";
+                String fileName = (lorebook != null && lorebook.getName() != null ? lorebook.getName().replaceAll("[^a-zA-Z0-9.-]", "_") : "lorebook") + "_vcs_history.json";
                 return new DownloadResponse(new ByteArrayInputStream(data), fileName, "application/json", data.length);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -86,60 +100,67 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
     }
 
     private void openImportDialog(boolean isSillyTavernFormat) {
+        Lorebook lorebook = lorebookSupplier.get();
         if (lorebook == null) {
             Notification.warning("No active lorebook selected");
             return;
         }
 
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(isSillyTavernFormat ? "Import SillyTavern VCS History" : "Import Lorebook VCS History");
+        dialog.setHeaderTitle((isSillyTavernFormat ? "Import SillyTavern VCS History" : "Import Lorebook VCS History")
+                + " into " + StringUtils.defaultString(lorebook.getName()));
         dialog.setWidth("450px");
 
         InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
             try {
                 String json = new String(data, StandardCharsets.UTF_8);
+                LorebookVCSData parsed;
+                List<String> warnings = new ArrayList<>();
 
                 if (isSillyTavernFormat) {
-                    LorebookVCSData parsedST = vcsService.parseSillyTavernVCSJson(json, lorebook);
-                    vcsService.saveVCSData(lorebook, parsedST);
-                    dialog.close();
-                    Notification.show("Successfully imported SillyTavern VCS history");
-                    if (onDataImported != null) onDataImported.run();
+                    parsed = vcsService.parseSillyTavernVCSJson(json, lorebook);
                 } else {
-                    LorebookVCSData parsedData = vcsService.parseVCSJson(json);
-                    if (parsedData == null) {
+                    parsed = vcsService.parseVCSJson(json);
+                    if (parsed == null) {
                         Notification.error("Invalid VCS history format");
                         return;
                     }
 
-                    String fileUuid = parsedData.getLorebookUuid();
-                    String targetUuid = lorebook.getUuid();
+                    String fileUuid = parsed.getLorebookUuid();
+                    if (StringUtils.isNotBlank(fileUuid) && !StringUtils.equals(fileUuid, lorebook.getUuid())) {
+                        warnings.add("The import file contains revision history of another lorebook (UUID '" + fileUuid
+                                + "'). Its revisions will be mapped onto the entries of '" + lorebook.getName()
+                                + "' by entry name and order.");
+                    }
+                    int dropped = vcsService.remapEntries(parsed, lorebook);
+                    if (dropped > 0) {
+                        warnings.add(dropped + " entry histories match no entry of this lorebook and will be skipped.");
+                    }
+                }
 
-                    if (StringUtils.isNotBlank(fileUuid) && !StringUtils.equals(fileUuid, targetUuid)) {
-                        String msg = "Warning: The import file contains revision history designated for lorebook UUID '" + fileUuid
-                                + "', but the active lorebook is '" + targetUuid + "'.\n\nProceeding will map these revisions onto the current lorebook. Are you sure?";
+                if (vcsService.hasHistory(lorebook)) {
+                    warnings.add("The existing revision history of '" + lorebook.getName() + "' will be replaced.");
+                }
 
-                        ConfirmDialog.show(msg, () -> {
-                            try {
-                                parsedData.setLorebookUuid(targetUuid);
-                                vcsService.saveVCSData(lorebook, parsedData);
-                                dialog.close();
-                                Notification.show("Imported VCS history successfully");
-                                if (onDataImported != null) onDataImported.run();
-                            } catch (Exception ex) {
-                                UIUtils.internalServerError(null, ex);
-                            }
-                        });
-                    } else {
-                        parsedData.setLorebookUuid(targetUuid);
-                        vcsService.saveVCSData(lorebook, parsedData);
+                Runnable doImport = () -> {
+                    try {
+                        parsed.setLorebookUuid(lorebook.getUuid());
+                        vcsService.saveVCSData(lorebook, parsed);
                         dialog.close();
                         Notification.show("Imported VCS history successfully");
                         if (onDataImported != null) onDataImported.run();
+                    } catch (Exception ex) {
+                        UIUtils.internalServerError(loc, ex);
                     }
+                };
+
+                if (warnings.isEmpty()) {
+                    doImport.run();
+                } else {
+                    ConfirmDialog.show(String.join("\n\n", warnings) + "\n\nAre you sure?", doImport);
                 }
             } catch (Exception e) {
-                UIUtils.internalServerError(null, e);
+                UIUtils.internalServerError(loc, e);
             }
         });
 
