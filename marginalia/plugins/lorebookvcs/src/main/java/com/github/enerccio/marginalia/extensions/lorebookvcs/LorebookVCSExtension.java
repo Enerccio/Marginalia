@@ -41,13 +41,6 @@ public class LorebookVCSExtension implements MarginaliaExtension {
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         try {
-            Runnable refreshCallback = () -> {
-                // Keep LorebookView's internal currentLorebook reference fresh with DB state
-                try {
-                    Lorebook current = lorebookService.find(lorebookService.findAllForUser().stream().findFirst().orElse(null));
-                } catch (Exception ignored) {}
-            };
-
             viewCreateDecorator = new ExtensionDecorator() {
                 @Override
                 public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {}
@@ -58,12 +51,12 @@ public class LorebookVCSExtension implements MarginaliaExtension {
                         if (ComponentUtil.getData(lorebookView, GLOBAL_PANEL_KEY) != null) return;
 
                         HorizontalLayout lorebookHeaderLayout = context.getLocalVariable("lorebookHeaderLayout", HorizontalLayout.class);
-                        Lorebook currentLorebook = lorebookView.getCurrentLorebook();
 
-                        if (currentLorebook != null && lorebookHeaderLayout != null) {
-                            LorebookVCSGlobalPanel globalPanel = new LorebookVCSGlobalPanel(vcsService, currentLorebook, () -> {
+                        if (lorebookHeaderLayout != null) {
+                            // the panel reads the selected lorebook on every action, so it follows the lorebook combo box
+                            LorebookVCSGlobalPanel globalPanel = new LorebookVCSGlobalPanel(vcsService, lorebookView::getCurrentLorebook, () -> {
                                 try {
-                                    syncAndRefreshView(lorebookView, context, currentLorebook);
+                                    syncAndRefreshView(lorebookView, context, lorebookView.getCurrentLorebook());
                                 } catch (Exception e) {
                                     UIUtils.internalServerError(loc, e);
                                 }

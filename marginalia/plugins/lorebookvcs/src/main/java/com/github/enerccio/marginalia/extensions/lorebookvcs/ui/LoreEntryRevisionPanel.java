@@ -5,7 +5,6 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LoreEntryRevision;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LoreEntryVCSData;
-import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LorebookVCSData;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.service.LorebookVCSService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -43,7 +42,6 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
     private Button nextBtn;
     private Button addBtn;
 
-    private LorebookVCSData vcsData;
     private LoreEntryVCSData entryVcsData;
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -130,23 +128,17 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
     private void initData() {
         try {
-            vcsData = vcsService.getVCSData(lorebook);
-            entryVcsData = vcsData.getOrCreateEntry(entry.getUuid());
-
             LoreEntryRevision currentSnap = vcsService.createSnapshot(entry);
-
-            if (entryVcsData.getRevisions().isEmpty()) {
-                entryVcsData.getRevisions().add(currentSnap);
-                entryVcsData.setCurrentRevision(0);
-                vcsService.saveVCSData(lorebook, vcsData);
-            } else {
-                LoreEntryRevision activeRev = entryVcsData.getCurrent();
-                if (activeRev != null) {
+            entryVcsData = vcsService.updateEntryData(lorebook, entry.getUuid(), data -> {
+                LoreEntryRevision activeRev = data.getCurrent();
+                if (data.getRevisions().isEmpty()) {
+                    data.getRevisions().add(currentSnap);
+                    data.setCurrentRevision(0);
+                } else if (activeRev != null) {
                     // Sync active revision in-place with entry state rather than appending a new revision
                     copyRevisionState(currentSnap, activeRev);
-                    vcsService.saveVCSData(lorebook, vcsData);
                 }
-            }
+            });
             refreshDisplay();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -158,16 +150,19 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
      */
     public void syncCurrentRevisionFromEntry() {
         if (entryVcsData == null || entryVcsData.getRevisions().isEmpty()) return;
-        int currentIdx = entryVcsData.getCurrentRevision();
-        if (currentIdx < 0 || currentIdx >= entryVcsData.getRevisions().size()) return;
 
         try {
             LoreEntryRevision liveState = vcsService.createSnapshot(entry);
-            LoreEntryRevision activeRev = entryVcsData.getRevisions().get(currentIdx);
-            copyRevisionState(liveState, activeRev);
-            vcsService.saveVCSData(lorebook, vcsData);
+            entryVcsData = vcsService.updateEntryData(lorebook, entry.getUuid(), data -> syncActive(data, liveState));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    private void syncActive(LoreEntryVCSData data, LoreEntryRevision liveState) {
+        LoreEntryRevision activeRev = data.getCurrent();
+        if (activeRev != null) {
+            copyRevisionState(liveState, activeRev);
         }
     }
 
@@ -195,6 +190,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
         int total = entryVcsData.getRevisions().size();
         int currentIdx = entryVcsData.getCurrentRevision();
         if (currentIdx < 0) currentIdx = 0;
+        if (currentIdx >= total) currentIdx = total - 1;
 
         indexSpan.setText((currentIdx + 1) + " / " + total);
 
@@ -214,14 +210,14 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
     private void createSnapshot() {
         try {
-            // First bind live edits into current revision
-            syncCurrentRevisionFromEntry();
-
-            // Create new snapshot
+            // Bind live edits into current revision, then add the new snapshot
+            LoreEntryRevision liveState = vcsService.createSnapshot(entry);
             LoreEntryRevision newRev = vcsService.createSnapshot(entry);
-            entryVcsData.getRevisions().add(newRev);
-            entryVcsData.setCurrentRevision(entryVcsData.getRevisions().size() - 1);
-            vcsService.saveVCSData(lorebook, vcsData);
+            entryVcsData = vcsService.updateEntryData(lorebook, entry.getUuid(), data -> {
+                syncActive(data, liveState);
+                data.getRevisions().add(newRev);
+                data.setCurrentRevision(data.getRevisions().size() - 1);
+            });
             refreshDisplay();
             Notification.show("Revision snapshot created");
         } catch (Exception e) {
@@ -236,15 +232,19 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
         }
 
         try {
-            int current = entryVcsData.getCurrentRevision();
-            entryVcsData.getRevisions().remove(current);
-            int newIdx = Math.max(0, current - 1);
-
             // Switch without re-syncing deleted revision
-            entryVcsData.setCurrentRevision(newIdx);
-            LoreEntryRevision rev = entryVcsData.getRevisions().get(newIdx);
-            vcsService.applyRevisionToEntry(entry, rev);
-            vcsService.saveVCSData(lorebook, vcsData);
+            entryVcsData = vcsService.updateEntryData(lorebook, entry.getUuid(), data -> {
+                if (data.getRevisions().size() <= 1) return;
+                int current = Math.max(0, data.getCurrentRevision());
+                if (current < data.getRevisions().size()) {
+                    data.getRevisions().remove(current);
+                }
+                data.setCurrentRevision(Math.max(0, current - 1));
+            });
+            LoreEntryRevision rev = entryVcsData.getCurrent();
+            if (rev != null) {
+                vcsService.applyRevisionToEntry(entry, rev);
+            }
 
             refreshDisplay();
 
@@ -266,12 +266,17 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
     private void switchToRevision(int index) {
         try {
             // Bind live edits on current revision before switching away
-            syncCurrentRevisionFromEntry();
-
-            entryVcsData.setCurrentRevision(index);
-            LoreEntryRevision rev = entryVcsData.getRevisions().get(index);
-            vcsService.applyRevisionToEntry(entry, rev);
-            vcsService.saveVCSData(lorebook, vcsData);
+            LoreEntryRevision liveState = vcsService.createSnapshot(entry);
+            entryVcsData = vcsService.updateEntryData(lorebook, entry.getUuid(), data -> {
+                syncActive(data, liveState);
+                if (index >= 0 && index < data.getRevisions().size()) {
+                    data.setCurrentRevision(index);
+                }
+            });
+            LoreEntryRevision rev = entryVcsData.getCurrent();
+            if (rev != null) {
+                vcsService.applyRevisionToEntry(entry, rev);
+            }
 
             refreshDisplay();
 

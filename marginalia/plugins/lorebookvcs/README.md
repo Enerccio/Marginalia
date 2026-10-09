@@ -20,9 +20,13 @@ always shows one of them, and edits you make to the entry belong to that revisio
 
 **Lorebook revisions** - the lorebook toolbar gets a *Lorebook Revisions* panel to:
 
-- export the history of all entries as JSON,
-- import a history exported by this plugin,
-- import revision history from SillyTavern (entries are matched by their order in the lorebook).
+- export the history of all entries of the selected lorebook as JSON,
+- import a history exported by this plugin (entries are matched by identity, then by name and order, so it also
+  attaches to an imported copy of the lorebook),
+- import revision history from SillyTavern (entries are matched by their order in the lorebook, trigger keys become
+  the entry's filter).
+
+An import replaces the lorebook's history and asks for confirmation when there is one.
 
 ## Storage
 
