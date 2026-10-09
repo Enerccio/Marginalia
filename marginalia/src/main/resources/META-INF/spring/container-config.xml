@@ -23,8 +23,13 @@
     </bean>
 
     <bean name="applicationInitializer" class="com.github.enerccio.marginalia.bound.ApplicationInitializer">
-        <property name="appVersion" value="1" />
+        <property name="appVersion" value="2" />
         <property name="dbVersion" value="1" />
+        <property name="migrations">
+            <list>
+                <bean class="com.github.enerccio.marginalia.bound.migration.EncryptApiKeysMigration" />
+            </list>
+        </property>
     </bean>
 
 </beans>

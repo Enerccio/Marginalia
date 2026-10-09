@@ -42,6 +42,14 @@
         <property name="persistenceUnitName" value="PU"/>
         <property name="persistenceXmlLocation" value="config/persistence.xml" />
         <property name="dataSource" ref="ds"/>
+        <property name="jpaPropertyMap">
+            <map>
+                <!-- lets Spring create (and autowire) JPA converters, e.g. EncryptedStringConverter -->
+                <entry key="hibernate.resource.beans.container">
+                    <bean class="org.springframework.orm.jpa.hibernate.SpringBeanContainer" autowire="constructor" />
+                </entry>
+            </map>
+        </property>
     </bean>
 
     <bean id="ds" class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy">

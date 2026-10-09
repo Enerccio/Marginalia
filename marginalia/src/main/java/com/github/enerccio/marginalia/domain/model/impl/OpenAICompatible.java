@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
+import com.github.enerccio.marginalia.domain.model.converter.EncryptedStringConverter;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.google.gson.JsonObject;
 import jakarta.persistence.*;
@@ -15,6 +16,7 @@ public class OpenAICompatible extends AI {
     private String model;
 
     @Lob
+    @Convert(converter = EncryptedStringConverter.class)
     private String apiKey;
 
     @Lob
