@@ -5,6 +5,7 @@ a restart.
 
 | Plugin | What it adds |
 |---|---|
+| [Author's Note](authorsnote/README.md) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
 | [Lorebook VCS](lorebookvcs/README.md) | Revision history for lorebook entries: snapshots, browsing and restoring old versions, export/import. |
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
@@ -30,7 +31,7 @@ Plugins compile against the Marginalia application, which has to be installed in
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or lorebookvcs, reviewer, sidequery
+cd plugins/chaptermarker          # or authorsnote, lorebookvcs, reviewer, sidequery
 mvn package                       # target/chaptermarker-1.0.0.jar
 ```
 
@@ -44,7 +45,9 @@ A plugin is a Maven project with `bundle` packaging (`maven-bundle-plugin`) that
 
 Through `ExtensionService.registerDecorator(decorator, className, methodName)` a plugin runs code before and after
 any method of a UI class annotated `@Extendable`, with access to the method's arguments and local variables -
-that's how these plugins add menu items, panels and settings. Plugin data is usually kept in the `attributes` of
+that's how these plugins add menu items, panels and settings. Through
+`StoryGenerationService.addEventListener(event, listener)` a plugin takes part in generation - it can change the
+lore, the prompt and the answer; [Author's Note](authorsnote) inserts its note into the payload this way. Plugin data is usually kept in the `attributes` of
 existing entities (book, story part, lorebook, user settings), so it's included in backups and exports.
 
-The four plugins here are complete examples, [Chapter Marker](chaptermarker) is the smallest one.
+The five plugins here are complete examples, [Chapter Marker](chaptermarker) is the smallest one.

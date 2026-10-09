@@ -6,8 +6,9 @@ order: 60
 # Example plugin
 
 This page builds a small plugin from scratch - *Bookmarks*, which lets you bookmark story parts - and then walks
-through the smallest bundled plugin, Chapter Marker. Together they use everything from the previous pages: a
-bundle, decorators reading arguments, locals and fields, data in attributes, and cleanup on unload.
+through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to
+the model. Together they use everything from the previous pages: a bundle, decorators reading arguments, locals and
+fields, data in attributes, generation listeners, and cleanup on unload.
 
 ## Bookmarks
 
@@ -275,8 +276,8 @@ If nothing appears, look in the log for `Mod 'com.example.marginalia.bookmarks.B
 
 - Show the bookmarks in a tab of their own: decorate `renderStoryContent()` and add a tab to `leftBar`, like Side
   Query ([A tab next to the story](ui-extensions.md#a-tab-next-to-the-story)).
-- Put bookmarked parts into the prompt: register a listener for `AFTER_MANUSCRIPT_CONCATENATION`
-  ([Generation pipeline](../generation-pipeline.md#events-for-extensions)).
+- Put bookmarked parts into the prompt: register a generation listener, like Author's Note
+  ([Walkthrough: Author's Note](#walkthrough-authors-note), [Generation events](generation-events.md)).
 
 ## Walkthrough: Chapter Marker
 
@@ -331,4 +332,57 @@ What to take from it:
 
 The other bundled plugins build on the same pieces: Reviewer and Side Query add menu items, tabs, settings panels and
 call the model ([Extending the UI](ui-extensions.md)); Lorebook VCS stores larger data in a lorebook's attributes
-([Extended attributes](extended-attributes.md)).
+([Extended attributes](extended-attributes.md)); Author's Note, below, changes the prompt of every generation.
+
+## Walkthrough: Author's Note
+
+`marginalia/plugins/authorsnote` sends a per-book note to the model with every generation: an *Author's Note* tab next
+to the story outline edits it, a generation listener inserts it into the prompt. It shows the one thing decorators
+can't do - change what the model gets.
+
+| Class | Does |
+|---|---|
+| `AuthorsNoteData` | The note: on/off, the text, a private scratchpad, the insertion depth and the role. Stored in the book's attributes under the package name. |
+| `AuthorsNoteService` | Loads and saves the data, inserts the note into a payload. |
+| `AuthorsNoteView` | The sidebar tab; every change is saved right away. |
+| `AuthorsNoteExtension` | Adds the tab on leave of `ManuscriptStoryPart.renderStoryContent()` (like Side Query) and registers the listener. |
+
+**Hooking into generation** - `onExtensionLoad` registers a listener next to the decorator and keeps the
+registration:
+
+```java
+payloadRegistration = storyGenerationService.addEventListener(Events.AFTER_PREPARE_PAYLOAD,
+        this::insertAuthorsNote);
+```
+
+`AFTER_PREPARE_PAYLOAD` comes when the list of chat messages for the model is complete; what the listener sets is
+what is sent:
+
+```java
+private void insertAuthorsNote(GenerationControllerEvent event, EventChain chain) {
+    try {
+        Manuscript manuscript = event.getManuscript();
+        if (manuscript != null) {
+            AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
+            event.setPayload(authorsNoteService.insertNote(event.getPayload(), data));
+        }
+    } catch (Exception e) {
+        log.warn("Failed to insert the author's note: {}", e.getMessage(), e);
+    } finally {
+        chain.next();
+    }
+}
+```
+
+**Unloading** calls `payloadRegistration.unregister()` besides removing the decorator and the tabs - a listener left
+registered would keep changing the prompts of every user.
+
+What to take from it:
+
+- `chain.next()` in `finally` - the generation waits for every listener;
+- listeners are global, so act only on the data of the book being generated;
+- read data the user may have changed since the generation started again, with the service;
+- build a new payload and `setPayload(...)` it instead of changing the list you got.
+
+[Generation events](generation-events.md) explains the payload, the choice of the event and the token budget in
+detail.

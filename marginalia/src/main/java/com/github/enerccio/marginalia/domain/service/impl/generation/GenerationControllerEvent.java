@@ -45,7 +45,7 @@ public interface GenerationControllerEvent {
 
     /**
      * Shared generation state, keys and their availability are listed in {@link GenerationProperties}.
-     * Listeners can also store their own values, prefixed with extension name to avoid clashes.
+     * Listeners can also store their own values, prefixed with the extension's package to avoid clashes.
      */
     Map<String, Object> getProperties();
 

@@ -28,8 +28,8 @@ import java.util.WeakHashMap;
 @Configurable
 public class SideQueryExtension implements MarginaliaExtension {
 
-    private static final String SIDE_QUERY_VIEW_KEY = "sidequery_view_component";
-    private static final String SETTINGS_PANEL_KEY = "sidequery_settings_panel";
+    private static final String SIDE_QUERY_VIEW_KEY = SideQuerySettings.KEY + ".view";
+    private static final String SETTINGS_PANEL_KEY = SideQuerySettings.KEY + ".settingsPanel";
 
     private final SideQueryService sideQueryService = new SideQueryService();
 

@@ -33,9 +33,9 @@ import java.util.WeakHashMap;
 @Configurable
 public class ReviewerExtension implements MarginaliaExtension {
 
-    private static final String REVIEW_MENU_ITEM_KEY = "reviewer_root_menu_item";
-    private static final String DELETE_MENU_ITEM_KEY = "reviewer_delete_menu_item";
-    private static final String SETTINGS_PANEL_KEY = "reviewer_settings_panel";
+    private static final String REVIEW_MENU_ITEM_KEY = ReviewerSettings.KEY + ".rootMenuItem";
+    private static final String DELETE_MENU_ITEM_KEY = ReviewerSettings.KEY + ".deleteMenuItem";
+    private static final String SETTINGS_PANEL_KEY = ReviewerSettings.KEY + ".settingsPanel";
 
     @Autowired
     private Localization loc;
