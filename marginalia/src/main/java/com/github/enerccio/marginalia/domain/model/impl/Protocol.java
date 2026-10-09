@@ -7,10 +7,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-@Table(name="protocols", indexes = {
-        @Index(name = "protocol_is_deleted_idx", columnList = "is_deleted"),
-        @Index(name = "protocol_user_id_ix", columnList = "userId")
-})
+@Table(name = "protocols")
 public abstract class Protocol extends ExtendableEntity {
 
     @Lob

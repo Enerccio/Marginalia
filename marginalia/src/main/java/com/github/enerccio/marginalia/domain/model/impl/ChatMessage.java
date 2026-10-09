@@ -10,12 +10,7 @@ import java.util.Date;
 
 
 @Entity
-@Table(name = "messages", indexes = {
-        @Index(name = "ix_msg_parent_script", columnList = "parentScript_id"),
-        @Index(name = "ix_msg_parent_msg", columnList = "parent_id"),
-        @Index(name = "ix_msg_user_id", columnList = "userId"),
-        @Index(name = "ix_msg_is_deleted", columnList = "is_deleted")
-})
+@Table(name = "messages")
 public class ChatMessage extends ExtendableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -1,13 +1,13 @@
 package com.github.enerccio.marginalia.domain.security.model;
 
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users", indexes = {
-        @Index(name = "user_is_deleted_idx", columnList = "is_deleted"),
-        @Index(name = "user_login_idx", columnList = "login"),
-})
+@Table(name = "users")
 public class User extends BaseEntity {
 
     @Column(unique = true, length = 64)

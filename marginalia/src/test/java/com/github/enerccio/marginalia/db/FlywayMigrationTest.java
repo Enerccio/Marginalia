@@ -118,6 +118,28 @@ class FlywayMigrationTest {
         assertThatCode(() -> validateSchema(dataSource)).doesNotThrowAnyException();
     }
 
+    @Test
+    void tagRelationLookupsUseIndexes() {
+        flyway(null).migrate();
+
+        List<String> indexes = jdbc.queryForList("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 't2e'", String.class);
+        assertThat(indexes).contains("ix_t2e_object", "ix_t2e_tag")
+                .doesNotContain("ix__tag__id_clazz", "ix__tag__id_clazz_neg");
+
+        // V6: lookups by object and by tag no longer scan the table
+        assertThat(queryPlan("SELECT tag_id FROM t2e WHERE objectId = 1 AND clazz = 'x' AND negative = false AND is_deleted = false"))
+                .contains("ix_t2e_object");
+        assertThat(queryPlan("SELECT objectId FROM t2e WHERE tag_id = 1 AND clazz = 'x' AND negative = false AND is_deleted = false"))
+                .contains("ix_t2e_tag");
+        assertThat(queryPlan("SELECT id FROM entries WHERE lorebook_id = 1 AND is_deleted = false ORDER BY ordinal"))
+                .contains("ix_entries_lorebook").doesNotContain("TEMP B-TREE");
+    }
+
+    private String queryPlan(String sql) {
+        return String.join("\n", jdbc.queryForList("EXPLAIN QUERY PLAN " + sql).stream()
+                .map(row -> String.valueOf(row.get("detail"))).toList());
+    }
+
     private void insertV1Data() {
         jdbc.update("INSERT INTO manuscripts (id, is_deleted, uuid, name) VALUES (1, false, 'm-1', 'Old book')");
         jdbc.update("INSERT INTO lorebooks (id, is_deleted, uuid, name, enabled) VALUES (1, false, 'l-1', 'A', true)");

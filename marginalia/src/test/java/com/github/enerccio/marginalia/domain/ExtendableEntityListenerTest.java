@@ -13,6 +13,9 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +33,32 @@ class ExtendableEntityListenerTest {
 
     private static void setStored(com.github.enerccio.marginalia.domain.model.ExtendableEntity entity, String json) {
         entity.setExtendedContent(json.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void storesDatesAsIsoInstantInUtc() throws Exception {
+        ChatMessage message = new ChatMessage();
+        message.setRequest(new Date(1_700_000_000_123L));
+
+        listener.serialize(message);
+
+        assertThat(stored(message).get("request").getAsString()).isEqualTo("2023-11-14T22:13:20.123Z");
+    }
+
+    @Test
+    void readsLegacyDatesInJvmTimeZone() throws Exception {
+        ChatMessage message = new ChatMessage();
+        setStored(message, "{\"request\": \"2023.11.14Z22:13:20.123\"}");
+
+        listener.deserialize(message);
+
+        Date expected = Date.from(LocalDateTime.of(2023, 11, 14, 22, 13, 20, 123_000_000)
+                .atZone(ZoneId.systemDefault()).toInstant());
+        assertThat(message.getRequest()).isEqualTo(expected);
+
+        // saved again in the new format, same instant
+        listener.serialize(message);
+        assertThat(Instant.parse(stored(message).get("request").getAsString())).isEqualTo(expected.toInstant());
     }
 
     @Test

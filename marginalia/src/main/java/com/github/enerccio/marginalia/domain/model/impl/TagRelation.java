@@ -3,13 +3,13 @@ package com.github.enerccio.marginalia.domain.model.impl;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "t2e", indexes = {
-        @Index(name = "ix__tag__id_clazz", columnList = "id,clazz"),
-        @Index(name = "ix__tag__id_clazz_neg", columnList = "id,clazz,negative")
-})
+@Table(name = "t2e")
 public class TagRelation extends ExtendableEntity {
 
     @ManyToOne

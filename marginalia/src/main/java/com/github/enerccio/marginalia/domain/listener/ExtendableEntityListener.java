@@ -13,7 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +52,8 @@ public class ExtendableEntityListener {
 
     private static class AttributesAccessor {
         private final Gson gson = new GsonBuilder().serializeNulls().create();
-        private final ThreadLocal<SimpleDateFormat> df = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy.MM.dd'Z'HH:mm:ss.SSS"));
+        // format used before ISO-8601: the 'Z' is a literal, values are in the JVM's time zone
+        private static final DateTimeFormatter LEGACY_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.dd'Z'HH:mm:ss.SSS");
 
         private final Class<?> clazz;
         private final Map<String, Field> attributes = new HashMap<>();
@@ -65,6 +70,24 @@ public class ExtendableEntityListener {
             }
         }
 
+        /**
+         * Dates are stored as ISO-8601 instants in UTC, e.g. {@code 2026-10-09T08:15:30.123Z}.
+         */
+        static String formatDate(Date date) {
+            return DateTimeFormatter.ISO_INSTANT.format(date.toInstant());
+        }
+
+        /**
+         * Reads ISO-8601 instants and, for values stored by older versions, the legacy format in the JVM's time zone.
+         */
+        static Date parseDate(String value) {
+            try {
+                return Date.from(Instant.parse(value));
+            } catch (DateTimeParseException e) {
+                return Date.from(LocalDateTime.parse(value, LEGACY_DATE_FORMAT).atZone(ZoneId.systemDefault()).toInstant());
+            }
+        }
+
         public void serialize(ExtendableEntity entity) throws Exception {
             JsonObject root = new JsonObject();
             for (String field : attributes.keySet()) {
@@ -78,7 +101,7 @@ public class ExtendableEntityListener {
                         continue;
 
                     if (value instanceof Date)
-                        strValue = df.get().format((Date) value);
+                        strValue = formatDate((Date) value);
 
                     root.addProperty(field, strValue);
                 } else {
@@ -157,7 +180,7 @@ public class ExtendableEntityListener {
                     } else if (Float.class.equals(type) || float.class.equals(type)) {
                         f.set(entity, Float.valueOf(strVal));
                     } else if (Date.class.equals(type)) {
-                        f.set(entity, df.get().parse(strVal));
+                        f.set(entity, parseDate(strVal));
                     } else if (Boolean.class.equals(type) || boolean.class.equals(type)) {
                         f.set(entity, Boolean.valueOf(strVal));
                     } else if (Enum.class.isAssignableFrom(type)) {

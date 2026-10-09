@@ -2,16 +2,11 @@ package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "resources", indexes = {
-        @Index(name = "resource_is_deleted_ix", columnList = "is_deleted"),
-        @Index(name = "resource_user_id_ix", columnList = "userId"),
-        @Index(name = "resource_hash_ix", columnList = "hash")
-})
+@Table(name = "resources")
 public class Resource extends OwnedEntity {
 
     private String mimeType;
