@@ -310,7 +310,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_DATABASE_BACKUP_CREATED, "Database backup created.");
         setValue(L.MSG_CONFIRM_DATABASE_RESTORE, "Database will be replaced with backup \"%s\" on next application start. Current database will be kept in backup folder. Continue?");
         setValue(L.MSG_DATABASE_RESTORE_PENDING, "Database restore is scheduled. Restart the application to apply it.");
-        setValue(L.MSG_INVALID_DATABASE_FILE, "File is not a valid SQLite database.");
+        setValue(L.MSG_INVALID_DATABASE_FILE, "The database can't be restored: %s.");
         setValue(L.LABEL_SCHEDULED_BACKUPS, "Scheduled Backups");
         setValue(L.LABEL_BACKUP_SCHEDULE_ENABLED, "Create backups automatically");
         setValue(L.LABEL_BACKUP_SCHEDULE, "Schedule (cron)");

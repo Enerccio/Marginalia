@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.db;
 
+import com.github.enerccio.marginalia.DatabaseCheck;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.MigrationState;
@@ -40,14 +41,10 @@ class FlywayMigrationTest {
     }
 
     /**
-     * Same configuration as the {@code flywayConfiguration} bean in datasources-config.xml.
+     * The configuration of the {@code flywayConfiguration} bean in datasources-config.xml.
      */
     private Flyway flyway(String target) {
-        ClassicConfiguration configuration = new ClassicConfiguration();
-        configuration.setDataSource(dataSource);
-        configuration.setBaselineOnMigrate(true);
-        configuration.setBaselineVersion(MigrationVersion.fromVersion("1"));
-        configuration.setLocationsAsStrings("classpath:migration");
+        ClassicConfiguration configuration = DatabaseCheck.flywayConfiguration(dataSource);
         if (target != null) {
             configuration.setTarget(MigrationVersion.fromVersion(target));
         }

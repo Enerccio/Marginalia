@@ -19,15 +19,9 @@
         <property name="maxActive" value="20" />
     </bean>
 
-    <bean id="flywayConfiguration" class="org.flywaydb.core.api.configuration.ClassicConfiguration">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="baselineOnMigrate" value="true"/>
-        <property name="baselineVersion">
-            <bean class="org.flywaydb.core.api.MigrationVersion" factory-method="fromVersion">
-                <constructor-arg index="0" value="1" />
-            </bean>
-        </property>
-        <property name="locations" value="classpath:migration"/>
+    <!-- shared with the database restore on start (Configuration.applyPendingRestore) -->
+    <bean id="flywayConfiguration" class="com.github.enerccio.marginalia.DatabaseCheck" factory-method="flywayConfiguration">
+        <constructor-arg index="0" ref="dataSource"/>
     </bean>
 
     <bean id="flyway" class="org.flywaydb.core.Flyway" init-method="migrate" >

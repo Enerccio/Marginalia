@@ -22,9 +22,12 @@ RUN java -jar "$JETTY_HOME/start.jar" --create-startd \
 COPY --from=builder /build/target/*.war $JETTY_BASE/webapps/ROOT.war
 
 USER root
-RUN mkdir -p /var/marginalia/data && chown -R jetty:jetty /var/marginalia
-USER jetty
+RUN mkdir -p /var/marginalia/.marginalia && chown -R jetty:jetty /var/marginalia
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/marginalia-entrypoint.sh
 
+# starts as root to fix the owner of the data folder (a bind mount created by Docker is owned by root), then runs
+# Jetty as jetty, see docker-entrypoint.sh
 EXPOSE 8080
 
+ENTRYPOINT ["/usr/local/bin/marginalia-entrypoint.sh"]
 CMD ["java", "-jar", "/usr/local/jetty/start.jar"]

@@ -48,6 +48,18 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
+      - name: Check version matches tag
+        # archive names and the app version come from the POM, a release tag must not publish other version's archives
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          pom_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          tag_version="${GITHUB_REF_NAME#v}"
+          if [ "$pom_version" != "$tag_version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the version in marginalia/pom.xml ($pom_version). Set <version>$tag_version</version> and tag again."
+            exit 1
+          fi
+          echo "Version $pom_version matches tag $GITHUB_REF_NAME"
+
       - name: Test
         run: mvn test
 

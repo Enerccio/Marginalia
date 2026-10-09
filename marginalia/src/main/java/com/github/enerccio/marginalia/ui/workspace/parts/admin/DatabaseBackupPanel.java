@@ -72,7 +72,7 @@ public class DatabaseBackupPanel {
                 databaseBackupService.importBackup(metadata.fileName(), file);
                 refresh();
             } catch (IllegalArgumentException ex) {
-                Notification.warning(loc.getValue(L.MSG_INVALID_DATABASE_FILE));
+                Notification.warning(String.format(loc.getValue(L.MSG_INVALID_DATABASE_FILE), ex.getMessage()));
             } catch (Exception ex) {
                 UIUtils.internalServerError(loc, ex);
             } finally {
@@ -271,6 +271,8 @@ public class DatabaseBackupPanel {
                     try {
                         databaseBackupService.scheduleRestore(backup);
                         refresh();
+                    } catch (IllegalArgumentException ex) {
+                        Notification.warning(String.format(loc.getValue(L.MSG_INVALID_DATABASE_FILE), ex.getMessage()));
                     } catch (Exception ex) {
                         UIUtils.internalServerError(loc, ex);
                     }

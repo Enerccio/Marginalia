@@ -7,6 +7,7 @@ public class SideQuerySession {
 
     private String name = "Tab 1";
     private boolean isManuallyRenamed = false;
+    private boolean autoNamed = false;
     private SideQueryOptions options = new SideQueryOptions();
     private List<SideQueryMessage> messages = new ArrayList<>();
 
@@ -24,6 +25,14 @@ public class SideQuerySession {
 
     public void setManuallyRenamed(boolean manuallyRenamed) {
         this.isManuallyRenamed = manuallyRenamed;
+    }
+
+    public boolean isAutoNamed() {
+        return autoNamed;
+    }
+
+    public void setAutoNamed(boolean autoNamed) {
+        this.autoNamed = autoNamed;
     }
 
     public SideQueryOptions getOptions() {

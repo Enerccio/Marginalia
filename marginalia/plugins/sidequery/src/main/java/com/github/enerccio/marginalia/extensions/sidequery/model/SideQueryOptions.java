@@ -4,6 +4,13 @@ public class SideQueryOptions {
 
     private boolean includeLorebook = false;
     private boolean includeMessages = false;
+    /**
+     * Range of story parts, numbered from 1 like in the outline. Null in data stored by older versions, which used
+     * the 0-based {@link #messagesFrom} / {@link #messagesTo} instead.
+     */
+    private Integer partsFrom;
+    private Integer partsTo;
+    // legacy 0-based range, only read
     private int messagesFrom = 0;
     private int messagesTo = 5;
 
@@ -23,19 +30,19 @@ public class SideQueryOptions {
         this.includeMessages = includeMessages;
     }
 
-    public int getMessagesFrom() {
-        return messagesFrom;
+    public int getPartsFrom() {
+        return partsFrom != null ? partsFrom : messagesFrom + 1;
     }
 
-    public void setMessagesFrom(int messagesFrom) {
-        this.messagesFrom = messagesFrom;
+    public void setPartsFrom(int partsFrom) {
+        this.partsFrom = partsFrom;
     }
 
-    public int getMessagesTo() {
-        return messagesTo;
+    public int getPartsTo() {
+        return partsTo != null ? partsTo : messagesTo + 1;
     }
 
-    public void setMessagesTo(int messagesTo) {
-        this.messagesTo = messagesTo;
+    public void setPartsTo(int partsTo) {
+        this.partsTo = partsTo;
     }
 }
