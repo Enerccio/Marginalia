@@ -41,8 +41,10 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
    `AppSettings`, edited in Admin → Database Backups; cron job restarted on change, missed run caught up after start
    (`DatabaseBackupServiceImpl`).
 
-5. **Login brute-force protection.** `LoginCheckRoute`/`UserServiceImpl.authenticate` has no throttling, lockout or
-   logging of failed attempts. Add a per-login/per-IP backoff and an audit log line.
+5. ~~**Login brute-force protection.**~~ ✅ `UserServiceImpl.authenticate` does constant-work hashing (also for unknown
+   users / missing passwords) and counts consecutive failures on `User` (`failedLogins`, `lockedUntil`): 10 free
+   attempts, then 1s, 2s, 4s ... capped at 15 min; reset on success or password change/clear. Failures are logged.
+   Not done: per-IP throttling.
 
 ---
 

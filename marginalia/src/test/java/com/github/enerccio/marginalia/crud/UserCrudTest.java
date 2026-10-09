@@ -66,6 +66,28 @@ class UserCrudTest extends MarginaliaTestBase {
     }
 
     @Test
+    void loginBackoffAfterFreeAttempts() throws Exception {
+        User user = createUser(uniqueName("erin"), "pw", false);
+
+        for (int i = 0; i < 10; i++) {
+            assertThat(userService.authenticate(user.getLogin(), "bad")).isFalse();
+        }
+        assertThat(userService.find(user.getId()).getLockedUntil()).isZero();
+
+        // 11th failure starts the lockout, the right password is refused while it lasts
+        assertThat(userService.authenticate(user.getLogin(), "bad")).isFalse();
+        assertThat(userService.find(user.getId()).getLockedUntil()).isGreaterThan(System.currentTimeMillis());
+        assertThat(userService.authenticate(user.getLogin(), "pw")).isFalse();
+
+        // lockout elapsed
+        User locked = userService.find(user.getId());
+        locked.setLockedUntil(System.currentTimeMillis() - 1);
+        userService.save(locked);
+        assertThat(userService.authenticate(user.getLogin(), "pw")).isTrue();
+        assertThat(userService.find(user.getId()).getFailedLogins()).isZero();
+    }
+
+    @Test
     void changePassword() throws Exception {
         User user = createUser(uniqueName("carol"), "old", false);
         String oldHash = user.getPasswordHash();

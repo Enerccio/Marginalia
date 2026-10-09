@@ -24,6 +24,10 @@ public class User extends BaseEntity {
 
     private boolean isAdmin;
 
+    private int failedLogins;
+
+    private long lockedUntil;
+
     public String getLogin() {
         return login;
     }
@@ -62,5 +66,21 @@ public class User extends BaseEntity {
 
     public void setAdmin(boolean admin) {
         isAdmin = admin;
+    }
+
+    public int getFailedLogins() {
+        return failedLogins;
+    }
+
+    public void setFailedLogins(int failedLogins) {
+        this.failedLogins = failedLogins;
+    }
+
+    public long getLockedUntil() {
+        return lockedUntil;
+    }
+
+    public void setLockedUntil(long lockedUntil) {
+        this.lockedUntil = lockedUntil;
     }
 }
