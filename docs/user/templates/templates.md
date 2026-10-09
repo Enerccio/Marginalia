@@ -27,12 +27,16 @@ Besides its own variables, every template can use:
 | `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}` | The book's narrative settings. |
 | `{{manuscriptName}}`, `{{manuscriptDescription}}` | The book's name and description. |
 
-These are not listed in the hints popover of every template, but they work.
+The hints popover (ⓘ) of every template field lists them too.
 
 ### Typos
 
 A variable that doesn't exist is printed as the word **`Error`**: `{{instruction}}` (missing *s*) puts *Error* into
-the prompt. Templates with unknown variables can still be saved, so check new templates with **Show Prompt**.
+the prompt. The template fields (book *Prompts*, *Settings*, lorebook entries) list such names under the field as
+*Unknown names (sent to the model as "Error")*. It's only a warning - the template is still saved - so fix the names
+it lists. Variables and sections are checked everywhere, also inside `{{#if}}` branches that aren't printed. Names
+used only as a condition are not reported, because they don't print *Error*: in `{{#if name}}` an unknown name is
+false, in the SillyTavern `{{if name}}` it is taken as plain text, which is true.
 
 ## Sections
 

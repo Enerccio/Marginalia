@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,7 +24,7 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/architecture/">
     <meta property="og:title" content="Architecture">
     <meta property="og:description" content="Marginalia is one Java web application running in one JVM. There is no separate frontend project, no REST API and no external database: the browser shows Vaadin components that live on the server, the components call Spring services, and the services store everything in a single SQLite file.">
-    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map.png">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map-workspace.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Architecture">
@@ -36,7 +36,7 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/architecture/">
     <meta name="twitter:title" content="Architecture">
     <meta name="twitter:description" content="Marginalia is one Java web application running in one JVM. There is no separate frontend project, no REST API and no external database: the browser shows Vaadin components that live on the server, the components call Spring services, and the services store everything in a single SQLite file.">
-    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map.png">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map-workspace.png">
     <meta name="twitter:image:alt" content="Architecture">
 
     <!-- Alternate Markdown -->
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -296,8 +296,9 @@ icon. It is compiled separately and never ends up in the WAR. See <a href="../pa
 <li>
 <p>The container finds Spring&#x27;s <code translate="no" v-pre>SpringServletContainerInitializer</code>, which calls
 <code translate="no" v-pre>ui/main/WebappApplicationInitializer</code>. It creates an <code translate="no" v-pre>XmlWebApplicationContext</code> from
-<code translate="no" v-pre>META-INF/spring/application-config.xml</code> and registers the <code translate="no" v-pre>ContextLoaderListener</code> and <code translate="no" v-pre>RequestContextListener</code>
-(the latter makes request and session scoped beans work).</p>
+<code translate="no" v-pre>META-INF/spring/application-config.xml</code> and registers the <code translate="no" v-pre>ContextLoaderListener</code>, the <code translate="no" v-pre>RequestContextListener</code>
+(makes request and session scoped beans work) and the <code translate="no" v-pre>SessionTrackingListener</code> (feeds HTTP sessions to the
+<code translate="no" v-pre>SessionManager</code>, see <doc-anchor-trigger to="#sessions">Sessions</doc-anchor-trigger>).</p>
 </li>
 <li>
 <p><code translate="no" v-pre>application-config.xml</code> loads <code translate="no" v-pre>config/configuration.properties</code>, the build info and <code translate="no" v-pre>git.properties</code>, enables
@@ -306,7 +307,7 @@ annotation config, <code translate="no" v-pre>@Configurable</code> (<code transl
 files:</p>
 <retype-table copy-text="| File | Defines |
    |---|---|
-   | `container-config.xml` | `localization`, `configuration`, the session-scoped `user` and `sessionPoint`, `ApplicationInitializer` |
+   | `container-config.xml` | `localization`, `configuration`, `applicationPoint`, `sessionManager`, the session-scoped `user` and `sessionPoint`, `ApplicationInitializer` |
    | `datasources-config.xml` | SQLite data source (commons-dbcp), Flyway, the `EntityManagerFactory`, the `common` transaction manager |
    | `services-config.xml` | Every repository and service, the generation steps, OSGi, extensions, backups, cleanup, the instrumentation initializer |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -320,7 +321,7 @@ files:</p>
 <tbody>
 <tr>
 <td><code translate="no" v-pre>container-config.xml</code></td>
-<td><code translate="no" v-pre>localization</code>, <code translate="no" v-pre>configuration</code>, the session-scoped <code translate="no" v-pre>user</code> and <code translate="no" v-pre>sessionPoint</code>, <code translate="no" v-pre>ApplicationInitializer</code></td>
+<td><code translate="no" v-pre>localization</code>, <code translate="no" v-pre>configuration</code>, <code translate="no" v-pre>applicationPoint</code>, <code translate="no" v-pre>sessionManager</code>, the session-scoped <code translate="no" v-pre>user</code> and <code translate="no" v-pre>sessionPoint</code>, <code translate="no" v-pre>ApplicationInitializer</code></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>datasources-config.xml</code></td>
@@ -351,7 +352,8 @@ annotated <code translate="no" v-pre>@Extendable</code> (see <doc-anchor-trigger
 <li>
 <p>When the root context is refreshed, <code translate="no" v-pre>OsgiServiceImpl</code> starts Apache Felix with <code translate="no" v-pre>~/.marginalia/extensions</code> as its
 storage, installs and starts every JAR in that folder and calls <code translate="no" v-pre>onExtensionLoad</code> on each registered
-<code translate="no" v-pre>MarginaliaExtension</code>.</p>
+<code translate="no" v-pre>MarginaliaExtension</code>. A JAR that fails is logged and skipped. When the root context closes, the extensions are
+unloaded and the framework is stopped.</p>
 </li>
 <li>
 <p><code translate="no" v-pre>MarginaliaServlet</code> (<code translate="no" v-pre>@WebServlet(&quot;/*&quot;)</code>, a <code translate="no" v-pre>VaadinServlet</code>) serves the UI. <code translate="no" v-pre>AppShellConfig</code> configures the page:
@@ -375,7 +377,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 | `domain.security` | Data / services | `User`, its repository and service, saved logins. |
 | `domain.traits`, `domain.collections`, `domain.listener` | Shared | Annotations (`@CommonTx`, `@Extendable`, `@CleanupReference`...), enums, the entity listener for extended attributes. |
 | `extensions`, `instruct` | Extensions | The `MarginaliaExtension` interface, the bytecode instrumentation. |
-| `bound` | Startup | Application initializer and migrations hook. |
+| `bound` | Startup, sessions | Application initializer and migrations hook, the `SessionManager` and its session bookkeeping. |
 | `loc` | Shared | Localization: the `L` keys and the English texts. |
 | `concurrent`, `utils` | Shared | Helpers. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -455,8 +457,8 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 </tr>
 <tr>
 <td><code translate="no" v-pre>bound</code></td>
-<td>Startup</td>
-<td>Application initializer and migrations hook.</td>
+<td>Startup, sessions</td>
+<td>Application initializer and migrations hook, the <code translate="no" v-pre>SessionManager</code> and its session bookkeeping.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>loc</code></td>
@@ -601,8 +603,12 @@ from cookies, and after login replaces its content with the <code translate="no"
 </li>
 </ul>
 <figure class="content-center">
-    <img src="../../images/dev-ui-map.png" alt="Map of the UI to the classes that build it" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="1000" />
-    <figcaption class="caption">Map of the UI to the classes that build it</figcaption>
+    <img src="../../images/dev-ui-map-workspace.png" alt="Map of the workspace to the classes that build it" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">Map of the workspace to the classes that build it</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/dev-ui-map-book.png" alt="Map of the book window to the classes that build it" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">Map of the book window to the classes that build it</figcaption>
 </figure>
 <p>Most of these classes are <code translate="no" v-pre>@Extendable</code>, which is what makes them extension points. See
 <a href="../ui/">User interface</a> for details.</p>
@@ -750,6 +756,67 @@ summaries - updates the UI with <code translate="no" v-pre>ui.access(...)</code>
 <code translate="no" v-pre>generateNextTurn</code> therefore captures the request attributes in a <code translate="no" v-pre>ThreadCopyRequestAttributes</code> and the engine wraps
 its work in <code translate="no" v-pre>ThreadCopyRequestAttributes.InRequestScope</code>, which makes the session of the user who started the
 generation current on the worker thread.</p>
+<h2 id="sessions">Sessions</h2>
+<p><code translate="no" v-pre>bound/SessionManager</code> (bean <code translate="no" v-pre>sessionManager</code>, defined in <code translate="no" v-pre>container-config.xml</code>) knows every HTTP session of the
+application and which user is logged into it.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">sequenceDiagram
+    participant C as Servlet container
+    participant L as SessionTrackingListener
+    participant M as SessionManager
+    participant R as LoginCheckRoute
+
+    C-&gt;&gt;L: sessionCreated
+    L-&gt;&gt;M: onSessionCreate → new SessionInformation
+    R-&gt;&gt;M: userLoggedIn(user, VaadinSession) after login
+    Note over M: binds user, Vaadin session, main UI, request attributes
+    loop every DEAD_SESSION_CHECK_TIMEOUT / 10
+        M-&gt;&gt;M: close UIs without heartbeat, invalidate sessions with no open UI
+    end
+    C-&gt;&gt;L: sessionDestroyed (logout, timeout, invalidate)
+    L-&gt;&gt;M: onSessionDestroy → SessionCloseListeners of the other sessions</pre></div>
+<ul>
+<li>
+<p><strong>Tracking.</strong> <code translate="no" v-pre>SessionTrackingListener</code> is an <code translate="no" v-pre>HttpSessionListener</code> registered in <code translate="no" v-pre>WebappApplicationInitializer</code>;
+it looks the bean up in the root context and calls <code translate="no" v-pre>onSessionCreate</code> / <code translate="no" v-pre>onSessionDestroy</code>. Each session gets a
+<code translate="no" v-pre>SessionInformation</code>. After a successful login <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code> call <code translate="no" v-pre>userLoggedIn(user, VaadinSession)</code>, which
+fills it in once: the Vaadin session, the user, the current UI as the <em>main UI</em> and a <code translate="no" v-pre>ThreadCopyRequestAttributes</code>
+copy of the request. Note that login calls <code translate="no" v-pre>VaadinService.reinitializeSession</code> - the old session is destroyed and a
+new one created, so the bound session is the new one.</p>
+</li>
+<li>
+<p><strong>Running code in other sessions.</strong> <code translate="no" v-pre>runForUsers(test, runnable, uiBound)</code> runs a <code translate="no" v-pre>RunInSession</code> for every session
+whose user matches the predicate, with that session&#x27;s request attributes in scope (so the session-scoped <code translate="no" v-pre>user</code>
+resolves to <em>that</em> user). With <code translate="no" v-pre>uiBound</code> the runnable is queued with <code translate="no" v-pre>VaadinSession.access</code> on a live UI of the
+session (the main UI, or any other open one if it was closed) - it runs asynchronously, once the session lock is
+free, and changes are pushed when the lock is released. The sessions are processed on a separate thread
+(<code translate="no" v-pre>ThreadUtils.executeInThread</code>), so the caller&#x27;s Vaadin and request thread locals don&#x27;t leak into them; the call
+waits for the dispatch, not for the queued <code translate="no" v-pre>access</code> tasks. The <code translate="no" v-pre>skipCurrent</code> overload leaves out the caller&#x27;s own
+Vaadin session. <code translate="no" v-pre>UserServiceImpl.changePassword</code> / <code translate="no" v-pre>clearPassword</code> use it to invalidate the other sessions of the
+user whose password changed - a user changing their own password stays logged in in the current session.</p>
+</li>
+<li>
+<p><strong>Open UIs.</strong> After login <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code> register their UI in <code translate="no" v-pre>ApplicationPoint</code> (bean <code translate="no" v-pre>applicationPoint</code>)
+with the workspace (<code translate="no" v-pre>Main</code> only) and a copy of the user. <code translate="no" v-pre>SessionInformation.getUI(workspaceClass, applicationPoint)</code>
+/ <code translate="no" v-pre>getWorkspace(...)</code> find the session&#x27;s UI showing a given workspace type.</p>
+</li>
+<li>
+<p><strong>Dead UI detection.</strong> <code translate="no" v-pre>SessionManager</code> is also a daemon thread (<em>Inactive session watcher</em>), started by
+<code translate="no" v-pre>afterPropertiesSet</code> and stopped on context shutdown. Every <code translate="no" v-pre>DEAD_SESSION_CHECK_TIMEOUT / 10</code> seconds (see
+<code translate="no" v-pre>Constants</code>) it <code translate="no" v-pre>tryLock</code>s each logged-in session - a locked session is in use and skipped - and closes UIs whose
+last heartbeat is older than the timeout. Threads queued on the session lock count as activity. The timeout is
+never shorter than three Vaadin heartbeat intervals (5 minutes by default), otherwise an open but idle tab would be
+closed between two heartbeats. When every UI of the session is closing, the HTTP session is invalidated.</p>
+</li>
+<li>
+<p><strong>Close notifications.</strong> <code translate="no" v-pre>addSessionCloseListener</code> registers a <code translate="no" v-pre>SessionCloseListener</code> on the current session. When
+another session is destroyed, every listener of every remaining session is called inside its own session&#x27;s
+<code translate="no" v-pre>access</code> and request scope with the <code translate="no" v-pre>SessionInformation</code> of the closed session.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>getActiveUsers()</code>, <code translate="no" v-pre>getOpenedSessions(user)</code>, <code translate="no" v-pre>getSessionInformation(id)</code> and <code translate="no" v-pre>getActiveSessionIds()</code> expose the
+registry, e.g. for admin views.</p>
+</li>
+</ul>
 <h2 id="extensions">Extensions</h2>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">sequenceDiagram
     participant P as Plugin bundle
@@ -790,7 +857,8 @@ the data is part of backups. They can also listen to generation events and take 
 </li>
 <li>
 <p><strong>UI lifetime.</strong> An extension registers the components it adds with <code translate="no" v-pre>OsgiService.bindAttachableComponent</code> together
-with a callback that removes them; the callbacks of components still attached run when the extension is unloaded.</p>
+with a callback that removes them; the callbacks of components still attached run when the extension is unloaded,
+each inside <code translate="no" v-pre>ui.access(...)</code> of the component&#x27;s UI.</p>
 </li>
 </ul>
 <p>Because hooks are attached by class and method <em>name</em> and read local variables by name, extensions are tied to one
@@ -800,8 +868,9 @@ version of the application. See <a href="../plugins/">Plugin development</a>.</p
 <retype-table copy-text="| Path | Written by |
 |---|---|
 | `marginalia.sqlite`, `-wal`, `-shm` | The database. |
+| `secret.key` | Key for encrypted database values (API keys), generated by `Configuration` on the first start. |
 | `marginalia.sqlite.restore` | A database restore staged by `DatabaseBackupService`, applied on the next start. |
-| `db-backups/` | Database backups (manual, scheduled, `pre-restore-*`). |
+| `db-backups/` | Database backups (manual, scheduled, `pre-restore-*`, refused restores `rejected-restore-*`). |
 | `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/` | Book backups (`BackupService`), one JSON file each. |
 | `data/&lt;login&gt;/images/`, `data/&lt;login&gt;/resources/` | Per-user folders for files (created on demand). |
 | `extensions/` | Extension JARs, plus Felix's bundle cache in `org.eclipse.osgi/` (deleted and rebuilt on every start). |
@@ -820,12 +889,16 @@ version of the application. See <a href="../plugins/">Plugin development</a>.</p
 <td>The database.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>secret.key</code></td>
+<td>Key for encrypted database values (API keys), generated by <code translate="no" v-pre>Configuration</code> on the first start.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>marginalia.sqlite.restore</code></td>
 <td>A database restore staged by <code translate="no" v-pre>DatabaseBackupService</code>, applied on the next start.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>db-backups/</code></td>
-<td>Database backups (manual, scheduled, <code translate="no" v-pre>pre-restore-*</code>).</td>
+<td>Database backups (manual, scheduled, <code translate="no" v-pre>pre-restore-*</code>, refused restores <code translate="no" v-pre>rejected-restore-*</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/</code></td>

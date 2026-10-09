@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,7 +24,7 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/ui/">
     <meta property="og:title" content="User interface">
     <meta property="og:description" content="Marginalia's UI is written in Java with Vaadin Flow 25: the component tree lives on the server, the browser renders it with Vaadin's web components (Lumo theme, dark color scheme) and sends events back over HTTP and a push WebSocket.">
-    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map.png">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map-workspace.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="User interface">
@@ -36,7 +36,7 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/ui/">
     <meta name="twitter:title" content="User interface">
     <meta name="twitter:description" content="Marginalia's UI is written in Java with Vaadin Flow 25: the component tree lives on the server, the browser renders it with Vaadin's web components (Lumo theme, dark color scheme) and sends events back over HTTP and a push WebSocket.">
-    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map.png">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/dev-ui-map-workspace.png">
     <meta name="twitter:image:alt" content="User interface">
 
     <!-- Alternate Markdown -->
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -203,8 +203,12 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
     LP --&gt; LV[&quot;LorebookView&quot;]
     Lore --&gt; LV</pre></div>
 <figure class="content-center">
-    <img src="../../images/dev-ui-map.png" alt="Map of the UI to the classes that build it" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="1000" />
-    <figcaption class="caption">Map of the UI to the classes that build it</figcaption>
+    <img src="../../images/dev-ui-map-workspace.png" alt="Map of the workspace to the classes that build it" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">Map of the workspace to the classes that build it</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/dev-ui-map-book.png" alt="Map of the book window to the classes that build it" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">Map of the book window to the classes that build it</figcaption>
 </figure>
 <retype-table copy-text="| Package | Contains |
 |---|---|
@@ -307,7 +311,8 @@ check) with the <em>Save login</em> checkbox.</p>
 </li>
 <li>
 <p>After a successful login it calls <code translate="no" v-pre>VaadinService.reinitializeSession</code> (new session id) and the subclass&#x27;s
-<code translate="no" v-pre>proceedWithLogin(login)</code>, which fills the session-scoped <code translate="no" v-pre>user</code> bean and builds the content.</p>
+<code translate="no" v-pre>proceedWithLogin(login)</code>, which fills the session-scoped <code translate="no" v-pre>user</code> bean, registers the login with
+<code translate="no" v-pre>SessionManager.userLoggedIn</code> (see <a href="../architecture/#sessions">Sessions</a>) and builds the content.</p>
 </li>
 </ol>
 <p>Logout deletes the cookies, closes the Vaadin session, invalidates the HTTP session and redirects to the context
@@ -394,6 +399,9 @@ all tab components up front. Each tab is a <code translate="no" v-pre>WorkspaceC
 </table>
 </div>
 </retype-table>
+<p><code translate="no" v-pre>Workspace.setNavigationLocked(true)</code> disables the other tabs and the <em>Admin</em> and <em>Logout</em> buttons, so the user can&#x27;t
+leave the active tab. <code translate="no" v-pre>UserPart</code> locks it while the settings have unsaved changes: it listens to every <code translate="no" v-pre>HasValue</code>
+in its layout (extension settings panels included) and unlocks on <em>Save</em>, <em>Discard Changes</em> or <code translate="no" v-pre>refresh()</code>.</p>
 <p>The <em>Admin</em> button is only added for administrators; <code translate="no" v-pre>AdminPart</code> shows the users grid and the
 <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code> and extensions tab. Note that the admin UI being hidden is not a permission
 check - services must check <code translate="no" v-pre>isAdmin()</code> themselves (TODO.md, item 14).</p>

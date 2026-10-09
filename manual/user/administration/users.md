@@ -22,7 +22,7 @@ Give the user name and password to the person; they can change the password late
 
 !!!warning Always set a password
 Marginalia accepts an account with an empty password - anyone can then log in with just the user name. Only do that
-on the desktop app on your own computer.
+on the desktop app on your own computer. Creating a user without a password asks for confirmation first.
 !!!
 
 The user name must be unique.
@@ -32,9 +32,27 @@ The user name must be unique.
 The pen button opens the same dialog for an existing user:
 
 - change the user name, full name and the administrator flag;
-- to **reset a forgotten password**, enter a new one in both password fields; leave them empty to keep the current one.
+- leave both password fields empty to keep the user's password as it is;
+- to set a **new password**, enter it in both password fields;
+- to **clear the password**, tick **Clear password** (the password fields are disabled) and confirm. The account then
+  has no password.
 
-Marginalia has no password reset by e-mail; an administrator sets a new password here and tells the user.
+You don't need the user's current password for any of this. A new or cleared password ends all the user's saved
+logins.
+
+### Resetting a forgotten password
+
+Marginalia has no password reset by e-mail. Either:
+
+- set a new password here and tell it to the user, who can change it later with **Change Password**; or
+- tick **Clear password**, tell the user to log in with their user name and an **empty** password, and to set a new
+  password right away with **Change Password** (leave *Current Password* empty). The administrator never learns the
+  new password this way.
+
+!!!warning
+Until the user sets a new password, anyone who knows the user name can log in to a cleared account. On a server, clear
+the password only when the user can log in right away.
+!!!
 
 The last administrator can't lose the administrator flag: *The last administrator cannot be deleted or demoted.*
 
@@ -45,9 +63,10 @@ The trash button deletes the account after confirming. You can't delete your own
 The user can no longer log in, saved logins on their devices stop working, and the user name becomes free for a new
 account.
 
-!!!warning The data stays
-Deleting a user does **not** delete their books, lorebooks, inference providers (with their API keys), protocols and
-settings. They stay in the database, invisible to everyone, and [Cleanup](cleanup.md) can't remove them. If the data
-must go, the user should first delete their books, lorebooks, inference providers and protocols themselves; Cleanup
-then removes them, and the account once nothing of it is left.
-!!!
+Their books, lorebooks, inference providers (with their API keys), protocols, tags and settings disappear with the
+account - nobody can see them any more - and the next [Cleanup](cleanup.md) removes them from the database together
+with the account.
+
+The user's files (uploaded images and resources) are kept: their folder in the data directory is renamed to
+`<login>-deleted` (`<login>-deleted-2`... if that name is taken), so a new account with the same user name starts with
+an empty folder. Delete the renamed folder by hand once you don't need it.

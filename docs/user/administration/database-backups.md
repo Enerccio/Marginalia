@@ -21,15 +21,22 @@ Each backup has:
 | trash | Deletes the backup. |
 
 **Upload Backup** adds a backup file (`.sqlite` or `.db`) to the list, for example one downloaded from another
-installation. Files that are not SQLite databases are refused with *File is not a valid SQLite database.*
+installation. The file is checked first and refused with *The database can't be restored: ...* and the reason when it
+is not a SQLite database, is damaged, is not a Marginalia database (another application's database), or comes from a
+newer Marginalia version than the one running.
 
 !!!warning Backups contain secrets
-A database backup contains everything, including the password hashes of all users and their API keys **in plain
-text**. Keep downloaded backups as safe as the server itself.
+A database backup contains everything, including the password hashes of all users and their API keys. The API keys
+are encrypted with the `secret.key` file in the [data folder](index.md#the-data-folder), which is not part of the
+backup - but anyone with both the backup and `secret.key` can read them. Keep downloaded backups as safe as the server
+itself.
 !!!
 
 The files are stored in the `db-backups` folder of the [data folder](index.md#the-data-folder). Book backups and
 extension JARs are separate files and are not part of a database backup.
+
+When you restore a backup on **another installation**, copy `secret.key` from the original installation as well
+(with Marginalia stopped), otherwise the saved API keys can't be decrypted and every user has to enter them again.
 
 ## Scheduled backups
 
@@ -62,8 +69,9 @@ The schedule is a cron expression with five fields, `minute hour day-of-month mo
 Times are in the time zone of the server (in Docker, set it with the `TZ` environment variable).
 
 !!!
-To turn scheduled backups off, uncheck *Create backups automatically* and click *Save Schedule*. The schedule field
-must still contain a valid expression.
+To turn scheduled backups off, uncheck *Create backups automatically* and click *Save Schedule*. The expression is
+kept, so you can turn the backups on again later. It is still checked - an invalid expression is never saved - but
+while the backups are off, the field may also be empty.
 !!!
 
 ## Restoring
@@ -78,6 +86,11 @@ A database can't be replaced while Marginalia uses it, so a restore happens on t
 On the start, the current database is moved to `db-backups/pre-restore-<time>-marginalia.sqlite` - it appears in the
 list, so a restore can be undone by restoring that file - and the backup takes its place. A backup from an older
 Marginalia version is upgraded automatically.
+
+The backup is checked again before it is swapped in (the same checks as for *Upload Backup*, also *Restore on restart*
+refuses a backup that fails them). If it fails the check, or upgrading it fails, Marginalia keeps (or puts back) the
+current database and starts normally; the refused file is moved to `db-backups/rejected-restore-<time>-marginalia.sqlite`
+and the log says why.
 
 Everything after the backup is lost: books, parts and settings created since. Users who are logged in have to log in
 again if their account changed.

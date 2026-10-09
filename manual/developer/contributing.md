@@ -24,12 +24,7 @@ Open an issue on [GitHub](https://github.com/Enerccio/Marginalia/issues). For a 
 Security problems (access to other users' data, login, cookies) should not be reported in a public issue - contact the
 maintainer privately through GitHub first.
 
-### Known bugs
-
-Known bugs that are not fixed yet are collected in
-[`TODO.BUGS.md`](https://github.com/Enerccio/Marginalia/blob/master/TODO.BUGS.md) in the repository root, numbered
-`BUG-<n>` with a severity, the place in the code, steps to reproduce and the expected behaviour. Fixed entries are
-struck through. Check it before reporting, and refer to the number in commits and pull requests that fix one.
+### Planned work
 
 [`TODO.md`](https://github.com/Enerccio/Marginalia/blob/master/TODO.md) is the list of planned work for the first
 release, ordered by priority. Items marked 🧩 are good candidates for an extension instead of a change to the core.
@@ -66,8 +61,8 @@ throw `IllegalArgumentException` for invalid lorebook format in `LorebookService
 fix `setSummaryPrompt` assignment error; correct `userPrompt` reference in manuscript save logic
 ```
 
-Common verbs: `add`, `fix`, `update`, `remove`, `refactor`, `rename`, `migrate`, `handle`. Mention the bug number
-when the commit fixes one from `TODO.BUGS.md` (`... (BUG-17)`).
+Common verbs: `add`, `fix`, `update`, `remove`, `refactor`, `rename`, `migrate`, `handle`. Mention the issue number
+when the commit fixes one (`... (#17)`).
 
 Keep commits focused - one fix or one step of a feature per commit, not a mix of a feature, a reformat and an
 unrelated fix. Don't commit generated or local files: `target/`, `src/main/frontend/generated/`,
@@ -77,12 +72,12 @@ unrelated fix. Don't commit generated or local files: `target/`, `src/main/front
 
 A good pull request:
 
-- does one thing, and says in the description **what** changed and **why**, with the issue or `BUG-<n>` it fixes;
+- does one thing, and says in the description **what** changed and **why**, with the issue it fixes;
 - for a UI change, includes a screenshot or a short description of what to click to see it;
 - adds or updates tests where it can, and passes `mvn test`;
 - adds a Flyway migration for every entity change (see [Database & migrations](database.md)) - never edit a
   migration that is already in `master`;
-- updates the manual and, for a fixed known bug, strikes the entry in `TODO.BUGS.md` through;
+- updates the manual;
 - doesn't change formatting of code it doesn't otherwise touch.
 
 ## Code style
@@ -143,7 +138,7 @@ The manual you are reading is in `manual/` (Markdown for [Retype](https://retype
 - Screenshots go to `manual/images/`. When a page needs a screenshot you can't make, link the path anyway and add a
   line to [`TODO.IMAGES.md`](https://github.com/Enerccio/Marginalia/blob/master/TODO.IMAGES.md) describing what it
   should show. Diagrams are Mermaid code blocks, not images.
-- Bugs you find while writing documentation go into `TODO.BUGS.md`, in the format described at the top of that file.
+- Bugs you find while writing documentation are reported as an issue (see [Reporting bugs and ideas](#reporting-bugs-and-ideas)).
 
 ## Extensions
 

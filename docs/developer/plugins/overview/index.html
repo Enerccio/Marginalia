@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -332,8 +332,9 @@ dialogs, forms) can be <code translate="no" v-pre>@Configurable</code> too; the 
         <div class="pr-5 ml-3 w-full">
             <h5>Errors in onExtensionLoad</h5>
 <p>At startup <code translate="no" v-pre>onExtensionLoad</code> runs without a UI, so <code translate="no" v-pre>UIUtils.internalServerError(...)</code> (which opens a dialog) can&#x27;t
-show anything - log the error instead. An exception that escapes <code translate="no" v-pre>onExtensionLoad</code> currently stops the extensions
-after it from loading (BUG-47), so catch everything.</p>
+show anything. Throw instead: an exception that escapes <code translate="no" v-pre>onExtensionLoad</code> is logged, <code translate="no" v-pre>onExtensionUnload</code> is called to
+undo what was registered so far and the bundle is stopped. The other extensions load normally; an upload shows the
+error to the administrator.</p>
         </div>
     </div>
 </div>
@@ -362,26 +363,32 @@ after it from loading (BUG-47), so catch everything.</p>
 <p><strong>Startup.</strong> <code translate="no" v-pre>OsgiServiceImpl</code> listens for the root context&#x27;s <code translate="no" v-pre>ContextRefreshedEvent</code>, starts Felix with its
 storage in <code translate="no" v-pre>~/.marginalia/extensions/org.eclipse.osgi</code> (wiped on every start, so the JARs are always read fresh),
 installs every <code translate="no" v-pre>*.jar</code> in <code translate="no" v-pre>~/.marginalia/extensions</code> and starts them. For each <code translate="no" v-pre>MarginaliaExtension</code> service a
-bundle registered, it calls <code translate="no" v-pre>onExtensionLoad</code>.</p>
+bundle registered, it calls <code translate="no" v-pre>onExtensionLoad</code>. Each JAR is installed and started on its own: one that can&#x27;t be
+installed (not a bundle, a second copy of an installed plugin) or fails to start is logged with its file name and
+skipped.</p>
 </li>
 <li>
 <p><strong>Installing at runtime.</strong> <em>Admin → Extensions → Load Extension (.jar)</em> writes the uploaded file into
-<code translate="no" v-pre>~/.marginalia/extensions</code> under its original name and installs and starts it the same way
-(<code translate="no" v-pre>OsgiService.installPackage</code>). Screens that are already open are not rebuilt: the plugin&#x27;s decorators run the next
-time the decorated methods run (the next time the user opens a book, a tab...).</p>
+<code translate="no" v-pre>~/.marginalia/extensions</code> (the file name is sanitized: only letters, digits, <code translate="no" v-pre>.</code>, <code translate="no" v-pre>_</code> and <code translate="no" v-pre>-</code>) and installs and
+starts it the same way (<code translate="no" v-pre>OsgiService.installPackage</code>). Screens that are already open are not rebuilt: the plugin&#x27;s
+decorators run the next time the decorated methods run (the next time the user opens a book, a tab...).</p>
+</li>
+<li>
+<p><strong>Updating.</strong> Uploading a bundle whose symbolic name (or file name) is already installed replaces it: the old one is
+unloaded as by <em>Unload</em>, uninstalled and its JAR deleted, then the new one is loaded. If the new one fails to
+install or start, its JAR is deleted and the old one is put back.</p>
 </li>
 <li>
 <p><strong>Unloading.</strong> <em>Unload</em> calls the callbacks registered with <code translate="no" v-pre>bindAttachableComponent</code>, then <code translate="no" v-pre>onExtensionUnload</code>,
-uninstalls the bundle and <strong>deletes its JAR</strong> (<code translate="no" v-pre>OsgiService.uninstallPackage</code>).</p>
+uninstalls the bundle and <strong>deletes its JAR</strong> (<code translate="no" v-pre>OsgiService.uninstallPackage</code>). Bundles that failed to start are
+listed too (state <code translate="no" v-pre>INSTALLED</code> or <code translate="no" v-pre>RESOLVED</code>) and can be unloaded the same way.</p>
 </li>
 <li>
-<p><strong>Shutdown.</strong> The framework is not stopped when the application stops (BUG-51): neither the activator&#x27;s <code translate="no" v-pre>stop</code> nor
-<code translate="no" v-pre>onExtensionUnload</code> runs. Don&#x27;t rely on them to save data - save as you go.</p>
+<p><strong>Shutdown.</strong> When the application stops (the root context closes), every extension is unloaded the same way -
+bound callbacks, <code translate="no" v-pre>onExtensionUnload</code>, the activator&#x27;s <code translate="no" v-pre>stop</code> - and the framework is stopped. Still save data as you
+go: a killed process runs none of this.</p>
 </li>
 </ul>
-<p>There is no update operation: to replace a plugin with a new build, unload it and load the new JAR, or replace the
-JAR in <code translate="no" v-pre>~/.marginalia/extensions</code> and restart Marginalia. Uploading a new build over an installed one doesn&#x27;t load the
-new code (BUG-48).</p>
 <h2 id="class-loading">Class loading</h2>
 <p>Felix is started with <code translate="no" v-pre>org.osgi.framework.bootdelegation=*</code> and the framework class loader as the bundle parent, which
 is the web application&#x27;s class loader. Every class a bundle asks for is therefore looked up in the application

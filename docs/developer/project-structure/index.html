@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -182,7 +182,6 @@ something. <a href="../architecture/">Architecture</a> explains how the parts wo
 ├── retype.yml               manual configuration (input manual/, output docs/)
 ├── README.md, LICENSE
 ├── TODO.md                  release plan
-├── TODO.BUGS.md             known bugs (BUG-&lt;n&gt;)
 └── TODO.IMAGES.md           screenshots still to be made</code></pre>
 </doc-codeblock></div>
 <retype-table copy-text="| Path | Notes |
@@ -221,6 +220,7 @@ something. <a href="../architecture/">Architecture</a> explains how the parts wo
 ├── pom.xml                       dependencies, build plugins, the desktop profile
 ├── src/main/java/                application code
 ├── src/main/resources/           Spring XML, Flyway migrations, log4j, Vaadin build info
+├── src/main/resources-release/   WAR-only resources: the release log4j.properties
 ├── src/main/resources-raw/       copied into WEB-INF/classes without filtering (empty)
 ├── src/main/webapp/config/       configuration.properties, persistence.xml
 ├── src/main/frontend/            CSS and JavaScript for the Vaadin frontend
@@ -238,7 +238,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 |---|---|
 | `Configuration.java` | The `configuration` bean: data folder and its subfolders, database URL, staged database restore, saved login settings. |
 | `Defaults.java` | Built-in prompt defaults: master template, POV, tense, style, user prompt and summary prompt - used when neither the book nor the user's settings override them. |
-| `Constants.java` | Story tree ordering constants (not used at the moment). |
+| `Constants.java` | Application constants: `DEAD_SESSION_CHECK_TIMEOUT` (seconds without a heartbeat before `SessionManager` closes a UI, default 120). |
 | `UIConstants.java`, `SharedStyles.java` | Column widths and dialog offsets; CSS class names defined in `shared-styles.css`. |
 | `SaneSQLiteDialect.java` | Hibernate's community SQLite dialect without generated `CHECK` constraints. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -260,7 +260,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Constants.java</code></td>
-<td>Story tree ordering constants (not used at the moment).</td>
+<td>Application constants: <code translate="no" v-pre>DEAD_SESSION_CHECK_TIMEOUT</code> (seconds without a heartbeat before <code translate="no" v-pre>SessionManager</code> closes a UI, default 120).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UIConstants.java</code>, <code translate="no" v-pre>SharedStyles.java</code></td>
@@ -274,11 +274,16 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </table>
 </div>
 </retype-table>
-<h3 id="bound---startup"><code translate="no" v-pre>bound</code> - startup</h3>
+<h3 id="bound---startup-and-sessions"><code translate="no" v-pre>bound</code> - startup and sessions</h3>
 <retype-table copy-text="| File | |
 |---|---|
 | `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (none are registered yet). |
 | `Migration.java` | Interface of data migrations in Java (schema migrations are Flyway SQL). |
+| `SessionManager.java` | The `sessionManager` bean: registry of all HTTP sessions, binds the logged-in user to them, runs code in other users' sessions (`runForUsers`) and closes dead UIs and sessions on its watcher thread. See [Sessions](architecture.md#sessions). |
+| `SessionTrackingListener.java` | `HttpSessionListener` registered by `WebappApplicationInitializer`; forwards session creation and destruction to `SessionManager`. |
+| `SessionInformation.java` | What `SessionManager` knows about one session: HTTP and Vaadin session, user, main UI, captured request attributes, close listeners. |
+| `SessionCloseListener.java`, `RunInSession.java` | Callbacks: another session was closed; code to run for a session in `runForUsers`. |
+| `ApplicationPoint.java` | The `applicationPoint` bean: application-wide maps of open UIs to their `Workspace` (only `Main`) and to a copy of their logged-in user. `Main` and `Viewer` `register` the UI after login; the entries are removed when the UI detaches. |
 | `SessionPoint.java` | Empty session-scoped bean. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -298,6 +303,26 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 <td>Interface of data migrations in Java (schema migrations are Flyway SQL).</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>SessionManager.java</code></td>
+<td>The <code translate="no" v-pre>sessionManager</code> bean: registry of all HTTP sessions, binds the logged-in user to them, runs code in other users&#x27; sessions (<code translate="no" v-pre>runForUsers</code>) and closes dead UIs and sessions on its watcher thread. See <a href="../architecture/#sessions">Sessions</a>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>SessionTrackingListener.java</code></td>
+<td><code translate="no" v-pre>HttpSessionListener</code> registered by <code translate="no" v-pre>WebappApplicationInitializer</code>; forwards session creation and destruction to <code translate="no" v-pre>SessionManager</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>SessionInformation.java</code></td>
+<td>What <code translate="no" v-pre>SessionManager</code> knows about one session: HTTP and Vaadin session, user, main UI, captured request attributes, close listeners.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>SessionCloseListener.java</code>, <code translate="no" v-pre>RunInSession.java</code></td>
+<td>Callbacks: another session was closed; code to run for a session in <code translate="no" v-pre>runForUsers</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ApplicationPoint.java</code></td>
+<td>The <code translate="no" v-pre>applicationPoint</code> bean: application-wide maps of open UIs to their <code translate="no" v-pre>Workspace</code> (only <code translate="no" v-pre>Main</code>) and to a copy of their logged-in user. <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code> <code translate="no" v-pre>register</code> the UI after login; the entries are removed when the UI detaches.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>SessionPoint.java</code></td>
 <td>Empty session-scoped bean.</td>
 </tr>
@@ -308,7 +333,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 <h3 id="ui---user-interface"><code translate="no" v-pre>ui</code> - user interface</h3>
 <retype-table copy-text="| Package | Files |
 |---|---|
-| `ui.main` | `WebappApplicationInitializer` (creates the Spring context), `MarginaliaServlet` (the `VaadinServlet`), `AppShellConfig` (push, theme, global CSS), `LoginCheckRoute` (login overlay, saved logins, first-start dialog), `Main` (route `/`), `Viewer` (route `/view`, published books). |
+| `ui.main` | `WebappApplicationInitializer` (creates the Spring context, registers the session listener), `MarginaliaServlet` (the `VaadinServlet`), `AppShellConfig` (push, theme, global CSS), `LoginCheckRoute` (login overlay, saved logins, first-start dialog), `Main` (route `/`), `Viewer` (route `/view`, published books). |
 | `ui.workspace` | `Workspace` (the tabbed workspace after login, footer buttons) and `WorkspaceComponent` (interface of its tabs). |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `AdminPart`. |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
@@ -327,7 +352,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 <tbody>
 <tr>
 <td><code translate="no" v-pre>ui.main</code></td>
-<td><code translate="no" v-pre>WebappApplicationInitializer</code> (creates the Spring context), <code translate="no" v-pre>MarginaliaServlet</code> (the <code translate="no" v-pre>VaadinServlet</code>), <code translate="no" v-pre>AppShellConfig</code> (push, theme, global CSS), <code translate="no" v-pre>LoginCheckRoute</code> (login overlay, saved logins, first-start dialog), <code translate="no" v-pre>Main</code> (route <code translate="no" v-pre>/</code>), <code translate="no" v-pre>Viewer</code> (route <code translate="no" v-pre>/view</code>, published books).</td>
+<td><code translate="no" v-pre>WebappApplicationInitializer</code> (creates the Spring context, registers the session listener), <code translate="no" v-pre>MarginaliaServlet</code> (the <code translate="no" v-pre>VaadinServlet</code>), <code translate="no" v-pre>AppShellConfig</code> (push, theme, global CSS), <code translate="no" v-pre>LoginCheckRoute</code> (login overlay, saved logins, first-start dialog), <code translate="no" v-pre>Main</code> (route <code translate="no" v-pre>/</code>), <code translate="no" v-pre>Viewer</code> (route <code translate="no" v-pre>/view</code>, published books).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace</code></td>
@@ -652,7 +677,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `instruct` | `RuntimeInstrumentationInitializer` (installs the ByteBuddy agent), `ExtendableMethodVisitor` (the bytecode rewrite), `ExtensionServiceHolder` (static access to `ExtensionService` from instrumented code). |
 | `loc` | `L` (all text keys), `Localization` / `LocalizationBase` / `LocalizationEN`, `NaturalOrderComparator`. |
 | `concurrent` | `AsyncRunnableWrapper` (keeps the submitting stack trace for errors on worker threads), `ThrowingRunnable`. |
-| `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies), `ReflectUtils` (cached reflection). |
+| `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies), `ReflectUtils` (cached reflection), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
 | `com.github.enerccio.tools` | `Pair`, `Pointer` (small holders used across the code) and `GenerateFlywayDiff` (development tool, see [Database schema changes](building.md#database-schema-changes)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -681,7 +706,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>utils</code></td>
-<td><code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies), <code translate="no" v-pre>ReflectUtils</code> (cached reflection).</td>
+<td><code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies), <code translate="no" v-pre>ReflectUtils</code> (cached reflection), <code translate="no" v-pre>ThreadUtils</code> (<code translate="no" v-pre>executeInThread</code> - runs a task on a fresh thread without the caller&#x27;s thread locals and waits for it).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>com.github.enerccio.tools</code></td>
@@ -695,13 +720,14 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <retype-table copy-text="| Path | |
 |---|---|
 | `src/main/resources/META-INF/spring/application-config.xml` | Root of the Spring configuration; imports the three files below. |
-| `.../spring/container-config.xml` | Localization, configuration, session beans, application initializer. |
+| `.../spring/container-config.xml` | Localization, configuration, `applicationPoint`, `sessionManager`, session beans, application initializer. |
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
 | `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V5__protocol_optional_limits`. |
-| `src/main/resources/log4j.properties` | Logging. |
+| `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
+| `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
-| `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.*` | Templates for Vaadin development / production mode (see [Development and production mode](building.md#development-and-production-mode)). |
+| `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.DEVELOPMENT` | Template of a development build info for IDE runs; never packaged into the WAR (see [Development and production mode](building.md#development-and-production-mode)). |
 | `src/main/webapp/config/configuration.properties` | Application settings (`localization`, saved logins). |
 | `src/main/webapp/config/persistence.xml` | The persistence unit: list of entity classes, dialect, `hbm2ddl.auto=validate`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -719,7 +745,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>.../spring/container-config.xml</code></td>
-<td>Localization, configuration, session beans, application initializer.</td>
+<td>Localization, configuration, <code translate="no" v-pre>applicationPoint</code>, <code translate="no" v-pre>sessionManager</code>, session beans, application initializer.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>.../spring/datasources-config.xml</code></td>
@@ -735,15 +761,19 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/log4j.properties</code></td>
-<td>Logging.</td>
+<td>Logging for development (IDE, <code translate="no" v-pre>mvn jetty:run</code>) - <code translate="no" v-pre>DEBUG</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>src/main/resources-release/log4j.properties</code></td>
+<td>Logging packaged into the WAR instead - <code translate="no" v-pre>INFO</code> (see <a href="../packaging/#the-war">Packaging &amp; releases</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/META-INF/build-info/build-info.properties</code></td>
 <td>Version and build time, filtered by Maven.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>src/main/resources/META-INF/VAADIN/config/flow-build-info.json.*</code></td>
-<td>Templates for Vaadin development / production mode (see <a href="../building/#development-and-production-mode">Development and production mode</a>).</td>
+<td><code translate="no" v-pre>src/main/resources/META-INF/VAADIN/config/flow-build-info.json.DEVELOPMENT</code></td>
+<td>Template of a development build info for IDE runs; never packaged into the WAR (see <a href="../building/#development-and-production-mode">Development and production mode</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/webapp/config/configuration.properties</code></td>

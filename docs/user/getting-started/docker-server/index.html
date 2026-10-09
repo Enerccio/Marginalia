@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -202,7 +202,7 @@ docker compose up -d</code></pre>
 <retype-table copy-text="| Setting | What it does |
 |---|---|
 | `ports` | `&quot;8080:8080&quot;` publishes Marginalia on port 8080 of the host. Use `&quot;127.0.0.1:8080:8080&quot;` when only a reverse proxy on the same host should reach it. |
-| `volumes` | `./data` holds the database, backups and extensions. Keep it, and include it in your server backups. |
+| `volumes` | `./data` holds the database, backups and extensions. Keep it, and include it in your server backups. It is created on the first start if it doesn't exist; on start the container makes it owned by the user Marginalia runs as inside the container (`jetty`), so the files in it belong to that user's ID on the host. |
 | `-Xmx512m` | Maximum memory. Raise it (for example `-Xmx1g`) for many users or very large books. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -219,7 +219,7 @@ docker compose up -d</code></pre>
 </tr>
 <tr>
 <td><code translate="no" v-pre>volumes</code></td>
-<td><code translate="no" v-pre>./data</code> holds the database, backups and extensions. Keep it, and include it in your server backups.</td>
+<td><code translate="no" v-pre>./data</code> holds the database, backups and extensions. Keep it, and include it in your server backups. It is created on the first start if it doesn&#x27;t exist; on start the container makes it owned by the user Marginalia runs as inside the container (<code translate="no" v-pre>jetty</code>), so the files in it belong to that user&#x27;s ID on the host.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>-Xmx512m</code></td>

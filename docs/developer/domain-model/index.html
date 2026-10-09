@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -411,7 +411,7 @@ the other fields.</li>
 <ul>
 <li>
 <p><strong>Load</strong> (<code translate="no" v-pre>@PostLoad</code>): the JSON is parsed and the fields are set. Supported field types are <code translate="no" v-pre>String</code>, numbers,
-<code translate="no" v-pre>Boolean</code>, <code translate="no" v-pre>Date</code> (format <code translate="no" v-pre>yyyy.MM.dd'Z'HH:mm:ss.SSS</code>), enums (by name) and <code translate="no" v-pre>JsonObject</code> for <code translate="no" v-pre>inject = true</code>.</p>
+<code translate="no" v-pre>Boolean</code>, <code translate="no" v-pre>Date</code> (ISO-8601 instant in UTC, e.g. <code translate="no" v-pre>2026-10-09T08:15:30.123Z</code>; values in the old <code translate="no" v-pre>yyyy.MM.dd'Z'HH:mm:ss.SSS</code> format, written in the server&#x27;s time zone, are still read), enums (by name) and <code translate="no" v-pre>JsonObject</code> for <code translate="no" v-pre>inject = true</code>.</p>
 </li>
 <li>
 <p><strong>Save</strong>: <code translate="no" v-pre>JpaExtendableRepository.save</code> serializes the fields into <code translate="no" v-pre>extendedContent</code> before the entity is written.</p>
@@ -818,7 +818,7 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 | `maxContext`, `maxCompletionTokens` | columns | Context size and maximum response tokens of the model. |
 | `enabledReasoning`, `reasoningEffort` | columns | Reasoning settings. |
 | `needsJailbreak`, `jailbreak` | columns | Text put before the system prompt. |
-| `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (stored in plain text, BUG-29). |
+| `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (encrypted, see [Encrypted columns](database.md#encrypted-columns)). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -858,7 +858,7 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 <tr>
 <td><code translate="no" v-pre>uri</code>, <code translate="no" v-pre>model</code>, <code translate="no" v-pre>modelName</code>, <code translate="no" v-pre>apiKey</code></td>
 <td>columns (<code translate="no" v-pre>ais_openaicompat</code>)</td>
-<td>Base URL, the model id sent to the API, its label in the model list, the API key (stored in plain text, BUG-29).</td>
+<td>Base URL, the model id sent to the API, its label in the model list, the API key (encrypted, see <a href="../database/#encrypted-columns">Encrypted columns</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>additionalParameters</code></td>
@@ -1010,8 +1010,8 @@ references between rows and decides what may go. Each reference has a policy (<c
 <code translate="no" v-pre>domain/traits/</code>):</p>
 <retype-table copy-text="| Policy | Meaning | Used for |
 |---|---|---|
-| `STRONG` (default) | The referenced row can't be purged while the reference exists. | `Manuscript.ai`, `.protocol`, `.lorebook`, `.activeLeaf`, every `owner` |
-| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; `Setting.owner` |
+| `STRONG` (default) | The referenced row can't be purged while the reference exists. | `Manuscript.ai`, `.protocol`, `.lorebook`, `.activeLeaf` |
+| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; every `owner` |
 | `OWNS` | The referenced row belongs to the referencing one and is purged with it, unless referenced elsewhere. | `ChatMessage.summary` |
 | `WEAK` | The reference doesn't block the purge; it is cleared when the referenced row goes. | `Lorebook.subbooks`, `UserSetting.defaultModel`, `.defaultProtocol` |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -1027,12 +1027,12 @@ references between rows and decides what may go. Each reference has a policy (<c
 <tr>
 <td><code translate="no" v-pre>STRONG</code> (default)</td>
 <td>The referenced row can&#x27;t be purged while the reference exists.</td>
-<td><code translate="no" v-pre>Manuscript.ai</code>, <code translate="no" v-pre>.protocol</code>, <code translate="no" v-pre>.lorebook</code>, <code translate="no" v-pre>.activeLeaf</code>, every <code translate="no" v-pre>owner</code></td>
+<td><code translate="no" v-pre>Manuscript.ai</code>, <code translate="no" v-pre>.protocol</code>, <code translate="no" v-pre>.lorebook</code>, <code translate="no" v-pre>.activeLeaf</code></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>OWNED_BY</code></td>
 <td>The referencing row belongs to the referenced one and is purged with it.</td>
-<td><code translate="no" v-pre>ChatMessage.parentScript</code>, <code translate="no" v-pre>.parent</code>; <code translate="no" v-pre>LorebookEntry.lorebook</code>; <code translate="no" v-pre>TagRelation.tag</code>, <code translate="no" v-pre>.objectId</code>; <code translate="no" v-pre>Setting.owner</code></td>
+<td><code translate="no" v-pre>ChatMessage.parentScript</code>, <code translate="no" v-pre>.parent</code>; <code translate="no" v-pre>LorebookEntry.lorebook</code>; <code translate="no" v-pre>TagRelation.tag</code>, <code translate="no" v-pre>.objectId</code>; every <code translate="no" v-pre>owner</code></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>OWNS</code></td>
@@ -1051,7 +1051,8 @@ references between rows and decides what may go. Each reference has a policy (<c
 <p>JPA associations are found automatically from the Hibernate metamodel and default to <code translate="no" v-pre>STRONG</code>. Plain id fields
 pointing to other entities (&quot;soft references&quot;, including extended attributes) are only seen when annotated with
 <code translate="no" v-pre>target = SomeEntity.class</code> or, for polymorphic ones, <code translate="no" v-pre>targetClassField = &quot;clazz&quot;</code>. On an entity class,
-<code translate="no" v-pre>field = &quot;...&quot;</code> sets the policy of an inherited field (<code translate="no" v-pre>Setting</code> makes its <code translate="no" v-pre>owner</code> <code translate="no" v-pre>OWNED_BY</code>).</p>
+<code translate="no" v-pre>field = &quot;...&quot;</code> sets the policy of an inherited field (<code translate="no" v-pre>OwnedEntity</code> makes <code translate="no" v-pre>owner</code> <code translate="no" v-pre>OWNED_BY</code>, so a deleted user
+is purged together with everything they own).</p>
 <p>So a deleted provider that a book still uses shows up as <em>blocked</em> on the Cleanup page until the book is switched to
 another provider, while a deleted book takes its parts, their summaries and its tag relations with it.</p>
 <h2 id="backups-and-copies">Backups and copies</h2>

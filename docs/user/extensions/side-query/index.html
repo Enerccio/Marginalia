@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -181,7 +181,9 @@ without adding anything to the book.</p>
 <p>The left sidebar of the <a href="../../books/story-editor/">story editor</a> gets a <strong>Side Query</strong> tab next to <em>Outline</em>. Drag the
 divider to give it more room.</p>
 <p>The tab holds conversations, each in its own tab: <strong>+</strong> opens a new one (<em>Tab 2</em>, <em>Tab 3</em>...), the pen renames a tab,
-<strong>×</strong> closes it (the last tab can&#x27;t be closed). Conversations belong to the book and are kept until you close their tab.</p>
+<strong>×</strong> closes it (the last tab can&#x27;t be closed). With <em>Enable AI Tab Naming</em> in the profile, the model names a tab
+after its first answer, unless you renamed the tab yourself. Conversations belong to the book and are kept until you
+close their tab.</p>
 <h2 id="asking">Asking</h2>
 <p>Type a question into the box at the bottom and click <strong>SEND</strong>. The answer appears as it is written; <strong>STOP</strong> (in place
 of <em>SEND</em>) interrupts it.</p>
@@ -222,8 +224,8 @@ to drop a wrong answer without deleting it.</p>
 <p>The options above the conversation choose what is sent with your questions:</p>
 <retype-table copy-text="| Option | |
 |---|---|
-| **Lorebook** | The entries of the book's lorebook. |
-| **Chat Logs** *from* … *to* | The story parts of the active branch in that range. |
+| **Lorebook** | The lore of the book (see below). |
+| **Chat Logs** *from* … *to* | The story parts of the active branch in that range, numbered from 1 as in the outline: `1` to `6` are the parts `#1` to `#6`. |
 | **Tokens** | The approximate size of the request. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -236,11 +238,11 @@ to drop a wrong answer without deleting it.</p>
 <tbody>
 <tr>
 <td><strong>Lorebook</strong></td>
-<td>The entries of the book&#x27;s lorebook.</td>
+<td>The lore of the book (see below).</td>
 </tr>
 <tr>
 <td><strong>Chat Logs</strong> <em>from</em> … <em>to</em></td>
-<td>The story parts of the active branch in that range.</td>
+<td>The story parts of the active branch in that range, numbered from 1 as in the outline: <code translate="no" v-pre>1</code> to <code translate="no" v-pre>6</code> are the parts <code translate="no" v-pre>#1</code> to <code translate="no" v-pre>#6</code>.</td>
 </tr>
 <tr>
 <td><strong>Tokens</strong></td>
@@ -250,23 +252,6 @@ to drop a wrong answer without deleting it.</p>
 </table>
 </div>
 </retype-table>
-<div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
-    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-            <h5>Chat log numbers start at 0</h5>
-<p>The <em>from</em> and <em>to</em> numbers count parts from <strong>0</strong>: <code translate="no" v-pre>0</code> to <code translate="no" v-pre>5</code> are the parts <code translate="no" v-pre>#1</code> to <code translate="no" v-pre>#6</code> of the outline.</p>
-        </div>
-    </div>
-</div>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-primary"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -280,19 +265,22 @@ to drop a wrong answer without deleting it.</p>
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-<p><em>Lorebook</em> sends all enabled entries of the book&#x27;s lorebook as they are written - not only those that would be
-activated, but without the entries of sub lorebooks, and without processing <a href="../../templates/macros/">macros</a> in them.</p>
+<p><em>Lorebook</em> collects the lore like a generation does: the book&#x27;s lorebook and its sub lorebooks (disabled lorebooks are
+skipped), the enabled entries whose tags match the book&#x27;s tags, with <a href="../../templates/macros/">macros</a> processed. Keyword
+filters are not applied - there is no story prompt to match, so every applicable entry is sent. Variables set by the
+entries are not stored.</p>
         </div>
     </div>
 </div>
 <p>The request is built like this:</p>
 <ol>
 <li>
-<p>one system message: the profile&#x27;s <em>Initial System Query</em>, the lorebook entries (<em>Lorebook Context</em>), the story parts
-(<em>Chat History Context</em>, labelled <em>Message #1</em>, <em>#2</em>...), and the profile&#x27;s <em>Instructions Before User Input</em>;</p>
+<p>one system message: the profile&#x27;s <em>Initial System Query</em>, the lorebook entries (<em>Lorebook Context</em>) and the story
+parts (<em>Chat History Context</em>, labelled with their outline numbers <em>Message #1</em>, <em>#2</em>...);</p>
 </li>
 <li>
-<p>the messages of the conversation that are included, as a chat.</p>
+<p>the messages of the conversation that are included, as a chat. The profile&#x27;s <em>Instructions Before User Input</em> are
+put at the start of your last question, before its text.</p>
 </li>
 </ol>
 <p>The model and protocol come from the profile (see below), by default those of the book. A cheap, fast model is usually
@@ -320,8 +308,8 @@ enough for questions about the story.</p>
 | **Profile**, **New**, **Rename**, **Delete** | Choose and manage profiles. *_Default* can't be renamed or deleted. |
 | **SideQuery Model**, **SideQuery Protocol** | The [inference provider](../inference-providers.md) and [protocol](../protocols.md) to use. Empty: the book's. |
 | **Initial System Query** | The start of the system message, e.g. the role of the assistant. |
-| **Instructions Before User Input** | Text added at the end of the system message, after the context - rules for the answers, e.g. *Answer briefly. Quote the story when you can.* |
-| **Enable AI Tab Naming** | Not implemented yet - tabs are always named *Tab N*. |">
+| **Instructions Before User Input** | Text put right before your last question - rules for the answers, e.g. *Answer briefly. Quote the story when you can.* |
+| **Enable AI Tab Naming** | After the first answer in a tab, the model is asked for a short name of the conversation (one extra request). Tabs you renamed keep their name. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -345,11 +333,11 @@ enough for questions about the story.</p>
 </tr>
 <tr>
 <td><strong>Instructions Before User Input</strong></td>
-<td>Text added at the end of the system message, after the context - rules for the answers, e.g. <em>Answer briefly. Quote the story when you can.</em></td>
+<td>Text put right before your last question - rules for the answers, e.g. <em>Answer briefly. Quote the story when you can.</em></td>
 </tr>
 <tr>
 <td><strong>Enable AI Tab Naming</strong></td>
-<td>Not implemented yet - tabs are always named <em>Tab N</em>.</td>
+<td>After the first answer in a tab, the model is asked for a short name of the conversation (one extra request). Tabs you renamed keep their name.</td>
 </tr>
 </tbody>
 </table>

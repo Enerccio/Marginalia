@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -180,11 +180,7 @@ contain story text; remove what you don&#x27;t want to share.</li>
 </ul>
 <p>Security problems (access to other users&#x27; data, login, cookies) should not be reported in a public issue - contact the
 maintainer privately through GitHub first.</p>
-<h3 id="known-bugs">Known bugs</h3>
-<p>Known bugs that are not fixed yet are collected in
-<a href="https://github.com/Enerccio/Marginalia/blob/master/TODO.BUGS.md"><code translate="no" v-pre>TODO.BUGS.md</code></a> in the repository root, numbered
-<code translate="no" v-pre>BUG-&lt;n&gt;</code> with a severity, the place in the code, steps to reproduce and the expected behaviour. Fixed entries are
-struck through. Check it before reporting, and refer to the number in commits and pull requests that fix one.</p>
+<h3 id="planned-work">Planned work</h3>
 <p><a href="https://github.com/Enerccio/Marginalia/blob/master/TODO.md"><code translate="no" v-pre>TODO.md</code></a> is the list of planned work for the first
 release, ordered by priority. Items marked <span class="docs-emoji">&#x1F9E9;</span> are good candidates for an extension instead of a change to the core.</p>
 <h2 id="before-you-start">Before you start</h2>
@@ -233,8 +229,8 @@ imperative, class and method names in backticks, related changes separated by a 
 throw `IllegalArgumentException` for invalid lorebook format in `LorebookServiceImpl`
 fix `setSummaryPrompt` assignment error; correct `userPrompt` reference in manuscript save logic</code></pre>
 </doc-codeblock></div>
-<p>Common verbs: <code translate="no" v-pre>add</code>, <code translate="no" v-pre>fix</code>, <code translate="no" v-pre>update</code>, <code translate="no" v-pre>remove</code>, <code translate="no" v-pre>refactor</code>, <code translate="no" v-pre>rename</code>, <code translate="no" v-pre>migrate</code>, <code translate="no" v-pre>handle</code>. Mention the bug number
-when the commit fixes one from <code translate="no" v-pre>TODO.BUGS.md</code> (<code translate="no" v-pre>... (BUG-17)</code>).</p>
+<p>Common verbs: <code translate="no" v-pre>add</code>, <code translate="no" v-pre>fix</code>, <code translate="no" v-pre>update</code>, <code translate="no" v-pre>remove</code>, <code translate="no" v-pre>refactor</code>, <code translate="no" v-pre>rename</code>, <code translate="no" v-pre>migrate</code>, <code translate="no" v-pre>handle</code>. Mention the issue number
+when the commit fixes one (<code translate="no" v-pre>... (#17)</code>).</p>
 <p>Keep commits focused - one fix or one step of a feature per commit, not a mix of a feature, a reformat and an
 unrelated fix. Don&#x27;t commit generated or local files: <code translate="no" v-pre>target/</code>, <code translate="no" v-pre>src/main/frontend/generated/</code>,
 <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-pre>flow-build-info.json</code> in <code translate="no" v-pre>src/main/resources</code> and <code translate="no" v-pre>.idea/</code> are ignored by Git for this reason.</p>
@@ -242,7 +238,7 @@ unrelated fix. Don&#x27;t commit generated or local files: <code translate="no" 
 <p>A good pull request:</p>
 <ul>
 <li>
-<p>does one thing, and says in the description <strong>what</strong> changed and <strong>why</strong>, with the issue or <code translate="no" v-pre>BUG-&lt;n&gt;</code> it fixes;</p>
+<p>does one thing, and says in the description <strong>what</strong> changed and <strong>why</strong>, with the issue it fixes;</p>
 </li>
 <li>
 <p>for a UI change, includes a screenshot or a short description of what to click to see it;</p>
@@ -255,7 +251,7 @@ unrelated fix. Don&#x27;t commit generated or local files: <code translate="no" 
 migration that is already in <code translate="no" v-pre>master</code>;</p>
 </li>
 <li>
-<p>updates the manual and, for a fixed known bug, strikes the entry in <code translate="no" v-pre>TODO.BUGS.md</code> through;</p>
+<p>updates the manual;</p>
 </li>
 <li>
 <p>doesn&#x27;t change formatting of code it doesn&#x27;t otherwise touch.</p>
@@ -351,7 +347,7 @@ line to <a href="https://github.com/Enerccio/Marginalia/blob/master/TODO.IMAGES.
 should show. Diagrams are Mermaid code blocks, not images.</p>
 </li>
 <li>
-<p>Bugs you find while writing documentation go into <code translate="no" v-pre>TODO.BUGS.md</code>, in the format described at the top of that file.</p>
+<p>Bugs you find while writing documentation are reported as an issue (see <doc-anchor-trigger to="#reporting-bugs-and-ideas">Reporting bugs and ideas</doc-anchor-trigger>).</p>
 </li>
 </ul>
 <h2 id="extensions">Extensions</h2>

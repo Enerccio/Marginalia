@@ -32,7 +32,14 @@ flowchart LR
 4. **Post-process** the output: `{{trim}}` markers are removed together with the newlines around them.
 
 Handlebars runs with `EscapingStrategy.NOOP` - the output is a prompt, not HTML, so quotes, `&` and `<` stay as
-they are. `isValidTemplate` only does steps 1-2, so it catches syntax errors but not unknown names (BUG-15).
+they are.
+
+`isValidTemplate(template, name)` only does steps 1-2, so it catches syntax errors. `isValidTemplate(template, name,
+dataClass)` also walks the compiled template (`Template.collect` of variables and sections, in all branches) and
+reports names that would end in *helperMissing* (see [Template data](#template-data)) in
+`ValidationResult.unknownNames()`. They are warnings, `isValid()` stays true; the UI shows them as the field's helper
+text (`TemplateHints.showWarnings`). Names relative to the current context (`this`, `.`, `../x`, `@index`) and
+parameters (`{{#if name}}`) are not checked.
 
 ## Where templates are rendered
 
@@ -48,14 +55,14 @@ lorebook entries, then the master template - a variable set in the user prompt i
 variables the master template reads.
 
 POV, tense and style are *values*, not templates: they are passed into the templates as variables but not rendered
-themselves (BUG-16).
+themselves.
 
 ## Template data
 
 Each template gets an instance of a `TemplateData` subclass. Its **bean properties** (getters declared in the
 subclass - `TemplateData`'s own methods are excluded) are the template's variables. A field annotated
 `@LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_...)` is listed, with that description, in the hints popover of
-the prompt fields (`TemplateHints`).
+the prompt fields (`TemplateHints`), followed by the shared context properties the class doesn't declare.
 
 Names are resolved by `MacroHelpers.TemplateDataValueResolver`, in this order:
 
@@ -65,7 +72,7 @@ Names are resolved by `MacroHelpers.TemplateDataValueResolver`, in this order:
    every template,
 3. an argument-less macro used as a value, so `{{#if user}}` works like `{{if user}}`,
 4. otherwise the name is missing and Handlebars' *helperMissing* hook renders the word `Error`, so typos are visible
-   in the prompt.
+   in the prompt (`MacroHelpers.resolves` is the same check, used by validation).
 
 Reflection into anything else is blocked: the resolver returns nothing for other names instead of letting the default
 resolvers call methods of `TemplateData` (there is deliberately no `getTemplateContext()` getter).

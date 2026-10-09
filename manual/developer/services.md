@@ -153,7 +153,7 @@ doesn't take them.
 | `AIService`, `ProtocolService` | Plain CRUD of inference providers and protocols. |
 | `InferenceServices` | `forAI(ai)` returns the `InferenceService` for a provider. Implementations are listed in `services-config.xml` (`inferenceProviders`), each annotated `@SupportedAI(AIType...)` with a constructor taking the `AI`; the instance is cached on the (transient) `AI.inferenceService` field. |
 | `InferenceService` | One provider: `getModels()`, `countTokens` / `countTokensApprox`, `stream(payload, protocol, callback)`. Streaming is asynchronous; the callback gets chunks (`REASONING` / `RESPONSE`) and must call `controller.continueInference()` to receive the next one. Implemented by `OpenAICompatibleInferenceService`. |
-| `TokenizerService` | Token counting per provider: tries the `TokenizerStrategy` candidates in order and caches the first that works, per provider id, until it fails or the application restarts (`invalidateCache` doesn't work yet, BUG-41). `countTokensApprox` always uses JTokkit locally. |
+| `TokenizerService` | Token counting per provider: tries the `TokenizerStrategy` candidates in order and caches the first that works, per provider id, until it fails or the provider is saved (`AIDialog` calls `invalidateCache`). The local JTokkit fallback is not cached, so a provider whose server was unreachable is probed again on the next count. `countTokensApprox` always uses JTokkit locally. |
 | `TokenLimits` | Static helpers for the context, response and prompt budget of a generation (protocol overrides, else provider limits). |
 | `TemplateService` | `processTemplate(template, name, data)` renders a Handlebars template with macros; `isValidTemplate` for the UI. See [Templating & macros](templating.md). |
 
@@ -161,7 +161,7 @@ doesn't take them.
 
 | Service | Responsible for |
 |---|---|
-| `UserService` | Users: `authenticate` (PBKDF2-HMAC-SHA256 hashes, constant-time compare), `changePassword`, `isLoginAvailable`, `isLastAdmin` (the last administrator can't be removed or demoted), `deleteUser` (soft delete, frees the login by renaming it to `<login>#<uuid>`, drops saved logins), saved logins (`generateNewPersistentInfo`, `authenticateFromCookie`...). |
+| `UserService` | Users: `authenticate` (PBKDF2-HMAC-SHA256 hashes, constant-time compare), `changePassword` (also drops all saved logins and invalidates the user's other open sessions through `SessionManager.runForUsers` - the caller's own session is kept; the current password is checked by `UserDialog` for self edits), `clearPassword` (removes the password and saved logins and invalidates the user's sessions except the caller's, an administrator's reset), `isLoginAvailable`, `isLastAdmin` (the last administrator can't be removed or demoted), `deleteUser` (soft delete, frees the login by renaming it to `<login>#<uuid>`, drops saved logins, renames the data folder to `<login>-deleted`; owned data is purged with the user by cleanup), saved logins (`generateNewPersistentInfo`, `authenticateFromCookie`...). |
 | `SettingService` | `getOrCreate(UserSetting.class)` for the current user, `getOrCreate(cls, user)`, `getOrCreateApp(AppSettings.class)` for the installation. |
 | `ResourceService` | Files stored by hash in the user's `resources` folder (not used by the UI yet). |
 

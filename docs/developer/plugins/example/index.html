@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -183,7 +183,7 @@ bundle, decorators reading arguments, locals and fields, data in attributes, and
 <li>the bookmark is stored on the part, so it&#x27;s kept in backups and copied by <em>Branch Story</em>.</li>
 </ul>
 <figure class="content-center">
-    <img src="../../../images/dev-plugin-bookmarks.png" alt="The Bookmarks example: a bookmarked part in the sidebar and the Toggle bookmark menu item" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="1000" />
+    <img src="../../../images/dev-plugin-bookmarks.png" alt="The Bookmarks example: a bookmarked part in the sidebar and the Toggle bookmark menu item" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1912" height="925" />
     <figcaption class="caption">The Bookmarks example: a bookmarked part in the sidebar and the Toggle bookmark menu item</figcaption>
 </figure>
 <h3 id="1-install-the-application">1. Install the application</h3>
@@ -343,7 +343,8 @@ public class BookmarksExtension implements MarginaliaExtension {
             extensionService.registerDecorator(sidebarDecorator, STORY_PART, &quot;createSidebarButton&quot;);
             decorators = List.of(menuDecorator, sidebarDecorator);
         } catch (Exception e) {
-            log.error(&quot;Bookmarks extension failed to load&quot;, e);
+            // logged by Marginalia, which then unloads the extension again
+            throw new IllegalStateException(&quot;Bookmarks extension failed to load&quot;, e);
         }
     }
 
@@ -415,7 +416,8 @@ redraw runs <code translate="no" v-pre>createSidebarButton</code> again, so the 
 (<a href="../ui-extensions/#unloading">Extending the UI → Unloading</a>). Sidebar buttons lose their ★ on the next redraw.</p>
 </li>
 <li>
-<p><strong>Errors.</strong> <code translate="no" v-pre>onExtensionLoad</code> runs without a UI, so it logs instead of opening an error dialog.</p>
+<p><strong>Errors.</strong> <code translate="no" v-pre>onExtensionLoad</code> runs without a UI, so it throws instead of opening an error dialog; Marginalia logs
+the error and unloads the extension again.</p>
 </li>
 </ul>
 <div class="flex mb-6">

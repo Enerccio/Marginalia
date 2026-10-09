@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -211,7 +211,7 @@ generation. It must be called on a thread with a request (the UI thread): it cap
 |---|---|---|
 | `newMessage()` | `NEW_MESSAGE` | Add a part after the book's active leaf. |
 | `regenerate(part)` | `REGENERATE` | Write the given part (the last one) again, in place. |
-| `newSwipe(part)` | `NEW_MESSAGE` (should be `SWIPE`, BUG-14) | Write another version of a part as its sibling. |">
+| `newSwipe(part)` | `SWIPE` | Write another version of a part as its sibling. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -234,7 +234,7 @@ generation. It must be called on a thread with a request (the UI thread): it cap
 </tr>
 <tr>
 <td><code translate="no" v-pre>newSwipe(part)</code></td>
-<td><code translate="no" v-pre>NEW_MESSAGE</code> (should be <code translate="no" v-pre>SWIPE</code>, BUG-14)</td>
+<td><code translate="no" v-pre>SWIPE</code></td>
 <td>Write another version of a part as its sibling.</td>
 </tr>
 </tbody>
@@ -255,7 +255,7 @@ a cached thread pool (threads named <code translate="no" v-pre>Generation thread
 | `getPayload()` | The chat messages sent to the model (from `PREPARE_PAYLOAD`). |
 | `getMessage()` | The part being generated (from `GENERATE_NEW_MESSAGE`). |
 | `getProperties()` | Shared map for everything else, keys in `GenerationProperties`. |
-| `getState()` | `NOT_SUCCESSFUL` → `PARTIAL_SUCCESS` (part created) → `SUCCESSFUL` (answer complete). |
+| `getState()` | `NOT_SUCCESSFUL` → `PARTIAL_SUCCESS` (first response text arrived) → `SUCCESSFUL` (answer complete). |
 | `getUIListener()` | The `GenerationListener` of the caller. |
 | `next()`, `jumpTo(type)` | Continue with the next step, or jump (usually to `CLEANUP`). |
 | `emitEvent(event, continuation)` | Run the listeners of an event, then the continuation. |">
@@ -294,7 +294,7 @@ a cached thread pool (threads named <code translate="no" v-pre>Generation thread
 </tr>
 <tr>
 <td><code translate="no" v-pre>getState()</code></td>
-<td><code translate="no" v-pre>NOT_SUCCESSFUL</code> → <code translate="no" v-pre>PARTIAL_SUCCESS</code> (part created) → <code translate="no" v-pre>SUCCESSFUL</code> (answer complete).</td>
+<td><code translate="no" v-pre>NOT_SUCCESSFUL</code> → <code translate="no" v-pre>PARTIAL_SUCCESS</code> (first response text arrived) → <code translate="no" v-pre>SUCCESSFUL</code> (answer complete).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>getUIListener()</code></td>
@@ -412,26 +412,9 @@ baseTokens = system template rendered with lore and summaries (no story)
            + jailbreak + rendered user prompt + 100</code></pre>
 </doc-codeblock></div>
 <p>If <code translate="no" v-pre>baseTokens ≥ limit</code>, the generation stops with <em>Contextual limit not sufficient.</em> Otherwise parts are taken from the
-newest backwards - skipping the part being regenerated, stopping at the stop part - while the running total stays
-under <code translate="no" v-pre>limit − 256</code>, counting each part as its <code translate="no" v-pre>tokenCount + 100</code>. The chosen texts, oldest first, become
-<code translate="no" v-pre>MANUSCRIPT_CHRONICLE</code>.</p>
-<div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
-    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-<p>The check happens <em>before</em> a part is added, so the last part added can push the prompt over the limit by up to its
-own size (BUG-42).</p>
-        </div>
-    </div>
-</div>
+newest backwards - skipping the part being regenerated, stopping at the stop part - counting each part as its
+<code translate="no" v-pre>tokenCount + 100</code>. A part is added only if the running total with it stays within <code translate="no" v-pre>limit − 256</code>; the first part that
+doesn&#x27;t fit ends the loop. The chosen texts, oldest first, become <code translate="no" v-pre>MANUSCRIPT_CHRONICLE</code>.</p>
 <p><strong>System prompt.</strong> The master template is rendered with <code translate="no" v-pre>MasterTemplateData</code> (<code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaries</code>,
 <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code> + the template context) into <code translate="no" v-pre>systemPrompt</code>. The estimate above renders it
 with a <em>fork</em> of the template context, so macros that change variables don&#x27;t run twice.</p>
@@ -452,7 +435,7 @@ user       lore before user prompt + &quot;\n\n&quot; + rendered user prompt</co
 user message carries the instructions.</p>
 <p>The payload is stored in the part (<code translate="no" v-pre>builtPrompt</code>) and can be inspected in the story editor with <em>View prompt</em>:</p>
 <figure class="content-center">
-    <img src="../../images/dev-view-prompt.png" alt="The prompt of a part in the View prompt dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="1000" />
+    <img src="../../images/dev-view-prompt.png" alt="The prompt of a part in the View prompt dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="850" height="650" />
     <figcaption class="caption">The prompt of a part in the View prompt dialog</figcaption>
 </figure>
 <p>Events: <code translate="no" v-pre>BEFORE_PREPARE_PAYLOAD</code>, <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> (the payload can be changed; what is set here is what is
@@ -462,8 +445,8 @@ sent).</p>
 <retype-table copy-text="| Request | Part |
 |---|---|
 | `NEW_MESSAGE` | A new part, child of the active leaf (or the first part of the book). |
-| `SWIPE` | A new part, sibling of the swiped one. (Not reached today, see BUG-14.) |
-| `REGENERATE` | The existing part, cleared. |">
+| `SWIPE` | A new part, sibling of the swiped one. |
+| `REGENERATE` | The existing part, cleared. A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -479,11 +462,11 @@ sent).</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>SWIPE</code></td>
-<td>A new part, sibling of the swiped one. (Not reached today, see BUG-14.)</td>
+<td>A new part, sibling of the swiped one.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>REGENERATE</code></td>
-<td>The existing part, cleared.</td>
+<td>The existing part, cleared. A full copy of it as it was (<code translate="no" v-pre>ChatMessage.copyOf</code>, attributes deep copied) is kept in the <code translate="no" v-pre>ORIGINAL_MESSAGE</code> property first.</td>
 </tr>
 </tbody>
 </table>
@@ -491,8 +474,9 @@ sent).</p>
 </retype-table>
 <p>The part gets the <code translate="no" v-pre>TurnInput</code>, the model and protocol names, the payload as JSON (<code translate="no" v-pre>builtPrompt</code>, shown by <em>View
 prompt</em>), the activated lore and the request time. The template variables of the generation are stored: local ones in
-the part&#x27;s <code translate="no" v-pre>attributes</code>, global ones in the book&#x27;s. The part becomes the book&#x27;s active leaf, both are saved, the
-state becomes <code translate="no" v-pre>PARTIAL_SUCCESS</code> and <code translate="no" v-pre>listener.onNodeCreated(part)</code> lets the UI show it.</p>
+the part&#x27;s <code translate="no" v-pre>attributes</code>, global ones in the book&#x27;s. The part becomes the book&#x27;s active leaf, both are saved
+and <code translate="no" v-pre>listener.onNodeCreated(part)</code> lets the UI show it. The state stays <code translate="no" v-pre>NOT_SUCCESSFUL</code> - until text arrives, the
+part is only a placeholder that cleanup removes or restores.</p>
 <p>Events: <code translate="no" v-pre>BEFORE_GENERATE_NEW_MESSAGE</code>, <code translate="no" v-pre>AFTER_GENERATE_NEW_MESSAGE</code> (the part is available as <code translate="no" v-pre>getMessage()</code>).</p>
 <h3 id="7-inference---inferencestep">7. <code translate="no" v-pre>INFERENCE</code> - <code translate="no" v-pre>InferenceStep</code></h3>
 <p>Counts the prompt tokens, then calls <code translate="no" v-pre>InferenceService.stream(payload, protocol, callback)</code>. For each chunk:</p>
@@ -509,7 +493,10 @@ in <code translate="no" v-pre>CHUNK</code>),</p>
 <p>the first chunk sets the time to first token, the first response chunk the end of reasoning,</p>
 </li>
 <li>
-<p>the part and the book are saved and the UI gets <code translate="no" v-pre>onReasoningChunk</code> / <code translate="no" v-pre>onResponseChunk</code> and <code translate="no" v-pre>onMetricsUpdated</code>.</p>
+<p>the part and the book are saved and the UI gets <code translate="no" v-pre>onReasoningChunk</code> / <code translate="no" v-pre>onResponseChunk</code> and <code translate="no" v-pre>onMetricsUpdated</code>,</p>
+</li>
+<li>
+<p>once the response has some non-blank text, the state becomes <code translate="no" v-pre>PARTIAL_SUCCESS</code> (reasoning alone doesn&#x27;t count).</p>
 </li>
 </ul>
 <p>Listeners of the chunk events can change the chunk text before it is appended. The stream is pulled: the inference
@@ -522,9 +509,9 @@ moves to <code translate="no" v-pre>CLEANUP</code>. An error is reported with <c
 <retype-table copy-text="| State | What happens |
 |---|---|
 | `SUCCESSFUL` | `onComplete(part)`. |
-| `PARTIAL_SUCCESS` | The part exists with whatever text arrived (stopped or failed mid-stream): `onCancelled(part)`. |
+| `PARTIAL_SUCCESS` | The part keeps the text that arrived (stopped or failed mid-stream): `onCancelled(part)`. |
 | `NOT_SUCCESSFUL`, no part yet | `onCancelled(null)`. |
-| `NOT_SUCCESSFUL`, part exists | New part: deleted, its children moved to its parent. Swipe: deleted, the previous sibling becomes active. Regenerate: kept. |">
+| `NOT_SUCCESSFUL`, part exists (no text arrived) | New part: the book's active leaf goes back to its parent, the part is deleted (children moved to its parent), `onCancelled(null)`. Swipe: the swiped version becomes active again, the new sibling is deleted, `onCancelled(previous)`. Regenerate: every value of the part is restored from `ORIGINAL_MESSAGE` (`loadFrom`, attributes included), `onCancelled(part)`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -540,15 +527,15 @@ moves to <code translate="no" v-pre>CLEANUP</code>. An error is reported with <c
 </tr>
 <tr>
 <td><code translate="no" v-pre>PARTIAL_SUCCESS</code></td>
-<td>The part exists with whatever text arrived (stopped or failed mid-stream): <code translate="no" v-pre>onCancelled(part)</code>.</td>
+<td>The part keeps the text that arrived (stopped or failed mid-stream): <code translate="no" v-pre>onCancelled(part)</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>NOT_SUCCESSFUL</code>, no part yet</td>
 <td><code translate="no" v-pre>onCancelled(null)</code>.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>NOT_SUCCESSFUL</code>, part exists</td>
-<td>New part: deleted, its children moved to its parent. Swipe: deleted, the previous sibling becomes active. Regenerate: kept.</td>
+<td><code translate="no" v-pre>NOT_SUCCESSFUL</code>, part exists (no text arrived)</td>
+<td>New part: the book&#x27;s active leaf goes back to its parent, the part is deleted (children moved to its parent), <code translate="no" v-pre>onCancelled(null)</code>. Swipe: the swiped version becomes active again, the new sibling is deleted, <code translate="no" v-pre>onCancelled(previous)</code>. Regenerate: every value of the part is restored from <code translate="no" v-pre>ORIGINAL_MESSAGE</code> (<code translate="no" v-pre>loadFrom</code>, attributes included), <code translate="no" v-pre>onCancelled(part)</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -676,7 +663,7 @@ prefixed with the extension&#x27;s name.</p>
 | `AFTER_MANUSCRIPT_CONCATENATION` | 4 | `MANUSCRIPT_CHRONICLE` (read back) |
 | `AFTER_PREPARE_CONTENT` | 4 | `systemPrompt` |
 | `BEFORE_PREPARE_PAYLOAD`, `AFTER_PREPARE_PAYLOAD` | 5 | payload (after) - what is set is sent |
-| `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` | 6 | the part (after) |
+| `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` | 6 | the part (after), `ORIGINAL_MESSAGE` for regenerate |
 | `BEFORE_INFERENCE` | 7 | |
 | `REASONING_CHUNK_RECEIVED`, `CHUNK_RECEIVED` | 7 | `REASONING_CHUNK` / `CHUNK` (read back), per chunk |
 | `AFTER_INFERENCE` | 7 | complete part |
@@ -764,7 +751,7 @@ prefixed with the extension&#x27;s name.</p>
 <tr>
 <td><code translate="no" v-pre>BEFORE_GENERATE_NEW_MESSAGE</code>, <code translate="no" v-pre>AFTER_GENERATE_NEW_MESSAGE</code></td>
 <td>6</td>
-<td>the part (after)</td>
+<td>the part (after), <code translate="no" v-pre>ORIGINAL_MESSAGE</code> for regenerate</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>BEFORE_INFERENCE</code></td>
@@ -796,7 +783,8 @@ prefixed with the extension&#x27;s name.</p>
 <ul>
 <li>
 <p><strong>Stop</strong> in the UI calls <code translate="no" v-pre>CancellationToken.cancel()</code>. Every step, continuation and chunk checks the token and jumps
-to <code translate="no" v-pre>CLEANUP</code>, which keeps what was generated so far (<code translate="no" v-pre>PARTIAL_SUCCESS</code>).</p>
+to <code translate="no" v-pre>CLEANUP</code>, which keeps what was generated so far (<code translate="no" v-pre>PARTIAL_SUCCESS</code>) - or, when nothing arrived yet, removes
+the new part or restores the regenerated one, like after an error. Only <code translate="no" v-pre>CLEANUP</code> reports the end to the listener.</p>
 </li>
 <li>
 <p><strong>Errors</strong> - an exception in a step or continuation, a failed request - are reported with
@@ -808,8 +796,6 @@ to <code translate="no" v-pre>CLEANUP</code>, which keeps what was generated so 
 continuations (<code translate="no" v-pre>controller.wrapCallback(...)</code>); used for invalidated summaries.</p>
 </li>
 </ul>
-<p>Known problems in this area: a failed request leaves an empty part (BUG-9), and Stop doesn&#x27;t close the connection to
-the model (BUG-43).</p>
 <h2 id="changing-the-pipeline">Changing the pipeline</h2>
 <ul>
 <li>

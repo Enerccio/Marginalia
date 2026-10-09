@@ -10,7 +10,8 @@ An inference provider is a connection to a model: the API address, the API key, 
 book uses one provider. You can have as many as you like, for example a large cloud model for the story and a small
 local one for experiments, and switch a book between them at any time.
 
-Providers belong to your account. Other users don't see them or their API keys.
+Providers belong to your account. Other users don't see them or their API keys. API keys are stored encrypted (see
+[The data folder](administration/index.md#the-data-folder)).
 
 ![The Inference Providers tab](../images/inference-providers-list.png)
 

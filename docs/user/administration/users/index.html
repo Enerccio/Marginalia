@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -174,7 +174,7 @@
 <p>The <strong>Users</strong> tab of the admin page lists all accounts with their <strong>Username</strong>, <strong>Full Name</strong> and whether they are an
 <strong>Administrator</strong>.</p>
 <figure class="content-center">
-    <img src="../../../images/admin-users.png" alt="The Users tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="1000" />
+    <img src="../../../images/admin-users.png" alt="The Users tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Users tab</figcaption>
 </figure>
 <h2 id="adding-a-user">Adding a user</h2>
@@ -200,7 +200,7 @@
         <div class="pr-5 ml-3 w-full">
             <h5>Always set a password</h5>
 <p>Marginalia accepts an account with an empty password - anyone can then log in with just the user name. Only do that
-on the desktop app on your own computer.</p>
+on the desktop app on your own computer. Creating a user without a password asks for confirmation first.</p>
         </div>
     </div>
 </div>
@@ -209,14 +209,21 @@ on the desktop app on your own computer.</p>
 <p>The pen button opens the same dialog for an existing user:</p>
 <ul>
 <li>change the user name, full name and the administrator flag;</li>
-<li>to <strong>reset a forgotten password</strong>, enter a new one in both password fields; leave them empty to keep the current one.</li>
+<li>leave both password fields empty to keep the user&#x27;s password as it is;</li>
+<li>to set a <strong>new password</strong>, enter it in both password fields;</li>
+<li>to <strong>clear the password</strong>, tick <strong>Clear password</strong> (the password fields are disabled) and confirm. The account then
+has no password.</li>
 </ul>
-<p>Marginalia has no password reset by e-mail; an administrator sets a new password here and tells the user.</p>
-<p>The last administrator can&#x27;t lose the administrator flag: <em>The last administrator cannot be deleted or demoted.</em></p>
-<h2 id="deleting-a-user">Deleting a user</h2>
-<p>The trash button deletes the account after confirming. You can&#x27;t delete your own account or the last administrator.</p>
-<p>The user can no longer log in, saved logins on their devices stop working, and the user name becomes free for a new
-account.</p>
+<p>You don&#x27;t need the user&#x27;s current password for any of this. A new or cleared password ends all the user&#x27;s saved
+logins.</p>
+<h3 id="resetting-a-forgotten-password">Resetting a forgotten password</h3>
+<p>Marginalia has no password reset by e-mail. Either:</p>
+<ul>
+<li>set a new password here and tell it to the user, who can change it later with <strong>Change Password</strong>; or</li>
+<li>tick <strong>Clear password</strong>, tell the user to log in with their user name and an <strong>empty</strong> password, and to set a new
+password right away with <strong>Change Password</strong> (leave <em>Current Password</em> empty). The administrator never learns the
+new password this way.</li>
+</ul>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -229,14 +236,22 @@ account.</p>
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>The data stays</h5>
-<p>Deleting a user does <strong>not</strong> delete their books, lorebooks, inference providers (with their API keys), protocols and
-settings. They stay in the database, invisible to everyone, and <a href="../cleanup/">Cleanup</a> can&#x27;t remove them. If the data
-must go, the user should first delete their books, lorebooks, inference providers and protocols themselves; Cleanup
-then removes them, and the account once nothing of it is left.</p>
+<p>Until the user sets a new password, anyone who knows the user name can log in to a cleared account. On a server, clear
+the password only when the user can log in right away.</p>
         </div>
     </div>
 </div>
+<p>The last administrator can&#x27;t lose the administrator flag: <em>The last administrator cannot be deleted or demoted.</em></p>
+<h2 id="deleting-a-user">Deleting a user</h2>
+<p>The trash button deletes the account after confirming. You can&#x27;t delete your own account or the last administrator.</p>
+<p>The user can no longer log in, saved logins on their devices stop working, and the user name becomes free for a new
+account.</p>
+<p>Their books, lorebooks, inference providers (with their API keys), protocols, tags and settings disappear with the
+account - nobody can see them any more - and the next <a href="../cleanup/">Cleanup</a> removes them from the database together
+with the account.</p>
+<p>The user&#x27;s files (uploaded images and resources) are kept: their folder in the data directory is renamed to
+<code translate="no" v-pre>&lt;login&gt;-deleted</code> (<code translate="no" v-pre>&lt;login&gt;-deleted-2</code>... if that name is taken), so a new account with the same user name starts with
+an empty folder. Delete the renamed folder by hand once you don&#x27;t need it.</p>
 
                 
                 <!-- Required only on API pages -->

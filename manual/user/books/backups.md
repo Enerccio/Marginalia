@@ -65,7 +65,7 @@ There are two ways to bring a backup file back:
 ### Importing a backup as a new book
 
 1. Open the **Settings** tab and click **Import Backup as New Book**.
-2. Enter the **New Book Name** first.
+2. Enter the **New Book Name** - the upload is enabled once the name is filled in.
 3. Upload the backup file.
 4. Decide about the lorebooks, if asked.
 

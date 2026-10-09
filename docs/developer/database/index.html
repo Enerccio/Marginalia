@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -306,7 +306,35 @@ log. Typical messages:</p>
 </retype-table>
 <p>There is also a second, Java-level version check: <code translate="no" v-pre>ApplicationInitializer</code> compares <code translate="no" v-pre>AppSettings.dbVersion</code> /
 <code translate="no" v-pre>appVersion</code> with the versions set in <code translate="no" v-pre>container-config.xml</code> and runs registered <code translate="no" v-pre>Migration</code> beans for data changes
-that are easier in Java than in SQL. None are registered yet (and see BUG-34).</p>
+that are easier in Java than in SQL. It runs after Hibernate is up, so a migration can use <code translate="no" v-pre>jdbcTemplate</code> or services.
+Each migration gets the current version and returns the new one (or the same one when it has nothing to do), so a
+migration is written for one version step and ignores the others.</p>
+<retype-table copy-text="| Type | Version | Class | Change |
+|---|---|---|---|
+| APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Type</th>
+<th>Version</th>
+<th>Class</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>APP</td>
+<td>1 → 2</td>
+<td><code translate="no" v-pre>bound/migration/EncryptApiKeysMigration</code></td>
+<td>Encrypts the plain text <code translate="no" v-pre>ais_openaicompat.apiKey</code> values, see <doc-anchor-trigger to="#encrypted-columns">Encrypted columns</doc-anchor-trigger>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>To add one: implement <code translate="no" v-pre>Migration</code>, register the bean in the <code translate="no" v-pre>migrations</code> list of <code translate="no" v-pre>applicationInitializer</code> and raise
+<code translate="no" v-pre>appVersion</code> (or <code translate="no" v-pre>dbVersion</code>). A fresh database starts at version 1, so it goes through all migrations too.</p>
 <h2 id="migrations">Migrations</h2>
 <retype-table copy-text="| Version | File | Change |
 |---|---|---|
@@ -314,7 +342,8 @@ that are easier in Java than in SQL. None are registered yet (and see BUG-34).</
 | V2 | `V2__summaries.sql` | `messages.summary_id` - parts can have a summary. |
 | V3 | `V3__lorebook_subbooks_shared.sql` | Rebuilds `lorebooks_lorebooks` without the unique constraint, so a lorebook can be a sub-lorebook of several lorebooks. |
 | V4 | `V4__manuscript_published_last_opened.sql` | `manuscripts.published` and `manuscripts.lastOpened`. |
-| V5 | `V5__protocol_optional_limits.sql` | Rebuilds `protocols` with nullable `maxTokens` / `replyTokens` and turns the old &quot;not set&quot; values (0, negative) into `NULL`. |">
+| V5 | `V5__protocol_optional_limits.sql` | Rebuilds `protocols` with nullable `maxTokens` / `replyTokens` and turns the old &quot;not set&quot; values (0, negative) into `NULL`. |
+| V6 | `V6__indexes.sql` | Indexes matching the queries: tag relations by object and by tag, owner lookups `(userId, is_deleted)`, lorebook entries in order, parts of a book in order, resources by owner and hash, settings by key. Drops the unused and duplicate ones. See [Indexes](#indexes). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -350,6 +379,11 @@ that are easier in Java than in SQL. None are registered yet (and see BUG-34).</
 <td><code translate="no" v-pre>V5__protocol_optional_limits.sql</code></td>
 <td>Rebuilds <code translate="no" v-pre>protocols</code> with nullable <code translate="no" v-pre>maxTokens</code> / <code translate="no" v-pre>replyTokens</code> and turns the old &quot;not set&quot; values (0, negative) into <code translate="no" v-pre>NULL</code>.</td>
 </tr>
+<tr>
+<td>V6</td>
+<td><code translate="no" v-pre>V6__indexes.sql</code></td>
+<td>Indexes matching the queries: tag relations by object and by tag, owner lookups <code translate="no" v-pre>(userId, is_deleted)</code>, lorebook entries in order, parts of a book in order, resources by owner and hash, settings by key. Drops the unused and duplicate ones. See <doc-anchor-trigger to="#indexes">Indexes</doc-anchor-trigger>.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -380,7 +414,7 @@ when the value is used in queries (see <a href="../domain-model/#adding-a-field-
 </ul>
 <h3 id="adding-a-column">Adding a column</h3>
 <div id="adding-a-column-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-sql"><code v-pre class="language-sql">-- V6__manuscript_archived.sql
+<pre translate="no" class="language-sql"><code v-pre class="language-sql">-- V7__manuscript_archived.sql
 ALTER TABLE manuscripts
     ADD COLUMN archived boolean not null default false;</code></pre>
 </doc-codeblock></div>
@@ -394,7 +428,7 @@ private boolean archived = false;</code></pre>
 <code translate="no" v-pre>GenerationType.AUTO</code>, which on SQLite means a table-backed sequence named <code translate="no" v-pre>&lt;table&gt;_SEQ</code> with a pooled optimizer
 (ids are reserved in blocks of 50 - gaps in ids are normal):</p>
 <div id="adding-a-table-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-sql"><code v-pre class="language-sql">-- V6__bookmarks.sql
+<pre translate="no" class="language-sql"><code v-pre class="language-sql">-- V7__bookmarks.sql
 create table bookmarks
 (
     id              bigint      not null primary key,
@@ -407,8 +441,8 @@ create table bookmarks
     message_id      bigint
 );
 
-create index ix_bookmark_user_id on bookmarks (userId);
-create index ix_bookmark_message on bookmarks (message_id);
+create index ix_bookmarks_user on bookmarks (userId, is_deleted);
+create index ix_bookmarks_message on bookmarks (message_id);
 
 create table bookmarks_SEQ
 (
@@ -464,8 +498,8 @@ development home whose database is at the current schema version. Treat the outp
 <h2 id="schema-conventions">Schema conventions</h2>
 <p><strong>Names.</strong> Tables are plural (<code translate="no" v-pre>manuscripts</code>, <code translate="no" v-pre>messages</code>, <code translate="no" v-pre>entries</code>), set by <code translate="no" v-pre>@Table(name = ...)</code>. Columns use the Java
 field name (<code translate="no" v-pre>maxTokens</code>, <code translate="no" v-pre>lastOpened</code>); relations end in <code translate="no" v-pre>_id</code> (<code translate="no" v-pre>lorebook_id</code>, <code translate="no" v-pre>parentScript_id</code>), except the owner,
-which is <code translate="no" v-pre>userId</code>, and the soft delete flag, <code translate="no" v-pre>is_deleted</code>. Indexes are named in the entity&#x27;s <code translate="no" v-pre>@Table(indexes = ...)</code>
-and must be created by hand in the migration.</p>
+which is <code translate="no" v-pre>userId</code>, and the soft delete flag, <code translate="no" v-pre>is_deleted</code>. Indexes exist only in the migrations, see
+<doc-anchor-trigger to="#indexes">Indexes</doc-anchor-trigger>.</p>
 <p><strong>No foreign key constraints.</strong> The tables have no <code translate="no" v-pre>REFERENCES</code> clauses (V2&#x27;s <code translate="no" v-pre>summary_id</code> declares one, but SQLite
 doesn&#x27;t enforce it because <code translate="no" v-pre>PRAGMA foreign_keys</code> is off). Integrity is kept by the application: rows are soft
 deleted, so references stay valid, and the admin <em>Cleanup</em> follows the
@@ -476,9 +510,91 @@ clear or move references itself (see <code translate="no" v-pre>ChatMessageServi
 new enum value doesn&#x27;t need a table rebuild.</p>
 <p><strong>Large values.</strong> Text that can be long (<code translate="no" v-pre>name</code>, <code translate="no" v-pre>uri</code>, <code translate="no" v-pre>apiKey</code>...) is <code translate="no" v-pre>@Lob</code> → <code translate="no" v-pre>clob</code>; <code translate="no" v-pre>extendedContent</code> is a
 <code translate="no" v-pre>blob</code> with JSON. SQLite doesn&#x27;t enforce lengths, so <code translate="no" v-pre>varchar(255)</code> is only documentation.</p>
+<p><strong>Encrypted columns.</strong> Secrets are stored encrypted, see <doc-anchor-trigger to="#encrypted-columns">Encrypted columns</doc-anchor-trigger>.</p>
 <p><strong>Hibernate&#x27;s temporary tables.</strong> <code translate="no" v-pre>V1__initial.sql</code> contains <code translate="no" v-pre>HT_*</code> and <code translate="no" v-pre>HTE_*</code> tables. Hibernate uses them for bulk
 updates and deletes on entities with joined inheritance (<code translate="no" v-pre>AI</code>, <code translate="no" v-pre>Protocol</code>) and for inserts into such hierarchies.
 They are part of the schema - don&#x27;t drop them.</p>
+<h2 id="indexes">Indexes</h2>
+<p>Indexes are created only by Flyway migrations; the entities don&#x27;t declare any (<code translate="no" v-pre>@Table(indexes = ...)</code>), because
+Hibernate only validates the schema and never creates them. Name them <code translate="no" v-pre>ix_&lt;table&gt;_&lt;what&gt;</code>.</p>
+<p>Index what the queries filter on, in the order of the <code translate="no" v-pre>WHERE</code> clause, with the equality columns first and the
+<code translate="no" v-pre>ORDER BY</code> column last:</p>
+<retype-table copy-text="| Index | Used by |
+|---|---|
+| `t2e (objectId, clazz, negative)` | Tags of a book, lorebook or entry (`findTagsForObject`, lorebook activation on every generation). |
+| `t2e (tag_id, clazz, negative)` | Objects with a tag (`findObjectIdsForTag`, tag filters). |
+| `&lt;table&gt; (userId, is_deleted)` | Listing and finding the owner's entities (`ais`, `protocols`, `manuscripts`, `lorebooks`, `tags`). |
+| `entries (lorebook_id, ordinal)` | Entries of a lorebook in order. |
+| `messages (parentScript_id, creation)`, `messages (parent_id)` | Parts of a book in order, children of a part. |
+| `resources (userId, hash)` | Deduplication of uploaded files. |
+| `settings (key, userId)` | Loading a settings object. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Index</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>t2e (objectId, clazz, negative)</code></td>
+<td>Tags of a book, lorebook or entry (<code translate="no" v-pre>findTagsForObject</code>, lorebook activation on every generation).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>t2e (tag_id, clazz, negative)</code></td>
+<td>Objects with a tag (<code translate="no" v-pre>findObjectIdsForTag</code>, tag filters).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>&lt;table&gt; (userId, is_deleted)</code></td>
+<td>Listing and finding the owner&#x27;s entities (<code translate="no" v-pre>ais</code>, <code translate="no" v-pre>protocols</code>, <code translate="no" v-pre>manuscripts</code>, <code translate="no" v-pre>lorebooks</code>, <code translate="no" v-pre>tags</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>entries (lorebook_id, ordinal)</code></td>
+<td>Entries of a lorebook in order.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>messages (parentScript_id, creation)</code>, <code translate="no" v-pre>messages (parent_id)</code></td>
+<td>Parts of a book in order, children of a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>resources (userId, hash)</code></td>
+<td>Deduplication of uploaded files.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>settings (key, userId)</code></td>
+<td>Loading a settings object.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A single-column index on <code translate="no" v-pre>is_deleted</code> alone helps only the <em>Cleanup</em> (few rows are deleted); don&#x27;t add new ones.
+Check a query with <code translate="no" v-pre>EXPLAIN QUERY PLAN</code> in SQLite - <code translate="no" v-pre>SCAN &lt;table&gt;</code> means a full table scan, <code translate="no" v-pre>SEARCH ... USING INDEX</code>
+means the index is used. <code translate="no" v-pre>FlywayMigrationTest.tagRelationLookupsUseIndexes</code> does that for the main lookups.</p>
+<h2 id="encrypted-columns">Encrypted columns</h2>
+<p><code translate="no" v-pre>OpenAICompatible.apiKey</code> is mapped with <code translate="no" v-pre>@Convert(converter = EncryptedStringConverter.class)</code>. The converter calls
+<code translate="no" v-pre>Configuration.encrypt</code> / <code translate="no" v-pre>decrypt</code>:</p>
+<ul>
+<li>
+<p>On the first start <code translate="no" v-pre>Configuration</code> writes a random UUID to <code translate="no" v-pre>&lt;data folder&gt;/secret.key</code>; the AES-256 key is the
+SHA-256 of that UUID. The file is outside the database, so a database backup alone doesn&#x27;t reveal the secrets.</p>
+</li>
+<li>
+<p>A stored value is <code translate="no" v-pre>enc:</code> + Base64 of a random 12-byte IV and the AES/GCM ciphertext. Values without the prefix are
+read as they are (plain values from before the migration); a value that can&#x27;t be decrypted (a database from another
+installation, a different <code translate="no" v-pre>secret.key</code>) is logged and read as <code translate="no" v-pre>null</code> - the user enters the key again.</p>
+</li>
+<li>
+<p>The converter is a Spring bean: <code translate="no" v-pre>emf</code> sets <code translate="no" v-pre>hibernate.resource.beans.container</code> to a <code translate="no" v-pre>SpringBeanContainer</code>, so
+Hibernate asks Spring for converters (and entity listeners) and <code translate="no" v-pre>@Autowired</code> fields are injected. Use the same
+converter for any new secret column.</p>
+</li>
+<li>
+<p>Code outside JPA (<code translate="no" v-pre>jdbcTemplate</code>, migrations) sees the encrypted value and must use <code translate="no" v-pre>Configuration</code> itself, as
+<code translate="no" v-pre>EncryptApiKeysMigration</code> does.</p>
+</li>
+</ul>
 <h2 id="sqlite-limitations">SQLite limitations</h2>
 <retype-table copy-text="| Limitation | Consequence |
 |---|---|
@@ -530,32 +646,41 @@ consistent, compacted copy without stopping the application. Backups go to <code
     participant B as DatabaseBackupService
     participant C as Configuration (next start)
     A-&gt;&gt;B: scheduleRestore(backup)
+    B-&gt;&gt;B: DatabaseCheck.check(backup)
     B-&gt;&gt;B: copy backup → marginalia.sqlite.restore (tmp file + atomic move)
     Note over A,C: restart
+    C-&gt;&gt;C: DatabaseCheck.check(marginalia.sqlite.restore)
     C-&gt;&gt;C: move marginalia.sqlite (+ -wal, -shm) → db-backups/pre-restore-&lt;time&gt;-marginalia.sqlite
     C-&gt;&gt;C: move marginalia.sqlite.restore → marginalia.sqlite
-    C-&gt;&gt;C: Flyway migrates the restored database, Hibernate validates</pre></div>
-<p>Because Flyway runs after the swap, a backup from an older version is upgraded on start. A backup from a <em>newer</em>
-version than the running code is not supported: its history contains migrations the running code doesn&#x27;t have, and
-the old code may not work with the newer schema.</p>
-<div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
-    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-<p>An uploaded file is only checked for the SQLite header. If it isn&#x27;t a Marginalia database, the migration fails on
-the next start and Marginalia doesn&#x27;t start (BUG-39). The previous database is kept as
-<code translate="no" v-pre>db-backups/pre-restore-*.sqlite</code>; to recover, stop Marginalia and move it back to <code translate="no" v-pre>marginalia.sqlite</code>.</p>
-        </div>
-    </div>
-</div>
+    C-&gt;&gt;C: Flyway migrates the restored database
+    Note over C: datasource, Flyway bean (nothing left to migrate), Hibernate validates</pre></div>
+<p><code translate="no" v-pre>DatabaseCheck.check(File)</code> is run on <em>Upload Backup</em> (<code translate="no" v-pre>importBackup</code>), on <code translate="no" v-pre>scheduleRestore</code> and on start. It opens the
+file read-only and refuses it (<code translate="no" v-pre>InvalidDatabaseException</code>, an <code translate="no" v-pre>IllegalArgumentException</code> with the reason) when:</p>
+<ul>
+<li>
+<p>it doesn&#x27;t start with the SQLite header,</p>
+</li>
+<li>
+<p><code translate="no" v-pre>PRAGMA integrity_check</code> reports problems,</p>
+</li>
+<li>
+<p>core tables (<code translate="no" v-pre>users</code>, <code translate="no" v-pre>settings</code>, <code translate="no" v-pre>manuscripts</code>, <code translate="no" v-pre>messages</code>, <code translate="no" v-pre>lorebooks</code>, <code translate="no" v-pre>entries</code>, <code translate="no" v-pre>ais</code>, <code translate="no" v-pre>protocols</code>, <code translate="no" v-pre>tags</code>,
+<code translate="no" v-pre>t2e</code>) are missing - another application&#x27;s database,</p>
+</li>
+<li>
+<p><code translate="no" v-pre>flyway_schema_history</code> has a failed migration or a version newer than the newest bundled <code translate="no" v-pre>migration/V*__*.sql</code> -
+a database of a newer Marginalia version. A database without the history table predates Flyway and is baselined at
+V1 as usual.</p>
+</li>
+</ul>
+<p><code translate="no" v-pre>Configuration.applyPendingRestore()</code> migrates the restored database itself, before the datasource is created, with
+the same Flyway configuration as the <code translate="no" v-pre>flyway</code> bean (<code translate="no" v-pre>DatabaseCheck.flywayConfiguration(DataSource)</code>, used by
+<code translate="no" v-pre>datasources-config.xml</code> too). If the check fails, the staged file is moved to
+<code translate="no" v-pre>db-backups/rejected-restore-&lt;time&gt;-marginalia.sqlite</code> and the current database stays. If the migration fails, the
+restored file is moved there as well and the <code translate="no" v-pre>pre-restore-*</code> database is moved back. Either way the reason is logged
+as an error and Marginalia starts with the previous database. A backup from an older version is upgraded on start.</p>
+<p>API keys in a backup are encrypted with the installation&#x27;s <code translate="no" v-pre>secret.key</code> (see <doc-anchor-trigger to="#encrypted-columns">Encrypted columns</doc-anchor-trigger>).
+A backup restored on another installation loses them unless <code translate="no" v-pre>secret.key</code> is copied along.</p>
 <h2 id="tests-and-the-database">Tests and the database</h2>
 <p>Tests don&#x27;t touch your data: <code translate="no" v-pre>MarginaliaTestBase</code> starts the Spring configuration with the data folder in
 <code translate="no" v-pre>target/test-home/ctx-*</code>, so every test context gets a fresh database migrated by the real Flyway configuration. See

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -236,7 +236,7 @@ lorebookView.addComponentAtIndex(Math.max(index, 0), panel);</code></pre>
 </doc-codeblock></div>
 <p>A component created once for a view must not hold on to things that change in it: <code translate="no" v-pre>LorebookView</code> stays the same
 when the user picks another lorebook, so a panel bound to the lorebook it was created with ends up acting on the
-wrong one (BUG-49). Look the current value up when it&#x27;s needed (<code translate="no" v-pre>lorebookView.getCurrentLorebook()</code>), or hook the
+wrong one. Look the current value up when it&#x27;s needed (<code translate="no" v-pre>lorebookView.getCurrentLorebook()</code>), or hook the
 method that switches it.</p>
 <h3 id="changing-what-the-application-built">Changing what the application built</h3>
 <p>The decorator can change any component the method built. Chapter Marker relabels the sidebar button of a part:</p>
@@ -267,6 +267,9 @@ UserSetting userSetting = context.getReflectiveFieldValue(instrumented, &quot;us
 reviewerService.saveSettings(form.save(), userSetting);     // writes into userSetting.getAttributes()
 // ...which the body of save() then stores with settingService.save(userSetting)</code></pre>
 </doc-codeblock></div>
+<p>Changes in the panel&#x27;s fields are tracked like the application&#x27;s own: any value change outside of
+<code translate="no" v-pre>UserPart.refresh</code> (and its decorators) locks the workspace navigation until the user saves or discards. Fill the form
+in the <code translate="no" v-pre>refresh</code> decorator, not later (e.g. from a background thread), or the loaded values count as changes.</p>
 <p>Saving on enter lets the application&#x27;s own <code translate="no" v-pre>settingService.save(userSetting)</code> store the plugin&#x27;s values too. Note that
 <code translate="no" v-pre>save()</code> returns early when the application&#x27;s own fields don&#x27;t validate - then the plugin&#x27;s values are not stored
 either.</p>
@@ -293,8 +296,7 @@ strings; a plugin that wants translations has to bring its own (a <code translat
 </ul>
 <h2 id="errors">Errors</h2>
 <p>Inside click listeners and other event handlers, catch exceptions and report them like the application does:
-<code translate="no" v-pre>UIUtils.internalServerError(loc, e)</code> logs and shows an error dialog - pass an injected <code translate="no" v-pre>Localization</code>, not <code translate="no" v-pre>null</code>
-(BUG-50). Expected problems go to <code translate="no" v-pre>Notification</code>. Exceptions in decorators themselves are logged by the
+<code translate="no" v-pre>UIUtils.internalServerError(loc, e)</code> logs and shows an error dialog - pass an injected <code translate="no" v-pre>Localization</code>. Expected problems go to <code translate="no" v-pre>Notification</code>. Exceptions in decorators themselves are logged by the
 <code translate="no" v-pre>ExtensionService</code> and don&#x27;t need handling unless you want to show something.</p>
 <h2 id="threads">Threads</h2>
 <p>Decorators run on the thread that called the decorated method. For UI methods that&#x27;s a request thread holding the
@@ -357,7 +359,7 @@ callback then gets <code translate="no" v-pre>onCancel()</code>.</p>
 <h2 id="unloading">Unloading</h2>
 <p>When a plugin is unloaded, components it added to open screens stay there - with listeners pointing into a bundle
 that is gone - unless the plugin removes them. There are two ways.</p>
-<p><strong>Track and remove</strong> - what Reviewer and Side Query do. Keep the extended components in weak sets (so that closed
+<p><strong>Track and remove</strong> - what Reviewer, Side Query and Lorebook VCS do. Keep the extended components in weak sets (so that closed
 screens can be garbage collected) and undo the changes in <code translate="no" v-pre>onExtensionUnload</code>:</p>
 <div id="unloading-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">private final Set&lt;ContextMenu&gt; menus = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap&lt;&gt;()));
@@ -380,16 +382,17 @@ public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionSe
 }</code></pre>
 </doc-codeblock></div>
 <p><strong>Bind a callback</strong> - <code translate="no" v-pre>OsgiService.bindAttachableComponent(component, callback, extension)</code> registers <code translate="no" v-pre>callback</code> to
-run when the extension is unloaded, and forgets it when <code translate="no" v-pre>component</code> is detached:</p>
+run when the extension is unloaded, for as long as <code translate="no" v-pre>component</code> is attached (a component that is detached and attached
+again - moved, in a tab sheet, in a reopened dialog - stays bound):</p>
 <div id="unloading-code-2" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">SideQueryView view = new SideQueryView(book, service);
 leftBar.add(&quot;Side Query&quot;, view);
-osgiService.bindAttachableComponent(view,
-        () -&gt; view.getUI().ifPresent(ui -&gt; ui.access(() -&gt; leftBar.remove(view))), this);</code></pre>
+osgiService.bindAttachableComponent(view, () -&gt; leftBar.remove(view), this);</code></pre>
 </doc-codeblock></div>
-<p>(<code translate="no" v-pre>osgiService</code> is the one passed to <code translate="no" v-pre>onExtensionLoad</code>, or injected.) The callbacks run before <code translate="no" v-pre>onExtensionUnload</code>. A
-component that is detached and attached again loses its callback (BUG-54), so use this for components that are
-attached once.</p>
+<p>(<code translate="no" v-pre>osgiService</code> is the one passed to <code translate="no" v-pre>onExtensionLoad</code>, or injected.) The callbacks run before <code translate="no" v-pre>onExtensionUnload</code>,
+each inside <code translate="no" v-pre>ui.access(...)</code> of its component&#x27;s UI, so they can change the component directly. A component that is
+detached when the extension is unloaded runs its callback when it is attached again. Calling
+<code translate="no" v-pre>bindAttachableComponent</code> for an extension that isn&#x27;t loaded throws an <code translate="no" v-pre>IllegalStateException</code>.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -403,8 +406,10 @@ attached once.</p>
         </div>
         <div class="pr-5 ml-3 w-full">
             <h5>Other users&#x27; sessions</h5>
-<p><code translate="no" v-pre>onExtensionUnload</code> and the bound callbacks run on the request thread of the administrator who clicked <em>Unload</em>, but
-the components belong to every user&#x27;s open screens. Change them inside <code translate="no" v-pre>component.getUI().ifPresent(ui -&gt; ui.access(...))</code>, as above - the bundled Reviewer and Side Query change them directly (BUG-53).</p>
+<p><code translate="no" v-pre>onExtensionUnload</code> runs on the request thread of the administrator who clicked <em>Unload</em>, but the components belong
+to every user&#x27;s open screens. Change them inside <code translate="no" v-pre>component.getUI().ifPresent(ui -&gt; ui.access(...))</code>, as above, or
+with <code translate="no" v-pre>UIUtils.accessComponent(component, () -&gt; ...)</code>, which does the same and runs the change directly when the
+component isn&#x27;t attached. The bundled Reviewer, Side Query and Lorebook VCS do it this way.</p>
         </div>
     </div>
 </div>

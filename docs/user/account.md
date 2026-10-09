@@ -15,26 +15,28 @@ The buttons at the bottom of the workspace:
 
 ### Changing the password
 
-**Change Password** opens a dialog with your **Username**, **Full Name**, **Password** and **Repeat password**:
+**Change Password** opens a dialog with your **Username**, **Full Name**, **Current Password**, **Password** and
+**Repeat password**:
 
+- enter your **current password** for every change (leave it empty if your account has no password);
 - to change the password, enter the new one in both password fields;
 - leave both password fields empty to change only the name and keep the password;
 - the user name must not be used by another account.
 
-Click **OK** to save.
+Click **OK** to save. With a wrong current password nothing is saved.
 
-!!!warning
-- The dialog doesn't ask for your current password: log out when you leave a shared computer.
-- Devices where you used *Save login* stay logged in after a password change, for up to 30 days. If a device was
-  lost, also change your **user name**: saved logins are tied to it and stop working.
-!!!
+Changing the password ends all saved logins (*Save login*), on every device including this one: they have to log in
+again with the new password. If a device was lost or your password leaked, changing the password logs that device
+out. Sessions that are open right now (a browser tab still showing the workspace) stay logged in until they log out
+or their session expires.
 
 ### Logging in
 
 **Save login** on the login screen keeps you logged in on this device for 30 days (it needs HTTPS on a server, see
 [Server (Docker)](getting-started/docker-server.md#https-and-reverse-proxy)). **Logout** ends it.
 
-An account can have an empty password; you then log in with the user name only. That is handy for the desktop app on
+An account can have an empty password; you then log in with the user name only. If an administrator cleared your
+forgotten password, log in this way and set a new password with **Change Password** right away. That is handy for the desktop app on
 your own computer, but never do it on a server others can reach.
 
 ## Settings
@@ -43,14 +45,17 @@ The **Settings** tab holds your defaults for all your books.
 
 ![The Settings tab](../images/settings-defaults.png)
 
-At the top are two buttons:
+At the top are three buttons:
 
 - **Import Backup as New Book** - creates a book from a backup file, see
   [Book backups](books/backups.md#importing-a-backup-as-a-new-book);
+- **Discard Changes** - throws away the unsaved changes and loads the saved settings again;
 - **Save** - saves the settings.
 
-!!!warning Save before you leave the tab
-Settings are not saved automatically. Switching to another tab reloads them, and unsaved changes are lost.
+!!!info Unsaved changes
+Settings are not saved automatically. As soon as you change a field (extension settings included), *Unsaved changes*
+appears at the top and the other tabs, **Admin** and **Logout** are locked. Click **Save** or **Discard Changes** to
+unlock them.
 !!!
 
 ### General Settings

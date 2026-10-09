@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -269,6 +269,9 @@ to the rest of the entity. Lorebook VCS&#x27;s <code translate="no" v-pre>saveVC
 fresh.getAttributes().add(LorebookVCSData.KEY, gson.toJsonTree(data));
 Lorebook saved = lorebookService.save(fresh);</code></pre>
 </doc-codeblock></div>
+<p>The same goes for the plugin&#x27;s own data: when several components edit parts of one JSON tree, each change should
+re-read the stored tree, change only its part and save it (Lorebook VCS&#x27;s <code translate="no" v-pre>updateEntryData</code>), not save a copy it
+loaded earlier.</p>
 </li>
 <li>
 <p><strong>Version your data.</strong> There are no migrations; if the format changes, read old formats too (a <code translate="no" v-pre>version</code> field in
@@ -276,9 +279,8 @@ your JSON tree makes this easy) and never fail on data you don&#x27;t understand
 </li>
 <li>
 <p><strong>Keep it small.</strong> The whole JSON object is serialized on every save of the entity, and some entities are saved
-often - a story part is saved with every streamed chunk while it&#x27;s generated (BUG-40). Megabytes of history in a
-part&#x27;s attributes slow generation down. Lorebook VCS stores the history once per lorebook, not per entry, for
-this reason.</p>
+often - a story part is saved up to every 250 ms while it&#x27;s generated. Megabytes of history in a part&#x27;s attributes
+slow generation down. Lorebook VCS stores the history once per lorebook, not per entry, for this reason.</p>
 </li>
 </ul>
 <h3 id="settings">Settings</h3>
@@ -354,7 +356,7 @@ changes to <code translate="no" v-pre>attributes</code> saved that way are lost.
 <li>
 <p><code translate="no" v-pre>@ExtendedAttribute</code> is the application&#x27;s own way of adding fields to an entity without a migration - many fields
 of <code translate="no" v-pre>ChatMessage</code>, <code translate="no" v-pre>Manuscript</code>, <code translate="no" v-pre>Protocol</code> and the settings are stored like this. It works for <code translate="no" v-pre>String</code>, the
-numeric types, <code translate="no" v-pre>boolean</code>, <code translate="no" v-pre>Date</code> and enums, stored as strings (dates in the server&#x27;s time zone, BUG-38).
+numeric types, <code translate="no" v-pre>boolean</code>, <code translate="no" v-pre>Date</code> and enums, stored as strings (dates as ISO-8601 instants in UTC).
 <code translate="no" v-pre>@ExtendedAttribute(inject = true, injectPrefix = ...)</code> on a <code translate="no" v-pre>JsonObject</code> field spreads its keys with that prefix,
 which is how <code translate="no" v-pre>attributes</code> itself is declared. This is for application code: a plugin can&#x27;t add fields to an entity
 class, it uses <code translate="no" v-pre>attributes</code>.</p>
@@ -366,7 +368,7 @@ class, it uses <code translate="no" v-pre>attributes</code>.</p>
 | Database backup / restore (*Admin → Database Backups*) | Included - it's the whole database file. |
 | Book backup, export, restore, clone | Included for the book, its parts and their summaries (the `extendedContent` of each). |
 | Branch Story | The part's attributes are copied to the new branch. |
-| Regenerate | The part is reused: its attributes stay, also data that described the old text. |
+| Regenerate | The part is reused: its attributes stay, also data that described the old text. If the request fails before any text arrived, the part is restored with the attributes it had before. |
 | Swipe | A new part - starts with no plugin data. |
 | Lorebook export / import | **Not included** - only the entries' content is exported. Lorebook VCS has its own history export for this reason. |
 | Lorebooks inside a book backup | Not included, same as lorebook export. |">
@@ -393,7 +395,7 @@ class, it uses <code translate="no" v-pre>attributes</code>.</p>
 </tr>
 <tr>
 <td>Regenerate</td>
-<td>The part is reused: its attributes stay, also data that described the old text.</td>
+<td>The part is reused: its attributes stay, also data that described the old text. If the request fails before any text arrived, the part is restored with the attributes it had before.</td>
 </tr>
 <tr>
 <td>Swipe</td>

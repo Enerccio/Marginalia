@@ -39,13 +39,9 @@ While a part is being generated, the **+** button turns into a red **Stop** butt
 far as the part. The rest of the book window is disabled until the generation finishes or is stopped.
 
 When the model returns an error (server not reachable, wrong API key, context too long...), the error is shown.
-The part stays as far as it was written - often empty. Delete it, fix the problem and generate again.
-
-!!!warning Regenerate and errors
-*Regenerate* clears the last part before sending the request. If the request fails, the part stays empty and its
-previous text is lost. When you are not sure the model is reachable, keep the old version: use
-[Branch Story and Regenerate](branches-and-story-tree.md#trying-another-version-of-the-last-part) instead.
-!!!
+If no text arrived yet, the story stays as it was: a new part or swipe is removed and a regenerated part gets its
+previous text back. Text that already arrived before the error is kept, like with **Stop**. Fix the problem and
+generate again.
 
 How the fields get into the prompt is set by the book's [User Prompt](prompts.md#user-prompt). With the default user
 prompt, the model gets them as *Current Location & Time*, *Point of View Character*,
@@ -64,7 +60,7 @@ Every part has a menu (☰) in its top right corner:
 |---|---|
 | **Edit** | Turns the text into an editable field. **Save** (the same menu item) saves it. Starting a generation or leaving the tab saves open edits too. |
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
-| **Swipe** | Meant to write another version of the last part and keep the old one as a separate branch. Only on the last part. **Currently it adds a new part after the last one instead**, see [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
+| **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |

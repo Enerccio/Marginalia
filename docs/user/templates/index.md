@@ -38,13 +38,16 @@ Both work in every template, and they can be mixed freely.
 Every template field has a hints popover:
 
 - **Insert Default Template** copies the default into the field;
-- **Available Template Variables** lists the variables of that template;
+- **Available Template Variables** lists the variables of that template, including those available everywhere;
 - **Available Macros** lists all macros with a short description.
 
 ![The hints popover of a template field](../../images/template-hints.png)
 
 A template with a syntax error (an unclosed section, for example) can't be saved in the book prompts and Settings; in
 lorebook entries it is saved, marked as invalid, and used as plain text until it's fixed.
+
+Unknown variables (usually typos) don't block saving; the field lists them under it as a warning, see
+[Typos](templates.md#typos).
 
 **Show Prompt** in the menu of a generated part shows the prompt as it was sent - the best way to check what a
 template produced.

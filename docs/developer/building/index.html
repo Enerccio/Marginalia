@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -273,7 +273,7 @@ compiler and weaves the Spring aspects in (see <doc-anchor-trigger to="#aspectj-
 <retype-table copy-text="| Path | |
 |---|---|
 | `marginalia-1.0.0.war` | The web application. |
-| `marginalia-1.0.0/` | The same WAR, exploded - handy for deploying from an IDE. |
+| `marginalia-1.0.0/` | The same WAR, exploded (production mode). |
 | `marginalia-1.0.0-classes.jar` | Application classes, the compile dependency of plugins. |
 | `surefire-reports/` | Test reports. |
 | `test-home/` | Data folders created by tests (safe to delete). |">
@@ -292,7 +292,7 @@ compiler and weaves the Spring aspects in (see <doc-anchor-trigger to="#aspectj-
 </tr>
 <tr>
 <td><code translate="no" v-pre>marginalia-1.0.0/</code></td>
-<td>The same WAR, exploded - handy for deploying from an IDE.</td>
+<td>The same WAR, exploded (production mode).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>marginalia-1.0.0-classes.jar</code></td>
@@ -313,44 +313,28 @@ compiler and weaves the Spring aspects in (see <doc-anchor-trigger to="#aspectj-
 <h3 id="development-and-production-mode">Development and production mode</h3>
 <p>Vaadin runs either in <em>development mode</em> (frontend served from a development bundle that Vaadin builds into
 <code translate="no" v-pre>src/main/bundles/</code>, ignored by Git; Vaadin&#x27;s dev tools available, more checks) or in <em>production mode</em> (optimized frontend
-bundle, no dev tools). The mode is decided by <code translate="no" v-pre>META-INF/VAADIN/config/flow-build-info.json</code> inside the WAR.</p>
-<p>A plain <code translate="no" v-pre>mvn package</code> builds a <strong>development</strong> WAR. That is what you want while working on Marginalia. The release
-builds switch to production mode:</p>
+bundle, no dev tools). The mode is decided by <code translate="no" v-pre>META-INF/VAADIN/config/flow-build-info.json</code>, the build info that
+<code translate="no" v-pre>vaadin-maven-plugin</code> writes:</p>
 <ul>
 <li>
-<p>the <a href="../packaging/">Dockerfile</a> copies <code translate="no" v-pre>flow-build-info.json.PRODUCTION</code> over <code translate="no" v-pre>flow-build-info.json</code> before
-building,</p>
+<p><code translate="no" v-pre>prepare-frontend</code> (every build, also <code translate="no" v-pre>mvn compile</code> and <code translate="no" v-pre>mvn jetty:run</code>) writes a <strong>development</strong> build info with
+the absolute paths of your checkout into <code translate="no" v-pre>target/classes</code>;</p>
 </li>
 <li>
-<p>the <code translate="no" v-pre>desktop</code> profile (<code translate="no" v-pre>mvn package -Pdesktop</code>) leaves the generated file out of the WAR and packages the
-production one instead.</p>
+<p><code translate="no" v-pre>build-frontend</code> (in <code translate="no" v-pre>prepare-package</code>, so only <code translate="no" v-pre>mvn package</code> / <code translate="no" v-pre>install</code>) builds the optimized bundle, writes a
+<strong>production</strong> build info into the WAR and removes the development one from <code translate="no" v-pre>target/classes</code>.</p>
 </li>
 </ul>
-<p>Both template files are in <code translate="no" v-pre>src/main/resources/META-INF/VAADIN/config/</code>. To build a production WAR by hand, do what
-the Dockerfile does:</p>
+<p>So <code translate="no" v-pre>mvn package</code> always produces a <strong>production</strong> WAR - the one the Dockerfile, the <code translate="no" v-pre>desktop</code> profile and CI use, and
+the one to deploy. Nothing has to be copied around. A build info in <code translate="no" v-pre>src/main/resources</code> is never packaged into the
+WAR (<code translate="no" v-pre>maven-war-plugin</code> excludes <code translate="no" v-pre>META-INF/VAADIN/config/flow-build-info.json*</code>).</p>
+<p>Development mode is for running from the IDE (see <doc-anchor-trigger to="#intellij-idea">IntelliJ IDEA</doc-anchor-trigger>) or <code translate="no" v-pre>mvn jetty:run</code>. Without a build
+info Vaadin also starts in development mode and finds the project by the <code translate="no" v-pre>vaadin.project.basedir</code> system property,
+the classpath or the working directory.</p>
+<p>To check a WAR:</p>
 <div id="development-and-production-mode-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">cp src/main/resources/META-INF/VAADIN/config/flow-build-info.json.PRODUCTION \
-   src/main/resources/META-INF/VAADIN/config/flow-build-info.json
-mvn clean package -DskipTests
-rm src/main/resources/META-INF/VAADIN/config/flow-build-info.json   # back to development mode</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">unzip -p target/marginalia-1.0.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # &quot;productionMode&quot; : true</code></pre>
 </doc-codeblock></div>
-<div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
-    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-<p><code translate="no" v-pre>src/main/resources/META-INF/VAADIN/config/flow-build-info.json</code> is ignored by Git. If you created it, it is copied
-into every WAR you build until you remove it - including the one your IDE deploys.</p>
-        </div>
-    </div>
-</div>
 <h3 id="aspectj-weaving">AspectJ weaving</h3>
 <p>Marginalia relies on <strong>compile-time</strong> AspectJ weaving with the <code translate="no" v-pre>spring-aspects</code> library: Vaadin components are
 created with <code translate="no" v-pre>new</code>, not by Spring, so classes annotated <code translate="no" v-pre>@Configurable</code> (all routes, the workspace, dialogs, parts...)
@@ -363,8 +347,8 @@ make sure the AspectJ compiler is used too (see <doc-anchor-trigger to="#intelli
 <p>The compiler also keeps parameter names (<code translate="no" v-pre>-parameters</code>) and all local variables (<code translate="no" v-pre>preserveAllLocals</code>): extensions
 read method arguments and local variables of <code translate="no" v-pre>@Extendable</code> methods by name, so don&#x27;t remove these options.</p>
 <h2 id="running-locally">Running locally</h2>
-<p>Marginalia is a plain WAR without an embedded server, so you run it in a servlet container: from the IDE, in a
-local Jetty, or in Docker.</p>
+<p>Marginalia is a plain WAR without an embedded server, so you run it in a servlet container: from the IDE, with
+<code translate="no" v-pre>mvn jetty:run</code>, in a local Jetty, or in Docker.</p>
 <h3 id="keep-your-development-data-separate">Keep your development data separate</h3>
 <p>Marginalia keeps everything in <code translate="no" v-pre>~/.marginalia</code> (<code translate="no" v-pre>System.getProperty(&quot;user.home&quot;)</code> + <code translate="no" v-pre>.marginalia</code>), the same folder
 the desktop app uses. To keep test data away from your real books, start the container with another home folder:</p>
@@ -402,8 +386,17 @@ and add the <doc-anchor-trigger to="#jvm-options">JVM options</doc-anchor-trigge
 application context is <code translate="no" v-pre>/marginalia</code>.</p>
 </li>
 </ol>
+<p>IntelliJ builds the exploded WAR itself, without the Vaadin plugin, so the application runs in
+<doc-anchor-trigger to="#development-and-production-mode">development mode</doc-anchor-trigger>. It needs to know where the project is - either:</p>
+<ul>
+<li>add <code translate="no" v-pre>-Dvaadin.project.basedir=/path/to/Marginalia/marginalia</code> to <em>VM options</em> (simplest, survives <em>Rebuild Project</em>), or</li>
+<li>run <code translate="no" v-pre>mvn vaadin:prepare-frontend</code> in <code translate="no" v-pre>marginalia/</code> and copy the generated
+<code translate="no" v-pre>target/classes/META-INF/VAADIN/config/flow-build-info.json</code> to the same path under <code translate="no" v-pre>src/main/resources/</code>
+(ignored by Git and never packaged into the WAR, but IntelliJ copies it into the exploded WAR on every build).</li>
+</ul>
+<p>Don&#x27;t deploy <code translate="no" v-pre>target/marginalia-1.0.0/</code> (the exploded WAR from <code translate="no" v-pre>mvn package</code>) from the IDE - it is a production build.</p>
 <figure class="content-center">
-    <img src="../../images/dev-intellij-tomcat.png" alt="IntelliJ IDEA Tomcat run configuration" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="1000" />
+    <img src="../../images/dev-intellij-tomcat.png" alt="IntelliJ IDEA Tomcat run configuration" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1061" height="769" />
     <figcaption class="caption">IntelliJ IDEA Tomcat run configuration</figcaption>
 </figure>
 <div class="flex mb-6">
@@ -432,13 +425,25 @@ application context is <code translate="no" v-pre>/marginalia</code>.</p>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">export JETTY_HOME=/path/to/jetty-home-12.1.10
 mkdir -p ~/jetty-marginalia &amp;&amp; cd ~/jetty-marginalia
 java -jar $JETTY_HOME/start.jar --create-startd \
-     --add-modules=server,http,ee10-deploy,ee10-websocket-jakarta,ee10-webapp,ee10-jsp
+     --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
 cp /path/to/Marginalia/marginalia/target/marginalia-1.0.0.war webapps/ROOT.war
 java -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=/path/to/dev-home \
      -jar $JETTY_HOME/start.jar jetty.http.port=8080</code></pre>
 </doc-codeblock></div>
-<p>Marginalia is then at <code translate="no" v-pre>http://localhost:8080/</code>. <code translate="no" v-pre>ee10-websocket-jakarta</code> is required: the UI is updated through a
+<p>Marginalia is then at <code translate="no" v-pre>http://localhost:8080/</code>. <code translate="no" v-pre>ee11-websocket-jakarta</code> is required: the UI is updated through a
 push WebSocket.</p>
+<h3 id="mvn-jettyrun"><code translate="no" v-pre>mvn jetty:run</code></h3>
+<p>The quickest way to run from the sources, without an IDE or a server installation. The Jetty 12 Maven plugin
+(<code translate="no" v-pre>jetty-ee11-maven-plugin</code>) runs the application from <code translate="no" v-pre>target/classes</code> and <code translate="no" v-pre>src/main/webapp</code> inside the Maven JVM, so
+the <doc-anchor-trigger to="#jvm-options">JVM options</doc-anchor-trigger> go into <code translate="no" v-pre>MAVEN_OPTS</code>:</p>
+<div id="mvn-jettyrun-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia
+export MAVEN_OPTS=&quot;-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true&quot;
+mvn -DskipTests jetty:run                       # http://localhost:8080/
+mvn -DskipTests -Djetty.http.port=9090 jetty:run   # another port</code></pre>
+</doc-codeblock></div>
+<p>The application runs in <doc-anchor-trigger to="#development-and-production-mode">development mode</doc-anchor-trigger> with the development logging (see
+<doc-anchor-trigger to="#logs">Logs</doc-anchor-trigger>). Stop it with <code translate="no" v-pre>Ctrl+C</code>. Java changes need a restart.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -451,10 +456,10 @@ push WebSocket.</p>
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5><code translate="no" v-pre>mvn jetty:run</code> doesn&#x27;t work yet</h5>
-<p>The <code translate="no" v-pre>pom.xml</code> declares the Jetty 12 Maven plugin (<code translate="no" v-pre>jetty-ee11-maven-plugin</code>), but with a plugin dependency
-<code translate="no" v-pre>org.eclipse.jetty:jetty-servlet:12.1.14</code> that doesn&#x27;t exist, so Maven can&#x27;t resolve the plugin
-(<a href="https://github.com/Enerccio/Marginalia/blob/master/TODO.BUGS.md">BUG-56</a>). Use Tomcat 11, a local Jetty 12 or Docker.</p>
+            <h5>Development data</h5>
+<p>To <doc-anchor-trigger to="#keep-your-development-data-separate">keep your development data separate</doc-anchor-trigger>, add <code translate="no" v-pre>-Duser.home=...</code> to
+<code translate="no" v-pre>MAVEN_OPTS</code> together with <code translate="no" v-pre>-Dmaven.repo.local=$HOME/.m2/repository</code> - <code translate="no" v-pre>user.home</code> also moves Maven&#x27;s own local
+repository, which would otherwise be downloaded again into the development home.</p>
         </div>
     </div>
 </div>
@@ -467,9 +472,20 @@ push WebSocket.</p>
 repository. See <a href="../../user/getting-started/docker-server/">Server (Docker)</a> for the configuration and
 <a href="../packaging/">Packaging &amp; releases</a> for how the image is built.</p>
 <h3 id="logs">Logs</h3>
-<p>Marginalia logs to standard output with log4j 1.x (reload4j); the configuration is
-<code translate="no" v-pre>src/main/resources/log4j.properties</code>. The <code translate="no" v-pre>com.github.enerccio</code> loggers are at <code translate="no" v-pre>DEBUG</code>, so a generation logs each
-pipeline step and the activated lore. In the desktop app the output goes to <code translate="no" v-pre>~/.marginalia/desktop/logs/</code>.</p>
+<p>Marginalia logs to standard output with log4j 1.x (reload4j). There are two configurations:</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>src/main/resources/log4j.properties</code> - <strong>development</strong>, used from <code translate="no" v-pre>target/classes</code> by IDE runs and
+<code translate="no" v-pre>mvn jetty:run</code>. The <code translate="no" v-pre>com.github.enerccio</code> loggers are at <code translate="no" v-pre>DEBUG</code>, so a generation logs each pipeline step and the
+activated lore.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>src/main/resources-release/log4j.properties</code> - <strong>release</strong>, everything at <code translate="no" v-pre>INFO</code>. <code translate="no" v-pre>mvn package</code> puts it into the
+WAR in place of the development one, so the Docker image, the desktop app and any other deployed WAR log no story
+content (see <a href="../packaging/#the-war">Packaging &amp; releases</a>).</p>
+</li>
+</ul>
+<p>In the desktop app the output goes to <code translate="no" v-pre>~/.marginalia/desktop/logs/</code>.</p>
 <h2 id="running-the-tests">Running the tests</h2>
 <div id="running-the-tests-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">mvn test                                     # all tests

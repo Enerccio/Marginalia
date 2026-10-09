@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -212,6 +212,7 @@ on the host with the <a href="../getting-started/docker-server/">Docker setup</a
 <retype-table copy-text="| Path | |
 |---|---|
 | `marginalia.sqlite` (with `-wal`, `-shm`) | The database: users, books, lorebooks, settings, everything. |
+| `secret.key` | Key that encrypts the API keys in the database. Created on the first start; without it, saved API keys can't be read. |
 | `db-backups/` | [Database backups](database-backups.md). |
 | `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/` | [Book backups](../books/backups.md) of each user. |
 | `extensions/` | Installed [extension](extensions.md) JARs. |
@@ -228,6 +229,10 @@ on the host with the <a href="../getting-started/docker-server/">Docker setup</a
 <tr>
 <td><code translate="no" v-pre>marginalia.sqlite</code> (with <code translate="no" v-pre>-wal</code>, <code translate="no" v-pre>-shm</code>)</td>
 <td>The database: users, books, lorebooks, settings, everything.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>secret.key</code></td>
+<td>Key that encrypts the API keys in the database. Created on the first start; without it, saved API keys can&#x27;t be read.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>db-backups/</code></td>
@@ -249,7 +254,7 @@ on the host with the <a href="../getting-started/docker-server/">Docker setup</a
 </table>
 </div>
 </retype-table>
-<p>To back up a whole installation, stop Marginalia and copy this folder. While it runs, use
+<p>To back up a whole installation, stop Marginalia and copy this folder (including <code translate="no" v-pre>secret.key</code>). While it runs, use
 <a href="database-backups/">database backups</a> for the database; book backups and extensions are plain files and can be
 copied at any time.</p>
 

@@ -47,7 +47,7 @@ generation. It must be called on a thread with a request (the UI thread): it cap
 |---|---|---|
 | `newMessage()` | `NEW_MESSAGE` | Add a part after the book's active leaf. |
 | `regenerate(part)` | `REGENERATE` | Write the given part (the last one) again, in place. |
-| `newSwipe(part)` | `NEW_MESSAGE` (should be `SWIPE`, BUG-14) | Write another version of a part as its sibling. |
+| `newSwipe(part)` | `SWIPE` | Write another version of a part as its sibling. |
 
 `TurnInput` holds the four fields of the instruction panel: `sceneSetting`, `povCharacter`, `presentCharacters`,
 `instructions`.
@@ -66,7 +66,7 @@ a cached thread pool (threads named `Generation thread NNN`). Each call creates 
 | `getPayload()` | The chat messages sent to the model (from `PREPARE_PAYLOAD`). |
 | `getMessage()` | The part being generated (from `GENERATE_NEW_MESSAGE`). |
 | `getProperties()` | Shared map for everything else, keys in `GenerationProperties`. |
-| `getState()` | `NOT_SUCCESSFUL` → `PARTIAL_SUCCESS` (part created) → `SUCCESSFUL` (answer complete). |
+| `getState()` | `NOT_SUCCESSFUL` → `PARTIAL_SUCCESS` (first response text arrived) → `SUCCESSFUL` (answer complete). |
 | `getUIListener()` | The `GenerationListener` of the caller. |
 | `next()`, `jumpTo(type)` | Continue with the next step, or jump (usually to `CLEANUP`). |
 | `emitEvent(event, continuation)` | Run the listeners of an event, then the continuation. |
@@ -160,14 +160,9 @@ baseTokens = system template rendered with lore and summaries (no story)
 ```
 
 If `baseTokens ≥ limit`, the generation stops with *Contextual limit not sufficient.* Otherwise parts are taken from the
-newest backwards - skipping the part being regenerated, stopping at the stop part - while the running total stays
-under `limit − 256`, counting each part as its `tokenCount + 100`. The chosen texts, oldest first, become
-`MANUSCRIPT_CHRONICLE`.
-
-!!!warning
-The check happens *before* a part is added, so the last part added can push the prompt over the limit by up to its
-own size (BUG-42).
-!!!
+newest backwards - skipping the part being regenerated, stopping at the stop part - counting each part as its
+`tokenCount + 100`. A part is added only if the running total with it stays within `limit − 256`; the first part that
+doesn't fit ends the loop. The chosen texts, oldest first, become `MANUSCRIPT_CHRONICLE`.
 
 **System prompt.** The master template is rendered with `MasterTemplateData` (`backgroundLore`, `summaries`,
 `narrativePov`, `narrativeTense`, `style` + the template context) into `systemPrompt`. The estimate above renders it
@@ -207,13 +202,14 @@ Prepares the part that receives the answer:
 | Request | Part |
 |---|---|
 | `NEW_MESSAGE` | A new part, child of the active leaf (or the first part of the book). |
-| `SWIPE` | A new part, sibling of the swiped one. (Not reached today, see BUG-14.) |
-| `REGENERATE` | The existing part, cleared. |
+| `SWIPE` | A new part, sibling of the swiped one. |
+| `REGENERATE` | The existing part, cleared. A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |
 
 The part gets the `TurnInput`, the model and protocol names, the payload as JSON (`builtPrompt`, shown by *View
 prompt*), the activated lore and the request time. The template variables of the generation are stored: local ones in
-the part's `attributes`, global ones in the book's. The part becomes the book's active leaf, both are saved, the
-state becomes `PARTIAL_SUCCESS` and `listener.onNodeCreated(part)` lets the UI show it.
+the part's `attributes`, global ones in the book's. The part becomes the book's active leaf, both are saved
+and `listener.onNodeCreated(part)` lets the UI show it. The state stays `NOT_SUCCESSFUL` - until text arrives, the
+part is only a placeholder that cleanup removes or restores.
 
 Events: `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` (the part is available as `getMessage()`).
 
@@ -226,7 +222,8 @@ Counts the prompt tokens, then calls `InferenceService.stream(payload, protocol,
 - **response** chunks are appended to `response`, with approximate token and word counts (`CHUNK_RECEIVED`, the text
   in `CHUNK`),
 - the first chunk sets the time to first token, the first response chunk the end of reasoning,
-- the part and the book are saved and the UI gets `onReasoningChunk` / `onResponseChunk` and `onMetricsUpdated`.
+- the part and the book are saved and the UI gets `onReasoningChunk` / `onResponseChunk` and `onMetricsUpdated`,
+- once the response has some non-blank text, the state becomes `PARTIAL_SUCCESS` (reasoning alone doesn't count).
 
 Listeners of the chunk events can change the chunk text before it is appended. The stream is pulled: the inference
 service delivers the next chunk only after the step calls `continueInference()`, so a slow listener slows the stream
@@ -242,9 +239,9 @@ Always the last step. Depending on the state:
 | State | What happens |
 |---|---|
 | `SUCCESSFUL` | `onComplete(part)`. |
-| `PARTIAL_SUCCESS` | The part exists with whatever text arrived (stopped or failed mid-stream): `onCancelled(part)`. |
+| `PARTIAL_SUCCESS` | The part keeps the text that arrived (stopped or failed mid-stream): `onCancelled(part)`. |
 | `NOT_SUCCESSFUL`, no part yet | `onCancelled(null)`. |
-| `NOT_SUCCESSFUL`, part exists | New part: deleted, its children moved to its parent. Swipe: deleted, the previous sibling becomes active. Regenerate: kept. |
+| `NOT_SUCCESSFUL`, part exists (no text arrived) | New part: the book's active leaf goes back to its parent, the part is deleted (children moved to its parent), `onCancelled(null)`. Swipe: the swiped version becomes active again, the new sibling is deleted, `onCancelled(previous)`. Regenerate: every value of the part is restored from `ORIGINAL_MESSAGE` (`loadFrom`, attributes included), `onCancelled(part)`. |
 
 Event: `BEFORE_CLEANUP`.
 
@@ -322,7 +319,7 @@ Rules:
 | `AFTER_MANUSCRIPT_CONCATENATION` | 4 | `MANUSCRIPT_CHRONICLE` (read back) |
 | `AFTER_PREPARE_CONTENT` | 4 | `systemPrompt` |
 | `BEFORE_PREPARE_PAYLOAD`, `AFTER_PREPARE_PAYLOAD` | 5 | payload (after) - what is set is sent |
-| `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` | 6 | the part (after) |
+| `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` | 6 | the part (after), `ORIGINAL_MESSAGE` for regenerate |
 | `BEFORE_INFERENCE` | 7 | |
 | `REASONING_CHUNK_RECEIVED`, `CHUNK_RECEIVED` | 7 | `REASONING_CHUNK` / `CHUNK` (read back), per chunk |
 | `AFTER_INFERENCE` | 7 | complete part |
@@ -334,15 +331,13 @@ Rules:
 ## Cancellation and errors
 
 - **Stop** in the UI calls `CancellationToken.cancel()`. Every step, continuation and chunk checks the token and jumps
-  to `CLEANUP`, which keeps what was generated so far (`PARTIAL_SUCCESS`).
+  to `CLEANUP`, which keeps what was generated so far (`PARTIAL_SUCCESS`) - or, when nothing arrived yet, removes
+  the new part or restores the regenerated one, like after an error. Only `CLEANUP` reports the end to the listener.
 - **Errors** - an exception in a step or continuation, a failed request - are reported with
   `GenerationListener.onError` and also end in `CLEANUP`. Validation problems (no provider, context too small) use
   `onSimpleError` with a localized message.
 - **Questions** - `listener.askQuestion(text, yes, no)` lets a step ask the user and continue in one of two
   continuations (`controller.wrapCallback(...)`); used for invalidated summaries.
-
-Known problems in this area: a failed request leaves an empty part (BUG-9), and Stop doesn't close the connection to
-the model (BUG-43).
 
 ## Changing the pipeline
 

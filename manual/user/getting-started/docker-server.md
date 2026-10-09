@@ -48,7 +48,7 @@ services:
 | Setting | What it does |
 |---|---|
 | `ports` | `"8080:8080"` publishes Marginalia on port 8080 of the host. Use `"127.0.0.1:8080:8080"` when only a reverse proxy on the same host should reach it. |
-| `volumes` | `./data` holds the database, backups and extensions. Keep it, and include it in your server backups. |
+| `volumes` | `./data` holds the database, backups and extensions. Keep it, and include it in your server backups. It is created on the first start if it doesn't exist; on start the container makes it owned by the user Marginalia runs as inside the container (`jetty`), so the files in it belong to that user's ID on the host. |
 | `-Xmx512m` | Maximum memory. Raise it (for example `-Xmx1g`) for many users or very large books. |
 
 After changing the file, apply it with `docker compose up -d`.

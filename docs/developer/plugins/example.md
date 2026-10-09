@@ -181,7 +181,8 @@ public class BookmarksExtension implements MarginaliaExtension {
             extensionService.registerDecorator(sidebarDecorator, STORY_PART, "createSidebarButton");
             decorators = List.of(menuDecorator, sidebarDecorator);
         } catch (Exception e) {
-            log.error("Bookmarks extension failed to load", e);
+            // logged by Marginalia, which then unloads the extension again
+            throw new IllegalStateException("Bookmarks extension failed to load", e);
         }
     }
 
@@ -242,7 +243,8 @@ How it works:
 - **Unloading.** Decorators are unregistered; menu items are removed from the tracked menus inside each menu's own
   `ui.access(...)`, because they belong to other users' sessions
   ([Extending the UI → Unloading](ui-extensions.md#unloading)). Sidebar buttons lose their ★ on the next redraw.
-- **Errors.** `onExtensionLoad` runs without a UI, so it logs instead of opening an error dialog.
+- **Errors.** `onExtensionLoad` runs without a UI, so it throws instead of opening an error dialog; Marginalia logs
+  the error and unloads the extension again.
 
 !!!
 With Chapter Marker installed too, both plugins decorate `createSidebarButton`, and decorators run in the order the

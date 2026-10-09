@@ -20,7 +20,7 @@ There are three ways to get a new branch:
 
 | | What happens | The old version |
 |---|---|---|
-| **Swipe** (last part) | The model writes another version of the last part. *(Currently broken, see below.)* | Stays as a separate branch. |
+| **Swipe** (last part) | The model writes another version of the last part. | Stays as a separate branch. |
 | **Branch Story** (any part) | The story continues from this part on a new branch. | The parts after it stay on the old branch. |
 | **Regenerate** (last part) | The model writes the last part again, in place. | Replaced - no branch is created. |
 
@@ -31,16 +31,6 @@ There are three ways to get a new branch:
 When you don't like the last part, choose **Swipe** in its menu. The model writes the part again from the same
 [turn details](story-editor.md#turn-details), and the new version becomes the end of the active branch. The previous
 version is kept as its own branch; you can switch back to it in the [Branch view](#the-branch-view).
-
-!!!warning Swipe doesn't work yet
-In the current version *Swipe* does not write another version: it adds a **new part after** the last one, written
-from the same turn details. Until this is fixed, get another version like this:
-
-1. Choose **Branch Story** in the menu of the last part. The part is copied to a new branch, which becomes active.
-2. Choose **Regenerate** on the copy (adjust its **Turn Details** first if you want).
-
-The original version stays on the old branch, reachable in the [Branch view](#the-branch-view).
-!!!
 
 To change what should happen before trying again, open **Turn Details** of the last part and edit the instructions.
 

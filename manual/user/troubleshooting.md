@@ -47,7 +47,8 @@ Saved logins need HTTPS on a server. Put Marginalia behind a reverse proxy with 
 [Server (Docker)](getting-started/docker-server.md#https-and-reverse-proxy).
 
 **I forgot my password.**
-An administrator can set a new one in *Admin → Users* (see [Users](administration/users.md#editing-a-user)).
+An administrator can set a new one, or clear it so you can log in with an empty password and set a new one yourself,
+in *Admin → Users* (see [Resetting a forgotten password](administration/users.md#resetting-a-forgotten-password)).
 There is no password reset by e-mail.
 
 **Nobody can log in as an administrator any more.**
@@ -96,22 +97,13 @@ need much more, because the reasoning counts too.
 **Requests fail when reasoning is enabled.**
 The API doesn't support `reasoning_effort`. Turn off *Enable Reasoning* on the provider.
 
-**After an error, there is an empty part at the end of the story.**
-A failed request leaves the part it was writing. Delete it, fix the cause and generate again. *Regenerate* also leaves
-the part empty when it fails, so its previous text is lost - see
-[Story editor](books/story-editor.md#writing-the-next-part).
-
-**Swipe adds a new part instead of another version.**
-That is a known problem of the current version. Use *Branch Story* on the last part and *Regenerate* the copy, see
-[Trying another version of the last part](books/branches-and-story-tree.md#trying-another-version-of-the-last-part).
-
 **"Invalidated summaries for messages with IDs ... Continue generation without those summaries?"**
 A part covered by a summary was edited or deleted. Answer *Yes* to continue without the outdated summaries, then
 generate new ones. See [When summaries become outdated](books/summaries.md#when-summaries-become-outdated).
 
 **The prompt contains the word "Error".**
 A template uses a variable or macro that doesn't exist, often a typo like `instruction` instead of `instructions`.
-See [Typos](templates/templates.md#typos).
+The template field lists such names under it. See [Typos](templates/templates.md#typos).
 
 ## Lorebooks
 
@@ -119,26 +111,21 @@ See [Typos](templates/templates.md#typos).
 
 - Is the entry enabled? Is its lorebook enabled - and every sub lorebook on the way to it?
 - Does it have tags? Then the book needs one of them (book tags are on the *About* tab). Negative tags exclude it.
-- Was the lorebook imported from a file or a book backup? It may carry lorebook tags you can't see in the editor; they
-  apply to all its entries.
+- Does the lorebook itself have **Tags**? They apply to all its entries.
 - Does it have a filter? Filters only see the **instructions of the part being written**, not the earlier story -
   mention the character in *Present Characters* or the instructions.
 - Is the filter a regular expression? An invalid one never matches.
 
 **Show Prompt** on a generated part shows which lore was sent.
 
-**The book's Lorebook tab shows a different lorebook than the one the book uses.**
-The editor on that tab has its own selector. The lorebook the book uses is the one in the field at the top of the tab.
-
 ## Prompts and settings
 
-**My changes in Settings are gone.**
-Settings are saved only with **Save**; switching tabs reloads them.
+**I can't switch to another tab.**
+The *Settings* tab has unsaved changes. Click **Save** or **Discard Changes**.
 
 **My summary prompt isn't used.**
-The *Default Summary Prompt* in *Settings* isn't saved in the current version, and a book's own summary prompt is
-erased when another field of its *Prompts* tab is edited. Set the book's summary prompt as the last change on the tab,
-and check it before generating summaries.
+The *Default Summary Prompt* in *Settings* isn't saved in the current version. Set the summary prompt on the book's
+*Prompts* tab instead.
 
 **Macros in Style, Point of View or Tense don't work.**
 These fields are plain text; only templates process macros. Put the macro into the master template or user prompt.

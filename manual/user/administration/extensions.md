@@ -21,7 +21,7 @@ successfully.* confirms it. The extension appears in the list:
 | **ID** | The internal number of the extension in this run. |
 | **Extension Name** | Its name. |
 | **Version** | Its version. |
-| **State** | `ACTIVE` when it is running. |
+| **State** | `ACTIVE` when it is running; `INSTALLED` or `RESOLVED` when it failed to start (see [When an extension fails](#when-an-extension-fails)). |
 | **Actions** | **Unload** removes it. |
 
 Users see the extension in windows they open from then on - a book that was already open has to be closed and opened
@@ -39,24 +39,23 @@ An incompatible extension may fail to load or break parts of the application.
 
 ## Removing
 
-**Unload** stops the extension immediately and deletes its JAR from the `extensions` folder - there is no confirmation.
+**Unload** asks for confirmation, then stops the extension immediately and deletes its JAR from the `extensions`
+folder.
 Its data stays (see [Where extension data is kept](../extensions/index.md#where-extension-data-is-kept)); loading it
 again brings the data back.
 
 ## Updating
 
-To install a newer version of an extension:
-
-1. **Unload** the old version.
-2. **Load Extension (.jar)** with the new file.
-
-!!!warning
-Uploading a new version without unloading the old one doesn't work as expected: with the same file name the old version
-keeps running until Marginalia is restarted, with a different file name both versions run side by side.
-!!!
+To install a newer version of an extension, **Load Extension (.jar)** with the new file - the file name doesn't
+matter. The installed version is unloaded, its JAR deleted and the new version started in its place. If the new
+version fails to load, the upload shows the error and the old version keeps running.
 
 ## When an extension fails
 
-If an extension can't be loaded, the upload shows *Failed to load extension: ...* and the extension is **not** listed -
-so it can't be unloaded here. Stop Marginalia, delete its JAR from the `extensions` folder and start Marginalia again.
-The log (`docker compose logs`, or `desktop/logs/marginalia.log` for the desktop app) has the details of the error.
+If an uploaded extension can't be loaded, the upload shows *Failed to load extension: ...* and its JAR is not kept.
+
+An extension in the `extensions` folder that fails to start (for example one built for another version) doesn't stop
+the others from loading. It is listed with the state `INSTALLED` or `RESOLVED` instead of `ACTIVE` and can be removed
+with **Unload**. A file that isn't an extension at all is skipped and not listed - delete it from the `extensions`
+folder. The log (`docker compose logs`, or `desktop/logs/marginalia.log` for the desktop app) has the details of the
+error.

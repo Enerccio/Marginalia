@@ -25,22 +25,22 @@
     <loc>https://enerccio.github.io/Marginalia/user/getting-started/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/troubleshooting/</loc>
-  </url>
-  <url>
     <loc>https://enerccio.github.io/Marginalia/user/account/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/templates/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/administration/</loc>
+  </url>
+  <url>
+    <loc>https://enerccio.github.io/Marginalia/user/troubleshooting/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/getting-started/docker-server/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/administration/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/summaries/</loc>
@@ -52,13 +52,13 @@
     <loc>https://enerccio.github.io/Marginalia/user/getting-started/quick-start/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/books/story-editor/</loc>
-  </url>
-  <url>
     <loc>https://enerccio.github.io/Marginalia/user/getting-started/desktop-app/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/getting-started/first-start/</loc>
+  </url>
+  <url>
+    <loc>https://enerccio.github.io/Marginalia/user/books/story-editor/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/architecture/</loc>

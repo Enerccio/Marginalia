@@ -59,7 +59,8 @@ Starting the app a second time while it already runs only opens it in the browse
 | Database, backups, extensions | `~/.marginalia` (`%USERPROFILE%\.marginalia` on Windows) |
 | Logs | `~/.marginalia/desktop/logs/marginalia.log` (the previous run is kept as `marginalia.log.1`) |
 
-To move Marginalia to another computer, quit it and copy the `.marginalia` folder. Before larger changes, make a
+To move Marginalia to another computer, quit it and copy the `.marginalia` folder (with `secret.key`, which
+decrypts the saved API keys). Before larger changes, make a
 [database backup](../administration/database-backups.md).
 
 ## Options

@@ -147,7 +147,7 @@ kinds of fields end up there:
 `ExtendableEntityListener` converts between the fields and the document:
 
 - **Load** (`@PostLoad`): the JSON is parsed and the fields are set. Supported field types are `String`, numbers,
-  `Boolean`, `Date` (format `yyyy.MM.dd'Z'HH:mm:ss.SSS`), enums (by name) and `JsonObject` for `inject = true`.
+  `Boolean`, `Date` (ISO-8601 instant in UTC, e.g. `2026-10-09T08:15:30.123Z`; values in the old `yyyy.MM.dd'Z'HH:mm:ss.SSS` format, written in the server's time zone, are still read), enums (by name) and `JsonObject` for `inject = true`.
 - **Save**: `JpaExtendableRepository.save` serializes the fields into `extendedContent` before the entity is written.
 
 Because the fields are `@Transient`, Hibernate's dirty checking doesn't see them. **A change to an extended attribute
@@ -294,7 +294,7 @@ Both use joined inheritance: a base table with the common fields and one table p
 | `maxContext`, `maxCompletionTokens` | columns | Context size and maximum response tokens of the model. |
 | `enabledReasoning`, `reasoningEffort` | columns | Reasoning settings. |
 | `needsJailbreak`, `jailbreak` | columns | Text put before the system prompt. |
-| `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (stored in plain text, BUG-29). |
+| `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (encrypted, see [Encrypted columns](database.md#encrypted-columns)). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
 
 ### `Protocol` / `ChatCompletionProtocol`
@@ -352,15 +352,16 @@ references between rows and decides what may go. Each reference has a policy (`@
 
 | Policy | Meaning | Used for |
 |---|---|---|
-| `STRONG` (default) | The referenced row can't be purged while the reference exists. | `Manuscript.ai`, `.protocol`, `.lorebook`, `.activeLeaf`, every `owner` |
-| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; `Setting.owner` |
+| `STRONG` (default) | The referenced row can't be purged while the reference exists. | `Manuscript.ai`, `.protocol`, `.lorebook`, `.activeLeaf` |
+| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; every `owner` |
 | `OWNS` | The referenced row belongs to the referencing one and is purged with it, unless referenced elsewhere. | `ChatMessage.summary` |
 | `WEAK` | The reference doesn't block the purge; it is cleared when the referenced row goes. | `Lorebook.subbooks`, `UserSetting.defaultModel`, `.defaultProtocol` |
 
 JPA associations are found automatically from the Hibernate metamodel and default to `STRONG`. Plain id fields
 pointing to other entities ("soft references", including extended attributes) are only seen when annotated with
 `target = SomeEntity.class` or, for polymorphic ones, `targetClassField = "clazz"`. On an entity class,
-`field = "..."` sets the policy of an inherited field (`Setting` makes its `owner` `OWNED_BY`).
+`field = "..."` sets the policy of an inherited field (`OwnedEntity` makes `owner` `OWNED_BY`, so a deleted user
+is purged together with everything they own).
 
 So a deleted provider that a book still uses shows up as *blocked* on the Cleanup page until the book is switched to
 another provider, while a deleted book takes its parts, their summaries and its tag relations with it.

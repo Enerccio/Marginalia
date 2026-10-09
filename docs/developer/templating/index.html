@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -201,7 +201,12 @@ helpers, macro registry) and <code translate="no" v-pre>domain/service/impl/Temp
 </li>
 </ol>
 <p>Handlebars runs with <code translate="no" v-pre>EscapingStrategy.NOOP</code> - the output is a prompt, not HTML, so quotes, <code translate="no" v-pre>&amp;</code> and <code translate="no" v-pre>&lt;</code> stay as
-they are. <code translate="no" v-pre>isValidTemplate</code> only does steps 1-2, so it catches syntax errors but not unknown names (BUG-15).</p>
+they are.</p>
+<p><code translate="no" v-pre>isValidTemplate(template, name)</code> only does steps 1-2, so it catches syntax errors. <code translate="no" v-pre>isValidTemplate(template, name, dataClass)</code> also walks the compiled template (<code translate="no" v-pre>Template.collect</code> of variables and sections, in all branches) and
+reports names that would end in <em>helperMissing</em> (see <doc-anchor-trigger to="#template-data">Template data</doc-anchor-trigger>) in
+<code translate="no" v-pre>ValidationResult.unknownNames()</code>. They are warnings, <code translate="no" v-pre>isValid()</code> stays true; the UI shows them as the field&#x27;s helper
+text (<code translate="no" v-pre>TemplateHints.showWarnings</code>). Names relative to the current context (<code translate="no" v-pre>this</code>, <code translate="no" v-pre>.</code>, <code translate="no" v-pre>../x</code>, <code translate="no" v-pre>@index</code>) and
+parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 <h2 id="where-templates-are-rendered">Where templates are rendered</h2>
 <retype-table copy-text="| Template | Rendered in | Data class | Its own variables |
 |---|---|---|---|
@@ -252,12 +257,12 @@ they are. <code translate="no" v-pre>isValidTemplate</code> only does steps 1-2,
 lorebook entries, then the master template - a variable set in the user prompt is visible in lore, and lore can set
 variables the master template reads.</p>
 <p>POV, tense and style are <em>values</em>, not templates: they are passed into the templates as variables but not rendered
-themselves (BUG-16).</p>
+themselves.</p>
 <h2 id="template-data">Template data</h2>
 <p>Each template gets an instance of a <code translate="no" v-pre>TemplateData</code> subclass. Its <strong>bean properties</strong> (getters declared in the
 subclass - <code translate="no" v-pre>TemplateData</code>&#x27;s own methods are excluded) are the template&#x27;s variables. A field annotated
 <code translate="no" v-pre>@LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_...)</code> is listed, with that description, in the hints popover of
-the prompt fields (<code translate="no" v-pre>TemplateHints</code>).</p>
+the prompt fields (<code translate="no" v-pre>TemplateHints</code>), followed by the shared context properties the class doesn&#x27;t declare.</p>
 <p>Names are resolved by <code translate="no" v-pre>MacroHelpers.TemplateDataValueResolver</code>, in this order:</p>
 <ol>
 <li>
@@ -273,7 +278,7 @@ every template,</p>
 </li>
 <li>
 <p>otherwise the name is missing and Handlebars&#x27; <em>helperMissing</em> hook renders the word <code translate="no" v-pre>Error</code>, so typos are visible
-in the prompt.</p>
+in the prompt (<code translate="no" v-pre>MacroHelpers.resolves</code> is the same check, used by validation).</p>
 </li>
 </ol>
 <p>Reflection into anything else is blocked: the resolver returns nothing for other names instead of letting the default

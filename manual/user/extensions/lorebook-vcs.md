@@ -42,31 +42,28 @@ A typical use:
 2. Change revision 2 to the character after the events of chapter 10.
 3. Write. When you go back to edit chapter 5, switch to revision 1 with **‹**; switch back with **›** later.
 
-!!!warning Work on one entry at a time
-Close the details of other entries before creating or switching revisions. With the details of several entries open,
-one entry's changes to the history can overwrite another's.
-!!!
-
 ## Lorebook revisions
 
-The lorebook editor gets a **Lorebook Revisions** row with two buttons:
+The lorebook editor gets a **Lorebook Revisions** row with two buttons. They work on the lorebook selected in the
+editor:
 
 | Button | |
 |---|---|
 | export | Downloads the history of all entries of the lorebook as `<lorebook>_vcs_history.json`. |
 | import | **Import Marginalia VCS JSON** - a history exported by this extension; **Import SillyTavern VCS Extension JSON** - history from SillyTavern's lorebook version history extension. |
 
-An import **replaces** the history of the lorebook. A Marginalia history made for a different lorebook asks for
-confirmation first. SillyTavern history is matched to the entries by their position in the lorebook, so import it into
-a lorebook [imported from the same world info](../lorebooks/import-export.md#importing-sillytavern-world-info), before
-you add or delete entries.
+An import **replaces** the history of the lorebook; when the lorebook already has a history, or the file was exported
+from a different lorebook, the import asks for confirmation first.
 
-!!!warning
-- The *Lorebook Revisions* row belongs to the lorebook that was selected when the editor opened. After switching to
-  another lorebook, reload the page before exporting or importing.
-- Revisions imported from SillyTavern turn the entry's trigger keys into **tags**. Check the tags and filter of an entry
-  after switching to such a revision.
-!!!
+A Marginalia history is matched to the entries by the entries themselves first. Entries it doesn't find - for example
+when the history comes from another copy of the lorebook - are matched by the name and order of their current
+revision, or by the name alone when only one entry has it. Histories that match no entry are skipped; the confirmation
+says how many.
+
+SillyTavern history is matched to the entries by their position in the lorebook, so import it into a lorebook
+[imported from the same world info](../lorebooks/import-export.md#importing-sillytavern-world-info), before you add or
+delete entries. The trigger keys of its revisions become the entry's filter, the same way the
+[world info import](../lorebooks/import-export.md#importing-sillytavern-world-info) converts them.
 
 ## Storage
 
@@ -74,6 +71,5 @@ The history is stored in the database with the lorebook, so [database backups](.
 include it. It is **not** part of [lorebook exports](../lorebooks/import-export.md#exporting) or of the lorebooks in
 [book backups](../books/backups.md).
 
-The history refers to the entries themselves, not to their names. Importing a lorebook creates new entries, so a
-history export can be imported back into the **same** lorebook (for example after a mistake), but it doesn't attach to
-an imported copy of the lorebook.
+Importing a lorebook creates new entries. To move the history to an imported copy, export it from the original and
+import it into the copy - the entries are then matched by name and order (see [Lorebook revisions](#lorebook-revisions)).

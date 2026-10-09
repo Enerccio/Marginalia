@@ -11,7 +11,9 @@ The left sidebar of the [story editor](../books/story-editor.md) gets a **Side Q
 divider to give it more room.
 
 The tab holds conversations, each in its own tab: **+** opens a new one (*Tab 2*, *Tab 3*...), the pen renames a tab,
-**×** closes it (the last tab can't be closed). Conversations belong to the book and are kept until you close their tab.
+**×** closes it (the last tab can't be closed). With *Enable AI Tab Naming* in the profile, the model names a tab
+after its first answer, unless you renamed the tab yourself. Conversations belong to the book and are kept until you
+close their tab.
 
 ## Asking
 
@@ -34,24 +36,23 @@ The options above the conversation choose what is sent with your questions:
 
 | Option | |
 |---|---|
-| **Lorebook** | The entries of the book's lorebook. |
-| **Chat Logs** *from* … *to* | The story parts of the active branch in that range. |
+| **Lorebook** | The lore of the book (see below). |
+| **Chat Logs** *from* … *to* | The story parts of the active branch in that range, numbered from 1 as in the outline: `1` to `6` are the parts `#1` to `#6`. |
 | **Tokens** | The approximate size of the request. |
 
-!!!warning Chat log numbers start at 0
-The *from* and *to* numbers count parts from **0**: `0` to `5` are the parts `#1` to `#6` of the outline.
 !!!
-
-!!!
-*Lorebook* sends all enabled entries of the book's lorebook as they are written - not only those that would be
-activated, but without the entries of sub lorebooks, and without processing [macros](../templates/macros.md) in them.
+*Lorebook* collects the lore like a generation does: the book's lorebook and its sub lorebooks (disabled lorebooks are
+skipped), the enabled entries whose tags match the book's tags, with [macros](../templates/macros.md) processed. Keyword
+filters are not applied - there is no story prompt to match, so every applicable entry is sent. Variables set by the
+entries are not stored.
 !!!
 
 The request is built like this:
 
-1. one system message: the profile's *Initial System Query*, the lorebook entries (*Lorebook Context*), the story parts
-   (*Chat History Context*, labelled *Message #1*, *#2*...), and the profile's *Instructions Before User Input*;
-2. the messages of the conversation that are included, as a chat.
+1. one system message: the profile's *Initial System Query*, the lorebook entries (*Lorebook Context*) and the story
+   parts (*Chat History Context*, labelled with their outline numbers *Message #1*, *#2*...);
+2. the messages of the conversation that are included, as a chat. The profile's *Instructions Before User Input* are
+   put at the start of your last question, before its text.
 
 The model and protocol come from the profile (see below), by default those of the book. A cheap, fast model is usually
 enough for questions about the story.
@@ -83,8 +84,8 @@ Side Query settings are in **Settings → Extension Settings → SideQuery Setti
 | **Profile**, **New**, **Rename**, **Delete** | Choose and manage profiles. *_Default* can't be renamed or deleted. |
 | **SideQuery Model**, **SideQuery Protocol** | The [inference provider](../inference-providers.md) and [protocol](../protocols.md) to use. Empty: the book's. |
 | **Initial System Query** | The start of the system message, e.g. the role of the assistant. |
-| **Instructions Before User Input** | Text added at the end of the system message, after the context - rules for the answers, e.g. *Answer briefly. Quote the story when you can.* |
-| **Enable AI Tab Naming** | Not implemented yet - tabs are always named *Tab N*. |
+| **Instructions Before User Input** | Text put right before your last question - rules for the answers, e.g. *Answer briefly. Quote the story when you can.* |
+| **Enable AI Tab Naming** | After the first answer in a tab, the model is asked for a short name of the conversation (one extra request). Tabs you renamed keep their name. |
 
 Click **Save** at the top of the *Settings* page to keep the changes.
 

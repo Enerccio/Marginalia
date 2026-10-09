@@ -155,8 +155,9 @@ dialogs, forms) can be `@Configurable` too; the bundled plugins create their ser
 
 !!!warning Errors in onExtensionLoad
 At startup `onExtensionLoad` runs without a UI, so `UIUtils.internalServerError(...)` (which opens a dialog) can't
-show anything - log the error instead. An exception that escapes `onExtensionLoad` currently stops the extensions
-after it from loading (BUG-47), so catch everything.
+show anything. Throw instead: an exception that escapes `onExtensionLoad` is logged, `onExtensionUnload` is called to
+undo what was registered so far and the bundle is stopped. The other extensions load normally; an upload shows the
+error to the administrator.
 !!!
 
 ## Lifecycle
@@ -186,19 +187,22 @@ sequenceDiagram
 - **Startup.** `OsgiServiceImpl` listens for the root context's `ContextRefreshedEvent`, starts Felix with its
   storage in `~/.marginalia/extensions/org.eclipse.osgi` (wiped on every start, so the JARs are always read fresh),
   installs every `*.jar` in `~/.marginalia/extensions` and starts them. For each `MarginaliaExtension` service a
-  bundle registered, it calls `onExtensionLoad`.
+  bundle registered, it calls `onExtensionLoad`. Each JAR is installed and started on its own: one that can't be
+  installed (not a bundle, a second copy of an installed plugin) or fails to start is logged with its file name and
+  skipped.
 - **Installing at runtime.** *Admin → Extensions → Load Extension (.jar)* writes the uploaded file into
-  `~/.marginalia/extensions` under its original name and installs and starts it the same way
-  (`OsgiService.installPackage`). Screens that are already open are not rebuilt: the plugin's decorators run the next
-  time the decorated methods run (the next time the user opens a book, a tab...).
+  `~/.marginalia/extensions` (the file name is sanitized: only letters, digits, `.`, `_` and `-`) and installs and
+  starts it the same way (`OsgiService.installPackage`). Screens that are already open are not rebuilt: the plugin's
+  decorators run the next time the decorated methods run (the next time the user opens a book, a tab...).
+- **Updating.** Uploading a bundle whose symbolic name (or file name) is already installed replaces it: the old one is
+  unloaded as by *Unload*, uninstalled and its JAR deleted, then the new one is loaded. If the new one fails to
+  install or start, its JAR is deleted and the old one is put back.
 - **Unloading.** *Unload* calls the callbacks registered with `bindAttachableComponent`, then `onExtensionUnload`,
-  uninstalls the bundle and **deletes its JAR** (`OsgiService.uninstallPackage`).
-- **Shutdown.** The framework is not stopped when the application stops (BUG-51): neither the activator's `stop` nor
-  `onExtensionUnload` runs. Don't rely on them to save data - save as you go.
-
-There is no update operation: to replace a plugin with a new build, unload it and load the new JAR, or replace the
-JAR in `~/.marginalia/extensions` and restart Marginalia. Uploading a new build over an installed one doesn't load the
-new code (BUG-48).
+  uninstalls the bundle and **deletes its JAR** (`OsgiService.uninstallPackage`). Bundles that failed to start are
+  listed too (state `INSTALLED` or `RESOLVED`) and can be unloaded the same way.
+- **Shutdown.** When the application stops (the root context closes), every extension is unloaded the same way -
+  bound callbacks, `onExtensionUnload`, the activator's `stop` - and the framework is stopped. Still save data as you
+  go: a killed process runs none of this.
 
 ## Class loading
 

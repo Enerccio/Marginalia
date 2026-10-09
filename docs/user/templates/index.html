@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -240,7 +240,7 @@ the macros SillyTavern users know, so lorebooks and prompts from SillyTavern kee
 <p>Every template field has a hints popover:</p>
 <ul>
 <li><strong>Insert Default Template</strong> copies the default into the field;</li>
-<li><strong>Available Template Variables</strong> lists the variables of that template;</li>
+<li><strong>Available Template Variables</strong> lists the variables of that template, including those available everywhere;</li>
 <li><strong>Available Macros</strong> lists all macros with a short description.</li>
 </ul>
 <figure class="content-center">
@@ -249,6 +249,8 @@ the macros SillyTavern users know, so lorebooks and prompts from SillyTavern kee
 </figure>
 <p>A template with a syntax error (an unclosed section, for example) can&#x27;t be saved in the book prompts and Settings; in
 lorebook entries it is saved, marked as invalid, and used as plain text until it&#x27;s fixed.</p>
+<p>Unknown variables (usually typos) don&#x27;t block saving; the field lists them under it as a warning, see
+<a href="templates/#typos">Typos</a>.</p>
 <p><strong>Show Prompt</strong> in the menu of a generated part shows the prompt as it was sent - the best way to check what a
 template produced.</p>
 <h2 id="in-this-section">In this section</h2>

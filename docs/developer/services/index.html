@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844843243278">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844858387167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844843243278" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844858387167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844843243278" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844843243278" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844858387167" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844858387167" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -444,7 +444,7 @@ doesn&#x27;t take them.</p>
 | `AIService`, `ProtocolService` | Plain CRUD of inference providers and protocols. |
 | `InferenceServices` | `forAI(ai)` returns the `InferenceService` for a provider. Implementations are listed in `services-config.xml` (`inferenceProviders`), each annotated `@SupportedAI(AIType...)` with a constructor taking the `AI`; the instance is cached on the (transient) `AI.inferenceService` field. |
 | `InferenceService` | One provider: `getModels()`, `countTokens` / `countTokensApprox`, `stream(payload, protocol, callback)`. Streaming is asynchronous; the callback gets chunks (`REASONING` / `RESPONSE`) and must call `controller.continueInference()` to receive the next one. Implemented by `OpenAICompatibleInferenceService`. |
-| `TokenizerService` | Token counting per provider: tries the `TokenizerStrategy` candidates in order and caches the first that works, per provider id, until it fails or the application restarts (`invalidateCache` doesn't work yet, BUG-41). `countTokensApprox` always uses JTokkit locally. |
+| `TokenizerService` | Token counting per provider: tries the `TokenizerStrategy` candidates in order and caches the first that works, per provider id, until it fails or the provider is saved (`AIDialog` calls `invalidateCache`). The local JTokkit fallback is not cached, so a provider whose server was unreachable is probed again on the next count. `countTokensApprox` always uses JTokkit locally. |
 | `TokenLimits` | Static helpers for the context, response and prompt budget of a generation (protocol overrides, else provider limits). |
 | `TemplateService` | `processTemplate(template, name, data)` renders a Handlebars template with macros; `isValidTemplate` for the UI. See [Templating &amp; macros](templating.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -470,7 +470,7 @@ doesn&#x27;t take them.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TokenizerService</code></td>
-<td>Token counting per provider: tries the <code translate="no" v-pre>TokenizerStrategy</code> candidates in order and caches the first that works, per provider id, until it fails or the application restarts (<code translate="no" v-pre>invalidateCache</code> doesn&#x27;t work yet, BUG-41). <code translate="no" v-pre>countTokensApprox</code> always uses JTokkit locally.</td>
+<td>Token counting per provider: tries the <code translate="no" v-pre>TokenizerStrategy</code> candidates in order and caches the first that works, per provider id, until it fails or the provider is saved (<code translate="no" v-pre>AIDialog</code> calls <code translate="no" v-pre>invalidateCache</code>). The local JTokkit fallback is not cached, so a provider whose server was unreachable is probed again on the next count. <code translate="no" v-pre>countTokensApprox</code> always uses JTokkit locally.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TokenLimits</code></td>
@@ -487,7 +487,7 @@ doesn&#x27;t take them.</p>
 <h3 id="users-and-settings">Users and settings</h3>
 <retype-table copy-text="| Service | Responsible for |
 |---|---|
-| `UserService` | Users: `authenticate` (PBKDF2-HMAC-SHA256 hashes, constant-time compare), `changePassword`, `isLoginAvailable`, `isLastAdmin` (the last administrator can't be removed or demoted), `deleteUser` (soft delete, frees the login by renaming it to `&lt;login&gt;#&lt;uuid&gt;`, drops saved logins), saved logins (`generateNewPersistentInfo`, `authenticateFromCookie`...). |
+| `UserService` | Users: `authenticate` (PBKDF2-HMAC-SHA256 hashes, constant-time compare), `changePassword` (also drops all saved logins and invalidates the user's other open sessions through `SessionManager.runForUsers` - the caller's own session is kept; the current password is checked by `UserDialog` for self edits), `clearPassword` (removes the password and saved logins and invalidates the user's sessions except the caller's, an administrator's reset), `isLoginAvailable`, `isLastAdmin` (the last administrator can't be removed or demoted), `deleteUser` (soft delete, frees the login by renaming it to `&lt;login&gt;#&lt;uuid&gt;`, drops saved logins, renames the data folder to `&lt;login&gt;-deleted`; owned data is purged with the user by cleanup), saved logins (`generateNewPersistentInfo`, `authenticateFromCookie`...). |
 | `SettingService` | `getOrCreate(UserSetting.class)` for the current user, `getOrCreate(cls, user)`, `getOrCreateApp(AppSettings.class)` for the installation. |
 | `ResourceService` | Files stored by hash in the user's `resources` folder (not used by the UI yet). |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -501,7 +501,7 @@ doesn&#x27;t take them.</p>
 <tbody>
 <tr>
 <td><code translate="no" v-pre>UserService</code></td>
-<td>Users: <code translate="no" v-pre>authenticate</code> (PBKDF2-HMAC-SHA256 hashes, constant-time compare), <code translate="no" v-pre>changePassword</code>, <code translate="no" v-pre>isLoginAvailable</code>, <code translate="no" v-pre>isLastAdmin</code> (the last administrator can&#x27;t be removed or demoted), <code translate="no" v-pre>deleteUser</code> (soft delete, frees the login by renaming it to <code translate="no" v-pre>&lt;login&gt;#&lt;uuid&gt;</code>, drops saved logins), saved logins (<code translate="no" v-pre>generateNewPersistentInfo</code>, <code translate="no" v-pre>authenticateFromCookie</code>...).</td>
+<td>Users: <code translate="no" v-pre>authenticate</code> (PBKDF2-HMAC-SHA256 hashes, constant-time compare), <code translate="no" v-pre>changePassword</code> (also drops all saved logins and invalidates the user&#x27;s other open sessions through <code translate="no" v-pre>SessionManager.runForUsers</code> - the caller&#x27;s own session is kept; the current password is checked by <code translate="no" v-pre>UserDialog</code> for self edits), <code translate="no" v-pre>clearPassword</code> (removes the password and saved logins and invalidates the user&#x27;s sessions except the caller&#x27;s, an administrator&#x27;s reset), <code translate="no" v-pre>isLoginAvailable</code>, <code translate="no" v-pre>isLastAdmin</code> (the last administrator can&#x27;t be removed or demoted), <code translate="no" v-pre>deleteUser</code> (soft delete, frees the login by renaming it to <code translate="no" v-pre>&lt;login&gt;#&lt;uuid&gt;</code>, drops saved logins, renames the data folder to <code translate="no" v-pre>&lt;login&gt;-deleted</code>; owned data is purged with the user by cleanup), saved logins (<code translate="no" v-pre>generateNewPersistentInfo</code>, <code translate="no" v-pre>authenticateFromCookie</code>...).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>SettingService</code></td>

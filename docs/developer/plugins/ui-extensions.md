@@ -79,7 +79,7 @@ lorebookView.addComponentAtIndex(Math.max(index, 0), panel);
 
 A component created once for a view must not hold on to things that change in it: `LorebookView` stays the same
 when the user picks another lorebook, so a panel bound to the lorebook it was created with ends up acting on the
-wrong one (BUG-49). Look the current value up when it's needed (`lorebookView.getCurrentLorebook()`), or hook the
+wrong one. Look the current value up when it's needed (`lorebookView.getCurrentLorebook()`), or hook the
 method that switches it.
 
 ### Changing what the application built
@@ -118,6 +118,10 @@ reviewerService.saveSettings(form.save(), userSetting);     // writes into userS
 // ...which the body of save() then stores with settingService.save(userSetting)
 ```
 
+Changes in the panel's fields are tracked like the application's own: any value change outside of
+`UserPart.refresh` (and its decorators) locks the workspace navigation until the user saves or discards. Fill the form
+in the `refresh` decorator, not later (e.g. from a background thread), or the loaded values count as changes.
+
 Saving on enter lets the application's own `settingService.save(userSetting)` store the plugin's values too. Note that
 `save()` returns early when the application's own fields don't validate - then the plugin's values are not stored
 either.
@@ -142,8 +146,7 @@ What plugins can't do:
 ## Errors
 
 Inside click listeners and other event handlers, catch exceptions and report them like the application does:
-`UIUtils.internalServerError(loc, e)` logs and shows an error dialog - pass an injected `Localization`, not `null`
-(BUG-50). Expected problems go to `Notification`. Exceptions in decorators themselves are logged by the
+`UIUtils.internalServerError(loc, e)` logs and shows an error dialog - pass an injected `Localization`. Expected problems go to `Notification`. Exceptions in decorators themselves are logged by the
 `ExtensionService` and don't need handling unless you want to show something.
 
 ## Threads
@@ -207,7 +210,7 @@ To change what a *story* generation sends or receives, don't call the model your
 When a plugin is unloaded, components it added to open screens stay there - with listeners pointing into a bundle
 that is gone - unless the plugin removes them. There are two ways.
 
-**Track and remove** - what Reviewer and Side Query do. Keep the extended components in weak sets (so that closed
+**Track and remove** - what Reviewer, Side Query and Lorebook VCS do. Keep the extended components in weak sets (so that closed
 screens can be garbage collected) and undo the changes in `onExtensionUnload`:
 
 ```java
@@ -232,23 +235,25 @@ public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionSe
 ```
 
 **Bind a callback** - `OsgiService.bindAttachableComponent(component, callback, extension)` registers `callback` to
-run when the extension is unloaded, and forgets it when `component` is detached:
+run when the extension is unloaded, for as long as `component` is attached (a component that is detached and attached
+again - moved, in a tab sheet, in a reopened dialog - stays bound):
 
 ```java
 SideQueryView view = new SideQueryView(book, service);
 leftBar.add("Side Query", view);
-osgiService.bindAttachableComponent(view,
-        () -> view.getUI().ifPresent(ui -> ui.access(() -> leftBar.remove(view))), this);
+osgiService.bindAttachableComponent(view, () -> leftBar.remove(view), this);
 ```
 
-(`osgiService` is the one passed to `onExtensionLoad`, or injected.) The callbacks run before `onExtensionUnload`. A
-component that is detached and attached again loses its callback (BUG-54), so use this for components that are
-attached once.
+(`osgiService` is the one passed to `onExtensionLoad`, or injected.) The callbacks run before `onExtensionUnload`,
+each inside `ui.access(...)` of its component's UI, so they can change the component directly. A component that is
+detached when the extension is unloaded runs its callback when it is attached again. Calling
+`bindAttachableComponent` for an extension that isn't loaded throws an `IllegalStateException`.
 
 !!!warning Other users' sessions
-`onExtensionUnload` and the bound callbacks run on the request thread of the administrator who clicked *Unload*, but
-the components belong to every user's open screens. Change them inside `component.getUI().ifPresent(ui ->
-ui.access(...))`, as above - the bundled Reviewer and Side Query change them directly (BUG-53).
+`onExtensionUnload` runs on the request thread of the administrator who clicked *Unload*, but the components belong
+to every user's open screens. Change them inside `component.getUI().ifPresent(ui -> ui.access(...))`, as above, or
+with `UIUtils.accessComponent(component, () -> ...)`, which does the same and runs the change directly when the
+component isn't attached. The bundled Reviewer, Side Query and Lorebook VCS do it this way.
 !!!
 
 Data in attributes stays after unloading, so loading the plugin again picks up where it left off. If your plugin is

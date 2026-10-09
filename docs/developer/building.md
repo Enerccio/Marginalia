@@ -48,7 +48,7 @@ Outputs in `marginalia/target/`:
 | Path | |
 |---|---|
 | `marginalia-1.0.0.war` | The web application. |
-| `marginalia-1.0.0/` | The same WAR, exploded - handy for deploying from an IDE. |
+| `marginalia-1.0.0/` | The same WAR, exploded (production mode). |
 | `marginalia-1.0.0-classes.jar` | Application classes, the compile dependency of plugins. |
 | `surefire-reports/` | Test reports. |
 | `test-home/` | Data folders created by tests (safe to delete). |
@@ -57,30 +57,27 @@ Outputs in `marginalia/target/`:
 
 Vaadin runs either in *development mode* (frontend served from a development bundle that Vaadin builds into
 `src/main/bundles/`, ignored by Git; Vaadin's dev tools available, more checks) or in *production mode* (optimized frontend
-bundle, no dev tools). The mode is decided by `META-INF/VAADIN/config/flow-build-info.json` inside the WAR.
+bundle, no dev tools). The mode is decided by `META-INF/VAADIN/config/flow-build-info.json`, the build info that
+`vaadin-maven-plugin` writes:
 
-A plain `mvn package` builds a **development** WAR. That is what you want while working on Marginalia. The release
-builds switch to production mode:
+- `prepare-frontend` (every build, also `mvn compile` and `mvn jetty:run`) writes a **development** build info with
+  the absolute paths of your checkout into `target/classes`;
+- `build-frontend` (in `prepare-package`, so only `mvn package` / `install`) builds the optimized bundle, writes a
+  **production** build info into the WAR and removes the development one from `target/classes`.
 
-- the [Dockerfile](packaging.md) copies `flow-build-info.json.PRODUCTION` over `flow-build-info.json` before
-  building,
-- the `desktop` profile (`mvn package -Pdesktop`) leaves the generated file out of the WAR and packages the
-  production one instead.
+So `mvn package` always produces a **production** WAR - the one the Dockerfile, the `desktop` profile and CI use, and
+the one to deploy. Nothing has to be copied around. A build info in `src/main/resources` is never packaged into the
+WAR (`maven-war-plugin` excludes `META-INF/VAADIN/config/flow-build-info.json*`).
 
-Both template files are in `src/main/resources/META-INF/VAADIN/config/`. To build a production WAR by hand, do what
-the Dockerfile does:
+Development mode is for running from the IDE (see [IntelliJ IDEA](#intellij-idea)) or `mvn jetty:run`. Without a build
+info Vaadin also starts in development mode and finds the project by the `vaadin.project.basedir` system property,
+the classpath or the working directory.
+
+To check a WAR:
 
 ```sh
-cp src/main/resources/META-INF/VAADIN/config/flow-build-info.json.PRODUCTION \
-   src/main/resources/META-INF/VAADIN/config/flow-build-info.json
-mvn clean package -DskipTests
-rm src/main/resources/META-INF/VAADIN/config/flow-build-info.json   # back to development mode
+unzip -p target/marginalia-1.0.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
 ```
-
-!!!warning
-`src/main/resources/META-INF/VAADIN/config/flow-build-info.json` is ignored by Git. If you created it, it is copied
-into every WAR you build until you remove it - including the one your IDE deploys.
-!!!
 
 ### AspectJ weaving
 
@@ -100,8 +97,8 @@ read method arguments and local variables of `@Extendable` methods by name, so d
 
 ## Running locally
 
-Marginalia is a plain WAR without an embedded server, so you run it in a servlet container: from the IDE, in a
-local Jetty, or in Docker.
+Marginalia is a plain WAR without an embedded server, so you run it in a servlet container: from the IDE, with
+`mvn jetty:run`, in a local Jetty, or in Docker.
 
 ### Keep your development data separate
 
@@ -140,6 +137,16 @@ These are the options the desktop app and the tests use.
 4. Run it and open the URL shown in the run configuration, e.g. `http://localhost:8080/marginalia/` when the
    application context is `/marginalia`.
 
+IntelliJ builds the exploded WAR itself, without the Vaadin plugin, so the application runs in
+[development mode](#development-and-production-mode). It needs to know where the project is - either:
+
+- add `-Dvaadin.project.basedir=/path/to/Marginalia/marginalia` to *VM options* (simplest, survives *Rebuild Project*), or
+- run `mvn vaadin:prepare-frontend` in `marginalia/` and copy the generated
+  `target/classes/META-INF/VAADIN/config/flow-build-info.json` to the same path under `src/main/resources/`
+  (ignored by Git and never packaged into the WAR, but IntelliJ copies it into the exploded WAR on every build).
+
+Don't deploy `target/marginalia-1.0.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
+
 ![IntelliJ IDEA Tomcat run configuration](../images/dev-intellij-tomcat.png)
 
 !!!
@@ -158,19 +165,35 @@ To run the built WAR the way the Docker image does, download [Jetty 12](https://
 export JETTY_HOME=/path/to/jetty-home-12.1.10
 mkdir -p ~/jetty-marginalia && cd ~/jetty-marginalia
 java -jar $JETTY_HOME/start.jar --create-startd \
-     --add-modules=server,http,ee10-deploy,ee10-websocket-jakarta,ee10-webapp,ee10-jsp
+     --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
 cp /path/to/Marginalia/marginalia/target/marginalia-1.0.0.war webapps/ROOT.war
 java -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=/path/to/dev-home \
      -jar $JETTY_HOME/start.jar jetty.http.port=8080
 ```
 
-Marginalia is then at `http://localhost:8080/`. `ee10-websocket-jakarta` is required: the UI is updated through a
+Marginalia is then at `http://localhost:8080/`. `ee11-websocket-jakarta` is required: the UI is updated through a
 push WebSocket.
 
-!!!warning `mvn jetty:run` doesn't work yet
-The `pom.xml` declares the Jetty 12 Maven plugin (`jetty-ee11-maven-plugin`), but with a plugin dependency
-`org.eclipse.jetty:jetty-servlet:12.1.14` that doesn't exist, so Maven can't resolve the plugin
-([BUG-56](https://github.com/Enerccio/Marginalia/blob/master/TODO.BUGS.md)). Use Tomcat 11, a local Jetty 12 or Docker.
+### `mvn jetty:run`
+
+The quickest way to run from the sources, without an IDE or a server installation. The Jetty 12 Maven plugin
+(`jetty-ee11-maven-plugin`) runs the application from `target/classes` and `src/main/webapp` inside the Maven JVM, so
+the [JVM options](#jvm-options) go into `MAVEN_OPTS`:
+
+```sh
+cd marginalia
+export MAVEN_OPTS="-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true"
+mvn -DskipTests jetty:run                       # http://localhost:8080/
+mvn -DskipTests -Djetty.http.port=9090 jetty:run   # another port
+```
+
+The application runs in [development mode](#development-and-production-mode) with the development logging (see
+[Logs](#logs)). Stop it with `Ctrl+C`. Java changes need a restart.
+
+!!!warning Development data
+To [keep your development data separate](#keep-your-development-data-separate), add `-Duser.home=...` to
+`MAVEN_OPTS` together with `-Dmaven.repo.local=$HOME/.m2/repository` - `user.home` also moves Maven's own local
+repository, which would otherwise be downloaded again into the development home.
 !!!
 
 ### Docker
@@ -187,9 +210,16 @@ repository. See [Server (Docker)](../user/getting-started/docker-server.md) for 
 
 ### Logs
 
-Marginalia logs to standard output with log4j 1.x (reload4j); the configuration is
-`src/main/resources/log4j.properties`. The `com.github.enerccio` loggers are at `DEBUG`, so a generation logs each
-pipeline step and the activated lore. In the desktop app the output goes to `~/.marginalia/desktop/logs/`.
+Marginalia logs to standard output with log4j 1.x (reload4j). There are two configurations:
+
+- `src/main/resources/log4j.properties` - **development**, used from `target/classes` by IDE runs and
+  `mvn jetty:run`. The `com.github.enerccio` loggers are at `DEBUG`, so a generation logs each pipeline step and the
+  activated lore.
+- `src/main/resources-release/log4j.properties` - **release**, everything at `INFO`. `mvn package` puts it into the
+  WAR in place of the development one, so the Docker image, the desktop app and any other deployed WAR log no story
+  content (see [Packaging & releases](packaging.md#the-war)).
+
+In the desktop app the output goes to `~/.marginalia/desktop/logs/`.
 
 ## Running the tests
 

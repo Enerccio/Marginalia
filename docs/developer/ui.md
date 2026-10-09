@@ -34,7 +34,9 @@ flowchart TB
     Lore --> LV
 ```
 
-![Map of the UI to the classes that build it](../images/dev-ui-map.png)
+![Map of the workspace to the classes that build it](../images/dev-ui-map-workspace.png)
+
+![Map of the book window to the classes that build it](../images/dev-ui-map-book.png)
 
 | Package | Contains |
 |---|---|
@@ -65,7 +67,8 @@ flowchart TB
 3. Otherwise it shows a `LoginOverlay` (`PermissiveLoginOverlay` - allows empty passwords to reach the server-side
    check) with the *Save login* checkbox.
 4. After a successful login it calls `VaadinService.reinitializeSession` (new session id) and the subclass's
-   `proceedWithLogin(login)`, which fills the session-scoped `user` bean and builds the content.
+   `proceedWithLogin(login)`, which fills the session-scoped `user` bean, registers the login with
+   `SessionManager.userLoggedIn` (see [Sessions](architecture.md#sessions)) and builds the content.
 
 Logout deletes the cookies, closes the Vaadin session, invalidates the HTTP session and redirects to the context
 root. Cookie names include the context path and the route class (`root_Main_llllm_rememberMe_login`...), so the workspace
@@ -126,6 +129,10 @@ all tab components up front. Each tab is a `WorkspaceComponent`:
 | `refresh()` | To reload data (after login, after changes elsewhere). |
 | `onTabSwitched()` | When the tab becomes active - parts reload their lists here. |
 | `onTabClosed()` | When another tab is selected. |
+
+`Workspace.setNavigationLocked(true)` disables the other tabs and the *Admin* and *Logout* buttons, so the user can't
+leave the active tab. `UserPart` locks it while the settings have unsaved changes: it listens to every `HasValue`
+in its layout (extension settings panels included) and unlocks on *Save*, *Discard Changes* or `refresh()`.
 
 The *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
 `DatabaseBackupPanel`, `CleanupPanel` and extensions tab. Note that the admin UI being hidden is not a permission

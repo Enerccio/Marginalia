@@ -42,7 +42,7 @@ Cleanup removes deleted objects that nothing alive uses any more, together with 
 | a story part | the part (its children were already moved to its parent) and its summary |
 | an inference provider or protocol | cleared from the users' defaults in *Settings* |
 | a tag | its links to books and entries |
-| a user | their settings - once they own nothing else |
+| a user | everything they owned: books (with their story parts and summaries), lorebooks, inference providers, protocols, tags and settings |
 
 ## What is kept
 
@@ -53,7 +53,7 @@ A deleted object is **blocked** - kept - while something alive still uses it:
 | a deleted inference provider or protocol | a book still uses it as its model or protocol | select another one in the book's *About* tab, or delete the book |
 | a deleted lorebook (with its entries) | a book still uses it | select another lorebook in the book, or clear it |
 | a deleted story part | it is the last part of a book's active branch | switch the book to another branch, or delete the book |
-| a deleted user | they still own books, lorebooks, providers... | see [Deleting a user](users.md#deleting-a-user) |
+| a deleted user | something of another user still uses their data (a book using their inference provider or lorebook) | change or delete the other user's book |
 
 Run *Analyze* again after unblocking.
 
