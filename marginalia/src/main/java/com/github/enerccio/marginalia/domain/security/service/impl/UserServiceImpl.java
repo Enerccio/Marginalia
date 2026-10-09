@@ -35,6 +35,12 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     private static final int KEY_LENGTH = 256;
     private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
 
+    static final int FREE_LOGIN_ATTEMPTS = 10;
+    private static final long MAX_BACKOFF_MILLIS = 15 * 60 * 1000L;
+    // used to burn the same hashing time when the user or its password does not exist
+    private static final String DUMMY_SALT = Base64.getEncoder().encodeToString(new byte[16]);
+    private static final String DUMMY_HASH = "";
+
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Autowired
@@ -103,34 +109,58 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         }
     }
 
+    /**
+     * Password check with a constant amount of work: a hash is computed whether or not the user exists, has a
+     * password or is locked, and there are no early returns, so timing does not reveal which case it was. After
+     * {@link #FREE_LOGIN_ATTEMPTS} failures the user is locked out for an exponentially growing time.
+     */
     @Override
-    @CommonTxReadOnly
+    @CommonTx
     public boolean authenticate(String username, String password) throws Exception {
         User user = findByName(username);
-        if (user == null) {
-            return false;
-        }
+        long now = System.currentTimeMillis();
 
-        String storedPasswordData = user.getPasswordHash();
-        if (StringUtils.isBlank(storedPasswordData) && StringUtils.isBlank(password)) {
-            return true;
-        }
-        if (StringUtils.isBlank(password) || StringUtils.isBlank(storedPasswordData)) {
-            return false;
-        }
+        String storedPasswordData = user == null ? null : user.getPasswordHash();
+        String[] parts = storedPasswordData == null ? new String[0] : storedPasswordData.split(":");
+        boolean wellFormed = parts.length == 2;
+        String salt = wellFormed ? parts[0] : DUMMY_SALT;
+        String expected = wellFormed ? parts[1] : DUMMY_HASH;
 
-        String[] parts = storedPasswordData.split(":");
-        if (parts.length != 2) {
-            return false;
+        boolean passwordGiven = StringUtils.isNotBlank(password);
+        String computed = hashPassword(passwordGiven ? password : "", salt);
+        boolean hashMatches = MessageDigest.isEqual(
+                expected.getBytes(StandardCharsets.UTF_8), computed.getBytes(StandardCharsets.UTF_8));
+
+        boolean noPasswordSet = user != null && StringUtils.isBlank(storedPasswordData);
+        boolean ok = user != null
+                && ((noPasswordSet && !passwordGiven) || (wellFormed && passwordGiven && hashMatches));
+        boolean locked = user != null && user.getLockedUntil() > now;
+
+        if (user != null) {
+            if (ok && !locked) {
+                if (user.getFailedLogins() != 0 || user.getLockedUntil() != 0) {
+                    user.setFailedLogins(0);
+                    user.setLockedUntil(0);
+                    save(user);
+                }
+            } else if (!locked) {
+                int failed = user.getFailedLogins() + 1;
+                user.setFailedLogins(failed);
+                if (failed > FREE_LOGIN_ATTEMPTS) {
+                    user.setLockedUntil(now + backoffMillis(failed - FREE_LOGIN_ATTEMPTS));
+                }
+                save(user);
+                log.warn("Failed login for user {} (consecutive failures: {})", username, failed);
+            }
+        } else {
+            log.warn("Failed login for unknown user {}", username);
         }
+        return ok && !locked;
+    }
 
-        String salt = parts[0];
-        String hash = parts[1];
-
-        return MessageDigest.isEqual(
-                hash.getBytes(StandardCharsets.UTF_8),
-                hashPassword(password, salt).getBytes(StandardCharsets.UTF_8)
-        );
+    /** 1s, 2s, 4s ... capped at {@link #MAX_BACKOFF_MILLIS}. */
+    private static long backoffMillis(int overLimit) {
+        return Math.min(MAX_BACKOFF_MILLIS, 1000L << Math.min(overLimit - 1, 20));
     }
 
     @Override
@@ -142,6 +172,8 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         String hash = hashPassword(password, salt);
         user.setPasswordHash(salt + ":" + hash);
         user.setSavedLogins(null);
+        user.setFailedLogins(0);
+        user.setLockedUntil(0);
         save(user);
         sessionManager.runForUsers(u -> user.getId().equals(u.getId()), (sessionInformation) -> {
             sessionInformation.boundVaadinSession.getSession().invalidate();
@@ -157,6 +189,8 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     public User clearPassword(User user) throws Exception {
         user.setPasswordHash(null);
         user.setSavedLogins(null);
+        user.setFailedLogins(0);
+        user.setLockedUntil(0);
         save(user);
         sessionManager.runForUsers(u -> user.getId().equals(u.getId()), (sessionInformation) -> {
             sessionInformation.boundVaadinSession.getSession().invalidate();
