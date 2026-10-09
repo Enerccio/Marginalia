@@ -32,6 +32,8 @@ public class AuthorsNoteView extends VerticalLayout {
     private final Manuscript manuscript;
     private final AuthorsNoteData data;
 
+    private TextArea note;
+
     public AuthorsNoteView(Manuscript manuscript, AuthorsNoteService authorsNoteService) {
         this.manuscript = manuscript;
         this.authorsNoteService = authorsNoteService;
@@ -56,6 +58,7 @@ public class AuthorsNoteView extends VerticalLayout {
         enabled.addValueChangeListener(e -> {
             data.setEnabled(e.getValue());
             saveData();
+            updateTokenEstimate();
         });
 
         IntegerField depth = new IntegerField("Insertion depth");
@@ -87,8 +90,7 @@ public class AuthorsNoteView extends VerticalLayout {
         placement.setAlignItems(FlexComponent.Alignment.BASELINE);
         placement.setFlexGrow(1, depth, role);
 
-        TextArea note = new TextArea("Author's Note");
-        note.setHelperText("Inserted into the prompt of every generation");
+        note = new TextArea("Author's Note");
         note.setWidthFull();
         note.setValue(StringUtils.defaultString(data.getNote()));
         note.setValueChangeMode(ValueChangeMode.LAZY);
@@ -96,7 +98,9 @@ public class AuthorsNoteView extends VerticalLayout {
         note.addValueChangeListener(e -> {
             data.setNote(e.getValue());
             saveData();
+            updateTokenEstimate();
         });
+        updateTokenEstimate();
 
         TextArea privateNote = new TextArea("Author's Note (private)");
         privateNote.setHelperText("For you only, never sent to the model");
@@ -111,6 +115,23 @@ public class AuthorsNoteView extends VerticalLayout {
 
         add(enabled, placement, note, privateNote);
         setFlexGrow(1, note, privateNote);
+    }
+
+    /**
+     * Shows the approximate size of the note; it is reserved from the context of every generation, so the story gets
+     * that much less room.
+     */
+    private void updateTokenEstimate() {
+        String text = "Inserted into the prompt of every generation";
+        try {
+            long tokens = authorsNoteService.estimateTokens(manuscript, data.getNote());
+            text = data.isEnabled()
+                    ? "~" + tokens + " tokens, taken from the room for the story"
+                    : "~" + tokens + " tokens, not inserted";
+        } catch (Exception ignored) {
+            // no estimate (e.g. the book's model is gone) - the note still works
+        }
+        note.setHelperText(text);
     }
 
     private void saveData() {

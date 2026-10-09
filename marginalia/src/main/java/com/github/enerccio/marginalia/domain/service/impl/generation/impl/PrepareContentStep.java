@@ -73,8 +73,10 @@ public class PrepareContentStep extends GenerationStepBase {
                     String emptyTemplate = templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData);
                     templateData.setTemplateContext(templateContext);
                     long baseTokens = inferenceService.countTokens(emptyTemplate) + data.getJailbreakTokens() + data.getUserPromptProcessedTokens() + 100; /* Buffer for HEADERS */
+                    // room extensions reserved for what they add to the prompt later
+                    long reservedTokens = Math.max(0, data.getReservedTokens());
 
-                    if (baseTokens >= limit) {
+                    if (baseTokens + reservedTokens >= limit) {
                         controller.getUIListener().onSimpleError(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
                         controller.jumpTo(GenerationStepType.CLEANUP);
                         return;
@@ -85,7 +87,7 @@ public class PrepareContentStep extends GenerationStepBase {
                         Collections.reverse(chain);
                         Iterator<ChatMessage> iterator = chain.iterator();
 
-                        long tokens = baseTokens;
+                        long tokens = baseTokens + reservedTokens;
                         List<String> storyText = new ArrayList<>();
 
                         while (true) {
