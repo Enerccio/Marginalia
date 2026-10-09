@@ -36,7 +36,12 @@ public class PrepareContentStep extends GenerationStepBase {
             List<ChatMessage> invalidatedSummaries = new ArrayList<>();
             Pointer<ChatMessage> stopMessage = new Pointer<>();
             if (activeMessage != null) {
-                fromRoot = chatMessageService.getBranchFromLeaf(activeMessage);
+                fromRoot = new ArrayList<>(chatMessageService.getBranchFromLeaf(activeMessage));
+                GenerationRequestType requestType = controller.getRequest().getRequestType();
+                if (!fromRoot.isEmpty() && (requestType == GenerationRequestType.SWIPE || requestType == GenerationRequestType.REGENERATE)) {
+                    // the active leaf is the part being replaced - it is neither story so far nor a valid summary point
+                    fromRoot.removeLast();
+                }
                 List<String> currentSummaries = gatherSummaries(fromRoot, invalidatedSummaries, stopMessage);
                 controller.getProperties().put(GenerationProperties.SUMMARIES, currentSummaries);
             } else {
@@ -77,10 +82,6 @@ public class PrepareContentStep extends GenerationStepBase {
 
                     if (activeMessage != null) {
                         List<ChatMessage> chain = finalFromRoot;
-                        if (!chain.isEmpty() && controller.getRequest().getRequestType() == GenerationRequestType.NEW_MESSAGE) {
-                            // remove last since we are regenerating
-                            chain = chain.subList(0, chain.size() - 1);
-                        }
                         Collections.reverse(chain);
                         Iterator<ChatMessage> iterator = chain.iterator();
 
