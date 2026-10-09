@@ -162,11 +162,12 @@ with a summary is the **stop part**: it and everything before it is represented 
 limit      = context tokens − response tokens        (protocol overrides, else provider limits)
 baseTokens = system template rendered with lore and summaries (no story)
            + jailbreak + rendered user prompt + 100
+reserved   = PrePromptData.reservedTokens            (set by extensions, 0 by default)
 ```
 
-If `baseTokens ≥ limit`, the generation stops with *Contextual limit not sufficient.* Otherwise parts are taken from the
-newest backwards - skipping the part being regenerated, stopping at the stop part - counting each part as its
-`tokenCount + 100`. A part is added only if the running total with it stays within `limit − 256`; the first part that
+If `baseTokens + reserved ≥ limit`, the generation stops with *Contextual limit not sufficient.* Otherwise parts are taken from the
+newest backwards - skipping the part being regenerated, stopping at the stop part - starting from
+`baseTokens + reserved` and counting each part as its `tokenCount + 100`. A part is added only if the running total with it stays within `limit − 256`; the first part that
 doesn't fit ends the loop. The chosen texts, oldest first, become `MANUSCRIPT_CHRONICLE`.
 
 **System prompt.** The master template is rendered with `MasterTemplateData` (`backgroundLore`, `summaries`,
@@ -262,6 +263,7 @@ Event: `BEFORE_CLEANUP`.
 | `backgroundLore`, `backgroundLoreTokens` | `PROCESS_LOREBOOK` | Lore for the master template. |
 | `backgroundUserLore`, `backgroundUserLoreTokens` | `PROCESS_LOREBOOK` | Lore put before the user prompt. |
 | `systemPrompt`, `systemPromptTokens` | `PREPARE_CONTENT` | Rendered master template. |
+| `reservedTokens` | extensions, up to `BEFORE_SUMMARIES` | Room for text extensions add to the prompt later (e.g. a message inserted into the payload); taken from the room for the story. Add to it, don't overwrite it. See [Generation events](plugins/generation-events.md#reserving-tokens). |
 
 ## Template context
 
@@ -306,8 +308,9 @@ Rules:
   `ui.access(...)`.
 - Unregister on unload - registrations are not removed automatically.
 
-The bundled Author's Note plugin is a complete example: it inserts a message into the payload in
-`AFTER_PREPARE_PAYLOAD`, see [Generation events](plugins/generation-events.md).
+The bundled Author's Note plugin is a complete example: it reserves tokens in `BEFORE_PREPARE_CONTENT`
+(`PrePromptData.reservedTokens`) and inserts a message into the payload in `AFTER_PREPARE_PAYLOAD`, see
+[Generation events](plugins/generation-events.md).
 
 ### Events
 
@@ -322,7 +325,7 @@ The bundled Author's Note plugin is a complete example: it inserts a message int
 | `PROCESS_LOREBOOK_ENTRY` | 3 | `LOREBOOK_ENTRY`, once per entry |
 | `PROCESS_ACTIVATED_ENTRIES` | 3 | `ACTIVATED_LOREBOOK_ENTRIES` (read back) |
 | `AFTER_PROCESS_LOREBOOK` | 3 | `backgroundLore`, `LOREBOOK_TEMPLATE_DATA` |
-| `BEFORE_PREPARE_CONTENT` | 4 | |
+| `BEFORE_PREPARE_CONTENT` | 4 | `PrePromptData.reservedTokens` - reserve room for text added later |
 | `BEFORE_SUMMARIES` | 4 | `SUMMARIES` (read back) |
 | `AFTER_MANUSCRIPT_CONCATENATION` | 4 | `MANUSCRIPT_CHRONICLE` (read back) |
 | `AFTER_PREPARE_CONTENT` | 4 | `systemPrompt` |

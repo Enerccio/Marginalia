@@ -41,6 +41,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
     private final AuthorsNoteService authorsNoteService = new AuthorsNoteService();
 
     private ExtensionDecorator storyPartDecorator;
+    private Registration reserveRegistration;
     private Registration payloadRegistration;
 
     private final Set<VTabSheet> activeTabSheets = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
@@ -78,6 +79,9 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
                     "renderStoryContent"
             );
 
+            // the context budget is computed in PREPARE_CONTENT - reserve room for the note before it
+            reserveRegistration = storyGenerationService.addEventListener(Events.BEFORE_PREPARE_CONTENT,
+                    this::reserveAuthorsNote);
             // the payload is complete after PREPARE_PAYLOAD, what the listener sets is sent to the model
             payloadRegistration = storyGenerationService.addEventListener(Events.AFTER_PREPARE_PAYLOAD,
                     this::insertAuthorsNote);
@@ -88,12 +92,30 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
         }
     }
 
-    private void insertAuthorsNote(GenerationControllerEvent event, EventChain chain) {
+    private void reserveAuthorsNote(GenerationControllerEvent event, EventChain chain) {
         try {
             // listeners are global - every generation of every user comes here, the note is per book
             Manuscript manuscript = event.getManuscript();
-            if (manuscript != null) {
+            if (manuscript != null && event.getPrePromptData() != null) {
                 AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
+                // the same note is inserted later, even if the user edits it during the generation
+                event.getProperties().put(AuthorsNoteData.KEY, data);
+                long tokens = authorsNoteService.countTokens(manuscript, data);
+                event.getPrePromptData().setReservedTokens(event.getPrePromptData().getReservedTokens() + tokens);
+            }
+        } catch (Exception e) {
+            // the note is then not inserted either - nothing is in the properties
+            log.warn("Failed to reserve tokens for the author's note: {}", e.getMessage(), e);
+        } finally {
+            chain.next();
+        }
+    }
+
+    private void insertAuthorsNote(GenerationControllerEvent event, EventChain chain) {
+        try {
+            // only a note that was counted in the context budget is inserted
+            AuthorsNoteData data = event.getProperty(AuthorsNoteData.KEY);
+            if (data != null) {
                 event.setPayload(authorsNoteService.insertNote(event.getPayload(), data));
             }
         } catch (Exception e) {
@@ -108,6 +130,10 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
     public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
         if (storyPartDecorator != null) {
             extensionService.unregisterDecorator(storyPartDecorator);
+        }
+        if (reserveRegistration != null) {
+            reserveRegistration.unregister();
+            reserveRegistration = null;
         }
         if (payloadRegistration != null) {
             payloadRegistration.unregister();

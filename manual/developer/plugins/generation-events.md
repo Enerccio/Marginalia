@@ -24,6 +24,7 @@ The plugin has three parts:
 |---|---|---|
 | The note, stored with the book | `AuthorsNoteData` in `Manuscript.attributes`, under the package name | [Extended attributes](extended-attributes.md) |
 | An *Author's Note* tab next to the story outline | `AuthorsNoteView`, added on leave of `ManuscriptStoryPart.renderStoryContent` | [@Extendable hooks](extendable.md), [A tab next to the story](ui-extensions.md#a-tab-next-to-the-story) |
+| Reserving room for the note in the context | a listener on `Events.BEFORE_PREPARE_CONTENT` | generation events (this page) |
 | Inserting the note into the prompt | a listener on `Events.AFTER_PREPARE_PAYLOAD` | generation events (this page) |
 
 The data is a plain class serialized with Gson:
@@ -41,9 +42,9 @@ public class AuthorsNoteData {
 }
 ```
 
-### Registering the listener
+### Registering the listeners
 
-The listener is registered in `onExtensionLoad`, next to the decorator, and kept so it can be removed on unload.
+The listeners are registered in `onExtensionLoad`, next to the decorator, and kept so they can be removed on unload.
 `StoryGenerationService` is injected into the `@Configurable` extension:
 
 ```java
@@ -53,11 +54,15 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
     @Autowired
     private StoryGenerationService storyGenerationService;
 
+    private Registration reserveRegistration;
     private Registration payloadRegistration;
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         ...
+        // the context budget is computed in PREPARE_CONTENT - reserve room for the note before it
+        reserveRegistration = storyGenerationService.addEventListener(Events.BEFORE_PREPARE_CONTENT,
+                this::reserveAuthorsNote);
         // the payload is complete after PREPARE_PAYLOAD, what the listener sets is sent to the model
         payloadRegistration = storyGenerationService.addEventListener(Events.AFTER_PREPARE_PAYLOAD,
                 this::insertAuthorsNote);
@@ -66,6 +71,10 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
     @Override
     public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
         ...
+        if (reserveRegistration != null) {
+            reserveRegistration.unregister();
+            reserveRegistration = null;
+        }
         if (payloadRegistration != null) {
             payloadRegistration.unregister();
             payloadRegistration = null;
@@ -74,11 +83,11 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
 }
 ```
 
-### Choosing the event
+### Choosing the events
 
-The note has to end up among the chat messages sent to the model, so the plugin listens to `AFTER_PREPARE_PAYLOAD`:
-at that point `PreparePayloadStep` has built the final list of `LLMChatMessage`s and whatever
-`event.setPayload(...)` sets is what inference sends. The payload looks like this:
+The note has to end up among the chat messages sent to the model, so it is inserted in `AFTER_PREPARE_PAYLOAD`: at
+that point `PreparePayloadStep` has built the final list of `LLMChatMessage`s and whatever `event.setPayload(...)`
+sets is what inference sends. The payload looks like this:
 
 | # | Role | Content |
 |---|---|---|
@@ -87,19 +96,68 @@ at that point `PreparePayloadStep` has built the final list of `LLMChatMessage`s
 | … | `USER`, `ASSISTANT` | `[ Generate more story. ]`, story part *n* |
 | last | `USER` | the rendered user prompt with the instructions for this turn |
 
-Other events would be the wrong place: before `AFTER_PREPARE_PAYLOAD` there is no payload (a listener could only
-change the system prompt or the story text in `GenerationProperties`), after `BEFORE_INFERENCE` the request is
-already on its way.
+Before `AFTER_PREPARE_PAYLOAD` there is no payload (a listener could only change the system prompt or the story text
+in `GenerationProperties`), after `BEFORE_INFERENCE` the request is already on its way.
+
+But how much of the story fits into the context is decided earlier, in step 4 (`PrepareContentStep`), and the note
+must be counted there - otherwise a long note pushes the prompt over the model's context. So the plugin also listens
+to `BEFORE_PREPARE_CONTENT` and reserves the tokens the note will take, see [Reserving tokens](#reserving-tokens).
+
+### Reserving tokens
+
+`PrePromptData.reservedTokens` is the room extensions need for text they add after the budget is computed. Step 4
+takes it out of the room for the story: fewer story parts are sent, and when not even the rest of the prompt fits,
+the generation stops with *Contextual limit not sufficient*, like for a too long template.
+
+```java
+private void reserveAuthorsNote(GenerationControllerEvent event, EventChain chain) {
+    try {
+        // listeners are global - every generation of every user comes here, the note is per book
+        Manuscript manuscript = event.getManuscript();
+        if (manuscript != null && event.getPrePromptData() != null) {
+            AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
+            // the same note is inserted later, even if the user edits it during the generation
+            event.getProperties().put(AuthorsNoteData.KEY, data);
+            long tokens = authorsNoteService.countTokens(manuscript, data);
+            event.getPrePromptData().setReservedTokens(event.getPrePromptData().getReservedTokens() + tokens);
+        }
+    } catch (Exception e) {
+        // the note is then not inserted either - nothing is in the properties
+        log.warn("Failed to reserve tokens for the author's note: {}", e.getMessage(), e);
+    } finally {
+        chain.next();
+    }
+}
+```
+
+`countTokens` counts the note with the book's model (`inferenceServices.forAI(manuscript.getAi()).countTokens(...)`)
+and adds 100 tokens for the message headers, like the budget does for every story part. 0 when the note is off.
+
+- **Add, don't overwrite.** Several extensions may reserve tokens in one generation:
+  `setReservedTokens(getReservedTokens() + mine)`.
+- **Reserve in time.** `PrePromptData` exists from `AFTER_STATIC_TEMPLATE_DATA`; the budget reads the reservation
+  during `BEFORE_SUMMARIES`' continuation. `BEFORE_PREPARE_CONTENT` is the natural place - lore and the rendered user
+  prompt are known by then. (A listener replacing `PrePromptData` in `AFTER_STATIC_TEMPLATE_DATA` starts with 0.)
+- **Count what you insert.** The plugin stores the note it counted in the generation's properties, under its package
+  name, and inserts exactly that one - a note edited while the generation runs can't exceed the reservation.
+
+#### When the size isn't known in advance
+
+A reservation has to be made before the payload exists. When what an extension adds depends on the payload itself -
+on the story parts that made it in, on the final messages - it can skip the reservation and make room in
+`AFTER_PREPARE_PAYLOAD` instead: build its text, then remove the oldest story messages (the `USER` / `ASSISTANT`
+pairs right after the system prompt) from the payload until the whole payload fits into
+`TokenLimits.promptTokens(ai, protocol)` again. Count with the book's `InferenceService` and set the shortened list with
+`event.setPayload(...)`. The two can be combined: reserve an estimate, trim if the real text is longer.
 
 ### Changing the payload
 
 ```java
 private void insertAuthorsNote(GenerationControllerEvent event, EventChain chain) {
     try {
-        // listeners are global - every generation of every user comes here, the note is per book
-        Manuscript manuscript = event.getManuscript();
-        if (manuscript != null) {
-            AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
+        // only a note that was counted in the context budget is inserted
+        AuthorsNoteData data = event.getProperty(AuthorsNoteData.KEY);
+        if (data != null) {
             event.setPayload(authorsNoteService.insertNote(event.getPayload(), data));
         }
     } catch (Exception e) {
@@ -115,7 +173,7 @@ and in `AuthorsNoteService`:
 
 ```java
 public List<LLMChatMessage> insertNote(List<LLMChatMessage> payload, AuthorsNoteData data) {
-    if (payload == null || !data.isEnabled() || StringUtils.isBlank(data.getNote())) {
+    if (payload == null || !isInserted(data)) {     // enabled and not blank
         return payload;
     }
     int min = !payload.isEmpty() && payload.getFirst().getRole() == LLMRole.SYSTEM ? 1 : 0;
@@ -136,18 +194,13 @@ Points worth copying:
 - **Reload what the user may have changed.** `event.getManuscript()` is the book as it was when the generation started.
   The note is edited in the sidebar and saved right away, so `loadCurrent` reads it again with
   `ManuscriptService.find(...)` - services work in listeners, they run in the user's request scope.
+- **Carry state between events in the properties.** `event.getProperties()` belongs to one generation; keys prefixed
+  with the plugin's package don't clash with other plugins.
 - **Replace, don't mutate.** The listener builds a new list and calls `event.setPayload(...)`. Another listener may
   have set an immutable list, and the new list makes it obvious what the plugin sends.
 - **Don't break the generation.** A failure is logged and the story is generated without the note.
 - **Keep the system prompt first.** Some providers accept a system message only at the start, so the depth is clamped
   to keep the note after it.
-
-!!!warning Token budget
-The context budget is computed in step 4 (`PrepareContentStep`), before the payload exists: it doesn't know about
-messages a listener adds later. The budget keeps a reserve of a few hundred tokens, a short note fits into it; a plugin that adds a lot of text
-should make room for it earlier, for example by dropping story parts from `MANUSCRIPT_CHRONICLE` in
-`AFTER_MANUSCRIPT_CONCATENATION`.
-!!!
 
 ### Other things listeners can do
 
@@ -155,6 +208,7 @@ should make room for it earlier, for example by dropping story parts from `MANUS
 |---|---|---|
 | Add text to the system prompt | `AFTER_PREPARE_CONTENT` | change `PrePromptData.systemPrompt` |
 | Hide or add lore | `PROCESS_ACTIVATED_ENTRIES` | modify the `ACTIVATED_LOREBOOK_ENTRIES` list |
+| Reserve room for text added later | `BEFORE_PREPARE_CONTENT` | add to `PrePromptData.reservedTokens` |
 | Shorten the story sent to the model | `AFTER_MANUSCRIPT_CONCATENATION` | replace `MANUSCRIPT_CHRONICLE` |
 | Change the instructions of the turn | `AFTER_PREPARE_CONSTANT_DATA` | change the processed user prompt in `PrePromptData` |
 | Post-process the answer as it streams | `CHUNK_RECEIVED` | replace the `CHUNK` property |

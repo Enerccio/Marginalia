@@ -20,6 +20,13 @@ public class PrePromptData {
     private String userPromptProcessed;
     private long userPromptProcessedTokens;
     private TurnInput turnInput;
+    /**
+     * Tokens extensions need for text they add to the prompt after the context budget is computed (e.g. a message
+     * inserted into the payload). Taken out of the room for the story in {@code PrepareContentStep}, so it must be set
+     * before {@link com.github.enerccio.marginalia.domain.service.impl.generation.Events#BEFORE_SUMMARIES} completes.
+     * Extensions add to it, not overwrite it.
+     */
+    private long reservedTokens;
 
     public String getJailbreak() {
         return jailbreak;
@@ -147,5 +154,13 @@ public class PrePromptData {
 
     public void setBackgroundUserLoreTokens(long backgroundUserLoreTokens) {
         this.backgroundUserLoreTokens = backgroundUserLoreTokens;
+    }
+
+    public long getReservedTokens() {
+        return reservedTokens;
+    }
+
+    public void setReservedTokens(long reservedTokens) {
+        this.reservedTokens = reservedTokens;
     }
 }
