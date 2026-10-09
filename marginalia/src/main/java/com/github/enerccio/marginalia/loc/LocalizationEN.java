@@ -16,6 +16,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_EXIT, "Exit");
         setValue(L.LABEL_USERNAME, "Username");
         setValue(L.LABEL_USER_FULLNAME, "Full Name");
+        setValue(L.LABEL_CURRENT_PASSWORD, "Current Password");
         setValue(L.LABEL_EMAIL, "Email");
         setValue(L.LABEL_LOGIN, "Login");
         setValue(L.LABEL_LOGOUT, "Logout");
@@ -374,6 +375,10 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.HELP_PROTOCOL_MAX_TOKENS, "Optional. Empty uses Max Context Size of the inference provider.");
         setValue(L.HELP_PROTOCOL_REPLY_TOKENS, "Optional. Empty uses Max Response Tokens of the inference provider.");
         setValue(L.MSG_NO_PASSWORD_WARNING, "Warning! No password provided. If this is a server instance, please provide password for every user. Are you sure you want to save user with blank password?");
+        setValue(L.LABEL_CLEAR_PASSWORD, "Clear password");
+        setValue(L.MSG_CLEAR_PASSWORD_WARNING, "The password will be removed and the user's saved logins ended. The user then logs in with the user name only, anyone who knows it can log in until a new password is set. Continue?");
+        setValue(L.LABEL_DISCARD_CHANGES, "Discard Changes");
+        setValue(L.MSG_UNSAVED_SETTINGS, "Unsaved changes - save or discard them to leave the tab.");
     }
 
     @Override

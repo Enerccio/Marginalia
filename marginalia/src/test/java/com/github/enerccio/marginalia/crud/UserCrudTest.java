@@ -1,17 +1,24 @@
 package com.github.enerccio.marginalia.crud;
 
+import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.PersistedLoginInfo;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserCrudTest extends MarginaliaTestBase {
+
+    @Autowired
+    private Configuration configuration;
 
     @Test
     void createAndFind() throws Exception {
@@ -108,6 +115,29 @@ class UserCrudTest extends MarginaliaTestBase {
     }
 
     @Test
+    void deletedUserDataFolderIsKeptUnderDeletedName() throws Exception {
+        String login = uniqueName("erin");
+        User user = createUser(login, "pw", false);
+        File folder = configuration.getUserDataFolder(user);
+        Files.writeString(new File(folder, "note.txt").toPath(), "first");
+
+        userService.deleteUser(user);
+
+        File deleted = new File(configuration.getDataFolder(), login + "-deleted");
+        assertThat(folder).doesNotExist();
+        assertThat(new File(deleted, "note.txt")).hasContent("first");
+
+        // second user with the same login gets a fresh folder, its deletion does not overwrite the first one
+        User reused = createUser(login, "pw", false);
+        assertThat(configuration.getUserDataFolder(reused).list()).isEmpty();
+        Files.writeString(new File(configuration.getUserDataFolder(reused), "note.txt").toPath(), "second");
+        userService.deleteUser(reused);
+
+        assertThat(new File(deleted, "note.txt")).hasContent("first");
+        assertThat(new File(configuration.getDataFolder(), login + "-deleted-2/note.txt")).hasContent("second");
+    }
+
+    @Test
     void deletingUserTwiceIsNoop() throws Exception {
         User user = createUser();
         userService.deleteUser(user);
@@ -185,6 +215,39 @@ class UserCrudTest extends MarginaliaTestBase {
         assertThat(userService.authenticateFromCookie(userService.find(user.getId()), info.getIdentifier(), info.getPlainSecret())).isNull();
         assertThat(userService.getPersistedLoginInfo(userService.find(user.getId()))).extracting(PersistedLoginInfo::getIdentifier)
                 .containsExactly(fresh.getIdentifier());
+    }
+
+    @Test
+    void changingPasswordEndsRememberMeLogins() throws Exception {
+        User user = userService.find(createUser().getId());
+        PersistedLoginInfo info = userService.generateNewPersistentInfo(user);
+        userService.addPersistedLoginInfo(user, info);
+        userService.save(user);
+
+        userService.changePassword(userService.find(user.getId()), "new");
+
+        User loaded = userService.find(user.getId());
+        assertThat(userService.getPersistedLoginInfo(loaded)).isEmpty();
+        assertThat(userService.authenticateFromCookie(loaded, info.getIdentifier(), info.getPlainSecret())).isNull();
+    }
+
+    @Test
+    void clearedPasswordLetsUserLogInWithoutOneUntilTheySetNew() throws Exception {
+        User user = createUser(uniqueName("frank"), "forgotten", false);
+        userService.addPersistedLoginInfo(user, userService.generateNewPersistentInfo(user));
+        userService.save(user);
+
+        userService.clearPassword(userService.find(user.getId()));
+
+        User loaded = userService.find(user.getId());
+        assertThat(loaded.getPasswordHash()).isNull();
+        assertThat(userService.getPersistedLoginInfo(loaded)).isEmpty();
+        assertThat(userService.authenticate(user.getLogin(), "forgotten")).isFalse();
+        assertThat(userService.authenticate(user.getLogin(), "")).isTrue();
+
+        userService.changePassword(loaded, "new");
+        assertThat(userService.authenticate(user.getLogin(), "")).isFalse();
+        assertThat(userService.authenticate(user.getLogin(), "new")).isTrue();
     }
 
     @Test

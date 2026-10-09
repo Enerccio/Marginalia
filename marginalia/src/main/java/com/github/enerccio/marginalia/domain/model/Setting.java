@@ -1,7 +1,5 @@
 package com.github.enerccio.marginalia.domain.model;
 
-import com.github.enerccio.marginalia.domain.traits.CleanupReference;
-import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import jakarta.persistence.*;
 import org.hibernate.annotations.DiscriminatorFormula;
 import org.hibernate.annotations.DiscriminatorOptions;
@@ -11,7 +9,6 @@ import org.hibernate.annotations.DiscriminatorOptions;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorFormula("DTYPE")
 @DiscriminatorOptions(insert = true)
-@CleanupReference(field = "owner", value = Policy.OWNED_BY)
 public class Setting extends ExtendableEntity {
 
     public Setting() {

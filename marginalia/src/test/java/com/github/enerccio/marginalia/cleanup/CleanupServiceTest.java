@@ -204,7 +204,7 @@ class CleanupServiceTest extends MarginaliaTestBase {
         assertThat(reference("Manuscript", "ai").getPolicy()).isEqualTo(Policy.STRONG);
         assertThat(reference("Manuscript", "ai").getTargetType()).isEqualTo(AI.class);
         assertThat(reference("Manuscript", "activeLeaf").getPolicy()).isEqualTo(Policy.STRONG);
-        assertThat(reference("Manuscript", "owner").getPolicy()).isEqualTo(Policy.STRONG);
+        assertThat(reference("Manuscript", "owner").getPolicy()).isEqualTo(Policy.OWNED_BY);
         assertThat(reference("ChatMessage", "parentScript").getPolicy()).isEqualTo(Policy.OWNED_BY);
         assertThat(reference("ChatMessage", "parent").getPolicy()).isEqualTo(Policy.OWNED_BY);
         assertThat(reference("ChatMessage", "summary").getPolicy()).isEqualTo(Policy.OWNS);
@@ -634,9 +634,44 @@ class CleanupServiceTest extends MarginaliaTestBase {
     // ------------------------------------------------------------------------------------------------------------
 
     @Test
-    void deletedUserOwningDataIsBlocked() throws Exception {
+    void deletedUserIsPurgedWithAllTheirData() throws Exception {
         User owner = loginAs(createUser());
+        AI ai = ai("owned");
+        Protocol protocol = protocol("owned");
         Lorebook lorebook = lorebook("owned");
+        LorebookEntry entry = entry(lorebook, "entry");
+        Manuscript manuscript = manuscript(ai, protocol, lorebook);
+        ChatMessage root = message(manuscript, null, "root");
+        Summary summary = summary(root);
+        setActiveLeaf(manuscript, root);
+        Tag tag = tag("owned");
+        UserSetting settings = settingService.getOrCreate(UserSetting.class);
+        login();
+        userService.deleteUser(userService.find(owner.getId()));
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getBlocked()).doesNotContainKey(new EntityKey(User.class, owner.getId()));
+        assertThat(plan.getPurge()).contains(new EntityKey(User.class, owner.getId()), key(ai), key(protocol),
+                key(lorebook), key(entry), key(manuscript), key(root), key(summary), key(tag),
+                key(Setting.class, settings));
+        assertThat(userService.find(owner.getId())).isNull();
+        assertThat(aiService.find(ai.getId())).isNull();
+        assertThat(protocolService.find(protocol.getId())).isNull();
+        assertThat(lorebookService.find(lorebook.getId())).isNull();
+        assertThat(lorebookEntryService.find(entry.getId())).isNull();
+        assertThat(manuscriptService.find(manuscript.getId())).isNull();
+        assertThat(chatMessageService.find(root.getId())).isNull();
+        assertThat(summaryService.find(summary.getId())).isNull();
+        assertThat(tagService.find(tag.getId())).isNull();
+    }
+
+    @Test
+    void deletedUserIsBlockedByLiveDataOfOthers() throws Exception {
+        User owner = loginAs(createUser());
+        AI ai = ai("owned");
+        loginAs(createUser());
+        Manuscript foreign = manuscript(ai, null, null);
         login();
         userService.deleteUser(userService.find(owner.getId()));
 
@@ -644,8 +679,9 @@ class CleanupServiceTest extends MarginaliaTestBase {
 
         EntityKey userKey = new EntityKey(User.class, owner.getId());
         assertThat(plan.getBlocked()).containsKey(userKey);
-        assertThat(plan.getBlocked().get(userKey).getReasons()).anyMatch(r -> r.contains("Lorebook #" + lorebook.getId()));
+        assertThat(plan.getBlocked().get(userKey).getReasons()).anyMatch(r -> r.contains("Manuscript #" + foreign.getId()));
         assertThat(userService.find(owner.getId())).isNotNull();
+        assertThat(aiService.find(ai.getId())).isNotNull();
     }
 
     @Test

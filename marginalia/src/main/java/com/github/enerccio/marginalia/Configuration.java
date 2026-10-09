@@ -111,6 +111,10 @@ public class Configuration implements InitializingBean {
         return databaseBackupFolder;
     }
 
+    public File getDataFolder() {
+        return dataFolder;
+    }
+
     public File getUserDataFolder(User user) {
         File file = new File(dataFolder, user.getLogin());
         if (!file.exists())

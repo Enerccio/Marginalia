@@ -82,6 +82,10 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             throw new IllegalArgumentException("JSON content cannot be empty");
         }
 
+        if (!rootObj.has("entries")) {
+            throw new IllegalArgumentException("Format invalid");
+        }
+
         // world info name stored in the file wins over the uploaded file name
         String bookName = SillyTavernEntryConverter.string(rootObj, "name");
         if (StringUtils.isBlank(bookName)) {
@@ -98,10 +102,6 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         lorebook.setName(bookName);
         lorebook.setEnabled(true);
         lorebook = save(lorebook);
-
-        if (!rootObj.has("entries")) {
-            throw new IllegalArgumentException("Format invalid");
-        }
 
         JsonElement entriesElement = rootObj.get("entries");
         List<JsonObject> entryObjects = new ArrayList<>();

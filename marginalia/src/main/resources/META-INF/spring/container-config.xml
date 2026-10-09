@@ -10,6 +10,10 @@
         <property name="persistentLoginInfoTTL" value="${persistentLoginTTL:true}" />
     </bean>
 
+    <bean name="applicationPoint" class="com.github.enerccio.marginalia.bound.ApplicationPoint" />
+
+    <bean name="sessionManager" class="com.github.enerccio.marginalia.bound.SessionManager" />
+
     <bean name="sessionPoint" class="com.github.enerccio.marginalia.bound.SessionPoint" scope="session">
         <aop:scoped-proxy />
     </bean>
@@ -18,7 +22,7 @@
         <aop:scoped-proxy />
     </bean>
 
-    <bean name="applicationPoint" class="com.github.enerccio.marginalia.bound.ApplicationInitializer">
+    <bean name="applicationInitializer" class="com.github.enerccio.marginalia.bound.ApplicationInitializer">
         <property name="appVersion" value="1" />
         <property name="dbVersion" value="1" />
     </bean>

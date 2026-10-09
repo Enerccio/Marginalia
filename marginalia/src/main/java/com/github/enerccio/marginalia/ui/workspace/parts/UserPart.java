@@ -23,6 +23,7 @@ import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
@@ -38,6 +39,7 @@ import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,8 @@ import java.util.List;
 @Configurable
 @Extendable
 public class UserPart implements WorkspaceComponent {
+
+    private static final String CHANGE_TRACKED_KEY = UserPart.class.getName() + ".changeTracked";
 
     @Autowired
     private Localization loc;
@@ -70,6 +74,8 @@ public class UserPart implements WorkspaceComponent {
     private final Workspace workspace;
 
     private VerticalLayout mainLayout;
+    private Span unsavedChangesSpan;
+    private Button discardButton;
 
     // Tab 1 fields
     private ComboBox<AI> defaultModelCombo;
@@ -89,6 +95,10 @@ public class UserPart implements WorkspaceComponent {
     private Accordion extensionSettings;
 
     private UserSetting userSetting;
+
+    // true while refresh() (and the extension decorators around it) fills the fields
+    private boolean loading;
+    private boolean changed;
 
     public UserPart(Workspace workspace) {
         this.workspace = workspace;
@@ -113,12 +123,19 @@ public class UserPart implements WorkspaceComponent {
         titleSpan.getStyle().set("font-size", "var(--lumo-font-size-l)");
         titleSpan.getStyle().set("font-weight", "bold");
 
+        unsavedChangesSpan = new Span(loc.getValue(L.MSG_UNSAVED_SETTINGS));
+        unsavedChangesSpan.getStyle().set("color", "var(--lumo-error-text-color)");
+        unsavedChangesSpan.setVisible(false);
+
         Button importBackupAsNewButton = new Button(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
+
+        discardButton = new Button(loc.getValue(L.LABEL_DISCARD_CHANGES), event -> discard());
+        discardButton.setEnabled(false);
 
         Button saveButton = new Button(loc.getValue(L.LABEL_SAVE), event -> save());
         saveButton.setThemeName("primary");
 
-        headerLayout.add(titleSpan, importBackupAsNewButton, saveButton);
+        headerLayout.add(titleSpan, unsavedChangesSpan, importBackupAsNewButton, discardButton, saveButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
@@ -255,6 +272,7 @@ public class UserPart implements WorkspaceComponent {
 
     @Override
     public void refresh() throws Exception {
+        loading = true;
         try {
             userSetting = settingService.getOrCreate(UserSetting.class);
 
@@ -310,6 +328,54 @@ public class UserPart implements WorkspaceComponent {
 
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        } finally {
+            finishLoading();
+        }
+    }
+
+    /**
+     * Extension decorators fill their settings forms after refresh() returns, so the fields are tracked (and the
+     * loaded values accepted as unchanged) only before the response is sent.
+     */
+    private void finishLoading() {
+        mainLayout.getElement().getNode().runWhenAttached(ui -> ui.beforeClientResponse(mainLayout, ctx -> {
+            trackChanges(mainLayout);
+            loading = false;
+            setChanged(false);
+        }));
+    }
+
+    /**
+     * Listens to every field of the part, including the extension settings forms. Any change outside of refresh()
+     * locks the workspace navigation until the settings are saved or discarded.
+     */
+    private void trackChanges(Component component) {
+        if (component instanceof HasValue<?, ?> field && ComponentUtil.getData(component, CHANGE_TRACKED_KEY) == null) {
+            ComponentUtil.setData(component, CHANGE_TRACKED_KEY, Boolean.TRUE);
+            field.addValueChangeListener(e -> {
+                if (!loading) {
+                    setChanged(true);
+                }
+            });
+        }
+        component.getChildren().forEach(this::trackChanges);
+    }
+
+    private void setChanged(boolean changed) {
+        if (this.changed == changed) {
+            return;
+        }
+        this.changed = changed;
+        unsavedChangesSpan.setVisible(changed);
+        discardButton.setEnabled(changed);
+        workspace.setNavigationLocked(changed);
+    }
+
+    private void discard() {
+        try {
+            refresh();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
         }
     }
 
@@ -356,6 +422,7 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultSummaryPrompt(summaryPrompt);
 
             settingService.save(userSetting);
+            setChanged(false);
             Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -397,6 +464,7 @@ public class UserPart implements WorkspaceComponent {
         TextField nameField = new TextField(loc.getValue(L.LABEL_NEW_MANUSCRIPT_NAME));
         nameField.setRequired(true);
         nameField.setWidthFull();
+        nameField.setValueChangeMode(ValueChangeMode.EAGER);
 
         InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
             String newName = nameField.getValue();
@@ -421,6 +489,9 @@ public class UserPart implements WorkspaceComponent {
 
         Upload upload = new Upload(handler);
         upload.setAcceptedMimeTypes("application/json");
+        // the name is needed when the upload arrives, so the file can be picked only after it's entered
+        upload.setEnabled(false);
+        nameField.addValueChangeListener(e -> upload.setEnabled(StringUtils.isNotBlank(e.getValue())));
 
         layout.add(nameField, upload);
         dialog.add(layout);

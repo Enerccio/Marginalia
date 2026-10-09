@@ -603,11 +603,13 @@ class LorebookImportExportTest extends MarginaliaTestBase {
     }
 
     @Test
-    void sillyTavernWithoutEntriesCreatesEmptyLorebook() throws Exception {
-        Lorebook imported = lorebookService.importFromSillytavern("{\"name\": \"x\"}", "empty");
+    void sillyTavernWithoutEntriesIsRejected() throws Exception {
+        String name = uniqueName("no-entries");
 
-        assertThat(lorebookEntryService.getEntriesForLorebook(imported)).isEmpty();
-        assertThat(lorebookService.find(imported.getId())).isNotNull();
+        assertThatThrownBy(() -> lorebookService.importFromSillytavern("{\"name\": \"" + name + "\"}", "empty"))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(lorebookService.findAllForUser()).extracting(Lorebook::getName).doesNotContain(name);
     }
 
     @Test

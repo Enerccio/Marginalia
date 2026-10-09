@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.main;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.bound.SessionManager;
 import com.github.enerccio.marginalia.domain.security.PersistedLoginInfo;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
@@ -47,6 +48,9 @@ public abstract class LoginCheckRoute extends Div {
     @Autowired
     private Configuration configuration;
 
+    @Autowired
+    protected SessionManager sessionManager;
+
     protected LoginOverlay loginOverlay;
 
     protected abstract String getAppTitle();
@@ -69,7 +73,7 @@ public abstract class LoginCheckRoute extends Div {
                     performLogin(authUser);
                 }
             } else {
-                UserDialog userDialog = new UserDialog();
+                UserDialog userDialog = new UserDialog(false);
                 userDialog.setFirstTime(true);
                 userDialog.setOnSave(() -> {
                     UI.getCurrent().getPage().reload();

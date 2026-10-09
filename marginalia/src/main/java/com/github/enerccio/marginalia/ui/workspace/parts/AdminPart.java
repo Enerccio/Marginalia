@@ -145,7 +145,7 @@ public class AdminPart implements WorkspaceComponent {
     }
 
     private void openUserDialog(User user) {
-        UserDialog dialog = new UserDialog(user);
+        UserDialog dialog = new UserDialog(user, false);
         dialog.setOnSave(this::refreshUsersGrid);
         dialog.create();
         dialog.open();
