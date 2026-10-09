@@ -32,7 +32,7 @@ public class TokenizerServiceImpl implements TokenizerService {
         }
 
         return switch (ai.getAiType()) {
-            case OPEN_AI_COMPATIBLE -> List.of(openAiSdk, llamaCpp, liteLlmTokenizerStrategy, liteLlmAnthropicTokenizerStrategy, tokkit);
+            case OPEN_AI_COMPATIBLE -> List.of(openAiSdk, llamaCpp, liteLlmTokenizerStrategy, liteLlmAnthropicTokenizerStrategy);
             default -> List.of(tokkit);
         };
     }
@@ -81,11 +81,12 @@ public class TokenizerServiceImpl implements TokenizerService {
     @Override
     public void invalidateCache(Long aiId) {
         if (aiId != null) {
-            strategyCache.remove("ai_id_" + aiId);
+            strategyCache.remove(Long.toString(aiId));
         }
     }
 
     private String getCacheKey(AI ai) {
         return Long.toString(ai.getId());
     }
+
 }
