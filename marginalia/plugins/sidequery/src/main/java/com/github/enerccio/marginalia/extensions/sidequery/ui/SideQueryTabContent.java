@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.extensions.sidequery.model.*;
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -38,6 +39,9 @@ public class SideQueryTabContent extends VerticalLayout {
 
     @Autowired
     private InferenceServices inferenceServices;
+
+    @Autowired
+    private Localization loc;
 
     private final SideQueryService sideQueryService;
     private final Manuscript manuscript;
@@ -240,7 +244,7 @@ public class SideQueryTabContent extends VerticalLayout {
                 refreshSavedQueriesCombo();
                 savedQueriesCombo.setValue(selected);
             } catch (Exception e) {
-                UIUtils.internalServerError(null, e);
+                UIUtils.internalServerError(loc, e);
             }
         } else {
             handleSaveAsQuery();
@@ -273,7 +277,7 @@ public class SideQueryTabContent extends VerticalLayout {
                 Notification.show("Saved query: " + name);
                 dialog.close();
             } catch (Exception ex) {
-                UIUtils.internalServerError(null, ex);
+                UIUtils.internalServerError(loc, ex);
             }
         });
         saveBtn.setThemeName("primary");
@@ -298,7 +302,7 @@ public class SideQueryTabContent extends VerticalLayout {
             savedQueriesCombo.setValue(null);
             Notification.show("Deleted query: " + selected);
         } catch (Exception e) {
-            UIUtils.internalServerError(null, e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 
