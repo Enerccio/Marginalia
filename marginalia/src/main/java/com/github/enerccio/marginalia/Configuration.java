@@ -1,9 +1,11 @@
 package com.github.enerccio.marginalia;
 
 import com.github.enerccio.marginalia.domain.security.model.User;
+import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.sqlite.SQLiteDataSource;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
@@ -16,6 +18,9 @@ import java.nio.file.StandardCopyOption;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -27,6 +32,7 @@ public class Configuration implements InitializingBean {
 
     public static final String PENDING_RESTORE_SUFFIX = ".restore";
     public static final String PRE_RESTORE_PREFIX = "pre-restore-";
+    public static final String REJECTED_RESTORE_PREFIX = "rejected-restore-";
     private static final String[] SQLITE_SIDE_FILES = {"-wal", "-shm"};
     public static final String SECRET_KEY_FILE = "secret.key";
     public static final String ENCRYPTED_PREFIX = "enc:";
@@ -157,12 +163,20 @@ public class Configuration implements InitializingBean {
     public String resolveDb(String db) throws IOException {
         databaseFile = new File(folder, db);
         applyPendingRestore(databaseFile);
-        return "jdbc:sqlite:" + databaseFile.getAbsolutePath() + "?busy_timeout=10000&journal_mode=WAL";
+        return jdbcUrl(databaseFile);
+    }
+
+    private static String jdbcUrl(File db) {
+        return "jdbc:sqlite:" + db.getAbsolutePath() + "?busy_timeout=10000&journal_mode=WAL";
     }
 
     /**
      * Restore can't be done on live database, so it is staged next to database file and swapped in before
      * datasource is created. Current database (with its WAL files) is kept in backup folder.
+     * <p>
+     * The staged file is checked first ({@link DatabaseCheck}) and migrated right after the swap. When it is not a
+     * usable Marginalia database or the migration fails, the previous database is put back, so the application still
+     * starts, and the rejected file is kept in the backup folder as {@code rejected-restore-*}.
      */
     private void applyPendingRestore(File db) throws IOException {
         File pending = new File(db.getAbsolutePath() + PENDING_RESTORE_SUFFIX);
@@ -170,18 +184,63 @@ public class Configuration implements InitializingBean {
             return;
         }
         String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
-        File preRestore = new File(databaseBackupFolder, PRE_RESTORE_PREFIX + timestamp + "-" + db.getName());
-        if (db.exists()) {
-            Files.move(db.toPath(), preRestore.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        File rejected = new File(databaseBackupFolder, REJECTED_RESTORE_PREFIX + timestamp + "-" + db.getName());
+
+        try {
+            DatabaseCheck.check(pending);
+        } catch (DatabaseCheck.InvalidDatabaseException e) {
+            Files.move(pending.toPath(), rejected.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            log.error("Database restore rejected, {}. The current database is kept, the rejected file was moved to {}",
+                    e.getMessage(), rejected.getAbsolutePath());
+            return;
         }
-        for (String suffix : SQLITE_SIDE_FILES) {
-            File sideFile = new File(db.getAbsolutePath() + suffix);
-            if (sideFile.exists()) {
-                Files.move(sideFile.toPath(), new File(preRestore.getAbsolutePath() + suffix).toPath(), StandardCopyOption.REPLACE_EXISTING);
-            }
+
+        File preRestore = new File(databaseBackupFolder, PRE_RESTORE_PREFIX + timestamp + "-" + db.getName());
+        boolean hadDatabase = db.exists();
+        if (hadDatabase) {
+            moveWithSideFiles(db, preRestore);
         }
         Files.move(pending.toPath(), db.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        try {
+            migrate(db);
+        } catch (Exception e) {
+            moveWithSideFiles(db, rejected);
+            if (hadDatabase) {
+                moveWithSideFiles(preRestore, db);
+            }
+            log.error("Restored database failed to migrate, the previous database was put back. The rejected file was "
+                    + "moved to {}", rejected.getAbsolutePath(), e);
+            return;
+        }
         log.warn("Database restored from pending backup, previous database moved to {}", preRestore.getAbsolutePath());
+    }
+
+    /**
+     * Migrates the restored database before the application uses it, so a failure can still be rolled back.
+     */
+    private void migrate(File db) throws SQLException {
+        SQLiteDataSource dataSource = new SQLiteDataSource();
+        dataSource.setUrl(jdbcUrl(db));
+        Flyway flyway = new Flyway(DatabaseCheck.flywayConfiguration(dataSource));
+        flyway.migrate();
+        // the WAL is checkpointed and the files released when the last connection closes
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+            statement.execute("PRAGMA wal_checkpoint(TRUNCATE)");
+        }
+    }
+
+    private static void moveWithSideFiles(File from, File to) throws IOException {
+        Files.move(from.toPath(), to.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        for (String suffix : SQLITE_SIDE_FILES) {
+            File sideFile = new File(from.getAbsolutePath() + suffix);
+            File target = new File(to.getAbsolutePath() + suffix);
+            if (sideFile.exists()) {
+                Files.move(sideFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                Files.deleteIfExists(target.toPath());
+            }
+        }
     }
 
     public File getDatabaseFile() {

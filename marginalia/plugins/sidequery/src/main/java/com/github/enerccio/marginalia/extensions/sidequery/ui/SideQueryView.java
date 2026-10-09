@@ -41,6 +41,7 @@ public class SideQueryView extends VerticalLayout {
     private boolean generating = false;
 
     private final Map<Tab, SideQuerySession> tabSessionMap = new HashMap<>();
+    private final Map<SideQuerySession, Span> tabTitles = new HashMap<>();
 
     public SideQueryView(Manuscript manuscript, SideQueryService sideQueryService) {
         this.manuscript = manuscript;
@@ -112,6 +113,7 @@ public class SideQueryView extends VerticalLayout {
     private void refreshTabs() {
         tabs.removeAll();
         tabSessionMap.clear();
+        tabTitles.clear();
 
         for (int i = 0; i < data.getSessions().size(); i++) {
             SideQuerySession session = data.getSessions().get(i);
@@ -121,6 +123,7 @@ public class SideQueryView extends VerticalLayout {
             tabContent.setSpacing(true);
 
             Span titleSpan = new Span(session.getName());
+            tabTitles.put(session, titleSpan);
 
             Button editBtn = new Button(Solid.PEN.create(), e -> renameTab(session));
             editBtn.setThemeName("tertiary icon small");
@@ -149,9 +152,17 @@ public class SideQueryView extends VerticalLayout {
                 manuscript,
                 session,
                 this::saveData,
-                this::setGenerating
+                this::setGenerating,
+                () -> updateTabTitle(session)
         );
         contentHolder.add(tabContent);
+    }
+
+    private void updateTabTitle(SideQuerySession session) {
+        Span title = tabTitles.get(session);
+        if (title != null) {
+            title.setText(session.getName());
+        }
     }
 
     public void setGenerating(boolean generating) {

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.DatabaseCheck;
 import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
@@ -21,17 +22,17 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -49,7 +50,6 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     private static final String MANUAL_PREFIX = "marginalia-";
     private static final String SCHEDULED_PREFIX = "marginalia-scheduled-";
     private static final String BACKUP_EXTENSION = ".sqlite";
-    private static final byte[] SQLITE_HEADER = "SQLite format 3\0".getBytes(StandardCharsets.US_ASCII);
 
     @Autowired
     private Configuration configuration;
@@ -120,14 +120,7 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public synchronized DatabaseBackup importBackup(String fileName, File source) throws Exception {
-        byte[] header = new byte[SQLITE_HEADER.length];
-        int read;
-        try (InputStream inputStream = new FileInputStream(source)) {
-            read = inputStream.readNBytes(header, 0, header.length);
-        }
-        if (read != header.length || !Arrays.equals(header, SQLITE_HEADER)) {
-            throw new IllegalArgumentException("Not a SQLite database");
-        }
+        DatabaseCheck.check(source);
         String baseName = FilenameUtils.getBaseName(StringUtils.defaultIfBlank(fileName, "uploaded"));
         File target = uniqueFile(baseName.replaceAll("[^A-Za-z0-9._-]", "_"));
         Files.copy(source.toPath(), target.toPath());
@@ -147,6 +140,8 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @NoTx
     public synchronized void scheduleRestore(DatabaseBackup backup) throws Exception {
         File file = getBackupFile(backup);
+        // checked again on start, but a file that can't be restored is better reported now
+        DatabaseCheck.check(file);
         File pending = getPendingRestoreFile();
         File tmp = new File(pending.getAbsolutePath() + ".tmp");
         Files.copy(file.toPath(), tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);

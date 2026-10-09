@@ -27,6 +27,8 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -36,6 +38,7 @@ import java.util.function.Consumer;
 
 @Configurable(preConstruction = true)
 public class SideQueryTabContent extends VerticalLayout {
+    private static final Logger log = LoggerFactory.getLogger(SideQueryTabContent.class);
 
     @Autowired
     private InferenceServices inferenceServices;
@@ -48,6 +51,7 @@ public class SideQueryTabContent extends VerticalLayout {
     private final SideQuerySession session;
     private final Runnable onSaveCallback;
     private final Consumer<Boolean> generationStateListener;
+    private final Runnable onRenamed;
 
     private HorizontalLayout optionsBar;
     private ScrollPanel messagesScrollPanel;
@@ -66,24 +70,27 @@ public class SideQueryTabContent extends VerticalLayout {
     private IntegerField messagesToField;
 
     private CancellationToken activeToken;
+    private boolean namingTab;
 
     public SideQueryTabContent(SideQueryService sideQueryService,
                                Manuscript manuscript,
                                SideQuerySession session,
                                Runnable onSaveCallback) {
-        this(sideQueryService, manuscript, session, onSaveCallback, null);
+        this(sideQueryService, manuscript, session, onSaveCallback, null, null);
     }
 
     public SideQueryTabContent(SideQueryService sideQueryService,
                                Manuscript manuscript,
                                SideQuerySession session,
                                Runnable onSaveCallback,
-                               Consumer<Boolean> generationStateListener) {
+                               Consumer<Boolean> generationStateListener,
+                               Runnable onRenamed) {
         this.sideQueryService = sideQueryService;
         this.manuscript = manuscript;
         this.session = session;
         this.onSaveCallback = onSaveCallback;
         this.generationStateListener = generationStateListener;
+        this.onRenamed = onRenamed;
 
         setSizeFull();
         setPadding(false);
@@ -110,13 +117,18 @@ public class SideQueryTabContent extends VerticalLayout {
         });
 
         messagesBox = new Checkbox("Chat Logs", opts.isIncludeMessages());
+        messagesBox.setTooltipText("Story parts from - to, numbered from 1 as in the outline");
         messagesFromField = new IntegerField();
         messagesFromField.setWidth("60px");
-        messagesFromField.setValue(opts.getMessagesFrom());
+        messagesFromField.setMin(1);
+        messagesFromField.setValue(opts.getPartsFrom());
+        messagesFromField.setTooltipText("First story part (from 1)");
 
         messagesToField = new IntegerField();
         messagesToField.setWidth("60px");
-        messagesToField.setValue(opts.getMessagesTo());
+        messagesToField.setMin(1);
+        messagesToField.setValue(opts.getPartsTo());
+        messagesToField.setTooltipText("Last story part");
 
         messagesFromField.setEnabled(opts.isIncludeMessages());
         messagesToField.setEnabled(opts.isIncludeMessages());
@@ -131,7 +143,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
         messagesFromField.addValueChangeListener(e -> {
             if (e.getValue() != null) {
-                opts.setMessagesFrom(e.getValue());
+                opts.setPartsFrom(e.getValue());
                 triggerSave();
                 updateTokenCount();
             }
@@ -139,7 +151,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
         messagesToField.addValueChangeListener(e -> {
             if (e.getValue() != null) {
-                opts.setMessagesTo(e.getValue());
+                opts.setPartsTo(e.getValue());
                 triggerSave();
                 updateTokenCount();
             }
@@ -454,6 +466,7 @@ public class SideQueryTabContent extends VerticalLayout {
                         setGeneratingState(false);
                         updateTokenCount();
                         UIPushGuard.push(ui);
+                        nameTab(ui, profileSetting);
                     });
                 }
 
@@ -494,6 +507,37 @@ public class SideQueryTabContent extends VerticalLayout {
             triggerSave();
             displayMessages();
             setGeneratingState(false);
+        }
+    }
+
+    /**
+     * Names the tab by the model after the first answer when AI tab naming is enabled in the profile.
+     */
+    private void nameTab(UI ui, SideQuerySetting profileSetting) {
+        if (namingTab || !sideQueryService.shouldNameTab(profileSetting, session)) {
+            return;
+        }
+        namingTab = true;
+        try {
+            CancellationToken token = sideQueryService.generateTabName(manuscript, profileSetting, session, name -> ui.access(() -> {
+                namingTab = false;
+                if (session.isManuallyRenamed()) {
+                    return;
+                }
+                session.setName(name);
+                session.setAutoNamed(true);
+                triggerSave();
+                if (onRenamed != null) {
+                    onRenamed.run();
+                }
+                UIPushGuard.push(ui);
+            }));
+            if (token == null) {
+                namingTab = false;
+            }
+        } catch (Exception e) {
+            namingTab = false;
+            log.warn("Failed to name side query tab: {}", e.getMessage());
         }
     }
 
