@@ -71,6 +71,10 @@ public class Manuscript extends ExtendableEntity {
 
     @ExtendedAttribute
     @Transient
+    private String metaSummaryPrompt;
+
+    @ExtendedAttribute
+    @Transient
     private BackupStrategy backupStrategy;
 
     @ExtendedAttribute
@@ -199,6 +203,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setShowBookStyles(Boolean showBookStyles) {
         this.showBookStyles = showBookStyles;
+    }
+
+    public String getMetaSummaryPrompt() {
+        return metaSummaryPrompt;
+    }
+
+    public void setMetaSummaryPrompt(String metaSummaryPrompt) {
+        this.metaSummaryPrompt = metaSummaryPrompt;
     }
 
     public String getSummaryPrompt() {

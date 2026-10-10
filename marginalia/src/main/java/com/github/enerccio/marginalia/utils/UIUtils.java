@@ -14,6 +14,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -92,6 +93,35 @@ public class UIUtils {
         Tab delim = tabs.addTab("", voidComponent());
         delim.setEnabled(false);
         delim.add(VaadinIcon.LINE_V.create());
+    }
+
+    /**
+     * Makes the markdown wrap long lines instead of overflowing its container.
+     */
+    public static void applyMarkdownStyles(Markdown markdown) {
+        markdown.setWidthFull();
+        markdown.getStyle().set("min-width", "0");
+        markdown.getStyle().set("max-width", "100%");
+        markdown.getStyle().set("box-sizing", "border-box");
+        markdown.getElement().executeJs("""
+                const el = this;
+                const enforceWrap = () => {
+                  if (!el) return;
+                  const root = el.shadowRoot || el;
+                  const elements = root.querySelectorAll('pre, code, p, div, span');
+                  elements.forEach(node => {
+                    node.style.setProperty('white-space', 'pre-wrap', 'important');
+                    node.style.setProperty('word-break', 'break-word', 'important');
+                    node.style.setProperty('overflow-wrap', 'anywhere', 'important');
+                    node.style.setProperty('max-width', '100%', 'important');
+                    node.style.setProperty('box-sizing', 'border-box', 'important');
+                  });
+                };
+                enforceWrap();
+                const observer = new MutationObserver(enforceWrap);
+                observer.observe(el.shadowRoot || el, { childList: true, subtree: true, characterData: true });
+                """
+        );
     }
 
     public static void addTooltip(Component component, String text) {

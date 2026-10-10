@@ -53,6 +53,10 @@ public class UserSetting extends Setting {
 
     @ExtendedAttribute
     @Transient
+    private String defaultMetaSummaryPrompt;
+
+    @ExtendedAttribute
+    @Transient
     private BackupStrategy backupStrategy;
 
     @ExtendedAttribute
@@ -121,6 +125,14 @@ public class UserSetting extends Setting {
 
     public void setDefaultSummaryPrompt(String defaultSummaryPrompt) {
         this.defaultSummaryPrompt = defaultSummaryPrompt;
+    }
+
+    public String getDefaultMetaSummaryPrompt() {
+        return defaultMetaSummaryPrompt;
+    }
+
+    public void setDefaultMetaSummaryPrompt(String defaultMetaSummaryPrompt) {
+        this.defaultMetaSummaryPrompt = defaultMetaSummaryPrompt;
     }
 
     public BackupStrategy getBackupStrategy() {

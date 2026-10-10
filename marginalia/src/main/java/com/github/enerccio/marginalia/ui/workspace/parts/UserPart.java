@@ -7,10 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
-import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
-import com.github.enerccio.marginalia.domain.templates.SummaryTemplateData;
-import com.github.enerccio.marginalia.domain.templates.TemplateData;
-import com.github.enerccio.marginalia.domain.templates.UserPromptData;
+import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -87,6 +84,7 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultStyleField;
     private TextAreaPopoverComponent defaultUserPromptField;
     private TextAreaPopoverComponent defaultSummaryPromptField;
+    private TextAreaPopoverComponent defaultMetaSummaryPromptField;
 
     // Tab 3 Extensions
     private Accordion extensionSettings;
@@ -166,6 +164,9 @@ public class UserPart implements WorkspaceComponent {
 
         templatesFormLayout.add(defaultSummaryPromptField);
         templatesFormLayout.setColspan(defaultSummaryPromptField, 2);
+
+        templatesFormLayout.add(defaultMetaSummaryPromptField);
+        templatesFormLayout.setColspan(defaultMetaSummaryPromptField, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_TEMPLATES), templatesFormLayout);
 
@@ -249,6 +250,13 @@ public class UserPart implements WorkspaceComponent {
         defaultSummaryPromptField.setPlaceholder(Defaults.DEFAULT_SUMMARY_PROMPT);
         defaultSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultSummaryPromptField, defaultSummaryPromptField.getPopover(), SummaryTemplateData.class, Defaults.DEFAULT_SUMMARY_PROMPT));
+
+        defaultMetaSummaryPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_META_SUMMARY_PROMPT));
+        defaultMetaSummaryPromptField.setWidthFull();
+        ResizableTextArea.install(loc, defaultMetaSummaryPromptField, "160px");
+        defaultMetaSummaryPromptField.setPlaceholder(Defaults.DEFAULT_META_SUMMARY);
+        defaultMetaSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultMetaSummaryPromptField, defaultMetaSummaryPromptField.getPopover(), MetaSummaryTemplateData.class, Defaults.DEFAULT_META_SUMMARY));
     }
 
     private void updateBackupStrategyValueField(BackupStrategy strategy) {
@@ -319,9 +327,11 @@ public class UserPart implements WorkspaceComponent {
             defaultStyleField.setValue(StringUtils.defaultString(userSetting.getDefaultStyle()));
             defaultUserPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultUserPrompt()));
             defaultSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultSummaryPrompt()));
+            defaultMetaSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultMetaSummaryPrompt()));
             validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class);
             validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class);
             validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class);
+            validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class);
 
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -389,13 +399,15 @@ public class UserPart implements WorkspaceComponent {
 
         if (!validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class)
                 || !validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class)
-                || !validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class)) {
+                || !validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class)
+                || !validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class)) {
             return;
         }
 
         String masterTemplate = masterTemplateField.getValue();
         String userPrompt = defaultUserPromptField.getValue();
         String summaryPrompt = defaultSummaryPromptField.getValue();
+        String metaSummaryPrompt = defaultMetaSummaryPromptField.getValue();
 
         String defaultPov = defaultPovField.getValue();
         String defaultTense = defaultTenseField.getValue();
@@ -417,6 +429,7 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultStyle(defaultStyle);
             userSetting.setDefaultUserPrompt(userPrompt);
             userSetting.setDefaultSummaryPrompt(summaryPrompt);
+            userSetting.setDefaultMetaSummaryPrompt(metaSummaryPrompt);
 
             settingService.save(userSetting);
             setChanged(false);

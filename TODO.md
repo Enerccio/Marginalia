@@ -171,6 +171,14 @@ yeah
 24. **Extension management polish.** Enable/disable without uninstalling, show bundle errors and dependencies,
     validate a JAR before installing, reject plugins built for an incompatible core version.
 
+24b. **Summaries overview tools** 🧩 — the *Summaries* dialog (`SummariesDialog`, `@Extendable`) has an empty menu bar
+    for these:
+    - Export and import of the summaries of a branch (e.g. to edit them in an external editor or move them to another
+      book).
+    - Search and replace in the summaries (names that changed, fixing a term in all of them at once).
+    Editing a summary a meta summary stands in for would invalidate the meta summary (its text is part of the hash);
+    a replace tool must update the hashes of the meta summaries it touches (or edit only the summaries in use).
+
 ---
 
 ## P3 — Nice to have

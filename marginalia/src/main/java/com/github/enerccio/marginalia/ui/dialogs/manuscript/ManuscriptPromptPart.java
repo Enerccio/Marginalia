@@ -5,10 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
-import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
-import com.github.enerccio.marginalia.domain.templates.SummaryTemplateData;
-import com.github.enerccio.marginalia.domain.templates.TemplateData;
-import com.github.enerccio.marginalia.domain.templates.UserPromptData;
+import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -47,6 +44,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
     private TextAreaPopoverComponent styleField;
     private TextAreaPopoverComponent userPromptField;
     private TextAreaPopoverComponent summaryField;
+    private TextAreaPopoverComponent metaSummaryField;
 
     private boolean loading = false;
 
@@ -81,6 +79,9 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         formLayout.add(summaryField);
         formLayout.setColspan(summaryField, 2);
 
+        formLayout.add(metaSummaryField);
+        formLayout.setColspan(metaSummaryField, 2);
+
         mainLayout.add(formLayout);
 
         container.add(loc.getValue(L.LABEL_PROMPT_PART), mainLayout);
@@ -110,6 +111,15 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         summaryField.setWidthFull();
         ResizableTextArea.install(loc, summaryField, "240px");
         summaryField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
+
+        metaSummaryField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_META_SUMMARY_PROMPT));
+        metaSummaryField.setWidthFull();
+        ResizableTextArea.install(loc, metaSummaryField, "240px");
+        metaSummaryField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
             }
@@ -156,13 +166,15 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
 
         if (!validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class)
                 || !validateTemplate(userPromptField, "userPrompt", UserPromptData.class)
-                || !validateTemplate(summaryField, "summaryPrompt", SummaryTemplateData.class)) {
+                || !validateTemplate(summaryField, "summaryPrompt", SummaryTemplateData.class)
+                || !validateTemplate(metaSummaryField, "metaSummaryPrompt", MetaSummaryTemplateData.class)) {
             return;
         }
 
         String masterTemplate = masterTemplateField.getValue();
         String userPrompt = userPromptField.getValue();
         String summaryPrompt = summaryField.getValue();
+        String metaSummaryPrompt = metaSummaryField.getValue();
 
         try {
             Manuscript manuscript = refreshModel();
@@ -176,6 +188,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             manuscript.setStyle(styleField.getValue());
             manuscript.setUserPrompt(userPrompt);
             manuscript.setSummaryPrompt(summaryPrompt);
+            manuscript.setMetaSummaryPrompt(metaSummaryPrompt);
 
             parent.save();
         } catch (Exception e) {
@@ -232,6 +245,8 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
                     ? userSetting.getDefaultUserPrompt() : Defaults.DEFAULT_USER_PROMPT;
             String defaultSummaryPrompt = StringUtils.isNotBlank(userSetting.getDefaultSummaryPrompt())
                     ? userSetting.getDefaultSummaryPrompt() : Defaults.DEFAULT_SUMMARY_PROMPT;
+            String defaultMetaSummaryPrompt = StringUtils.isNotBlank(userSetting.getDefaultMetaSummaryPrompt())
+                    ? userSetting.getDefaultMetaSummaryPrompt() : Defaults.DEFAULT_META_SUMMARY;
 
             masterTemplateField.setPlaceholder(defaultMasterTemplate);
             povField.setPlaceholder(defaultPov);
@@ -239,6 +254,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             styleField.setPlaceholder(defaultStyle);
             userPromptField.setPlaceholder(defaultUserPrompt);
             summaryField.setPlaceholder(defaultSummaryPrompt);
+            metaSummaryField.setPlaceholder(defaultMetaSummaryPrompt);
 
             masterTemplateField.setValue(StringUtils.defaultString(manuscript.getTemplate()));
             povField.setValue(StringUtils.defaultString(manuscript.getPov()));
@@ -246,10 +262,12 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
             styleField.setValue(StringUtils.defaultString(manuscript.getStyle()));
             userPromptField.setValue(StringUtils.defaultString(manuscript.getUserPrompt()));
             summaryField.setValue(StringUtils.defaultString(manuscript.getSummaryPrompt()));
+            metaSummaryField.setValue(StringUtils.defaultString(manuscript.getMetaSummaryPrompt()));
 
             validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class);
             validateTemplate(userPromptField, "userPrompt", UserPromptData.class);
             validateTemplate(summaryField, "summaryPrompt", SummaryTemplateData.class);
+            validateTemplate(metaSummaryField, "metaSummaryPrompt", MetaSummaryTemplateData.class);
 
             masterTemplateField.setPopoverContent(createTemplateHintPopoverContent(
                     masterTemplateField, masterTemplateField.getPopover(), MasterTemplateData.class, defaultMasterTemplate));
@@ -263,6 +281,8 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
                     tenseField, tenseField.getPopover(), null, defaultTense));
             summaryField.setPopoverContent(createTemplateHintPopoverContent(
                     summaryField, summaryField.getPopover(), SummaryTemplateData.class, defaultSummaryPrompt));
+            metaSummaryField.setPopoverContent(createTemplateHintPopoverContent(
+                    metaSummaryField, metaSummaryField.getPopover(), MetaSummaryTemplateData.class, defaultMetaSummaryPrompt));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         } finally {

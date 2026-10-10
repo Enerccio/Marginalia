@@ -1,8 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.TokenLimits;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.FromEventCallback;
@@ -15,9 +15,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class PrepareContentStep extends GenerationStepBase {
@@ -135,69 +136,35 @@ public class PrepareContentStep extends GenerationStepBase {
         });
     }
 
+    /**
+     * Summaries to put into the prompt, oldest first. A summary (block) whose story changed since it was made is removed
+     * (a meta summary is unwound to the summary it replaced) and reported in invalidatedSummaries.
+     *
+     * @param firstSummaryFound set to the message of the newest summary, the story text goes from the end to it
+     */
     private List<String> gatherSummaries(List<ChatMessage> fromRoot, List<ChatMessage> invalidatedSummaries, Pointer<ChatMessage> firstSummaryFound) throws Exception {
-        List<ChatMessage> toCheck = fromRoot.reversed();
+        List<ChatMessage> newestFirst = new ArrayList<>(fromRoot.reversed());
 
-        ChatMessage current = null;
-        for (ChatMessage chatMessage : toCheck) {
-            if (chatMessage.getSummary() != null) {
-                current = chatMessage;
-                break;
-            }
-        }
+        while (true) {
+            List<SummaryService.SummaryBlock> blocks = summaryService.collectBlocks(newestFirst);
+            SummaryService.SummaryBlock invalid = blocks.stream().filter(block -> !block.isValid()).findFirst().orElse(null);
 
-        if (current == null) {
-            return new ArrayList<>();
-        }
-
-        firstSummaryFound.set(current);
-
-        List<String> summaries = new ArrayList<>();
-        MessageDigest digest = null;
-        String lastHash = "";
-        List<ChatMessage> slice = toCheck.subList(toCheck.indexOf(current), toCheck.size());
-
-        if (slice.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        for (ChatMessage message : slice) {
-            if (message.getSummary() != null) {
-                if (digest != null) {
-                    String hash = HexFormat.of().formatHex(digest.digest());
-                    if (!lastHash.equals(hash)) {
-                        Summary summary = summaryService.find(current.getSummary());
-                        current.setSummary(null);
-                        summaryService.delete(summary, true);
-                        current = chatMessageService.save(current);
-                        summaries.removeLast(); // remove invalid
-                        log.info("Summary invalidated");
-                        invalidatedSummaries.add(current);
-                    }
+            if (invalid == null) {
+                if (blocks.isEmpty()) {
+                    return new ArrayList<>();
                 }
-                digest = MessageDigest.getInstance("SHA512");
-                current = message;
-                Summary summary = summaryService.find(current.getSummary());
-                lastHash = summary.getSummaryMessageHash();
-                summaries.add(summary.getSummary());
+                firstSummaryFound.set(blocks.getFirst().head());
+                return blocks.reversed().stream()
+                        .map(block -> StringUtils.defaultString(block.summary().getSummary()))
+                        .collect(Collectors.toCollection(ArrayList::new));
             }
-            //noinspection DataFlowIssue
-            digest.update(message.getResponse().getBytes(StandardCharsets.UTF_8));
-        }
 
-        String hash = HexFormat.of().formatHex(digest.digest());
-        if (!lastHash.equals(hash)) {
-            Summary summary = summaryService.find(current.getSummary());
-            current.setSummary(null);
-            current = chatMessageService.save(current);
-            summaryService.delete(summary, true);
-            summaries.removeLast(); // remove invalid
+            ChatMessage updated = summaryService.removeSummary(invalid.head(), true);
             log.info("Summary invalidated");
-            invalidatedSummaries.add(current);
+            invalidatedSummaries.add(updated);
+            // restored summary has to be checked as well
+            newestFirst.replaceAll(message -> message.getId().equals(updated.getId()) ? updated : message);
         }
-
-        summaries = summaries.reversed();
-        return summaries;
     }
 
     @Override
