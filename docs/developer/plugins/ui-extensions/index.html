@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961159171">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961373031">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844961159171" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844961373031" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844961159171" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844961373031" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -342,7 +342,7 @@ strings; a plugin that wants translations has to bring its own (a <code translat
 </ul>
 <h2 id="errors">Errors</h2>
 <p>Inside click listeners and other event handlers, catch exceptions and report them like the application does:
-<code translate="no" v-pre>UIUtils.internalServerError(loc, e)</code> logs and shows an error dialog - pass an injected <code translate="no" v-pre>Localization</code>. Expected problems go to <code translate="no" v-pre>Notification</code>. Exceptions in decorators themselves are logged by the
+<code translate="no" v-pre>UIUtils.internalServerError(loc, e)</code> logs and shows an error dialog - pass an injected <code translate="no" v-pre>Localization</code>. Expected problems go to <code translate="no" v-pre>Notification</code>. Failures of the model API (<code translate="no" v-pre>InferenceException</code>) are explained by <code translate="no" v-pre>UIUtils.inferenceError(loc, e)</code> or, as text, <code translate="no" v-pre>InferenceErrors.messageOf(loc, e)</code>. Exceptions in decorators themselves are logged by the
 <code translate="no" v-pre>ExtensionService</code> and don&#x27;t need handling unless you want to show something.</p>
 <h2 id="threads">Threads</h2>
 <p>Decorators run on the thread that called the decorated method. For UI methods that&#x27;s a request thread holding the
@@ -378,7 +378,7 @@ CancellationToken token = service.stream(payload, protocol, new InferenceService
 
     @Override public void onCompletion() { ui.access(() -&gt; { save(text.toString()); UIPushGuard.push(ui); }); }
     @Override public void onCancel()     { ui.access(() -&gt; UIPushGuard.push(ui)); }
-    @Override public void onError(Throwable e) { ui.access(() -&gt; { showError(e); UIPushGuard.push(ui); }); }
+    @Override public void onError(Throwable e) { ui.access(() -&gt; { UIUtils.inferenceError(loc, e); UIPushGuard.push(ui); }); }
     @Override public boolean isDead()    { return ui.isClosing(); }   // nobody left to show it to
 });
 // token.cancel() stops the stream, e.g. when the dialog closes</code></pre>

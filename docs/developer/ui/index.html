@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961159171">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961373031">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844961159171" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844961373031" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844961159171" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844961373031" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -590,7 +590,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <p>Wrap event handlers in <code translate="no" v-pre>try</code>/<code translate="no" v-pre>catch</code> and report unexpected exceptions with
 <code translate="no" v-pre>UIUtils.internalServerError(loc, e)</code> - it logs the exception and opens an <code translate="no" v-pre>ErrorDialog</code> with the stack trace.
 Expected problems (validation, missing configuration) are shown with <code translate="no" v-pre>Notification.error(...)</code> or a message next to
-the field; <code translate="no" v-pre>UIUtils.showValidationErrors(loc, e)</code> formats a binder&#x27;s <code translate="no" v-pre>ValidationException</code>.</p>
+the field; <code translate="no" v-pre>UIUtils.showValidationErrors(loc, e)</code> formats a binder&#x27;s <code translate="no" v-pre>ValidationException</code>. Failures of a request to the
+model API (<code translate="no" v-pre>InferenceException</code>: wrong key, wrong URL, timeout...) go through <code translate="no" v-pre>UIUtils.inferenceError(loc, e)</code>, which
+shows the localized cause (<code translate="no" v-pre>InferenceErrors</code>) as a notification and falls back to <code translate="no" v-pre>internalServerError</code> for anything
+else. <code translate="no" v-pre>AIDialog</code> has the <em>Test Connection</em> button (<code translate="no" v-pre>InferenceService.testConnection()</code> with the values of the form).</p>
 <h3 id="saving">Saving</h3>
 <p>Most forms save automatically: value change listeners call an <code translate="no" v-pre>autosave()</code> method of the part (guarded so that
 loading values into the fields doesn&#x27;t trigger a save). The story editor saves an edited part when the edit is

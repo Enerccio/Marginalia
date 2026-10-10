@@ -243,7 +243,10 @@ Never hard-code user-visible text. Add a key to `loc/L.java` and the English tex
 Wrap event handlers in `try`/`catch` and report unexpected exceptions with
 `UIUtils.internalServerError(loc, e)` - it logs the exception and opens an `ErrorDialog` with the stack trace.
 Expected problems (validation, missing configuration) are shown with `Notification.error(...)` or a message next to
-the field; `UIUtils.showValidationErrors(loc, e)` formats a binder's `ValidationException`.
+the field; `UIUtils.showValidationErrors(loc, e)` formats a binder's `ValidationException`. Failures of a request to the
+model API (`InferenceException`: wrong key, wrong URL, timeout...) go through `UIUtils.inferenceError(loc, e)`, which
+shows the localized cause (`InferenceErrors`) as a notification and falls back to `internalServerError` for anything
+else. `AIDialog` has the *Test Connection* button (`InferenceService.testConnection()` with the values of the form).
 
 ### Saving
 

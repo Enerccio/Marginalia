@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961159171">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961373031">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844961159171" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844961373031" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -474,7 +474,7 @@ See <a href="../domain-model/">Domain model</a>.</p>
 | `AIService`, `ProtocolService` | Inference providers and protocols. |
 | `TagService`, `TagRelationService`, `SettingService`, `ResourceService` | Tags, settings, files. |
 | `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
-| `InferenceServices`, `InferenceService` | Choosing and calling the model API. |
+| `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
 | `TokenizerService`, `TokenLimits` | Token counting and the context / reply limits of a generation. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService`, `CronSchedule` | Book backups (restore, clone, export); database backups and their schedule. |
@@ -514,8 +514,8 @@ See <a href="../domain-model/">Domain model</a>.</p>
 <td>The generation engine (<code translate="no" v-pre>StoryGenerationServiceImpl.GenerationEngine</code>).</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>InferenceServices</code>, <code translate="no" v-pre>InferenceService</code></td>
-<td>Choosing and calling the model API.</td>
+<td><code translate="no" v-pre>InferenceServices</code>, <code translate="no" v-pre>InferenceService</code>, <code translate="no" v-pre>InferenceException</code>, <code translate="no" v-pre>InferenceErrors</code></td>
+<td>Choosing and calling the model API; classified failures and their localized texts.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TokenizerService</code>, <code translate="no" v-pre>TokenLimits</code></td>
@@ -549,7 +549,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `service.impl.generation` | Engine interfaces and data: `GenerationStep`, `GenerationStepBase`, `GenerationStepType`, `GenerationController`, `Events`, `GenerationEvent`, `GenerationRequest` / `GenerationRequestType`, `GenerationProperties`. |
 | `service.impl.generation.impl` | The eight steps, `PrepareForGenerationStep` ... `CleanupStep`. |
 | `service.impl.generation.dto` | `LLMChatMessage`, `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
-| `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning). |
+| `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to `InferenceException`). |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -574,7 +574,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.impl.inference</code></td>
-<td><code translate="no" v-pre>OpenAICompatibleInferenceService</code> (openai-java client, streaming, reasoning).</td>
+<td><code translate="no" v-pre>OpenAICompatibleInferenceService</code> (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to <code translate="no" v-pre>InferenceException</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.impl.inference.tokenizer</code></td>

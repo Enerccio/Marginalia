@@ -322,6 +322,7 @@ Both use joined inheritance: a base table with the common fields and one table p
 | `needsJailbreak`, `jailbreak` | columns | Text put before the system prompt. |
 | `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (encrypted, see [Encrypted columns](database.md#encrypted-columns)). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
+| `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |
 
 ### `Protocol` / `ChatCompletionProtocol`
 
