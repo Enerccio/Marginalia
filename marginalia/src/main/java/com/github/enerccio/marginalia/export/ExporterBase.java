@@ -1,9 +1,12 @@
 package com.github.enerccio.marginalia.export;
 
 import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
+import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
@@ -11,6 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.commonmark.node.*;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -35,8 +40,25 @@ public abstract class ExporterBase implements Exporter {
 
     protected static final String CONTENTS_TITLE = "Contents";
 
+    private static final Logger log = LoggerFactory.getLogger(ExporterBase.class);
+
     @Autowired
     private TemplateService templateService;
+
+    @Autowired
+    private ResourceService resourceService;
+
+    /**
+     * Image attached to a message, as stored (PNG, JPEG or GIF).
+     *
+     * @param caption text shown with the image, empty if none
+     */
+    protected record ExportImage(byte[] data, String mimeType, String caption) {
+
+        public String extension() {
+            return mimeType.substring("image/".length());
+        }
+    }
 
     /**
      * Message that starts with a heading is a chapter, the heading is its title.
@@ -74,6 +96,13 @@ public abstract class ExporterBase implements Exporter {
          */
         void message(String markdown, Chapter chapter) throws Exception;
 
+        /**
+         * Called right after {@link #message} of the message the images are attached to, only if there are any. The
+         * text of a message that has only images is empty.
+         */
+        default void images(List<ExportImage> images) throws Exception {
+        }
+
         byte[] finish() throws Exception;
     }
 
@@ -88,17 +117,21 @@ public abstract class ExporterBase implements Exporter {
 
         // the table of contents comes before the text, so the chapters have to be known first
         List<String> texts = new ArrayList<>();
+        List<List<ExportImage>> imagesOf = new ArrayList<>();
         List<Chapter> chapterOf = new ArrayList<>();
         List<Chapter> chapters = new ArrayList<>();
         for (ChatMessage message : chatMessages) {
             String text = StringUtils.trimToNull(message.getResponse());
-            if (text != null) {
+            List<ExportImage> images = loadImages(message);
+            if (text != null || !images.isEmpty()) {
+                text = StringUtils.defaultString(text);
                 String title = chapterTitle(text);
                 Chapter chapter = title == null ? null : new Chapter(chapters.size() + 1, title);
                 if (chapter != null) {
                     chapters.add(chapter);
                 }
                 texts.add(text);
+                imagesOf.add(images);
                 chapterOf.add(chapter);
             }
         }
@@ -108,9 +141,27 @@ public abstract class ExporterBase implements Exporter {
 
         for (int i = 0; i < texts.size(); i++) {
             writer.message(texts.get(i), chapterOf.get(i));
+            if (!imagesOf.get(i).isEmpty()) {
+                writer.images(imagesOf.get(i));
+            }
             progress.updateProgress();
         }
         return writer.finish();
+    }
+
+    private List<ExportImage> loadImages(ChatMessage message) throws Exception {
+        List<ExportImage> result = new ArrayList<>();
+        for (ImageAttachment attachment : message.getImages()) {
+            Resource resource = resourceService.findImage(attachment.resource());
+            if (resource == null) {
+                // removed or not the exporting user's, the book is exported without it
+                log.warn("Image {} of message {} is not available, skipping it", attachment.resource(), message.getUuid());
+                continue;
+            }
+            result.add(new ExportImage(resourceService.getResourceData(resource), resource.getMimeType(),
+                    StringUtils.defaultString(attachment.caption()).trim()));
+        }
+        return result;
     }
 
     /**
@@ -141,6 +192,15 @@ public abstract class ExporterBase implements Exporter {
 
     protected static Node parse(String markdown) {
         return PARSER.parse(markdown);
+    }
+
+    /**
+     * @param source value of the {@code src} attribute of the image
+     * @return XHTML compatible figure of the image
+     */
+    protected static String figure(String source, String caption) {
+        String text = StringUtils.isBlank(caption) ? "" : "<figcaption>" + escapeXml(caption) + "</figcaption>\n";
+        return "<figure><img src=\"" + escapeXml(source) + "\" alt=\"" + escapeXml(caption) + "\"/>\n" + text + "</figure>\n";
     }
 
     /**

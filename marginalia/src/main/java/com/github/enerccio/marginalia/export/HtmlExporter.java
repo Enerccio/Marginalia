@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptio
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 public class HtmlExporter extends ExporterBase {
@@ -21,6 +22,9 @@ public class HtmlExporter extends ExporterBase {
             .title-page { min-height: 90vh; display: flex; flex-direction: column; justify-content: center; text-align: center; page-break-after: always; }
             .title-page h1 { font-size: 2.6em; margin: 0 0 0.6em 0; }
             .title-page p { text-align: center; font-size: 1.3em; }
+            figure { margin: 1.5em 0; text-align: center; page-break-inside: avoid; }
+            figure img { max-width: 100%; height: auto; }
+            figcaption { font-size: 0.9em; color: #555; margin-top: 0.4em; }
             .contents { page-break-after: always; }
             .contents h2 { margin-top: 0; }
             .contents ol { list-style: none; padding: 0; }
@@ -76,6 +80,13 @@ public class HtmlExporter extends ExporterBase {
                 body.append(toHtml(markdown));
             } else {
                 body.append("<section id=\"").append(chapter.anchor()).append("\">\n").append(toHtml(markdown)).append("</section>\n");
+            }
+        }
+
+        @Override
+        public void images(List<ExportImage> images) {
+            for (ExportImage image : images) {
+                body.append(figure("data:" + image.mimeType() + ";base64," + Base64.getEncoder().encodeToString(image.data()), image.caption()));
             }
         }
 

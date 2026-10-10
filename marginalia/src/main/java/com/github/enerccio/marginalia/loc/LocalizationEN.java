@@ -248,6 +248,16 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_GENERATING_META_SUMMARY, "Generating Meta Summary");
         setValue(L.LABEL_META_SUMMARY, "Meta summary");
         setValue(L.LABEL_REPLACED_SUMMARY, "Replaced");
+        setValue(L.LABEL_IMAGES, "Images");
+        setValue(L.LABEL_ADD_IMAGE, "Add image");
+        setValue(L.LABEL_IMAGE_CAPTION, "Caption");
+        setValue(L.LABEL_REMOVE_IMAGE, "Remove image");
+        setValue(L.LABEL_RESOURCES, "Resources");
+        setValue(L.LABEL_LINKED_OBJECT, "Used by");
+        setValue(L.LABEL_REPLACE_CONTENT, "Replace content");
+        setValue(L.LABEL_DELETE_SELECTED, "Delete selected");
+        setValue(L.LABEL_WITH_IMAGES, "With images");
+        setValue(L.LABEL_WITHOUT_IMAGES, "Without images");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -292,6 +302,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ERROR_SUMMARY_FAILED, "Failed to reach inference service for generating summary.");
         setValue(L.ERROR_NAME_CANT_BE_EMPTY, "Name can't be empty.");
         setValue(L.ERROR_EXPORT_RANGE_INVALID, "The last message can't be before the first message.");
+        setValue(L.ERROR_INVALID_IMAGE, "The file is not a PNG, JPEG, GIF or WebP image, or it is larger than 10 MB.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -345,6 +356,16 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_CONFIRM_DELETE_META_SUMMARY, "This is a meta summary. Unwind it to restore the summary it replaced, or delete it completely?");
         setValue(L.MSG_ACTIVE_SUMMARIES_TOKENS, "Active summaries: %s tokens");
         setValue(L.MSG_META_SUMMARY_SELECTION, "Select at least two summaries to merge.");
+        setValue(L.MSG_RESOURCE_NOT_LINKED, "nothing");
+        setValue(L.MSG_RESOURCE_LINK_MISSING, "%s (gone)");
+        setValue(L.MSG_RESOURCE_REPLACED, "The content was replaced.");
+        setValue(L.MSG_CONFIRM_DELETE_RESOURCES, "Delete %s selected resources? Whatever uses them will lose them. The files stay in the data folder.");
+        setValue(L.MSG_RESOURCES_EMPTY, "There are no resources yet. Pictures you add to a part of a book are listed here.");
+        setValue(L.MSG_BACKUP_EXPORT_IMAGES, "This backup uses %s images. They are not stored in the backup, only their list. Pack them into the downloaded file? It becomes a .zip and can be much larger.");
+        setValue(L.MSG_CLONE_BACKUP_IMAGES, "This backup uses %s images. Give the clone its own copies of them? Images you have deleted since are left out.");
+        setValue(L.MSG_PACKING_BACKUP, "Packing the backup");
+        setValue(L.MSG_BACKUP_READY, "The backup is ready: %s");
+        setValue(L.MSG_BACKUP_IMAGES_MISSING, "%s images could not be packed, because they were deleted or their files are missing.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

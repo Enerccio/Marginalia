@@ -42,6 +42,13 @@ public class TxtExporter extends ExporterBase {
         }
 
         @Override
+        public void images(List<ExportImage> images) {
+            for (ExportImage image : images) {
+                out.append(image.caption().isEmpty() ? "[Image]" : "[Image: " + image.caption() + "]").append("\n\n");
+            }
+        }
+
+        @Override
         public byte[] finish() {
             return out.toString().getBytes(StandardCharsets.UTF_8);
         }

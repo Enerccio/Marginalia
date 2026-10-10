@@ -65,6 +65,12 @@ class CleanupServiceTest extends MarginaliaTestBase {
     @Autowired
     private SettingService settingService;
 
+    @Autowired
+    private ResourceService resourceService;
+
+    @Autowired
+    private com.github.enerccio.marginalia.Configuration configuration;
+
     private final List<CleanupContributor> contributors = new ArrayList<>();
 
     @BeforeEach
@@ -254,6 +260,22 @@ class CleanupServiceTest extends MarginaliaTestBase {
         assertThat(plan.getPurge()).contains(key(ai));
         assertThat(plan.getStats().get(AI.class).getSoftDeleted()).isPositive();
         assertThat(aiService.find(ai.getId())).isNotNull();
+    }
+
+    @Test
+    void deletedResourceIsPurgedButItsFileStays() throws Exception {
+        Resource deleted = resourceService.upload("gone.txt", uniqueName("gone").getBytes(java.nio.charset.StandardCharsets.UTF_8), "text/plain");
+        Resource live = resourceService.upload("live.txt", uniqueName("live").getBytes(java.nio.charset.StandardCharsets.UTF_8), "text/plain");
+        // the object it points to is gone or never existed, nothing depends on that
+        resourceService.link(deleted, ChatMessage.class, 123456789L);
+        resourceService.softDelete(List.of(deleted.getUuid()));
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getPurge()).contains(key(deleted)).doesNotContain(key(live));
+        assertThat(resourceService.find(deleted.getId())).isNull();
+        assertThat(resourceService.find(live.getId())).isNotNull();
+        assertThat(new java.io.File(configuration.getResourcesFolder(currentUser), deleted.getPath())).exists();
     }
 
     @Test

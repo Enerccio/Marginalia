@@ -6,6 +6,9 @@ import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.List;
@@ -19,6 +22,10 @@ public class DocxExporter extends ExporterBase {
     private static final int INDENT = 720;
     // position of the page numbers in the table of contents, it is within the text width of A4 and Letter
     private static final int CONTENTS_TAB = 9000;
+    private static final int EMU_PER_PIXEL = 9525;
+    // 5.5 inch, within the text width of A4 and Letter, and 8 inch
+    private static final long MAX_IMAGE_WIDTH = 5_029_200L;
+    private static final long MAX_IMAGE_HEIGHT = 7_315_200L;
 
     @Override
     public String getName() {
@@ -140,6 +147,31 @@ public class DocxExporter extends ExporterBase {
             pageBreakPending |= chapter != null;
             walk(markdown, bodySink);
             pendingChapter = null;
+        }
+
+        @Override
+        public void images(List<ExportImage> images) throws Exception {
+            for (ExportImage image : images) {
+                BufferedImage decoded = ImageIO.read(new ByteArrayInputStream(image.data()));
+                // pixels to EMU (96 dpi), scaled down to fit the text width and most of a page
+                double scale = Math.min(1, Math.min(MAX_IMAGE_WIDTH / (decoded.getWidth() * (double) EMU_PER_PIXEL),
+                        MAX_IMAGE_HEIGHT / (decoded.getHeight() * (double) EMU_PER_PIXEL)));
+                int width = (int) (decoded.getWidth() * EMU_PER_PIXEL * scale);
+                int height = (int) (decoded.getHeight() * EMU_PER_PIXEL * scale);
+
+                XWPFParagraph paragraph = newParagraph();
+                paragraph.setAlignment(ParagraphAlignment.CENTER);
+                paragraph.setKeepNext(!image.caption().isEmpty());
+                paragraph.createRun().addPicture(new ByteArrayInputStream(image.data()),
+                        image.mimeType().equals("image/jpeg") ? XWPFDocument.PICTURE_TYPE_JPEG
+                                : image.mimeType().equals("image/gif") ? XWPFDocument.PICTURE_TYPE_GIF : XWPFDocument.PICTURE_TYPE_PNG,
+                        "image." + image.extension(), width, height);
+                if (!image.caption().isEmpty()) {
+                    XWPFParagraph caption = newParagraph();
+                    caption.setAlignment(ParagraphAlignment.CENTER);
+                    addRuns(caption, List.of(new Run(image.caption(), false, true, false, false)), BODY_SIZE - 2, false);
+                }
+            }
         }
 
         /**

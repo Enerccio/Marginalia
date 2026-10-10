@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValu
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -425,6 +426,9 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                                 """);
 
                         contentWrapper.add(markdown);
+                    }
+                    if (!msg.getImages().isEmpty()) {
+                        contentWrapper.add(new MessageImages(msg.getImages()));
                     }
                 }
             }

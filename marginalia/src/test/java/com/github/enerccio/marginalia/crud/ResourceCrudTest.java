@@ -1,16 +1,27 @@
 package com.github.enerccio.marginalia.crud;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.OwnedService;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ResourceCrudTest extends OwnedCrudContract<Resource> {
 
@@ -19,6 +30,12 @@ class ResourceCrudTest extends OwnedCrudContract<Resource> {
 
     @Autowired
     private Configuration configuration;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
 
     @Override
     protected OwnedService<Resource, ?> service() {
@@ -100,5 +117,179 @@ class ResourceCrudTest extends OwnedCrudContract<Resource> {
 
         assertThat(theirs.getPath()).isNotEqualTo(mine.getPath());
         assertThat(resourceService.getResourceData(theirs)).isEqualTo(content);
+    }
+
+    // 1x1 lossless WebP
+    private static final String WEBP = "UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==";
+
+    private static byte[] png(int seed) throws Exception {
+        BufferedImage image = new BufferedImage(4, 4, BufferedImage.TYPE_INT_RGB);
+        image.setRGB(0, 0, seed);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", out);
+        return out.toByteArray();
+    }
+
+    @Test
+    void uploadImageDetectsTypeFromContent() throws Exception {
+        Resource image = resourceService.uploadImage("cover.jpg", png(uniqueName("png").hashCode()));
+
+        assertThat(image.getMimeType()).isEqualTo("image/png");
+        assertThat(image.getPath()).endsWith(".png");
+        assertThat(new File(configuration.getImagesFolder(owner), image.getPath())).exists();
+        assertThat(resourceService.findImage(image.getUuid())).isNotNull();
+    }
+
+    @Test
+    void uploadImageConvertsWebpToPng() throws Exception {
+        Resource image = resourceService.uploadImage("art.webp", Base64.getDecoder().decode(WEBP));
+
+        assertThat(image.getMimeType()).isEqualTo("image/png");
+        assertThat(image.getPath()).endsWith(".png");
+        byte[] stored = resourceService.getResourceData(image);
+        assertThat(ImageIO.read(new ByteArrayInputStream(stored))).isNotNull();
+    }
+
+    @Test
+    void uploadImageRejectsNonImagesAndOversizedFiles() {
+        assertThatThrownBy(() -> resourceService.uploadImage("notes.png", "<svg onload=alert(1)>".getBytes(StandardCharsets.UTF_8)))
+                .isInstanceOf(IllegalArgumentException.class);
+        // starts like a PNG, but is not one
+        assertThatThrownBy(() -> resourceService.uploadImage("fake.png", new byte[]{(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3}))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> resourceService.uploadImage("big.png", new byte[ResourceService.MAX_IMAGE_BYTES + 1]))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void findImageIgnoresOtherUsersAndNonImages() throws Exception {
+        Resource text = resourceService.upload("a.txt", uniqueName("txt").getBytes(StandardCharsets.UTF_8), "text/plain");
+        Resource image = resourceService.uploadImage("a.png", png(uniqueName("other").hashCode()));
+
+        assertThat(resourceService.findImage(text.getUuid())).isNull();
+
+        loginAs(createUser());
+        assertThat(resourceService.findImage(image.getUuid())).isNull();
+    }
+
+    @Test
+    void linkIsLooseBookkeeping() throws Exception {
+        Resource image = resourceService.uploadImage("a.png", png(uniqueName("link").hashCode()), ChatMessage.class, 987654L);
+
+        Resource loaded = reload(image);
+        assertThat(loaded.getClazz()).isEqualTo(ChatMessage.class.getName());
+        assertThat(loaded.getObjectId()).isEqualTo(987654L);
+        // nothing with such id: the link is reported as missing, the resource still works
+        assertThat(resourceService.describeLink(loaded)).isEqualTo(new ResourceService.ResourceLink("ChatMessage #987654", false));
+        assertThat(resourceService.findImage(image.getUuid())).isNotNull();
+
+        Manuscript manuscript = new Manuscript();
+        manuscript.setName("book");
+        manuscript = manuscriptService.save(manuscript);
+        ChatMessage message = chatMessageService.createRoot(manuscript, new ChatMessage());
+        resourceService.link(loaded, ChatMessage.class, message.getId());
+        assertThat(resourceService.describeLink(reload(image)).present()).isTrue();
+
+        chatMessageService.delete(message, false);
+        assertThat(resourceService.describeLink(reload(image)).present()).isFalse();
+
+        resourceService.unlink(reload(image));
+        assertThat(resourceService.describeLink(reload(image))).isNull();
+    }
+
+    @Test
+    void unknownClassIsNeverLoaded() throws Exception {
+        Resource image = resourceService.uploadImage("a.png", png(uniqueName("unknown").hashCode()));
+        image.setClazz("java.lang.Runtime");
+        image.setObjectId(1L);
+
+        assertThat(resourceService.describeLink(image).present()).isFalse();
+    }
+
+    @Test
+    void pagesAreSortedAndOnlyOfTheUser() throws Exception {
+        Resource small = resourceService.upload("b.txt", "x".getBytes(StandardCharsets.UTF_8), "text/plain");
+        Resource big = resourceService.upload("a.txt", uniqueName("big").repeat(50).getBytes(StandardCharsets.UTF_8), "text/plain");
+        long before = resourceService.countForUser();
+        loginAs(createUser());
+        resourceService.upload("theirs.txt", uniqueName("theirs").getBytes(StandardCharsets.UTF_8), "text/plain");
+        assertThat(resourceService.countForUser()).isEqualTo(1);
+
+        loginAs(owner);
+        assertThat(resourceService.countForUser()).isEqualTo(before);
+        assertThat(resourceService.findPageForUser(0, 1000, "size", false)).extracting(Resource::getUuid)
+                .containsSubsequence(big.getUuid(), small.getUuid());
+        assertThat(resourceService.findPageForUser(0, 1000, "originalName", true)).extracting(Resource::getOriginalName)
+                .doesNotContain("theirs.txt").containsSubsequence("a.txt", "b.txt");
+        assertThat(resourceService.findPageForUser(0, 1, "creation", false)).hasSize(1);
+        // a property that is not a column of the table is not put into the query
+        assertThat(resourceService.findPageForUser(0, 5, "owner.password; DROP TABLE resources", true)).isNotEmpty();
+    }
+
+    @Test
+    void replaceKeepsTheResourceAndWritesANewFile() throws Exception {
+        Resource image = resourceService.uploadImage("old.png", png(uniqueName("old").hashCode()), ChatMessage.class, 5L);
+        String oldPath = image.getPath();
+        String oldHash = image.getHash();
+        byte[] replacement = png(uniqueName("new").hashCode());
+
+        Resource replaced = resourceService.replace(image, "new.png", replacement, "image/png");
+
+        assertThat(replaced.getId()).isEqualTo(image.getId());
+        assertThat(replaced.getUuid()).isEqualTo(image.getUuid());
+        assertThat(replaced.getPath()).isNotEqualTo(oldPath);
+        assertThat(replaced.getHash()).isNotEqualTo(oldHash);
+        assertThat(replaced.getSize()).isEqualTo(replacement.length);
+        assertThat(replaced.getOriginalName()).isEqualTo("new.png");
+        assertThat(replaced.getObjectId()).isEqualTo(5L);
+        assertThat(resourceService.getResourceData(reload(image))).isEqualTo(replacement);
+        // the old file stays for now
+        assertThat(new File(configuration.getImagesFolder(owner), oldPath)).exists();
+        assertThat(resourceService.findImage(image.getUuid()).getPath()).isEqualTo(replaced.getPath());
+    }
+
+    @Test
+    void imageIsReplacedByImageOnly() throws Exception {
+        Resource image = resourceService.uploadImage("old.png", png(uniqueName("img").hashCode()));
+        Resource text = resourceService.upload("a.txt", uniqueName("txt").getBytes(StandardCharsets.UTF_8), "text/plain");
+
+        assertThatThrownBy(() -> resourceService.replace(image, "x.png", "not an image".getBytes(StandardCharsets.UTF_8), "image/png"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> resourceService.replace(text, "x.png", png(1), "image/png"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(resourceService.getResourceData(reload(image))).isNotEmpty();
+
+        Resource replacedText = resourceService.replace(text, "b.txt", "other".getBytes(StandardCharsets.UTF_8), "text/plain");
+        assertThat(new String(resourceService.getResourceData(replacedText), StandardCharsets.UTF_8)).isEqualTo("other");
+    }
+
+    @Test
+    void replaceOfSomeoneElsesResourceIsRefused() throws Exception {
+        Resource mine = resourceService.uploadImage("mine.png", png(uniqueName("mine").hashCode()));
+        loginAs(createUser());
+
+        assertThatThrownBy(() -> resourceService.replace(mine, "x.png", png(2), "image/png"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void softDeleteHidesTheResourceAndKeepsTheFile() throws Exception {
+        Resource image = resourceService.uploadImage("a.png", png(uniqueName("soft").hashCode()));
+        Resource other = resourceService.uploadImage("b.png", png(uniqueName("soft2").hashCode()));
+        long before = resourceService.countForUser();
+        loginAs(createUser());
+        Resource theirs = resourceService.uploadImage("c.png", png(uniqueName("theirs").hashCode()));
+        // somebody else's uuid is ignored
+        assertThat(resourceService.softDelete(List.of(image.getUuid()))).isZero();
+        loginAs(owner);
+
+        assertThat(resourceService.softDelete(List.of(image.getUuid(), other.getUuid(), "no-such-uuid", theirs.getUuid()))).isEqualTo(2);
+
+        assertThat(resourceService.countForUser()).isEqualTo(before - 2);
+        assertThat(resourceService.findImage(image.getUuid())).isNull();
+        assertThat(reload(image).isDeleted()).isTrue();
+        assertThat(new File(configuration.getImagesFolder(owner), image.getPath())).exists();
+        loginAs(theirs.getOwner());
+        assertThat(resourceService.findImage(theirs.getUuid())).isNotNull();
     }
 }
