@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
@@ -31,6 +32,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -69,6 +71,9 @@ public class LorebookView extends VerticalLayout {
     @Autowired
     private TemplateService templateService;
 
+    @Autowired
+    private TokenizerService tokenizerService;
+
     private Lorebook currentLorebook;
     private boolean pinnedLorebook = false;
 
@@ -88,6 +93,10 @@ public class LorebookView extends VerticalLayout {
     private Button refreshButton;
 
     private Grid<LorebookEntry> grid;
+    private Span lorebookTokensSpan;
+
+    private List<LorebookEntry> currentEntries = new ArrayList<>();
+    private final Map<Long, Long> entryTokens = new HashMap<>();
 
     public LorebookView() {
         this(null);
@@ -258,9 +267,11 @@ public class LorebookView extends VerticalLayout {
         lorebookHeaderLayout.setFlexGrow(1, subLorebooksCombo);
         lorebookHeaderLayout.setFlexGrow(1, tagMultiComboBox);
 
+        lorebookTokensSpan = createTokensSpan();
+
         setupGrid();
 
-        add(controlsLayout, lorebookHeaderLayout, grid);
+        add(controlsLayout, lorebookHeaderLayout, lorebookTokensSpan, grid);
         setFlexGrow(1, grid);
 
         refresh();
@@ -352,6 +363,7 @@ public class LorebookView extends VerticalLayout {
                 if (e.isFromClient()) {
                     entry.setEnabled(Boolean.TRUE.equals(e.getValue()));
                     saveEntry(entry);
+                    updateLorebookTokens();
                 }
             });
             return cb;
@@ -423,8 +435,10 @@ public class LorebookView extends VerticalLayout {
     public Component createEntryDetailLayout(LorebookEntry entry) {
         VerticalLayout detailsLayout = new VerticalLayout();
         detailsLayout.setWidthFull();
-        detailsLayout.setPadding(true);
-        detailsLayout.setSpacing(true);
+        detailsLayout.setPadding(false);
+        detailsLayout.setSpacing(false);
+        detailsLayout.getThemeList().add("spacing-xs");
+        detailsLayout.getStyle().set("padding", "var(--lumo-space-xs)");
         detailsLayout.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         detailsLayout.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
 
@@ -434,12 +448,18 @@ public class LorebookView extends VerticalLayout {
         payloadField.setValue(StringUtils.defaultString(entry.getPayload()));
         payloadField.setPopoverContent(TemplateHints.create(loc, payloadField, payloadField.getPopover(), LorebookTemplateData.class, null));
         validatePayload(payloadField);
+
+        Span payloadTokensSpan = createTokensSpan();
+        payloadTokensSpan.setText(formatTokens(tokensOf(entry)));
+
         payloadField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 // invalid templates are still saved (user may be in the middle of editing), generation uses them as plain text
                 validatePayload(payloadField);
                 entry.setPayload(e.getValue());
                 saveEntry(entry);
+                payloadTokensSpan.setText(formatTokens(recountEntry(entry)));
+                updateLorebookTokens();
             }
         });
 
@@ -497,8 +517,51 @@ public class LorebookView extends VerticalLayout {
             }
         });
 
-        detailsLayout.add(payloadField, settingsForm, negativeTagCombo, commentField);
+        detailsLayout.add(payloadField, payloadTokensSpan, settingsForm, negativeTagCombo, commentField);
         return detailsLayout;
+    }
+
+    private Span createTokensSpan() {
+        Span span = new Span();
+        span.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        span.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        return span;
+    }
+
+    private String formatTokens(long tokens) {
+        return "~" + tokens + " " + loc.getValue(L.LABEL_TOKENS);
+    }
+
+    private long tokensOf(LorebookEntry entry) {
+        Long cached = entry.getId() != null ? entryTokens.get(entry.getId()) : null;
+        return cached != null ? cached : recountEntry(entry);
+    }
+
+    private long recountEntry(LorebookEntry entry) {
+        long tokens = 0;
+        try {
+            tokens = tokenizerService.countTokensApprox(StringUtils.defaultString(entry.getPayload()));
+        } catch (Exception ex) {
+            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+        }
+        if (entry.getId() != null) {
+            entryTokens.put(entry.getId(), tokens);
+        }
+        return tokens;
+    }
+
+    private void updateLorebookTokens() {
+        if (currentLorebook == null) {
+            lorebookTokensSpan.setText("");
+            return;
+        }
+        long total = 0;
+        for (LorebookEntry entry : currentEntries) {
+            if (entry.isEnabled()) {
+                total += tokensOf(entry);
+            }
+        }
+        lorebookTokensSpan.setText(formatTokens(total));
     }
 
     private void validatePayload(TextArea payloadField) {
@@ -591,17 +654,26 @@ public class LorebookView extends VerticalLayout {
             lorebookEnabledCheckbox.setValue(false);
             subLorebooksCombo.setValue(Collections.emptySet());
             grid.setItems(new ArrayList<>());
+            currentEntries = new ArrayList<>();
+            entryTokens.clear();
+            updateLorebookTokens();
         }
     }
 
     public void refreshEntries() {
         if (currentLorebook == null || currentLorebook.getId() == null) {
             grid.setItems(new ArrayList<>());
+            currentEntries = new ArrayList<>();
+            entryTokens.clear();
+            updateLorebookTokens();
             return;
         }
         try {
             List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(currentLorebook.getId());
             grid.setItems(entries);
+            currentEntries = entries;
+            entryTokens.clear();
+            updateLorebookTokens();
         } catch (Exception e) {
             UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
         }
