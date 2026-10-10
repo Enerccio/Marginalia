@@ -189,7 +189,7 @@ What plugins can't do:
 ## Errors
 
 Inside click listeners and other event handlers, catch exceptions and report them like the application does:
-`UIUtils.internalServerError(loc, e)` logs and shows an error dialog - pass an injected `Localization`. Expected problems go to `Notification`. Exceptions in decorators themselves are logged by the
+`UIUtils.internalServerError(loc, e)` logs and shows an error dialog - pass an injected `Localization`. Expected problems go to `Notification`. Failures of the model API (`InferenceException`) are explained by `UIUtils.inferenceError(loc, e)` or, as text, `InferenceErrors.messageOf(loc, e)`. Exceptions in decorators themselves are logged by the
 `ExtensionService` and don't need handling unless you want to show something.
 
 ## Threads
@@ -231,7 +231,7 @@ CancellationToken token = service.stream(payload, protocol, new InferenceService
 
     @Override public void onCompletion() { ui.access(() -> { save(text.toString()); UIPushGuard.push(ui); }); }
     @Override public void onCancel()     { ui.access(() -> UIPushGuard.push(ui)); }
-    @Override public void onError(Throwable e) { ui.access(() -> { showError(e); UIPushGuard.push(ui); }); }
+    @Override public void onError(Throwable e) { ui.access(() -> { UIUtils.inferenceError(loc, e); UIPushGuard.push(ui); }); }
     @Override public boolean isDead()    { return ui.isClosing(); }   // nobody left to show it to
 });
 // token.cancel() stops the stream, e.g. when the dialog closes

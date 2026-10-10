@@ -137,7 +137,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `AIService`, `ProtocolService` | Inference providers and protocols. |
 | `TagService`, `TagRelationService`, `SettingService`, `ResourceService` | Tags, settings, files. |
 | `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
-| `InferenceServices`, `InferenceService` | Choosing and calling the model API. |
+| `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
 | `TokenizerService`, `TokenLimits` | Token counting and the context / reply limits of a generation. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService`, `CronSchedule` | Book backups (restore, clone, export); database backups and their schedule. |
@@ -153,7 +153,7 @@ callbacks of a generation) and `search/` (`Sorter`, `ManuscriptFilterValues` for
 | `service.impl.generation` | Engine interfaces and data: `GenerationStep`, `GenerationStepBase`, `GenerationStepType`, `GenerationController`, `Events`, `GenerationEvent`, `GenerationRequest` / `GenerationRequestType`, `GenerationProperties`. |
 | `service.impl.generation.impl` | The eight steps, `PrepareForGenerationStep` ... `CleanupStep`. |
 | `service.impl.generation.dto` | `LLMChatMessage`, `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
-| `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning). |
+| `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to `InferenceException`). |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |
 
 See [Services](services.md) and [Generation pipeline](generation-pipeline.md).
