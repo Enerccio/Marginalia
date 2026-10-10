@@ -95,8 +95,17 @@ body {
 .manuscript-styles .chat-message-markdown p {
     margin-top: 0;
     margin-bottom: 0.85em;
-    text-align: left;
+    text-align: justify;
+    text-justify: inter-word;
     white-space: pre-wrap !important;
+    /* TeX-like hyphenation; dictionary comes from the lang attribute set from the book language */
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphenate-limit-chars: 6 3 3; /* min word length, min chars before/after the break */
+    hyphenate-limit-lines: 2;     /* at most 2 consecutive hyphenated lines */
+    hyphenate-limit-last: always; /* never hyphenate the last line of a column/page */
+    orphans: 2;
+    widows: 2;
 }
 
 /* Character Actions & Internal Monologue (* * or _ _) */

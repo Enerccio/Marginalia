@@ -289,11 +289,17 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private void applyBookStyles() throws Exception {
         Manuscript manuscript = parent.refreshManuscript();
+        applyLanguage(manuscript);
         if (manuscript.getShowBookStyles()) {
             mainLayout.addClassName(SharedStyles.MARKDOWN_MANUSCRIPT_STYLES);
         } else {
             mainLayout.removeClassName(SharedStyles.MARKDOWN_MANUSCRIPT_STYLES);
         }
+    }
+
+    // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
+    private void applyLanguage(Manuscript manuscript) {
+        mainLayout.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
     }
 
     private Popover buildNewTurnPopover(Button targetButton) {
@@ -866,6 +872,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     @Override
     public void load(Manuscript manuscript) {
         this.currentManuscript = manuscript;
+        if (manuscript != null && mainLayout != null) {
+            applyLanguage(manuscript);
+        }
         renderStoryContent();
     }
 
