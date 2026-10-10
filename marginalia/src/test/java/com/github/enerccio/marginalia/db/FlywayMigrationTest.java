@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.db;
 
 import com.github.enerccio.marginalia.DatabaseCheck;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.MigrationState;
@@ -14,6 +16,7 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 import javax.sql.DataSource;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -139,6 +142,12 @@ class FlywayMigrationTest {
 
     private void insertV1Data() {
         jdbc.update("INSERT INTO manuscripts (id, is_deleted, uuid, name) VALUES (1, false, 'm-1', 'Old book')");
+        // manuscripts.description was a column and an extended attribute: V9 keeps what only the column has
+        jdbc.update("INSERT INTO manuscripts (id, is_deleted, uuid, name, description) VALUES (2, false, 'm-2', 'Column only', 'From column')");
+        jdbc.update("INSERT INTO manuscripts (id, is_deleted, uuid, name, description, extendedContent) VALUES (3, false, 'm-3', 'Other keys', 'Merged', ?)",
+                (Object) "{\"style\":\"terse\"}".getBytes(StandardCharsets.UTF_8));
+        jdbc.update("INSERT INTO manuscripts (id, is_deleted, uuid, name, description, extendedContent) VALUES (4, false, 'm-4', 'Both', 'Stale column', ?)",
+                (Object) "{\"description\":\"Extended wins\"}".getBytes(StandardCharsets.UTF_8));
         jdbc.update("INSERT INTO lorebooks (id, is_deleted, uuid, name, enabled) VALUES (1, false, 'l-1', 'A', true)");
         jdbc.update("INSERT INTO lorebooks (id, is_deleted, uuid, name, enabled) VALUES (2, false, 'l-2', 'B', true)");
         jdbc.update("INSERT INTO lorebooks (id, is_deleted, uuid, name, enabled) VALUES (3, false, 'l-3', 'Shared', true)");
@@ -147,7 +156,30 @@ class FlywayMigrationTest {
         jdbc.update("INSERT INTO protocols (id, is_deleted, uuid, name, protocolType, maxTokens, replyTokens) VALUES (2, false, 'p-2', 'Unset', 0, -1, 0)");
     }
 
+    private String extendedContent(int manuscriptId) {
+        return jdbc.queryForObject("SELECT CAST(extendedContent AS TEXT) FROM manuscripts WHERE id = " + manuscriptId, String.class);
+    }
+
     private void assertUpgradedData() {
+        // V9: description lives only in extendedContent, every extendable table has _fulltext
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM pragma_table_info('manuscripts') WHERE name = 'description'", Integer.class))
+                .isZero();
+        for (String table : List.of("ais", "entries", "lorebooks", "manuscripts", "messages", "protocols", "settings",
+                "summaries", "t2e", "tags")) {
+            assertThat(jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM pragma_table_info('" + table + "') WHERE name = '_fulltext'", Integer.class))
+                    .as(table).isEqualTo(1);
+        }
+        assertThat(extendedContent(1)).isNull();
+        assertThat(JsonParser.parseString(extendedContent(2)).getAsJsonObject().get("description").getAsString())
+                .isEqualTo("From column");
+        JsonObject merged = JsonParser.parseString(extendedContent(3)).getAsJsonObject();
+        assertThat(merged.get("description").getAsString()).isEqualTo("Merged");
+        assertThat(merged.get("style").getAsString()).isEqualTo("terse");
+        assertThat(JsonParser.parseString(extendedContent(4)).getAsJsonObject().get("description").getAsString())
+                .isEqualTo("Extended wins");
+
         // V5: protocol limits are optional, old "not set" values (0, negative) became NULL
         assertThat(jdbc.queryForMap("SELECT maxTokens, replyTokens, name FROM protocols WHERE id = 1"))
                 .containsEntry("maxTokens", 8000).containsEntry("replyTokens", 500).containsEntry("name", "Set");

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
+import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -20,14 +21,17 @@ public class LorebookEntry extends ExtendableEntity {
     private Lorebook lorebook;
 
     @Lob
+    @Fulltextable
     private String name;
 
     @ExtendedAttribute
     @Transient
+    @Fulltextable
     private String payload;
 
     @ExtendedAttribute
     @Transient
+    @Fulltextable
     private String comment;
 
     private boolean enabled = true;
@@ -50,7 +54,7 @@ public class LorebookEntry extends ExtendableEntity {
 
     @Transient
     @ExtendedAttribute
-    private InsertionMode insertionMode= InsertionMode.IN_LORE_BLOCK;
+    private InsertionMode insertionMode = InsertionMode.IN_LORE_BLOCK;
 
     public Lorebook getLorebook() {
         return lorebook;

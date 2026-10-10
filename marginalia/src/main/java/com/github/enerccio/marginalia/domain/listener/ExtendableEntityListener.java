@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.listener;
 
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
+import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import com.github.enerccio.marginalia.utils.ReflectUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -18,10 +19,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ExtendableEntityListener {
@@ -30,24 +28,30 @@ public class ExtendableEntityListener {
     private static final ConcurrentHashMap<Class<?>, AttributesAccessor> accessorMap = new ConcurrentHashMap<>();
 
     public void serialize(ExtendableEntity entity) throws Exception {
-        accessorMap.computeIfAbsent(entity.getClass(), key -> {
-            try {
-                return new AttributesAccessor(entity);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).serialize(entity);
+        accessorFor(entity).serialize(entity);
+    }
+
+    /**
+     * Rebuilds {@code _fulltext} from the {@link Fulltextable} fields without touching {@code extendedContent}, used
+     * to fill the column for rows saved before it existed.
+     */
+    public void updateFulltext(ExtendableEntity entity) throws Exception {
+        accessorFor(entity).updateFulltext(entity);
     }
 
     @PostLoad
     public void deserialize(ExtendableEntity entity) throws Exception {
-        accessorMap.computeIfAbsent(entity.getClass(), key -> {
+        accessorFor(entity).deserialize(entity);
+    }
+
+    private static AttributesAccessor accessorFor(ExtendableEntity entity) {
+        return accessorMap.computeIfAbsent(entity.getClass(), key -> {
             try {
                 return new AttributesAccessor(entity);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }).deserialize(entity);
+        });
     }
 
     private static class AttributesAccessor {
@@ -57,9 +61,11 @@ public class ExtendableEntityListener {
 
         private final Class<?> clazz;
         private final Map<String, Field> attributes = new HashMap<>();
+        private final List<Field> fulltextFields;
 
         public AttributesAccessor(Object handle) throws Exception {
             clazz = handle.getClass();
+            fulltextFields = ReflectUtils.getAnnotatedFields(clazz, Fulltextable.class);
             combClass();
         }
 
@@ -117,6 +123,30 @@ public class ExtendableEntityListener {
             }
 
             entity.setExtendedContent(gson.toJson(root).getBytes(StandardCharsets.UTF_8));
+            updateFulltext(entity);
+        }
+
+        /**
+         * Text of all {@link Fulltextable} fields, one per line in declaration order, in {@code _fulltext};
+         * null when the entity has no such field or all are empty.
+         */
+        public void updateFulltext(ExtendableEntity entity) throws Exception {
+            if (fulltextFields.isEmpty()) {
+                return;
+            }
+
+            StringJoiner text = new StringJoiner("\n");
+            for (Field f : fulltextFields) {
+                Object value = f.get(entity);
+                if (value == null) {
+                    continue;
+                }
+                String strValue = value instanceof Date date ? formatDate(date) : value.toString();
+                if (!strValue.isBlank()) {
+                    text.add(strValue);
+                }
+            }
+            entity.set_fulltext(text.length() == 0 ? null : text.toString());
         }
 
         public void deserialize(ExtendableEntity entity) throws Exception {

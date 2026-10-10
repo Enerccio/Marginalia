@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.model.impl;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
+import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.List;
 public class Lorebook extends ExtendableEntity {
 
     @Lob
+    @Fulltextable
     private String name;
 
     @ManyToMany(fetch = FetchType.EAGER)

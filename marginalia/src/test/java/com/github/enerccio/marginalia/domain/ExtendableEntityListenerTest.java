@@ -256,4 +256,74 @@ class ExtendableEntityListenerTest {
         // empty value for a non-string field is ignored
         assertThat(loaded.getPromptTokens()).isEqualTo(5L);
     }
+
+    private static String fulltext(com.github.enerccio.marginalia.domain.model.ExtendableEntity entity) {
+        return entity.get_fulltext();
+    }
+
+    @Test
+    void storesFulltextableFieldsOfColumnsAndExtendedAttributesPerLine() throws Exception {
+        LorebookEntry entry = new LorebookEntry();
+        entry.setName("Harbour");
+        entry.setPayload("A foggy place\nwith gulls");
+        entry.setComment("check the tides");
+
+        listener.serialize(entry);
+
+        assertThat(fulltext(entry)).isEqualTo("Harbour\nA foggy place\nwith gulls\ncheck the tides");
+    }
+
+    @Test
+    void fulltextSkipsEmptyValuesAndIsNullWithoutAny() throws Exception {
+        LorebookEntry entry = new LorebookEntry();
+        entry.setName("Harbour");
+        entry.setPayload("   ");
+        listener.serialize(entry);
+        assertThat(fulltext(entry)).isEqualTo("Harbour");
+
+        entry.setName(null);
+        listener.serialize(entry);
+        assertThat(entry.get_fulltext()).isNull();
+
+        // an entity without @Fulltextable fields never has it
+        Tag tag = new Tag();
+        tag.setValue("tag");
+        listener.serialize(tag);
+        assertThat(tag.get_fulltext()).isNull();
+    }
+
+    @Test
+    void fulltextFollowsTheFieldsOnEverySave() throws Exception {
+        Manuscript manuscript = new Manuscript();
+        manuscript.setName("Saga");
+        manuscript.setDescription("First");
+        listener.serialize(manuscript);
+        assertThat(fulltext(manuscript)).isEqualTo("Saga\nFirst");
+
+        manuscript.setDescription("Second");
+        listener.serialize(manuscript);
+        assertThat(fulltext(manuscript)).isEqualTo("Saga\nSecond");
+
+        Summary summary = new Summary();
+        summary.setSummary("They sailed");
+        listener.serialize(summary);
+        assertThat(fulltext(summary)).isEqualTo("They sailed");
+
+        ChatMessage message = new ChatMessage();
+        message.setResponse("Once upon a time");
+        listener.serialize(message);
+        assertThat(fulltext(message)).isEqualTo("Once upon a time");
+    }
+
+    @Test
+    void updateFulltextLeavesExtendedContentAlone() throws Exception {
+        Manuscript manuscript = new Manuscript();
+        manuscript.setDescription("A book");
+        setStored(manuscript, "{\"description\": \"A book\", \"future\": \"kept\"}");
+
+        listener.updateFulltext(manuscript);
+
+        assertThat(fulltext(manuscript)).isEqualTo("A book");
+        assertThat(stored(manuscript).get("future").getAsString()).isEqualTo("kept");
+    }
 }

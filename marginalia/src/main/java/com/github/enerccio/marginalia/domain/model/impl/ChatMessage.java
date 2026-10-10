@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
+import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import jakarta.persistence.*;
@@ -56,6 +57,7 @@ public class ChatMessage extends ExtendableEntity {
     private String responseReasoning;
 
     @ExtendedAttribute
+    @Fulltextable
     @Transient
     private String response;
 
