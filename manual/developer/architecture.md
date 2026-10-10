@@ -259,6 +259,7 @@ classDiagram
     }
     class ExtendableEntity {
         byte[] extendedContent
+        String _fulltext
         JsonObject attributes
     }
     BaseEntity <|-- OwnedEntity
@@ -281,7 +282,8 @@ All data entities extend `ExtendableEntity`. `User` extends `BaseEntity` directl
   references any more, following the `@CleanupReference` annotations.
 - `OwnedEntity.owner` ties data to a user. `ExtendableEntity.attributes` is a JSON object, stored serialized in
   `extendedContent` by `ExtendableEntityListener`, where extensions keep their own data (and where `@ExtendedAttribute`
-  fields of the entity are stored) - so that data travels with backups and exports without schema changes.
+  fields of the entity are stored) - so that data travels with backups and exports without schema changes. The same
+  listener fills `_fulltext` with the text of the `@Fulltextable` fields, for searching.
 - The story is a tree of `ChatMessage`s (parts): regenerate, swipe and branch create siblings; the book remembers the
   active leaf.
 

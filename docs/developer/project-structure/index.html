@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844972714700">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844974379671">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844972714700" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844974379671" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844972714700" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844974379671" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844972714700" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844974379671" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -677,9 +677,9 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <h3 id="domaintraits-domaincollections-domainlistener"><code translate="no" v-pre>domain.traits</code>, <code translate="no" v-pre>domain.collections</code>, <code translate="no" v-pre>domain.listener</code></h3>
 <retype-table copy-text="| Package | |
 |---|---|
-| `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes), `@ExtendedAttribute` (fields stored in `attributes`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). |
+| `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes), `@ExtendedAttribute` (fields stored in `attributes`), `@Fulltextable` (fields whose text goes into `_fulltext`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). |
 | `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `FilteringMode`, `InsertionMode`, `SummaryType`. |
-| `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back. |">
+| `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back, and collects the `@Fulltextable` fields into `_fulltext`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -691,7 +691,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <tbody>
 <tr>
 <td><code translate="no" v-pre>domain.traits</code></td>
-<td>Annotations: <code translate="no" v-pre>@CommonTx</code>, <code translate="no" v-pre>@CommonTxReadOnly</code>, <code translate="no" v-pre>@NoTx</code> (transactions), <code translate="no" v-pre>@Extendable</code> (instrumented UI classes), <code translate="no" v-pre>@ExtendedAttribute</code> (fields stored in <code translate="no" v-pre>attributes</code>), <code translate="no" v-pre>@CleanupReference(s)</code> (how references behave during cleanup), <code translate="no" v-pre>@LocalizedTemplateDescription</code> (texts of template hints), <code translate="no" v-pre>@SupportedAI</code> (provider type of an inference service).</td>
+<td>Annotations: <code translate="no" v-pre>@CommonTx</code>, <code translate="no" v-pre>@CommonTxReadOnly</code>, <code translate="no" v-pre>@NoTx</code> (transactions), <code translate="no" v-pre>@Extendable</code> (instrumented UI classes), <code translate="no" v-pre>@ExtendedAttribute</code> (fields stored in <code translate="no" v-pre>attributes</code>), <code translate="no" v-pre>@Fulltextable</code> (fields whose text goes into <code translate="no" v-pre>_fulltext</code>), <code translate="no" v-pre>@CleanupReference(s)</code> (how references behave during cleanup), <code translate="no" v-pre>@LocalizedTemplateDescription</code> (texts of template hints), <code translate="no" v-pre>@SupportedAI</code> (provider type of an inference service).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.collections</code></td>
@@ -699,7 +699,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.listener</code></td>
-<td><code translate="no" v-pre>ExtendableEntityListener</code> - serializes <code translate="no" v-pre>attributes</code> and <code translate="no" v-pre>@ExtendedAttribute</code> fields to <code translate="no" v-pre>extendedContent</code> and back.</td>
+<td><code translate="no" v-pre>ExtendableEntityListener</code> - serializes <code translate="no" v-pre>attributes</code> and <code translate="no" v-pre>@ExtendedAttribute</code> fields to <code translate="no" v-pre>extendedContent</code> and back, and collects the <code translate="no" v-pre>@Fulltextable</code> fields into <code translate="no" v-pre>_fulltext</code>.</td>
 </tr>
 </tbody>
 </table>

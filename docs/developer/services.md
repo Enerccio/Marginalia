@@ -48,7 +48,8 @@ Things to know about the generic methods:
 - **`findAll*` skip deleted rows**, `find(id)` doesn't.
 - **`save` returns the managed copy** (`merge`). Keep using the returned object.
 - **`save` vs. `saveWithoutEvent`** - `save` serializes the extended attributes into `extendedContent`;
-  `saveWithoutEvent` stores `extendedContent` as it is (used when it was copied from a backup).
+  `saveWithoutEvent` stores `extendedContent` as it is (used when it was copied from a backup). Both keep the `_fulltext` column
+  in step with the `@Fulltextable` fields, see [Full-text column](domain-model.md#full-text-column).
 - **`delete(entity, false)`** soft deletes, **`delete(entity, true)`** removes the row. See
   [Soft delete](domain-model.md#baseentity---identity-and-soft-delete).
 

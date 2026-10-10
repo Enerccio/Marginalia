@@ -80,6 +80,7 @@ migration is written for one version step and ignores the others.
 | Type | Version | Class | Change |
 |---|---|---|---|
 | APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |
+| APP | 2 → 3 | `bound/migration/FulltextMigration` | Fills `_fulltext` (added by V9) of the existing rows of every entity with `@Fulltextable` fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls `ExtendableEntityListener.updateFulltext` on the loaded entity, so `extendedContent` and `modification` stay as they are. Repeating it is harmless. See [Full-text column](domain-model.md#full-text-column). |
 
 To add one: implement `Migration`, register the bean in the `migrations` list of `applicationInitializer` and raise
 `appVersion` (or `dbVersion`). A fresh database starts at version 1, so it goes through all migrations too.
@@ -96,6 +97,7 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V6 | `V6__indexes.sql` | Indexes matching the queries: tag relations by object and by tag, owner lookups `(userId, is_deleted)`, lorebook entries in order, parts of a book in order, parts by summary, resources by owner and hash, settings by key. Drops the unused and duplicate ones. See [Indexes](#indexes). |
 | V7 | `V7__user_login_backoff.sql` | `users.failedLogins` and `users.lockedUntil` (both `not null default 0`) for the login back-off, see [Users](domain-model.md#users). |
 | V8 | `V8__resource_link.sql` | `resources.objectId` and `resources.clazz` - the loose link of an uploaded file to the object that uses it - and the indexes of the Resources tab (`(userId, is_deleted, creation)`) and of the link (`(clazz, objectId)`). |
+| V9 | `V9__fulltext.sql` | `_fulltext` clob on every table of an extendable entity (`ais`, `entries`, `lorebooks`, `manuscripts`, `messages`, `protocols`, `settings`, `summaries`, `t2e`, `tags`), because the column is mapped in `ExtendableEntity`. Copies `manuscripts.description` into `extendedContent` where the JSON has no value (the extended attribute wins when both exist), then drops the column. The column is filled by `FulltextMigration` (app version 3). |
 
 ### Rules
 
@@ -112,7 +114,7 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 ### Adding a column
 
 ```sql
--- V9__manuscript_archived.sql
+-- V10__manuscript_archived.sql
 ALTER TABLE manuscripts
     ADD COLUMN archived boolean not null default false;
 ```
@@ -131,7 +133,7 @@ A new entity needs its table, its sequence table with a first row, and its index
 (ids are reserved in blocks of 50 - gaps in ids are normal):
 
 ```sql
--- V9__bookmarks.sql
+-- V10__bookmarks.sql
 create table bookmarks
 (
     id              bigint      not null primary key,
@@ -140,6 +142,7 @@ create table bookmarks
     modification    timestamp,
     uuid            varchar(36) not null unique,
     extendedContent blob,
+    _fulltext       clob,
     userId          bigint,
     message_id      bigint
 );
@@ -156,7 +159,7 @@ INSERT INTO bookmarks_SEQ (next_val) VALUES (1);
 ```
 
 The columns of `BaseEntity` / `OwnedEntity` / `ExtendableEntity` are always the same: `id`, `creation`,
-`is_deleted`, `modification`, `uuid`, `userId` (owner) and `extendedContent`. Then list the class in
+`is_deleted`, `modification`, `uuid`, `userId` (owner), `extendedContent` and `_fulltext`. Then list the class in
 `persistence.xml`. For joined inheritance (a subtype of `AI` or `Protocol`), the subtype table has only `id` plus its
 own columns.
 
@@ -204,7 +207,9 @@ development home whose database is at the current schema version. Treat the outp
 - a pre-Flyway database (V1 schema, no history table) is baselined and upgraded.
 
 New migrations are picked up automatically by the first two tests. When a migration converts data, add rows to
-`insertV1Data()` and assertions to `assertUpgradedData()`, like the existing ones for V2-V5. Run it with
+`insertV1Data()` and assertions to `assertUpgradedData()`, like the existing ones for V2-V5 and V9 (the `description`
+of three manuscripts: only in the column, merged into other JSON keys, and in both). A Java migration (`Migration` bean)
+needs the Spring context: see `db/FulltextMigrationTest`. Run it with
 `mvn test -Dtest=FlywayMigrationTest`.
 
 ## Schema conventions

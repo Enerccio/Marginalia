@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844972714700">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844974379671">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844972714700" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844974379671" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844972714700" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844974379671" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844972714700" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844972714700" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844974379671" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844974379671" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -289,6 +289,7 @@ and lorebook.</p>
     }
     class ExtendableEntity {
         byte[] extendedContent
+        String _fulltext
         JsonObject attributes
     }
     BaseEntity &lt;|-- User
@@ -427,7 +428,66 @@ is only stored by calling the service&#x27;s <code translate="no" v-pre>save</co
 does nothing.</p>
 <p><code translate="no" v-pre>saveWithoutEvent</code> writes <code translate="no" v-pre>extendedContent</code> as it is, without serializing the fields first. It is used when
 <code translate="no" v-pre>extendedContent</code> was set directly - copying the JSON of a backup into a restored entity - and must not be overwritten
-by the (empty) fields.</p>
+by the (empty) fields. The repository then reads the fields back from the JSON and rebuilds <code translate="no" v-pre>_fulltext</code> from them.</p>
+<h3 id="full-text-column">Full-text column</h3>
+<p>Every <code translate="no" v-pre>ExtendableEntity</code> table has a <code translate="no" v-pre>_fulltext</code> text column (<code translate="no" v-pre>clob</code>, <code translate="no" v-pre>@Lob String</code>) next to <code translate="no" v-pre>extendedContent</code>: the text of the entity that a search
+should find, in one place, even when the text is spread over columns and JSON. Fields annotated <code translate="no" v-pre>@Fulltextable</code>
+(a column such as <code translate="no" v-pre>LorebookEntry.name</code> or an <code translate="no" v-pre>@ExtendedAttribute</code>) are collected by <code translate="no" v-pre>ExtendableEntityListener</code>:</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>serialize</code> (called by every <code translate="no" v-pre>save</code>) writes <code translate="no" v-pre>_fulltext</code> right after <code translate="no" v-pre>extendedContent</code>: the string value of each
+marked field (<code translate="no" v-pre>toString()</code>, dates as ISO-8601), empty ones skipped, joined by a newline in declaration order.
+An entity without marked fields, or with all of them empty, has <code translate="no" v-pre>NULL</code>.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>updateFulltext</code> rebuilds only <code translate="no" v-pre>_fulltext</code>, from the fields as they are. <code translate="no" v-pre>saveWithoutEvent</code> uses it after reading the
+fields from the restored JSON, and <code translate="no" v-pre>FulltextMigration</code> uses it to fill existing rows.</p>
+</li>
+</ul>
+<retype-table copy-text="| Entity | Fields in `_fulltext` |
+|---|---|
+| `Manuscript` | `name`, `description` |
+| `Lorebook` | `name` |
+| `LorebookEntry` | `name`, `payload`, `comment` |
+| `ChatMessage` | `response` |
+| `Summary` | `summary` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Entity</th>
+<th>Fields in <code translate="no" v-pre>_fulltext</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>Manuscript</code></td>
+<td><code translate="no" v-pre>name</code>, <code translate="no" v-pre>description</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Lorebook</code></td>
+<td><code translate="no" v-pre>name</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LorebookEntry</code></td>
+<td><code translate="no" v-pre>name</code>, <code translate="no" v-pre>payload</code>, <code translate="no" v-pre>comment</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ChatMessage</code></td>
+<td><code translate="no" v-pre>response</code></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Summary</code></td>
+<td><code translate="no" v-pre>summary</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Like <code translate="no" v-pre>extendedContent</code>, the column is invisible to dirty checking of the fields, so it is only current after a
+service <code translate="no" v-pre>save</code>. Marking a field of an entity that already has rows (or changing which fields are marked) leaves old
+rows out of date: add an app migration that calls <code translate="no" v-pre>updateFulltext</code> for the entity, as <code translate="no" v-pre>FulltextMigration</code> does (see
+<a href="../database/#startup-migrate-then-validate">Database &amp; migrations</a>).</p>
 <p>Why most fields live in JSON:</p>
 <ul>
 <li>Adding or removing a field needs no database migration.</li>
@@ -443,7 +503,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <retype-table copy-text="| Field | Stored | |
 |---|---|---|
 | `name` | column | Title. |
-| `description` | column and JSON | Description shown in the book list (it is both a column and an extended attribute; the JSON value wins on load). |
+| `description` | JSON | Description shown in the book list. Also `@Fulltextable`. It used to be a column as well; V9 moved what only the column had into the JSON and dropped the column. |
 | `ai`, `protocol` | FK columns | Inference provider and protocol used for generation. |
 | `lorebook` | FK column | The book's lorebook (with its sub-lorebooks). |
 | `activeLeaf` | FK column | The last part of the branch currently shown and continued. |
@@ -470,8 +530,8 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 </tr>
 <tr>
 <td><code translate="no" v-pre>description</code></td>
-<td>column and JSON</td>
-<td>Description shown in the book list (it is both a column and an extended attribute; the JSON value wins on load).</td>
+<td>JSON</td>
+<td>Description shown in the book list. Also <code translate="no" v-pre>@Fulltextable</code>. It used to be a column as well; V9 moved what only the column had into the JSON and dropped the column.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ai</code>, <code translate="no" v-pre>protocol</code></td>
@@ -1228,6 +1288,10 @@ referenced row.</p>
 </li>
 <li>
 <p>Save it through the service&#x27;s <code translate="no" v-pre>save</code> (not <code translate="no" v-pre>saveWithoutEvent</code>).</p>
+</li>
+<li>
+<p>If its text should be found by a search, annotate it <code translate="no" v-pre>@Fulltextable</code> (see <doc-anchor-trigger to="#full-text-column">Full-text column</doc-anchor-trigger>)
+and add an app migration that refills <code translate="no" v-pre>_fulltext</code> of the existing rows.</p>
 </li>
 </ol>
 <p><strong>A new entity:</strong></p>

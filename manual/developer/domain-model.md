@@ -5,6 +5,7 @@ verified: f1e5c62
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/listener
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/model
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/SummaryServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CleanupServiceImpl.java
@@ -82,6 +83,7 @@ classDiagram
     }
     class ExtendableEntity {
         byte[] extendedContent
+        String _fulltext
         JsonObject attributes
     }
     BaseEntity <|-- User
@@ -167,7 +169,32 @@ does nothing.
 
 `saveWithoutEvent` writes `extendedContent` as it is, without serializing the fields first. It is used when
 `extendedContent` was set directly - copying the JSON of a backup into a restored entity - and must not be overwritten
-by the (empty) fields.
+by the (empty) fields. The repository then reads the fields back from the JSON and rebuilds `_fulltext` from them.
+
+### Full-text column
+
+Every `ExtendableEntity` table has a `_fulltext` text column (`clob`, `@Lob String`) next to `extendedContent`: the text of the entity that a search
+should find, in one place, even when the text is spread over columns and JSON. Fields annotated `@Fulltextable`
+(a column such as `LorebookEntry.name` or an `@ExtendedAttribute`) are collected by `ExtendableEntityListener`:
+
+- `serialize` (called by every `save`) writes `_fulltext` right after `extendedContent`: the string value of each
+  marked field (`toString()`, dates as ISO-8601), empty ones skipped, joined by a newline in declaration order.
+  An entity without marked fields, or with all of them empty, has `NULL`.
+- `updateFulltext` rebuilds only `_fulltext`, from the fields as they are. `saveWithoutEvent` uses it after reading the
+  fields from the restored JSON, and `FulltextMigration` uses it to fill existing rows.
+
+| Entity | Fields in `_fulltext` |
+|---|---|
+| `Manuscript` | `name`, `description` |
+| `Lorebook` | `name` |
+| `LorebookEntry` | `name`, `payload`, `comment` |
+| `ChatMessage` | `response` |
+| `Summary` | `summary` |
+
+Like `extendedContent`, the column is invisible to dirty checking of the fields, so it is only current after a
+service `save`. Marking a field of an entity that already has rows (or changing which fields are marked) leaves old
+rows out of date: add an app migration that calls `updateFulltext` for the entity, as `FulltextMigration` does (see
+[Database & migrations](database.md#startup-migrate-then-validate)).
 
 Why most fields live in JSON:
 
@@ -187,7 +214,7 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | Field | Stored | |
 |---|---|---|
 | `name` | column | Title. |
-| `description` | column and JSON | Description shown in the book list (it is both a column and an extended attribute; the JSON value wins on load). |
+| `description` | JSON | Description shown in the book list. Also `@Fulltextable`. It used to be a column as well; V9 moved what only the column had into the JSON and dropped the column. |
 | `ai`, `protocol` | FK columns | Inference provider and protocol used for generation. |
 | `lorebook` | FK column | The book's lorebook (with its sub-lorebooks). |
 | `activeLeaf` | FK column | The last part of the branch currently shown and continued. |
@@ -468,6 +495,8 @@ export and import code in either case.
    Soft references (ids) must be annotated with `target` or `targetClassField`, otherwise cleanup may purge the
    referenced row.
 4. Save it through the service's `save` (not `saveWithoutEvent`).
+5. If its text should be found by a search, annotate it `@Fulltextable` (see [Full-text column](#full-text-column))
+   and add an app migration that refills `_fulltext` of the existing rows.
 
 **A new entity:**
 

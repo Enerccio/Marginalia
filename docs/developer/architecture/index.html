@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844972714700">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844974379671">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844972714700" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844974379671" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844972714700" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844974379671" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844972714700" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844972714700" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844974379671" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844974379671" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -634,6 +634,7 @@ from cookies, and after login replaces its content with the <code translate="no"
     }
     class ExtendableEntity {
         byte[] extendedContent
+        String _fulltext
         JsonObject attributes
     }
     BaseEntity &lt;|-- OwnedEntity
@@ -659,7 +660,8 @@ references any more, following the <code translate="no" v-pre>@CleanupReference<
 <li>
 <p><code translate="no" v-pre>OwnedEntity.owner</code> ties data to a user. <code translate="no" v-pre>ExtendableEntity.attributes</code> is a JSON object, stored serialized in
 <code translate="no" v-pre>extendedContent</code> by <code translate="no" v-pre>ExtendableEntityListener</code>, where extensions keep their own data (and where <code translate="no" v-pre>@ExtendedAttribute</code>
-fields of the entity are stored) - so that data travels with backups and exports without schema changes.</p>
+fields of the entity are stored) - so that data travels with backups and exports without schema changes. The same
+listener fills <code translate="no" v-pre>_fulltext</code> with the text of the <code translate="no" v-pre>@Fulltextable</code> fields, for searching.</p>
 </li>
 <li>
 <p>The story is a tree of <code translate="no" v-pre>ChatMessage</code>s (parts): regenerate, swipe and branch create siblings; the book remembers the
