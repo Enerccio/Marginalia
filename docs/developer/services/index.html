@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844957150052">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844957698746">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844957150052" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844957698746" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844957150052" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844957698746" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844957150052" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844957150052" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844957698746" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844957698746" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -341,7 +341,7 @@ anything else, such as <code translate="no" v-pre>isAdmin()</code>.</p>
 back to the <em>current</em> user&#x27;s <code translate="no" v-pre>UserSetting</code>),</p>
 </li>
 <li>
-<p>admin checks such as <code translate="no" v-pre>DatabaseBackupServiceImpl.requireAdmin()</code>.</p>
+<p>administrator checks: <code translate="no" v-pre>AdminGuard.requireAdmin()</code> (see <doc-anchor-trigger to="#administration">Administration</doc-anchor-trigger>).</p>
 </li>
 </ul>
 <p><strong>On background threads</strong> there is no request, so resolving <code translate="no" v-pre>currentUser</code> fails with <em>No thread-bound request
@@ -583,6 +583,16 @@ Entries left of it were sent by the client and are never used. The private netwo
 <p>Without a proxy nothing needs to be configured. Behind one, list the proxy, otherwise all users share its address
 and 30 failures from anyone block everybody for a while.</p>
 <h3 id="administration">Administration</h3>
+<p>The services behind the Administration screen check on the server that the caller is an administrator, so they stay
+safe if something other than that screen (an API, an extension) ever reaches them. They call
+<code translate="no" v-pre>AdminGuard.requireAdmin()</code> (bean in <code translate="no" v-pre>services-config.xml</code>), which loads the current user from the database - the
+session copy of <code translate="no" v-pre>admin</code> is not trusted, a user demoted or deleted mid-session loses access at once - and throws
+<code translate="no" v-pre>SecurityException</code> for nobody, a deleted user or a non-administrator. Guarded: every <code translate="no" v-pre>DatabaseBackupService</code> method
+except <code translate="no" v-pre>createScheduledBackup</code> and <code translate="no" v-pre>getNextScheduledBackup</code>, <code translate="no" v-pre>CleanupService.getReferenceModel/analyze/purge</code>,
+<code translate="no" v-pre>OsgiService.installPackage/uninstallPackage</code>, and <code translate="no" v-pre>UserService.deleteUser/clearPassword/unlock</code>. Code that runs
+without a request (the backup schedule, loading extensions on start, <code translate="no" v-pre>registerContributor</code>) is not guarded, and
+inside these services it calls private unguarded variants (<code translate="no" v-pre>listBackups</code>, <code translate="no" v-pre>removeBackup</code>). A new administrator-only
+service method calls <code translate="no" v-pre>adminGuard.requireAdmin()</code> first.</p>
 <retype-table copy-text="| Service | Responsible for |
 |---|---|
 | `DatabaseBackupService` | Database backups with `VACUUM INTO`, upload, staged restore, the cron schedule (`CronSchedule`, Spring `ThreadPoolTaskScheduler`) and its rotation. See [Database backups and restores](database.md#database-backups-and-restores). |
@@ -671,8 +681,8 @@ Callbacks run on worker threads: UI code in them must use <code translate="no" v
 </doc-codeblock></div>
 </li>
 <li>Annotate every public method: <code translate="no" v-pre>@CommonTx</code>, <code translate="no" v-pre>@CommonTxReadOnly</code> or <code translate="no" v-pre>@NoTx</code>.</li>
-<li>Use <code translate="no" v-pre>currentUser</code> for ownership, <code translate="no" v-pre>findForUser(uuid)</code> for anything coming from outside, and check <code translate="no" v-pre>isAdmin()</code> on
-the loaded user for administrator operations - hiding a button in the UI is not a permission check.</li>
+<li>Use <code translate="no" v-pre>currentUser</code> for ownership, <code translate="no" v-pre>findForUser(uuid)</code> for anything coming from outside, and call
+<code translate="no" v-pre>AdminGuard.requireAdmin()</code> for administrator operations - hiding a button in the UI is not a permission check.</li>
 <li>Keep the class non-final with public methods (CGLIB proxies subclass it).</li>
 <li>Test it on top of <code translate="no" v-pre>MarginaliaTestBase</code> (see <a href="../testing/">Testing</a>).</li>
 </ol>
