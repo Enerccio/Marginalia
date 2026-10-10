@@ -5,6 +5,7 @@ verified: 44ea8b8
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/service
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/AdminGuard.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/export
 ---
 
@@ -108,7 +109,7 @@ Services that depend on the current user:
 - `SettingService.getOrCreate(UserSetting.class)` - the user's settings,
 - `ManuscriptService` - searches, `findViewable`, `markOpened`, and the prompt defaults (`getMasterTemplate`... fall
   back to the *current* user's `UserSetting`),
-- admin checks such as `DatabaseBackupServiceImpl.requireAdmin()`.
+- administrator checks: `AdminGuard.requireAdmin()` (see [Administration](#administration)).
 
 **On background threads** there is no request, so resolving `currentUser` fails with *No thread-bound request
 found*. Capture the request attributes on the UI thread and enter them on the worker:
@@ -237,6 +238,17 @@ and 30 failures from anyone block everybody for a while.
 
 ### Administration
 
+The services behind the Administration screen check on the server that the caller is an administrator, so they stay
+safe if something other than that screen (an API, an extension) ever reaches them. They call
+`AdminGuard.requireAdmin()` (bean in `services-config.xml`), which loads the current user from the database - the
+session copy of `admin` is not trusted, a user demoted or deleted mid-session loses access at once - and throws
+`SecurityException` for nobody, a deleted user or a non-administrator. Guarded: every `DatabaseBackupService` method
+except `createScheduledBackup` and `getNextScheduledBackup`, `CleanupService.getReferenceModel/analyze/purge`,
+`OsgiService.installPackage/uninstallPackage`, and `UserService.deleteUser/clearPassword/unlock`. Code that runs
+without a request (the backup schedule, loading extensions on start, `registerContributor`) is not guarded, and
+inside these services it calls private unguarded variants (`listBackups`, `removeBackup`). A new administrator-only
+service method calls `adminGuard.requireAdmin()` first.
+
 | Service | Responsible for |
 |---|---|
 | `DatabaseBackupService` | Database backups with `VACUUM INTO`, upload, staged restore, the cron schedule (`CronSchedule`, Spring `ThreadPoolTaskScheduler`) and its rotation. See [Database backups and restores](database.md#database-backups-and-restores). |
@@ -276,8 +288,8 @@ Callbacks run on worker threads: UI code in them must use `ui.access(...)` (see
    ```
 
 4. Annotate every public method: `@CommonTx`, `@CommonTxReadOnly` or `@NoTx`.
-5. Use `currentUser` for ownership, `findForUser(uuid)` for anything coming from outside, and check `isAdmin()` on
-   the loaded user for administrator operations - hiding a button in the UI is not a permission check.
+5. Use `currentUser` for ownership, `findForUser(uuid)` for anything coming from outside, and call
+   `AdminGuard.requireAdmin()` for administrator operations - hiding a button in the UI is not a permission check.
 6. Keep the class non-final with public methods (CGLIB proxies subclass it).
 7. Test it on top of `MarginaliaTestBase` (see [Testing](testing.md)).
 
