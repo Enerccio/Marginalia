@@ -37,7 +37,10 @@ backup - but anyone with both the backup and `secret.key` can read them. Keep do
 itself.
 !!!
 
-The files are stored in the `db-backups` folder of the [data folder](index.md#the-data-folder). Book backups and
+The files are stored in the `db-backups` folder of the [data folder](index.md#the-data-folder). Copies Marginalia
+makes itself - `pre-restore-...` before a [restore](#restoring) and `pre-migration-...` before an
+[upgrade](#copy-before-an-upgrade) - are in the list too, shown as *Manual*, so they are never deleted by the rotation
+of scheduled backups. Book backups and
 extension JARs are separate files and are not part of a database backup.
 
 **Uploaded files (the [pictures of the parts](../books/story-editor.md#images)) are not part of a database backup**
@@ -106,6 +109,17 @@ and the log says why.
 
 Everything after the backup is lost: books, parts and settings created since. Users who are logged in have to log in
 again if their account changed.
+
+## Copy before an upgrade
+
+When a new version of Marginalia is going to change the structure of an existing database, it first saves a copy as
+`db-backups/pre-migration-<time>-V<version>-marginalia.sqlite`, where the version is the one the database was at. The
+copy is in the list of backups, so an upgrade can be undone by installing the old version of Marginalia and
+[restoring](#restoring) that copy. The last three copies are kept. A new installation has nothing to copy, and if the
+copy can't be made (for example the disk is full), the log says so and the upgrade goes on.
+
+A migration that fails halfway is rolled back by itself and Marginalia does not start; the copy is for an upgrade that
+went through but did something you don't want.
 
 ## Moving to another computer
 

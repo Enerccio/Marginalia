@@ -89,7 +89,8 @@ other devices use the [server](docker-server.md) behind HTTPS instead.
 ## Updating
 
 Quit Marginalia, replace the app (or the portable folder) with the new version and start it again. Your data stays in
-`.marginalia` and is upgraded automatically on the first start. Extensions are built for one Marginalia version, so
+`.marginalia` and is upgraded automatically on the first start; before the structure of the database changes,
+Marginalia saves a [copy of it](../administration/database-backups.md#copy-before-an-upgrade) in `db-backups`. Extensions are built for one Marginalia version, so
 update them at the same time (see [Managing extensions](../administration/extensions.md)).
 
 ## Uninstalling
