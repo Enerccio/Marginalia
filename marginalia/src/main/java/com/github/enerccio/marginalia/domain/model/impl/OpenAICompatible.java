@@ -22,6 +22,16 @@ public class OpenAICompatible extends AI {
     @Lob
     private String modelName;
 
+    /** Seconds to wait for the provider; null uses the default of the inference service. */
+    @Transient
+    @ExtendedAttribute
+    private Integer requestTimeoutSeconds;
+
+    /** Retries after 429 / 5xx / connection errors; null uses the default of the inference service. */
+    @Transient
+    @ExtendedAttribute
+    private Integer maxRetries;
+
     @Transient
     @ExtendedAttribute(inject = true, injectPrefix = "additionalParameters")
     private JsonObject additionalParameters = new JsonObject();
@@ -64,5 +74,21 @@ public class OpenAICompatible extends AI {
 
     public void setAdditionalParameters(JsonObject additionalParameters) {
         this.additionalParameters = additionalParameters;
+    }
+
+    public Integer getRequestTimeoutSeconds() {
+        return requestTimeoutSeconds;
+    }
+
+    public void setRequestTimeoutSeconds(Integer requestTimeoutSeconds) {
+        this.requestTimeoutSeconds = requestTimeoutSeconds;
+    }
+
+    public Integer getMaxRetries() {
+        return maxRetries;
+    }
+
+    public void setMaxRetries(Integer maxRetries) {
+        this.maxRetries = maxRetries;
     }
 }

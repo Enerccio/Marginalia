@@ -56,7 +56,7 @@ class FailedGenerationTest extends GenerationTestBase {
 
     private void assertFailed(GenerationRun run) throws Exception {
         assertThat(run.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.CANCELLED);
-        assertThat(run.getErrors()).isNotEmpty();
+        assertThat(run.getErrors().size() + run.getSimpleErrors().size()).isPositive();
     }
 
     private void setUpManuscript() throws Exception {

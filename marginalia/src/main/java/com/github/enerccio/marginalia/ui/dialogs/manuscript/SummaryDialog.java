@@ -222,7 +222,7 @@ public class SummaryDialog extends Dialog {
                 ui.access(() -> {
                     setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
                     updateActionButtonState(false);
-                    UIUtils.internalServerError(loc, throwable);
+                    UIUtils.inferenceError(loc, throwable);
                     UIPushGuard.push(ui);
                 });
             }

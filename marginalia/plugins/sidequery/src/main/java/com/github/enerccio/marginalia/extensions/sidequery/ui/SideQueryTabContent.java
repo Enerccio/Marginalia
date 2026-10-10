@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -486,7 +487,7 @@ public class SideQueryTabContent extends VerticalLayout {
                 public void onError(Throwable exception) {
                     ui.access(() -> {
                         activeToken = null;
-                        aiCard.updateContent("Error: " + exception.getMessage());
+                        aiCard.updateContent("Error: " + InferenceErrors.messageOf(loc, exception));
                         triggerSave();
                         setGeneratingState(false);
                         updateTokenCount();

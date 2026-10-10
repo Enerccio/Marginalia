@@ -22,6 +22,7 @@ public class GenerationRun implements GenerationListener {
     private final StringBuilder reasoning = new StringBuilder();
     private final List<Throwable> errors = new CopyOnWriteArrayList<>();
     private final List<String> simpleErrors = new CopyOnWriteArrayList<>();
+    private final List<String> warnings = new CopyOnWriteArrayList<>();
     private volatile ChatMessage message;
 
     @Override
@@ -66,6 +67,11 @@ public class GenerationRun implements GenerationListener {
     }
 
     @Override
+    public void onWarning(String warning) {
+        warnings.add(warning);
+    }
+
+    @Override
     public void askQuestion(String question, Runnable yes, Runnable no) {
         yes.run();
     }
@@ -92,5 +98,9 @@ public class GenerationRun implements GenerationListener {
 
     public List<String> getSimpleErrors() {
         return List.copyOf(simpleErrors);
+    }
+
+    public List<String> getWarnings() {
+        return List.copyOf(warnings);
     }
 }

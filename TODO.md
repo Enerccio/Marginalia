@@ -93,12 +93,14 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     export of a chosen leaf (other than the active one), chapter headings from `chaptermarker`, an editable title
     page template.
 
-11. **Inference robustness** (`OpenAICompatibleInferenceService`).
-    - Configurable timeouts and retry with backoff for 429/5xx.
-    - Human-readable error mapping (bad key, wrong URL, model not found, context overflow) instead of a generic
-      internal error.
-    - "Test connection" button in `AIDialog` (list models + 1-token completion).
-    - Context overflow handling: warn before sending when estimated prompt > `maxContext`.
+11. ✅ **Inference robustness** (`OpenAICompatibleInferenceService`).
+    - ✅ Configurable timeout and retries (extended attributes of `OpenAICompatible`, edited in `AIDialog`); the client
+      retries 429/5xx/connection errors with backoff.
+    - ✅ Human-readable error mapping (`InferenceException`, `InferenceErrors`): bad key, wrong URL, model not found,
+      context overflow, rate limit, timeout... shown as a notification; used by the story editor, summaries and the
+      reviewer / sidequery plugins.
+    - ✅ "Test Connection" button in `AIDialog` (list models + 1-token completion).
+    - ✅ Warning before sending when the prompt plus the response limit exceed the context (`onWarning`).
 
 12. **Trash / restore UI.** Everything is soft deleted, but users can't undo a delete. Add a "Recently deleted"
     view per user (books, lorebooks, entries, providers, protocols) with restore. Show its contents in the cleanup
