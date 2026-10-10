@@ -7,17 +7,18 @@ import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.TokenLimits;
-import com.github.enerccio.marginalia.domain.service.TokenizerService;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.InferenceException.Type;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.google.gson.JsonElement;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.core.JsonValue;
+import com.openai.core.Timeout;
 import com.openai.core.http.StreamResponse;
+import com.openai.errors.OpenAIIoException;
+import com.openai.errors.OpenAIServiceException;
 import com.openai.models.chat.completions.*;
 import com.openai.models.models.Model;
 import com.openai.models.models.ModelListPage;
@@ -29,17 +30,29 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.io.InterruptedIOException;
+import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 @SupportedAI(AIType.OPEN_AI_COMPATIBLE)
 @Configurable
 public class OpenAICompatibleInferenceService implements InferenceService, InitializingBean, DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(OpenAICompatibleInferenceService.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static final int DEFAULT_TIMEOUT_SECONDS = 300;
+    public static final int DEFAULT_MAX_RETRIES = 2;
+
+    private static final Pattern CONTEXT_OVERFLOW = Pattern.compile(
+            "context[ _-]?(length|window|size)|maximum context|too many tokens|token limit|prompt is too long"
+                    + "|context.{0,30}too (long|large)|too (long|large).{0,30}context|exceeds? .{0,40}(context|tokens)",
+            Pattern.CASE_INSENSITIVE);
 
     @Autowired
     private TokenizerService tokenizerService;
@@ -57,18 +70,52 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     @Override
     public List<String> getModels() {
-        OpenAIClient client = openClient();
+        try {
+            OpenAIClient client = openClient();
 
-        ModelListPage modelList = client.models().list();
-        List<Model> models = modelList.data();
+            ModelListPage modelList = client.models().list();
+            List<Model> models = modelList.data();
 
-        if (models.isEmpty()) {
-            log.info("Connection successful, but no models were returned.");
-        } else {
-            log.info("Connection successful!");
+            if (models.isEmpty()) {
+                log.info("Connection successful, but no models were returned.");
+            } else {
+                log.info("Connection successful!");
+            }
+
+            return models.stream().map(Model::id).toList();
+        } catch (RuntimeException e) {
+            throw translateException(e);
+        }
+    }
+
+    @Override
+    public List<String> testConnection() {
+        List<String> models;
+        try {
+            models = getModels();
+        } catch (InferenceException e) {
+            // not every compatible server has the endpoint, the completion decides
+            if (e.getType() != Type.NOT_FOUND) {
+                throw e;
+            }
+            models = List.of();
         }
 
-        return models.stream().map(Model::id).toList();
+        try {
+            ChatCompletionCreateParams.Builder params = ChatCompletionCreateParams.builder()
+                    .model(ai.getModel())
+                    .addUserMessage("Say OK.");
+            Set<String> overridden = applyAdditionalParameters(params);
+            if (!overridden.contains("max_completion_tokens")) {
+                params.maxCompletionTokens(1);
+            }
+            openClient().chat().completions().create(params.build());
+        } catch (RuntimeException e) {
+            throw translateException(e);
+        } catch (Exception e) {
+            throw new InferenceException(Type.UNKNOWN, null, e.getMessage(), e);
+        }
+        return models;
     }
 
     @Override
@@ -105,15 +152,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 .model(ai.getModel())
                 .messages(messages);
 
-        // additional parameters go into the request body as they are and win over the same settings below
-        Set<String> overridden = new HashSet<>();
-        if (ai.getAdditionalParameters() != null) {
-            for (Map.Entry<String, JsonElement> parameter : ai.getAdditionalParameters().entrySet()) {
-                paramsBuilder.putAdditionalBodyProperty(parameter.getKey(),
-                        JsonValue.fromJsonNode(objectMapper.readTree(parameter.getValue().toString())));
-                overridden.add(parameter.getKey());
-            }
-        }
+        Set<String> overridden = applyAdditionalParameters(paramsBuilder);
 
         int responseTokens = TokenLimits.responseTokens(ai, protocol);
         if (responseTokens > 0 && !overridden.contains("max_completion_tokens")) {
@@ -154,7 +193,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             } catch (Throwable e) {
                 log.error("Failed to start streaming inference: {}", e.getMessage(), e);
                 try {
-                    callback.onError(e);
+                    callback.onError(translate(e));
                 } catch (Exception ex) {
                     log.error("Error during callback.onError", ex);
                 }
@@ -163,11 +202,146 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         return cancellationToken;
     }
 
+    /**
+     * Additional parameters go into the request body as they are and win over the same settings of the AI and the
+     * protocol.
+     *
+     * @return names of the parameters that were set
+     */
+    private Set<String> applyAdditionalParameters(ChatCompletionCreateParams.Builder paramsBuilder) {
+        Set<String> overridden = new HashSet<>();
+        if (ai.getAdditionalParameters() != null) {
+            for (Map.Entry<String, JsonElement> parameter : ai.getAdditionalParameters().entrySet()) {
+                try {
+                    paramsBuilder.putAdditionalBodyProperty(parameter.getKey(),
+                            JsonValue.fromJsonNode(objectMapper.readTree(parameter.getValue().toString())));
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Invalid additional parameter " + parameter.getKey(), e);
+                }
+                overridden.add(parameter.getKey());
+            }
+        }
+        return overridden;
+    }
+
     private OpenAIClient openClient() {
+        int timeoutSeconds = ai.getRequestTimeoutSeconds() != null && ai.getRequestTimeoutSeconds() > 0
+                ? ai.getRequestTimeoutSeconds() : DEFAULT_TIMEOUT_SECONDS;
+        int retries = ai.getMaxRetries() != null && ai.getMaxRetries() >= 0 ? ai.getMaxRetries() : DEFAULT_MAX_RETRIES;
+        Duration timeout = Duration.ofSeconds(timeoutSeconds);
+
+        // read is the wait for the first text and between the chunks; the whole request limit must not cut a long
+        // story in the middle, so it is much longer
+        Timeout timeouts = Timeout.builder()
+                .connect(timeout.compareTo(Duration.ofSeconds(30)) < 0 ? timeout : Duration.ofSeconds(30))
+                .read(timeout)
+                .write(timeout)
+                .request(timeout.compareTo(Duration.ofHours(1)) > 0 ? timeout : Duration.ofHours(1))
+                .build();
+
+        // the client retries 408, 409, 429, 5xx and connection errors with growing waits (and honors Retry-After)
         return OpenAIOkHttpClient.builder()
                 .baseUrl(ai.getUri())
                 .apiKey(ai.getApiKey())
+                .timeout(timeouts)
+                .maxRetries(retries)
                 .build();
+    }
+
+    private static Throwable translate(Throwable e) {
+        return e instanceof RuntimeException r ? translateException(r) : e;
+    }
+
+    /**
+     * Maps what the client threw to an {@link InferenceException} the user can act on; other exceptions are returned
+     * as they are.
+     */
+    static RuntimeException translateException(RuntimeException e) {
+        if (e instanceof InferenceException) {
+            return e;
+        }
+        if (e instanceof OpenAIServiceException service) {
+            int status = service.statusCode();
+            String message = providerMessage(service);
+            String code = service.code().orElse("");
+            String lower = (code + " " + StringUtils.defaultString(message)).toLowerCase();
+
+            Type type;
+            if (status == 401) {
+                type = Type.AUTHENTICATION;
+            } else if (status == 403) {
+                type = Type.PERMISSION;
+            } else if (status == 404) {
+                type = lower.contains("model") ? Type.MODEL_NOT_FOUND : Type.NOT_FOUND;
+            } else if (status == 408 || status == 504) {
+                type = Type.TIMEOUT;
+            } else if (status == 429) {
+                type = Type.RATE_LIMIT;
+            } else if (status >= 500) {
+                type = Type.SERVER;
+            } else if (code.equals("context_length_exceeded") || CONTEXT_OVERFLOW.matcher(lower).find()) {
+                type = Type.CONTEXT_OVERFLOW;
+            } else if (lower.contains("model_not_found") || (lower.contains("model") && lower.contains("not exist"))) {
+                type = Type.MODEL_NOT_FOUND;
+            } else {
+                type = Type.BAD_REQUEST;
+            }
+            return new InferenceException(type, status, message, e);
+        }
+        if (e instanceof OpenAIIoException io) {
+            boolean timeout = false;
+            for (Throwable t = io; t != null; t = t.getCause()) {
+                if (t instanceof SocketTimeoutException
+                        || (t instanceof InterruptedIOException && StringUtils.containsIgnoreCase(t.getMessage(), "timeout"))) {
+                    timeout = true;
+                    break;
+                }
+                if (t.getCause() == t) {
+                    break;
+                }
+            }
+            Throwable root = io.getCause() != null ? io.getCause() : io;
+            return new InferenceException(timeout ? Type.TIMEOUT : Type.CONNECTION, null,
+                    root.getClass().getSimpleName() + (root.getMessage() != null ? ": " + root.getMessage() : ""), e);
+        }
+        return e;
+    }
+
+    /** The {@code error.message} of the provider's answer, otherwise its whole body. */
+    private static String providerMessage(OpenAIServiceException e) {
+        try {
+            JsonValue body = e.body();
+            Map<String, JsonValue> object = asObject(body);
+            if (object != null) {
+                JsonValue error = object.get("error");
+                Map<String, JsonValue> errorObject = asObject(error);
+                if (errorObject != null && asString(errorObject.get("message")) != null) {
+                    return asString(errorObject.get("message"));
+                }
+                if (asString(error) != null) {
+                    return asString(error);
+                }
+                if (asString(object.get("message")) != null) {
+                    return asString(object.get("message"));
+                }
+            }
+            if (asString(body) != null) {
+                return asString(body);
+            }
+            return body.isNull() || body.isMissing() ? null : body.toString();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    // the client's JsonValue is a raw type for Java, its accessors need the casts
+    @SuppressWarnings("unchecked")
+    private static Map<String, JsonValue> asObject(JsonValue value) {
+        return value == null ? null : (Map<String, JsonValue>) value.asObject().orElse(null);
+    }
+
+    private static String asString(JsonValue value) {
+        return value == null ? null : (String) value.asString().orElse(null);
     }
 
     @Override
@@ -280,7 +454,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     completed = true;
                     closeStream();
                     try {
-                        callback.onError(e);
+                        callback.onError(translate(e));
                     } catch (Exception ex) {
                         log.error("Error invoking callback.onError", ex);
                     }

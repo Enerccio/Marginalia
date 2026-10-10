@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.utils;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.UIConstants;
+import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ErrorDialog;
@@ -63,6 +64,20 @@ public class UIUtils {
         ErrorDialog errorDialog = new ErrorDialog(errorMessage, cause);
 
         errorDialog.open(true);
+    }
+
+    /**
+     * Failure of a request to an inference provider: a notification with what to fix, an error dialog when it is
+     * not a provider failure.
+     */
+    public static void inferenceError(Localization loc, Throwable cause) {
+        String description = InferenceErrors.describe(loc, cause);
+        if (description == null) {
+            internalServerError(loc, cause);
+            return;
+        }
+        log.warn("Inference request failed: {}", cause.getMessage());
+        Notification.error(description, Notification.DURATION_LONGER);
     }
 
     public static void internalServerError(Localization loc, Throwable cause) {

@@ -5,8 +5,10 @@ import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.service.AIService;
+import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
+import com.github.enerccio.marginalia.domain.service.impl.inference.OpenAICompatibleInferenceService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -31,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Configurable
@@ -75,6 +78,9 @@ public class AIDialog extends Dialog {
     private ComboBox<String> modelCombo;
     private Button refreshModelsButton;
     private TextArea additionalParametersField;
+    private IntegerField requestTimeoutField;
+    private IntegerField maxRetriesField;
+    private Button testConnectionButton;
 
     public AIDialog() {
         this(null);
@@ -224,6 +230,22 @@ public class AIDialog extends Dialog {
         additionalParametersField = new TextArea(loc.getValue(L.LABEL_ADDITIONAL_PARAMETERS));
         additionalParametersField.setWidthFull();
         ResizableTextArea.install(loc, additionalParametersField, "120px");
+
+        requestTimeoutField = new IntegerField(loc.getValue(L.LABEL_REQUEST_TIMEOUT));
+        requestTimeoutField.setMin(1);
+        requestTimeoutField.setHelperText(loc.getValue(L.HELP_AI_REQUEST_TIMEOUT));
+        requestTimeoutField.setValue(OpenAICompatibleInferenceService.DEFAULT_TIMEOUT_SECONDS);
+        requestTimeoutField.setWidthFull();
+
+        maxRetriesField = new IntegerField(loc.getValue(L.LABEL_MAX_RETRIES));
+        maxRetriesField.setMin(0);
+        maxRetriesField.setMax(10);
+        maxRetriesField.setStepButtonsVisible(true);
+        maxRetriesField.setHelperText(loc.getValue(L.HELP_AI_MAX_RETRIES));
+        maxRetriesField.setValue(OpenAICompatibleInferenceService.DEFAULT_MAX_RETRIES);
+        maxRetriesField.setWidthFull();
+
+        testConnectionButton = new Button(loc.getValue(L.LABEL_TEST_CONNECTION), event -> testConnection());
     }
 
     private void updateDynamicFields(AIType type) {
@@ -241,7 +263,8 @@ public class AIDialog extends Dialog {
             modelLayout.add(modelCombo, refreshModelsButton);
             modelLayout.setFlexGrow(1, modelCombo);
 
-            dynamicFormLayout.add(urlField, apiKeyLayout, modelLayout, additionalParametersField);
+            dynamicFormLayout.add(urlField, apiKeyLayout, modelLayout, requestTimeoutField, maxRetriesField,
+                    additionalParametersField, testConnectionButton);
             dynamicFormLayout.setColspan(urlField, 2);
             dynamicFormLayout.setColspan(apiKeyLayout, 2);
             dynamicFormLayout.setColspan(modelLayout, 2);
@@ -282,42 +305,108 @@ public class AIDialog extends Dialog {
             }
 
             additionalParametersField.setValue(gson.toJson(compatible.getAdditionalParameters()));
+            requestTimeoutField.setValue(compatible.getRequestTimeoutSeconds() != null && compatible.getRequestTimeoutSeconds() > 0
+                    ? compatible.getRequestTimeoutSeconds() : OpenAICompatibleInferenceService.DEFAULT_TIMEOUT_SECONDS);
+            maxRetriesField.setValue(compatible.getMaxRetries() != null && compatible.getMaxRetries() >= 0
+                    ? compatible.getMaxRetries() : OpenAICompatibleInferenceService.DEFAULT_MAX_RETRIES);
         }
     }
 
-    private void fetchModels() {
-        String url = urlField.getValue();
-        if (StringUtils.isBlank(url)) {
+    /**
+     * Provider with the values currently in the dialog (not saved), null when they can't be used - the user was told
+     * why.
+     */
+    private OpenAICompatible currentProvider(boolean needsModel) {
+        if (StringUtils.isBlank(urlField.getValue()) || (needsModel && StringUtils.isBlank(modelCombo.getValue()))) {
             Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
-            return;
+            return null;
         }
 
         OpenAICompatible compatible = (ai instanceof OpenAICompatible c) ? c : null;
 
-        if (compatible != null || typeCombo.getValue() == AIType.OPEN_AI_COMPATIBLE) {
-            String apiKeyToUse;
-            if (apiKeyField.isEnabled()) {
-                apiKeyToUse = apiKeyField.getValue();
-            } else if (compatible != null) {
-                apiKeyToUse = compatible.getApiKey();
-            } else {
-                return;
+        String apiKeyToUse;
+        if (apiKeyField.isEnabled()) {
+            apiKeyToUse = apiKeyField.getValue();
+        } else if (compatible != null) {
+            apiKeyToUse = compatible.getApiKey();
+        } else {
+            return null;
+        }
+
+        OpenAICompatible copy = new OpenAICompatible();
+        copy.setAiType(AIType.OPEN_AI_COMPATIBLE);
+        copy.setUri(urlField.getValue().trim());
+        copy.setApiKey(apiKeyToUse);
+        copy.setModel(modelCombo.getValue());
+        copy.setModelName(modelCombo.getValue());
+        copy.setRequestTimeoutSeconds(requestTimeoutField.getValue());
+        copy.setMaxRetries(maxRetriesField.getValue());
+        if (StringUtils.isNotBlank(additionalParametersField.getValue())) {
+            try {
+                JsonElement parameters = JsonParser.parseString(additionalParametersField.getValue());
+                if (!parameters.isJsonObject()) {
+                    Notification.warning(loc.getValue(L.MSG_INVALID_JSON_OBJECT));
+                    return null;
+                }
+                copy.setAdditionalParameters(parameters.getAsJsonObject());
+            } catch (Exception e) {
+                Notification.warning(loc.getValue(L.MSG_INVALID_JSON_OBJECT));
+                return null;
+            }
+        }
+        return copy;
+    }
+
+    private void fetchModels() {
+        if (typeCombo.getValue() != AIType.OPEN_AI_COMPATIBLE) {
+            return;
+        }
+        OpenAICompatible copy = currentProvider(false);
+        if (copy == null) {
+            return;
+        }
+
+        try {
+            List<String> models = new ArrayList<>(inferenceServices.forAI(copy).getModels());
+
+            if (modelCombo.getValue() != null && !models.contains(modelCombo.getValue())) {
+                models.add(0, modelCombo.getValue());
             }
 
-            try {
-                OpenAICompatible copy = new OpenAICompatible();
-                copy.setAiType(AIType.OPEN_AI_COMPATIBLE);
-                copy.setUri(url);
-                copy.setApiKey(apiKeyToUse);
-                List<String> models = inferenceServices.forAI(copy).getModels();
-
-                if (modelCombo.getValue() != null && !models.contains(modelCombo.getValue())) {
-                    models.add(0, modelCombo.getValue());
-                }
-
-                modelCombo.setItems(models);
-            } catch (Exception e) {
+            modelCombo.setItems(models);
+        } catch (Exception e) {
+            if (InferenceErrors.find(e) != null) {
+                Notification.error(InferenceErrors.describe(loc, e), Notification.DURATION_LONGER);
+            } else {
                 UIUtils.showError(loc.getValue(L.MSG_FETCH_MODELS_FAILED), e);
+            }
+        }
+    }
+
+    /**
+     * Lists the models and asks the model for one token, with the values in the dialog. Not retried, so a wrong
+     * setting shows up at once.
+     */
+    private void testConnection() {
+        if (typeCombo.getValue() != AIType.OPEN_AI_COMPATIBLE) {
+            return;
+        }
+        OpenAICompatible copy = currentProvider(true);
+        if (copy == null) {
+            return;
+        }
+        copy.setMaxRetries(0);
+
+        try {
+            List<String> models = inferenceServices.forAI(copy).testConnection();
+            Notification.success(models.isEmpty()
+                    ? loc.getValue(L.MSG_CONNECTION_OK_NO_MODELS)
+                    : String.format(loc.getValue(L.MSG_CONNECTION_OK), models.size()));
+        } catch (Exception e) {
+            if (InferenceErrors.find(e) != null) {
+                Notification.error(InferenceErrors.describe(loc, e), Notification.DURATION_LONGER);
+            } else {
+                UIUtils.internalServerError(loc, e);
             }
         }
     }
@@ -342,6 +431,12 @@ public class AIDialog extends Dialog {
 
         if (type == AIType.OPEN_AI_COMPATIBLE) {
             if (StringUtils.isBlank(urlField.getValue()) || StringUtils.isBlank(modelCombo.getValue())) {
+                Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
+                return;
+            }
+
+            if (requestTimeoutField.getValue() == null || requestTimeoutField.getValue() <= 0
+                    || maxRetriesField.getValue() == null || maxRetriesField.getValue() < 0) {
                 Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
                 return;
             }
@@ -389,6 +484,8 @@ public class AIDialog extends Dialog {
                 compatible.setModelName(selectedModel);
                 compatible.setModel(selectedModel);
                 compatible.setAdditionalParameters(gson.fromJson(additionalParametersField.getValue(), JsonObject.class));
+                compatible.setRequestTimeoutSeconds(requestTimeoutField.getValue());
+                compatible.setMaxRetries(maxRetriesField.getValue());
             }
 
             ai = aiService.save(ai);

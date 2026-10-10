@@ -8,6 +8,17 @@ import java.util.List;
 public interface InferenceService {
 
     List<String> getModels();
+
+    /**
+     * Checks that the provider works with the configured model: lists the models and makes a minimal completion.
+     * Failures are thrown ({@link InferenceException} for what the provider answered).
+     *
+     * @return the models the provider lists, empty when it doesn't list them
+     */
+    default List<String> testConnection() {
+        return getModels();
+    }
+
     long countTokens(String text) throws Exception;
     long countTokensApprox(String text) throws Exception;
 

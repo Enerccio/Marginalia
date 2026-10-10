@@ -3,10 +3,12 @@ package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
+import com.github.enerccio.marginalia.domain.service.TokenLimits;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.loc.L;
@@ -14,10 +16,13 @@ import com.github.enerccio.tools.Pointer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
 public class InferenceStep extends GenerationStepBase {
+    private static final Logger log = LoggerFactory.getLogger(InferenceStep.class);
     private static final Gson gson = new GsonBuilder().create();
 
 
@@ -26,8 +31,10 @@ public class InferenceStep extends GenerationStepBase {
         controller.emitEvent(Events.BEFORE_INFERENCE, () -> {
             InferenceService inferenceService = inferenceServices.forAI(controller.getManuscript().getAi());
 
-            controller.getMessage().setPromptTokens(inferenceService.countTokens(gson.toJson(controller.getPayload())));
+            long promptTokens = inferenceService.countTokens(gson.toJson(controller.getPayload()));
+            controller.getMessage().setPromptTokens(promptTokens);
             controller.setMessage(chatMessageService.save(controller.getMessage()));
+            warnIfOverflowing(controller, promptTokens);
 
             Pointer<Long> lastChunkReceived = new Pointer<>(System.currentTimeMillis());
             inferenceService.stream(controller.getPayload(), controller.getManuscript().getProtocol(), new InferenceAsyncCallback() {
@@ -130,7 +137,14 @@ public class InferenceStep extends GenerationStepBase {
                     controller.setManuscript(manuscriptService.save(manuscript));
                     ChatMessage chatMessage = controller.getMessage();
                     chatMessageService.save(chatMessage);
-                    controller.getUIListener().onError(exception);
+                    String description = InferenceErrors.describe(loc, exception);
+                    if (description != null) {
+                        // the provider's answer, not a bug: say what to fix
+                        log.warn("Inference request failed: {}", exception.getMessage());
+                        controller.getUIListener().onSimpleError(description);
+                    } else {
+                        controller.getUIListener().onError(exception);
+                    }
                     controller.jumpTo(GenerationStepType.CLEANUP);
                 }
 
@@ -140,6 +154,19 @@ public class InferenceStep extends GenerationStepBase {
                 }
             });
         });
+    }
+
+    /**
+     * The prompt is trimmed to the budget when it is built, but extensions and the counting of the JSON payload can
+     * still push it over: the provider would reject or cut it.
+     */
+    private void warnIfOverflowing(GenerationController controller, long promptTokens) {
+        int context = TokenLimits.contextTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol());
+        int response = TokenLimits.responseTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol());
+        if (context > 0 && promptTokens + response > context) {
+            log.warn("Prompt of {} tokens and response of {} exceed the context of {}", promptTokens, response, context);
+            controller.getUIListener().onWarning(String.format(loc.getValue(L.MSG_PROMPT_MAY_OVERFLOW), promptTokens, response, context));
+        }
     }
 
     private ChatMessage saveIfNecessary(ChatMessage chatMessage, Pointer<Long> lastChunkReceived) throws Exception {

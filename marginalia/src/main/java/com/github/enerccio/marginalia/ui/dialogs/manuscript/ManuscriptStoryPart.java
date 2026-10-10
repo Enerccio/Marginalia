@@ -870,6 +870,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                         }
 
                         @Override
+                        public void onWarning(String warning) {
+                            ui.access(() -> {
+                                Notification.warning(warning);
+                                UIPushGuard.push(ui);
+                            });
+                        }
+
+                        @Override
                         public void askQuestion(String question, Runnable yes, Runnable no) {
                             ui.access(() -> {
                                 ConfirmDialog.show(question, yes, no);

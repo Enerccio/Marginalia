@@ -27,6 +27,10 @@ public interface GenerationListener {
     /** For simple failures like validation etc. */
     void onSimpleError(String error);
 
+    /** Something the user should know, the generation goes on. */
+    default void onWarning(String warning) {
+    }
+
     /** Display dialog */
     void askQuestion(String question, Runnable yes, Runnable no);
 }

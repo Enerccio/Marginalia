@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -274,7 +275,7 @@ public class ReviewDialog extends Dialog {
                 public void onError(Throwable exception) {
                     ui.access(() -> {
                         isGenerating = null;
-                        currentItem.setText("Error generating review: " + exception.getMessage());
+                        currentItem.setText("Error generating review: " + InferenceErrors.messageOf(loc, exception));
                         displayReview();
                         UIPushGuard.push(ui);
                     });

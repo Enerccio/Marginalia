@@ -258,6 +258,9 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_DELETE_SELECTED, "Delete selected");
         setValue(L.LABEL_WITH_IMAGES, "With images");
         setValue(L.LABEL_WITHOUT_IMAGES, "Without images");
+        setValue(L.LABEL_REQUEST_TIMEOUT, "Timeout (seconds)");
+        setValue(L.LABEL_MAX_RETRIES, "Retries");
+        setValue(L.LABEL_TEST_CONNECTION, "Test Connection");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -303,6 +306,18 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ERROR_NAME_CANT_BE_EMPTY, "Name can't be empty.");
         setValue(L.ERROR_EXPORT_RANGE_INVALID, "The last message can't be before the first message.");
         setValue(L.ERROR_INVALID_IMAGE, "The file is not a PNG, JPEG, GIF or WebP image, or it is larger than 10 MB.");
+        setValue(L.ERROR_INFERENCE_DETAILS, "%s Provider says: %s");
+        setValue(L.ERROR_INFERENCE_AUTHENTICATION, "The provider rejected the API key. Check the API key of the inference provider.");
+        setValue(L.ERROR_INFERENCE_PERMISSION, "The API key is not allowed to use this model or endpoint.");
+        setValue(L.ERROR_INFERENCE_MODEL_NOT_FOUND, "The provider does not know the configured model. Check the model of the inference provider.");
+        setValue(L.ERROR_INFERENCE_NOT_FOUND, "Nothing was found at the configured URL. Check the URL of the inference provider (it usually ends with /v1).");
+        setValue(L.ERROR_INFERENCE_CONTEXT_OVERFLOW, "The prompt does not fit into the context of the model. Lower Max Context Size or the response size, or use a model with a larger context.");
+        setValue(L.ERROR_INFERENCE_RATE_LIMIT, "The provider is limiting requests (rate limit or quota). Wait a moment and try again.");
+        setValue(L.ERROR_INFERENCE_SERVER, "The provider failed to process the request. Try again later.");
+        setValue(L.ERROR_INFERENCE_TIMEOUT, "The provider did not answer in time. Try again or raise the timeout of the inference provider.");
+        setValue(L.ERROR_INFERENCE_CONNECTION, "Cannot connect to the provider. Check the URL of the inference provider and your network.");
+        setValue(L.ERROR_INFERENCE_BAD_REQUEST, "The provider rejected the request. Check the model and the additional parameters of the inference provider.");
+        setValue(L.ERROR_INFERENCE_UNKNOWN, "The request to the provider failed.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -366,6 +381,9 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_PACKING_BACKUP, "Packing the backup");
         setValue(L.MSG_BACKUP_READY, "The backup is ready: %s");
         setValue(L.MSG_BACKUP_IMAGES_MISSING, "%s images could not be packed, because they were deleted or their files are missing.");
+        setValue(L.MSG_CONNECTION_OK, "Connection works: %s models available and the model answered.");
+        setValue(L.MSG_CONNECTION_OK_NO_MODELS, "Connection works: the model answered (the provider does not list its models).");
+        setValue(L.MSG_PROMPT_MAY_OVERFLOW, "The prompt has about %s tokens and %s are kept for the response, the context size is %s. The provider may reject the request or cut the prompt.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -374,6 +392,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.HELP_AI_MAX_RESPONSE, "Longest response. This much of the context is kept free for the response.");
         setValue(L.HELP_PROTOCOL_MAX_TOKENS, "Optional. Empty uses Max Context Size of the inference provider.");
         setValue(L.HELP_PROTOCOL_REPLY_TOKENS, "Optional. Empty uses Max Response Tokens of the inference provider.");
+        setValue(L.HELP_AI_REQUEST_TIMEOUT, "How long to wait for the provider to answer or to send more text. Reasoning models may need minutes before the first text.");
+        setValue(L.HELP_AI_MAX_RETRIES, "Retries of a request that failed with a rate limit (429), a server error (5xx) or a connection error. The wait between them grows.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
