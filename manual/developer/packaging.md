@@ -1,7 +1,7 @@
 ---
 label: Packaging & releases
 order: 880
-verified: 136c8cc
+verified: 4814e70
 covers:
   - Dockerfile
   - docker-compose.yml
