@@ -80,6 +80,9 @@ cd Marginalia
 docker compose up -d
 ```
 
+To use the prebuilt image (`ghcr.io/enerccio/marginalia`, amd64 and arm64) instead of building it, see the
+[Docker guide](manual/user/getting-started/docker-server.md#prebuilt-image).
+
 Marginalia is then available on port 8080 and keeps its data in `./data`. Memory and other JVM options are set in
 `docker-compose.yml` (`JAVA_TOOL_OPTIONS`).
 
