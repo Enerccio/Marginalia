@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844957698746">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959155006">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844957698746" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844959155006" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844957698746" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844959155006" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844957698746" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844957698746" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844959155006" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844959155006" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -182,6 +182,16 @@ docker compose up -d</code></pre>
 </doc-codeblock></div>
 <p>The first <code translate="no" v-pre>docker compose up</code> builds the image from source, which takes a few minutes. Marginalia then listens on port
 <strong>8080</strong>. Open <code translate="no" v-pre>http://&lt;server&gt;:8080</code> and create the administrator account (see <a href="../first-start/">First start</a>).</p>
+<h3 id="prebuilt-image">Prebuilt image</h3>
+<p>Instead of building from source you can use the image published with each release (<code translate="no" v-pre>linux/amd64</code> and <code translate="no" v-pre>linux/arm64</code>).
+In <code translate="no" v-pre>docker-compose.yml</code>, replace the <code translate="no" v-pre>build:</code> block with <code translate="no" v-pre>image:</code>:</p>
+<div id="prebuilt-image-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-yaml"><code v-pre class="language-yaml">services:
+  marginalia:
+    image: ghcr.io/enerccio/marginalia:latest</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>latest</code> is the newest release, <code translate="no" v-pre>edge</code> the development version, and <code translate="no" v-pre>1.0.0</code> (or <code translate="no" v-pre>1.0</code>) pins a release. The rest of
+the file stays the same.</p>
 <h2 id="configuration">Configuration</h2>
 <p>Everything is set in <code translate="no" v-pre>docker-compose.yml</code>:</p>
 <div id="configuration-code-1" class="codeblock-wrapper"><doc-codeblock>
@@ -310,6 +320,7 @@ Docker host (llama.cpp, Ollama, LM Studio...), use the address <code translate="
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">git pull
 docker compose up -d --build</code></pre>
 </doc-codeblock></div>
+<p>With the <doc-anchor-trigger to="#prebuilt-image">prebuilt image</doc-anchor-trigger> use <code translate="no" v-pre>docker compose pull</code> and <code translate="no" v-pre>docker compose up -d</code> instead.</p>
 <p>The database is upgraded automatically when the new version starts. Make a
 <a href="../../administration/database-backups/">database backup</a> first.</p>
 <h2 id="logs">Logs</h2>

@@ -25,6 +25,20 @@ docker compose up -d
 The first `docker compose up` builds the image from source, which takes a few minutes. Marginalia then listens on port
 **8080**. Open `http://<server>:8080` and create the administrator account (see [First start](first-start.md)).
 
+### Prebuilt image
+
+Instead of building from source you can use the image published with each release (`linux/amd64` and `linux/arm64`).
+In `docker-compose.yml`, replace the `build:` block with `image:`:
+
+```yaml
+services:
+  marginalia:
+    image: ghcr.io/enerccio/marginalia:latest
+```
+
+`latest` is the newest release, `edge` the development version, and `1.0.0` (or `1.0`) pins a release. The rest of
+the file stays the same.
+
 ## Configuration
 
 Everything is set in `docker-compose.yml`:
@@ -126,6 +140,8 @@ The model server must also listen on an address the container can reach, not onl
 git pull
 docker compose up -d --build
 ```
+
+With the [prebuilt image](#prebuilt-image) use `docker compose pull` and `docker compose up -d` instead.
 
 The database is upgraded automatically when the new version starts. Make a
 [database backup](../administration/database-backups.md) first.

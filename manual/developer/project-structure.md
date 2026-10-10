@@ -24,7 +24,8 @@ Marginalia/
 │   └── images/              screenshots used by the manual and the READMEs
 ├── docs/                    generated manual, served by GitHub Pages - don't edit by hand
 ├── .github/workflows/
-│   └── desktop.yml          CI: tests, desktop builds for 5 platforms, release upload
+│   ├── desktop.yml          CI: tests, desktop builds for 5 platforms, release upload
+│   └── server.yml           CI: WAR, plugin JARs, Docker image (ghcr.io), release upload
 ├── Dockerfile               two-stage build: Maven builder → Jetty 12 image
 ├── docker-compose.yml       the server setup (port 8080, ./data volume, JVM options)
 ├── retype.yml               manual configuration (input manual/, output docs/)

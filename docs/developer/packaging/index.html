@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844957698746">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959155006">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844957698746" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844959155006" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844957698746" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959155006" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844957698746" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844957698746" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959155006" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844959155006" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -179,10 +179,10 @@ For everyday builds see <a href="../building/">Building from source</a>.</p>
     src -.-&gt; plugins[&quot;plugin JARs&lt;br/&gt;(built separately)&quot;]</pre></div>
 <retype-table copy-text="| Artifact | Built by | Where it goes |
 |---|---|---|
-| WAR | `mvn package` | Input of the other two; can be deployed to any Servlet 6.1 container. |
-| Docker image | `Dockerfile`, `docker compose build` | Built from source on the server; no image is published. |
+| WAR | `mvn package` | Input of the other two; can be deployed to any Servlet 6.1 container. Attached to GitHub releases for `v*` tags. |
+| Docker image | `Dockerfile`, `docker compose build`, `.github/workflows/server.yml` | `ghcr.io/enerccio/marginalia` (amd64 + arm64) for `master` and `v*` tags; or built from source with compose. |
 | Desktop archives | `mvn package -Pdesktop`, `.github/workflows/desktop.yml` | Attached to GitHub releases for `v*` tags. |
-| Plugin JARs | `mvn package` in `marginalia/plugins/&lt;plugin&gt;` | Built by hand; not part of CI or the releases. |
+| Plugin JARs | `mvn package` in `marginalia/plugins/&lt;plugin&gt;`, `.github/workflows/server.yml` | Attached to GitHub releases for `v*` tags. |
 | Manual | `retype build` | `docs/`, served by GitHub Pages. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -197,12 +197,12 @@ For everyday builds see <a href="../building/">Building from source</a>.</p>
 <tr>
 <td>WAR</td>
 <td><code translate="no" v-pre>mvn package</code></td>
-<td>Input of the other two; can be deployed to any Servlet 6.1 container.</td>
+<td>Input of the other two; can be deployed to any Servlet 6.1 container. Attached to GitHub releases for <code translate="no" v-pre>v*</code> tags.</td>
 </tr>
 <tr>
 <td>Docker image</td>
-<td><code translate="no" v-pre>Dockerfile</code>, <code translate="no" v-pre>docker compose build</code></td>
-<td>Built from source on the server; no image is published.</td>
+<td><code translate="no" v-pre>Dockerfile</code>, <code translate="no" v-pre>docker compose build</code>, <code translate="no" v-pre>.github/workflows/server.yml</code></td>
+<td><code translate="no" v-pre>ghcr.io/enerccio/marginalia</code> (amd64 + arm64) for <code translate="no" v-pre>master</code> and <code translate="no" v-pre>v*</code> tags; or built from source with compose.</td>
 </tr>
 <tr>
 <td>Desktop archives</td>
@@ -211,8 +211,8 @@ For everyday builds see <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td>Plugin JARs</td>
-<td><code translate="no" v-pre>mvn package</code> in <code translate="no" v-pre>marginalia/plugins/&lt;plugin&gt;</code></td>
-<td>Built by hand; not part of CI or the releases.</td>
+<td><code translate="no" v-pre>mvn package</code> in <code translate="no" v-pre>marginalia/plugins/&lt;plugin&gt;</code>, <code translate="no" v-pre>.github/workflows/server.yml</code></td>
+<td>Attached to GitHub releases for <code translate="no" v-pre>v*</code> tags.</td>
 </tr>
 <tr>
 <td>Manual</td>
@@ -327,9 +327,10 @@ server&#x27;s <code translate="no" v-pre>data/</code> folder and the plugin fold
 </table>
 </div>
 </retype-table>
-<p>The image is not published to a registry; users build it with <code translate="no" v-pre>docker compose up -d --build</code> from a clone (see
-<a href="../../user/getting-started/docker-server/">Server (Docker)</a>). If you publish one, tag it with the release version and
-keep the data volume and <code translate="no" v-pre>JAVA_TOOL_OPTIONS</code> as in <code translate="no" v-pre>docker-compose.yml</code>.</p>
+<p><code translate="no" v-pre>server.yml</code> publishes the image to the GitHub Container Registry (see <doc-anchor-trigger to="#continuous-integration">Continuous integration</doc-anchor-trigger>),
+users can also build it with <code translate="no" v-pre>docker compose up -d --build</code> from a clone (see
+<a href="../../user/getting-started/docker-server/">Server (Docker)</a>). A published image is used with the same data volume and
+<code translate="no" v-pre>JAVA_TOOL_OPTIONS</code> as in <code translate="no" v-pre>docker-compose.yml</code>.</p>
 <p>To try a change in the image:</p>
 <div id="docker-image-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">docker compose build
@@ -459,13 +460,16 @@ one exact version of the application:</p>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia &amp;&amp; mvn install -DskipTests
 cd plugins/reviewer &amp;&amp; mvn package        # target/reviewer-1.0.0.jar</code></pre>
 </doc-codeblock></div>
-<p>CI doesn&#x27;t build the plugins and releases don&#x27;t contain them. When you change application classes that a plugin
+<p><code translate="no" v-pre>server.yml</code> builds all five plugins against the freshly installed application and attaches the JARs to the release
+of a <code translate="no" v-pre>v*</code> tag; the Docker image doesn&#x27;t contain them (server users put them into <code translate="no" v-pre>&lt;data folder&gt;/extensions</code> or install
+them in Admin → Extensions). When you change application classes that a plugin
 uses (decorated <code translate="no" v-pre>@Extendable</code> methods, UI classes, services), rebuild the plugin and test it against the new
 application. See <a href="../plugins/">Plugin development</a>.</p>
 <h2 id="continuous-integration">Continuous integration</h2>
-<p><code translate="no" v-pre>.github/workflows/desktop.yml</code> is the only workflow. It runs on pushes to <code translate="no" v-pre>master</code>, on <code translate="no" v-pre>v*</code> tags, on pull requests
-that change <code translate="no" v-pre>marginalia/**</code> or the workflow, and by hand (<em>workflow_dispatch</em>). A newer run on the same ref cancels
-the running one.</p>
+<p>Two workflows, <code translate="no" v-pre>desktop.yml</code> (tests and the desktop archives) and <code translate="no" v-pre>server.yml</code> (WAR, plugins, Docker image). Both run
+on pushes to <code translate="no" v-pre>master</code>, on <code translate="no" v-pre>v*</code> tags, on pull requests that change <code translate="no" v-pre>marginalia/**</code> or the workflow, and by hand
+(<em>workflow_dispatch</em>). A newer run on the same ref cancels the running one.</p>
+<h3 id="desktopyml">desktop.yml</h3>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
     test[&quot;test&lt;br/&gt;mvn test (ubuntu)&quot;] --&gt; matrix
     subgraph matrix[&quot;desktop (matrix)&quot;]
@@ -516,6 +520,53 @@ the running one.</p>
 <code translate="no" v-pre>--home</code>, a fixed port, <code translate="no" v-pre>--no-browser --no-tray</code>, and waits up to three minutes until the start page contains
 <code translate="no" v-pre>&lt;title&gt;Marginalia&lt;/title&gt;</code>. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
 JDK module, a launcher that can&#x27;t find <code translate="no" v-pre>server/</code>, a WAR that doesn&#x27;t deploy - but doesn&#x27;t test any feature.</p>
+<h3 id="serveryml">server.yml</h3>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    build[&quot;build&lt;br/&gt;WAR + 5 plugins&quot;] --&gt; publish
+    docker[&quot;docker (amd64, arm64)&lt;br/&gt;build, smoke test, push by digest&quot;] --&gt; publish[&quot;publish&lt;br/&gt;multi-platform manifest&quot;]
+    publish --&gt; release[&quot;release&lt;br/&gt;(v* tags only)&quot;]</pre></div>
+<retype-table copy-text="| Job | Runs on | Does |
+|---|---|---|
+| `build` | `ubuntu-latest` | For `v*` tags, checks the tag against the POM version; `mvn -DskipTests install` (tests run in `desktop.yml`), then `mvn package` in every plugin; uploads the WAR and the plugin JARs (kept 14 days). |
+| `docker` | one native runner per platform | Builds the image from the `Dockerfile` (natively, because the Maven stage is too slow under emulation), starts a container with a root-owned bind-mounted data folder and waits for the start page, then (not for pull requests) pushes the image by digest. |
+| `publish` | `ubuntu-latest`, not for pull requests | Joins both digests into one multi-platform manifest and tags it: `edge` for `master`, `&lt;version&gt;`, `&lt;major&gt;.&lt;minor&gt;` and `latest` for `v*` tags. |
+| `release` | `ubuntu-latest`, `v*` tags only | Attaches the WAR and the plugin JARs to the GitHub release of the tag. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Job</th>
+<th>Runs on</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>build</code></td>
+<td><code translate="no" v-pre>ubuntu-latest</code></td>
+<td>For <code translate="no" v-pre>v*</code> tags, checks the tag against the POM version; <code translate="no" v-pre>mvn -DskipTests install</code> (tests run in <code translate="no" v-pre>desktop.yml</code>), then <code translate="no" v-pre>mvn package</code> in every plugin; uploads the WAR and the plugin JARs (kept 14 days).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>docker</code></td>
+<td>one native runner per platform</td>
+<td>Builds the image from the <code translate="no" v-pre>Dockerfile</code> (natively, because the Maven stage is too slow under emulation), starts a container with a root-owned bind-mounted data folder and waits for the start page, then (not for pull requests) pushes the image by digest.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>publish</code></td>
+<td><code translate="no" v-pre>ubuntu-latest</code>, not for pull requests</td>
+<td>Joins both digests into one multi-platform manifest and tags it: <code translate="no" v-pre>edge</code> for <code translate="no" v-pre>master</code>, <code translate="no" v-pre>&lt;version&gt;</code>, <code translate="no" v-pre>&lt;major&gt;.&lt;minor&gt;</code> and <code translate="no" v-pre>latest</code> for <code translate="no" v-pre>v*</code> tags.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>release</code></td>
+<td><code translate="no" v-pre>ubuntu-latest</code>, <code translate="no" v-pre>v*</code> tags only</td>
+<td>Attaches the WAR and the plugin JARs to the GitHub release of the tag.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The image is <code translate="no" v-pre>ghcr.io/&lt;owner&gt;/marginalia</code> and is pushed with the workflow&#x27;s <code translate="no" v-pre>GITHUB_TOKEN</code>. The package is private
+the first time it is pushed; make it public in the package settings on GitHub so that users can pull it without logging in.</p>
 <h2 id="making-a-release">Making a release</h2>
 <ol>
 <li><strong>Version.</strong> Set the new version in <code translate="no" v-pre>marginalia/pom.xml</code> (<code translate="no" v-pre>&lt;version&gt;</code>) and in the plugin POMs (the plugin
@@ -536,11 +587,13 @@ git push origin master v1.1.0</code></pre>
 </doc-codeblock></div>
 </li>
 <li><strong>Release.</strong> Create the GitHub release for the tag (by hand or <code translate="no" v-pre>gh release create v1.1.0</code>) with the release
-notes. The workflow attaches the ten desktop archives when the matrix finishes - if the release doesn&#x27;t exist yet,
-<code translate="no" v-pre>softprops/action-gh-release</code> creates it.</li>
-<li><strong>Plugins.</strong> Build the plugin JARs and attach them to the release if they changed.</li>
-<li><strong>Announce upgrades.</strong> Docker users update with <code translate="no" v-pre>git pull &amp;&amp; docker compose up -d --build</code>, desktop users replace
-the app. Remind them to make a <a href="../../user/administration/database-backups/">database backup</a> first when the
+notes. <code translate="no" v-pre>desktop.yml</code> attaches the ten desktop archives when its matrix finishes, <code translate="no" v-pre>server.yml</code> the WAR and the
+plugin JARs and pushes the Docker image - whichever finishes first creates the release if it doesn&#x27;t exist yet
+(<code translate="no" v-pre>softprops/action-gh-release</code>).</li>
+<li><strong>Plugins.</strong> The plugin versions must match the application version (point 1); the JARs are attached
+automatically.</li>
+<li><strong>Announce upgrades.</strong> Docker users update with <code translate="no" v-pre>docker compose pull &amp;&amp; docker compose up -d</code> (published image) or
+<code translate="no" v-pre>git pull &amp;&amp; docker compose up -d --build</code> (built from source), desktop users replace the app. Remind them to make a <a href="../../user/administration/database-backups/">database backup</a> first when the
 schema changed.</li>
 </ol>
 <h2 id="publishing-the-manual">Publishing the manual</h2>

@@ -30,10 +30,10 @@ flowchart LR
 
 | Artifact | Built by | Where it goes |
 |---|---|---|
-| WAR | `mvn package` | Input of the other two; can be deployed to any Servlet 6.1 container. |
-| Docker image | `Dockerfile`, `docker compose build` | Built from source on the server; no image is published. |
+| WAR | `mvn package` | Input of the other two; can be deployed to any Servlet 6.1 container. Attached to GitHub releases for `v*` tags. |
+| Docker image | `Dockerfile`, `docker compose build`, `.github/workflows/server.yml` | `ghcr.io/enerccio/marginalia` (amd64 + arm64) for `master` and `v*` tags; or built from source with compose. |
 | Desktop archives | `mvn package -Pdesktop`, `.github/workflows/desktop.yml` | Attached to GitHub releases for `v*` tags. |
-| Plugin JARs | `mvn package` in `marginalia/plugins/<plugin>` | Built by hand; not part of CI or the releases. |
+| Plugin JARs | `mvn package` in `marginalia/plugins/<plugin>`, `.github/workflows/server.yml` | Attached to GitHub releases for `v*` tags. |
 | Manual | `retype build` | `docs/`, served by GitHub Pages. |
 
 ## The WAR
@@ -87,9 +87,10 @@ server's `data/` folder and the plugin folders out of the build context.
 | `JAVA_TOOL_OPTIONS=-Duser.home=/var/marginalia ...` | Marginalia keeps its data in `${user.home}/.marginalia`, so this points it to the volume. Also the heap size and a heap dump on out-of-memory errors. |
 | `ports: 8080:8080` | Jetty's HTTP port. |
 
-The image is not published to a registry; users build it with `docker compose up -d --build` from a clone (see
-[Server (Docker)](../user/getting-started/docker-server.md)). If you publish one, tag it with the release version and
-keep the data volume and `JAVA_TOOL_OPTIONS` as in `docker-compose.yml`.
+`server.yml` publishes the image to the GitHub Container Registry (see [Continuous integration](#continuous-integration)),
+users can also build it with `docker compose up -d --build` from a clone (see
+[Server (Docker)](../user/getting-started/docker-server.md)). A published image is used with the same data volume and
+`JAVA_TOOL_OPTIONS` as in `docker-compose.yml`.
 
 To try a change in the image:
 
@@ -191,15 +192,19 @@ cd marginalia && mvn install -DskipTests
 cd plugins/reviewer && mvn package        # target/reviewer-1.0.0.jar
 ```
 
-CI doesn't build the plugins and releases don't contain them. When you change application classes that a plugin
+`server.yml` builds all five plugins against the freshly installed application and attaches the JARs to the release
+of a `v*` tag; the Docker image doesn't contain them (server users put them into `<data folder>/extensions` or install
+them in Admin → Extensions). When you change application classes that a plugin
 uses (decorated `@Extendable` methods, UI classes, services), rebuild the plugin and test it against the new
 application. See [Plugin development](plugins/index.md).
 
 ## Continuous integration
 
-`.github/workflows/desktop.yml` is the only workflow. It runs on pushes to `master`, on `v*` tags, on pull requests
-that change `marginalia/**` or the workflow, and by hand (*workflow_dispatch*). A newer run on the same ref cancels
-the running one.
+Two workflows, `desktop.yml` (tests and the desktop archives) and `server.yml` (WAR, plugins, Docker image). Both run
+on pushes to `master`, on `v*` tags, on pull requests that change `marginalia/**` or the workflow, and by hand
+(*workflow_dispatch*). A newer run on the same ref cancels the running one.
+
+### desktop.yml
 
 ```mermaid
 flowchart LR
@@ -228,6 +233,25 @@ The **smoke test** starts the native app (and on Linux and macOS also the portab
 `<title>Marginalia</title>`. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
 JDK module, a launcher that can't find `server/`, a WAR that doesn't deploy - but doesn't test any feature.
 
+### server.yml
+
+```mermaid
+flowchart LR
+    build["build<br/>WAR + 5 plugins"] --> publish
+    docker["docker (amd64, arm64)<br/>build, smoke test, push by digest"] --> publish["publish<br/>multi-platform manifest"]
+    publish --> release["release<br/>(v* tags only)"]
+```
+
+| Job | Runs on | Does |
+|---|---|---|
+| `build` | `ubuntu-latest` | For `v*` tags, checks the tag against the POM version; `mvn -DskipTests install` (tests run in `desktop.yml`), then `mvn package` in every plugin; uploads the WAR and the plugin JARs (kept 14 days). |
+| `docker` | one native runner per platform | Builds the image from the `Dockerfile` (natively, because the Maven stage is too slow under emulation), starts a container with a root-owned bind-mounted data folder and waits for the start page, then (not for pull requests) pushes the image by digest. |
+| `publish` | `ubuntu-latest`, not for pull requests | Joins both digests into one multi-platform manifest and tags it: `edge` for `master`, `<version>`, `<major>.<minor>` and `latest` for `v*` tags. |
+| `release` | `ubuntu-latest`, `v*` tags only | Attaches the WAR and the plugin JARs to the GitHub release of the tag. |
+
+The image is `ghcr.io/<owner>/marginalia` and is pushed with the workflow's `GITHUB_TOKEN`. The package is private
+the first time it is pushed; make it public in the package settings on GitHub so that users can pull it without logging in.
+
 ## Making a release
 
 1. **Version.** Set the new version in `marginalia/pom.xml` (`<version>`) and in the plugin POMs (the plugin
@@ -248,11 +272,13 @@ JDK module, a launcher that can't find `server/`, a WAR that doesn't deploy - bu
    ```
 
 6. **Release.** Create the GitHub release for the tag (by hand or `gh release create v1.1.0`) with the release
-   notes. The workflow attaches the ten desktop archives when the matrix finishes - if the release doesn't exist yet,
-   `softprops/action-gh-release` creates it.
-7. **Plugins.** Build the plugin JARs and attach them to the release if they changed.
-8. **Announce upgrades.** Docker users update with `git pull && docker compose up -d --build`, desktop users replace
-   the app. Remind them to make a [database backup](../user/administration/database-backups.md) first when the
+   notes. `desktop.yml` attaches the ten desktop archives when its matrix finishes, `server.yml` the WAR and the
+   plugin JARs and pushes the Docker image - whichever finishes first creates the release if it doesn't exist yet
+   (`softprops/action-gh-release`).
+7. **Plugins.** The plugin versions must match the application version (point 1); the JARs are attached
+   automatically.
+8. **Announce upgrades.** Docker users update with `docker compose pull && docker compose up -d` (published image) or
+   `git pull && docker compose up -d --build` (built from source), desktop users replace the app. Remind them to make a [database backup](../user/administration/database-backups.md) first when the
    schema changed.
 
 ## Publishing the manual
