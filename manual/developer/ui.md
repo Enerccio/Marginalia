@@ -149,7 +149,7 @@ leave the active tab. `UserPart` locks it while the settings have unsaved change
 in its layout (extension settings panels included) and unlocks on *Save*, *Discard Changes* or `refresh()`.
 
 The *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
-`DatabaseBackupPanel`, `CleanupPanel` and extensions tab. Note that the admin UI being hidden is not a permission
+`DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call `AdminGuard.requireAdmin()` themselves (see
 [Services](services.md#administration)).
 
