@@ -15,10 +15,7 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
-import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
-import com.github.enerccio.marginalia.ui.widgets.TextFieldPopOverComponent;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -215,21 +212,21 @@ public class UserPart implements WorkspaceComponent {
 
         masterTemplateField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_MASTER_TEMPLATE));
         masterTemplateField.setWidthFull();
-        masterTemplateField.setMinHeight("180px");
+        ResizableTextArea.install(loc, masterTemplateField, "240px");
         masterTemplateField.setPlaceholder(Defaults.DEFAULT_MASTER_TEMPLATE);
         masterTemplateField.setPopoverContent(createTemplateHintPopoverContent(
                 masterTemplateField, masterTemplateField.getPopover(), MasterTemplateData.class, Defaults.DEFAULT_MASTER_TEMPLATE));
 
         defaultUserPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_USER_PROMPT));
         defaultUserPromptField.setWidthFull();
-        defaultUserPromptField.setMinHeight("180px");
+        ResizableTextArea.install(loc, defaultUserPromptField, "240px");
         defaultUserPromptField.setPlaceholder(Defaults.DEFAULT_USER_PROMPT);
         defaultUserPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultUserPromptField, defaultUserPromptField.getPopover(), UserPromptData.class, Defaults.DEFAULT_USER_PROMPT));
 
         defaultStyleField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_STYLE));
         defaultStyleField.setWidthFull();
-        defaultStyleField.setMinHeight("120px");
+        ResizableTextArea.install(loc, defaultStyleField, "160px");
         defaultStyleField.setPlaceholder(Defaults.DEFAULT_STYLE);
         defaultStyleField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultStyleField, defaultStyleField.getPopover(), null, Defaults.DEFAULT_STYLE));
@@ -248,7 +245,7 @@ public class UserPart implements WorkspaceComponent {
 
         defaultSummaryPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_SUMMARY_PROMPT));
         defaultSummaryPromptField.setWidthFull();
-        defaultSummaryPromptField.setMinHeight("120px");
+        ResizableTextArea.install(loc, defaultSummaryPromptField, "160px");
         defaultSummaryPromptField.setPlaceholder(Defaults.DEFAULT_SUMMARY_PROMPT);
         defaultSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultSummaryPromptField, defaultSummaryPromptField.getPopover(), SummaryTemplateData.class, Defaults.DEFAULT_SUMMARY_PROMPT));

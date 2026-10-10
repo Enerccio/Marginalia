@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryServ
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
@@ -215,7 +216,7 @@ public class SideQueryTabContent extends VerticalLayout {
         userInputArea = new TextArea();
         userInputArea.setWidthFull();
         userInputArea.setPlaceholder("Enter query...");
-        userInputArea.setMinHeight("60px");
+        ResizableTextArea.install(loc, userInputArea, "100px");
 
         HorizontalLayout btnRow = new HorizontalLayout();
         btnRow.setWidthFull();

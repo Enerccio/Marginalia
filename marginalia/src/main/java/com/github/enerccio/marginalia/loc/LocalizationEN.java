@@ -228,6 +228,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_DISCARD_CHANGES, "Discard Changes");
         setValue(L.LABEL_UNLOCK_ACCOUNT, "Unlock account (too many failed logins)");
         setValue(L.LABEL_LANGUAGE, "Language");
+        setValue(L.LABEL_FIT_TEXT_AREA_TO_CONTENT, "Grow to fit the whole text");
+        setValue(L.LABEL_FIXED_TEXT_AREA_HEIGHT, "Fixed height, scroll the text");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

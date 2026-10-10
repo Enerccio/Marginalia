@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.*;
 import com.vaadin.flow.component.button.Button;
@@ -184,6 +185,7 @@ public class AIDialog extends Dialog {
         needsJailbreakCheckbox = new Checkbox(loc.getValue(L.LABEL_NEEDS_JAILBREAK));
         jailbreakField = new TextArea(loc.getValue(L.LABEL_JAILBREAK));
         jailbreakField.setWidthFull();
+        ResizableTextArea.install(loc, jailbreakField, "120px");
         jailbreakField.setEnabled(false);
         needsJailbreakCheckbox.addValueChangeListener(event -> jailbreakField.setEnabled(Boolean.TRUE.equals(event.getValue())));
 
@@ -221,6 +223,7 @@ public class AIDialog extends Dialog {
 
         additionalParametersField = new TextArea(loc.getValue(L.LABEL_ADDITIONAL_PARAMETERS));
         additionalParametersField.setWidthFull();
+        ResizableTextArea.install(loc, additionalParametersField, "120px");
     }
 
     private void updateDynamicFields(AIType type) {

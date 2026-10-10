@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.PromptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -316,7 +317,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         sceneSettingField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING));
         sceneSettingField.setWidthFull();
-        sceneSettingField.setMinHeight("60px");
+        ResizableTextArea.install(loc, sceneSettingField, "100px");
         sceneSettingField.addValueChangeListener(e -> {
             pendingSceneSetting = e.getValue();
             editedByUser = true;
@@ -331,7 +332,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         presentCharactersField = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS));
         presentCharactersField.setWidthFull();
-        presentCharactersField.setMinHeight("50px");
+        ResizableTextArea.install(loc, presentCharactersField, "80px");
         presentCharactersField.addValueChangeListener(e -> {
             pendingPresentCharacters = e.getValue();
             editedByUser = true;
@@ -339,7 +340,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         instructionsField = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS));
         instructionsField.setWidthFull();
-        instructionsField.setMinHeight("80px");
+        ResizableTextArea.install(loc, instructionsField, "120px");
         instructionsField.addValueChangeListener(e -> {
             pendingInstructions = e.getValue();
             editedByUser = true;
@@ -1049,6 +1050,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             detailsSceneField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING), StringUtils.defaultString(message.getSceneSetting()), "");
             detailsSceneField.setReadOnly(!this.isLast);
             detailsSceneField.setWidthFull();
+            ResizableTextArea.install(loc, detailsSceneField, "100px");
             detailsSceneField.addValueChangeListener(e -> {
                 if (e.isFromClient() && this.isLast) {
                     this.message.setSceneSetting(e.getValue());
@@ -1069,6 +1071,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             detailsPresentField = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS), StringUtils.defaultString(message.getPresentCharacters()), "");
             detailsPresentField.setReadOnly(!this.isLast);
             detailsPresentField.setWidthFull();
+            ResizableTextArea.install(loc, detailsPresentField, "80px");
             detailsPresentField.addValueChangeListener(e -> {
                 if (e.isFromClient() && this.isLast) {
                     this.message.setPresentCharacters(e.getValue());
@@ -1079,6 +1082,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             detailsInstructionsField = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS), StringUtils.defaultString(message.getInstructions()), "");
             detailsInstructionsField.setReadOnly(!this.isLast);
             detailsInstructionsField.setWidthFull();
+            ResizableTextArea.install(loc, detailsInstructionsField, "120px");
             detailsInstructionsField.addValueChangeListener(e -> {
                 if (e.isFromClient() && this.isLast) {
                     this.message.setInstructions(e.getValue());

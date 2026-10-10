@@ -16,10 +16,7 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
-import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
-import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonParseException;
 import com.vaadin.flow.component.Component;
@@ -444,7 +441,7 @@ public class LorebookView extends VerticalLayout {
 
         TextAreaPopoverComponent payloadField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_CONTENT));
         payloadField.setWidthFull();
-        payloadField.setMinHeight("100px");
+        ResizableTextArea.install(loc, payloadField, "160px");
         payloadField.setValue(StringUtils.defaultString(entry.getPayload()));
         payloadField.setPopoverContent(TemplateHints.create(loc, payloadField, payloadField.getPopover(), LorebookTemplateData.class, null));
         validatePayload(payloadField);
@@ -508,7 +505,7 @@ public class LorebookView extends VerticalLayout {
 
         TextArea commentField = new TextArea(loc.getValue(L.LABEL_NOTE));
         commentField.setWidthFull();
-        commentField.setMinHeight("60px");
+        ResizableTextArea.install(loc, commentField, "100px");
         commentField.setValue(StringUtils.defaultString(entry.getComment()));
         commentField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
