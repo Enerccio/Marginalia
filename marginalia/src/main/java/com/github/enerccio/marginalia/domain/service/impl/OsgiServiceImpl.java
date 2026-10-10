@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
@@ -45,6 +46,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
 
     @Autowired
     private ExtensionService extensionService;
+
+    @Autowired
+    private AdminGuard adminGuard;
 
     private String extensionPath;
     private Framework f;
@@ -194,6 +198,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
 
     @Override
     public synchronized Bundle installPackage(String fileName, byte[] data) throws Exception {
+        adminGuard.requireAdmin();
         File extdir = new File(extensionPath);
         File target = new File(extdir, sanitizeJarName(fileName));
         // not a .jar, so a crash in the middle doesn't leave it to be loaded on the next start
@@ -271,6 +276,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public synchronized void uninstallPackage(Bundle b) throws Exception {
+        adminGuard.requireAdmin();
         if (b != null && b.getBundleId() != 0) {
             onBeforeStop();
             onStop();

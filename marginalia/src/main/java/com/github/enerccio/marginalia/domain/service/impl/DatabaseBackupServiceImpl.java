@@ -3,8 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.DatabaseCheck;
 import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
-import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.CronSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
@@ -61,10 +60,7 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     private SettingService settingService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private User currentUser;
+    private AdminGuard adminGuard;
 
     /**
      * Guards the schedule state and read-modify-write of the schedule part of {@link AppSettings}.
@@ -79,6 +75,7 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public synchronized DatabaseBackup createBackup() throws Exception {
+        adminGuard.requireAdmin();
         return backup(MANUAL_PREFIX);
     }
 
@@ -96,6 +93,11 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public List<DatabaseBackup> getBackups() throws Exception {
+        adminGuard.requireAdmin();
+        return listBackups();
+    }
+
+    private List<DatabaseBackup> listBackups() {
         File[] files = configuration.getDatabaseBackupFolder().listFiles(f -> f.isFile() && f.getName().endsWith(BACKUP_EXTENSION));
         List<DatabaseBackup> backups = new ArrayList<>();
         if (files != null) {
@@ -110,6 +112,11 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public File getBackupFile(DatabaseBackup backup) throws Exception {
+        adminGuard.requireAdmin();
+        return backupFile(backup);
+    }
+
+    private File backupFile(DatabaseBackup backup) throws IOException {
         File file = new File(configuration.getDatabaseBackupFolder(), FilenameUtils.getName(backup.getName()));
         if (!file.isFile()) {
             throw new IOException("Backup " + backup.getName() + " does not exist");
@@ -120,6 +127,7 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public synchronized DatabaseBackup importBackup(String fileName, File source) throws Exception {
+        adminGuard.requireAdmin();
         DatabaseCheck.check(source);
         String baseName = FilenameUtils.getBaseName(StringUtils.defaultIfBlank(fileName, "uploaded"));
         File target = uniqueFile(baseName.replaceAll("[^A-Za-z0-9._-]", "_"));
@@ -130,7 +138,12 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public synchronized void deleteBackup(DatabaseBackup backup) throws Exception {
-        File file = getBackupFile(backup);
+        adminGuard.requireAdmin();
+        removeBackup(backup);
+    }
+
+    private void removeBackup(DatabaseBackup backup) throws Exception {
+        File file = backupFile(backup);
         Files.deleteIfExists(file.toPath());
         Files.deleteIfExists(new File(file.getAbsolutePath() + "-wal").toPath());
         Files.deleteIfExists(new File(file.getAbsolutePath() + "-shm").toPath());
@@ -139,7 +152,8 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public synchronized void scheduleRestore(DatabaseBackup backup) throws Exception {
-        File file = getBackupFile(backup);
+        adminGuard.requireAdmin();
+        File file = backupFile(backup);
         // checked again on start, but a file that can't be restored is better reported now
         DatabaseCheck.check(file);
         File pending = getPendingRestoreFile();
@@ -152,18 +166,21 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public synchronized void cancelRestore() throws Exception {
+        adminGuard.requireAdmin();
         Files.deleteIfExists(getPendingRestoreFile().toPath());
     }
 
     @Override
     @NoTx
     public boolean isRestorePending() throws Exception {
+        adminGuard.requireAdmin();
         return getPendingRestoreFile().exists();
     }
 
     @Override
     @NoTx
     public long getDatabaseSize() throws Exception {
+        adminGuard.requireAdmin();
         File db = configuration.getDatabaseFile();
         long size = db.length();
         File wal = new File(db.getAbsolutePath() + "-wal");
@@ -180,6 +197,7 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public BackupSchedule getSchedule() throws Exception {
+        adminGuard.requireAdmin();
         AppSettings settings = settingService.getOrCreateApp(AppSettings.class);
         return new BackupSchedule(Boolean.TRUE.equals(settings.getBackupScheduleEnabled()),
                 StringUtils.defaultString(settings.getBackupSchedule()),
@@ -190,7 +208,7 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
     @Override
     @NoTx
     public BackupSchedule updateSchedule(boolean enabled, String cron, int keep) throws Exception {
-        requireAdmin();
+        adminGuard.requireAdmin();
         if (keep < 0) {
             throw new IllegalArgumentException("Number of kept backups can't be negative");
         }
@@ -244,17 +262,10 @@ public class DatabaseBackupServiceImpl implements DatabaseBackupService, Applica
         if (keep == null || keep <= 0) {
             return;
         }
-        List<DatabaseBackup> scheduled = getBackups().stream().filter(DatabaseBackup::isScheduled).toList();
+        List<DatabaseBackup> scheduled = listBackups().stream().filter(DatabaseBackup::isScheduled).toList();
         for (DatabaseBackup old : scheduled.subList(Math.min(keep, scheduled.size()), scheduled.size())) {
             log.info("Deleting old scheduled database backup {}", old.getName());
-            deleteBackup(old);
-        }
-    }
-
-    private void requireAdmin() throws Exception {
-        User user = currentUser.getId() == null ? null : userService.find(currentUser.getId());
-        if (user == null || user.isDeleted() || !user.isAdmin()) {
-            throw new SecurityException("Only administrators can change the backup schedule");
+            removeBackup(old);
         }
     }
 

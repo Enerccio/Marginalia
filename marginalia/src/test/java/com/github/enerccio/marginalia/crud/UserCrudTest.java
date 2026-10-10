@@ -141,6 +141,7 @@ class UserCrudTest extends MarginaliaTestBase {
 
     @Test
     void deletedUserCannotLogInAndFreesLogin() throws Exception {
+        loginAdmin();
         User user = createUser(uniqueName("dave"), "pw", false);
         String login = user.getLogin();
 
@@ -160,6 +161,7 @@ class UserCrudTest extends MarginaliaTestBase {
 
     @Test
     void deletedUserDataFolderIsKeptUnderDeletedName() throws Exception {
+        loginAdmin();
         String login = uniqueName("erin");
         User user = createUser(login, "pw", false);
         File folder = configuration.getUserDataFolder(user);
@@ -183,6 +185,7 @@ class UserCrudTest extends MarginaliaTestBase {
 
     @Test
     void deletingUserTwiceIsNoop() throws Exception {
+        loginAdmin();
         User user = createUser();
         userService.deleteUser(user);
         String renamed = userService.find(user.getId()).getLogin();
@@ -195,7 +198,7 @@ class UserCrudTest extends MarginaliaTestBase {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void lastAdminIsProtected() throws Exception {
-        User admin = createUser(uniqueName("admin"), "pw", true);
+        User admin = loginAs(createUser(uniqueName("admin"), "pw", true));
         User regular = createUser();
 
         assertThat(userService.isLastAdmin(admin)).isTrue();
@@ -277,6 +280,7 @@ class UserCrudTest extends MarginaliaTestBase {
 
     @Test
     void clearedPasswordLetsUserLogInWithoutOneUntilTheySetNew() throws Exception {
+        loginAdmin();
         User user = createUser(uniqueName("frank"), "forgotten", false);
         userService.addPersistedLoginInfo(user, userService.generateNewPersistentInfo(user));
         userService.save(user);
@@ -296,6 +300,7 @@ class UserCrudTest extends MarginaliaTestBase {
 
     @Test
     void deletedUserLosesRememberMeLogins() throws Exception {
+        loginAdmin();
         User user = userService.find(createUser().getId());
         userService.addPersistedLoginInfo(user, userService.generateNewPersistentInfo(user));
         userService.save(user);
@@ -303,5 +308,31 @@ class UserCrudTest extends MarginaliaTestBase {
         userService.deleteUser(user);
 
         assertThat(userService.getPersistedLoginInfo(userService.find(user.getId()))).isEmpty();
+    }
+
+    @Test
+    void onlyAdministratorsDeleteClearOrUnlockUsers() throws Exception {
+        User target = createUser();
+        login();
+
+        assertThatThrownBy(() -> userService.deleteUser(target)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> userService.clearPassword(target)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> userService.unlock(target)).isInstanceOf(SecurityException.class);
+        assertThat(userService.find(target.getId()).isDeleted()).isFalse();
+
+        currentUser.setId(null);
+        assertThatThrownBy(() -> userService.deleteUser(target)).isInstanceOf(SecurityException.class);
+    }
+
+    @Test
+    void sessionCopyOfAdminFlagIsNotTrusted() throws Exception {
+        User admin = loginAdmin();
+        User target = createUser();
+        admin.setAdmin(false);
+        userService.save(admin);
+        // demoted in the database, the session still says admin
+        currentUser.setAdmin(true);
+
+        assertThatThrownBy(() -> userService.deleteUser(target)).isInstanceOf(SecurityException.class);
     }
 }

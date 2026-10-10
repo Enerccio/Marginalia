@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.test.ExpectedLog;
@@ -56,6 +57,12 @@ class OsgiServiceImplTest {
         ReflectionTestUtils.setField(service, "configuration", configuration);
         ReflectionTestUtils.setField(service, "extensionService", Proxy.newProxyInstance(getClass().getClassLoader(),
                 new Class<?>[]{ExtensionService.class}, (proxy, method, args) -> null));
+        // the administrator check is covered with the Spring context, here the current user is not available
+        ReflectionTestUtils.setField(service, "adminGuard", new AdminGuard() {
+            @Override
+            public void requireAdmin() {
+            }
+        });
         service.afterPropertiesSet();
         extensions = new File(service.getExtensionsPath());
         log = ExpectedLog.capture(OsgiServiceImpl.class);
@@ -102,6 +109,25 @@ class OsgiServiceImplTest {
     private MarginaliaExtension extensionOf(Bundle bundle) throws Exception {
         ServiceReference<?> reference = service.getServices(bundle, MarginaliaExtension.class).getFirst();
         return (MarginaliaExtension) service.getContext().getService(reference);
+    }
+
+    @Test
+    void installAndUninstallNeedAnAdministrator() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle installed = bundleNamed("test.a");
+        ReflectionTestUtils.setField(service, "adminGuard", new AdminGuard() {
+            @Override
+            public void requireAdmin() {
+                throw new SecurityException("denied");
+            }
+        });
+
+        assertThatThrownBy(() -> service.installPackage("b.jar", bundle("test.b", "1.0.0"))).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> service.uninstallPackage(installed)).isInstanceOf(SecurityException.class);
+
+        assertThat(jarNames()).containsExactly("a.jar");
+        assertThat(installed.getState()).isEqualTo(Bundle.ACTIVE);
     }
 
     @Test
