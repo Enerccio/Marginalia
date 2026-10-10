@@ -22,7 +22,7 @@ Opening a book shows its window with these tabs:
 
 | Tab | |
 |---|---|
-| **About** | Name, tags, description, model, protocol, publishing and word counts. See [Managing books](managing-books.md). |
+| **About** | Name, tags, description, language, model, protocol, publishing and word counts. See [Managing books](managing-books.md). |
 | **Prompts** | The templates and style settings of this book. See [Book prompts](prompts.md). |
 | **Lorebook** | The lorebook of this book, and its entries. See [Lorebooks](../lorebooks/index.md). |
 | **Story** | The story editor, where parts are written and generated. See [Story editor](story-editor.md). |

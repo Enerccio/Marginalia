@@ -110,6 +110,10 @@ The settings menu (⚙) in the bottom bar has **Change Styles For Text**. It swi
 normal look of the application and a book-like reading style (the one the [viewer](publishing.md) uses). The setting
 is saved per book.
 
+In this style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
+book's **Language** (set on the [About tab](managing-books.md#the-about-tab)). Hyphenation is done by the browser;
+for a few rare languages it has no dictionary and the text is simply not hyphenated.
+
 ## What the model gets
 
 For each new part Marginalia sends:

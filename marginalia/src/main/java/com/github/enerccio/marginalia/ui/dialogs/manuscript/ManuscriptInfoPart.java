@@ -176,7 +176,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
                 publishedCheckbox.setHelperComponent(verticalLayout);
                 UI.getCurrent().getPage().fetchCurrentURL(url -> {
                     String baseUri = url.getProtocol() + "://" + url.getAuthority();
-                    String fullPath = baseUri + VaadinRequest.getCurrent().getContextPath() + relativeUrl;
+                    String fullPath = baseUri + VaadinRequest.getCurrent().getContextPath() + "/" + relativeUrl;
                     routerLink.setText(fullPath);
                 });
             } else {

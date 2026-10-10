@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844931951928">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844932853089">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844931951928" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844932853089" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844931951928" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844932853089" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844931951928" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844932853089" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -238,7 +238,7 @@ generating.</p>
 <a href="../backups/#importing-a-backup-as-a-new-book">Book backups</a>.</p>
 <h2 id="the-about-tab">The About tab</h2>
 <figure class="content-center">
-    <img src="../../../images/book-about.png" alt="The About tab of a book" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1888" height="900" />
+    <img src="../../../images/book-about.png" alt="The About tab of a book" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The About tab of a book</figcaption>
 </figure>
 <retype-table copy-text="| Field | |
@@ -246,9 +246,10 @@ generating.</p>
 | **Name** | The name of the book. |
 | **Tags** | Tags for sorting your books and for [lorebook](../lorebooks/entries.md) activation. Type to pick an existing tag or create a new one. |
 | **Description** | What the book is about. Available to the prompt templates as the book description. |
+| **Language** | The language the book is written in (English by default). Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. |
 | **Model** | The [inference provider](../inference-providers.md) that writes this book. |
 | **Protocols** | The [protocol](../protocols.md) with the generation settings. |
-| **Published** | Lets other users read the book, see [Publishing &amp; viewer](publishing.md). |">
+| **Published** | Lets other users read the book, see [Publishing &amp; viewer](publishing.md). Once checked, the reader link of the book (`&lt;address of Marginalia&gt;/view/&lt;book ID&gt;`) is shown under the checkbox; copy it and send it to the readers. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -271,6 +272,10 @@ generating.</p>
 <td>What the book is about. Available to the prompt templates as the book description.</td>
 </tr>
 <tr>
+<td><strong>Language</strong></td>
+<td>The language the book is written in (English by default). Used for automatic hyphenation of the text in the book reading style and in the <a href="../publishing/">viewer</a>; it does not change what the model writes.</td>
+</tr>
+<tr>
 <td><strong>Model</strong></td>
 <td>The <a href="../../inference-providers/">inference provider</a> that writes this book.</td>
 </tr>
@@ -280,7 +285,7 @@ generating.</p>
 </tr>
 <tr>
 <td><strong>Published</strong></td>
-<td>Lets other users read the book, see <a href="../publishing/">Publishing &amp; viewer</a>.</td>
+<td>Lets other users read the book, see <a href="../publishing/">Publishing &amp; viewer</a>. Once checked, the reader link of the book (<code translate="no" v-pre>&lt;address of Marginalia&gt;/view/&lt;book ID&gt;</code>) is shown under the checkbox; copy it and send it to the readers.</td>
 </tr>
 </tbody>
 </table>

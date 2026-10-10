@@ -47,9 +47,10 @@ To start a book from a backup file, use **Import Backup as New Book** in the *Se
 | **Name** | The name of the book. |
 | **Tags** | Tags for sorting your books and for [lorebook](../lorebooks/entries.md) activation. Type to pick an existing tag or create a new one. |
 | **Description** | What the book is about. Available to the prompt templates as the book description. |
+| **Language** | The language the book is written in (English by default). Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. |
 | **Model** | The [inference provider](../inference-providers.md) that writes this book. |
 | **Protocols** | The [protocol](../protocols.md) with the generation settings. |
-| **Published** | Lets other users read the book, see [Publishing & viewer](publishing.md). |
+| **Published** | Lets other users read the book, see [Publishing & viewer](publishing.md). Once checked, the reader link of the book (`<address of Marginalia>/view/<book ID>`) is shown under the checkbox; copy it and send it to the readers. |
 
 Changes are saved as you type.
 

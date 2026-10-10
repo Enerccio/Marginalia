@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844931951928">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844932853089">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844931951928" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844932853089" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844931951928" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844932853089" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844931951928" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844932853089" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -191,7 +191,7 @@ the active sort button again reverses the order.</p>
 <p>Click a book to read it.</p>
 <h2 id="reading">Reading</h2>
 <p>The reading view shows the <a href="../branches-and-story-tree/">active branch</a> of the book from the first to the last part,
-in the book reading style. Other branches, the turn instructions and the metadata are not shown. The arrow button in
+in the book reading style (justified, with hyphenation for the book&#x27;s <a href="../managing-books/#the-about-tab">language</a>). Other branches, the turn instructions and the metadata are not shown. The arrow button in
 the top left corner returns to the list.</p>
 <figure class="content-center">
     <img src="../../../images/viewer-reading.png" alt="Reading a book" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
@@ -205,8 +205,12 @@ the top left corner returns to the list.</p>
 <p>Open the book and check <strong>Published</strong> on its <em>About</em> tab.</p>
 </li>
 <li>
-<p>Open the book in the viewer and copy the address from the browser&#x27;s address bar. It looks like
-<code translate="no" v-pre>https://marginalia.example.com/view/0b6f3c1e-...</code> - the last part is the book&#x27;s ID.</p>
+<p>Copy the reader link that appears under the checkbox on the <em>About</em> tab. The link is the address of your
+installation (including its context path, if Marginalia is not served from the root), followed by <code translate="no" v-pre>/view/</code> and the
+book&#x27;s ID: <code translate="no" v-pre>&lt;address of Marginalia&gt;/view/&lt;book ID&gt;</code>. In Docker, where Marginalia runs as the root application, it
+looks like <code translate="no" v-pre>https://marginalia.example.com/view/0b6f3c1e-...</code>; if it is deployed under a context path such as
+<code translate="no" v-pre>/marginalia</code>, the link is <code translate="no" v-pre>https://example.com/marginalia/view/0b6f3c1e-...</code>. (You can also copy the same address
+from the browser&#x27;s address bar when the book is open in the viewer.)</p>
 </li>
 <li>
 <p>Send the address to the other users.</p>
