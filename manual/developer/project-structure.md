@@ -68,7 +68,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 
 | File | |
 |---|---|
-| `Configuration.java` | The `configuration` bean: data folder and its subfolders, database URL, staged database restore, saved login settings. |
+| `Configuration.java` | The `configuration` bean: data folder and its subfolders, database URL, staged database restore, the copy saved before a migration, saved login settings. |
 | `Defaults.java` | Built-in prompt defaults: master template, POV, tense, style, user prompt and summary prompt - used when neither the book nor the user's settings override them - and the template of the title page of story exports. |
 | `Constants.java` | Application constants: `DEAD_SESSION_CHECK_TIMEOUT` (seconds without a heartbeat before `SessionManager` closes a UI, default 120). |
 | `UIConstants.java`, `SharedStyles.java` | Column widths and dialog offsets; CSS class names defined in `shared-styles.css`. |
@@ -216,7 +216,7 @@ See [Story export](services.md#story-export).
 | `.../spring/container-config.xml` | Localization, configuration, `applicationPoint`, `sessionManager`, session beans, application initializer. |
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
-| `src/main/resources/migration/V<n>__<name>.sql` | Flyway migrations - currently `V1__initial` to `V8__resource_link`. |
+| `src/main/resources/migration/V<n>__<name>.sql` | Flyway migrations - currently `V1__initial` to `V9__fulltext`. |
 | `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
 | `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging & releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
@@ -317,5 +317,5 @@ See [Plugin development](plugins/index.md).
 | What an extension can hook into | classes annotated `@Extendable` in `ui/` |
 | Global styles | `src/main/frontend/styles/shared-styles.css` |
 | Login and saved logins | `ui/main/LoginCheckRoute.java`, `UserServiceImpl` |
-| Backups | `BackupServiceImpl` (books), `DatabaseBackupServiceImpl` (database), `Configuration` (pending restore) |
+| Backups | `BackupServiceImpl` (books), `DatabaseBackupServiceImpl` (database), `Configuration` (pending restore, copy before a migration) |
 | The desktop app | `src/desktop/java/.../DesktopLauncher.java`, the `desktop` profile in `pom.xml` |

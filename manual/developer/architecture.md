@@ -90,7 +90,7 @@ sequenceDiagram
 
     C->>W: onStartup (Spring's ServletContainerInitializer)
     W->>S: XmlWebApplicationContext(application-config.xml)
-    Note over S: Configuration: data folder, pending database restore
+    Note over S: Configuration: data folder, pending database restore, copy before a migration
     Note over S: dataSource → Flyway migrate → EntityManagerFactory (validate)
     Note over S: repositories, services, generation steps
     Note over S: ApplicationInitializer, RuntimeInstrumentationInitializer (agent)
@@ -118,7 +118,9 @@ sequenceDiagram
 
 3. `Configuration` resolves the data folder (`<user.home>/.marginalia`) and creates its subfolders. When the data
    source asks for the database URL (`configuration.resolveDb(...)`), a staged database restore
-   (`marginalia.sqlite.restore`) is swapped in first - a restore can't replace a database that is open.
+   (`marginalia.sqlite.restore`) is swapped in first - a restore can't replace a database that is open. Then a copy of
+   an existing database that is behind the bundled migrations is saved in `db-backups` (`pre-migration-*`, see
+   [Startup](database.md#startup-migrate-then-validate)).
 4. Flyway migrates the schema (`classpath:migration`), then Hibernate builds the `EntityManagerFactory` with
    `hbm2ddl.auto=validate`. A mismatch between entities and schema stops the startup here.
 5. `RuntimeInstrumentationInitializer` installs the ByteBuddy agent and registers a transformer for all classes

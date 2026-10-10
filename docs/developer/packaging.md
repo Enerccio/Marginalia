@@ -56,6 +56,9 @@ The `Dockerfile` in the repository root has two stages:
      ee11-jsp` (the WebSocket module is required for Vaadin push);
    - deploys the WAR as `webapps/ROOT.war`, so Marginalia is at `/`;
    - creates `/var/marginalia/.marginalia` for the data, owned by the `jetty` user;
+   - declares a `HEALTHCHECK` (every 30 s, 120 s start period): the image has no `curl`, so `bash` opens a socket to
+     `127.0.0.1:8080`, sends `GET /` and the container is healthy when the status line is 2xx or 3xx (the login
+     redirect counts). Docker only reports the state, it does not restart the container;
    - starts with `docker-entrypoint.sh` (as `marginalia-entrypoint.sh`) as root: it creates the data folder if
      needed and, when it isn't owned by `jetty` - a `./data` bind mount that Docker created on a Linux host is owned
      by root - changes its owner to `jetty` (recursively, only then). It then runs the Jetty image's own

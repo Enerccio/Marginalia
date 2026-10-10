@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977120025">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977250746">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844977120025" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844977250746" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977250746" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977120025" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977250746" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977250746" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -264,7 +264,7 @@ fake is the model server.</p>
 | `test` | `TestBaseSmokeTest` | The test infrastructure itself: isolated folder, session user, mock LLM wiring. |
 | `test/llm` | `MockLLMServerTest` | The fake OpenAI server against the real `openai-java` client. |
 | `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
-| `db` | `FlywayMigrationTest`, `FulltextMigrationTest`, `DatabaseRestoreCheckTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation (`FlywayMigrationTest` also checks that V9 keeps `manuscripts.description` in `extendedContent`); `FulltextMigrationTest` runs the app migration that fills `_fulltext` of existing rows on the Spring context; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context). |
+| `db` | `FlywayMigrationTest`, `FulltextMigrationTest`, `DatabaseRestoreCheckTest`, `PreMigrationBackupTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation (`FlywayMigrationTest` also checks that V9 keeps `manuscripts.description` in `extendedContent`); `FulltextMigrationTest` runs the app migration that fills `_fulltext` of existing rows on the Spring context; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context); `PreMigrationBackupTest` checks the copy `Configuration.resolveDb` saves before an existing database is migrated (an older version, no history table, nothing for a current or new database, only the newest three kept). |
 | `domain` | `ExtendableEntityListenerTest`, `FulltextQueryTest`, `ChatMessageSearchTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; `FulltextQueryTest` and `ChatMessageSearchTest` cover the full-text query (words, phrases, `*`, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context. |
 | `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain. |
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
@@ -303,8 +303,8 @@ fake is the model server.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>db</code></td>
-<td><code translate="no" v-pre>FlywayMigrationTest</code>, <code translate="no" v-pre>FulltextMigrationTest</code>, <code translate="no" v-pre>DatabaseRestoreCheckTest</code></td>
-<td>Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation (<code translate="no" v-pre>FlywayMigrationTest</code> also checks that V9 keeps <code translate="no" v-pre>manuscripts.description</code> in <code translate="no" v-pre>extendedContent</code>); <code translate="no" v-pre>FulltextMigrationTest</code> runs the app migration that fills <code translate="no" v-pre>_fulltext</code> of existing rows on the Spring context; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context).</td>
+<td><code translate="no" v-pre>FlywayMigrationTest</code>, <code translate="no" v-pre>FulltextMigrationTest</code>, <code translate="no" v-pre>DatabaseRestoreCheckTest</code>, <code translate="no" v-pre>PreMigrationBackupTest</code></td>
+<td>Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation (<code translate="no" v-pre>FlywayMigrationTest</code> also checks that V9 keeps <code translate="no" v-pre>manuscripts.description</code> in <code translate="no" v-pre>extendedContent</code>); <code translate="no" v-pre>FulltextMigrationTest</code> runs the app migration that fills <code translate="no" v-pre>_fulltext</code> of existing rows on the Spring context; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context); <code translate="no" v-pre>PreMigrationBackupTest</code> checks the copy <code translate="no" v-pre>Configuration.resolveDb</code> saves before an existing database is migrated (an older version, no history table, nothing for a current or new database, only the newest three kept).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain</code></td>

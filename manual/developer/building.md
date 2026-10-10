@@ -50,7 +50,7 @@ What a build does, in order:
    `target/classes` are the ones that get packaged.
 4. Tests run (`maven-surefire-plugin`), see [Running the tests](#running-the-tests).
 5. `vaadin-maven-plugin` builds the frontend bundle (`build-frontend`).
-6. `maven-war-plugin` packages `target/marginalia-1.0.0.war` (about 200 MB) and, because of `attachClasses`, also
+6. `maven-war-plugin` packages `target/marginalia-1.0.0.war` (about 185 MB) and, because of `attachClasses`, also
    `target/marginalia-1.0.0-classes.jar` - the application classes that plugins compile against.
 
 Outputs in `marginalia/target/`:

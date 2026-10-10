@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977120025">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977250746">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844977120025" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844977250746" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977250746" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977120025" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977250746" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977250746" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -284,7 +284,7 @@ icon. It is compiled separately and never ends up in the WAR. See <a href="../pa
 
     C-&gt;&gt;W: onStartup (Spring's ServletContainerInitializer)
     W-&gt;&gt;S: XmlWebApplicationContext(application-config.xml)
-    Note over S: Configuration: data folder, pending database restore
+    Note over S: Configuration: data folder, pending database restore, copy before a migration
     Note over S: dataSource → Flyway migrate → EntityManagerFactory (validate)
     Note over S: repositories, services, generation steps
     Note over S: ApplicationInitializer, RuntimeInstrumentationInitializer (agent)
@@ -339,7 +339,9 @@ files:</p>
 <li>
 <p><code translate="no" v-pre>Configuration</code> resolves the data folder (<code translate="no" v-pre>&lt;user.home&gt;/.marginalia</code>) and creates its subfolders. When the data
 source asks for the database URL (<code translate="no" v-pre>configuration.resolveDb(...)</code>), a staged database restore
-(<code translate="no" v-pre>marginalia.sqlite.restore</code>) is swapped in first - a restore can&#x27;t replace a database that is open.</p>
+(<code translate="no" v-pre>marginalia.sqlite.restore</code>) is swapped in first - a restore can&#x27;t replace a database that is open. Then a copy of
+an existing database that is behind the bundled migrations is saved in <code translate="no" v-pre>db-backups</code> (<code translate="no" v-pre>pre-migration-*</code>, see
+<a href="../database/#startup-migrate-then-validate">Startup</a>).</p>
 </li>
 <li>
 <p>Flyway migrates the schema (<code translate="no" v-pre>classpath:migration</code>), then Hibernate builds the <code translate="no" v-pre>EntityManagerFactory</code> with

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977120025">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977250746">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844977120025" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844977250746" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977250746" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977120025" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977250746" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977250746" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -283,6 +283,11 @@ the sources change;</p>
 </li>
 <li>
 <p>creates <code translate="no" v-pre>/var/marginalia/.marginalia</code> for the data, owned by the <code translate="no" v-pre>jetty</code> user;</p>
+</li>
+<li>
+<p>declares a <code translate="no" v-pre>HEALTHCHECK</code> (every 30 s, 120 s start period): the image has no <code translate="no" v-pre>curl</code>, so <code translate="no" v-pre>bash</code> opens a socket to
+<code translate="no" v-pre>127.0.0.1:8080</code>, sends <code translate="no" v-pre>GET /</code> and the container is healthy when the status line is 2xx or 3xx (the login
+redirect counts). Docker only reports the state, it does not restart the container;</p>
 </li>
 <li>
 <p>starts with <code translate="no" v-pre>docker-entrypoint.sh</code> (as <code translate="no" v-pre>marginalia-entrypoint.sh</code>) as root: it creates the data folder if
