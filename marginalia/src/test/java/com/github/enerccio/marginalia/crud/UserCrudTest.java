@@ -88,6 +88,29 @@ class UserCrudTest extends MarginaliaTestBase {
     }
 
     @Test
+    void addressBackoffAcrossUsers() throws Exception {
+        String address = "203.0.113." + (int) (Math.random() * 200);
+        User victim = createUser(uniqueName("frank"), "pw", false);
+
+        // failures against unknown users count too, the user itself is never locked by them
+        for (int i = 0; i < 30; i++) {
+            assertThat(userService.authenticate(uniqueName("nobody"), "bad", address)).isFalse();
+        }
+        assertThat(userService.authenticate(victim.getLogin(), "pw", address)).isTrue();
+
+        for (int i = 0; i < 30; i++) {
+            assertThat(userService.authenticate(uniqueName("nobody"), "bad", address)).isFalse();
+        }
+        assertThat(userService.authenticate(uniqueName("nobody"), "bad", address)).isFalse();
+
+        // the address is blocked even for the right password, but the user is not affected elsewhere
+        assertThat(userService.authenticate(victim.getLogin(), "pw", address)).isFalse();
+        assertThat(userService.find(victim.getId()).getFailedLogins()).isZero();
+        assertThat(userService.authenticate(victim.getLogin(), "pw", address + "1")).isTrue();
+        assertThat(userService.authenticate(victim.getLogin(), "pw")).isTrue();
+    }
+
+    @Test
     void changePassword() throws Exception {
         User user = createUser(uniqueName("carol"), "old", false);
         String oldHash = user.getPasswordHash();

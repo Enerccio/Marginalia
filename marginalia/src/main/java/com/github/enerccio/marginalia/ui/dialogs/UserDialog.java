@@ -159,7 +159,7 @@ public class UserDialog extends Dialog {
         if (openedFromUser) {
             String currentPasswordValue = currentPassword.getValue();
             try {
-                if (!userService.authenticate(user.getLogin(), currentPasswordValue)) {
+                if (!userService.authenticate(user.getLogin(), currentPasswordValue, UIUtils.clientAddress())) {
                     Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
                     return;
                 }
