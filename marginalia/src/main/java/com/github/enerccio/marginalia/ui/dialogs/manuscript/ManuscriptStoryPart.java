@@ -740,6 +740,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                             ui.access(() -> {
                                 updateLastFlagsForNewCard();
                                 if (partialMessage == null) {
+                                    // the turn was discarded: keep what the user typed instead of re-syncing (and clearing) the form
+                                    editedByUser = true;
                                     if (streamingCard != null)
                                         centerContentPanel.remove(streamingCard);
                                 } else {
