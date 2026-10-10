@@ -76,7 +76,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
    - ✅ `target/` folders are not in `.gitignore` (root and `plugins/*/target`).
    - ✅ Versioning: everything is `1.0.0`. `AppSettings.appVersion/dbVersion` and `ApplicationInitializer` are hard-coded `1`.
      Use the Maven version + git info (git-commit-id plugin is already present) and show it in the admin page.
-   - ✅ Release artifacts: WAR + Docker image + plugin JARs attached to a GitHub release.
+   - ✅ Release artifacts: WAR + plugin JARs attached to a GitHub release and the Docker image (amd64 + arm64) pushed to
+     `ghcr.io` by `.github/workflows/server.yml` (the desktop archives come from `desktop.yml`).
    - ✅ Desktop distribution: `mvn package -Pdesktop` (jlink runtime + jetty-home + launcher with tray icon, jpackage
      app image, archives). Built by `.github/workflows/desktop.yml` on Linux x64/arm64, Windows x64 and macOS
      arm64/x64 (tests once, smoke test per platform, archives attached to `v*` releases). Still missing: signing /
