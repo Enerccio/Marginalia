@@ -67,7 +67,7 @@ fake is the model server.
 | `test/llm` | `MockLLMServerTest` | The fake OpenAI server against the real `openai-java` client. |
 | `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
 | `db` | `FlywayMigrationTest`, `DatabaseRestoreCheckTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context). |
-| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`); it has no Spring context. |
+| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context. |
 | `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain. |
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
 | `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
@@ -77,7 +77,7 @@ fake is the model server.
 | `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
 | `ui` | `ResourcesPartTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The only test that builds a Vaadin component. |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest` | Purging soft-deleted data, owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content. |
-| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent. |
+| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application. |
 
 Not covered by automated tests: the Vaadin UI (apart from `ResourcesPartTest`), the bundled plugins, and the desktop launcher
 (the [CI smoke test](packaging.md#continuous-integration) only checks that the packaged app starts).
@@ -349,6 +349,11 @@ The `instruct` tests check the bytecode that makes `@Extendable` methods extensi
   schema, behaves like the original and exposes arguments and locals to decorators.
 - `RuntimeInstrumentationTest` installs the real agent into the test JVM and checks classes loaded both before and
   after the installation (`fixture/agent/`).
+- `ExtensionVerifierTest` runs the [extension verification](plugins/extendable.md#verification-before-loading) on
+  the extensions of `fixture/verify/VerifyFixtures` (decorators that are valid, ask for things that don't exist, or
+  can't be followed) against the decorated `VerifyTarget`. Their class files are packed into a JAR on the fly and
+  served by a stand-in `Bundle`. Decorators must be anonymous classes with the context calls inside them, as in a real
+  extension - a decorator that delegates to a helper class would not be checked.
 
 The fixtures are compiled with the same `-parameters` and `preserveAllLocals` options as the application; if you
 change the compiler settings in `pom.xml`, these tests tell you whether extensions still see names of arguments and

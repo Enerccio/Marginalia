@@ -59,7 +59,9 @@ the bundled Chapter Marker and Author's Note.
 !!!warning Plugins are tied to one version of Marginalia
 Hooks are attached by class and method *name* and read local variables and fields by name. Renaming a method or a
 variable in the application silently disables the part of a plugin that used it (a warning is logged). Build plugins
-from the same source tree as the application they run in, and test them after every update.
+from the same source tree as the application they run in, and test them after every update. Marginalia itself
+[verifies](extendable.md#verification-before-loading) the decorators of an extension before it starts it and refuses
+ones that ask for classes, methods, arguments, locals or fields that don't exist.
 !!!
 
 ## The bundled plugins
