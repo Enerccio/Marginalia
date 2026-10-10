@@ -101,7 +101,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
     @Override
     protected boolean authenticate(String userName, String password) throws Exception {
-        return userService.authenticate(userName, password);
+        return userService.authenticate(userName, password, UIUtils.clientAddress());
     }
 
     @Override

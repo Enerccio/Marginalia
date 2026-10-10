@@ -41,6 +41,18 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     private static final String DUMMY_SALT = Base64.getEncoder().encodeToString(new byte[16]);
     private static final String DUMMY_HASH = "";
 
+    // per client address throttling, kept in memory only (a restart clears it); more free attempts than per user as
+    // several users can share an address (NAT, reverse proxy)
+    static final int FREE_ADDRESS_ATTEMPTS = 30;
+    private static final long ADDRESS_FORGET_MILLIS = 60 * 60 * 1000L;
+    private final Map<String, AddressFailures> addressFailures = new HashMap<>();
+
+    private static final class AddressFailures {
+        int failed;
+        long lockedUntil;
+        long lastFailure;
+    }
+
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Autowired
@@ -112,13 +124,21 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     /**
      * Password check with a constant amount of work: a hash is computed whether or not the user exists, has a
      * password or is locked, and there are no early returns, so timing does not reveal which case it was. After
-     * {@link #FREE_LOGIN_ATTEMPTS} failures the user is locked out for an exponentially growing time.
+     * {@link #FREE_LOGIN_ATTEMPTS} failures the user is locked out for an exponentially growing time. The same
+     * applies to a client address after {@link #FREE_ADDRESS_ATTEMPTS} failures (any user name), tracked in memory.
      */
     @Override
     @CommonTx
     public boolean authenticate(String username, String password) throws Exception {
+        return authenticate(username, password, null);
+    }
+
+    @Override
+    @CommonTx
+    public boolean authenticate(String username, String password, String clientAddress) throws Exception {
         User user = findByName(username);
         long now = System.currentTimeMillis();
+        boolean addressLocked = isAddressLocked(clientAddress, now);
 
         String storedPasswordData = user == null ? null : user.getPasswordHash();
         String[] parts = storedPasswordData == null ? new String[0] : storedPasswordData.split(":");
@@ -136,6 +156,12 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
                 && ((noPasswordSet && !passwordGiven) || (wellFormed && passwordGiven && hashMatches));
         boolean locked = user != null && user.getLockedUntil() > now;
 
+        if (addressLocked) {
+            // not counted against the user, otherwise a blocked address could keep extending their lockout
+            log.warn("Login attempt for {} from blocked address {}", username, clientAddress);
+            return false;
+        }
+
         if (user != null) {
             if (ok && !locked) {
                 if (user.getFailedLogins() != 0 || user.getLockedUntil() != 0) {
@@ -150,12 +176,43 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
                     user.setLockedUntil(now + backoffMillis(failed - FREE_LOGIN_ATTEMPTS));
                 }
                 save(user);
-                log.warn("Failed login for user {} (consecutive failures: {})", username, failed);
+                log.warn("Failed login for user {} from {} (consecutive failures: {})", username, clientAddress, failed);
             }
         } else {
-            log.warn("Failed login for unknown user {}", username);
+            log.warn("Failed login for unknown user {} from {}", username, clientAddress);
+        }
+        if (ok && !locked) {
+            forgetAddress(clientAddress);
+        } else {
+            recordAddressFailure(clientAddress, now);
         }
         return ok && !locked;
+    }
+
+    private synchronized boolean isAddressLocked(String address, long now) {
+        AddressFailures failures = StringUtils.isBlank(address) ? null : addressFailures.get(address);
+        return failures != null && failures.lockedUntil > now;
+    }
+
+    private synchronized void forgetAddress(String address) {
+        if (StringUtils.isNotBlank(address)) {
+            addressFailures.remove(address);
+        }
+    }
+
+    private synchronized void recordAddressFailure(String address, long now) {
+        if (StringUtils.isBlank(address)) {
+            return;
+        }
+        addressFailures.values().removeIf(f -> f.lastFailure + ADDRESS_FORGET_MILLIS < now && f.lockedUntil < now);
+        AddressFailures failures = addressFailures.computeIfAbsent(address, a -> new AddressFailures());
+        failures.failed++;
+        failures.lastFailure = now;
+        if (failures.failed > FREE_ADDRESS_ATTEMPTS) {
+            failures.lockedUntil = now + backoffMillis(failures.failed - FREE_ADDRESS_ATTEMPTS);
+            log.warn("Address {} blocked from logging in until {} ({} consecutive failures)",
+                    address, new Date(failures.lockedUntil), failures.failed);
+        }
     }
 
     /** 1s, 2s, 4s ... capped at {@link #MAX_BACKOFF_MILLIS}. */

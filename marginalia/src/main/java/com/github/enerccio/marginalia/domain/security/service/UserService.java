@@ -14,7 +14,13 @@ public interface UserService extends BaseService<User, UserRepository> {
     boolean isLoginAvailable(User user, String login) throws Exception;
     boolean isLastAdmin(User user) throws Exception;
     void deleteUser(User user) throws Exception;
+    /** Same as {@link #authenticate(String, String, String)} without per-address throttling. */
     boolean authenticate(String username, String password) throws Exception;
+
+    /**
+     * @param clientAddress address the attempt came from, used for in-memory throttling; null or blank to skip it
+     */
+    boolean authenticate(String username, String password, String clientAddress) throws Exception;
     User changePassword(User user, String password) throws Exception;
     User clearPassword(User user) throws Exception;
     User unlock(User user) throws Exception;
