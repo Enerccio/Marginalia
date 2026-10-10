@@ -85,4 +85,16 @@ Target Length: Aim for high detail retention; do NOT over-summarize.
 === MANUSCRIPT CHRONICLE END ===
 """;
 
+    /**
+     * Markdown of the first (title) page of an exported book, rendered as Handlebars template with
+     * {@link com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData}.
+     */
+    public static final String DEFAULT_EXPORT_HEADER_TEMPLATE = """
+# {{title}}
+{{#author}}
+
+*{{.}}*
+{{/author}}
+""";
+
 }

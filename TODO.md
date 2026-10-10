@@ -85,9 +85,10 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
    look unused (no references in code). `Resource` entity/service exist but nothing in the UI uses them. Logging is on
    `slf4j-log4j12` + `reload4j` (log4j 1.x API) — move to logback or log4j2. Remove what's unused, or finish it (see 21).
 
-10. **Story export.** You can't get the manuscript out as prose: export the active branch (or a chosen
-    leaf) as Markdown / plain text / DOCX / EPUB, optionally with chapter headings from `chaptermarker`.
-    Core should provide Markdown/TXT; 🧩 DOCX/EPUB as an extension.
+10. ✅ **Story export.** The active branch (range of messages) is exported from the settings menu of the story editor
+    as TXT / HTML / DOCX / PDF / EPUB, optionally with a title page (`ExporterService`, `ExportDialog`). Missing:
+    export of a chosen leaf (other than the active one), chapter headings from `chaptermarker`, an editable title
+    page template, and a Markdown format.
 
 11. **Inference robustness** (`OpenAICompatibleInferenceService`).
     - Configurable timeouts and retry with backoff for 429/5xx.

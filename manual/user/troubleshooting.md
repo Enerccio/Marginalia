@@ -168,8 +168,9 @@ No. Every book belongs to one user. Other users can read it when it's [published
 Yes, with a model running locally (llama.cpp, LM Studio, Ollama...). Marginalia itself needs no internet connection.
 
 **How do I get my book out of Marginalia?**
-Read it in the [viewer](books/publishing.md), or [export a book backup](books/backups.md#exporting-and-importing)
-(JSON with all parts and branches). There is no export to text, EPUB or Word yet.
+[Export the story](books/export.md) as text, HTML, Word, PDF or EPUB from the settings menu (⚙) of the *Story* tab.
+To keep everything including all branches, [export a book backup](books/backups.md#exporting-and-importing) (JSON).
+You can also read it in the [viewer](books/publishing.md).
 
 **Does it work on a phone?**
 The [viewer](books/publishing.md) is made for phones, and Marginalia can be added to the home screen like an app

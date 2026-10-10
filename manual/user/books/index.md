@@ -35,6 +35,9 @@ Opening a book shows its window with these tabs:
 | **Branch view** | The story tree with all branches. See [Branches & story tree](branches-and-story-tree.md). |
 | **Backups** | Backups of the book. See [Book backups](backups.md). |
 
+The story can be taken out of Marginalia as a file from the settings menu of the *Story* tab, see
+[Exporting a book](export.md).
+
 A book without parts opens on *About*, a book with parts on *Story*. All changes are saved right away; there is no
 *Save* button. **Exit** closes the book.
 
@@ -47,5 +50,6 @@ While a part is being generated, the other tabs and *Exit* are disabled until th
 - [Branches & story tree](branches-and-story-tree.md) - regenerate, swipe, branch, the tree view
 - [Book prompts](prompts.md) - templates, point of view, tense and style
 - [Summaries](summaries.md) - keeping long books within the model's context
+- [Exporting a book](export.md) - the story as text, HTML, Word, PDF or EPUB
 - [Book backups](backups.md) - backups, restore, copies of a book
 - [Publishing & viewer](publishing.md) - reading view and sharing a book

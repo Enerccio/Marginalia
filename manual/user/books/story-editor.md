@@ -119,6 +119,11 @@ In this style paragraphs are justified and long words are hyphenated automatical
 book's **Language** (set on the [About tab](managing-books.md#the-about-tab)). Hyphenation is done by the browser;
 for a few rare languages it has no dictionary and the text is simply not hyphenated.
 
+## Exporting the story
+
+The settings menu (⚙) also has **Export story**, which saves the active branch as a text, HTML, Word, PDF or EPUB
+file. See [Exporting a book](export.md).
+
 ## What the model gets
 
 For each new part Marginalia sends:
