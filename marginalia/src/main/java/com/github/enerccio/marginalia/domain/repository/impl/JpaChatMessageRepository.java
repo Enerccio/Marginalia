@@ -6,9 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 import jakarta.persistence.TypedQuery;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessage> implements ChatMessageRepository {
 
@@ -125,6 +123,27 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
         return getEntityManager().createQuery("SELECT m FROM ChatMessage m WHERE m.parentScript = ?1 AND m.deleted = false ORDER BY m.creation", ChatMessage.class)
                 .setParameter(1, manuscript)
                 .getResultList();
+    }
+
+    @Override
+    public List<Object[]> findFulltexts(Manuscript manuscript, List<List<String>> likePatterns) throws Exception {
+        StringBuilder query = new StringBuilder("SELECT m.id, m._fulltext FROM ChatMessage m WHERE m.parentScript = :manuscript AND m.deleted = false");
+        Map<String, Object> parameters = new HashMap<>();
+        for (int word = 0; word < likePatterns.size(); word++) {
+            List<String> ors = new ArrayList<>();
+            for (int variant = 0; variant < likePatterns.get(word).size(); variant++) {
+                String name = "p" + word + "_" + variant;
+                ors.add("m._fulltext LIKE :" + name + " ESCAPE '\\'");
+                parameters.put(name, likePatterns.get(word).get(variant));
+            }
+            query.append(" AND (").append(String.join(" OR ", ors)).append(")");
+        }
+        query.append(" ORDER BY m.creation");
+
+        TypedQuery<Object[]> q = getEntityManager().createQuery(query.toString(), Object[].class)
+                .setParameter("manuscript", manuscript);
+        parameters.forEach(q::setParameter);
+        return q.getResultList();
     }
 
     @Override

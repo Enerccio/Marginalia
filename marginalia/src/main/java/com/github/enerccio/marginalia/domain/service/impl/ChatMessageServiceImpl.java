@@ -6,17 +6,19 @@ import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
+import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
+import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
+    private static final int SNIPPET_RADIUS = 60;
     private static final Pattern WORD_PATTERN = Pattern.compile("\\w+", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Autowired
@@ -99,6 +101,65 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @CommonTxReadOnly
     public List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception {
         return getRepository().getAllMessages(manuscript);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<FulltextHit> searchFulltext(Manuscript manuscript, String query) throws Exception {
+        FulltextQuery parsed = FulltextQuery.parse(query);
+        if (manuscript == null || parsed.isEmpty() || manuscriptService.findForUser(manuscript.getUuid()) == null) {
+            return Collections.emptyList();
+        }
+
+        List<FulltextHit> hits = new ArrayList<>();
+        for (Object[] row : getRepository().findFulltexts(manuscript, parsed.likePatterns())) {
+            hits.add(new FulltextHit((Long) row[0], parsed.snippet((String) row[1], SNIPPET_RADIUS)));
+        }
+        return hits;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public ChatMessage findLeafFor(Manuscript manuscript, ChatMessage target) throws Exception {
+        if (manuscript == null || target == null || manuscriptService.findForUser(manuscript.getUuid()) == null) {
+            return null;
+        }
+
+        Map<Long, ChatMessage> byId = new HashMap<>();
+        Map<Long, List<ChatMessage>> children = new HashMap<>();
+        for (ChatMessage message : getRepository().getAllMessages(manuscript)) {
+            byId.put(message.getId(), message);
+            if (message.getParent() != null) {
+                children.computeIfAbsent(message.getParent().getId(), k -> new ArrayList<>()).add(message);
+            }
+        }
+        if (!byId.containsKey(target.getId())) {
+            return null;
+        }
+
+        ChatMessage active = manuscript.getActiveLeaf();
+        for (Long id = active == null ? null : active.getId(); id != null && byId.containsKey(id); ) {
+            if (id.equals(target.getId())) {
+                return active;
+            }
+            ChatMessage parent = byId.get(id).getParent();
+            id = parent == null ? null : parent.getId();
+        }
+
+        // breadth first, the newest child first: the first end found is the nearest, the newest of the nearest
+        Deque<ChatMessage> queue = new ArrayDeque<>();
+        queue.add(byId.get(target.getId()));
+        while (!queue.isEmpty()) {
+            ChatMessage current = queue.poll();
+            List<ChatMessage> next = children.get(current.getId());
+            if (next == null) {
+                return current;
+            }
+            for (int i = next.size() - 1; i >= 0; i--) {
+                queue.add(next.get(i));
+            }
+        }
+        return null;
     }
 
     private ChatMessage findDeepestActiveLeaf(ChatMessage node) throws Exception {

@@ -108,6 +108,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private final Map<Long, ChatMessageCard> activeCardMap = new LinkedHashMap<>();
     private ChatMessageCard streamingCard;
+    private Long scrollToMessageId;
 
     public ManuscriptStoryPart(ManuscriptDialog parent) {
         this.parent = parent;
@@ -494,8 +495,34 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 UIUtils.internalServerError(loc, e);
             }
 
-            restoreScrollPosition();
+            ChatMessageCard target = scrollToMessageId != null ? activeCardMap.get(scrollToMessageId) : null;
+            scrollToMessageId = null;
+            if (target != null) {
+                scrollToCard(target);
+            } else {
+                restoreScrollPosition();
+            }
         }
+    }
+
+    /**
+     * The next render of the story (the tab being entered) scrolls to the part instead of restoring the scroll
+     * position, used by the search of the tree.
+     */
+    public void scrollToMessageOnNextRender(Long messageId) {
+        this.scrollToMessageId = messageId;
+    }
+
+    private void scrollToCard(ChatMessageCard card) {
+        card.getElement().executeJs("""
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    $0.scrollIntoView({block: 'start'});
+                    $0.animate([{outline: '3px solid var(--lumo-warning-color)'}, {outline: '3px solid transparent'}],
+                               {duration: 2000});
+                  });
+                });
+                """, card.getElement());
     }
 
     private void createSidebarButton(ChatMessage msg, int orderId, Long dbId) {

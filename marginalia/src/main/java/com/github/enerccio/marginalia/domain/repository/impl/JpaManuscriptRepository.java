@@ -3,10 +3,10 @@ package com.github.enerccio.marginalia.domain.repository.impl;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.service.search.LikePatterns;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import jakarta.persistence.TypedQuery;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -58,10 +58,7 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
 
             if (filterValues.getName() != null) {
                 String nameFilter = filterValues.getName();
-                nameFilter = StringUtils.replaceEach(nameFilter,
-                        new String[] {"\\", "_", "%", "*"},
-                        new String[] {"\\\\", "\\_", "\\%", "%"}
-                        );
+                nameFilter = LikePatterns.fromWildcards(nameFilter);
                 ands.add("m.name LIKE :name ESCAPE '\\'");
                 parameters.put("name", nameFilter + "%");
             }
