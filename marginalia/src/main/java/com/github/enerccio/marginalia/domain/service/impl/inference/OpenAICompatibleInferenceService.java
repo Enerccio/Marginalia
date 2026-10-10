@@ -447,7 +447,17 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
                     completed = true;
                     closeStream();
-                    callback.onCompletion();
+                    try {
+                        callback.onCompletion();
+                    } catch (Throwable e) {
+                        // completed is already set, so the outer catch would swallow this and the caller would wait forever
+                        log.error("Error invoking callback.onCompletion", e);
+                        try {
+                            callback.onError(translate(e));
+                        } catch (Exception ex) {
+                            log.error("Error invoking callback.onError", ex);
+                        }
+                    }
                 });
             } catch (Throwable e) {
                 if (!completed) {

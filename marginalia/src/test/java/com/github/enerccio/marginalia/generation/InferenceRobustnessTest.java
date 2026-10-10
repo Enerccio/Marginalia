@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
+import com.github.enerccio.marginalia.test.InferenceCollector;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -178,6 +179,22 @@ class InferenceRobustnessTest extends GenerationTestBase {
         assertThat(System.currentTimeMillis() - start).isLessThan(9000);
         assertThat(run.getSimpleErrors()).hasSize(1);
         assertThat(run.getSimpleErrors().getFirst()).startsWith(loc.getValue(L.ERROR_INFERENCE_TIMEOUT));
+    }
+
+    @Test
+    void failureInCompletionCallbackIsReportedAsError() throws Exception {
+        llm.enqueue(MockLLMResponse.text("done"));
+        InferenceCollector collector = new InferenceCollector() {
+            @Override
+            public void onCompletion() {
+                throw new IllegalStateException("completion failed");
+            }
+        };
+
+        inferenceServices.forAI(ai).stream(List.of(LLMChatMessage.of(LLMRole.USER, "write")), collector);
+
+        assertThat(collector.await(Duration.ofSeconds(10))).isEqualTo(InferenceCollector.Outcome.ERROR);
+        assertThat(collector.getError()).hasMessageContaining("completion failed");
     }
 
     // --- connection test ---
