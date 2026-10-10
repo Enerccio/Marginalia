@@ -88,9 +88,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
    `slf4j-log4j12` + `reload4j` (log4j 1.x API) — move to logback or log4j2. Remove what's unused, or finish it (see 21).
 
 10. ✅ **Story export.** The active branch (range of messages) is exported from the settings menu of the story editor
-    as TXT / HTML / DOCX / PDF / EPUB, optionally with a title page (`ExporterService`, `ExportDialog`). Missing:
+    as TXT / Markdown / HTML / DOCX / PDF / EPUB, optionally with a title page (`ExporterService`, `ExportDialog`). Missing:
     export of a chosen leaf (other than the active one), chapter headings from `chaptermarker`, an editable title
-    page template, and a Markdown format.
+    page template.
 
 11. **Inference robustness** (`OpenAICompatibleInferenceService`).
     - Configurable timeouts and retry with backoff for 429/5xx.
