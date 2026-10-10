@@ -105,6 +105,51 @@ public final class DatabaseCheck {
         }
     }
 
+    /**
+     * Tells whether starting the application on this existing database would run migrations, and from which version.
+     * A database without migration history predates Flyway and is baselined at V1 on start. An empty file (a new
+     * installation) has nothing to protect and nothing pending, a failed migration in the history is left to Flyway
+     * to report.
+     *
+     * @return the version the database is at, empty when no migration is pending
+     */
+    public static Optional<String> pendingMigrationFrom(File file) throws IOException, SQLException {
+        if (!file.isFile() || file.length() == 0) {
+            return Optional.empty();
+        }
+        SQLiteConfig config = new SQLiteConfig();
+        config.setReadOnly(true);
+        try (Connection connection = config.createConnection("jdbc:sqlite:" + file.getAbsolutePath());
+             Statement statement = connection.createStatement()) {
+            Set<String> tables = new HashSet<>();
+            try (ResultSet rs = statement.executeQuery("SELECT lower(name) FROM sqlite_master WHERE type = 'table'")) {
+                while (rs.next()) {
+                    tables.add(rs.getString(1));
+                }
+            }
+            if (!tables.contains(HISTORY_TABLE)) {
+                return tables.containsAll(CORE_TABLES) ? Optional.of("1") : Optional.empty();
+            }
+            MigrationVersion latestApplied = null;
+            try (ResultSet rs = statement.executeQuery("SELECT version FROM " + HISTORY_TABLE + " WHERE success = 1")) {
+                while (rs.next()) {
+                    String version = rs.getString(1);
+                    if (version != null) {
+                        MigrationVersion applied = MigrationVersion.fromVersion(version);
+                        if (latestApplied == null || applied.isNewerThan(latestApplied.getVersion())) {
+                            latestApplied = applied;
+                        }
+                    }
+                }
+            }
+            MigrationVersion latestKnown = latestMigration();
+            if (latestKnown != null && (latestApplied == null || latestKnown.isNewerThan(latestApplied.getVersion()))) {
+                return Optional.of(latestApplied == null ? "1" : latestApplied.getVersion());
+            }
+            return Optional.empty();
+        }
+    }
+
     private static void checkHistory(Statement statement) throws SQLException, IOException {
         MigrationVersion latestKnown = latestMigration();
         MigrationVersion latestApplied = null;

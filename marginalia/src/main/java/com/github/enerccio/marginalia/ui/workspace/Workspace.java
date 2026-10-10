@@ -68,7 +68,6 @@ public class Workspace {
     private Button adminButton;
     private Button logoutButton;
     private boolean navigationLocked;
-    private boolean internalEvent = false;
     private Runnable onLogout;
 
     public Workspace() {
@@ -159,9 +158,6 @@ public class Workspace {
         tabs.setFooterComponent(createFooter(user));
 
         tabs.addSelectedChangeListener(e -> {
-            if (internalEvent)
-                return;
-
             if (activeComponent != null) {
                 try {
                     activeComponent.onTabClosed();
@@ -272,13 +268,6 @@ public class Workspace {
     }
 
     public void refresh() throws Exception {
-        internalEvent = true;
-        try {
-
-        } finally {
-            internalEvent = false;
-        }
-
         manuscriptPart.refresh();
         lorebookPart.refresh();
         userPart.refresh();
