@@ -65,6 +65,37 @@ present and instructions; hover over a card to see all its details.
 - Long stretches without any branching (more than 20 parts) are collapsed into a block showing the first ten and the
   last ten parts. Click the block to show all parts.
 
+### Searching all branches
+
+The box above the tree searches the text of **all branches** of the book, not only the active one. Type what you are
+looking for and press **Enter** or click **Search**; the box remembers your last searches, pick one from the list to
+repeat it. The **x** in the box clears the search.
+
+- A part matches when its text contains **every word** you typed, in any order: `lighthouse key` finds the parts that
+  have both words. Put words in double quotes to look for a phrase: `"lighthouse key"`.
+- Use `*` for any characters: `light*` finds *lighthouse* and *lightning*. Other characters, including `%`, `_` and
+  `\`, are searched as they are.
+- Upper and lower case do not matter. For accented letters, a word typed in lower case also finds the same word in
+  UPPER CASE or Capitalized (`žluťoučký` finds *Žluťoučký* and *ŽLUŤOUČKÝ*).
+- Only the text of the parts is searched, not the instructions, scene setting or the lorebook. Parts that you deleted
+  are not searched.
+
+![The branch view with a search](../../images/story-tree-search.png)
+
+Every part that matches is **highlighted** in orange and shows the text around the match; the line above the tree says
+how many parts were found. Long stretches that would be collapsed are opened when they contain a match. The search
+stays until you clear it or close the book window, and the highlighting is updated when you come back to the tab.
+
+Click **Show in story** in a highlighted part to read it:
+
+- When the part is on the active branch, the book switches to the *Story* tab and scrolls to it.
+- When it is on another branch, that branch becomes the active branch first. It ends at the nearest end of a branch
+  below the found part (the newer one when there are two), so the story editor shows the story up to the found part and
+  what followed it. The book then switches to the *Story* tab and scrolls to the part, which flashes briefly.
+
+Switching the branch is the same as clicking the end of a branch in the tree: nothing is lost, the previous branch stays
+as it was and you can go back to it from the tree.
+
 ## Deleting parts and branches
 
 **Delete** in the menu of a part removes just that part. The parts after it move up and continue from the part before

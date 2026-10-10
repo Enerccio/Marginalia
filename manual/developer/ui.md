@@ -297,7 +297,24 @@ scroll handling in `ManuscriptStoryPart`.
 
 The only JavaScript module is `src/main/frontend/treant-connector.js`, loaded by `TreantTree` (`@JsModule`) together
 with the npm packages `treant-js` and `raphael` (`@NpmPackage`) and treant's CSS (`@CssImport`). It draws the story
-tree; `TreantTree` sends the tree as JSON and receives clicks back.
+tree; `TreantTree` sends the tree as JSON and receives clicks back: `node-click` (a card was clicked, with the
+`data-node-id` of the card) and `node-goto` (an element with `data-goto-id` inside a card was clicked; the card itself
+is not clicked then).
+
+### Searching the story tree
+
+`ManuscriptTreePart` has a search bar above the tree: an editable `ComboBox` (the last 15 searches; typed text is a
+custom value that the part sets as the value) and a button. A search calls `ChatMessageService.searchFulltext` and
+keeps the result as `lastQuery` and `hitSnippets` (part id → text around the match); `renderTree` then adds the CSS
+class `search-hit` (shared-styles.css) to the cards of the found parts and, in them, the snippet and a "Show in story"
+link (`data-goto-id`). Stretches of more than 20 parts that would be collapsed stay open when they contain a hit.
+The search is kept while the tab is open and repeated on every `onTabEnter`; `load` (opening the book) clears it.
+
+The link fires `NodeGotoEvent`. `onNodeGoto` resolves the id among the messages of the book only, asks
+`ChatMessageService.findLeafFor` for the end of the branch to show, makes it the book's active leaf when it is not
+(`ManuscriptDialog.save`) and calls `ManuscriptDialog.showMessage(id)`. That tells `ManuscriptStoryPart` which part to
+scroll to (`scrollToMessageOnNextRender`) and selects the story tab; entering the tab renders the story, which scrolls to
+the part (and flashes it) instead of restoring the saved scroll position.
 
 ### Styles
 
