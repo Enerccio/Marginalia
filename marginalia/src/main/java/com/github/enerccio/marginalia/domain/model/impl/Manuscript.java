@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
+import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -13,9 +14,12 @@ import java.util.Date;
 public class Manuscript extends ExtendableEntity {
 
     @Lob
+    @Fulltextable
     private String name;
 
     @ExtendedAttribute
+    @Transient
+    @Fulltextable
     private String description;
 
     @ManyToOne

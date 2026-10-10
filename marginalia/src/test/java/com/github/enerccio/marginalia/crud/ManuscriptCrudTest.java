@@ -12,7 +12,9 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
@@ -37,6 +39,9 @@ class ManuscriptCrudTest extends ExtendableCrudContract<Manuscript> {
 
     @Autowired
     private TagRelationService tagRelationService;
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     private OpenAICompatible ai;
     private Protocol protocol;
@@ -125,6 +130,37 @@ class ManuscriptCrudTest extends ExtendableCrudContract<Manuscript> {
         assertThat(loaded.isPublished()).isTrue();
         assertThat(loaded.getLorebook()).isNull();
         assertThat(idOf(loaded.getAi())).isEqualTo(ai.getId());
+    }
+
+    @Test
+    void descriptionIsStoredInExtendedContentAndFulltextOnly() throws Exception {
+        Manuscript saved = create();
+
+        // there is no description column any more
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM pragma_table_info('manuscripts') WHERE name = 'description'", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT CAST(extendedContent AS TEXT) FROM manuscripts WHERE id = ?", String.class, saved.getId()))
+                .contains("\"description\":\"A description\"");
+        assertThat(fulltext(saved)).isEqualTo("My book\nA description");
+
+        saved.setDescription("New description");
+        manuscriptService.save(saved);
+        assertThat(fulltext(saved)).isEqualTo("My book\nNew description");
+    }
+
+    @Test
+    void saveWithoutEventFillsFulltextFromTheRestoredExtendedContent() throws Exception {
+        Manuscript entity = newEntity();
+        entity.setDescription(null);
+        entity.setExtendedContent("{\"description\":\"Restored book\"}".getBytes(StandardCharsets.UTF_8));
+
+        Manuscript saved = manuscriptService.saveWithoutEvent(entity);
+
+        assertThat(saved.getDescription()).isEqualTo("Restored book");
+        assertThat(fulltext(saved)).isEqualTo("My book\nRestored book");
+    }
+
+    private String fulltext(Manuscript manuscript) {
+        return jdbc.queryForObject("SELECT CAST(_fulltext AS TEXT) FROM manuscripts WHERE id = ?", String.class, manuscript.getId());
     }
 
     @Test

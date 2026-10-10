@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.model.impl;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
+import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -12,6 +13,7 @@ import jakarta.persistence.Transient;
 public class Summary extends ExtendableEntity {
 
     @ExtendedAttribute
+    @Fulltextable
     @Transient
     private String summary;
 
