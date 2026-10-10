@@ -22,6 +22,7 @@ the part. An empty value prints nothing.
 | **Master Template** | `{{backgroundLore}}` activated lorebook entries (*In Lore Block*), `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, `{{summaries}}` all summaries of the branch |
 | **User Prompt** | `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}` - the turn instructions |
 | **Summary Prompt** | `{{text}}` the parts to summarize, `{{backgroundLore}}` lore active when the summarized part was written |
+| **Meta Summary Prompt** | `{{summaryBlocks}}` the summaries to merge, oldest first, `{{backgroundLore}}` lore active when the part of the meta summary was written |
 | **Lorebook entry** | `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}`, `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}` |
 
 ### Variables available everywhere

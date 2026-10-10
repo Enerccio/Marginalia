@@ -14,7 +14,7 @@ from the beginning to the end.
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
-| **Bottom bar** | The settings menu (⚙) on the left and the **+** button on the right. |
+| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |
 
 The divider between the outline and the parts can be dragged. Marginalia remembers the scroll position of each branch
 and returns to it when you open the book again.
@@ -69,7 +69,7 @@ Every part has a menu (☰) in its top right corner:
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |
-| **Delete summary** | Removes the summary of this part. |
+| **Delete summary** | Removes the summary of this part. For a [meta summary](summaries.md#meta-summaries) it asks whether to unwind it or delete it completely. |
 | **Delete** | Deletes the part, see [below](#deleting-a-part). |
 
 *Regenerate* and *Swipe* use the turn details of the last part (see [below](#turn-details)). To change what should
@@ -108,6 +108,12 @@ generation and drops the summary.
 **Delete** removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.
+
+## Summaries
+
+The **Summaries** button in the bottom bar (left of the settings menu ⚙) opens the overview of the summaries of the
+branch, where they can be edited, deleted and merged into meta summaries. The tooltip of the button shows how many
+tokens the summaries in use take in the prompt. See [Summaries](summaries.md#the-summaries-overview).
 
 ## Book styles
 

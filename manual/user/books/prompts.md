@@ -6,7 +6,7 @@ order: 70
 # Book prompts
 
 The **Prompts** tab of a book holds the texts Marginalia builds the prompt from: two templates, the narrative settings
-and the summary prompt. They decide the voice of the book far more than the model settings do.
+and the summary prompts. They decide the voice of the book far more than the model settings do.
 
 ![The Prompts tab](../../images/book-prompts.png)
 
@@ -35,6 +35,7 @@ point for your own version. The template fields also list the **Available Templa
 | **Style** | master template | Style and tone guidelines for the prose. Plain text. |
 | **Default User Prompt** | last message | The request for the next part, built from the [turn instructions](story-editor.md#writing-the-next-part). A template. |
 | **Default Summary Prompt** | summaries | The request for a [summary](summaries.md). A template. |
+| **Default Meta Summary Prompt** | meta summaries | The request for a [meta summary](summaries.md#meta-summaries), which merges summaries. A template. |
 
 *Point of View*, *Tense* and *Style* are inserted into the master template as they are; macros don't work in them.
 
@@ -49,6 +50,7 @@ Templates are text with placeholders in double curly braces. Each template gets 
 | Master Template | `{%{{{backgroundLore}}}%}` (activated lorebook entries), `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, `{%{{{summaries}}}%}` |
 | User Prompt | `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}`, `{%{{{instructions}}}%}` |
 | Summary Prompt | `{%{{{backgroundLore}}}%}`, `{%{{{text}}}%}` (the parts to summarize) |
+| Meta Summary Prompt | `{%{{{backgroundLore}}}%}`, `{%{{{summaryBlocks}}}%}` (the summaries to merge) |
 
 A section prints its content only when the variable is not empty, so the prompt has no empty headings:
 

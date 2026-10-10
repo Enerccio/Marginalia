@@ -55,6 +55,7 @@ parameters (`{{#if name}}`) are not checked.
 | Lorebook entry payload | `ProcessLorebookStep` (one data object for all active entries) | `LorebookTemplateData` | the four above + `narrativePov`, `narrativeTense`, `style` |
 | Master template | `PrepareContentStep` (twice: token estimate on a fork, then for real) | `MasterTemplateData` | `backgroundLore`, `narrativePov`, `narrativeTense`, `style`, `summaries` |
 | Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |
+| Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |
 
 The order of the [generation pipeline](generation-pipeline.md) matters: the user prompt is rendered first, then the
 lorebook entries, then the master template - a variable set in the user prompt is visible in lore, and lore can set
@@ -94,8 +95,9 @@ One context is created per generation (`GenerationStepBase.getTemplateContext`, 
 the same variables. `fork()` makes a copy with copied variables for renders whose side effects must not count - the
 token estimate of the master template uses one.
 
-Summaries build their own context (`SummaryServiceImpl.createTemplateContext`) from the part being summarized; the
-variable changes made by a summary prompt are not stored.
+Summaries and meta summaries build their own context (`SummaryServiceImpl.createTemplateContext`) from the part being
+summarized (for a meta summary: the part it is stored on); the variable changes made by a summary prompt are not
+stored.
 
 ## How macros are translated
 

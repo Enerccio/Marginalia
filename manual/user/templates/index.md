@@ -24,6 +24,7 @@ Write the next section of the story.
 | **Master Template** | book [Prompts](../books/prompts.md), *Settings → Templates* | the system message: role, lore, style, summaries |
 | **User Prompt** | book Prompts, *Settings → Templates* | the request for the part being written |
 | **Summary Prompt** | book Prompts, *Settings → Templates* | the request for a [summary](../books/summaries.md) |
+| **Meta Summary Prompt** | book Prompts, *Settings → Templates* | the request for a [meta summary](../books/summaries.md#meta-summaries) |
 | **Lorebook entry content** | [lorebook entries](../lorebooks/entries.md) | the lore inserted into the prompt |
 
 *Point of View*, *Tense* and *Style* are plain text, not templates.
