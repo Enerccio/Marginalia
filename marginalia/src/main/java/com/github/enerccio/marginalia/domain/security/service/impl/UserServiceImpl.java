@@ -209,33 +209,49 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         return save(user);
     }
 
+    /**
+     * Checks a remember-me cookie. The secret is hashed once and compared against every saved login with
+     * {@link MessageDigest#isEqual}, without leaving the loop on a match, so timing does not reveal whether the
+     * identifier exists or how much of the secret was right.
+     */
     @Override
     @CommonTx
     public PersistedLoginInfo authenticateFromCookie(User user, String identifier, String secret) throws Exception {
-        List<PersistedLoginInfo> loginInfos = getPersistedLoginInfo(user);
+        List<PersistedLoginInfo> loginInfos = user == null ? Collections.emptyList() : getPersistedLoginInfo(user);
+        String computed = user == null ? DUMMY_HASH : hashPersistedLoginSecret(user, secret);
+        byte[] computedBytes = computed.getBytes(StandardCharsets.UTF_8);
+        byte[] identifierBytes = StringUtils.defaultString(identifier).getBytes(StandardCharsets.UTF_8);
+
+        PersistedLoginInfo matched = null;
         for (PersistedLoginInfo loginInfo : loginInfos) {
-            if (loginInfo.getIdentifier().equals(identifier)) {
-                if (loginInfo.getHashedSecret().equals(hashPersistedLoginSecret(user, secret))) {
-                    if (configuration.getPersistentLoginInfoTTL() != null) {
-                        long ctime = System.currentTimeMillis() - (configuration.getPersistentLoginInfoTTL() * 1000);
-                        if (ctime >= loginInfo.getCreate()) {
-                            // we passed the max login window
-                            deletePersistedLoginInfo(user, loginInfo);
-                            save(user);
-                            return null;
-                        }
-                    }
-                    PersistedLoginInfo newLoginInfo = generateNewPersistentInfo(user);
-                    newLoginInfo.setIdentifier(loginInfo.getIdentifier());
-                    newLoginInfo.setCreate(loginInfo.getCreate());
-                    deletePersistedLoginInfo(user, loginInfo);
-                    addPersistedLoginInfo(user, newLoginInfo);
-                    save(user);
-                    return newLoginInfo;
-                }
+            boolean identifierMatches = MessageDigest.isEqual(
+                    loginInfo.getIdentifier().getBytes(StandardCharsets.UTF_8), identifierBytes);
+            boolean secretMatches = MessageDigest.isEqual(
+                    loginInfo.getHashedSecret().getBytes(StandardCharsets.UTF_8), computedBytes);
+            if (identifierMatches & secretMatches) {
+                matched = loginInfo;
             }
         }
-        return null;
+        if (matched == null) {
+            return null;
+        }
+
+        if (configuration.getPersistentLoginInfoTTL() != null) {
+            long ctime = System.currentTimeMillis() - (configuration.getPersistentLoginInfoTTL() * 1000);
+            if (ctime >= matched.getCreate()) {
+                // we passed the max login window
+                deletePersistedLoginInfo(user, matched);
+                save(user);
+                return null;
+            }
+        }
+        PersistedLoginInfo newLoginInfo = generateNewPersistentInfo(user);
+        newLoginInfo.setIdentifier(matched.getIdentifier());
+        newLoginInfo.setCreate(matched.getCreate());
+        deletePersistedLoginInfo(user, matched);
+        addPersistedLoginInfo(user, newLoginInfo);
+        save(user);
+        return newLoginInfo;
     }
 
     @Override
