@@ -1,11 +1,15 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
+import com.github.enerccio.marginalia.instruct.verify.ExtensionVerification;
+import com.github.enerccio.marginalia.instruct.verify.ExtensionVerifier;
 import com.github.enerccio.marginalia.utils.ReflectUtils;
 import com.github.enerccio.tools.Pair;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -36,6 +40,13 @@ public class ExtensionServiceImpl implements ExtensionService {
         for (List<ExtensionDecorator> decorators : decoratorMap.values()) {
             decorators.remove(decorator);
         }
+    }
+
+    @Override
+    public ExtensionVerification verifyExtension(Bundle bundle, File jar) throws Exception {
+        ExtensionVerification verification = new ExtensionVerifier(ExtensionServiceImpl.class.getClassLoader()).verify(bundle, jar);
+        ExtensionVerifier.writeReport(jar, verification);
+        return verification;
     }
 
     @Override

@@ -268,6 +268,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_ALL_USERS, "All users");
         setValue(L.LABEL_ALL_TYPES, "All types");
         setValue(L.LABEL_EXTENDED_CONTENT, "Extended Content");
+        setValue(L.LABEL_BUNDLE_VERIFICATION, "Verification");
+        setValue(L.LABEL_VERIFICATION_REPORT, "Verification Report");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -332,6 +334,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ERROR_INFERENCE_CONNECTION, "Cannot connect to the provider. Check the URL of the inference provider and your network.");
         setValue(L.ERROR_INFERENCE_BAD_REQUEST, "The provider rejected the request. Check the model and the additional parameters of the inference provider.");
         setValue(L.ERROR_INFERENCE_UNKNOWN, "The request to the provider failed.");
+        setValue(L.ERROR_EXTENSION_INCOMPATIBLE, "Extension %s does not fit this version of Marginalia and was not loaded.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");

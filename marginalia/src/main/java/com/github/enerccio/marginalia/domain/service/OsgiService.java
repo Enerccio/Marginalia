@@ -25,6 +25,9 @@ public interface OsgiService {
      * Stores an uploaded JAR in the extensions folder (under a sanitized file name) and loads it. An installed bundle
      * with the same symbolic name or file name is unloaded and replaced. When the new bundle can't be installed or
      * started, the uploaded file is deleted and the replaced bundle is restored.
+     *
+     * @throws ExtensionVerificationException when the extension asks for something this version of the application
+     *                                        doesn't have, the exception carries the report
      */
     Bundle installPackage(String fileName, byte[] data) throws Exception;
 
@@ -47,6 +50,15 @@ public interface OsgiService {
     void removeSubscriber(ExtensionObserver observer);
 
     String getExtensionsPath();
+
+    /**
+     * The report of the verification of the extension ({@link ExtensionService#verifyExtension}), {@code null} when
+     * there is none yet. An extension whose report says it is invalid is installed but not started.
+     */
+    ExtensionReport getVerificationReport(Bundle b);
+
+    record ExtensionReport(boolean valid, String text) {
+    }
 
     /**
      * Registers a cleanup callback for a component the extension added to the UI. When the extension is unloaded, the

@@ -2,8 +2,10 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
-import com.github.enerccio.marginalia.domain.service.ExtensionService;
+import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
+import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.instruct.fixture.verify.VerifyFixtures;
 import com.github.enerccio.marginalia.test.ExpectedLog;
 import com.vaadin.flow.component.html.Div;
 import org.junit.jupiter.api.AfterEach;
@@ -18,7 +20,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,6 +45,7 @@ class OsgiServiceImplTest {
     private File extensions;
     private OsgiServiceImpl service;
     private ExpectedLog log;
+    private long applicationTimestamp;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -53,10 +56,15 @@ class OsgiServiceImplTest {
         configuration.setFolder(home);
         configuration.afterPropertiesSet();
 
-        service = new OsgiServiceImpl();
+        applicationTimestamp = 0;
+        service = new OsgiServiceImpl() {
+            @Override
+            protected long applicationTimestamp() {
+                return applicationTimestamp;
+            }
+        };
         ReflectionTestUtils.setField(service, "configuration", configuration);
-        ReflectionTestUtils.setField(service, "extensionService", Proxy.newProxyInstance(getClass().getClassLoader(),
-                new Class<?>[]{ExtensionService.class}, (proxy, method, args) -> null));
+        ReflectionTestUtils.setField(service, "extensionService", new ExtensionServiceImpl());
         // the administrator check is covered with the Spring context, here the current user is not available
         ReflectionTestUtils.setField(service, "adminGuard", new AdminGuard() {
             @Override
@@ -75,6 +83,17 @@ class OsgiServiceImplTest {
     }
 
     private static byte[] bundle(String symbolicName, String version, String... headers) throws IOException {
+        return bundleWith(symbolicName, version, List.of(), headers);
+    }
+
+    /**
+     * A bundle with a decorator registration for a class that doesn't exist: it fails the verification.
+     */
+    private static byte[] invalidBundle(String symbolicName, String version) throws IOException {
+        return bundleWith(symbolicName, version, List.of("VerifyFixtures$BrokenTargets.class"));
+    }
+
+    private static byte[] bundleWith(String symbolicName, String version, List<String> classes, String... headers) throws IOException {
         Manifest manifest = new Manifest();
         Attributes attributes = manifest.getMainAttributes();
         attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -86,8 +105,16 @@ class OsgiServiceImplTest {
             attributes.putValue(header, "true");
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (JarOutputStream ignored = new JarOutputStream(out, manifest)) {
-            // the manifest is all a test bundle needs
+        try (JarOutputStream jar = new JarOutputStream(out, manifest)) {
+            // the manifest is all a test bundle needs, classes are only read by the verification
+            for (String name : classes) {
+                String path = VerifyFixtures.class.getPackageName().replace('.', '/') + "/" + name;
+                jar.putNextEntry(new ZipEntry(path));
+                try (var in = VerifyFixtures.class.getClassLoader().getResourceAsStream(path)) {
+                    jar.write(in.readAllBytes());
+                }
+                jar.closeEntry();
+            }
         }
         return out.toByteArray();
     }
@@ -97,7 +124,16 @@ class OsgiServiceImplTest {
     }
 
     private List<String> jarNames() {
-        String[] names = extensions.list((dir, name) -> !name.equals("org.eclipse.osgi"));
+        String[] names = extensions.list((dir, name) -> name.endsWith(".jar"));
+        Arrays.sort(names);
+        return Arrays.asList(names);
+    }
+
+    /**
+     * Verification reports next to the JARs.
+     */
+    private List<String> reportNames() {
+        String[] names = extensions.list((dir, name) -> name.endsWith(".valid") || name.endsWith(".invalid"));
         Arrays.sort(names);
         return Arrays.asList(names);
     }
@@ -257,5 +293,137 @@ class OsgiServiceImplTest {
         assertThat(callbacks).doesNotContainKey(extension);
         assertThatThrownBy(() -> service.bindAttachableComponent(new Div(), () -> {
         }, extension)).isInstanceOf(IllegalStateException.class).hasMessageContaining("not loaded");
+    }
+
+    @Test
+    void verifiedExtensionsAreStartedAndLeaveAReport() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+
+        service.start();
+
+        assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(reportNames()).containsExactly("a.valid");
+        ExtensionReport report = service.getVerificationReport(bundleNamed("test.a"));
+        assertThat(report.valid()).isTrue();
+        assertThat(report.text()).contains("Extension: a.jar").contains("Result: VALID");
+    }
+
+    @Test
+    void invalidExtensionIsInstalledButNotStarted() throws Exception {
+        writeJar("good.jar", bundle("test.good", "1.0.0"));
+        writeJar("bad.jar", invalidBundle("test.bad", "1.0.0"));
+
+        service.start();
+
+        assertThat(bundleNamed("test.good").getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(bundleNamed("test.bad").getState()).isNotEqualTo(Bundle.ACTIVE);
+        assertThat(TestExtensionActivator.LOADED).containsOnlyKeys("test.good:1.0.0");
+        assertThat(reportNames()).containsExactly("bad.invalid", "good.valid");
+        assertThat(service.getVerificationReport(bundleNamed("test.bad")).valid()).isFalse();
+        assertThat(log.errors()).anyMatch(m -> m.contains("bad.jar") && m.contains("does not exist in this version"));
+    }
+
+    @Test
+    void invalidUploadIsRejectedWithTheReportAndKeepsTheInstalledVersion() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+
+        assertThatThrownBy(() -> service.installPackage("a.jar", invalidBundle("test.a", "2.0.0")))
+                .isInstanceOf(ExtensionVerificationException.class)
+                .hasMessageContaining("Result: INVALID")
+                .hasMessageContaining("NoSuchClass does not exist");
+
+        assertThat(jarNames()).containsExactly("a.jar");
+        assertThat(bundleNamed("test.a").getVersion().toString()).isEqualTo("1.0.0");
+        assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(reportNames()).containsExactly("a.valid");
+        assertThat(service.getVerificationReport(bundleNamed("test.a")).valid()).isTrue();
+    }
+
+    @Test
+    void reportIsReusedWhileItIsNewerThanTheExtensionAndTheApplication() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        File report = new File(extensions, "a.valid");
+        Files.writeString(report.toPath(), "kept", StandardCharsets.UTF_8);
+        service.restart();
+
+        assertThat(report).hasContent("kept");
+        assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
+
+        // a report of an invalid extension is final as well: the extension is not even tried
+        Files.delete(report.toPath());
+        File invalid = new File(extensions, "a.invalid");
+        Files.writeString(invalid.toPath(), "Result: INVALID\nnot compatible", StandardCharsets.UTF_8);
+        service.restart();
+
+        assertThat(bundleNamed("test.a").getState()).isNotEqualTo(Bundle.ACTIVE);
+        assertThat(invalid).exists();
+        assertThat(log.errors()).anyMatch(m -> m.contains("not compatible"));
+    }
+
+    @Test
+    void reportOlderThanTheExtensionIsVerifiedAgain() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        File report = new File(extensions, "a.invalid");
+        Files.writeString(report.toPath(), "Result: INVALID\nstale", StandardCharsets.UTF_8);
+        Files.setLastModifiedTime(report.toPath(), java.nio.file.attribute.FileTime.fromMillis(System.currentTimeMillis() - 60_000));
+
+        service.start();
+
+        assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(reportNames()).containsExactly("a.valid");
+    }
+
+    @Test
+    void reportOlderThanTheApplicationIsVerifiedAgain() throws Exception {
+        writeJar("a.jar", invalidBundle("test.a", "1.0.0"));
+        service.start();
+        assertThat(reportNames()).containsExactly("a.invalid");
+        File report = new File(extensions, "a.invalid");
+        String before = Files.readString(report.toPath());
+
+        // a new version of the application: the extension is checked against it again
+        applicationTimestamp = System.currentTimeMillis() + 60_000;
+        service.restart();
+
+        assertThat(reportNames()).containsExactly("a.invalid");
+        assertThat(Files.readString(report.toPath())).isNotEqualTo(before).contains("Result: INVALID");
+
+        // the application fits the extension again
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        applicationTimestamp = System.currentTimeMillis() + 120_000;
+        service.restart();
+
+        assertThat(reportNames()).containsExactly("a.valid");
+        assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
+    }
+
+    @Test
+    void unloadingAnExtensionDeletesItsReport() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        writeJar("bad.jar", invalidBundle("test.bad", "1.0.0"));
+        service.start();
+        assertThat(reportNames()).containsExactly("a.valid", "bad.invalid");
+
+        service.uninstallPackage(bundleNamed("test.bad"));
+        assertThat(reportNames()).containsExactly("a.valid");
+
+        service.uninstallPackage(bundleNamed("test.a"));
+        assertThat(reportNames()).isEmpty();
+        assertThat(jarNames()).isEmpty();
+    }
+
+    @Test
+    void replacingAnExtensionVerifiesTheNewVersion() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        File report = new File(extensions, "a.valid");
+        Files.writeString(report.toPath(), "old report", StandardCharsets.UTF_8);
+
+        service.installPackage("a.jar", bundle("test.a", "1.0.1"));
+
+        assertThat(reportNames()).containsExactly("a.valid");
+        assertThat(report).content().startsWith("Extension: a.jar");
     }
 }

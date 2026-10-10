@@ -3,8 +3,11 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
+import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.instruct.verify.ExtensionVerification;
+import com.github.enerccio.marginalia.instruct.verify.ExtensionVerifier;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.shared.Registration;
 import org.apache.commons.io.FileUtils;
@@ -27,8 +30,14 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -57,6 +66,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private final Map<ServiceReference<?>, MarginaliaExtension> activeExtensions = new ConcurrentHashMap<>();
     private final Map<MarginaliaExtension, Set<ComponentBinding>> componentCallbacks = new ConcurrentHashMap<>();
     private final Set<WeakReference<ExtensionObserver>> observers = new HashSet<>();
+    private volatile Long applicationTimestamp;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -156,6 +166,8 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         for (Bundle b : getBundles()) {
             try {
                 startBundle(b);
+            } catch (ExtensionVerificationException e) {
+                log.error("Extension {} is not started, it does not fit this version of Marginalia:\n{}", e.getExtension(), e.getReport());
             } catch (Exception e) {
                 log.error("Failed to start extension {} ({}): {}", b.getSymbolicName(), locationFile(b).getName(), e.getMessage(), e);
             }
@@ -229,6 +241,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                         Files.move(oldFile.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         backups.put(oldFile, backup);
                     }
+                    deleteReports(oldFile);
                 }
             }
             if (!backups.isEmpty()) {
@@ -253,6 +266,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         } catch (Exception e) {
             if (targetWritten) {
                 Files.deleteIfExists(target.toPath());
+                deleteReports(target);
             }
             restoreBackups(backups);
             throw e;
@@ -287,6 +301,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 } finally {
                     b.uninstall();
                     locationFile(b).delete();
+                    deleteReports(locationFile(b));
                 }
                 refreshBundles();
             } finally {
@@ -312,6 +327,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     }
 
     private void startBundle(Bundle b) throws Exception {
+        verifyBundle(b);
         b.start();
         try {
             startBundleInternal(b);
@@ -323,6 +339,114 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
             }
             throw e;
         }
+    }
+
+    /**
+     * An extension is started only when it was verified ({@link ExtensionService#verifyExtension}). The report of an
+     * earlier verification is used while it is newer than the JAR and than the application; otherwise it is deleted
+     * and the extension is verified again - a new version of the application can break extensions that were fine.
+     *
+     * @throws ExtensionVerificationException when the extension is invalid
+     */
+    private void verifyBundle(Bundle b) throws Exception {
+        File jar = locationFile(b);
+        File validReport = ExtensionVerifier.reportFile(jar, true);
+        File invalidReport = ExtensionVerifier.reportFile(jar, false);
+        long newest = Math.max(jar.lastModified(), applicationTimestamp());
+        boolean valid = isFresh(validReport, newest);
+        boolean invalid = isFresh(invalidReport, newest);
+
+        if (valid && !invalid) {
+            return;
+        }
+        if (invalid && !valid) {
+            throw new ExtensionVerificationException(jar.getName(), Files.readString(invalidReport.toPath(), StandardCharsets.UTF_8));
+        }
+        // no report, an outdated one (deleted above) or contradicting ones
+        deleteReports(jar);
+        ExtensionVerification verification = extensionService.verifyExtension(b, jar);
+        if (!verification.valid()) {
+            throw new ExtensionVerificationException(jar.getName(), verification.report());
+        }
+    }
+
+    /**
+     * Whether the report exists and was written after {@code newest}. An outdated report is deleted.
+     */
+    private static boolean isFresh(File report, long newest) throws IOException {
+        if (!report.exists()) {
+            return false;
+        }
+        if (report.lastModified() > newest) {
+            return true;
+        }
+        Files.deleteIfExists(report.toPath());
+        return false;
+    }
+
+    private static void deleteReports(File jar) {
+        try {
+            ExtensionVerifier.deleteReports(jar);
+        } catch (IOException e) {
+            log.error("Failed to delete the verification report of {}: {}", jar.getName(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * When the application was built or installed: the newer of the creation and modification time of the WAR (the
+     * folder it was unpacked to, or the classes when it is not packed). Reports older than that are void.
+     */
+    protected long applicationTimestamp() {
+        Long timestamp = applicationTimestamp;
+        if (timestamp == null) {
+            timestamp = findApplicationTimestamp();
+            applicationTimestamp = timestamp;
+        }
+        return timestamp;
+    }
+
+    private static long findApplicationTimestamp() {
+        try {
+            CodeSource source = OsgiServiceImpl.class.getProtectionDomain().getCodeSource();
+            if (source == null) {
+                return 0;
+            }
+            URL location = source.getLocation();
+            String spec = location.toString();
+            if (spec.startsWith("jar:")) {
+                int end = spec.indexOf("!/");
+                spec = spec.substring("jar:".length(), end >= 0 ? end : spec.length());
+            }
+            Path path = Path.of(URI.create(spec));
+            // WEB-INF/classes and WEB-INF/lib belong to the web application folder
+            for (Path parent = path; parent != null; parent = parent.getParent()) {
+                if (parent.getFileName() != null && parent.getFileName().toString().equals("WEB-INF") && parent.getParent() != null) {
+                    path = parent.getParent();
+                    break;
+                }
+            }
+            BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
+            return Math.max(attributes.creationTime().toMillis(), attributes.lastModifiedTime().toMillis());
+        } catch (Exception e) {
+            log.warn("Cannot find out when the application was installed, verification reports are kept: {}", e.getMessage());
+            return 0;
+        }
+    }
+
+    @Override
+    public ExtensionReport getVerificationReport(Bundle b) {
+        File jar = locationFile(b);
+        for (boolean valid : new boolean[]{true, false}) {
+            File report = ExtensionVerifier.reportFile(jar, valid);
+            if (report.exists()) {
+                try {
+                    return new ExtensionReport(valid, Files.readString(report.toPath(), StandardCharsets.UTF_8));
+                } catch (IOException e) {
+                    log.error("Failed to read the verification report {}: {}", report.getName(), e.getMessage(), e);
+                }
+            }
+        }
+        return null;
     }
 
     private void startBundleInternal(Bundle b) throws Exception {
