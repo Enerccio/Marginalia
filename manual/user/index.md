@@ -66,6 +66,7 @@ After logging in you see the workspace. The tabs on the left are the main areas 
 | **Settings**            | Your defaults: model, protocol and the default prompts for new books. See [Account & settings](account.md). |
 | **Protocols**           | Generation settings. See [Protocols](protocols.md).                                                         |
 | **Inference Providers** | Connections to models. See [Inference providers](inference-providers.md).                                   |
+| **Resources**           | The files you uploaded, such as pictures of parts. See [Resources](resources.md).                           |
 
 At the bottom are **Change Password**, **Logout** and, for administrators, **Admin**. Extensions may add more tabs
 and buttons.
@@ -76,6 +77,7 @@ and buttons.
 |-----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [Getting started](getting-started/index.md)   | Installing the [desktop app](getting-started/desktop-app.md) or a [server](getting-started/docker-server.md), the [first start](getting-started/first-start.md) and a [quick start](getting-started/quick-start.md). |
 | [Inference providers](inference-providers.md) | Connecting cloud and local models, context limits, reasoning models.                                                                                                                                                 |
+| [Resources](resources.md)                     | The files you uploaded: download, replace and delete them.                                                                                                                                                           |
 | [Protocols](protocols.md)                     | Temperature, top P, penalties and per-protocol limits.                                                                                                                                                               |
 | [Books](books/index.md)                       | Managing books, the story editor, branches, book prompts, summaries, backups and publishing.                                                                                                                         |
 | [Lorebooks](lorebooks/index.md)               | Creating lorebooks, entries and how they are activated, import and export (including SillyTavern).                                                                                                                   |

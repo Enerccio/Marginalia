@@ -36,6 +36,9 @@ the top left corner returns to the list.
 
 What you read is the book as it is now: new parts appear the next time the page is opened.
 
+[Pictures of the parts](story-editor.md#images) are shown under the text, but only to you, the owner. Readers of a
+[published](#publishing-a-book) book see the text without the pictures.
+
 ## Publishing a book
 
 By default only you can open your books in the viewer. To let other users read a book:
@@ -51,6 +54,8 @@ By default only you can open your books in the viewer. To let other users read a
 
 Other users need an account on the same Marginalia installation; they log in and see the book. Published books don't
 appear in their viewer list, only the address opens them. They can only read the book, not change it.
+
+Publishing shares the book as it is: only the text of the parts is shared, the pictures of the parts stay private.
 
 Uncheck **Published** to stop sharing: the address then shows *Book not found* to everyone but you. Deleted books
 can't be opened at all.

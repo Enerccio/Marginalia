@@ -25,6 +25,7 @@ flowchart TB
     WS --> UP["UserPart - Settings"]
     WS --> PP["ProtocolPart - Protocols"]
     WS --> AP["AIPart - Inference Providers"]
+    WS --> RP["ResourcesPart - Resources"]
     WS --> AdP["AdminPart - Admin (footer button)"]
     AdP --> DBP["DatabaseBackupPanel"]
     AdP --> CP["CleanupPanel"]
@@ -288,7 +289,7 @@ runs before and after that method and can read its arguments and local variables
 
 | Area | Classes |
 |---|---|
-| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
+| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog` |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `LorebookView`, `TreantTree` |
 
