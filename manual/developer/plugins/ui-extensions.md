@@ -1,7 +1,7 @@
 ---
 label: Extending the UI
 order: 70
-verified: f1e5c62
+verified: 199209e
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
