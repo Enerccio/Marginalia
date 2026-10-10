@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844966488390">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844971702216">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844966488390" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844971702216" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844971702216" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844966488390" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844971702216" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844971702216" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -350,7 +350,8 @@ error to the administrator.</p>
     O-&gt;&gt;F: start framework (storage extensions/org.eclipse.osgi, cleaned)
     O-&gt;&gt;F: installBundle(file:...) for every *.jar in extensions/
     loop every bundle
-        O-&gt;&gt;F: bundle.start()
+        O-&gt;&gt;O: verify (reuse name.valid / name.invalid or run ExtensionService.verifyExtension)
+        O-&gt;&gt;F: bundle.start() - only when valid
         F-&gt;&gt;A: start(context)
         A-&gt;&gt;F: registerService(MarginaliaExtension)
         O-&gt;&gt;E: onExtensionLoad(bundle, osgiService, extensionService)
@@ -365,22 +366,24 @@ storage in <code translate="no" v-pre>~/.marginalia/extensions/org.eclipse.osgi<
 installs every <code translate="no" v-pre>*.jar</code> in <code translate="no" v-pre>~/.marginalia/extensions</code> and starts them. For each <code translate="no" v-pre>MarginaliaExtension</code> service a
 bundle registered, it calls <code translate="no" v-pre>onExtensionLoad</code>. Each JAR is installed and started on its own: one that can&#x27;t be
 installed (not a bundle, a second copy of an installed plugin) or fails to start is logged with its file name and
-skipped.</p>
+skipped. Before a bundle is started it is <strong>verified</strong>: the decorators it registers are checked against this version
+of the application (<a href="../extendable/#verification-before-loading">Verification before loading</a>). An invalid extension
+stays installed but is not started, and its report is logged.</p>
 </li>
 <li>
 <p><strong>Installing at runtime.</strong> <em>Admin → Extensions → Load Extension (.jar)</em> writes the uploaded file into
 <code translate="no" v-pre>~/.marginalia/extensions</code> (the file name is sanitized: only letters, digits, <code translate="no" v-pre>.</code>, <code translate="no" v-pre>_</code> and <code translate="no" v-pre>-</code>) and installs and
-starts it the same way (<code translate="no" v-pre>OsgiService.installPackage</code>, like <code translate="no" v-pre>uninstallPackage</code> administrators only: <code translate="no" v-pre>AdminGuard.requireAdmin()</code>). Screens that are already open are not rebuilt: the plugin&#x27;s
+starts it the same way, verification included (<code translate="no" v-pre>OsgiService.installPackage</code>, like <code translate="no" v-pre>uninstallPackage</code> administrators only: <code translate="no" v-pre>AdminGuard.requireAdmin()</code>; an invalid upload throws <code translate="no" v-pre>ExtensionVerificationException</code> with the report). Screens that are already open are not rebuilt: the plugin&#x27;s
 decorators run the next time the decorated methods run (the next time the user opens a book, a tab...).</p>
 </li>
 <li>
 <p><strong>Updating.</strong> Uploading a bundle whose symbolic name (or file name) is already installed replaces it: the old one is
 unloaded as by <em>Unload</em>, uninstalled and its JAR deleted, then the new one is loaded. If the new one fails to
-install or start, its JAR is deleted and the old one is put back.</p>
+install, verify or start, its JAR is deleted and the old one is put back.</p>
 </li>
 <li>
 <p><strong>Unloading.</strong> <em>Unload</em> calls the callbacks registered with <code translate="no" v-pre>bindAttachableComponent</code>, then <code translate="no" v-pre>onExtensionUnload</code>,
-uninstalls the bundle and <strong>deletes its JAR</strong> (<code translate="no" v-pre>OsgiService.uninstallPackage</code>). Bundles that failed to start are
+uninstalls the bundle and <strong>deletes its JAR and its verification reports</strong> (<code translate="no" v-pre>OsgiService.uninstallPackage</code>). Bundles that failed to start are
 listed too (state <code translate="no" v-pre>INSTALLED</code> or <code translate="no" v-pre>RESOLVED</code>) and can be unloaded the same way.</p>
 </li>
 <li>

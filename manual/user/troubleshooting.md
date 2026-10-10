@@ -154,6 +154,11 @@ Close and reopen the book, or reload the page.
 Stop Marginalia, delete its JAR from the `extensions` folder, start again. See
 [When an extension fails](administration/extensions.md#when-an-extension-fails).
 
+**An extension was refused or stopped working after Marginalia was updated.**
+Extensions are built for one version of Marginalia and are checked when they are loaded. Open the report
+(Admin → Extensions → *Verification*) and load the version of the extension that matches your Marginalia. See
+[When an extension fails](administration/extensions.md#when-an-extension-fails).
+
 **After updating an extension, the old version still runs.**
 Unload the old version first, then load the new one - or restart Marginalia.
 

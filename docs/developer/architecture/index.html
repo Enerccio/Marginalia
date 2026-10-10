@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844966488390">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844971702216">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844966488390" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844971702216" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844971702216" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844966488390" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844971702216" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844971702216" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -844,7 +844,10 @@ registry, e.g. for admin views.</p>
 delegation is open for all packages (<code translate="no" v-pre>org.osgi.framework.bootdelegation=*</code>, parent = the framework&#x27;s class loader,
 which is the web application&#x27;s), so bundles see the application&#x27;s classes and libraries directly without importing
 them. A bundle registers a <code translate="no" v-pre>MarginaliaExtension</code> service;
-Marginalia calls <code translate="no" v-pre>onExtensionLoad</code> / <code translate="no" v-pre>onExtensionUnload</code> and passes the <code translate="no" v-pre>ExtensionService</code>.</p>
+Marginalia calls <code translate="no" v-pre>onExtensionLoad</code> / <code translate="no" v-pre>onExtensionUnload</code> and passes the <code translate="no" v-pre>ExtensionService</code>. Before an extension is
+started, <code translate="no" v-pre>ExtensionService.verifyExtension</code> checks the classes, methods, arguments, locals and fields its decorators
+use against the running application (the result is kept in <code translate="no" v-pre>name.valid</code> / <code translate="no" v-pre>name.invalid</code> next to the JAR); an
+extension that doesn&#x27;t fit is not started.</p>
 </li>
 <li>
 <p><strong>Instrumentation.</strong> At startup a ByteBuddy agent rewrites every non-static, non-constructor method of each class
@@ -881,7 +884,7 @@ version of the application. See <a href="../plugins/">Plugin development</a>.</p
 | `db-backups/` | Database backups (manual, scheduled, `pre-restore-*`, refused restores `rejected-restore-*`). |
 | `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/` | Book backups (`BackupService`), one JSON file each. |
 | `data/&lt;login&gt;/images/`, `data/&lt;login&gt;/resources/` | Per-user folders for files (created on demand). |
-| `extensions/` | Extension JARs, plus Felix's bundle cache in `org.eclipse.osgi/` (deleted and rebuilt on every start). |
+| `extensions/` | Extension JARs with their verification reports (`name.valid` / `name.invalid`, `ExtensionService.verifyExtension`), plus Felix's bundle cache in `org.eclipse.osgi/` (deleted and rebuilt on every start). |
 | `desktop/` | Desktop app only: the Jetty base and `logs/`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -918,7 +921,7 @@ version of the application. See <a href="../plugins/">Plugin development</a>.</p
 </tr>
 <tr>
 <td><code translate="no" v-pre>extensions/</code></td>
-<td>Extension JARs, plus Felix&#x27;s bundle cache in <code translate="no" v-pre>org.eclipse.osgi/</code> (deleted and rebuilt on every start).</td>
+<td>Extension JARs with their verification reports (<code translate="no" v-pre>name.valid</code> / <code translate="no" v-pre>name.invalid</code>, <code translate="no" v-pre>ExtensionService.verifyExtension</code>), plus Felix&#x27;s bundle cache in <code translate="no" v-pre>org.eclipse.osgi/</code> (deleted and rebuilt on every start).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>desktop/</code></td>

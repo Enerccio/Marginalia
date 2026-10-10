@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844966488390">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844971702216">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844966488390" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844971702216" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844971702216" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844966488390" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844971702216" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844971702216" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -265,7 +265,7 @@ fake is the model server.</p>
 | `test/llm` | `MockLLMServerTest` | The fake OpenAI server against the real `openai-java` client. |
 | `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
 | `db` | `FlywayMigrationTest`, `DatabaseRestoreCheckTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context). |
-| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`); it has no Spring context. |
+| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context. |
 | `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain. |
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
 | `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
@@ -275,7 +275,7 @@ fake is the model server.</p>
 | `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
 | `ui` | `ResourcesPartTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The only test that builds a Vaadin component. |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest` | Purging soft-deleted data, owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content. |
-| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent. |">
+| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -309,7 +309,7 @@ fake is the model server.</p>
 <tr>
 <td><code translate="no" v-pre>domain</code></td>
 <td><code translate="no" v-pre>ExtendableEntityListenerTest</code>, <code translate="no" v-pre>TokenLimitsTest</code>, <code translate="no" v-pre>CronScheduleTest</code>, <code translate="no" v-pre>SillyTavernEntryConverterTest</code>, <code translate="no" v-pre>TemplateHelpersTest</code>, <code translate="no" v-pre>OsgiServiceImplTest</code></td>
-<td>Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. <code translate="no" v-pre>OsgiServiceImplTest</code> loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (<code translate="no" v-pre>TestExtensionActivator</code>); it has no Spring context.</td>
+<td>Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. <code translate="no" v-pre>OsgiServiceImplTest</code> loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (<code translate="no" v-pre>TestExtensionActivator</code>), including the verification reports that allow or refuse starting them; it has no Spring context.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>generation</code></td>
@@ -358,8 +358,8 @@ fake is the model server.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>instruct</code></td>
-<td><code translate="no" v-pre>ExtendableMethodVisitorTest</code>, <code translate="no" v-pre>RuntimeInstrumentationTest</code></td>
-<td>The bytecode instrumentation of <code translate="no" v-pre>@Extendable</code> methods and the runtime agent.</td>
+<td><code translate="no" v-pre>ExtendableMethodVisitorTest</code>, <code translate="no" v-pre>RuntimeInstrumentationTest</code>, <code translate="no" v-pre>ExtensionVerifierTest</code></td>
+<td>The bytecode instrumentation of <code translate="no" v-pre>@Extendable</code> methods and the runtime agent; the verification of extensions against the application.</td>
 </tr>
 </tbody>
 </table>
@@ -800,6 +800,13 @@ schema, behaves like the original and exposes arguments and locals to decorators
 <li>
 <p><code translate="no" v-pre>RuntimeInstrumentationTest</code> installs the real agent into the test JVM and checks classes loaded both before and
 after the installation (<code translate="no" v-pre>fixture/agent/</code>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>ExtensionVerifierTest</code> runs the <a href="../plugins/extendable/#verification-before-loading">extension verification</a> on
+the extensions of <code translate="no" v-pre>fixture/verify/VerifyFixtures</code> (decorators that are valid, ask for things that don&#x27;t exist, or
+can&#x27;t be followed) against the decorated <code translate="no" v-pre>VerifyTarget</code>. Their class files are packed into a JAR on the fly and
+served by a stand-in <code translate="no" v-pre>Bundle</code>. Decorators must be anonymous classes with the context calls inside them, as in a real
+extension - a decorator that delegates to a helper class would not be checked.</p>
 </li>
 </ul>
 <p>The fixtures are compiled with the same <code translate="no" v-pre>-parameters</code> and <code translate="no" v-pre>preserveAllLocals</code> options as the application; if you

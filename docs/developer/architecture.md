@@ -398,7 +398,10 @@ sequenceDiagram
   delegation is open for all packages (`org.osgi.framework.bootdelegation=*`, parent = the framework's class loader,
   which is the web application's), so bundles see the application's classes and libraries directly without importing
   them. A bundle registers a `MarginaliaExtension` service;
-  Marginalia calls `onExtensionLoad` / `onExtensionUnload` and passes the `ExtensionService`.
+  Marginalia calls `onExtensionLoad` / `onExtensionUnload` and passes the `ExtensionService`. Before an extension is
+  started, `ExtensionService.verifyExtension` checks the classes, methods, arguments, locals and fields its decorators
+  use against the running application (the result is kept in `name.valid` / `name.invalid` next to the JAR); an
+  extension that doesn't fit is not started.
 - **Instrumentation.** At startup a ByteBuddy agent rewrites every non-static, non-constructor method of each class
   annotated `@Extendable`: `ExtendableMethodVisitor` adds a call to `ExtensionService.onExtendableMethodEnter` at the
   start, records each local variable as it is stored, and calls `onExtendableMethodLeave` on every return and throw.
@@ -429,7 +432,7 @@ Everything is in `<user.home>/.marginalia/` (see also [The data folder](../user/
 | `db-backups/` | Database backups (manual, scheduled, `pre-restore-*`, refused restores `rejected-restore-*`). |
 | `data/<login>/backups/manuscripts/<book id>/` | Book backups (`BackupService`), one JSON file each. |
 | `data/<login>/images/`, `data/<login>/resources/` | Per-user folders for files (created on demand). |
-| `extensions/` | Extension JARs, plus Felix's bundle cache in `org.eclipse.osgi/` (deleted and rebuilt on every start). |
+| `extensions/` | Extension JARs with their verification reports (`name.valid` / `name.invalid`, `ExtensionService.verifyExtension`), plus Felix's bundle cache in `org.eclipse.osgi/` (deleted and rebuilt on every start). |
 | `desktop/` | Desktop app only: the Jetty base and `logs/`. |
 
 ## Localization

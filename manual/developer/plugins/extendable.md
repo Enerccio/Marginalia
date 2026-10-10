@@ -94,7 +94,7 @@ extensionService.unregisterDecorator(decorator);    // removes it from every met
   (`hasMethodArgument(name, type)`) if you need to tell overloads apart.
 - Several decorators on the same method run in the order they were registered, for enter and for leave.
 - A decorator registered for a class or method that doesn't exist is accepted and never called - check names
-  carefully.
+  carefully. [Verification](#verification-before-loading) refuses to load an extension that does this.
 - Decorators are **global**: they run for every user and every session. Use the arguments and fields to decide
   whether to act. The current user is the session-scoped `User` bean, injected as in services
   ([The current user](../services.md#the-current-user)) - on the UI thread it resolves to the session's user.
@@ -179,6 +179,89 @@ Methods the bundled plugins use, as examples:
 
 Inner classes reach their outer instance through the synthetic field `this$0`.
 
+## Verification before loading
+
+Every name a decorator uses is unchecked at compile time, so Marginalia checks them before it starts an extension:
+`ExtensionService.verifyExtension(Bundle bundle, File jar)` (`ExtensionVerifier` in `instruct.verify`). It doesn't run
+the extension, it reads its bytecode. The classes are listed by the JAR file and read from the installed bundle
+(`Bundle.getEntry`), and everything they ask for is compared with the real classes of the running application.
+
+**What is followed.** An ASM data-flow analysis (`ContextInterpreter`) walks every method of every class of the
+extension and tracks constants, `new` objects and the objects that come out of the context:
+
+- every `registerDecorator(decorator, className, methodName)` call. The class and method name must be constants
+  (`static final String` constants are inlined by the compiler, so they are). The decorator is the class created with
+  `new` on the way to the call, directly, through a local variable or through a field of the extension that was
+  assigned earlier - the usual `decorator = new ExtensionDecorator() {...}; registerDecorator(decorator, ...)`;
+- in the decorator class - **all** its methods, so lambdas and private helpers of the decorator count too - every call
+  on an `ExtendableMethodContext`.
+
+**What is checked**, against the application's classes loaded without being initialized, the way
+[the context](#the-method-context) checks them when the decorated method runs:
+
+| Request | Error when | Warning when |
+|---|---|---|
+| `registerDecorator(d, cls, method)` | The class doesn't exist, isn't `@Extendable`, or declares no instrumented method of that name (static, constructor and synthetic methods are not; a method of a superclass is reported with the class that declares it). | The names are not constants, or the decorator class can't be found. |
+| `getMethodArgument(name, type)` | No overload has an argument of that name, or its declared type is not the same as `type` or a subtype of it (`int.class`, not `Integer.class`). | |
+| `hasMethodArgument(name[, type])` | | The same problems: the access is optional. |
+| `registerMethodArgument(name, value, type)` | No overload has an argument of that name. | `type` is not the declared type. |
+| `getLocalVariable(name, type)` | No overload stores an object local of that name (primitives are not recorded), or its type doesn't fit, or it's asked in `onMethodEnter`, where there are no locals. | The declared type is a supertype of `type`: works only if the value is of that type at run time. |
+| `hasLocalVariable(name[, type])` | | The same problems. |
+| `getReflectiveFieldValue`, `setReflectiveFieldValue` | The object's class or its superclasses have no field of that name, or the field's type is not `type` or a subtype. | The object can't be determined. |
+| `callReflectiveMethod` | No method of that name and exact parameter types, or its return type doesn't fit. | The parameter types are not constants (the name alone is checked). |
+
+The object of a reflective access is followed: `instrumented` (of `onMethodEnter` / `onMethodLeave`) is the decorated
+class; the result of `getReflectiveFieldValue` / `callReflectiveMethod` (also through a cast and a local variable) is
+an object of the field's type / the method's return type; an object from `getMethodArgument` / `getLocalVariable` is
+of the requested type. So the usual way to reach the outer instance of an inner class is verified in both steps:
+
+```java
+ManuscriptStoryPart parent = context.getReflectiveFieldValue(instrumented, "this$0", ManuscriptStoryPart.class);
+context.getReflectiveFieldValue(parent, "sidebarList", VerticalLayout.class);     // a field of ManuscriptStoryPart
+```
+
+!!!warning Only the decorators themselves are scanned
+Nothing is followed into another class. If a decorator passes its context (or `instrumented`, or an object taken out of
+the context) to a method of another class, or builds names at run time, what that code asks for is **not checked** -
+checking it is up to the developer of the extension. Keep the context calls in the decorator class if you want them
+verified.
+!!!
+
+**The report.** The result is written next to the JAR, named after it: `chaptermarker.jar` gets
+`chaptermarker.valid` or `chaptermarker.invalid` (the one of the opposite result is deleted). It is plain text: the
+extension, the bundle, the time, `Result: VALID` / `INVALID`, the errors, the warnings and the decorators that were
+checked:
+
+```
+Extension: chaptermarker.jar
+Bundle: chaptermarker 1.0.0
+Verified: 2026-10-10T18:18:31.781673Z
+Result: INVALID
+
+Errors (1):
+  - ChapterMarkingExtension$1.onMethodLeave line 55 (ManuscriptStoryPart.createSidebarButton): com...ManuscriptStoryPart has no field 'sidebarLst'
+
+Checked decorators (2):
+  - ManuscriptStoryPart.createSidebarButton <- ChapterMarkingExtension$1
+  - ManuscriptStoryPart$ChatMessageCard.autosaveAndSwapToMarkdown <- ChapterMarkingExtension$2
+```
+
+**When it runs.** `OsgiServiceImpl` verifies a bundle before starting it, at startup and when it is uploaded:
+
+- A report is reused only while it is **newer than the JAR and newer than the application** (the later of the creation
+  and modification time of the WAR; of the folder it is unpacked to or of the classes when it runs unpacked or from the
+  IDE). An older report is deleted and the extension is verified again: a new version of Marginalia can break
+  extensions that were fine, and this catches them all at the first start. Both reports at once are treated as none.
+- `.valid`: the extension is started. `.invalid`: it is not - at startup the bundle stays installed, not started (state
+  `INSTALLED` or `RESOLVED`), the report is logged as an error and *Admin → Extensions* shows an `INVALID` button that
+  opens it. An upload that is invalid is rejected like one that fails to start: its JAR is deleted, the replaced version
+  is put back and the report is shown to the administrator. A verification that can't be done (an unreadable JAR) fails
+  the extension too.
+- Unloading an extension deletes its reports with the JAR.
+
+Verification can't know about everything: a warning is not a failure, and an extension with no errors can still break
+at run time (for example through a context handed to another class). Watch the log of the decorated methods as before.
+
 ## Keeping hooks working
 
 Everything a decorator uses is a name: the class, the method, the argument, the local, the field. None of it is
@@ -187,7 +270,8 @@ checked at compile time. To keep the damage small:
 - Prefer arguments and fields over locals, and locals over walking the component tree.
 - Use `hasLocalVariable` / `hasMethodArgument` and fall back gracefully, as Chapter Marker does when `sidebarBtn`
   isn't found (it takes the last button of `sidebarList`).
-- Keep all names in constants in one place, so a rename in the application is a one-line change in the plugin.
+- Keep all names in constants in one place, so a rename in the application is a one-line change in the plugin
+  (the compiler inlines `static final String` constants, so [verification](#verification-before-loading) still sees them).
 - Use the application's public methods where they exist (`LorebookView.getCurrentLorebook()`) instead of reading
   the field.
 

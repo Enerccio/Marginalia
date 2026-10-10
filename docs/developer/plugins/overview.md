@@ -174,7 +174,8 @@ sequenceDiagram
     O->>F: start framework (storage extensions/org.eclipse.osgi, cleaned)
     O->>F: installBundle(file:...) for every *.jar in extensions/
     loop every bundle
-        O->>F: bundle.start()
+        O->>O: verify (reuse name.valid / name.invalid or run ExtensionService.verifyExtension)
+        O->>F: bundle.start() - only when valid
         F->>A: start(context)
         A->>F: registerService(MarginaliaExtension)
         O->>E: onExtensionLoad(bundle, osgiService, extensionService)
@@ -189,16 +190,18 @@ sequenceDiagram
   installs every `*.jar` in `~/.marginalia/extensions` and starts them. For each `MarginaliaExtension` service a
   bundle registered, it calls `onExtensionLoad`. Each JAR is installed and started on its own: one that can't be
   installed (not a bundle, a second copy of an installed plugin) or fails to start is logged with its file name and
-  skipped.
+  skipped. Before a bundle is started it is **verified**: the decorators it registers are checked against this version
+  of the application ([Verification before loading](extendable.md#verification-before-loading)). An invalid extension
+  stays installed but is not started, and its report is logged.
 - **Installing at runtime.** *Admin → Extensions → Load Extension (.jar)* writes the uploaded file into
   `~/.marginalia/extensions` (the file name is sanitized: only letters, digits, `.`, `_` and `-`) and installs and
-  starts it the same way (`OsgiService.installPackage`, like `uninstallPackage` administrators only: `AdminGuard.requireAdmin()`). Screens that are already open are not rebuilt: the plugin's
+  starts it the same way, verification included (`OsgiService.installPackage`, like `uninstallPackage` administrators only: `AdminGuard.requireAdmin()`; an invalid upload throws `ExtensionVerificationException` with the report). Screens that are already open are not rebuilt: the plugin's
   decorators run the next time the decorated methods run (the next time the user opens a book, a tab...).
 - **Updating.** Uploading a bundle whose symbolic name (or file name) is already installed replaces it: the old one is
   unloaded as by *Unload*, uninstalled and its JAR deleted, then the new one is loaded. If the new one fails to
-  install or start, its JAR is deleted and the old one is put back.
+  install, verify or start, its JAR is deleted and the old one is put back.
 - **Unloading.** *Unload* calls the callbacks registered with `bindAttachableComponent`, then `onExtensionUnload`,
-  uninstalls the bundle and **deletes its JAR** (`OsgiService.uninstallPackage`). Bundles that failed to start are
+  uninstalls the bundle and **deletes its JAR and its verification reports** (`OsgiService.uninstallPackage`). Bundles that failed to start are
   listed too (state `INSTALLED` or `RESOLVED`) and can be unloaded the same way.
 - **Shutdown.** When the application stops (the root context closes), every extension is unloaded the same way -
   bound callbacks, `onExtensionUnload`, the activator's `stop` - and the framework is stopped. Still save data as you

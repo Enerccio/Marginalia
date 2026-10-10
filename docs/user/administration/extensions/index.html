@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844966488390">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844971702216">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844966488390" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844971702216" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844971702216" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844971702216" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -187,6 +187,7 @@ successfully.</em> confirms it. The extension appears in the list:</p>
 | **Extension Name** | Its name. |
 | **Version** | Its version. |
 | **State** | `ACTIVE` when it is running; `INSTALLED` or `RESOLVED` when it failed to start (see [When an extension fails](#when-an-extension-fails)). |
+| **Verification** | `VALID` or `INVALID`; click it to read the report of the check Marginalia made before starting the extension. |
 | **Actions** | **Unload** removes it. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -212,6 +213,10 @@ successfully.</em> confirms it. The extension appears in the list:</p>
 <tr>
 <td><strong>State</strong></td>
 <td><code translate="no" v-pre>ACTIVE</code> when it is running; <code translate="no" v-pre>INSTALLED</code> or <code translate="no" v-pre>RESOLVED</code> when it failed to start (see <doc-anchor-trigger to="#when-an-extension-fails">When an extension fails</doc-anchor-trigger>).</td>
+</tr>
+<tr>
+<td><strong>Verification</strong></td>
+<td><code translate="no" v-pre>VALID</code> or <code translate="no" v-pre>INVALID</code>; click it to read the report of the check Marginalia made before starting the extension.</td>
 </tr>
 <tr>
 <td><strong>Actions</strong></td>
@@ -256,6 +261,13 @@ matter. The installed version is unloaded, its JAR deleted and the new version s
 version fails to load, the upload shows the error and the old version keeps running.</p>
 <h2 id="when-an-extension-fails">When an extension fails</h2>
 <p>If an uploaded extension can&#x27;t be loaded, the upload shows <em>Failed to load extension: ...</em> and its JAR is not kept.</p>
+<p>Marginalia checks an extension against the version it is running in before it starts it. An extension that does not
+fit - typically one built for another version of Marginalia - is not loaded. An upload shows the report of the check
+and is not kept; an extension in the <code translate="no" v-pre>extensions</code> folder stays in the list, not started, with <strong>INVALID</strong> in the
+<em>Verification</em> column, and the report is in the log. The check is repeated after Marginalia is updated, so an
+extension that worked before can be refused afterwards: get the version of the extension that was built for the new
+version of Marginalia and load it. Next to each extension&#x27;s JAR you&#x27;ll find a small <code translate="no" v-pre>.valid</code> or <code translate="no" v-pre>.invalid</code> file with the
+report; it is removed with the extension and can be left alone.</p>
 <p>An extension in the <code translate="no" v-pre>extensions</code> folder that fails to start (for example one built for another version) doesn&#x27;t stop
 the others from loading. It is listed with the state <code translate="no" v-pre>INSTALLED</code> or <code translate="no" v-pre>RESOLVED</code> instead of <code translate="no" v-pre>ACTIVE</code> and can be removed
 with <strong>Unload</strong>. A file that isn&#x27;t an extension at all is skipped and not listed - delete it from the <code translate="no" v-pre>extensions</code>
