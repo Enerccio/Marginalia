@@ -305,7 +305,7 @@ means the index is used. `FlywayMigrationTest.tagRelationLookupsUseIndexes` does
 
 `DatabaseBackupServiceImpl` backs up the live database with SQLite's `VACUUM INTO '<file>'`, which writes a
 consistent, compacted copy without stopping the application. Backups go to `<data folder>/db-backups/` as
-`marginalia-<time>.sqlite` (manual) or `marginalia-scheduled-<time>.sqlite`; scheduled ones are rotated (keep last N).
+`marginalia-<time>.sqlite` (manual) or `marginalia-scheduled-<time>.sqlite`; scheduled ones are rotated (keep last N). The methods the UI calls (create, list, download, upload, delete, restore, schedule) call `AdminGuard.requireAdmin()`; the scheduled run (`createScheduledBackup`) and the rotation need no logged-in user.
 
 A database can't be replaced while it's open, so restoring is done in two steps:
 

@@ -189,6 +189,7 @@ request attributes copied over - see [Threads and push](#threads-and-push).
 | `localization` | `com.github.enerccio.marginalia.loc.LocalizationEN` | Class of the `Localization` bean - the language of the UI. |
 | `allowPersistentLogin` | `true` | Whether *Save login* is offered. |
 | `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
+| `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. Can also be given as `-DtrustedProxies=...`. |
 
 ## User interface
 

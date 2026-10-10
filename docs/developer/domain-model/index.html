@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959277123">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959338786">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844959277123" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844959338786" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959277123" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959277123" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844959277123" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844959338786" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1021,7 +1021,7 @@ default (<code translate="no" v-pre>UserSetting.masterTemplate</code>...), else 
 | `passwordHash` | Password hash (`UserServiceImpl`). |
 | `savedLogins` | The *Save login* tokens as text, one `identifier;hashedSecret;created;lastAccess` entry per login, separated by `\|` (`PersistedLoginInfo`, read and written by `UserServiceImpl`). |
 | `isAdmin` | Administrator. |
-| `failedLogins`, `lockedUntil` | Login back-off: consecutive failed logins and the time (epoch milliseconds, `0` = not locked) until which the account refuses logins. Real columns (V7), reset by a successful login, a password change or clear and the administrator's unlock. |">
+| `failedLogins`, `lockedUntil` | Login back-off: consecutive failed logins and the time (epoch milliseconds, `0` = not locked) until which the account refuses logins. Real columns (V7), reset by a successful login, a password change or clear and the administrator's unlock. A separate, in-memory limit per client address is kept by `UserServiceImpl`, not on the entity. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -1053,7 +1053,7 @@ default (<code translate="no" v-pre>UserSetting.masterTemplate</code>...), else 
 </tr>
 <tr>
 <td><code translate="no" v-pre>failedLogins</code>, <code translate="no" v-pre>lockedUntil</code></td>
-<td>Login back-off: consecutive failed logins and the time (epoch milliseconds, <code translate="no" v-pre>0</code> = not locked) until which the account refuses logins. Real columns (V7), reset by a successful login, a password change or clear and the administrator&#x27;s unlock.</td>
+<td>Login back-off: consecutive failed logins and the time (epoch milliseconds, <code translate="no" v-pre>0</code> = not locked) until which the account refuses logins. Real columns (V7), reset by a successful login, a password change or clear and the administrator&#x27;s unlock. A separate, in-memory limit per client address is kept by <code translate="no" v-pre>UserServiceImpl</code>, not on the entity.</td>
 </tr>
 </tbody>
 </table>
@@ -1102,7 +1102,7 @@ more.</p>
 </retype-table>
 <p>Deleting a resource is a soft delete like any other; files are never deleted from disk.</p>
 <h2 id="cleanup-references">Cleanup references</h2>
-<p>Soft-deleted rows are purged by <code translate="no" v-pre>CleanupService</code> (<em>Admin → Cleanup</em>). Before purging, it builds a graph of all
+<p>Soft-deleted rows are purged by <code translate="no" v-pre>CleanupService</code> (<em>Admin → Cleanup</em>, administrators only: every method calls <code translate="no" v-pre>AdminGuard.requireAdmin()</code>). Before purging, it builds a graph of all
 references between rows and decides what may go. Each reference has a policy (<code translate="no" v-pre>@CleanupReference</code>, in
 <code translate="no" v-pre>domain/traits/</code>):</p>
 <retype-table copy-text="| Policy | Meaning | Used for |

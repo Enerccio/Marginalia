@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959277123">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959338786">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844959277123" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844959338786" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844959277123" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844959277123" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844959277123" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844959338786" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -370,7 +370,7 @@ skipped.</p>
 <li>
 <p><strong>Installing at runtime.</strong> <em>Admin → Extensions → Load Extension (.jar)</em> writes the uploaded file into
 <code translate="no" v-pre>~/.marginalia/extensions</code> (the file name is sanitized: only letters, digits, <code translate="no" v-pre>.</code>, <code translate="no" v-pre>_</code> and <code translate="no" v-pre>-</code>) and installs and
-starts it the same way (<code translate="no" v-pre>OsgiService.installPackage</code>). Screens that are already open are not rebuilt: the plugin&#x27;s
+starts it the same way (<code translate="no" v-pre>OsgiService.installPackage</code>, like <code translate="no" v-pre>uninstallPackage</code> administrators only: <code translate="no" v-pre>AdminGuard.requireAdmin()</code>). Screens that are already open are not rebuilt: the plugin&#x27;s
 decorators run the next time the decorated methods run (the next time the user opens a book, a tab...).</p>
 </li>
 <li>

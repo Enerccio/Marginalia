@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959277123">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959338786">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844959277123" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844959338786" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959277123" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959277123" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844959277123" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844959338786" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -458,7 +458,7 @@ user. The base class gives you:</p>
 | `llm` | A [mock LLM scenario](#the-fake-llm-server) for this test method. |
 | `uniqueName(prefix)` | `prefix-1a2b3c4d`, for names that must not collide with other tests. |
 | `createUser()`, `createUser(login, password, admin)` | Saves a user. |
-| `loginAs(user)`, `login()` | Makes a user the current user, like a login in the UI (`login()` creates one first). |
+| `loginAs(user)`, `login()`, `loginAdmin()` | Makes a user the current user, like a login in the UI (`login()` and `loginAdmin()` create one first). The services that only administrators can use (cleanup, database backups, user delete / unlock / clear password, extension install) need `loginAdmin()`. |
 | `createAI()` | Saves an OpenAI-compatible inference provider pointing to `llm`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -490,8 +490,8 @@ user. The base class gives you:</p>
 <td>Saves a user.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>loginAs(user)</code>, <code translate="no" v-pre>login()</code></td>
-<td>Makes a user the current user, like a login in the UI (<code translate="no" v-pre>login()</code> creates one first).</td>
+<td><code translate="no" v-pre>loginAs(user)</code>, <code translate="no" v-pre>login()</code>, <code translate="no" v-pre>loginAdmin()</code></td>
+<td>Makes a user the current user, like a login in the UI (<code translate="no" v-pre>login()</code> and <code translate="no" v-pre>loginAdmin()</code> create one first). The services that only administrators can use (cleanup, database backups, user delete / unlock / clear password, extension install) need <code translate="no" v-pre>loginAdmin()</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>createAI()</code></td>

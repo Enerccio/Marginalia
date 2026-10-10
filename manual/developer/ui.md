@@ -75,6 +75,8 @@ flowchart TB
 2. Otherwise it tries the *Save login* cookies (`authenticateFromCookie`, rotating the secret on success).
 3. Otherwise it shows a `LoginOverlay` (`PermissiveLoginOverlay` - allows empty passwords to reach the server-side
    check) with the *Save login* checkbox.
+   The check passes the client address (`LoginCheckRoute.clientAddress()`) to `UserService.authenticate`, which
+   throttles failed logins per address (see [Login throttling](services.md#login-throttling)).
 4. After a successful login it calls `VaadinService.reinitializeSession` (new session id) and the subclass's
    `proceedWithLogin(login)`, which fills the session-scoped `user` bean, registers the login with
    `SessionManager.userLoggedIn` (see [Sessions](architecture.md#sessions)) and builds the content.
@@ -145,7 +147,8 @@ in its layout (extension settings panels included) and unlocks on *Save*, *Disca
 
 The *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
 `DatabaseBackupPanel`, `CleanupPanel` and extensions tab. Note that the admin UI being hidden is not a permission
-check - services must check `isAdmin()` themselves (TODO.md, item 14).
+check - the administrator-only services call `AdminGuard.requireAdmin()` themselves (see
+[Services](services.md#administration)).
 
 ### The book window
 

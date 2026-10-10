@@ -192,7 +192,7 @@ sequenceDiagram
   skipped.
 - **Installing at runtime.** *Admin → Extensions → Load Extension (.jar)* writes the uploaded file into
   `~/.marginalia/extensions` (the file name is sanitized: only letters, digits, `.`, `_` and `-`) and installs and
-  starts it the same way (`OsgiService.installPackage`). Screens that are already open are not rebuilt: the plugin's
+  starts it the same way (`OsgiService.installPackage`, like `uninstallPackage` administrators only: `AdminGuard.requireAdmin()`). Screens that are already open are not rebuilt: the plugin's
   decorators run the next time the decorated methods run (the next time the user opens a book, a tab...).
 - **Updating.** Uploading a bundle whose symbolic name (or file name) is already installed replaces it: the old one is
   unloaded as by *Unload*, uninstalled and its JAR deleted, then the new one is loaded. If the new one fails to
