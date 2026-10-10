@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -14,6 +15,13 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -42,6 +50,16 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
 
     private final Set<String> expandedBlocks = new HashSet<>();
 
+    private static final int MAX_SEARCH_HISTORY = 15;
+
+    private ComboBox<String> searchBox;
+    private Span searchStatus;
+    private final List<String> searchHistory = new ArrayList<>();
+    private boolean updatingSearchBox;
+    // the search shown in the tree: query (null: none) and the parts found with the text around the match
+    private String lastQuery;
+    private final Map<Long, String> hitSnippets = new HashMap<>();
+
     public ManuscriptTreePart(ManuscriptDialog parent) {
         this.parent = parent;
     }
@@ -50,12 +68,112 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
     public Component create(VTabSheet container) throws Exception {
         treantTree = new TreantTree();
         treantTree.addNodeClickListener(this::onNodeClick);
+        treantTree.addNodeGotoListener(this::onNodeGoto);
 
         scrollPanel = new ScrollPanel(treantTree);
         scrollPanel.setSizeFull();
 
-        container.add(loc.getValue(L.LABEL_BRANCH_TREE), scrollPanel);
-        return scrollPanel;
+        VerticalLayout content = new VerticalLayout(createSearchBar(), scrollPanel);
+        content.setSizeFull();
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.setFlexGrow(1, scrollPanel);
+
+        container.add(loc.getValue(L.LABEL_BRANCH_TREE), content);
+        return content;
+    }
+
+    private HorizontalLayout createSearchBar() {
+        searchBox = new ComboBox<>();
+        searchBox.setPlaceholder(loc.getValue(L.LABEL_SEARCH_ALL_BRANCHES));
+        // the history of searches; a combo box without items refuses a value
+        searchBox.setItems(searchHistory);
+        searchBox.setAllowCustomValue(true);
+        searchBox.setClearButtonVisible(true);
+        searchBox.setWidth("28em");
+        searchBox.setMaxWidth("100%");
+        // typed text is a custom value, it has to be set to become the value
+        searchBox.addCustomValueSetListener(event -> searchBox.setValue(event.getDetail()));
+        searchBox.addValueChangeListener(event -> {
+            if (!updatingSearchBox) {
+                search(event.getValue());
+            }
+        });
+
+        Button searchButton = new Button(loc.getValue(L.LABEL_SEARCH), VaadinIcon.SEARCH.create());
+        searchButton.addClickListener(event -> {
+            // the combo box has already searched when the click committed a typed text
+            String query = StringUtils.trimToNull(searchBox.getValue());
+            if (!Objects.equals(query, lastQuery)) {
+                search(query);
+            }
+        });
+
+        searchStatus = new Span();
+        searchStatus.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        HorizontalLayout bar = new HorizontalLayout(searchBox, searchButton, searchStatus);
+        bar.setAlignItems(FlexComponent.Alignment.CENTER);
+        bar.setWidthFull();
+        bar.getStyle().set("padding", "var(--lumo-space-s) var(--lumo-space-m)");
+        bar.getStyle().set("flex-wrap", "wrap");
+        return bar;
+    }
+
+    /**
+     * Searches the text of all branches and highlights the parts found in the tree.
+     */
+    private void search(String text) {
+        String query = StringUtils.trimToNull(text);
+        lastQuery = query;
+        hitSnippets.clear();
+        try {
+            if (query == null) {
+                searchStatus.setText("");
+            } else {
+                Manuscript current = parent.refreshManuscript();
+                for (FulltextHit hit : chatMessageService.searchFulltext(current, query)) {
+                    hitSnippets.put(hit.id(), hit.snippet());
+                }
+                searchStatus.setText(hitSnippets.isEmpty()
+                        ? loc.getValue(L.MSG_SEARCH_NO_RESULTS)
+                        : String.format(loc.getValue(L.MSG_SEARCH_RESULTS), hitSnippets.size()));
+                remember(query);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        manuscript = parent.getManuscript();
+        renderTree();
+    }
+
+    private void remember(String query) {
+        searchHistory.remove(query);
+        searchHistory.addFirst(query);
+        while (searchHistory.size() > MAX_SEARCH_HISTORY) {
+            searchHistory.removeLast();
+        }
+        updatingSearchBox = true;
+        try {
+            searchBox.setItems(searchHistory);
+            searchBox.setValue(query);
+        } finally {
+            updatingSearchBox = false;
+        }
+    }
+
+    private void clearSearch() {
+        lastQuery = null;
+        hitSnippets.clear();
+        if (searchBox != null) {
+            updatingSearchBox = true;
+            try {
+                searchBox.clear();
+            } finally {
+                updatingSearchBox = false;
+            }
+            searchStatus.setText("");
+        }
     }
 
     @Override
@@ -67,6 +185,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
     public void load(Manuscript manuscript) {
         this.manuscript = manuscript;
         this.expandedBlocks.clear();
+        clearSearch();
     }
 
     @Override
@@ -77,7 +196,12 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
     @Override
     public void onTabEnter() throws Exception {
         this.manuscript = parent.refreshManuscript();
-        renderTree();
+        if (lastQuery != null) {
+            // the story may have changed since the search
+            search(lastQuery);
+        } else {
+            renderTree();
+        }
     }
 
     private static class StructuralTask {
@@ -179,7 +303,7 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                     int n = section.size();
                     String blockKey = "block-" + structMsg.getId() + "-" + (curr != null ? curr.getId() : (section.isEmpty() ? "end" : section.getLast().getId()));
 
-                    if (n > 20 && !expandedBlocks.contains(blockKey)) {
+                    if (n > 20 && !expandedBlocks.contains(blockKey) && !hasHit(section.subList(10, n - 10))) {
                         for (int i = 0; i < 10; i++) {
                             ChatMessage m = section.get(i);
                             String mId = String.valueOf(m.getId());
@@ -297,6 +421,9 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         if (isActiveLeaf) {
             classes.add("active-leaf");
         }
+        if (hitSnippets.containsKey(msg.getId())) {
+            classes.add("search-hit");
+        }
         if (isLeaf && !isActiveLeaf) {
             classes.add("clickable-leaf");
         } else {
@@ -306,6 +433,15 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         nodeJson.addProperty("innerHTML", buildNodeHtml(msg));
 
         return nodeJson;
+    }
+
+    private boolean hasHit(List<ChatMessage> messages) {
+        for (ChatMessage message : messages) {
+            if (hitSnippets.containsKey(message.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String buildSyntheticRootHtml() {
@@ -375,14 +511,59 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
                   """.formatted(HtmlUtils.htmlEscape(instructions), HtmlUtils.htmlEscape(instructions))
                 : "";
 
+        String hitHtml = "";
+        if (hitSnippets.containsKey(msg.getId())) {
+            hitHtml = """
+                      <div class="tree-node-hit">%s</div>
+                      <a class="tree-node-goto" href="#" data-goto-id="%s">%s</a>
+                      """.formatted(HtmlUtils.htmlEscape(hitSnippets.get(msg.getId())), msg.getId(),
+                    HtmlUtils.htmlEscape(loc.getValue(L.LABEL_SHOW_IN_STORY)));
+        }
+
         return """
                <div class="tree-node-card" data-node-id="%s" title="%s">
                    %s
                    %s
                    %s
                    %s
+                   %s
                </div>
-               """.formatted(msg.getId(), cardTooltip, dateHtml, sceneHtml, presentHtml, instructionsHtml);
+               """.formatted(msg.getId(), cardTooltip, dateHtml, sceneHtml, presentHtml, instructionsHtml, hitHtml);
+    }
+
+    /**
+     * "Show in story" of a found part: shows the part on the active branch (or on the nearest branch below it when it
+     * is on another one), switches to the story tab and scrolls to it.
+     */
+    private void onNodeGoto(TreantTree.NodeGotoEvent event) {
+        try {
+            long messageId = Long.parseLong(event.getNodeId());
+            Manuscript current = parent.refreshManuscript();
+            if (current == null) {
+                return;
+            }
+
+            // node id comes from client, resolve it only among messages of this manuscript
+            ChatMessage target = chatMessageService.getAllMessages(current).stream()
+                    .filter(m -> m.getId() == messageId)
+                    .findFirst()
+                    .orElse(null);
+            ChatMessage leaf = target == null ? null : chatMessageService.findLeafFor(current, target);
+            if (leaf == null) {
+                return;
+            }
+
+            ChatMessage activeLeaf = current.getActiveLeaf();
+            if (activeLeaf == null || !leaf.getId().equals(activeLeaf.getId())) {
+                current.setActiveLeaf(leaf);
+                parent.save();
+            }
+            parent.showMessage(target.getId());
+        } catch (NumberFormatException e) {
+            // not a part of the story
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     private void onNodeClick(TreantTree.NodeClickEvent event) {

@@ -86,6 +86,17 @@ export function renderTreant(element, chartConfig) {
 
     if (!element._nodeClickListenerAttached) {
         element.addEventListener('click', (e) => {
+            const gotoEl = e.target.closest('[data-goto-id]');
+            if (gotoEl) {
+                e.preventDefault();
+                element.dispatchEvent(new CustomEvent('node-goto', {
+                    detail: {nodeId: gotoEl.dataset.gotoId || ''},
+                    bubbles: true,
+                    composed: true
+                }));
+                return;
+            }
+
             const nodeEl = e.target.closest('.node');
             if (nodeEl) {
                 let nodeId = nodeEl.dataset.nodeId || '';

@@ -170,6 +170,14 @@ public class ManuscriptDialog extends Dialog {
         }
     }
 
+    /**
+     * Switches to the story tab and scrolls to the part. The part has to be on the active branch.
+     */
+    public void showMessage(Long messageId) {
+        storyPart.scrollToMessageOnNextRender(messageId);
+        selectStoryPart();
+    }
+
     public void freeze() {
         if (!frozen) {
             this.frozen = true;

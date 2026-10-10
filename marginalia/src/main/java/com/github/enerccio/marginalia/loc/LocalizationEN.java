@@ -270,6 +270,9 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_EXTENDED_CONTENT, "Extended Content");
         setValue(L.LABEL_BUNDLE_VERIFICATION, "Verification");
         setValue(L.LABEL_VERIFICATION_REPORT, "Verification Report");
+        setValue(L.LABEL_SEARCH, "Search");
+        setValue(L.LABEL_SEARCH_ALL_BRANCHES, "Search the text of all branches");
+        setValue(L.LABEL_SHOW_IN_STORY, "Show in story");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -408,6 +411,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_RESTORE_BLOCKED, "Nothing was restored. These objects need a deleted object that is not selected. Select it too, or leave them deleted.");
         setValue(L.MSG_RESTORE_BLOCKED_ITEM, "%s \"%s\" needs the deleted %s \"%s\" (%s)");
         setValue(L.MSG_NO_EXTENDED_CONTENT, "This object has no extended content.");
+        setValue(L.MSG_SEARCH_RESULTS, "%s parts found in all branches. Click \"Show in story\" on a highlighted part.");
+        setValue(L.MSG_SEARCH_NO_RESULTS, "Nothing found.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

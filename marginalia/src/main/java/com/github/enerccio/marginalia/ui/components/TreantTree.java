@@ -30,6 +30,30 @@ public class TreantTree extends Div {
         return addListener(NodeClickEvent.class, listener);
     }
 
+    public Registration addNodeGotoListener(ComponentEventListener<NodeGotoEvent> listener) {
+        return addListener(NodeGotoEvent.class, listener);
+    }
+
+    /**
+     * A link inside a node (an element with {@code data-goto-id}) was clicked; the node itself is not clicked then.
+     */
+    @DomEvent("node-goto")
+    public static class NodeGotoEvent extends ComponentEvent<TreantTree> {
+
+        private final String nodeId;
+
+        public NodeGotoEvent(TreantTree source,
+                             boolean fromClient,
+                             @EventData("event.detail.nodeId") String nodeId) {
+            super(source, fromClient);
+            this.nodeId = nodeId;
+        }
+
+        public String getNodeId() {
+            return nodeId;
+        }
+    }
+
     @DomEvent("node-click")
     public static class NodeClickEvent extends ComponentEvent<TreantTree> {
 
