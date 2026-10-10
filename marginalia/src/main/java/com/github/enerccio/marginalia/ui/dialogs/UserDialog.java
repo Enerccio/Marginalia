@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
@@ -30,6 +31,9 @@ public class UserDialog extends Dialog {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private Configuration configuration;
 
     private boolean firstTime; // forces admin creation, admin should be checked, cancel should be disabled
     private boolean selfEdit; // user edits own account, admin flag can't be changed
@@ -159,7 +163,7 @@ public class UserDialog extends Dialog {
         if (openedFromUser) {
             String currentPasswordValue = currentPassword.getValue();
             try {
-                if (!userService.authenticate(user.getLogin(), currentPasswordValue, UIUtils.clientAddress())) {
+                if (!userService.authenticate(user.getLogin(), currentPasswordValue, UIUtils.clientAddress(configuration))) {
                     Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
                     return;
                 }

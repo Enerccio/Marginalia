@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia;
 
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.utils.ClientAddressResolver;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public class Configuration implements InitializingBean {
 
     private Long persistentLoginInfoTTL = 60 * 60 * 24 * 30L;
     private boolean allowPersistentLogin = true;
+    private ClientAddressResolver clientAddressResolver = new ClientAddressResolver(null);
     private File folder;
     private File dataFolder;
     private File databaseBackupFolder;
@@ -65,6 +67,18 @@ public class Configuration implements InitializingBean {
 
     public void setAllowPersistentLogin(boolean allowPersistentLogin) {
         this.allowPersistentLogin = allowPersistentLogin;
+    }
+
+    /**
+     * Reverse proxies whose {@code X-Forwarded-For} header is believed, comma separated addresses or CIDR ranges.
+     * Empty (the default): the header is ignored and the client address is the one of the connection.
+     */
+    public void setTrustedProxies(String trustedProxies) {
+        this.clientAddressResolver = new ClientAddressResolver(trustedProxies);
+    }
+
+    public ClientAddressResolver getClientAddressResolver() {
+        return clientAddressResolver;
     }
 
     public File getFolder() {

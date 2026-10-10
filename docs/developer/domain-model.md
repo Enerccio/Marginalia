@@ -181,6 +181,7 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `published` | column | Readable by everyone at `/view/<uuid>`. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
 | `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
+| `language` | JSON | Language of the story (`Language`, English when not set): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
 | `showBookStyles` | JSON | Story display option. |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |
 
@@ -362,12 +363,27 @@ default (`UserSetting.masterTemplate`...), else the built-in default (`Defaults`
 | `login` | Unique login name. |
 | `fullName` | Display name. |
 | `passwordHash` | Password hash (`UserServiceImpl`). |
-| `savedLogins` | JSON list of `PersistedLoginInfo` - the *Save login* tokens (identifier, hashed secret, timestamps). |
+| `savedLogins` | The *Save login* tokens as text, one `identifier;hashedSecret;created;lastAccess` entry per login, separated by `\|` (`PersistedLoginInfo`, read and written by `UserServiceImpl`). |
 | `isAdmin` | Administrator. |
+| `failedLogins`, `lockedUntil` | Login back-off: consecutive failed logins and the time (epoch milliseconds, `0` = not locked) until which the account refuses logins. Real columns (V7), reset by a successful login, a password change or clear and the administrator's unlock. |
 
 The current user of a session is the session-scoped `user` bean (see [Architecture](architecture.md#spring-wiring)),
 which holds a copy of the logged-in user's id, login and name - load the entity through `UserService` when you need
 more.
+
+## Resources
+
+`Resource` (`resources`, an `OwnedEntity`) is an uploaded file; today the files are the images attached to parts
+(`ChatMessage.getImages()`, see [Extended attributes](#extendableentity---extended-attributes)).
+
+| Field | |
+|---|---|
+| `path` | File name in the user's `images` folder (images) or `resources` folder (other files) of the data folder. The files are stored by content: uploading the same bytes again reuses the file. |
+| `hash` | Hash of the content; with the owner it is the key for that deduplication (`ix_resources_user_hash`). |
+| `mimeType`, `originalName` | Detected content type and the name the file was uploaded with. |
+| `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab only - not a cleanup reference, the object may be gone. |
+
+Deleting a resource is a soft delete like any other; files are never deleted from disk.
 
 ## Cleanup references
 

@@ -94,6 +94,14 @@ server {
 ```
 +++
 
+Failed logins are throttled per user and per client address (after 30 failures from one address, logins from it are
+refused for a growing time, up to 15 minutes). Marginalia only believes the `X-Forwarded-For` header of a proxy you
+name: without it, all users appear to come from the proxy's address and 30 failures from anyone block everybody for a
+while. Keep the header in the proxy configuration (as above) and add `-DtrustedProxies=<address or range of the proxy>`
+to `JAVA_TOOL_OPTIONS` in `docker-compose.yml`. A proxy on the Docker host reaches the container from the Docker
+network, normally `172.16.0.0/12`; several entries are separated by commas. The throttling is kept in memory,
+restarting Marginalia clears it.
+
 ## Models on the same machine
 
 Inside the container, `localhost` is the container itself, not the server. To use a model server that runs on the

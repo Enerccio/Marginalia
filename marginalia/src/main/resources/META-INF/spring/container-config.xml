@@ -8,6 +8,7 @@
     <bean name="configuration" class="com.github.enerccio.marginalia.Configuration">
         <property name="allowPersistentLogin" value="${allowPersistentLogin:true}" />
         <property name="persistentLoginInfoTTL" value="${persistentLoginTTL:true}" />
+        <property name="trustedProxies" value="${trustedProxies:}" />
     </bean>
 
     <bean name="applicationPoint" class="com.github.enerccio.marginalia.bound.ApplicationPoint" />

@@ -93,7 +93,9 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V3 | `V3__lorebook_subbooks_shared.sql` | Rebuilds `lorebooks_lorebooks` without the unique constraint, so a lorebook can be a sub-lorebook of several lorebooks. |
 | V4 | `V4__manuscript_published_last_opened.sql` | `manuscripts.published` and `manuscripts.lastOpened`. |
 | V5 | `V5__protocol_optional_limits.sql` | Rebuilds `protocols` with nullable `maxTokens` / `replyTokens` and turns the old "not set" values (0, negative) into `NULL`. |
-| V6 | `V6__indexes.sql` | Indexes matching the queries: tag relations by object and by tag, owner lookups `(userId, is_deleted)`, lorebook entries in order, parts of a book in order, resources by owner and hash, settings by key. Drops the unused and duplicate ones. See [Indexes](#indexes). |
+| V6 | `V6__indexes.sql` | Indexes matching the queries: tag relations by object and by tag, owner lookups `(userId, is_deleted)`, lorebook entries in order, parts of a book in order, parts by summary, resources by owner and hash, settings by key. Drops the unused and duplicate ones. See [Indexes](#indexes). |
+| V7 | `V7__user_login_backoff.sql` | `users.failedLogins` and `users.lockedUntil` (both `not null default 0`) for the login back-off, see [Users](domain-model.md#users). |
+| V8 | `V8__resource_link.sql` | `resources.objectId` and `resources.clazz` - the loose link of an uploaded file to the object that uses it - and the indexes of the Resources tab (`(userId, is_deleted, creation)`) and of the link (`(clazz, objectId)`). |
 
 ### Rules
 
@@ -110,7 +112,7 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 ### Adding a column
 
 ```sql
--- V7__manuscript_archived.sql
+-- V9__manuscript_archived.sql
 ALTER TABLE manuscripts
     ADD COLUMN archived boolean not null default false;
 ```
@@ -129,7 +131,7 @@ A new entity needs its table, its sequence table with a first row, and its index
 (ids are reserved in blocks of 50 - gaps in ids are normal):
 
 ```sql
--- V7__bookmarks.sql
+-- V9__bookmarks.sql
 create table bookmarks
 (
     id              bigint      not null primary key,
@@ -202,7 +204,7 @@ development home whose database is at the current schema version. Treat the outp
 - a pre-Flyway database (V1 schema, no history table) is baselined and upgraded.
 
 New migrations are picked up automatically by the first two tests. When a migration converts data, add rows to
-`insertV1Data()` and assertions to `assertUpgradedData()`, like the existing ones for V3-V5. Run it with
+`insertV1Data()` and assertions to `assertUpgradedData()`, like the existing ones for V2-V5. Run it with
 `mvn test -Dtest=FlywayMigrationTest`.
 
 ## Schema conventions
@@ -246,7 +248,10 @@ Index what the queries filter on, in the order of the `WHERE` clause, with the e
 | `<table> (userId, is_deleted)` | Listing and finding the owner's entities (`ais`, `protocols`, `manuscripts`, `lorebooks`, `tags`). |
 | `entries (lorebook_id, ordinal)` | Entries of a lorebook in order. |
 | `messages (parentScript_id, creation)`, `messages (parent_id)` | Parts of a book in order, children of a part. |
+| `messages (summary_id)` | Parts using a summary (cleanup references). |
 | `resources (userId, hash)` | Deduplication of uploaded files. |
+| `resources (userId, is_deleted, creation)` | The Resources tab: the user's files, newest first. |
+| `resources (clazz, objectId)` | Resources used by an object (the loose link). |
 | `settings (key, userId)` | Loading a settings object. |
 
 A single-column index on `is_deleted` alone helps only the *Cleanup* (few rows are deleted); don't add new ones.

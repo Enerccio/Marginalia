@@ -138,6 +138,10 @@ The manual you are reading is in `manual/` (Markdown for [Retype](https://retype
 - The class labels on `dev-ui-map-book.png` and `dev-ui-map-workspace.png` are drawn by `tools/annotate_ui_maps.py`
   (needs Pillow) onto a plain screenshot saved as `dev-ui-map-<name>-not-annotated.png` next to it. After the screen
   changes, take a new plain screenshot, adjust the coordinates at the top of the script if something moved, and run it.
+- Every developer page has `verified` (the commit it was last checked against the code) and `covers` (the code it
+  describes) in its front matter. `python3 tools/check_dev_docs.py` lists the pages whose covered code changed since
+  then (`-v` names modified files, `--check` fails when any page is behind). After you review a page, mark it with
+  `--stamp <page.md>` in a commit of its own. When a page starts describing other code, extend its `covers`.
 - Bugs you find while writing documentation are reported as an issue (see [Reporting bugs and ideas](#reporting-bugs-and-ideas)).
 
 ## Extensions

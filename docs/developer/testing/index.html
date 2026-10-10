@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844956758069">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844956758069" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844954313860" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844956758069" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -264,12 +264,16 @@ fake is the model server.</p>
 | `test` | `TestBaseSmokeTest` | The test infrastructure itself: isolated folder, session user, mock LLM wiring. |
 | `test/llm` | `MockLLMServerTest` | The fake OpenAI server against the real `openai-java` client. |
 | `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
-| `db` | `FlywayMigrationTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation. |
-| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. |
-| `generation` | `GenerationRequestTest`, `LorebookActivationTest` | Full generations: what is sent to the model, which lore is activated and where it goes. |
+| `db` | `FlywayMigrationTest`, `DatabaseRestoreCheckTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context). |
+| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`); it has no Spring context. |
+| `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain. |
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
 | `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
-| `backup` | `ManuscriptRestoreTest`, `ManuscriptBackupCopyTest`, `BackupLorebookTest`, `BackupAiProtocolLinkTest`, `DatabaseBackupScheduleTest` | Book backups, restore and copy, lorebook and provider linking, scheduled database backups. |
+| `backup` | `ManuscriptRestoreTest`, `ManuscriptBackupCopyTest`, `BackupLorebookTest`, `BackupAiProtocolLinkTest`, `BackupImagesTest`, `DatabaseBackupScheduleTest` | Book backups, restore and copy, lorebook and provider linking, the images of parts in backups (the archive made on export, own resources for restored and cloned books), scheduled database backups. |
+| `export` | `ExporterTest`, `ExporterImagesTest` | The story exporters (TXT, HTML, DOCX, PDF, EPUB): text and Unicode, linked contents and chapter navigation, splitting of long stories, embedded images. |
+| `security` | `ApiKeyEncryptionTest` | API keys stored encrypted with the installation key; the app migration encrypting plain ones. |
+| `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
+| `ui` | `ResourcesPartTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The only test that builds a Vaadin component. |
 | `cleanup` | `CleanupServiceTest` | Purging soft-deleted data, owned data, strong and weak references. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -299,18 +303,18 @@ fake is the model server.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>db</code></td>
-<td><code translate="no" v-pre>FlywayMigrationTest</code></td>
-<td>Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation.</td>
+<td><code translate="no" v-pre>FlywayMigrationTest</code>, <code translate="no" v-pre>DatabaseRestoreCheckTest</code></td>
+<td>Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain</code></td>
-<td><code translate="no" v-pre>ExtendableEntityListenerTest</code>, <code translate="no" v-pre>TokenLimitsTest</code>, <code translate="no" v-pre>CronScheduleTest</code>, <code translate="no" v-pre>SillyTavernEntryConverterTest</code>, <code translate="no" v-pre>TemplateHelpersTest</code></td>
-<td>Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion.</td>
+<td><code translate="no" v-pre>ExtendableEntityListenerTest</code>, <code translate="no" v-pre>TokenLimitsTest</code>, <code translate="no" v-pre>CronScheduleTest</code>, <code translate="no" v-pre>SillyTavernEntryConverterTest</code>, <code translate="no" v-pre>TemplateHelpersTest</code>, <code translate="no" v-pre>OsgiServiceImplTest</code></td>
+<td>Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. <code translate="no" v-pre>OsgiServiceImplTest</code> loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (<code translate="no" v-pre>TestExtensionActivator</code>); it has no Spring context.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>generation</code></td>
-<td><code translate="no" v-pre>GenerationRequestTest</code>, <code translate="no" v-pre>LorebookActivationTest</code></td>
-<td>Full generations: what is sent to the model, which lore is activated and where it goes.</td>
+<td><code translate="no" v-pre>GenerationRequestTest</code>, <code translate="no" v-pre>LorebookActivationTest</code>, <code translate="no" v-pre>BuiltPromptHistoryTest</code>, <code translate="no" v-pre>ReservedTokensTest</code>, <code translate="no" v-pre>FailedGenerationTest</code>, <code translate="no" v-pre>ImageAttachmentGenerationTest</code>, <code translate="no" v-pre>MetaSummaryTest</code></td>
+<td>Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>templates</code></td>
@@ -324,8 +328,28 @@ fake is the model server.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>backup</code></td>
-<td><code translate="no" v-pre>ManuscriptRestoreTest</code>, <code translate="no" v-pre>ManuscriptBackupCopyTest</code>, <code translate="no" v-pre>BackupLorebookTest</code>, <code translate="no" v-pre>BackupAiProtocolLinkTest</code>, <code translate="no" v-pre>DatabaseBackupScheduleTest</code></td>
-<td>Book backups, restore and copy, lorebook and provider linking, scheduled database backups.</td>
+<td><code translate="no" v-pre>ManuscriptRestoreTest</code>, <code translate="no" v-pre>ManuscriptBackupCopyTest</code>, <code translate="no" v-pre>BackupLorebookTest</code>, <code translate="no" v-pre>BackupAiProtocolLinkTest</code>, <code translate="no" v-pre>BackupImagesTest</code>, <code translate="no" v-pre>DatabaseBackupScheduleTest</code></td>
+<td>Book backups, restore and copy, lorebook and provider linking, the images of parts in backups (the archive made on export, own resources for restored and cloned books), scheduled database backups.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>export</code></td>
+<td><code translate="no" v-pre>ExporterTest</code>, <code translate="no" v-pre>ExporterImagesTest</code></td>
+<td>The story exporters (TXT, HTML, DOCX, PDF, EPUB): text and Unicode, linked contents and chapter navigation, splitting of long stories, embedded images.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>security</code></td>
+<td><code translate="no" v-pre>ApiKeyEncryptionTest</code></td>
+<td>API keys stored encrypted with the installation key; the app migration encrypting plain ones.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>utils</code></td>
+<td><code translate="no" v-pre>ClientAddressResolverTest</code></td>
+<td>The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui</code></td>
+<td><code translate="no" v-pre>ResourcesPartTest</code></td>
+<td>The Resources tab grid: lazy paging, only the user&#x27;s files, deleting the selection. The only test that builds a Vaadin component.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>cleanup</code></td>
@@ -341,7 +365,7 @@ fake is the model server.</p>
 </table>
 </div>
 </retype-table>
-<p>Not covered by automated tests: the Vaadin UI, the OSGi framework and the bundled plugins, and the desktop launcher
+<p>Not covered by automated tests: the Vaadin UI (apart from <code translate="no" v-pre>ResourcesPartTest</code>), the bundled plugins, and the desktop launcher
 (the <a href="../packaging/#continuous-integration">CI smoke test</a> only checks that the packaged app starts).</p>
 <h2 id="test-bases">Test bases</h2>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">classDiagram

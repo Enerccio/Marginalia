@@ -1,6 +1,13 @@
 ---
 label: Plugin basics
 order: 100
+verified: b244ca1
+covers:
+  - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/OsgiService.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
 ---
 
 # Plugin basics
@@ -122,7 +129,7 @@ public interface MarginaliaExtension {
 
     void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService);
 
-    void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService);
+    void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService);
 }
 ```
 

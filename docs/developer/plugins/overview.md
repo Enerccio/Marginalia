@@ -117,7 +117,7 @@ public interface MarginaliaExtension {
 
     void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService);
 
-    void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService);
+    void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService);
 }
 ```
 

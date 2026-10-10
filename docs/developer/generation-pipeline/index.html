@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844956758069">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844956758069" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844954313860" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844956758069" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -435,7 +435,8 @@ assistant  &lt;next part&gt;
 user       lore before user prompt + &quot;\n\n&quot; + rendered user prompt</code></pre>
 </doc-codeblock></div>
 <p>Earlier parts are sent as the model&#x27;s own previous answers, each preceded by a short placeholder user turn. The final
-user message carries the instructions.</p>
+user message carries the instructions. Only the text of the parts is sent: the images attached to a part are not part of
+it and the model never sees them.</p>
 <p>The payload is stored in the part (<code translate="no" v-pre>builtPrompt</code>) and can be inspected in the story editor with <em>View prompt</em>:</p>
 <figure class="content-center">
     <img src="../../images/dev-view-prompt.png" alt="The prompt of a part in the View prompt dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="850" height="650" />
@@ -826,9 +827,11 @@ execution) and an entry in <code translate="no" v-pre>installedSteps</code>. Ste
 </li>
 </ul>
 <h2 id="testing">Testing</h2>
-<p><code translate="no" v-pre>generation/LorebookActivationTest</code> and <code translate="no" v-pre>generation/GenerationRequestTest</code> run real generations against
-<code translate="no" v-pre>MockLLMServer</code>, an OpenAI-compatible fake with scripted answers, and inspect the request the model received
-(<code translate="no" v-pre>InferenceCollector</code>) and the parts that were stored. <code translate="no" v-pre>GenerationTestBase</code> / <code translate="no" v-pre>GenerationRun</code> start a generation and
+<p><code translate="no" v-pre>generation/LorebookActivationTest</code>, <code translate="no" v-pre>GenerationRequestTest</code>, <code translate="no" v-pre>BuiltPromptHistoryTest</code> (which parts of the story are in
+the prompt for a new part, a swipe and a regenerate), <code translate="no" v-pre>ReservedTokensTest</code> (<code translate="no" v-pre>reservedTokens</code>), <code translate="no" v-pre>FailedGenerationTest</code>
+(the cleanup rules above) and <code translate="no" v-pre>MetaSummaryTest</code> run real generations against <code translate="no" v-pre>MockLLMServer</code>, an OpenAI-compatible
+fake with scripted answers, and inspect the request the model received (<code translate="no" v-pre>InferenceCollector</code>) and the parts that were
+stored. <code translate="no" v-pre>GenerationTestBase</code> / <code translate="no" v-pre>GenerationRun</code> start a generation and
 wait for it to finish. See <a href="../testing/">Testing</a>.</p>
 
                 

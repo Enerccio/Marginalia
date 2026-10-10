@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844956758069">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844956758069" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -354,6 +354,12 @@ license, changes), and must be shared under the license of the picture.</p>
 <p>The class labels on <code translate="no" v-pre>dev-ui-map-book.png</code> and <code translate="no" v-pre>dev-ui-map-workspace.png</code> are drawn by <code translate="no" v-pre>tools/annotate_ui_maps.py</code>
 (needs Pillow) onto a plain screenshot saved as <code translate="no" v-pre>dev-ui-map-&lt;name&gt;-not-annotated.png</code> next to it. After the screen
 changes, take a new plain screenshot, adjust the coordinates at the top of the script if something moved, and run it.</p>
+</li>
+<li>
+<p>Every developer page has <code translate="no" v-pre>verified</code> (the commit it was last checked against the code) and <code translate="no" v-pre>covers</code> (the code it
+describes) in its front matter. <code translate="no" v-pre>python3 tools/check_dev_docs.py</code> lists the pages whose covered code changed since
+then (<code translate="no" v-pre>-v</code> names modified files, <code translate="no" v-pre>--check</code> fails when any page is behind). After you review a page, mark it with
+<code translate="no" v-pre>--stamp &lt;page.md&gt;</code> in a commit of its own. When a page starts describing other code, extend its <code translate="no" v-pre>covers</code>.</p>
 </li>
 <li>
 <p>Bugs you find while writing documentation are reported as an issue (see <doc-anchor-trigger to="#reporting-bugs-and-ideas">Reporting bugs and ideas</doc-anchor-trigger>).</p>

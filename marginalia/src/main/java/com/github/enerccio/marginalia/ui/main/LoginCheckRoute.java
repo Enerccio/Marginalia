@@ -53,6 +53,13 @@ public abstract class LoginCheckRoute extends Div {
 
     protected LoginOverlay loginOverlay;
 
+    /**
+     * Address the current request came from, for throttling failed logins.
+     */
+    protected String clientAddress() {
+        return UIUtils.clientAddress(configuration);
+    }
+
     protected abstract String getAppTitle();
     protected abstract String getAppDescription();
     protected abstract boolean authenticate(String userName, String password) throws Exception;

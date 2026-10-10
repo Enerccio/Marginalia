@@ -1,6 +1,9 @@
 ---
 label: User interface
 order: 910
+verified: b244ca1
+covers:
+  - marginalia/src/main/java/com/github/enerccio/marginalia/ui
 ---
 
 # User interface
@@ -51,7 +54,7 @@ flowchart TB
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
-| `ui.components` | Larger reusable components: `LorebookView`, `TreantTree`, `ThreadCopyRequestAttributes`. |
+| `ui.components` | Larger reusable components: `LorebookView`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
 | `ui.widgets` | Small reusable widgets. |
 
 ## The shell, routes and login
@@ -218,6 +221,7 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
+| `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, "160px")` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |
 
 Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`, `ListSelectDialog`,
@@ -290,7 +294,7 @@ runs before and after that method and can read its arguments and local variables
 | Area | Classes |
 |---|---|
 | Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
-| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog` |
+| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog`, `ImagesDialog` |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `LorebookView`, `TreantTree` |
 
 The bundled plugins hook into these methods:

@@ -1,6 +1,15 @@
 ---
 label: Architecture
 order: 980
+verified: b244ca1
+covers:
+  - marginalia/src/main/java/com/github/enerccio/marginalia/bound
+  - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
+  - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
+  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/main
+  - marginalia/src/main/resources/META-INF/spring
+  - marginalia/src/main/webapp/config
 ---
 
 # Architecture

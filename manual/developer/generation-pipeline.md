@@ -1,6 +1,12 @@
 ---
 label: Generation pipeline
 order: 930
+verified: b244ca1
+covers:
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/StoryGenerationServiceImpl.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/SummaryServiceImpl.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/TokenLimits.java
 ---
 
 # Generation pipeline
@@ -194,7 +200,8 @@ user       lore before user prompt + "\n\n" + rendered user prompt
 ```
 
 Earlier parts are sent as the model's own previous answers, each preceded by a short placeholder user turn. The final
-user message carries the instructions.
+user message carries the instructions. Only the text of the parts is sent: the images attached to a part are not part of
+it and the model never sees them.
 
 The payload is stored in the part (`builtPrompt`) and can be inspected in the story editor with *View prompt*:
 
@@ -365,7 +372,9 @@ The bundled Author's Note plugin is a complete example: it reserves tokens in `B
 
 ## Testing
 
-`generation/LorebookActivationTest` and `generation/GenerationRequestTest` run real generations against
-`MockLLMServer`, an OpenAI-compatible fake with scripted answers, and inspect the request the model received
-(`InferenceCollector`) and the parts that were stored. `GenerationTestBase` / `GenerationRun` start a generation and
+`generation/LorebookActivationTest`, `GenerationRequestTest`, `BuiltPromptHistoryTest` (which parts of the story are in
+the prompt for a new part, a swipe and a regenerate), `ReservedTokensTest` (`reservedTokens`), `FailedGenerationTest`
+(the cleanup rules above) and `MetaSummaryTest` run real generations against `MockLLMServer`, an OpenAI-compatible
+fake with scripted answers, and inspect the request the model received (`InferenceCollector`) and the parts that were
+stored. `GenerationTestBase` / `GenerationRun` start a generation and
 wait for it to finish. See [Testing](testing.md).

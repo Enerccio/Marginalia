@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844956758069">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844956758069" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844954313860" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844956758069" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -289,6 +289,13 @@ for <code translate="no" v-pre>marginalia.example.com</code>:</p>
 </doc-codeblock></div>
 </doc-tab>
 </doc-tabs>
+<p>Failed logins are throttled per user and per client address (after 30 failures from one address, logins from it are
+refused for a growing time, up to 15 minutes). Marginalia only believes the <code translate="no" v-pre>X-Forwarded-For</code> header of a proxy you
+name: without it, all users appear to come from the proxy&#x27;s address and 30 failures from anyone block everybody for a
+while. Keep the header in the proxy configuration (as above) and add <code translate="no" v-pre>-DtrustedProxies=&lt;address or range of the proxy&gt;</code>
+to <code translate="no" v-pre>JAVA_TOOL_OPTIONS</code> in <code translate="no" v-pre>docker-compose.yml</code>. A proxy on the Docker host reaches the container from the Docker
+network, normally <code translate="no" v-pre>172.16.0.0/12</code>; several entries are separated by commas. The throttling is kept in memory,
+restarting Marginalia clears it.</p>
 <h2 id="models-on-the-same-machine">Models on the same machine</h2>
 <p>Inside the container, <code translate="no" v-pre>localhost</code> is the container itself, not the server. To use a model server that runs on the
 Docker host (llama.cpp, Ollama, LM Studio...), use the address <code translate="no" v-pre>http://host.docker.internal:&lt;port&gt;/v1</code> in the

@@ -86,7 +86,6 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
-import com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
 import com.google.gson.JsonObject;
@@ -188,7 +187,7 @@ public class BookmarksExtension implements MarginaliaExtension {
     }
 
     @Override
-    public void onExtensionUnload(Bundle bundle, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+    public void onExtensionUnload(Bundle bundle, OsgiService osgiService, ExtensionService extensionService) {
         decorators.forEach(extensionService::unregisterDecorator);
         decorators = List.of();
 

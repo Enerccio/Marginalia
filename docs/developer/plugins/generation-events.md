@@ -64,7 +64,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
     }
 
     @Override
-    public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+    public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
         ...
         if (reserveRegistration != null) {
             reserveRegistration.unregister();

@@ -96,11 +96,10 @@ class UserCrudTest extends MarginaliaTestBase {
         for (int i = 0; i < 30; i++) {
             assertThat(userService.authenticate(uniqueName("nobody"), "bad", address)).isFalse();
         }
+        // 30 failures are free, the right password still works...
         assertThat(userService.authenticate(victim.getLogin(), "pw", address)).isTrue();
 
-        for (int i = 0; i < 30; i++) {
-            assertThat(userService.authenticate(uniqueName("nobody"), "bad", address)).isFalse();
-        }
+        // ...but the success does not start the count again, otherwise any account holder could reset it
         assertThat(userService.authenticate(uniqueName("nobody"), "bad", address)).isFalse();
 
         // the address is blocked even for the right password, but the user is not affected elsewhere

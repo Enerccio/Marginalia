@@ -1,6 +1,10 @@
 ---
 label: Testing
 order: 890
+verified: b244ca1
+covers:
+  - marginalia/src/test
+  - marginalia/pom.xml
 ---
 
 # Testing
@@ -62,16 +66,20 @@ fake is the model server.
 | `test` | `TestBaseSmokeTest` | The test infrastructure itself: isolated folder, session user, mock LLM wiring. |
 | `test/llm` | `MockLLMServerTest` | The fake OpenAI server against the real `openai-java` client. |
 | `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
-| `db` | `FlywayMigrationTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation. |
-| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. |
-| `generation` | `GenerationRequestTest`, `LorebookActivationTest` | Full generations: what is sent to the model, which lore is activated and where it goes. |
+| `db` | `FlywayMigrationTest`, `DatabaseRestoreCheckTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context). |
+| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`); it has no Spring context. |
+| `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain. |
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
 | `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
-| `backup` | `ManuscriptRestoreTest`, `ManuscriptBackupCopyTest`, `BackupLorebookTest`, `BackupAiProtocolLinkTest`, `DatabaseBackupScheduleTest` | Book backups, restore and copy, lorebook and provider linking, scheduled database backups. |
+| `backup` | `ManuscriptRestoreTest`, `ManuscriptBackupCopyTest`, `BackupLorebookTest`, `BackupAiProtocolLinkTest`, `BackupImagesTest`, `DatabaseBackupScheduleTest` | Book backups, restore and copy, lorebook and provider linking, the images of parts in backups (the archive made on export, own resources for restored and cloned books), scheduled database backups. |
+| `export` | `ExporterTest`, `ExporterImagesTest` | The story exporters (TXT, HTML, DOCX, PDF, EPUB): text and Unicode, linked contents and chapter navigation, splitting of long stories, embedded images. |
+| `security` | `ApiKeyEncryptionTest` | API keys stored encrypted with the installation key; the app migration encrypting plain ones. |
+| `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
+| `ui` | `ResourcesPartTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The only test that builds a Vaadin component. |
 | `cleanup` | `CleanupServiceTest` | Purging soft-deleted data, owned data, strong and weak references. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent. |
 
-Not covered by automated tests: the Vaadin UI, the OSGi framework and the bundled plugins, and the desktop launcher
+Not covered by automated tests: the Vaadin UI (apart from `ResourcesPartTest`), the bundled plugins, and the desktop launcher
 (the [CI smoke test](packaging.md#continuous-integration) only checks that the packaged app starts).
 
 ## Test bases

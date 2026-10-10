@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844956758069">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844956758069" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844954313860" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844956758069" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -218,7 +218,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
-| `ui.components` | Larger reusable components: `LorebookView`, `TreantTree`, `ThreadCopyRequestAttributes`. |
+| `ui.components` | Larger reusable components: `LorebookView`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
 | `ui.widgets` | Small reusable widgets. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -251,7 +251,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.components</code></td>
-<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>.</td>
+<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.widgets</code></td>
@@ -533,6 +533,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
+| `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, &quot;160px&quot;)` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -562,6 +563,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>ScrollPanel</code>, <code translate="no" v-pre>HtmlText</code></td>
 <td>Scrollable container; text with HTML.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ResizableTextArea</code></td>
+<td><code translate="no" v-pre>ResizableTextArea.install(loc, textArea, &quot;160px&quot;)</code> on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Notification</code></td>
@@ -632,7 +637,7 @@ runs before and after that method and can read its arguments and local variables
 <retype-table copy-text="| Area | Classes |
 |---|---|
 | Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
-| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog` |
+| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog`, `ImagesDialog` |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `LorebookView`, `TreantTree` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -649,7 +654,7 @@ runs before and after that method and can read its arguments and local variables
 </tr>
 <tr>
 <td>Book window</td>
-<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>ManuscriptStoryPart</code> (and its <code translate="no" v-pre>ChatMessageCard</code>), <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code>, <code translate="no" v-pre>SummariesDialog</code>, <code translate="no" v-pre>SummaryDialog</code></td>
+<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>ManuscriptStoryPart</code> (and its <code translate="no" v-pre>ChatMessageCard</code>), <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code>, <code translate="no" v-pre>SummariesDialog</code>, <code translate="no" v-pre>SummaryDialog</code>, <code translate="no" v-pre>ImagesDialog</code></td>
 </tr>
 <tr>
 <td>Dialogs and components</td>

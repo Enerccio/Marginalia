@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844956758069">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844956758069" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -338,9 +338,9 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `AdminPart`. |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
 | `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
-| `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed). |
-| `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `TreantTree` (story tree drawn with treant.js), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
-| `ui.widgets` | Small widgets: `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
+| `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
+| `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
+| `ui.widgets` | Small widgets: `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -372,15 +372,15 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.manuscript</code></td>
-<td>The tabs of the book window, each a <code translate="no" v-pre>ManuscriptDialogPart</code>: <code translate="no" v-pre>ManuscriptStoryPart</code> (story editor - the largest UI class), <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptInfoPart</code> (About), <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code>; and the summary dialogs: <code translate="no" v-pre>SummariesDialog</code> (overview of the summaries of the branch, opened from the story editor), <code translate="no" v-pre>SummaryDialog</code> (one summary or meta summary, generating or viewing) and <code translate="no" v-pre>SummaryRemoval</code> (asking before a summary is removed).</td>
+<td>The tabs of the book window, each a <code translate="no" v-pre>ManuscriptDialogPart</code>: <code translate="no" v-pre>ManuscriptStoryPart</code> (story editor - the largest UI class), <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptInfoPart</code> (About), <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code>; and the summary dialogs: <code translate="no" v-pre>SummariesDialog</code> (overview of the summaries of the branch, opened from the story editor), <code translate="no" v-pre>SummaryDialog</code> (one summary or meta summary, generating or viewing) and <code translate="no" v-pre>SummaryRemoval</code> (asking before a summary is removed); and <code translate="no" v-pre>ImagesDialog</code> (add, caption and remove the images of a part, opened from its card).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.components</code></td>
-<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code> (the lorebook editor, used in the Lorebooks tab and in books), <code translate="no" v-pre>TreantTree</code> (story tree drawn with treant.js), <code translate="no" v-pre>ThreadCopyRequestAttributes</code> (carries the session to worker threads).</td>
+<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code> (the lorebook editor, used in the Lorebooks tab and in books), <code translate="no" v-pre>TreantTree</code> (story tree drawn with treant.js), <code translate="no" v-pre>MessageImages</code> (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), <code translate="no" v-pre>ThreadCopyRequestAttributes</code> (carries the session to worker threads).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.widgets</code></td>
-<td>Small widgets: <code translate="no" v-pre>HTabSheet</code> (tab sheet with the tabs on the left and room for custom content, used by the workspace), <code translate="no" v-pre>BackendTableProvider*</code> / <code translate="no" v-pre>BackendTableItem</code> (lazy grids backed by a repository query), <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>TemplateHints</code> (hint popovers of prompt fields), <code translate="no" v-pre>TextAreaPopoverComponent</code> / <code translate="no" v-pre>TextFieldPopOverComponent</code>, <code translate="no" v-pre>HtmlText</code>, <code translate="no" v-pre>ScrollPanel</code>, <code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>PermissiveLoginOverlay</code> (allows empty passwords).</td>
+<td>Small widgets: <code translate="no" v-pre>HTabSheet</code> (tab sheet with the tabs on the left and room for custom content, used by the workspace), <code translate="no" v-pre>BackendTableProvider*</code> / <code translate="no" v-pre>BackendTableItem</code> (lazy grids backed by a repository query), <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>TemplateHints</code> (hint popovers of prompt fields), <code translate="no" v-pre>TextAreaPopoverComponent</code> / <code translate="no" v-pre>TextFieldPopOverComponent</code>, <code translate="no" v-pre>HtmlText</code>, <code translate="no" v-pre>ScrollPanel</code>, <code translate="no" v-pre>ResizableTextArea</code> (<code translate="no" v-pre>install(loc, area, fixedHeight)</code> adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), <code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>PermissiveLoginOverlay</code> (allows empty passwords).</td>
 </tr>
 </tbody>
 </table>
@@ -671,7 +671,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <h3 id="domainsecurity"><code translate="no" v-pre>domain.security</code></h3>
 <p><code translate="no" v-pre>model/User</code>, <code translate="no" v-pre>repository/UserRepository</code> (+ <code translate="no" v-pre>impl/JpaUserRepository</code>), <code translate="no" v-pre>service/UserService</code> (+
 <code translate="no" v-pre>impl/UserServiceImpl</code>: authentication, password hashes, saved logins, protection of the last administrator) and
-<code translate="no" v-pre>PersistedLoginInfo</code> (a saved login; the user&#x27;s saved logins are stored as JSON in <code translate="no" v-pre>User.savedLogins</code>).</p>
+<code translate="no" v-pre>PersistedLoginInfo</code> (a saved login; the user&#x27;s saved logins are stored as delimited text in <code translate="no" v-pre>User.savedLogins</code>).</p>
 <h3 id="domaintraits-domaincollections-domainlistener"><code translate="no" v-pre>domain.traits</code>, <code translate="no" v-pre>domain.collections</code>, <code translate="no" v-pre>domain.listener</code></h3>
 <retype-table copy-text="| Package | |
 |---|---|
@@ -710,7 +710,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `instruct` | `RuntimeInstrumentationInitializer` (installs the ByteBuddy agent), `ExtendableMethodVisitor` (the bytecode rewrite), `ExtensionServiceHolder` (static access to `ExtensionService` from instrumented code). |
 | `loc` | `L` (all text keys), `Localization` / `LocalizationBase` / `LocalizationEN`, `NaturalOrderComparator`. |
 | `concurrent` | `AsyncRunnableWrapper` (keeps the submitting stack trace for errors on worker threads), `ThrowingRunnable`. |
-| `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies), `ReflectUtils` (cached reflection), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
+| `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, `clientAddress`), `ClientAddressResolver` (the client address of a request: `X-Forwarded-For` only from the `trustedProxies`, see [Login throttling](services.md#login-throttling)), `ReflectUtils` (cached reflection), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
 | `com.github.enerccio.tools` | `Pair`, `Pointer` (small holders used across the code) and `GenerateFlywayDiff` (development tool, see [Database schema changes](building.md#database-schema-changes)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -739,7 +739,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>utils</code></td>
-<td><code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies), <code translate="no" v-pre>ReflectUtils</code> (cached reflection), <code translate="no" v-pre>ThreadUtils</code> (<code translate="no" v-pre>executeInThread</code> - runs a task on a fresh thread without the caller&#x27;s thread locals and waits for it).</td>
+<td><code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, <code translate="no" v-pre>clientAddress</code>), <code translate="no" v-pre>ClientAddressResolver</code> (the client address of a request: <code translate="no" v-pre>X-Forwarded-For</code> only from the <code translate="no" v-pre>trustedProxies</code>, see <a href="../services/#login-throttling">Login throttling</a>), <code translate="no" v-pre>ReflectUtils</code> (cached reflection), <code translate="no" v-pre>ThreadUtils</code> (<code translate="no" v-pre>executeInThread</code> - runs a task on a fresh thread without the caller&#x27;s thread locals and waits for it).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>com.github.enerccio.tools</code></td>
@@ -756,7 +756,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `.../spring/container-config.xml` | Localization, configuration, `applicationPoint`, `sessionManager`, session beans, application initializer. |
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
-| `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V5__protocol_optional_limits`. |
+| `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V8__resource_link`. |
 | `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
 | `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
@@ -790,7 +790,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql</code></td>
-<td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V5__protocol_optional_limits</code>.</td>
+<td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V8__resource_link</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/log4j.properties</code></td>
