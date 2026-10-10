@@ -135,7 +135,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 
 Also here: `TurnInput` (the four fields of the instruction panel), `SummaryNode` (a summary and the summaries it merges, for
 the summaries overview), `CancellationToken`, `GenerationListener` (UI
-callbacks of a generation) and `search/` (`Sorter`, `ManuscriptFilterValues` for the book lists).
+callbacks of a generation) and `search/` (`Sorter`, `ManuscriptFilterValues` for the book lists; `FulltextQuery`, `FulltextHit` and `LikePatterns` for the full-text search and `LIKE` patterns).
 
 | Package | |
 |---|---|

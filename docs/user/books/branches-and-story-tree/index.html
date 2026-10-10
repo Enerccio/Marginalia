@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844974733285">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844975828469">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844974733285" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844975828469" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844974733285" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844975828469" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844974733285" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844975828469" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -251,6 +251,44 @@ shows it. Only the ends of branches can be clicked; to continue from a part in t
 last ten parts. Click the block to show all parts.</p>
 </li>
 </ul>
+<h3 id="searching-all-branches">Searching all branches</h3>
+<p>The box above the tree searches the text of <strong>all branches</strong> of the book, not only the active one. Type what you are
+looking for and press <strong>Enter</strong> or click <strong>Search</strong>; the box remembers your last searches, pick one from the list to
+repeat it. The <strong>x</strong> in the box clears the search.</p>
+<ul>
+<li>
+<p>A part matches when its text contains <strong>every word</strong> you typed, in any order: <code translate="no" v-pre>lighthouse key</code> finds the parts that
+have both words. Put words in double quotes to look for a phrase: <code translate="no" v-pre>&quot;lighthouse key&quot;</code>.</p>
+</li>
+<li>
+<p>Use <code translate="no" v-pre>*</code> for any characters: <code translate="no" v-pre>light*</code> finds <em>lighthouse</em> and <em>lightning</em>. Other characters, including <code translate="no" v-pre>%</code>, <code translate="no" v-pre>_</code> and
+<code translate="no" v-pre>\</code>, are searched as they are.</p>
+</li>
+<li>
+<p>Upper and lower case do not matter. For accented letters, a word typed in lower case also finds the same word in
+UPPER CASE or Capitalized (<code translate="no" v-pre>žluťoučký</code> finds <em>Žluťoučký</em> and <em>ŽLUŤOUČKÝ</em>).</p>
+</li>
+<li>
+<p>Only the text of the parts is searched, not the instructions, scene setting or the lorebook. Parts that you deleted
+are not searched.</p>
+</li>
+</ul>
+<figure class="content-center">
+    <img src="../../../images/story-tree-search.png" alt="The branch view with a search" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The branch view with a search</figcaption>
+</figure>
+<p>Every part that matches is <strong>highlighted</strong> in orange and shows the text around the match; the line above the tree says
+how many parts were found. Long stretches that would be collapsed are opened when they contain a match. The search
+stays until you clear it or close the book window, and the highlighting is updated when you come back to the tab.</p>
+<p>Click <strong>Show in story</strong> in a highlighted part to read it:</p>
+<ul>
+<li>When the part is on the active branch, the book switches to the <em>Story</em> tab and scrolls to it.</li>
+<li>When it is on another branch, that branch becomes the active branch first. It ends at the nearest end of a branch
+below the found part (the newer one when there are two), so the story editor shows the story up to the found part and
+what followed it. The book then switches to the <em>Story</em> tab and scrolls to the part, which flashes briefly.</li>
+</ul>
+<p>Switching the branch is the same as clicking the end of a branch in the tree: nothing is lost, the previous branch stays
+as it was and you can go back to it from the tree.</p>
 <h2 id="deleting-parts-and-branches">Deleting parts and branches</h2>
 <p><strong>Delete</strong> in the menu of a part removes just that part. The parts after it move up and continue from the part before
 it. To remove a whole branch, delete its parts from the end.</p>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844974733285">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844975828469">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844974733285" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844975828469" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844974733285" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844975828469" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844974733285" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844974733285" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844975828469" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844975828469" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -647,7 +647,21 @@ request scope, and <code translate="no" v-pre>vaadinLocked(...)</code> / <code t
 scroll handling in <code translate="no" v-pre>ManuscriptStoryPart</code>.</p>
 <p>The only JavaScript module is <code translate="no" v-pre>src/main/frontend/treant-connector.js</code>, loaded by <code translate="no" v-pre>TreantTree</code> (<code translate="no" v-pre>@JsModule</code>) together
 with the npm packages <code translate="no" v-pre>treant-js</code> and <code translate="no" v-pre>raphael</code> (<code translate="no" v-pre>@NpmPackage</code>) and treant&#x27;s CSS (<code translate="no" v-pre>@CssImport</code>). It draws the story
-tree; <code translate="no" v-pre>TreantTree</code> sends the tree as JSON and receives clicks back.</p>
+tree; <code translate="no" v-pre>TreantTree</code> sends the tree as JSON and receives clicks back: <code translate="no" v-pre>node-click</code> (a card was clicked, with the
+<code translate="no" v-pre>data-node-id</code> of the card) and <code translate="no" v-pre>node-goto</code> (an element with <code translate="no" v-pre>data-goto-id</code> inside a card was clicked; the card itself
+is not clicked then).</p>
+<h3 id="searching-the-story-tree">Searching the story tree</h3>
+<p><code translate="no" v-pre>ManuscriptTreePart</code> has a search bar above the tree: an editable <code translate="no" v-pre>ComboBox</code> (the last 15 searches; typed text is a
+custom value that the part sets as the value) and a button. A search calls <code translate="no" v-pre>ChatMessageService.searchFulltext</code> and
+keeps the result as <code translate="no" v-pre>lastQuery</code> and <code translate="no" v-pre>hitSnippets</code> (part id → text around the match); <code translate="no" v-pre>renderTree</code> then adds the CSS
+class <code translate="no" v-pre>search-hit</code> (shared-styles.css) to the cards of the found parts and, in them, the snippet and a &quot;Show in story&quot;
+link (<code translate="no" v-pre>data-goto-id</code>). Stretches of more than 20 parts that would be collapsed stay open when they contain a hit.
+The search is kept while the tab is open and repeated on every <code translate="no" v-pre>onTabEnter</code>; <code translate="no" v-pre>load</code> (opening the book) clears it.</p>
+<p>The link fires <code translate="no" v-pre>NodeGotoEvent</code>. <code translate="no" v-pre>onNodeGoto</code> resolves the id among the messages of the book only, asks
+<code translate="no" v-pre>ChatMessageService.findLeafFor</code> for the end of the branch to show, makes it the book&#x27;s active leaf when it is not
+(<code translate="no" v-pre>ManuscriptDialog.save</code>) and calls <code translate="no" v-pre>ManuscriptDialog.showMessage(id)</code>. That tells <code translate="no" v-pre>ManuscriptStoryPart</code> which part to
+scroll to (<code translate="no" v-pre>scrollToMessageOnNextRender</code>) and selects the story tab; entering the tab renders the story, which scrolls to
+the part (and flashes it) instead of restoring the saved scroll position.</p>
 <h3 id="styles">Styles</h3>
 <p>Global styles are in <code translate="no" v-pre>src/main/frontend/styles/shared-styles.css</code> (imported by <code translate="no" v-pre>AppShellConfig</code>): spacing helpers,
 the loading indicator, the story text (<code translate="no" v-pre>.chat-message</code>, and <code translate="no" v-pre>.manuscript-styles .chat-message-markdown</code> for the book

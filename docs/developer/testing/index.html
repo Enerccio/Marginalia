@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844974733285">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844975828469">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844974733285" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844975828469" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844974733285" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844975828469" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844974733285" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844974733285" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844975828469" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844975828469" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -265,7 +265,7 @@ fake is the model server.</p>
 | `test/llm` | `MockLLMServerTest` | The fake OpenAI server against the real `openai-java` client. |
 | `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
 | `db` | `FlywayMigrationTest`, `FulltextMigrationTest`, `DatabaseRestoreCheckTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation (`FlywayMigrationTest` also checks that V9 keeps `manuscripts.description` in `extendedContent`); `FulltextMigrationTest` runs the app migration that fills `_fulltext` of existing rows on the Spring context; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context). |
-| `domain` | `ExtendableEntityListenerTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context. |
+| `domain` | `ExtendableEntityListenerTest`, `FulltextQueryTest`, `ChatMessageSearchTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; `FulltextQueryTest` and `ChatMessageSearchTest` cover the full-text query (words, phrases, `*`, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context. |
 | `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain. |
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
 | `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
@@ -273,7 +273,7 @@ fake is the model server.</p>
 | `export` | `ExporterTest`, `ExporterImagesTest` | The story exporters (TXT, Markdown, HTML, DOCX, PDF, EPUB): text and Unicode, linked contents and chapter navigation, splitting of long stories, embedded images. |
 | `security` | `ApiKeyEncryptionTest` | API keys stored encrypted with the installation key; the app migration encrypting plain ones. |
 | `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
-| `ui` | `ResourcesPartTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The only test that builds a Vaadin component. |
+| `ui` | `ResourcesPartTest`, `BranchSearchTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The search of the branch view (`ManuscriptTreePart` with a stand-in for the book window): the result line, &quot;Show in story&quot; switching the active branch and ignoring ids of other books. They build Vaadin components without a UI session. |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest` | Purging soft-deleted data, owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -308,8 +308,8 @@ fake is the model server.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain</code></td>
-<td><code translate="no" v-pre>ExtendableEntityListenerTest</code>, <code translate="no" v-pre>TokenLimitsTest</code>, <code translate="no" v-pre>CronScheduleTest</code>, <code translate="no" v-pre>SillyTavernEntryConverterTest</code>, <code translate="no" v-pre>TemplateHelpersTest</code>, <code translate="no" v-pre>OsgiServiceImplTest</code></td>
-<td>Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion. <code translate="no" v-pre>OsgiServiceImplTest</code> loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (<code translate="no" v-pre>TestExtensionActivator</code>), including the verification reports that allow or refuse starting them; it has no Spring context.</td>
+<td><code translate="no" v-pre>ExtendableEntityListenerTest</code>, <code translate="no" v-pre>FulltextQueryTest</code>, <code translate="no" v-pre>ChatMessageSearchTest</code>, <code translate="no" v-pre>TokenLimitsTest</code>, <code translate="no" v-pre>CronScheduleTest</code>, <code translate="no" v-pre>SillyTavernEntryConverterTest</code>, <code translate="no" v-pre>TemplateHelpersTest</code>, <code translate="no" v-pre>OsgiServiceImplTest</code></td>
+<td>Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; <code translate="no" v-pre>FulltextQueryTest</code> and <code translate="no" v-pre>ChatMessageSearchTest</code> cover the full-text query (words, phrases, <code translate="no" v-pre>*</code>, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). <code translate="no" v-pre>OsgiServiceImplTest</code> loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (<code translate="no" v-pre>TestExtensionActivator</code>), including the verification reports that allow or refuse starting them; it has no Spring context.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>generation</code></td>
@@ -348,8 +348,8 @@ fake is the model server.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui</code></td>
-<td><code translate="no" v-pre>ResourcesPartTest</code></td>
-<td>The Resources tab grid: lazy paging, only the user&#x27;s files, deleting the selection. The only test that builds a Vaadin component.</td>
+<td><code translate="no" v-pre>ResourcesPartTest</code>, <code translate="no" v-pre>BranchSearchTest</code></td>
+<td>The Resources tab grid: lazy paging, only the user&#x27;s files, deleting the selection. The search of the branch view (<code translate="no" v-pre>ManuscriptTreePart</code> with a stand-in for the book window): the result line, &quot;Show in story&quot; switching the active branch and ignoring ids of other books. They build Vaadin components without a UI session.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>cleanup</code></td>
@@ -365,7 +365,7 @@ fake is the model server.</p>
 </table>
 </div>
 </retype-table>
-<p>Not covered by automated tests: the Vaadin UI (apart from <code translate="no" v-pre>ResourcesPartTest</code>), the bundled plugins, and the desktop launcher
+<p>Not covered by automated tests: the Vaadin UI (apart from <code translate="no" v-pre>ResourcesPartTest</code> and <code translate="no" v-pre>BranchSearchTest</code>), the bundled plugins, and the desktop launcher
 (the <a href="../packaging/#continuous-integration">CI smoke test</a> only checks that the packaged app starts).</p>
 <h2 id="test-bases">Test bases</h2>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">classDiagram

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844974733285">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844975828469">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844974733285" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844975828469" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844974733285" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844975828469" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844974733285" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844974733285" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844975828469" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844975828469" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -484,6 +484,17 @@ fields from the restored JSON, and <code translate="no" v-pre>FulltextMigration<
 </table>
 </div>
 </retype-table>
+<h3 id="full-text-search">Full-text search</h3>
+<p>The only search over <code translate="no" v-pre>_fulltext</code> so far is <code translate="no" v-pre>ChatMessageService.searchFulltext(manuscript, query)</code>, used by the search of
+the story tree. <code translate="no" v-pre>FulltextQuery.parse</code> splits the query into words (double quotes make a phrase); a part matches when its
+text contains every word. In SQL (<code translate="no" v-pre>ChatMessageRepository.findFulltexts</code>) each word is a
+<code translate="no" v-pre>_fulltext LIKE :pattern ESCAPE '\'</code>, built like the name filter of the book list (<code translate="no" v-pre>LikePatterns.fromWildcards</code>): <code translate="no" v-pre>*</code>
+becomes <code translate="no" v-pre>%</code>, and <code translate="no" v-pre>\</code>, <code translate="no" v-pre>_</code> and <code translate="no" v-pre>%</code> are escaped so they are searched as typed. Only the id and <code translate="no" v-pre>_fulltext</code> of the
+messages are read, never the whole entity. SQLite&#x27;s <code translate="no" v-pre>LIKE</code> ignores case only for A-Z, so every word is also tried in
+lower case, upper case and capitalized (<code translate="no" v-pre>FulltextQuery.likePatterns</code>), which covers accented letters in the usual
+spellings; a word written in mixed case in the text (<code translate="no" v-pre>ŽlutÝ</code>) is not found by a differently cased query. The snippet
+shown with a hit is cut from the text by <code translate="no" v-pre>FulltextQuery.snippet</code>. The service checks that the book belongs to the
+current user.</p>
 <p>Like <code translate="no" v-pre>extendedContent</code>, the column is invisible to dirty checking of the fields, so it is only current after a
 service <code translate="no" v-pre>save</code>. Marking a field of an entity that already has rows (or changing which fields are marked) leaves old
 rows out of date: add an app migration that calls <code translate="no" v-pre>updateFulltext</code> for the entity, as <code translate="no" v-pre>FulltextMigration</code> does (see
