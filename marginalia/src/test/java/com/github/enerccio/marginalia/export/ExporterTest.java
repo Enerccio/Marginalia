@@ -59,7 +59,7 @@ class ExporterTest extends MarginaliaTestBase {
     @Test
     void allFormatsAreRegistered() {
         assertThat(exporterService.getExporters()).extracting(Exporter::getFileExtension)
-                .containsExactlyInAnyOrder("txt", "html", "docx", "pdf", "epub");
+                .containsExactlyInAnyOrder("txt", "md", "html", "docx", "pdf", "epub");
     }
 
     @Test
@@ -78,6 +78,25 @@ class ExporterTest extends MarginaliaTestBase {
         String text = new String(export(exporter("txt"), false), StandardCharsets.UTF_8);
 
         assertThat(text).startsWith("The first paragraph").doesNotContain("Some Author");
+    }
+
+    @Test
+    void markdownKeepsTheSourceText() throws Exception {
+        String text = new String(export(exporter("md"), true), StandardCharsets.UTF_8);
+
+        assertThat(text).startsWith("# Tom & Jerry <1>\n\n*Some Author*\n\nThe *first* paragraph with **bold** and `code`.")
+                .contains("> A quote").contains("- one").contains("1. first").contains("---")
+                .contains("```\nlet x = 1;\n```").contains("<script>alert(1)</script>")
+                .contains("# Heading\n\n" + CZECH).endsWith(CZECH + "\n");
+        // the empty message adds nothing
+        assertThat(text).doesNotContain("\n\n\n");
+    }
+
+    @Test
+    void markdownWithoutHeaders() throws Exception {
+        String text = new String(export(exporter("md"), false), StandardCharsets.UTF_8);
+
+        assertThat(text).startsWith("The *first* paragraph").doesNotContain("Some Author");
     }
 
     @Test
@@ -344,8 +363,8 @@ class ExporterTest extends MarginaliaTestBase {
     void emptyStoryProducesFile() throws Exception {
         for (Exporter exporter : exporterService.getExporters()) {
             byte[] data = exporter.export(options(false), List.of(), new ProgressBarDialog(false));
-            // plain text of nothing is nothing, every other format is a container with its own structure
-            if (!exporter.getFileExtension().equals("txt")) {
+            // plain text and Markdown of nothing are nothing, every other format is a container with its own structure
+            if (!List.of("txt", "md").contains(exporter.getFileExtension())) {
                 assertThat(data).as(exporter.getName()).isNotEmpty();
             }
         }

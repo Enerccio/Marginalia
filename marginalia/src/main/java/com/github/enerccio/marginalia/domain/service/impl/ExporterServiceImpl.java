@@ -14,6 +14,7 @@ public class ExporterServiceImpl implements ExporterService, InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         registerExporter(new TxtExporter());
+        registerExporter(new MarkdownExporter());
         registerExporter(new HtmlExporter());
         registerExporter(new DocxExporter());
         registerExporter(new PdfExporter());

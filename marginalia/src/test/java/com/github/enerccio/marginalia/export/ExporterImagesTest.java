@@ -141,6 +141,16 @@ class ExporterImagesTest extends MarginaliaTestBase {
     }
 
     @Test
+    void markdownEmbedsImagesAsDataUris() throws Exception {
+        String markdown = new String(export("md"), StandardCharsets.UTF_8);
+
+        // the image of the first message and the image-only message
+        assertThat(markdown.split("\\]\\(data:image/png;base64,", -1)).hasSize(3);
+        assertThat(markdown).contains("![A map & a \\<legend\\>](data:image/png;base64,").contains("![](data:image/png;base64,")
+                .contains("*A map & a \\<legend\\>*").contains("Text of the last message.").doesNotContain("gone");
+    }
+
+    @Test
     void textMarksTheImages() throws Exception {
         String text = new String(export("txt"), StandardCharsets.UTF_8);
 
