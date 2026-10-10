@@ -2,9 +2,12 @@ package com.github.enerccio.marginalia.export;
 
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
 import org.apache.poi.xwpf.usermodel.*;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
 import java.util.List;
 
 public class DocxExporter extends ExporterBase {
@@ -14,6 +17,8 @@ public class DocxExporter extends ExporterBase {
     private static final int[] HEADING_SIZES = {24, 20, 17, 15, 13, 12};
     // 1/20 of a point
     private static final int INDENT = 720;
+    // position of the page numbers in the table of contents, it is within the text width of A4 and Letter
+    private static final int CONTENTS_TAB = 9000;
 
     @Override
     public String getName() {
@@ -39,23 +44,122 @@ public class DocxExporter extends ExporterBase {
         private final XWPFDocument document = new XWPFDocument();
         private final BlockSink bodySink = new DocxSink(false);
         private final BlockSink titleSink = new DocxSink(true);
+        // bookmark of the chapter that is going to be written, put on its first paragraph
+        private Chapter pendingChapter;
+        // the next paragraph starts a page, the title page and the contents are pages of their own
+        private boolean pageBreakPending;
+        private int bookmarks;
 
         private DocxWriter(ExportOptions options) {
             document.getProperties().getCoreProperties().setTitle(options.bookName());
             if (StringUtils.isNotBlank(options.author())) {
                 document.getProperties().getCoreProperties().setCreator(options.author());
             }
+            addPageNumbers();
+        }
+
+        private void addPageNumbers() {
+            XWPFFooter footer = new XWPFHeaderFooterPolicy(document).createFooter(STHdrFtr.DEFAULT);
+            XWPFParagraph paragraph = footer.createParagraph();
+            paragraph.setAlignment(ParagraphAlignment.CENTER);
+            CTSimpleField field = paragraph.getCTP().addNewFldSimple();
+            field.setInstr(" PAGE ");
+            CTR run = field.addNewR();
+            style(run, BODY_SIZE - 2);
+            run.addNewT().setStringValue("1");
+        }
+
+        private static void style(CTR run, int size) {
+            CTRPr properties = run.addNewRPr();
+            CTFonts fonts = properties.addNewRFonts();
+            fonts.setAscii(FONT);
+            fonts.setHAnsi(FONT);
+            properties.addNewSz().setVal(BigInteger.valueOf(size * 2L));
         }
 
         @Override
         public void titlePage(String markdown) throws Exception {
             walk(markdown, titleSink);
-            document.createParagraph().createRun().addBreak(BreakType.PAGE);
+            pageBreakPending = true;
+            // the title page is the cover, it has no footer
+            document.getDocument().getBody().getSectPr().addNewTitlePg();
+        }
+
+        /**
+         * The table of contents is a list of links to the chapter bookmarks with the page numbers as PAGEREF fields. It
+         * is not the Word TOC field, which is empty until Word updates it and is never filled by LibreOffice.
+         * The fields have no result until they are updated, which Word does after asking when the file is opened.
+         */
+        @Override
+        public void contents(List<Chapter> chapters) {
+            XWPFParagraph title = newParagraph();
+            title.setSpacingAfter(240);
+            addRuns(title, List.of(new Run(CONTENTS_TITLE, true, false, false, false)), HEADING_SIZES[1], true);
+
+            for (Chapter chapter : chapters) {
+                XWPFParagraph entry = document.createParagraph();
+                entry.setSpacingAfter(80);
+                CTTabStop tab = entry.getCTPPr().addNewTabs().addNewTab();
+                tab.setVal(STTabJc.RIGHT);
+                tab.setLeader(STTabTlc.DOT);
+                tab.setPos(BigInteger.valueOf(CONTENTS_TAB));
+
+                CTHyperlink link = entry.getCTP().addNewHyperlink();
+                link.setAnchor(chapter.anchor());
+                link.setHistory(true);
+                CTR run = link.addNewR();
+                style(run, BODY_SIZE);
+                run.addNewT().setStringValue(chapter.title());
+
+                CTR separator = entry.getCTP().addNewR();
+                style(separator, BODY_SIZE);
+                separator.addNewTab();
+                field(entry, STFldCharType.BEGIN, null);
+                field(entry, null, " PAGEREF " + chapter.anchor() + " \\h ");
+                field(entry, STFldCharType.SEPARATE, null);
+                field(entry, STFldCharType.END, null);
+            }
+            pageBreakPending = true;
+            document.getSettings().setUpdateFields();
+        }
+
+        private static void field(XWPFParagraph paragraph, STFldCharType.Enum type, String instruction) {
+            CTR run = paragraph.getCTP().addNewR();
+            style(run, BODY_SIZE);
+            if (type != null) {
+                run.addNewFldChar().setFldCharType(type);
+            } else {
+                run.addNewInstrText().setStringValue(instruction);
+            }
         }
 
         @Override
-        public void message(String markdown) throws Exception {
+        public void message(String markdown, Chapter chapter) throws Exception {
+            pendingChapter = chapter;
+            // a chapter starts on a new page
+            pageBreakPending |= chapter != null;
             walk(markdown, bodySink);
+            pendingChapter = null;
+        }
+
+        /**
+         * The first paragraph of a chapter is the target of its link in the table of contents.
+         */
+        private XWPFParagraph newParagraph() {
+            XWPFParagraph paragraph = document.createParagraph();
+            if (pageBreakPending) {
+                paragraph.setPageBreak(true);
+                pageBreakPending = false;
+            }
+            if (pendingChapter != null) {
+                BigInteger id = BigInteger.valueOf(bookmarks++);
+                CTBookmark start = paragraph.getCTP().addNewBookmarkStart();
+                start.setId(id);
+                start.setName(pendingChapter.anchor());
+                paragraph.getCTP().addNewBookmarkEnd().setId(id);
+                pendingChapter = null;
+            }
+            return paragraph;
         }
 
         @Override
@@ -91,11 +195,11 @@ public class DocxExporter extends ExporterBase {
 
             @Override
             public void heading(int level, List<Run> runs) {
-                XWPFParagraph paragraph = document.createParagraph();
+                XWPFParagraph paragraph = newParagraph();
                 paragraph.setAlignment(centered ? ParagraphAlignment.CENTER : ParagraphAlignment.LEFT);
                 paragraph.setKeepNext(true);
                 // outline level keeps the headings in the navigation pane of Word
-                paragraph.getCTP().addNewPPr().addNewOutlineLvl().setVal(java.math.BigInteger.valueOf(Math.min(level, 9) - 1));
+                paragraph.getCTPPr().addNewOutlineLvl().setVal(java.math.BigInteger.valueOf(Math.min(level, 9) - 1));
                 paragraph.setSpacingBefore(centered ? 4000 : 480);
                 paragraph.setSpacingAfter(240);
                 addRuns(paragraph, runs, HEADING_SIZES[Math.min(level, HEADING_SIZES.length) - 1], true);
@@ -103,7 +207,7 @@ public class DocxExporter extends ExporterBase {
 
             @Override
             public void paragraph(BlockContext context, List<Run> runs) {
-                XWPFParagraph paragraph = document.createParagraph();
+                XWPFParagraph paragraph = newParagraph();
                 paragraph.setAlignment(centered ? ParagraphAlignment.CENTER
                         : context.isIndented() ? ParagraphAlignment.LEFT : ParagraphAlignment.BOTH);
                 paragraph.setSpacingAfter(160);
@@ -119,7 +223,7 @@ public class DocxExporter extends ExporterBase {
 
             @Override
             public void code(BlockContext context, String code) {
-                XWPFParagraph paragraph = document.createParagraph();
+                XWPFParagraph paragraph = newParagraph();
                 paragraph.setSpacingAfter(160);
                 indent(paragraph, context);
                 XWPFRun run = paragraph.createRun();
@@ -136,7 +240,7 @@ public class DocxExporter extends ExporterBase {
 
             @Override
             public void rule() {
-                XWPFParagraph paragraph = document.createParagraph();
+                XWPFParagraph paragraph = newParagraph();
                 paragraph.setAlignment(ParagraphAlignment.CENTER);
                 paragraph.setSpacingBefore(160);
                 paragraph.setSpacingAfter(240);

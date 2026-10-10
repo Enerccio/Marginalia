@@ -4,10 +4,14 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptio
 import org.apache.commons.lang3.StringUtils;
 import org.librepdf.openpdf.fonts.Liberation;
 import org.openpdf.text.*;
-import org.openpdf.text.pdf.PdfWriter;
+import org.openpdf.text.pdf.*;
+import org.openpdf.text.pdf.draw.DottedLineSeparator;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * PDF with the embedded Liberation fonts, so the text is not limited to Latin-1.
@@ -33,25 +37,105 @@ public class PdfExporter extends ExporterBase {
     }
 
     @Override
-    protected ExportWriter open(ExportOptions options) throws Exception {
+    protected ExportWriter open(ExportOptions options) {
         return new PdfWriterAdapter(options);
     }
 
+    /**
+     * The table of contents shows the pages of the chapters, which are known only when the text is laid out, so the
+     * export is kept and rendered until the pages stay the same.
+     */
     private static class PdfWriterAdapter implements ExportWriter {
+        private static final int MAX_PASSES = 4;
+
+        private final ExportOptions options;
+        private final List<String> messages = new ArrayList<>();
+        private final List<Chapter> chapterOf = new ArrayList<>();
+        private List<Chapter> chapters = List.of();
+        private String titleMarkdown;
+
+        private PdfWriterAdapter(ExportOptions options) {
+            this.options = options;
+        }
+
+        @Override
+        public void titlePage(String markdown) {
+            titleMarkdown = markdown;
+        }
+
+        @Override
+        public void contents(List<Chapter> chapters) {
+            this.chapters = chapters;
+        }
+
+        @Override
+        public void message(String markdown, Chapter chapter) {
+            messages.add(markdown);
+            chapterOf.add(chapter);
+        }
+
+        @Override
+        public byte[] finish() throws Exception {
+            PdfRendering rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, Map.of());
+            byte[] result = rendering.render();
+            for (int pass = 1; pass < MAX_PASSES && !chapters.isEmpty() && !rendering.chapterPages.equals(rendering.shownPages); pass++) {
+                rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, rendering.chapterPages);
+                result = rendering.render();
+            }
+            return result;
+        }
+    }
+
+    private static class PdfRendering {
         private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         private final Document document = new Document(PageSize.A5, 54, 54, 60, 60);
-        private final Font regular, bold, italic, boldItalic, code;
+        private final Font regular, bold, italic, boldItalic, code, small;
         private final BlockSink bodySink = new PdfSink(false);
         private final BlockSink titleSink = new PdfSink(true);
+        private final PdfWriter writer;
+        private final String titleMarkdown;
+        private final List<Chapter> chapters;
+        private final List<String> messages;
+        private final List<Chapter> chapterOf;
+        // pages of the chapters (by anchor) as laid out in this rendering, and as the contents of it show them
+        private final Map<String, Integer> chapterPages = new HashMap<>();
+        private final Map<String, Integer> shownPages;
+        // destination of the chapter that is going to be written, given to its first paragraph
+        private Chapter pendingChapter;
 
-        private PdfWriterAdapter(ExportOptions options) throws Exception {
+        private PdfRendering(ExportOptions options, String titleMarkdown, List<Chapter> chapters, List<String> messages,
+                             List<Chapter> chapterOf, Map<String, Integer> shownPages) throws Exception {
+            this.titleMarkdown = titleMarkdown;
+            this.chapters = chapters;
+            this.messages = messages;
+            this.chapterOf = chapterOf;
+            this.shownPages = shownPages;
+
             regular = Liberation.SERIF.create((int) BODY_SIZE);
             bold = Liberation.SERIF_BOLD.create((int) BODY_SIZE);
             italic = Liberation.SERIF_ITALIC.create((int) BODY_SIZE);
             boldItalic = Liberation.SERIF_BOLDITALIC.create((int) BODY_SIZE);
             code = Liberation.MONO.create(10);
+            small = Liberation.SERIF.create(10);
 
-            PdfWriter.getInstance(document, bytes);
+            writer = PdfWriter.getInstance(document, bytes);
+            writer.setPageEvent(new PdfPageEventHelper() {
+                @Override
+                public void onEndPage(PdfWriter writer, Document document) {
+                    // the title page is the cover, the numbers are the pages of the file as the readers count them
+                    if (titleMarkdown != null && writer.getPageNumber() == 1) {
+                        return;
+                    }
+                    ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER,
+                            new Phrase(String.valueOf(writer.getPageNumber()), small),
+                            (document.left() + document.right()) / 2, document.bottom() - 28, 0);
+                }
+
+                @Override
+                public void onGenericTag(PdfWriter writer, Document document, Rectangle rect, String text) {
+                    chapterPages.put(text, writer.getPageNumber());
+                }
+            });
             document.addTitle(options.bookName());
             if (StringUtils.isNotBlank(options.author())) {
                 document.addAuthor(options.author());
@@ -60,25 +144,52 @@ public class PdfExporter extends ExporterBase {
             document.open();
         }
 
-        @Override
-        public void titlePage(String markdown) throws Exception {
-            walk(markdown, titleSink);
-            document.newPage();
-        }
-
-        @Override
-        public void message(String markdown) throws Exception {
-            walk(markdown, bodySink);
-        }
-
-        @Override
-        public byte[] finish() {
+        private byte[] render() throws Exception {
+            if (titleMarkdown != null) {
+                walk(titleMarkdown, titleSink);
+                document.newPage();
+            }
+            if (!chapters.isEmpty()) {
+                writeContents();
+            }
+            for (int i = 0; i < messages.size(); i++) {
+                pendingChapter = chapterOf.get(i);
+                if (pendingChapter != null) {
+                    // a chapter starts on a new page, nothing happens when the page is still empty
+                    document.newPage();
+                }
+                walk(messages.get(i), bodySink);
+                pendingChapter = null;
+            }
             if (document.getPageNumber() == 0) {
                 // nothing was exported, the document needs at least one page
                 document.add(new Paragraph(" "));
             }
             document.close();
             return bytes.toByteArray();
+        }
+
+        private void writeContents() {
+            Paragraph title = new Paragraph(CONTENTS_TITLE, new Font(bold.getBaseFont(), HEADING_SIZES[1]));
+            title.setSpacingAfter(HEADING_SIZES[1]);
+            document.add(title);
+
+            PdfOutline root = writer.getRootOutline();
+            for (Chapter chapter : chapters) {
+                Chunk link = new Chunk(chapter.title() + " ", regular);
+                link.setLocalGoto(chapter.anchor());
+                Chunk page = new Chunk(" " + String.valueOf(shownPages.getOrDefault(chapter.anchor(), 0)), regular);
+                page.setLocalGoto(chapter.anchor());
+                Paragraph entry = new Paragraph(BODY_SIZE * 1.4f);
+                entry.add(link);
+                entry.add(new Chunk(new DottedLineSeparator()));
+                entry.add(page);
+                entry.setSpacingAfter(4);
+                document.add(entry);
+                // the same list is offered by the readers next to the pages
+                new PdfOutline(root, PdfAction.gotoLocalPage(chapter.anchor(), false), chapter.title());
+            }
+            document.newPage();
         }
 
         private Font font(Run run, float size, boolean forceBold) {
@@ -95,6 +206,19 @@ public class PdfExporter extends ExporterBase {
             paragraph.setLeading(size * 1.4f);
             for (Run run : runs) {
                 paragraph.add(run.lineBreak() ? Chunk.NEWLINE : new Chunk(run.text(), font(run, size, forceBold)));
+            }
+            return anchored(paragraph);
+        }
+
+        /**
+         * The first paragraph of a chapter is the target of its link in the table of contents.
+         */
+        private <T extends Paragraph> T anchored(T paragraph) {
+            if (pendingChapter != null && !paragraph.getChunks().isEmpty()) {
+                Chunk first = (Chunk) paragraph.getChunks().getFirst();
+                first.setLocalDestination(pendingChapter.anchor());
+                first.setGenericTag(pendingChapter.anchor());
+                pendingChapter = null;
             }
             return paragraph;
         }
@@ -132,7 +256,7 @@ public class PdfExporter extends ExporterBase {
 
             @Override
             public void code(BlockContext context, String text) {
-                Paragraph paragraph = new Paragraph(text.stripTrailing(), code);
+                Paragraph paragraph = anchored(new Paragraph(text.stripTrailing(), code));
                 paragraph.setIndentationLeft((context.listDepth() + context.quoteDepth()) * INDENT);
                 paragraph.setSpacingAfter(8);
                 document.add(paragraph);
@@ -140,7 +264,7 @@ public class PdfExporter extends ExporterBase {
 
             @Override
             public void rule() {
-                Paragraph paragraph = new Paragraph("*   *   *", regular);
+                Paragraph paragraph = anchored(new Paragraph("*   *   *", regular));
                 paragraph.setAlignment(Element.ALIGN_CENTER);
                 paragraph.setSpacingBefore(8);
                 paragraph.setSpacingAfter(12);

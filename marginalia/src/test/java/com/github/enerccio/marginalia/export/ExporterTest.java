@@ -165,6 +165,181 @@ class ExporterTest extends MarginaliaTestBase {
         assertThat(names).contains("OEBPS/part1.xhtml", "OEBPS/part2.xhtml").doesNotContain("OEBPS/title.xhtml");
     }
 
+    private static List<ChatMessage> chapters() {
+        return List.of(
+                message("Prologue without a heading."),
+                message("# Chapter One\n\nText of the first chapter."),
+                message("More of the first chapter."),
+                message("## The *Second* Chapter\n\nText & more."),
+                message("Plain ending."));
+    }
+
+    private byte[] exportChapters(Exporter exporter, boolean headers) throws Exception {
+        return exporter.export(options(headers), chapters(), new ProgressBarDialog(false));
+    }
+
+    private static String entry(byte[] epub, String name) throws Exception {
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(epub))) {
+            ZipEntry entry;
+            while ((entry = zip.getNextEntry()) != null) {
+                if (entry.getName().equals(name)) {
+                    return new String(zip.readAllBytes(), StandardCharsets.UTF_8);
+                }
+            }
+        }
+        throw new AssertionError(name + " is not in the file");
+    }
+
+    @Test
+    void htmlHasLinkedContents() throws Exception {
+        String html = new String(exportChapters(exporter("html"), true), StandardCharsets.UTF_8);
+
+        assertThat(html).contains("<nav class=\"contents\">")
+                .contains("<a href=\"#chapter_1\">Chapter One</a>")
+                // the title is shown as it is written, like the Chapter Marker does in the sidebar
+                .contains("<a href=\"#chapter_2\">The *Second* Chapter</a>")
+                .contains("<section id=\"chapter_1\">").contains("<section id=\"chapter_2\">")
+                .doesNotContain("chapter_3");
+        // title page, then contents, then the story
+        assertThat(html.indexOf("title-page\">")).isLessThan(html.indexOf("<nav class=\"contents\">"));
+        assertThat(html.indexOf("<nav class=\"contents\">")).isLessThan(html.indexOf("Prologue"));
+    }
+
+    @Test
+    void storyWithoutHeadingsHasNoContents() throws Exception {
+        List<ChatMessage> plain = List.of(message("Just a text."), message("And another one."));
+        for (String extension : List.of("html", "epub")) {
+            String content = new String(exporter(extension).export(options(true), plain, new ProgressBarDialog(false)),
+                    StandardCharsets.ISO_8859_1);
+            assertThat(content).as(extension).doesNotContain("chapter_1").doesNotContain("class=\"contents\"");
+        }
+        byte[] pdf = exporter("pdf").export(options(false), plain, new ProgressBarDialog(false));
+        try (PDDocument document = Loader.loadPDF(pdf)) {
+            assertThat(new PDFTextStripper().getText(document)).doesNotContain("Contents");
+        }
+    }
+
+    @Test
+    void epubNavigationLinksToChapters() throws Exception {
+        byte[] data = exportChapters(exporter("epub"), true);
+
+        String nav = entry(data, "OEBPS/nav.xhtml");
+        assertThat(nav).contains("epub:type=\"toc\"").contains("<a href=\"part1.xhtml#chapter_1\">Chapter One</a>")
+                .contains("<a href=\"part1.xhtml#chapter_2\">The *Second* Chapter</a>");
+        assertThat(entry(data, "OEBPS/part1.xhtml")).contains("<section class=\"chapter\" id=\"chapter_1\">").contains("<section class=\"chapter\" id=\"chapter_2\">");
+        // chapters start on a new page
+        assertThat(entry(data, "OEBPS/style.css")).contains("section.chapter { break-before: page;");
+        // the navigation is also read as a page, right after the title page
+        assertThat(entry(data, "OEBPS/content.opf")).containsSubsequence("<itemref idref=\"c0\"/>", "<itemref idref=\"nav\"/>", "<itemref idref=\"c1\"/>");
+    }
+
+    @Test
+    void epubNavigationFollowsSplitParts() throws Exception {
+        List<ChatMessage> messages = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            messages.add(message("# Chapter " + (i + 1) + "\n\n" + ("Lorem ipsum dolor sit amet. ".repeat(150) + "\n\n").repeat(3)));
+        }
+        byte[] data = exporter("epub").export(options(false), messages, new ProgressBarDialog(false));
+
+        String nav = entry(data, "OEBPS/nav.xhtml");
+        assertThat(nav).contains("<a href=\"part1.xhtml#chapter_1\">Chapter 1</a>");
+        for (int chapter = 1; chapter <= 30; chapter++) {
+            java.util.regex.Matcher link = java.util.regex.Pattern.compile("href=\"(part\\d+\\.xhtml)#chapter_" + chapter + "\"").matcher(nav);
+            assertThat(link.find()).as("chapter " + chapter).isTrue();
+            assertThat(entry(data, "OEBPS/" + link.group(1))).contains("<section class=\"chapter\" id=\"chapter_" + chapter + "\">");
+        }
+        assertThat(nav).doesNotContain("part1.xhtml#chapter_30");
+    }
+
+    @Test
+    void pdfHasLinkedContents() throws Exception {
+        byte[] data = exportChapters(exporter("pdf"), true);
+
+        try (PDDocument document = Loader.loadPDF(data)) {
+            // title page, contents, story
+            assertThat(document.getNumberOfPages()).isGreaterThanOrEqualTo(3);
+            String text = new PDFTextStripper().getText(document);
+            assertThat(text).contains("Contents").contains("Chapter One").contains("The *Second* Chapter");
+
+            var links = document.getPage(1).getAnnotations().stream()
+                    .filter(a -> a instanceof org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink).toList();
+            // the title and the page number of every entry
+            assertThat(links).hasSize(4);
+            var names = document.getDocumentCatalog().getNames().getDests().getNames();
+            assertThat(names).containsKeys("chapter_1", "chapter_2");
+
+            var outline = document.getDocumentCatalog().getDocumentOutline();
+            assertThat(outline).isNotNull();
+            assertThat(outline.getFirstChild().getTitle()).isEqualTo("Chapter One");
+        }
+    }
+
+    @Test
+    void pdfContentsShowPagesOfChapters() throws Exception {
+        List<ChatMessage> messages = new ArrayList<>();
+        for (int i = 1; i <= 12; i++) {
+            messages.add(message("# Chapter " + i + "\n\n" + ("Lorem ipsum dolor sit amet. ".repeat(60) + "\n\n").repeat(2)));
+        }
+        byte[] data = exporter("pdf").export(options(true), messages, new ProgressBarDialog(false));
+
+        try (PDDocument document = Loader.loadPDF(data)) {
+            var destinations = document.getDocumentCatalog().getNames().getDests().getNames();
+            var stripper = new PDFTextStripper();
+            stripper.setStartPage(2);
+            stripper.setEndPage(2);
+            String contents = stripper.getText(document);
+            assertThat(contents).startsWith("Contents");
+
+            int previous = 0;
+            for (int chapter = 1; chapter <= 12; chapter++) {
+                var destination = (org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination)
+                        destinations.get("chapter_" + chapter);
+                int page = destination.retrievePageNumber() + 1;
+                assertThat(page).as("chapter " + chapter).isGreaterThan(2);
+                assertThat(contents).as("chapter " + chapter).containsPattern("Chapter " + chapter + " \\.*\\s*" + page + "\\s");
+                stripper.setStartPage(page);
+                stripper.setEndPage(page);
+                // the chapter starts its page, so the page has no part of the chapter before
+                assertThat(java.util.regex.Pattern.compile("Chapter \\d+").matcher(stripper.getText(document)).results()
+                        .map(java.util.regex.MatchResult::group)).as("chapter " + chapter).containsExactly("Chapter " + chapter);
+                assertThat(page).isGreaterThan(previous);
+                previous = page;
+            }
+            // page numbers in the footer, but not on the title page
+            stripper.setStartPage(1);
+            stripper.setEndPage(1);
+            assertThat(stripper.getText(document).trim()).doesNotEndWith("1");
+            stripper.setStartPage(3);
+            stripper.setEndPage(3);
+            assertThat(stripper.getText(document).trim()).endsWith("3");
+        }
+    }
+
+    @Test
+    void docxHasLinkedContents() throws Exception {
+        byte[] data = exportChapters(exporter("docx"), true);
+
+        try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(data))) {
+            String xml = document.getDocument().xmlText();
+            assertThat(xml).contains("w:anchor=\"chapter_1\"").contains("w:anchor=\"chapter_2\"")
+                    .contains("w:name=\"chapter_1\"").contains("w:name=\"chapter_2\"");
+            // the title page, the contents and every chapter start a page
+            for (String chapter : List.of("chapter_1", "chapter_2")) {
+                var start = document.getParagraphs().stream()
+                        .filter(p -> p.getCTP().xmlText().contains("w:name=\"" + chapter + "\"")).findFirst().orElseThrow();
+                assertThat(start.isPageBreak()).as(chapter).isTrue();
+            }
+            assertThat(document.getParagraphs().stream().filter(org.apache.poi.xwpf.usermodel.XWPFParagraph::isPageBreak).count()).isEqualTo(4);
+            assertThat(xml).contains("PAGEREF chapter_1").contains("PAGEREF chapter_2");
+            assertThat(document.getFooterList()).hasSize(1);
+            assertThat(document.getFooterList().getFirst().getParagraphs().getFirst().getCTP().xmlText()).contains("PAGE");
+            assertThat(new XWPFWordExtractor(document).getText()).contains("Contents").contains("Chapter One");
+            // every paragraph has at most one set of properties, Word refuses the file otherwise
+            document.getParagraphs().forEach(p ->
+                    assertThat(org.apache.commons.lang3.StringUtils.countMatches(p.getCTP().xmlText(), "<w:pPr>")).isLessThanOrEqualTo(1));
+        }
+    }
+
     @Test
     void emptyStoryProducesFile() throws Exception {
         for (Exporter exporter : exporterService.getExporters()) {

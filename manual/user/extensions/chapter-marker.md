@@ -40,3 +40,5 @@ When you want the model to write them, say so explicitly in the instructions, or
 
 The headings are part of the story text, so they are also sent to the model and shown in the
 [viewer](../books/publishing.md) and in backups.
+
+The same rule finds the chapters in the table of contents of [exported books](../books/export.md#table-of-contents).

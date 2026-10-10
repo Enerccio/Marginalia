@@ -37,7 +37,7 @@ public class TxtExporter extends ExporterBase {
         }
 
         @Override
-        public void message(String markdown) throws Exception {
+        public void message(String markdown, Chapter chapter) throws Exception {
             walk(markdown, this);
         }
 
