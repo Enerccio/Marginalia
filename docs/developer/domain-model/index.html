@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844949309555" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844954313860" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -183,7 +183,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
 | `User` | `users` | User |
-| `Resource` | `resources` | - (not used by the UI yet) |">
+| `Resource` | `resources` | Resources tab, image attachments of a part (story editor, exports) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -242,7 +242,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <tr>
 <td><code translate="no" v-pre>Resource</code></td>
 <td><code translate="no" v-pre>resources</code></td>
-<td>- (not used by the UI yet)</td>
+<td>Resources tab, image attachments of a part (story editor, exports)</td>
 </tr>
 </tbody>
 </table>
@@ -412,6 +412,11 @@ the other fields.</li>
 <li>
 <p><strong>Load</strong> (<code translate="no" v-pre>@PostLoad</code>): the JSON is parsed and the fields are set. Supported field types are <code translate="no" v-pre>String</code>, numbers,
 <code translate="no" v-pre>Boolean</code>, <code translate="no" v-pre>Date</code> (ISO-8601 instant in UTC, e.g. <code translate="no" v-pre>2026-10-09T08:15:30.123Z</code>; values in the old <code translate="no" v-pre>yyyy.MM.dd'Z'HH:mm:ss.SSS</code> format, written in the server&#x27;s time zone, are still read), enums (by name) and <code translate="no" v-pre>JsonObject</code> for <code translate="no" v-pre>inject = true</code>.</p>
+</li>
+<li>
+<p><strong>Types</strong>: the values are written with <code translate="no" v-pre>toString()</code>, so a field can&#x27;t be a collection. A list is kept as a JSON string
+in a <code translate="no" v-pre>String</code> field with typed accessors, like <code translate="no" v-pre>ChatMessage.imageAttachments</code> (<code translate="no" v-pre>getImages()</code> / <code translate="no" v-pre>setImages(...)</code>, a JSON
+array of <code translate="no" v-pre>ImageAttachment(resource uuid, caption)</code>).</p>
 </li>
 <li>
 <p><strong>Save</strong>: <code translate="no" v-pre>JpaExtendableRepository.save</code> serializes the fields into <code translate="no" v-pre>extendedContent</code> before the entity is written.</p>

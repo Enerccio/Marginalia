@@ -5,6 +5,7 @@
 - [Marginalia](https://enerccio.github.io/Marginalia/index.md): Marginalia
 - [User guide](https://enerccio.github.io/Marginalia/user/index.md): This part of the manual is for people who write with Marginalia and for those who run it for others. It explains every screen and setting, from installing Marginalia and connecting a model to branching a story, building a lorebook and backing up the database.
 - [Developer guide](https://enerccio.github.io/Marginalia/developer/index.md): This part of the manual is for people who want to change Marginalia itself, write an extension for it, or just understand how it works inside. If you only want to install and use Marginalia, see the User guide.
+- [Credits](https://enerccio.github.io/Marginalia/credits.md): The screenshots in this manual that show a picture of a part (for example in the story editor, the Images dialog, the Resources tab and the backup dialogs)
 
 ## User guide
 
@@ -29,6 +30,7 @@
 - [Exporting a book](https://enerccio.github.io/Marginalia/user/books/export.md): Export turns the story into a file you can read, print, send or publish elsewhere. Unlike a backup it contains only the text, as a finished book.
 - [Book backups](https://enerccio.github.io/Marginalia/user/books/backups.md): A book backup is a snapshot of one book: its settings and prompts, all parts in all branches, summaries, tags and the lorebook. Use backups to go back to an earlier state of the story, to make a copy of a book, or to move a book to another Marginalia installation or user.
 - [Publishing & viewer](https://enerccio.github.io/Marginalia/user/books/publishing.md): The viewer is a reading view of your books: just the text of the story, without the editor around it. It works well on phones and tablets. Publishing a book lets other users of the same Marginalia installation read it in the viewer.
+- [Resources](https://enerccio.github.io/Marginalia/user/resources.md): The Resources tab lists the files you have uploaded to Marginalia. For now these are the pictures of the parts of your books. The tab is the place to find a picture again, to download it, to swap it for a better one without touching the books that use it, and to throw away what you no longer need.
 
 ### Lorebooks
 

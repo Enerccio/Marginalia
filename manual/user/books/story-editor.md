@@ -68,6 +68,7 @@ Every part has a menu (☰) in its top right corner:
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
+| **Images** | Attaches pictures to the part, see [Images](#images). |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |
 | **Delete summary** | Removes the summary of this part. For a [meta summary](summaries.md#meta-summaries) it asks whether to unwind it or delete it completely. |
 | **Delete** | Deletes the part, see [below](#deleting-a-part). |
@@ -108,6 +109,38 @@ generation and drops the summary.
 **Delete** removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.
+
+## Images
+
+A part can have pictures: a map, a character portrait, an illustration. Choose **Images** in the part menu to open the
+list of the pictures of the part.
+
+![The Images dialog of a part](../../images/images-dialog.png)
+
+- **Add image** (or drop a file on it) uploads a PNG, JPEG, GIF or WebP picture of up to 10 MB. WebP pictures are
+  converted to PNG when they are uploaded, because Word and PDF files can't contain WebP.
+- **Caption** is shown under the picture. It can be empty.
+- The trash button removes the picture from the part.
+
+The pictures are shown under the text of the part and in the same order in every [export](export.md).
+
+![A part with a picture](../../images/part-with-image.png)
+
+Pictures are **not part of the text**. The model never sees them, they are not in the prompt, they do not count as
+tokens and they do not change the [summaries](summaries.md). They are also not Markdown: a `![](...)` link written in
+the text is not a picture of the part, use **Images** instead.
+
+Good to know:
+
+- **Regenerate** keeps the pictures of the part, also when the generation fails. **Swipe** writes a new part
+  (a new version next to the old one), which starts without pictures. **Branch Story** copies the pictures to the new part.
+- Pictures belong to your account. In the [viewer](publishing.md) only you see them; readers of a published book see
+  the text only. A book is published as it is: pictures are not made public with it.
+- A [backup](backups.md) remembers which pictures a part has, but not the picture files. Restoring a backup into
+  another account or another installation gives parts without their pictures.
+- Removing a picture from a part only takes it off the part. The file stays and is still listed in
+  [Resources](../resources.md), where you can download, replace or delete it. Deleting it there removes it from every
+  part that uses it. The file itself stays in the data folder.
 
 ## Summaries
 

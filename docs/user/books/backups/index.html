@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -182,8 +182,12 @@ make of the whole installation.</p>
 </figure>
 <h2 id="taking-a-backup">Taking a backup</h2>
 <p>On the <strong>Backups</strong> tab of the book, click <strong>Take Backup</strong>. The backup appears at the top of the list with its <strong>Date</strong>
-and the number of <strong>Messages</strong> (parts) it contains.</p>
+the number of <strong>Messages</strong> (parts) it contains and the number of <strong>Images</strong> (the <a href="../story-editor/#images">pictures of the parts</a>) its parts use.</p>
 <p>Backups can also be taken automatically, see <doc-anchor-trigger to="#automatic-backups">below</doc-anchor-trigger>.</p>
+<h2 id="pictures-in-a-backup">Pictures in a backup</h2>
+<p>A backup remembers <strong>which pictures</strong> the parts have (and their captions), but <strong>not the picture files</strong>. This keeps
+backups, and the automatic ones, small. The pictures stay in your <a href="../../resources/">Resources</a>. To take the pictures
+with a backup you pack them when you <doc-anchor-trigger to="#exporting-and-importing">export</doc-anchor-trigger> it.</p>
 <h2 id="restoring-a-backup">Restoring a backup</h2>
 <p>Click <strong>Restore</strong> next to the backup and choose:</p>
 <retype-table copy-text="| Option | What is restored |
@@ -229,6 +233,9 @@ Take a backup of the current state first if you might want it back.</p>
     </div>
 </div>
 <p>The book window closes and opens again with the restored book.</p>
+<p>The pictures of the restored parts are the ones the backup lists, as long as you still have them in
+<a href="../../resources/">Resources</a>. A picture you deleted since is gone from the part. Restoring does not bring back deleted
+picture files, unless the backup comes from an export with pictures that you <doc-anchor-trigger to="#importing-a-backup">imported</doc-anchor-trigger>.</p>
 <p><strong>Model and protocol</strong> are looked up among your inference providers and protocols: first the exact one from the
 backup, then one with the same name. If neither exists, the book keeps its current model or protocol.</p>
 <p><strong>Lorebooks</strong> in the backup are compared with yours. When a lorebook with the same name but a different identity
@@ -241,9 +248,39 @@ you don&#x27;t have at all can be imported (<strong>Import</strong>) or left out
 <h2 id="copying-a-book">Copying a book</h2>
 <p><strong>Clone Backup</strong> creates a new book from the backup, under a name you enter. The original book is not changed. Use it
 to try something radical with a copy of the book, or to start a new book from the same opening.</p>
+<p>If the backup uses pictures, Marginalia asks <strong>With images</strong> or <strong>Without images</strong>:</p>
+<ul>
+<li>
+<p><em>With images</em> gives the new book <strong>its own copies</strong> of the pictures (the same files, new entries in
+<a href="../../resources/">Resources</a>), so deleting or replacing a picture in one book does not touch the other. Pictures you
+have deleted since the backup was taken are left out.</p>
+</li>
+<li>
+<p><em>Without images</em> clones the text only.</p>
+</li>
+</ul>
+<figure class="content-center">
+    <img src="../../../images/backup-clone-images.png" alt="Clone with or without images" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1174" height="167" />
+    <figcaption class="caption">Clone with or without images</figcaption>
+</figure>
 <h2 id="exporting-and-importing">Exporting and importing</h2>
 <p><strong>Export</strong> downloads the backup as a JSON file (<code translate="no" v-pre>&lt;book name&gt;_backup.json</code>). Keep it as an extra copy, or take it to
 another installation.</p>
+<p>If the backup uses pictures, Marginalia asks whether to pack them:</p>
+<figure class="content-center">
+    <img src="../../../images/backup-export-images.png" alt="Exporting a backup that has pictures" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">Exporting a backup that has pictures</figcaption>
+</figure>
+<ul>
+<li><strong>Without images</strong> downloads the JSON right away, as above. The pictures are only listed in it.</li>
+<li><strong>With images</strong> packs the backup and all its pictures into a <strong>ZIP file</strong> (<code translate="no" v-pre>&lt;book name&gt;_backup.zip</code>). A progress
+bar shows how many pictures are done; the file is built on disk one picture at a time, so even a book with many
+large pictures does not use much memory. When it is ready, click <strong>Download</strong>. The file is kept only until you close
+that dialog.</li>
+</ul>
+<p>If a picture can&#x27;t be packed because you deleted it or its file is missing, the dialog tells how many were left out.</p>
+<p>The ZIP contains <code translate="no" v-pre>backup.json</code> (the same JSON), <code translate="no" v-pre>resources.json</code> (the list of the pictures) and the pictures. You don&#x27;t
+have to unpack it: both ways of bringing a backup back accept the <code translate="no" v-pre>.zip</code> as well as the <code translate="no" v-pre>.json</code>.</p>
 <p>There are two ways to bring a backup file back:</p>
 <ul>
 <li>
@@ -254,6 +291,16 @@ another installation.</p>
 <p><strong>Import Backup as New Book</strong> in the <em>Settings</em> tab creates a <strong>new book</strong> from the file.</p>
 </li>
 </ul>
+<p>Both accept a <code translate="no" v-pre>.json</code> or a <code translate="no" v-pre>.zip</code> file. The file is uploaded to the server and read from there, so a big backup is
+no problem.</p>
+<h3 id="importing-a-backup">Importing a backup</h3>
+<p>When the file is a ZIP with pictures, the pictures are added to your <a href="../../resources/">Resources</a> first, and the
+backup then uses them. A picture you already have (the same file) is not stored again: the existing one is used, so
+importing your own export does not add anything. A JSON file without pictures is imported as it is.</p>
+<p>Importing <strong>as a new book</strong> gives the new book <strong>its own entries</strong> in Resources, also when you already have the same
+pictures: the entries point to the same files, so no disk space is used twice. If the file has no pictures (a plain
+JSON), the new book gets copies of those pictures that the file lists and that you still have; those you don&#x27;t have
+are left out. Anything in the file that is not a usable picture (not a PNG, JPEG, GIF or WebP, or too big) is ignored.</p>
 <h3 id="importing-a-backup-as-a-new-book">Importing a backup as a new book</h3>
 <ol>
 <li>Open the <strong>Settings</strong> tab and click <strong>Import Backup as New Book</strong>.</li>
@@ -308,6 +355,8 @@ strategy and the number there. Unchecking it returns the book to the default fro
 <p>With the <a href="../../getting-started/docker-server/">Docker version</a> this is <code translate="no" v-pre>./data/data/&lt;login&gt;/...</code> on the host. The files
 are not in the database, so a <a href="../../administration/database-backups/">database backup</a> doesn&#x27;t contain them. Include
 the whole <code translate="no" v-pre>.marginalia</code> folder in your own backups.</p>
+<p>The picture files are not in the backups either, they are in the <code translate="no" v-pre>data/&lt;your login&gt;/images</code> folder next to
+<code translate="no" v-pre>backups</code>. They are also not in a <a href="../../administration/database-backups/">database backup</a>, see there.</p>
 
                 
                 <!-- Required only on API pages -->

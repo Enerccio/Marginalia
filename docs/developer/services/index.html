@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844949309555" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844954313860" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -366,7 +366,7 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 | `SummaryService` | `createSummary(book, part, callback)` streams a summary from the model into a new `Summary` and attaches it to the part when finished; returns a `CancellationToken`. `createMetaSummary(book, from, to, callback)` does the same for a meta summary: it merges the summaries in use between the parts `from` (newest) and `to` (oldest, rounded to the end of its block), puts the result on `from` (`attachMetaSummary`) and returns `null` when there is nothing to merge. `removeSummary(part, unwind)` deletes the summary of a part, restoring the one a meta summary replaced when `unwind` is set. `updateSummaryText` edits a text and counts its tokens again. `collectBlocks(branch)` splits the branch into the summary blocks in use (with their hashes, `SummaryBlock.isValid()`), `collectTree(...)` returns the same as a tree of `SummaryNode`s with the summaries a meta summary stands in for as children (the overview uses it). `copySummary` for branching. See [the summary chain](domain-model.md#the-summary-chain). |
 | `StoryGenerationService` | Generating parts, see [Generation pipeline](generation-pipeline.md). |
 | `ExporterService` | Registry of story exporters (`registerExporter`, `unregisterExporter`, `getExporters`). The built-in `TxtExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter` and `EpubExporter` (package `export`, all extend `ExporterBase`) are registered in `afterPropertiesSet`; an extension can register its own `Exporter` and it shows in the export dialog. See [Story export](#story-export). |
-| `BackupService` | Book backups as JSON files in `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/`: `takeBackup`, `getBackups`, `importBackup`, `applyBackup` (restore, optionally messages only), `cloneBackup` / `restoreAsNewManuscript`, `analyzeLorebooks` + `LorebookDecision`s for lorebooks found in the backup. |">
+| `BackupService` | Book backups as JSON files in `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/`: `takeBackup`, `getBackups`, `importBackup`, `applyBackup` (restore, optionally messages only), `cloneBackup` / `restoreAsNewManuscript`, `analyzeLorebooks` + `LorebookDecision`s for lorebooks found in the backup, `exportBackup` (see below). Import and restore read a `File` (the UI uploads to a temp file, the `byte[]` overloads are for small payloads and tests). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -398,12 +398,26 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 </tr>
 <tr>
 <td><code translate="no" v-pre>BackupService</code></td>
-<td>Book backups as JSON files in <code translate="no" v-pre>data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/</code>: <code translate="no" v-pre>takeBackup</code>, <code translate="no" v-pre>getBackups</code>, <code translate="no" v-pre>importBackup</code>, <code translate="no" v-pre>applyBackup</code> (restore, optionally messages only), <code translate="no" v-pre>cloneBackup</code> / <code translate="no" v-pre>restoreAsNewManuscript</code>, <code translate="no" v-pre>analyzeLorebooks</code> + <code translate="no" v-pre>LorebookDecision</code>s for lorebooks found in the backup.</td>
+<td>Book backups as JSON files in <code translate="no" v-pre>data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/</code>: <code translate="no" v-pre>takeBackup</code>, <code translate="no" v-pre>getBackups</code>, <code translate="no" v-pre>importBackup</code>, <code translate="no" v-pre>applyBackup</code> (restore, optionally messages only), <code translate="no" v-pre>cloneBackup</code> / <code translate="no" v-pre>restoreAsNewManuscript</code>, <code translate="no" v-pre>analyzeLorebooks</code> + <code translate="no" v-pre>LorebookDecision</code>s for lorebooks found in the backup, <code translate="no" v-pre>exportBackup</code> (see below). Import and restore read a <code translate="no" v-pre>File</code> (the UI uploads to a temp file, the <code translate="no" v-pre>byte[]</code> overloads are for small payloads and tests).</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<p><strong>Images in backups.</strong> A stored backup is JSON and never contains image files, only the <code translate="no" v-pre>imageAttachments</code> of the
+parts (resource uuids) in their <code translate="no" v-pre>extendedContent</code>. <code translate="no" v-pre>ManuscriptBackup.imageCount</code> is a header field (read by
+<code translate="no" v-pre>parseMetadataOnly</code> without loading the backup) so the UI knows whether to ask. <code translate="no" v-pre>BackupImages</code> reads and rewrites the
+attachments inside the backup JSON (<code translate="no" v-pre>collect</code>, <code translate="no" v-pre>remap</code> where returning null drops the image).
+<code translate="no" v-pre>exportBackup(backup, withImages, onImage)</code> writes to a temp file and returns a <code translate="no" v-pre>BackupExport</code>; with images it is a ZIP:
+<code translate="no" v-pre>backup.json</code> (the stored file, streamed), <code translate="no" v-pre>resources.json</code> (<code translate="no" v-pre>{&quot;version&quot;:1,&quot;resources&quot;:[{uuid, entry, name, mimeType, hash, size}]}</code>) and <code translate="no" v-pre>resources/&lt;n&gt;.&lt;ext&gt;</code>, one image at a time with <code translate="no" v-pre>Files.copy</code>, so nothing but the JSON tree is in memory.
+Import, restore and <code translate="no" v-pre>analyzeLorebooks</code> detect a ZIP by its first bytes (<code translate="no" v-pre>openSource</code>) and read entries only by the names
+the manifest lists under <code translate="no" v-pre>resources/</code> (no extraction to disk). Each image is read bounded by <code translate="no" v-pre>MAX_IMAGE_BYTES</code> and goes
+through <code translate="no" v-pre>ResourceService.uploadImage</code>, so it is validated again and the hash dedupe reuses an existing file.
+Resources are not shared by books, so: <code translate="no" v-pre>importBackup</code> keeps a uuid the user already has with the same hash and otherwise
+adds the image (<code translate="no" v-pre>adopting</code>), <code translate="no" v-pre>restoreAsNewManuscript</code> and <code translate="no" v-pre>cloneBackup(..., withImages)</code> make a new <code translate="no" v-pre>Resource</code> for every
+use (from the archive, or <code translate="no" v-pre>ResourceService.copy</code> of the user&#x27;s own resource, which points to the same file); images that
+can&#x27;t be found are dropped from the parts. After every restore <code translate="no" v-pre>linkImages</code> notes the new parts in the resources whose
+link is empty or stale. The ZIP is only a transfer format, a stored backup stays a JSON file.</p>
 <p>The automatic book backups (<code translate="no" v-pre>BackupStrategy.AFTER_N_MESSAGES</code> / <code translate="no" v-pre>AFTER_N_MINUTES</code>) are triggered by the story editor
 after a part is generated (<code translate="no" v-pre>ManuscriptStoryPart</code>), not by a service - code that generates parts without the editor
 doesn&#x27;t take them.</p>
@@ -421,6 +435,11 @@ Chapter Marker plugin: the first <code translate="no" v-pre>#</code> line); befo
 on the chapter and link to it from the table of contents (HTML, EPUB navigation, PDF, DOCX; TXT ignores it).
 The PDF exporter keeps the export and renders it again until the pages shown in the contents match the pages the
 chapters landed on; DOCX uses <code translate="no" v-pre>PAGEREF</code> fields and sets <code translate="no" v-pre>updateFields</code>, so Word fills them in after asking.
+Images attached to a part (<code translate="no" v-pre>ChatMessage.getImages()</code>) are loaded once per part (<code translate="no" v-pre>ResourceService.findImage</code> +
+<code translate="no" v-pre>getResourceData</code>, so only the exporting user&#x27;s images; a missing one is skipped with a warning) and handed to the writer
+in <code translate="no" v-pre>images(List&lt;ExportImage&gt;)</code> right after <code translate="no" v-pre>message(...)</code>. A part with images but no text is exported with an empty text.
+HTML embeds them as data URIs, EPUB as files in <code translate="no" v-pre>OEBPS/images/</code> with manifest items, DOCX with POI pictures (scaled to
+fit the page), PDF with OpenPDF images, TXT as <code translate="no" v-pre>[Image: caption]</code>. <code translate="no" v-pre>figure(src, caption)</code> renders the XHTML figure.
 It also provides <code translate="no" v-pre>toHtml</code> (CommonMark, raw HTML escaped, XHTML safe) and <code translate="no" v-pre>walk</code>, which turns
 Markdown into paragraphs, headings, code and rules for formats built from styled text (<code translate="no" v-pre>BlockSink</code>; used by TXT, DOCX
 and PDF). Libraries: CommonMark (parsing), Apache POI (DOCX), OpenPDF with the Liberation fonts (PDF); EPUB is written
@@ -512,7 +531,7 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 |---|---|
 | `UserService` | Users: `authenticate` (PBKDF2-HMAC-SHA256 hashes, constant-time compare), `changePassword` (also drops all saved logins and invalidates the user's other open sessions through `SessionManager.runForUsers` - the caller's own session is kept; the current password is checked by `UserDialog` for self edits), `clearPassword` (removes the password and saved logins and invalidates the user's sessions except the caller's, an administrator's reset), `isLoginAvailable`, `isLastAdmin` (the last administrator can't be removed or demoted), `deleteUser` (soft delete, frees the login by renaming it to `&lt;login&gt;#&lt;uuid&gt;`, drops saved logins, renames the data folder to `&lt;login&gt;-deleted`; owned data is purged with the user by cleanup), saved logins (`generateNewPersistentInfo`, `authenticateFromCookie`...). |
 | `SettingService` | `getOrCreate(UserSetting.class)` for the current user, `getOrCreate(cls, user)`, `getOrCreateApp(AppSettings.class)` for the installation. |
-| `ResourceService` | Files stored by hash in the user's `resources` folder (not used by the UI yet). |">
+| `ResourceService` | Files stored by hash in the user's `resources` (or `images`) folder. `uploadImage` stores an attachment (format detected from the content, WebP converted to PNG, 10 MB and 50 megapixel limits), `findImage(uuid)` finds the current user's image. `link` / `unlink` / `describeLink` keep the loose `clazz` + `objectId` note (class name and id of the object using the resource, like `TagRelation`; not a cleanup reference, `describeLink` only checks that the entity exists and is not deleted). `findPageForUser` / `countForUser` serve the lazy table of the Resources tab, `replace` writes a new file and points the resource at it, `softDelete(uuids)` marks resources of the current user deleted (cleanup purges them; files are never deleted). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -532,7 +551,7 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ResourceService</code></td>
-<td>Files stored by hash in the user&#x27;s <code translate="no" v-pre>resources</code> folder (not used by the UI yet).</td>
+<td>Files stored by hash in the user&#x27;s <code translate="no" v-pre>resources</code> (or <code translate="no" v-pre>images</code>) folder. <code translate="no" v-pre>uploadImage</code> stores an attachment (format detected from the content, WebP converted to PNG, 10 MB and 50 megapixel limits), <code translate="no" v-pre>findImage(uuid)</code> finds the current user&#x27;s image. <code translate="no" v-pre>link</code> / <code translate="no" v-pre>unlink</code> / <code translate="no" v-pre>describeLink</code> keep the loose <code translate="no" v-pre>clazz</code> + <code translate="no" v-pre>objectId</code> note (class name and id of the object using the resource, like <code translate="no" v-pre>TagRelation</code>; not a cleanup reference, <code translate="no" v-pre>describeLink</code> only checks that the entity exists and is not deleted). <code translate="no" v-pre>findPageForUser</code> / <code translate="no" v-pre>countForUser</code> serve the lazy table of the Resources tab, <code translate="no" v-pre>replace</code> writes a new file and points the resource at it, <code translate="no" v-pre>softDelete(uuids)</code> marks resources of the current user deleted (cleanup purges them; files are never deleted).</td>
 </tr>
 </tbody>
 </table>

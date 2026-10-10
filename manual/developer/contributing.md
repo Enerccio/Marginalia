@@ -138,6 +138,8 @@ The manual you are reading is in `manual/` (Markdown for [Retype](https://retype
 - Screenshots go to `manual/images/`. When a page needs a screenshot you can't make, link the path anyway and add a
   line to [`TODO.IMAGES.md`](https://github.com/Enerccio/Marginalia/blob/master/TODO.IMAGES.md) describing what it
   should show. Diagrams are Mermaid code blocks, not images.
+- A screenshot that shows a third-party picture needs a credit on the [Credits](../credits.md) page (author, source,
+  license, changes), and must be shared under the license of the picture.
 - The class labels on `dev-ui-map-book.png` and `dev-ui-map-workspace.png` are drawn by `tools/annotate_ui_maps.py`
   (needs Pillow) onto a plain screenshot saved as `dev-ui-map-<name>-not-annotated.png` next to it. After the screen
   changes, take a new plain screenshot, adjust the coordinates at the top of the script if something moved, and run it.

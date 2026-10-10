@@ -57,5 +57,6 @@ works with any OpenAI-compatible API: OpenAI, OpenRouter, LiteLLM, llama.cpp, LM
 ## About
 
 Marginalia is open source under the [MIT License](https://github.com/Enerccio/Marginalia/blob/master/LICENSE).
+Pictures used in the screenshots of this manual are credited on the [Credits](credits.md) page.
 Releases are on [GitHub](https://github.com/Enerccio/Marginalia/releases); bugs and ideas go to the
 [issue tracker](https://github.com/Enerccio/Marginalia/issues).

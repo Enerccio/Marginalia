@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -290,6 +290,37 @@ bar shows how far it is.</p>
 </retype-table>
 <p>The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (<code translate="no" v-pre>---</code>) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.</p>
+<p><a href="../story-editor/#images">Images</a> of the parts are placed after the text of their part, with their captions:</p>
+<retype-table copy-text="| Format | |
+|---|---|
+| **HTML** | Embedded in the page, so it is still one file. |
+| **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
+| **Plain text** | Marked with `[Image]` or `[Image: caption]`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Format</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HTML</strong></td>
+<td>Embedded in the page, so it is still one file.</td>
+</tr>
+<tr>
+<td><strong>EPUB</strong>, <strong>Word document</strong>, <strong>PDF</strong></td>
+<td>Embedded in the file and scaled to fit the page.</td>
+</tr>
+<tr>
+<td><strong>Plain text</strong></td>
+<td>Marked with <code translate="no" v-pre>[Image]</code> or <code translate="no" v-pre>[Image: caption]</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
 <h2 id="table-of-contents">Table of contents</h2>
 <p>When the text contains chapters, the file gets a table of contents after the title page. A chapter is a part of the
 story that contains a Markdown heading (a line starting with <code translate="no" v-pre>#</code>, e.g. <code translate="no" v-pre># Chapter 3: The Harbour</code>) - the same rule the
@@ -355,7 +386,7 @@ the file.</p>
 <p>The exported file is kept only until you close the download dialog. Export again if you need it later.</p>
 </li>
 <li>
-<p>Summaries, lorebooks, instructions and the model&#x27;s reasoning are not exported, only the text of the parts. To save
+<p>Summaries, lorebooks, instructions and the model&#x27;s reasoning are not exported, only the text and the images of the parts. To save
 all of it, make a <a href="../backups/">backup</a>.</p>
 </li>
 </ul>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -335,7 +335,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 |---|---|
 | `ui.main` | `WebappApplicationInitializer` (creates the Spring context, registers the session listener), `MarginaliaServlet` (the `VaadinServlet`), `AppShellConfig` (push, theme, global CSS), `LoginCheckRoute` (login overlay, saved logins, first-start dialog), `Main` (route `/`), `Viewer` (route `/view`, published books). |
 | `ui.workspace` | `Workspace` (the tabbed workspace after login, footer buttons) and `WorkspaceComponent` (interface of its tabs). |
-| `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `AdminPart`. |
+| `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `AdminPart`. |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
 | `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed). |
@@ -360,7 +360,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace.parts</code></td>
-<td>One class per workspace tab: <code translate="no" v-pre>ManuscriptPart</code> (Books), <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code> (Settings), <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code> (Inference Providers), <code translate="no" v-pre>AdminPart</code>.</td>
+<td>One class per workspace tab: <code translate="no" v-pre>ManuscriptPart</code> (Books), <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code> (Settings), <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code> (Inference Providers), <code translate="no" v-pre>ResourcesPart</code> (Resources: lazy <code translate="no" v-pre>Grid</code> over <code translate="no" v-pre>ResourceService.findPageForUser</code>), <code translate="no" v-pre>AdminPart</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace.parts.admin</code></td>
@@ -398,7 +398,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 | `impl/AI`, `impl/OpenAICompatible` | Inference providers (`AI` is the base, `OpenAICompatible` the only type). |
 | `impl/Protocol`, `impl/ChatCompletionProtocol` | Protocols (generation settings). |
 | `impl/Tag`, `impl/TagRelation` | Tags and their assignment to objects (by class and id, optionally as a negative tag). |
-| `impl/Resource` | Uploaded files stored by hash (service exists, not used by the UI yet). |
+| `impl/Resource` | Uploaded files stored by hash, used for the image attachments of a part (`ChatMessage.getImages()`); `clazz` + `objectId` loosely note what uses it. Listed in the Resources tab (`ResourcesPart`). |
 | `impl/settings/AppSettings`, `impl/settings/UserSetting` | Installation-wide settings (versions, database backup schedule) and per-user settings. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -447,7 +447,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>impl/Resource</code></td>
-<td>Uploaded files stored by hash (service exists, not used by the UI yet).</td>
+<td>Uploaded files stored by hash, used for the image attachments of a part (<code translate="no" v-pre>ChatMessage.getImages()</code>); <code translate="no" v-pre>clazz</code> + <code translate="no" v-pre>objectId</code> loosely note what uses it. Listed in the Resources tab (<code translate="no" v-pre>ResourcesPart</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>impl/settings/AppSettings</code>, <code translate="no" v-pre>impl/settings/UserSetting</code></td>

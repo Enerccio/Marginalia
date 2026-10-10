@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844949309555" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844954313860" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -190,6 +190,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
     WS --&gt; UP[&quot;UserPart - Settings&quot;]
     WS --&gt; PP[&quot;ProtocolPart - Protocols&quot;]
     WS --&gt; AP[&quot;AIPart - Inference Providers&quot;]
+    WS --&gt; RP[&quot;ResourcesPart - Resources&quot;]
     WS --&gt; AdP[&quot;AdminPart - Admin (footer button)&quot;]
     AdP --&gt; DBP[&quot;DatabaseBackupPanel&quot;]
     AdP --&gt; CP[&quot;CleanupPanel&quot;]
@@ -630,7 +631,7 @@ runs before and after that method and can read its arguments and local variables
 <code translate="no" v-pre>@Extendable</code>:</p>
 <retype-table copy-text="| Area | Classes |
 |---|---|
-| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
+| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog` |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `LorebookView`, `TreantTree` |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -644,7 +645,7 @@ runs before and after that method and can read its arguments and local variables
 <tbody>
 <tr>
 <td>Workspace</td>
-<td><code translate="no" v-pre>Workspace</code>, <code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code>, <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code>, <code translate="no" v-pre>AdminPart</code>, <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code></td>
+<td><code translate="no" v-pre>Workspace</code>, <code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code>, <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code>, <code translate="no" v-pre>ResourcesPart</code>, <code translate="no" v-pre>AdminPart</code>, <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code></td>
 </tr>
 <tr>
 <td>Book window</td>

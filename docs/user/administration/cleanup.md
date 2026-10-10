@@ -18,6 +18,9 @@ Cleanup can't be undone. [Create a database backup](database-backups.md) first.
 
 Cleanup covers the data of all users.
 
+Files are not removed. Cleanup deletes entries from the database only; the files of deleted
+[resources](../resources.md) (pictures of the parts) stay in the data folder of their owner.
+
 ## Reading the analysis
 
 The first table has one row per kind of data:

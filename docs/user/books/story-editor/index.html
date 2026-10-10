@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844954313860">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844954313860" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844954313860" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -296,6 +296,7 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches &amp; story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
+| **Images** | Attaches pictures to the part, see [Images](#images). |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |
 | **Delete summary** | Removes the summary of this part. For a [meta summary](summaries.md#meta-summaries) it asks whether to unwind it or delete it completely. |
 | **Delete** | Deletes the part, see [below](#deleting-a-part). |">
@@ -327,6 +328,10 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 <tr>
 <td><strong>Show Prompt</strong></td>
 <td>Shows the exact prompt that was sent to the model for this part.</td>
+</tr>
+<tr>
+<td><strong>Images</strong></td>
+<td>Attaches pictures to the part, see <doc-anchor-trigger to="#images">Images</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><strong>Generate summary</strong> / <strong>View summary</strong></td>
@@ -405,6 +410,53 @@ generation and drops the summary.</p>
 <p><strong>Delete</strong> removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.</p>
+<h2 id="images">Images</h2>
+<p>A part can have pictures: a map, a character portrait, an illustration. Choose <strong>Images</strong> in the part menu to open the
+list of the pictures of the part.</p>
+<figure class="content-center">
+    <img src="../../../images/images-dialog.png" alt="The Images dialog of a part" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="600" height="556" />
+    <figcaption class="caption">The Images dialog of a part</figcaption>
+</figure>
+<ul>
+<li>
+<p><strong>Add image</strong> (or drop a file on it) uploads a PNG, JPEG, GIF or WebP picture of up to 10 MB. WebP pictures are
+converted to PNG when they are uploaded, because Word and PDF files can&#x27;t contain WebP.</p>
+</li>
+<li>
+<p><strong>Caption</strong> is shown under the picture. It can be empty.</p>
+</li>
+<li>
+<p>The trash button removes the picture from the part.</p>
+</li>
+</ul>
+<p>The pictures are shown under the text of the part and in the same order in every <a href="../export/">export</a>.</p>
+<figure class="content-center">
+    <img src="../../../images/part-with-image.png" alt="A part with a picture" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">A part with a picture</figcaption>
+</figure>
+<p>Pictures are <strong>not part of the text</strong>. The model never sees them, they are not in the prompt, they do not count as
+tokens and they do not change the <a href="../summaries/">summaries</a>. They are also not Markdown: a <code translate="no" v-pre>![](...)</code> link written in
+the text is not a picture of the part, use <strong>Images</strong> instead.</p>
+<p>Good to know:</p>
+<ul>
+<li>
+<p><strong>Regenerate</strong> keeps the pictures of the part, also when the generation fails. <strong>Swipe</strong> writes a new part
+(a new version next to the old one), which starts without pictures. <strong>Branch Story</strong> copies the pictures to the new part.</p>
+</li>
+<li>
+<p>Pictures belong to your account. In the <a href="../publishing/">viewer</a> only you see them; readers of a published book see
+the text only. A book is published as it is: pictures are not made public with it.</p>
+</li>
+<li>
+<p>A <a href="../backups/">backup</a> remembers which pictures a part has, but not the picture files. Restoring a backup into
+another account or another installation gives parts without their pictures.</p>
+</li>
+<li>
+<p>Removing a picture from a part only takes it off the part. The file stays and is still listed in
+<a href="../../resources/">Resources</a>, where you can download, replace or delete it. Deleting it there removes it from every
+part that uses it. The file itself stays in the data folder.</p>
+</li>
+</ul>
 <h2 id="summaries">Summaries</h2>
 <p>The <strong>Summaries</strong> button in the bottom bar (left of the settings menu ⚙) opens the overview of the summaries of the
 branch, where they can be edited, deleted and merged into meta summaries. The tooltip of the button shows how many

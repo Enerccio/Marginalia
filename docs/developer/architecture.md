@@ -201,6 +201,7 @@ flowchart TB
     WS --> UP["UserPart<br/>Settings"]
     WS --> PP["ProtocolPart"]
     WS --> AP["AIPart<br/>Inference Providers"]
+    WS --> RP["ResourcesPart<br/>Resources"]
     WS --> AdP["AdminPart<br/>Users, Backups, Cleanup, Extensions"]
     MP --> MD["ManuscriptDialog<br/>(book window)"]
     MD --> Story["ManuscriptStoryPart"]

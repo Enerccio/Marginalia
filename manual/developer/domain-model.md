@@ -24,7 +24,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
 | `User` | `users` | User |
-| `Resource` | `resources` | - (not used by the UI yet) |
+| `Resource` | `resources` | Resources tab, image attachments of a part (story editor, exports) |
 
 ## Overview
 
@@ -148,6 +148,9 @@ kinds of fields end up there:
 
 - **Load** (`@PostLoad`): the JSON is parsed and the fields are set. Supported field types are `String`, numbers,
   `Boolean`, `Date` (ISO-8601 instant in UTC, e.g. `2026-10-09T08:15:30.123Z`; values in the old `yyyy.MM.dd'Z'HH:mm:ss.SSS` format, written in the server's time zone, are still read), enums (by name) and `JsonObject` for `inject = true`.
+- **Types**: the values are written with `toString()`, so a field can't be a collection. A list is kept as a JSON string
+  in a `String` field with typed accessors, like `ChatMessage.imageAttachments` (`getImages()` / `setImages(...)`, a JSON
+  array of `ImageAttachment(resource uuid, caption)`).
 - **Save**: `JpaExtendableRepository.save` serializes the fields into `extendedContent` before the entity is written.
 
 Because the fields are `@Transient`, Hibernate's dirty checking doesn't see them. **A change to an extended attribute

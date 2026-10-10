@@ -35,6 +35,13 @@ itself.
 The files are stored in the `db-backups` folder of the [data folder](index.md#the-data-folder). Book backups and
 extension JARs are separate files and are not part of a database backup.
 
+**Uploaded files (the [pictures of the parts](../books/story-editor.md#images)) are not part of a database backup**
+either. The database only knows them as entries of the [Resources](../resources.md) tab; the files are in the
+`data/<login>/images` folder of the data folder. That is fine: after a restore the entries are the ones from the time of
+the backup and the pictures they use are still in the folder. Files of pictures that were added after the backup are
+just left over (nothing refers to them) and take disk space. To keep the pictures safe, include the whole data folder
+in your own backups, or pack them into a [book backup](../books/backups.md#pictures-in-a-backup).
+
 When you restore a backup on **another installation**, copy `secret.key` from the original installation as well
 (with Marginalia stopped), otherwise the saved API keys can't be decrypted and every user has to enter them again.
 
@@ -102,5 +109,5 @@ again if their account changed.
 3. **Upload Backup**, **Restore on restart**, restart.
 4. Log in with the accounts from the backup.
 
-Copy the `data` folder (book backups) and `extensions` folder from the old [data folder](index.md#the-data-folder) as
+Copy the `data` folder (book backups and the pictures of the parts) and `extensions` folder from the old [data folder](index.md#the-data-folder) as
 well. Or simply stop Marginalia and copy the whole `.marginalia` folder.

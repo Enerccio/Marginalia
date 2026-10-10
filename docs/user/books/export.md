@@ -41,6 +41,14 @@ another version of the story, switch to that branch first.
 The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (`---`) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.
 
+[Images](story-editor.md#images) of the parts are placed after the text of their part, with their captions:
+
+| Format | |
+|---|---|
+| **HTML** | Embedded in the page, so it is still one file. |
+| **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
+| **Plain text** | Marked with `[Image]` or `[Image: caption]`. |
+
 ## Table of contents
 
 When the text contains chapters, the file gets a table of contents after the title page. A chapter is a part of the
@@ -77,5 +85,5 @@ made from a built-in template (`DEFAULT_EXPORT_HEADER_TEMPLATE`), which isn't ed
 - The export is a snapshot of the branch when you choose **Export**. Parts generated or edited afterwards are not in
   the file.
 - The exported file is kept only until you close the download dialog. Export again if you need it later.
-- Summaries, lorebooks, instructions and the model's reasoning are not exported, only the text of the parts. To save
+- Summaries, lorebooks, instructions and the model's reasoning are not exported, only the text and the images of the parts. To save
   all of it, make a [backup](backups.md).
