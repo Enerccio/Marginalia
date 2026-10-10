@@ -4,7 +4,9 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -18,6 +20,7 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -26,6 +29,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import org.osgi.framework.Bundle;
@@ -200,6 +204,12 @@ public class AdminPart implements WorkspaceComponent {
 
                 Notification.show(loc.getValue(L.MSG_EXTENSION_INSTALLED_SUCCESS));
                 refreshGrid();
+            } catch (ExtensionVerificationException e) {
+                log.error("Extension {} was rejected:\n{}", e.getExtension(), e.getReport());
+                refreshGrid();
+                Notification.show(String.format(loc.getValue(L.ERROR_EXTENSION_INCOMPATIBLE), e.getExtension()),
+                        5000, Notification.Position.MIDDLE);
+                showReport(e.getReport());
             } catch (Exception e) {
                 log.error("Failed to load extension bundle", e);
                 refreshGrid();
@@ -248,6 +258,23 @@ public class AdminPart implements WorkspaceComponent {
                 .setWidth("140px");
 
         extensionsGrid.addComponentColumn(bundle -> {
+                    ExtensionReport report = osgiService.getVerificationReport(bundle);
+                    if (report == null) {
+                        return new Div();
+                    }
+                    Button reportButton = new Button(report.valid() ? "VALID" : "INVALID");
+                    reportButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+                    if (!report.valid()) {
+                        reportButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+                    }
+                    reportButton.addClickListener(e -> showReport(report.text()));
+                    return reportButton;
+                })
+                .setHeader(loc.getValue(L.LABEL_BUNDLE_VERIFICATION))
+                .setFlexGrow(0)
+                .setWidth("140px");
+
+        extensionsGrid.addComponentColumn(bundle -> {
                     Button unloadButton = new Button(loc.getValue(L.LABEL_UNLOAD_EXTENSION), VaadinIcon.TRASH.create());
                     unloadButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
                     unloadButton.addClickListener(e -> unloadExtension(bundle));
@@ -261,6 +288,24 @@ public class AdminPart implements WorkspaceComponent {
         refreshGrid();
 
         return layout;
+    }
+
+    private void showReport(String report) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(loc.getValue(L.LABEL_VERIFICATION_REPORT));
+        dialog.setWidth("900px");
+
+        TextArea text = new TextArea();
+        text.setValue(report);
+        text.setReadOnly(true);
+        text.setWidthFull();
+        text.setHeight("400px");
+        text.getStyle().set("font-family", "monospace");
+        dialog.add(text);
+
+        Button close = new Button(loc.getValue(L.LABEL_CLOSE), e -> dialog.close());
+        dialog.getFooter().add(close);
+        dialog.open();
     }
 
     private void unloadExtension(Bundle bundle) {

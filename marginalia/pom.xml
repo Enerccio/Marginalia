@@ -164,6 +164,13 @@
       <version>9.8</version>
     </dependency>
 
+    <!-- the extension verifier follows values through the bytecode of extensions -->
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-analysis</artifactId>
+      <version>9.8</version>
+    </dependency>
+
     <!-- HIBERNATE -->
     <dependency>
       <groupId>org.hibernate.orm</groupId>
