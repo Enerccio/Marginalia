@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptio
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class HtmlExporter extends ExporterBase {
 
@@ -20,6 +21,12 @@ public class HtmlExporter extends ExporterBase {
             .title-page { min-height: 90vh; display: flex; flex-direction: column; justify-content: center; text-align: center; page-break-after: always; }
             .title-page h1 { font-size: 2.6em; margin: 0 0 0.6em 0; }
             .title-page p { text-align: center; font-size: 1.3em; }
+            .contents { page-break-after: always; }
+            .contents h2 { margin-top: 0; }
+            .contents ol { list-style: none; padding: 0; }
+            .contents li { margin: 0.4em 0; }
+            .contents a { color: inherit; text-decoration: none; }
+            .contents a:hover { text-decoration: underline; }
             @media print { body { background: none; } main { box-shadow: none; max-width: none; padding: 0; } }
             """;
 
@@ -46,6 +53,7 @@ public class HtmlExporter extends ExporterBase {
     private static class HtmlWriter implements ExportWriter {
         private final ExportOptions options;
         private final StringBuilder body = new StringBuilder();
+        private final StringBuilder front = new StringBuilder();
 
         private HtmlWriter(ExportOptions options) {
             this.options = options;
@@ -53,12 +61,22 @@ public class HtmlExporter extends ExporterBase {
 
         @Override
         public void titlePage(String markdown) {
-            body.append("<section class=\"title-page\">\n").append(toHtml(markdown)).append("</section>\n");
+            front.append("<section class=\"title-page\">\n").append(toHtml(markdown)).append("</section>\n");
         }
 
         @Override
-        public void message(String markdown) {
-            body.append(toHtml(markdown));
+        public void contents(List<Chapter> chapters) {
+            front.append("<nav class=\"contents\">\n<h2>").append(CONTENTS_TITLE).append("</h2>\n")
+                    .append(contentsList(chapters, chapter -> "#" + chapter.anchor())).append("</nav>\n");
+        }
+
+        @Override
+        public void message(String markdown, Chapter chapter) {
+            if (chapter == null) {
+                body.append(toHtml(markdown));
+            } else {
+                body.append("<section id=\"").append(chapter.anchor()).append("\">\n").append(toHtml(markdown)).append("</section>\n");
+            }
         }
 
         @Override
@@ -71,7 +89,7 @@ public class HtmlExporter extends ExporterBase {
                 html.append("<meta name=\"author\" content=\"").append(escapeXml(options.author())).append("\">\n");
             }
             html.append("<style>\n").append(STYLE).append("</style>\n</head>\n<body>\n<main>\n");
-            html.append(body);
+            html.append(front).append(body);
             html.append("</main>\n</body>\n</html>\n");
             return html.toString().getBytes(StandardCharsets.UTF_8);
         }

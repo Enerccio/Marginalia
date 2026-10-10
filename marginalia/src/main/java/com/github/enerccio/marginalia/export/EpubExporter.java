@@ -8,9 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -34,6 +32,10 @@ public class EpubExporter extends ExporterBase {
             .title-page { margin-top: 30%; text-align: center; }
             .title-page h1 { font-size: 2.4em; }
             .title-page p { text-align: center; font-size: 1.3em; }
+            section.chapter { break-before: page; page-break-before: always; }
+            nav ol { list-style: none; padding: 0; }
+            nav li { margin: 0.4em 0; }
+            nav a { color: inherit; text-decoration: none; }
             """;
 
     @Override
@@ -60,6 +62,9 @@ public class EpubExporter extends ExporterBase {
         private final ExportOptions options;
         private final List<String> parts = new ArrayList<>();
         private final StringBuilder current = new StringBuilder();
+        private final List<Chapter> chapters = new ArrayList<>();
+        // number of the part (file) a chapter is in, by the number of the chapter
+        private final Map<Integer, Integer> chapterParts = new HashMap<>();
         private String titlePage;
 
         private EpubWriter(ExportOptions options) {
@@ -72,8 +77,18 @@ public class EpubExporter extends ExporterBase {
         }
 
         @Override
-        public void message(String markdown) {
-            current.append(toHtml(markdown));
+        public void contents(List<Chapter> chapters) {
+            this.chapters.addAll(chapters);
+        }
+
+        @Override
+        public void message(String markdown, Chapter chapter) {
+            if (chapter == null) {
+                current.append(toHtml(markdown));
+            } else {
+                chapterParts.put(chapter.number(), parts.size() + 1);
+                current.append("<section class=\"chapter\" id=\"").append(chapter.anchor()).append("\">\n").append(toHtml(markdown)).append("</section>\n");
+            }
             if (current.length() >= PART_SIZE) {
                 parts.add(current.toString());
                 current.setLength(0);
@@ -127,7 +142,8 @@ public class EpubExporter extends ExporterBase {
                 }
 
                 add(zip, "OEBPS/nav.xhtml", navigation(language, files, labels));
-                add(zip, "OEBPS/content.opf", packageDocument(language, files));
+                // with chapters the navigation is also a page of the book, after the title page
+                add(zip, "OEBPS/content.opf", packageDocument(language, files, chapters.isEmpty() ? -1 : titlePage == null ? 0 : 1));
             }
             return bytes.toByteArray();
         }
@@ -155,9 +171,15 @@ public class EpubExporter extends ExporterBase {
         }
 
         private String navigation(String language, List<String> files, List<String> labels) {
-            StringBuilder items = new StringBuilder();
-            for (int i = 0; i < files.size(); i++) {
-                items.append("<li><a href=\"").append(files.get(i)).append("\">").append(escapeXml(labels.get(i))).append("</a></li>\n");
+            String items;
+            if (chapters.isEmpty()) {
+                StringBuilder list = new StringBuilder("<ol>\n");
+                for (int i = 0; i < files.size(); i++) {
+                    list.append("<li><a href=\"").append(files.get(i)).append("\">").append(escapeXml(labels.get(i))).append("</a></li>\n");
+                }
+                items = list.append("</ol>\n").toString();
+            } else {
+                items = contentsList(chapters, chapter -> "part" + chapterParts.get(chapter.number()) + ".xhtml#" + chapter.anchor());
             }
             return """
                     <?xml version="1.0" encoding="UTF-8"?>
@@ -166,21 +188,27 @@ public class EpubExporter extends ExporterBase {
                     <head>
                     <meta charset="utf-8"/>
                     <title>%2$s</title>
+                    <link rel="stylesheet" type="text/css" href="style.css"/>
                     </head>
                     <body>
                     <nav epub:type="toc" id="toc">
-                    <ol>
-                    %3$s</ol>
-                    </nav>
+                    <h2>%4$s</h2>
+                    %3$s</nav>
                     </body>
                     </html>
-                    """.formatted(escapeXml(language), escapeXml(options.bookName()), items);
+                    """.formatted(escapeXml(language), escapeXml(options.bookName()), items, CONTENTS_TITLE);
         }
 
-        private String packageDocument(String language, List<String> files) {
+        /**
+         * @param navigationAt position of the navigation page in the reading order, negative to keep it out of it
+         */
+        private String packageDocument(String language, List<String> files, int navigationAt) {
             StringBuilder manifest = new StringBuilder();
             StringBuilder spine = new StringBuilder();
             for (int i = 0; i < files.size(); i++) {
+                if (i == navigationAt) {
+                    spine.append("<itemref idref=\"nav\"/>\n");
+                }
                 manifest.append("<item id=\"c").append(i).append("\" href=\"").append(files.get(i))
                         .append("\" media-type=\"application/xhtml+xml\"/>\n");
                 spine.append("<itemref idref=\"c").append(i).append("\"/>\n");

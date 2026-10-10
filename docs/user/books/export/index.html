@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844940490329">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844940490329" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844940490329" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844940490329" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -290,6 +290,58 @@ bar shows how far it is.</p>
 </retype-table>
 <p>The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (<code translate="no" v-pre>---</code>) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<p>When the text contains chapters, the file gets a table of contents after the title page. A chapter is a part of the
+story that contains a Markdown heading (a line starting with <code translate="no" v-pre>#</code>, e.g. <code translate="no" v-pre># Chapter 3: The Harbour</code>) - the same rule the
+<a href="../../extensions/chapter-marker/">Chapter Marker</a> plugin uses in the story sidebar. The first heading of a part is its title, parts
+without a heading belong to the chapter before them. A story without any heading has no table of contents.</p>
+<p>In PDF, Word and EPUB every chapter starts on a new page. The title page and the table of contents are pages of their
+own as well.</p>
+<p>The entries are links to the chapters:</p>
+<retype-table copy-text="| Format | |
+|---|---|
+| **HTML** | Links to the chapters of the page. |
+| **PDF** | Clickable entries with the page of the chapter, and the chapters are also in the outline (bookmarks) your PDF reader shows next to the pages. |
+| **EPUB** | The table of contents of the reader, which is also a page of the book after the title page. |
+| **Word document** (`.docx`) | Clickable entries with the page of the chapter. Word asks to update the fields when it opens the file, answer **Yes** to fill in the page numbers (LibreOffice fills them in on its own). It is a list of links and not a Word table of contents field. |
+| **Plain text** | No table of contents. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Format</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HTML</strong></td>
+<td>Links to the chapters of the page.</td>
+</tr>
+<tr>
+<td><strong>PDF</strong></td>
+<td>Clickable entries with the page of the chapter, and the chapters are also in the outline (bookmarks) your PDF reader shows next to the pages.</td>
+</tr>
+<tr>
+<td><strong>EPUB</strong></td>
+<td>The table of contents of the reader, which is also a page of the book after the title page.</td>
+</tr>
+<tr>
+<td><strong>Word document</strong> (<code translate="no" v-pre>.docx</code>)</td>
+<td>Clickable entries with the page of the chapter. Word asks to update the fields when it opens the file, answer <strong>Yes</strong> to fill in the page numbers (LibreOffice fills them in on its own). It is a list of links and not a Word table of contents field.</td>
+</tr>
+<tr>
+<td><strong>Plain text</strong></td>
+<td>No table of contents.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="page-numbers">Page numbers</h2>
+<p>The PDF and Word files have the page number in the footer of every page except the title page. The number is the
+position of the page in the file, so the title page is page 1 and the first page after it is page 2. The other formats
+have no pages of their own.</p>
 <h2 id="the-title-page">The title page</h2>
 <p>With <strong>Include title page</strong>, the file starts with the book title and the author on a page of their own. The page is
 made from a built-in template (<code translate="no" v-pre>DEFAULT_EXPORT_HEADER_TEMPLATE</code>), which isn&#x27;t editable in the application yet.</p>

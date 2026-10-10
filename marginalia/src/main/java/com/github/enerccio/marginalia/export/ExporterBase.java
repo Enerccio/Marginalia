@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Common part of the exporters. The text of a message is Markdown, the base class feeds the title page and messages to
@@ -27,9 +30,28 @@ import java.util.List;
 public abstract class ExporterBase implements Exporter {
     private static final Parser PARSER = Parser.builder().build();
     private static final HtmlRenderer HTML = HtmlRenderer.builder().escapeHtml(true).sanitizeUrls(true).build();
+    // the first heading of a message is its chapter title, the same rule the Chapter Marker plugin uses in the sidebar
+    private static final Pattern HEADER_PATTERN = Pattern.compile("(?m)^\\s*#+\\s*(.+)$");
+
+    protected static final String CONTENTS_TITLE = "Contents";
 
     @Autowired
     private TemplateService templateService;
+
+    /**
+     * Message that starts with a heading is a chapter, the heading is its title.
+     *
+     * @param number 1 based position among the chapters of the export
+     */
+    protected record Chapter(int number, String title) {
+
+        /**
+         * @return name of the target the table of contents links to, valid as an HTML id, PDF destination and Word bookmark
+         */
+        public String anchor() {
+            return "chapter_" + number;
+        }
+    }
 
     /**
      * Receives the exported content in the story order, {@link #finish()} produces the file.
@@ -41,7 +63,16 @@ public abstract class ExporterBase implements Exporter {
          */
         void titlePage(String markdown) throws Exception;
 
-        void message(String markdown) throws Exception;
+        /**
+         * Called once before the first message, only if the export has chapters.
+         */
+        default void contents(List<Chapter> chapters) throws Exception {
+        }
+
+        /**
+         * @param chapter chapter that starts with this message, null if the message is not the start of a chapter
+         */
+        void message(String markdown, Chapter chapter) throws Exception;
 
         byte[] finish() throws Exception;
     }
@@ -54,14 +85,53 @@ public abstract class ExporterBase implements Exporter {
         if (options.includeHeaders()) {
             writer.titlePage(buildHeader(options));
         }
+
+        // the table of contents comes before the text, so the chapters have to be known first
+        List<String> texts = new ArrayList<>();
+        List<Chapter> chapterOf = new ArrayList<>();
+        List<Chapter> chapters = new ArrayList<>();
         for (ChatMessage message : chatMessages) {
             String text = StringUtils.trimToNull(message.getResponse());
             if (text != null) {
-                writer.message(text);
+                String title = chapterTitle(text);
+                Chapter chapter = title == null ? null : new Chapter(chapters.size() + 1, title);
+                if (chapter != null) {
+                    chapters.add(chapter);
+                }
+                texts.add(text);
+                chapterOf.add(chapter);
             }
+        }
+        if (!chapters.isEmpty()) {
+            writer.contents(chapters);
+        }
+
+        for (int i = 0; i < texts.size(); i++) {
+            writer.message(texts.get(i), chapterOf.get(i));
             progress.updateProgress();
         }
         return writer.finish();
+    }
+
+    /**
+     * @return title of the chapter the message starts, null if the message has no heading
+     */
+    protected static String chapterTitle(String markdown) {
+        Matcher matcher = HEADER_PATTERN.matcher(markdown);
+        return matcher.find() ? matcher.group(1).trim() : null;
+    }
+
+    /**
+     * @param href link target of a chapter
+     * @return XHTML compatible list of the links to the chapters
+     */
+    protected static String contentsList(List<Chapter> chapters, Function<Chapter, String> href) {
+        StringBuilder list = new StringBuilder("<ol>\n");
+        for (Chapter chapter : chapters) {
+            list.append("<li><a href=\"").append(escapeXml(href.apply(chapter))).append("\">")
+                    .append(escapeXml(chapter.title())).append("</a></li>\n");
+        }
+        return list.append("</ol>\n").toString();
     }
 
     protected String buildHeader(ExportOptions options) throws Exception {

@@ -143,7 +143,13 @@ messages and the progress dialog, on which it calls `updateProgress()` for every
 `ExporterBase` does the common work: it renders the title page from `Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE`
 (Handlebars, data `ExportHeaderTemplateData`), skips parts without text, reports progress and feeds the Markdown of
 each part to an `ExportWriter` that the exporter creates per export - exporters are shared between users, so any state
-must live in the writer. It also provides `toHtml` (CommonMark, raw HTML escaped, XHTML safe) and `walk`, which turns
+must live in the writer. A part whose text has a Markdown heading is a chapter (`chapterTitle`, the same rule as the
+Chapter Marker plugin: the first `#` line); before the first part the writer gets the list of all chapters in
+`contents(...)` and every chapter start in `message(markdown, chapter)`, so it can put an anchor (`Chapter.anchor()`)
+on the chapter and link to it from the table of contents (HTML, EPUB navigation, PDF, DOCX; TXT ignores it).
+The PDF exporter keeps the export and renders it again until the pages shown in the contents match the pages the
+chapters landed on; DOCX uses `PAGEREF` fields and sets `updateFields`, so Word fills them in after asking.
+It also provides `toHtml` (CommonMark, raw HTML escaped, XHTML safe) and `walk`, which turns
 Markdown into paragraphs, headings, code and rules for formats built from styled text (`BlockSink`; used by TXT, DOCX
 and PDF). Libraries: CommonMark (parsing), Apache POI (DOCX), OpenPDF with the Liberation fonts (PDF); EPUB is written
 with `java.util.zip`.
