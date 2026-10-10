@@ -1,7 +1,7 @@
 ---
 label: Services
 order: 940
-verified: b244ca1
+verified: 44ea8b8
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/security/service
