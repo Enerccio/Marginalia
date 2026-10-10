@@ -47,6 +47,8 @@ There is no lint step. First build is slow (Vaadin downloads Node.js and npm pac
 
 Tests (`src/test/java`) boot the real Spring XML config (minus OSGi/instrumentation) on SQLite in `target/test-home/ctx-*`, with `MarginaliaTestBase` (`loginAs`, `createUser`, `createAI` helpers) and `MockLLMServer`, a fake OpenAI-compatible server programmed per test. Generation tests extend `GenerationTestBase`; entity CRUD uses `OwnedCrudContract`/`ExtendableCrudContract`. No network or API key needed.
 
+The full suite is fast (about 35 s of test time, plus Maven startup). Run it in the foreground without `-q` (`mvn test 2>&1 | tail -40`) or in the background and wait for the completion notification; check results in `target/surefire-reports/*.txt`. Never poll with an `until ... ps/pgrep` loop: it matches the Maven processes already running on the machine (and itself), never ends and burns the whole timeout. Steps that call an admin-only service (cleanup, database backups, user delete/unlock/clear password, extension install) need `loginAdmin()`, not `login()`.
+
 ## Other
 
 - When you implement a feature or fix, update the docs that describe it: user docs in `manual/user`, developer docs in `manual/developer`. Developer pages carry `verified` (commit last checked) and `covers` (code described) in their front matter; after a code change run `python3 tools/check_dev_docs.py` (`-v` names modified files) and update the pages it flags. Once a page matches the code, stamp it with `--stamp <page.md>` in a commit of its own (the stamp is a commit that already exists).
