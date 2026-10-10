@@ -96,6 +96,13 @@ public abstract class MarginaliaTestBase {
     }
 
     /**
+     * Creates an administrator and logs them in, for the services that only administrators can use.
+     */
+    protected User loginAdmin() throws Exception {
+        return loginAs(createUser(uniqueName("admin"), DEFAULT_PASSWORD, true));
+    }
+
+    /**
      * OpenAI compatible AI owned by the current user, pointing to the test's mock LLM scenario.
      */
     protected OpenAICompatible createAI() throws Exception {

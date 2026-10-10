@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Garbage collection of soft deleted entities ({@link CleanupService}): what is purged, what is purged together with
@@ -75,7 +76,16 @@ class CleanupServiceTest extends MarginaliaTestBase {
 
     @BeforeEach
     void setUp() throws Exception {
+        loginAdmin();
+    }
+
+    @Test
+    void onlyAdministratorsUseCleanup() throws Exception {
         login();
+
+        assertThatThrownBy(() -> cleanupService.getReferenceModel()).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> cleanupService.analyze()).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> cleanupService.purge()).isInstanceOf(SecurityException.class);
     }
 
     @AfterEach
@@ -668,7 +678,7 @@ class CleanupServiceTest extends MarginaliaTestBase {
         setActiveLeaf(manuscript, root);
         Tag tag = tag("owned");
         UserSetting settings = settingService.getOrCreate(UserSetting.class);
-        login();
+        loginAdmin();
         userService.deleteUser(userService.find(owner.getId()));
 
         CleanupPlan plan = cleanupService.purge();
@@ -694,7 +704,7 @@ class CleanupServiceTest extends MarginaliaTestBase {
         AI ai = ai("owned");
         loginAs(createUser());
         Manuscript foreign = manuscript(ai, null, null);
-        login();
+        loginAdmin();
         userService.deleteUser(userService.find(owner.getId()));
 
         CleanupPlan plan = cleanupService.purge();
@@ -710,7 +720,7 @@ class CleanupServiceTest extends MarginaliaTestBase {
     void deletedUserWithOnlySettingsIsPurgedWithThem() throws Exception {
         User owner = loginAs(createUser());
         UserSetting settings = settingService.getOrCreate(UserSetting.class);
-        login();
+        loginAdmin();
         userService.deleteUser(userService.find(owner.getId()));
 
         CleanupPlan plan = cleanupService.purge();
@@ -725,7 +735,7 @@ class CleanupServiceTest extends MarginaliaTestBase {
         User owner = loginAs(createUser());
         AI ai = ai("owned");
         softDelete(ai);
-        login();
+        loginAdmin();
         userService.deleteUser(userService.find(owner.getId()));
 
         CleanupPlan plan = cleanupService.purge();

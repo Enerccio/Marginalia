@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.CleanupService;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
@@ -16,6 +17,7 @@ import jakarta.persistence.metamodel.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -34,18 +36,23 @@ public class CleanupServiceImpl implements CleanupService {
     private final ExtendableEntityListener extendableEntityListener = new ExtendableEntityListener();
     private final List<CleanupContributor> contributors = new CopyOnWriteArrayList<>();
 
+    @Autowired
+    private AdminGuard adminGuard;
+
     private EntityManager entityManager;
     private volatile Model model;
 
     @Override
     @CommonTxReadOnly
     public List<ReferenceDescriptor> getReferenceModel() throws Exception {
+        adminGuard.requireAdmin();
         return Collections.unmodifiableList(getModel().references);
     }
 
     @Override
     @CommonTxReadOnly
     public CleanupPlan analyze() throws Exception {
+        adminGuard.requireAdmin();
         CleanupPlan plan = computePlan(getModel());
         for (BlockedEntity blocked : plan.getBlocked().values()) {
             blocked.setLabel(label(blocked.getKey()));
@@ -56,6 +63,7 @@ public class CleanupServiceImpl implements CleanupService {
     @Override
     @CommonTx
     public CleanupPlan purge() throws Exception {
+        adminGuard.requireAdmin();
         Model m = getModel();
         CleanupPlan plan = computePlan(m);
         Set<EntityKey> purge = Collections.unmodifiableSet(plan.getPurge());

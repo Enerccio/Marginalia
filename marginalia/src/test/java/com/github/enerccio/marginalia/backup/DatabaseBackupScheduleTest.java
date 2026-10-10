@@ -170,7 +170,27 @@ class DatabaseBackupScheduleTest extends MarginaliaTestBase {
 
         currentUser.setId(null);
         assertThatThrownBy(() -> backupService.updateSchedule(true, "@daily", 1)).isInstanceOf(SecurityException.class);
+        loginAdmin();
         assertThat(backupService.getSchedule().enabled()).isFalse();
+    }
+
+    @Test
+    void onlyAdministratorsUseDatabaseBackups() throws Exception {
+        DatabaseBackup existing = backupService.createBackup();
+        login();
+
+        assertThatThrownBy(() -> backupService.createBackup()).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> backupService.getBackups()).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> backupService.getBackupFile(existing)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> backupService.deleteBackup(existing)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> backupService.scheduleRestore(existing)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> backupService.cancelRestore()).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> backupService.isRestorePending()).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> backupService.getDatabaseSize()).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> backupService.getSchedule()).isInstanceOf(SecurityException.class);
+
+        loginAdmin();
+        assertThat(backupService.getBackups()).extracting(DatabaseBackup::getName).contains(existing.getName());
     }
 
     // ---- running ----------------------------------------------------------------------------------------------------

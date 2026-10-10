@@ -7,6 +7,8 @@
         <property name="entityManager" ref="em"/>
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.security.AdminGuard" />
+
     <bean class="com.github.enerccio.marginalia.domain.security.service.impl.UserServiceImpl">
         <property name="repository" ref="userRepository" />
     </bean>

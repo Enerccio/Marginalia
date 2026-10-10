@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.security.service.impl;
 
 import com.github.enerccio.marginalia.bound.SessionManager;
+import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.security.PersistedLoginInfo;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.repository.UserRepository;
@@ -68,6 +69,9 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     @Autowired
     private SessionManager sessionManager;
 
+    @Autowired
+    private AdminGuard adminGuard;
+
     @Override
     @CommonTxReadOnly
     public boolean existsUsers() throws Exception {
@@ -97,6 +101,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     @Override
     @CommonTx
     public void deleteUser(User user) throws Exception {
+        adminGuard.requireAdmin();
         User current = find(user);
         if (current == null || current.isDeleted()) {
             return;
@@ -253,6 +258,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     @Override
     @CommonTx
     public User clearPassword(User user) throws Exception {
+        adminGuard.requireAdmin();
         user.setPasswordHash(null);
         user.setSavedLogins(null);
         user.setFailedLogins(0);
@@ -270,6 +276,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     @Override
     @CommonTx
     public User unlock(User user) throws Exception {
+        adminGuard.requireAdmin();
         user.setFailedLogins(0);
         user.setLockedUntil(0);
         return save(user);
