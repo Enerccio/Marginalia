@@ -174,7 +174,8 @@ See [Story export](services.md#story-export).
 ### `domain.security`
 
 `model/User`, `repository/UserRepository` (+ `impl/JpaUserRepository`), `service/UserService` (+
-`impl/UserServiceImpl`: authentication, password hashes, saved logins, protection of the last administrator) and
+`impl/UserServiceImpl`: authentication, password hashes, saved logins, protection of the last administrator),
+`AdminGuard` (`requireAdmin()`, used by the administrator-only services, see [Services](services.md#administration)) and
 `PersistedLoginInfo` (a saved login; the user's saved logins are stored as delimited text in `User.savedLogins`).
 
 ### `domain.traits`, `domain.collections`, `domain.listener`

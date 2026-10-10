@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959155006">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959277123">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844959155006" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844959277123" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959155006" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959277123" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959155006" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959277123" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -671,7 +671,8 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <p>See <a href="../services/#story-export">Story export</a>.</p>
 <h3 id="domainsecurity"><code translate="no" v-pre>domain.security</code></h3>
 <p><code translate="no" v-pre>model/User</code>, <code translate="no" v-pre>repository/UserRepository</code> (+ <code translate="no" v-pre>impl/JpaUserRepository</code>), <code translate="no" v-pre>service/UserService</code> (+
-<code translate="no" v-pre>impl/UserServiceImpl</code>: authentication, password hashes, saved logins, protection of the last administrator) and
+<code translate="no" v-pre>impl/UserServiceImpl</code>: authentication, password hashes, saved logins, protection of the last administrator),
+<code translate="no" v-pre>AdminGuard</code> (<code translate="no" v-pre>requireAdmin()</code>, used by the administrator-only services, see <a href="../services/#administration">Services</a>) and
 <code translate="no" v-pre>PersistedLoginInfo</code> (a saved login; the user&#x27;s saved logins are stored as delimited text in <code translate="no" v-pre>User.savedLogins</code>).</p>
 <h3 id="domaintraits-domaincollections-domainlistener"><code translate="no" v-pre>domain.traits</code>, <code translate="no" v-pre>domain.collections</code>, <code translate="no" v-pre>domain.listener</code></h3>
 <retype-table copy-text="| Package | |
