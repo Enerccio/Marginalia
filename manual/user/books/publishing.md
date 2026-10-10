@@ -29,7 +29,7 @@ Click a book to read it.
 ## Reading
 
 The reading view shows the [active branch](branches-and-story-tree.md) of the book from the first to the last part,
-in the book reading style. Other branches, the turn instructions and the metadata are not shown. The arrow button in
+in the book reading style (justified, with hyphenation for the book's [language](managing-books.md#the-about-tab)). Other branches, the turn instructions and the metadata are not shown. The arrow button in
 the top left corner returns to the list.
 
 ![Reading a book](../../images/viewer-reading.png)
@@ -41,8 +41,12 @@ What you read is the book as it is now: new parts appear the next time the page 
 By default only you can open your books in the viewer. To let other users read a book:
 
 1. Open the book and check **Published** on its *About* tab.
-2. Open the book in the viewer and copy the address from the browser's address bar. It looks like
-   `https://marginalia.example.com/view/0b6f3c1e-...` - the last part is the book's ID.
+2. Copy the reader link that appears under the checkbox on the *About* tab. The link is the address of your
+   installation (including its context path, if Marginalia is not served from the root), followed by `/view/` and the
+   book's ID: `<address of Marginalia>/view/<book ID>`. In Docker, where Marginalia runs as the root application, it
+   looks like `https://marginalia.example.com/view/0b6f3c1e-...`; if it is deployed under a context path such as
+   `/marginalia`, the link is `https://example.com/marginalia/view/0b6f3c1e-...`. (You can also copy the same address
+   from the browser's address bar when the book is open in the viewer.)
 3. Send the address to the other users.
 
 Other users need an account on the same Marginalia installation; they log in and see the book. Published books don't
