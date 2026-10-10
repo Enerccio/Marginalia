@@ -142,7 +142,7 @@ user. The base class gives you:
 | `llm` | A [mock LLM scenario](#the-fake-llm-server) for this test method. |
 | `uniqueName(prefix)` | `prefix-1a2b3c4d`, for names that must not collide with other tests. |
 | `createUser()`, `createUser(login, password, admin)` | Saves a user. |
-| `loginAs(user)`, `login()` | Makes a user the current user, like a login in the UI (`login()` creates one first). |
+| `loginAs(user)`, `login()`, `loginAdmin()` | Makes a user the current user, like a login in the UI (`login()` and `loginAdmin()` create one first). The services that only administrators can use (cleanup, database backups, user delete / unlock / clear password, extension install) need `loginAdmin()`. |
 | `createAI()` | Saves an OpenAI-compatible inference provider pointing to `llm`. |
 
 Each test method runs in its own mock HTTP request and session (`@SpringJUnitWebConfig`), so session-scoped beans

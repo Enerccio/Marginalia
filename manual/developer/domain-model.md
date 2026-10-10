@@ -378,7 +378,7 @@ default (`UserSetting.masterTemplate`...), else the built-in default (`Defaults`
 | `passwordHash` | Password hash (`UserServiceImpl`). |
 | `savedLogins` | The *Save login* tokens as text, one `identifier;hashedSecret;created;lastAccess` entry per login, separated by `\|` (`PersistedLoginInfo`, read and written by `UserServiceImpl`). |
 | `isAdmin` | Administrator. |
-| `failedLogins`, `lockedUntil` | Login back-off: consecutive failed logins and the time (epoch milliseconds, `0` = not locked) until which the account refuses logins. Real columns (V7), reset by a successful login, a password change or clear and the administrator's unlock. |
+| `failedLogins`, `lockedUntil` | Login back-off: consecutive failed logins and the time (epoch milliseconds, `0` = not locked) until which the account refuses logins. Real columns (V7), reset by a successful login, a password change or clear and the administrator's unlock. A separate, in-memory limit per client address is kept by `UserServiceImpl`, not on the entity. |
 
 The current user of a session is the session-scoped `user` bean (see [Architecture](architecture.md#spring-wiring)),
 which holds a copy of the logged-in user's id, login and name - load the entity through `UserService` when you need
@@ -400,7 +400,7 @@ Deleting a resource is a soft delete like any other; files are never deleted fro
 
 ## Cleanup references
 
-Soft-deleted rows are purged by `CleanupService` (*Admin → Cleanup*). Before purging, it builds a graph of all
+Soft-deleted rows are purged by `CleanupService` (*Admin → Cleanup*, administrators only: every method calls `AdminGuard.requireAdmin()`). Before purging, it builds a graph of all
 references between rows and decides what may go. Each reference has a policy (`@CleanupReference`, in
 `domain/traits/`):
 
