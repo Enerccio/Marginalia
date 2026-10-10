@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959338786">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961159171">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844959338786" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844961159171" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844959338786" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844961159171" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -483,7 +483,8 @@ and <code translate="no" v-pre>listener.onNodeCreated(part)</code> lets the UI s
 part is only a placeholder that cleanup removes or restores.</p>
 <p>Events: <code translate="no" v-pre>BEFORE_GENERATE_NEW_MESSAGE</code>, <code translate="no" v-pre>AFTER_GENERATE_NEW_MESSAGE</code> (the part is available as <code translate="no" v-pre>getMessage()</code>).</p>
 <h3 id="7-inference---inferencestep">7. <code translate="no" v-pre>INFERENCE</code> - <code translate="no" v-pre>InferenceStep</code></h3>
-<p>Counts the prompt tokens, then calls <code translate="no" v-pre>InferenceService.stream(payload, protocol, callback)</code>. For each chunk:</p>
+<p>Counts the prompt tokens (when the prompt plus the response limit still exceeds the context, the UI gets
+<code translate="no" v-pre>GenerationListener.onWarning</code>; the request is sent anyway), then calls <code translate="no" v-pre>InferenceService.stream(payload, protocol, callback)</code>. For each chunk:</p>
 <ul>
 <li>
 <p><strong>reasoning</strong> chunks are appended to <code translate="no" v-pre>responseReasoning</code> (<code translate="no" v-pre>REASONING_CHUNK_RECEIVED</code>, the text in
@@ -507,7 +508,9 @@ in <code translate="no" v-pre>CHUNK</code>),</p>
 service delivers the next chunk only after the step calls <code translate="no" v-pre>continueInference()</code>, so a slow listener slows the stream
 down instead of piling up chunks.</p>
 <p>On completion the exact token counts are computed, the state becomes <code translate="no" v-pre>SUCCESSFUL</code> (<code translate="no" v-pre>AFTER_INFERENCE</code>) and the engine
-moves to <code translate="no" v-pre>CLEANUP</code>. An error is reported with <code translate="no" v-pre>onError</code> and goes to <code translate="no" v-pre>CLEANUP</code>.</p>
+moves to <code translate="no" v-pre>CLEANUP</code>. An error goes to <code translate="no" v-pre>CLEANUP</code> too: a failure of the provider (<code translate="no" v-pre>InferenceException</code>, see
+<a href="../services/">Services</a>) is reported with <code translate="no" v-pre>onSimpleError</code> and a localized text of what to fix, anything else with
+<code translate="no" v-pre>onError</code>.</p>
 <h3 id="8-cleanup---cleanupstep">8. <code translate="no" v-pre>CLEANUP</code> - <code translate="no" v-pre>CleanupStep</code></h3>
 <p>Always the last step. Depending on the state:</p>
 <retype-table copy-text="| State | What happens |
@@ -802,7 +805,7 @@ the new part or restores the regenerated one, like after an error. Only <code tr
 <li>
 <p><strong>Errors</strong> - an exception in a step or continuation, a failed request - are reported with
 <code translate="no" v-pre>GenerationListener.onError</code> and also end in <code translate="no" v-pre>CLEANUP</code>. Validation problems (no provider, context too small) use
-<code translate="no" v-pre>onSimpleError</code> with a localized message.</p>
+<code translate="no" v-pre>onSimpleError</code> with a localized message, as do failures answered by the provider (wrong key, context too long...).</p>
 </li>
 <li>
 <p><strong>Questions</strong> - <code translate="no" v-pre>listener.askQuestion(text, yes, no)</code> lets a step ask the user and continue in one of two

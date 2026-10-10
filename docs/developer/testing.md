@@ -184,7 +184,7 @@ or deleting `target/test-home` removes them.
 
 `test/GenerationRun` is the `GenerationListener` that stands in for the story editor. It records the streamed
 response and reasoning, errors (`getErrors()`) and simple errors (`getSimpleErrors()`, the messages the UI shows in a
-notification), the created part (`getMessage()`), and the outcome (`COMPLETED` or `CANCELLED`). Questions the
+notification), warnings (`getWarnings()`), the created part (`getMessage()`), and the outcome (`COMPLETED` or `CANCELLED`). Questions the
 pipeline asks the user (`askQuestion`) are answered *yes*.
 
 ```java

@@ -82,7 +82,13 @@ The prompt without any story is already bigger than the room the context leaves 
 the templates, lorebook entries and summaries. See [Limits](protocols.md#limits).
 
 **The model reports that the context is too long.**
-Marginalia's token count is a little off for some models. Lower *Max Context Size* by a few hundred tokens.
+Marginalia's token count is a little off for some models. Lower *Max Context Size* by a few hundred tokens. A warning
+before the request names the estimated sizes when the prompt already looks too big.
+
+**"The provider did not answer in time", "The provider is limiting requests", "The provider rejected the API key"...**
+Marginalia explains failures of the model API in plain words, see
+[Error messages](inference-providers.md#error-messages). *Test Connection* in the provider dialog checks URL, key and
+model without a book. Timeout and retries are set per provider.
 
 **The text stops in the middle of a sentence.**
 The response limit was reached. Raise *Max Response Tokens* (or the protocol's *Max Reply Tokens*) - reasoning models

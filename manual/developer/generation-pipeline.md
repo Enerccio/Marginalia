@@ -230,7 +230,8 @@ Events: `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` (the part is
 
 ### 7. `INFERENCE` - `InferenceStep`
 
-Counts the prompt tokens, then calls `InferenceService.stream(payload, protocol, callback)`. For each chunk:
+Counts the prompt tokens (when the prompt plus the response limit still exceeds the context, the UI gets
+`GenerationListener.onWarning`; the request is sent anyway), then calls `InferenceService.stream(payload, protocol, callback)`. For each chunk:
 
 - **reasoning** chunks are appended to `responseReasoning` (`REASONING_CHUNK_RECEIVED`, the text in
   `REASONING_CHUNK`),
@@ -245,7 +246,9 @@ service delivers the next chunk only after the step calls `continueInference()`,
 down instead of piling up chunks.
 
 On completion the exact token counts are computed, the state becomes `SUCCESSFUL` (`AFTER_INFERENCE`) and the engine
-moves to `CLEANUP`. An error is reported with `onError` and goes to `CLEANUP`.
+moves to `CLEANUP`. An error goes to `CLEANUP` too: a failure of the provider (`InferenceException`, see
+[Services](services.md)) is reported with `onSimpleError` and a localized text of what to fix, anything else with
+`onError`.
 
 ### 8. `CLEANUP` - `CleanupStep`
 
@@ -355,7 +358,7 @@ The bundled Author's Note plugin is a complete example: it reserves tokens in `B
   the new part or restores the regenerated one, like after an error. Only `CLEANUP` reports the end to the listener.
 - **Errors** - an exception in a step or continuation, a failed request - are reported with
   `GenerationListener.onError` and also end in `CLEANUP`. Validation problems (no provider, context too small) use
-  `onSimpleError` with a localized message.
+  `onSimpleError` with a localized message, as do failures answered by the provider (wrong key, context too long...).
 - **Questions** - `listener.askQuestion(text, yes, no)` lets a step ask the user and continue in one of two
   continuations (`controller.wrapCallback(...)`); used for invalidated summaries.
 

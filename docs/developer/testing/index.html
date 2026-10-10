@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959338786">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961159171">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844959338786" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844961159171" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844959338786" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844961159171" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -568,7 +568,7 @@ or deleting <code translate="no" v-pre>target/test-home</code> removes them.</p>
 </retype-table>
 <p><code translate="no" v-pre>test/GenerationRun</code> is the <code translate="no" v-pre>GenerationListener</code> that stands in for the story editor. It records the streamed
 response and reasoning, errors (<code translate="no" v-pre>getErrors()</code>) and simple errors (<code translate="no" v-pre>getSimpleErrors()</code>, the messages the UI shows in a
-notification), the created part (<code translate="no" v-pre>getMessage()</code>), and the outcome (<code translate="no" v-pre>COMPLETED</code> or <code translate="no" v-pre>CANCELLED</code>). Questions the
+notification), warnings (<code translate="no" v-pre>getWarnings()</code>), the created part (<code translate="no" v-pre>getMessage()</code>), and the outcome (<code translate="no" v-pre>COMPLETED</code> or <code translate="no" v-pre>CANCELLED</code>). Questions the
 pipeline asks the user (<code translate="no" v-pre>askQuestion</code>) are answered <em>yes</em>.</p>
 <div id="generationtestbase-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">class MyGenerationTest extends GenerationTestBase {

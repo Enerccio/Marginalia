@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959338786">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961159171">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844959338786" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844961159171" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844959338786" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844961159171" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -249,7 +249,12 @@ The prompt without any story is already bigger than the room the context leaves 
 <em>Max Context Size</em> of the provider (or <em>Max Context Tokens</em> of the protocol), lower <em>Max Response Tokens</em>, or shorten
 the templates, lorebook entries and summaries. See <a href="../protocols/#limits">Limits</a>.</p>
 <p><strong>The model reports that the context is too long.</strong>
-Marginalia&#x27;s token count is a little off for some models. Lower <em>Max Context Size</em> by a few hundred tokens.</p>
+Marginalia&#x27;s token count is a little off for some models. Lower <em>Max Context Size</em> by a few hundred tokens. A warning
+before the request names the estimated sizes when the prompt already looks too big.</p>
+<p><strong>&quot;The provider did not answer in time&quot;, &quot;The provider is limiting requests&quot;, &quot;The provider rejected the API key&quot;...</strong>
+Marginalia explains failures of the model API in plain words, see
+<a href="../inference-providers/#error-messages">Error messages</a>. <em>Test Connection</em> in the provider dialog checks URL, key and
+model without a book. Timeout and retries are set per provider.</p>
 <p><strong>The text stops in the middle of a sentence.</strong>
 The response limit was reached. Raise <em>Max Response Tokens</em> (or the protocol&#x27;s <em>Max Reply Tokens</em>) - reasoning models
 need much more, because the reasoning counts too.</p>

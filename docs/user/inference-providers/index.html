@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844959338786">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961159171">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844959338786" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844961159171" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844959338786" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961159171" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -305,11 +305,18 @@ button and deleted with the trash button.</p>
     <img src="../../images/inference-provider.png" alt="Per Type Settings with the model list loaded" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">Per Type Settings with the model list loaded</figcaption>
 </figure>
+<p>The tab is taller than the dialog and scrolls. The lower fields:</p>
+<figure class="content-center">
+    <img src="../../images/inference-provider-2.png" alt="Timeout, retries, additional parameters and Test Connection" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="603" height="546" />
+    <figcaption class="caption">Timeout, retries, additional parameters and Test Connection</figcaption>
+</figure>
 <retype-table copy-text="| Field | |
 |---|---|
 | **OpenAI URL (ends with /v1)** | The base address of the API, see [the table above](#supported-apis). Without `/chat/completions`. |
 | **Api Key** | The key of the service. Local servers usually don't need one; leave it empty. |
 | **Model** | The model to use. Click **Refresh** to load the list of models from the API, or type the model ID yourself (e.g. `anthropic/claude-sonnet-4.5` on OpenRouter). |
+| **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message. |
+| **Retries** | How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a `Retry-After` header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice. |
 | **Additional Parameters** | A JSON object with extra fields for every request to this provider, e.g. `{&quot;top_k&quot;: 40, &quot;min_p&quot;: 0.05}` for a local server, or `{&quot;provider&quot;: {&quot;order&quot;: [&quot;anthropic&quot;]}}` for OpenRouter. A field set here wins over the same setting from the [protocol](protocols.md) (e.g. `temperature`) or the response limit (`max_completion_tokens`). Must be a valid JSON object or empty. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -333,6 +340,14 @@ button and deleted with the trash button.</p>
 <td>The model to use. Click <strong>Refresh</strong> to load the list of models from the API, or type the model ID yourself (e.g. <code translate="no" v-pre>anthropic/claude-sonnet-4.5</code> on OpenRouter).</td>
 </tr>
 <tr>
+<td><strong>Timeout (seconds)</strong></td>
+<td>How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message.</td>
+</tr>
+<tr>
+<td><strong>Retries</strong></td>
+<td>How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a <code translate="no" v-pre>Retry-After</code> header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice.</td>
+</tr>
+<tr>
 <td><strong>Additional Parameters</strong></td>
 <td>A JSON object with extra fields for every request to this provider, e.g. <code translate="no" v-pre>{&quot;top_k&quot;: 40, &quot;min_p&quot;: 0.05}</code> for a local server, or <code translate="no" v-pre>{&quot;provider&quot;: {&quot;order&quot;: [&quot;anthropic&quot;]}}</code> for OpenRouter. A field set here wins over the same setting from the <a href="../protocols/">protocol</a> (e.g. <code translate="no" v-pre>temperature</code>) or the response limit (<code translate="no" v-pre>max_completion_tokens</code>). Must be a valid JSON object or empty.</td>
 </tr>
@@ -345,6 +360,10 @@ button and deleted with the trash button.</p>
 <p><strong>Refresh</strong> asks the API for its model list (<code translate="no" v-pre>/v1/models</code>) with the URL and key from the form. If it fails with
 <em>Failed to download model list</em>, check the URL (it must end with <code translate="no" v-pre>/v1</code>), the key, and that the server is running.
 Some services don&#x27;t list models; type the model ID instead.</p>
+<p><strong>Test Connection</strong> checks the values in the form without saving: it asks the API for its model list and then for a
+one-token answer from the selected <strong>Model</strong>, without retries. A success message means the URL, key and model work
+together. A failure names the cause (see <doc-anchor-trigger to="#error-messages">Error messages</doc-anchor-trigger>). Some services have no model list; the
+test then only needs the one-token answer.</p>
 <h3 id="general-settings">General Settings</h3>
 <figure class="content-center">
     <img src="../../images/inference-provider-general.png" alt="General Settings of an inference provider" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="600" height="820" />
@@ -392,6 +411,78 @@ the prompt gets 30 000 tokens.</p>
 <p>Take <strong>Max Context Size</strong> from the documentation of the service, and set it a little lower: token counts are not
 always exact, and a request that exceeds the real limit fails. A <a href="../protocols/">protocol</a> can override both limits
 for some books.</p>
+<h2 id="error-messages">Error messages</h2>
+<p>When the API refuses a request, Marginalia says what to fix instead of showing an internal error, followed by what the
+API itself said:</p>
+<retype-table copy-text="| Message | Cause |
+|---|---|
+| *The provider rejected the API key.* | Wrong, expired or missing **Api Key**. |
+| *The API key is not allowed to use this model or endpoint.* | The key is valid but has no access to the model. |
+| *The provider does not know the configured model.* | Wrong **Model**; use **Refresh** to see the names the API knows. |
+| *Nothing was found at the configured URL.* | Wrong **OpenAI URL**; it usually ends with `/v1`. |
+| *The prompt does not fit into the context of the model.* | **Max Context Size** is higher than what the model really accepts. Lower it. |
+| *The provider is limiting requests.* | Rate limit or exhausted quota, even after the retries. |
+| *The provider failed to process the request.* | The service has a problem (5xx), even after the retries. |
+| *The provider did not answer in time.* | Raise **Timeout (seconds)**, or check the server. |
+| *Cannot connect to the provider.* | The server is not running or not reachable from Marginalia, or the URL has a typo. |
+| *The provider rejected the request.* | Another refusal, often an unsupported field in **Additional Parameters** or reasoning that the model doesn't support. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Message</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>The provider rejected the API key.</em></td>
+<td>Wrong, expired or missing <strong>Api Key</strong>.</td>
+</tr>
+<tr>
+<td><em>The API key is not allowed to use this model or endpoint.</em></td>
+<td>The key is valid but has no access to the model.</td>
+</tr>
+<tr>
+<td><em>The provider does not know the configured model.</em></td>
+<td>Wrong <strong>Model</strong>; use <strong>Refresh</strong> to see the names the API knows.</td>
+</tr>
+<tr>
+<td><em>Nothing was found at the configured URL.</em></td>
+<td>Wrong <strong>OpenAI URL</strong>; it usually ends with <code translate="no" v-pre>/v1</code>.</td>
+</tr>
+<tr>
+<td><em>The prompt does not fit into the context of the model.</em></td>
+<td><strong>Max Context Size</strong> is higher than what the model really accepts. Lower it.</td>
+</tr>
+<tr>
+<td><em>The provider is limiting requests.</em></td>
+<td>Rate limit or exhausted quota, even after the retries.</td>
+</tr>
+<tr>
+<td><em>The provider failed to process the request.</em></td>
+<td>The service has a problem (5xx), even after the retries.</td>
+</tr>
+<tr>
+<td><em>The provider did not answer in time.</em></td>
+<td>Raise <strong>Timeout (seconds)</strong>, or check the server.</td>
+</tr>
+<tr>
+<td><em>Cannot connect to the provider.</em></td>
+<td>The server is not running or not reachable from Marginalia, or the URL has a typo.</td>
+</tr>
+<tr>
+<td><em>The provider rejected the request.</em></td>
+<td>Another refusal, often an unsupported field in <strong>Additional Parameters</strong> or reasoning that the model doesn&#x27;t support.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="warning-before-sending">Warning before sending</h2>
+<p>Marginalia fills the context only up to <strong>Max Context Size</strong> minus <strong>Max Response Tokens</strong>. If the finished prompt is
+still bigger than that (for example because an extension added text, or the token count was off), a warning shows the
+estimated sizes before the request is sent. The request is sent anyway; the API may reject it or cut the prompt.</p>
 <h2 id="reasoning-models">Reasoning models</h2>
 <p>Reasoning models think before they answer. With <strong>Enable Reasoning</strong> checked, Marginalia sends the chosen
 <strong>Reasoning Effort</strong> (<em>None</em>, <em>Low</em>, <em>Medium</em> or <em>High</em>) to the API as <code translate="no" v-pre>reasoning_effort</code>. More effort usually means
@@ -426,6 +517,8 @@ part; parts written before stay as they are.</p>
 <retype-table copy-text="| Problem | What to check |
 |---|---|
 | *Failed to download model list* | URL ends with `/v1`, API key, the server is running and reachable from Marginalia. Type the model ID if the service has no model list. |
+| *The provider did not answer in time.* | Raise **Timeout (seconds)** of the provider; reasoning models may need minutes. |
+| *The provider is limiting requests.* | Wait, or raise **Retries**. |
 | *Book is missing model.* | The book has no provider. Select one in **About → Model**. |
 | *Contextual limit not sufficient.* | The prompt without any story doesn't fit into the context minus the response tokens. Raise **Max Context Size** (or the protocol's **Max Context Tokens**), lower **Max Response Tokens**, or shorten the templates and lorebook entries. |
 | Text stops in the middle | **Max Response Tokens** (or the protocol's **Max Reply Tokens**) is too low, especially for reasoning models. |
@@ -442,6 +535,14 @@ part; parts written before stay as they are.</p>
 <tr>
 <td><em>Failed to download model list</em></td>
 <td>URL ends with <code translate="no" v-pre>/v1</code>, API key, the server is running and reachable from Marginalia. Type the model ID if the service has no model list.</td>
+</tr>
+<tr>
+<td><em>The provider did not answer in time.</em></td>
+<td>Raise <strong>Timeout (seconds)</strong> of the provider; reasoning models may need minutes.</td>
+</tr>
+<tr>
+<td><em>The provider is limiting requests.</em></td>
+<td>Wait, or raise <strong>Retries</strong>.</td>
 </tr>
 <tr>
 <td><em>Book is missing model.</em></td>

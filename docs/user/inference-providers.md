@@ -53,11 +53,17 @@ At the top of the dialog:
 
 ![Per Type Settings with the model list loaded](../images/inference-provider.png)
 
+The tab is taller than the dialog and scrolls. The lower fields:
+
+![Timeout, retries, additional parameters and Test Connection](../images/inference-provider-2.png)
+
 | Field | |
 |---|---|
 | **OpenAI URL (ends with /v1)** | The base address of the API, see [the table above](#supported-apis). Without `/chat/completions`. |
 | **Api Key** | The key of the service. Local servers usually don't need one; leave it empty. |
 | **Model** | The model to use. Click **Refresh** to load the list of models from the API, or type the model ID yourself (e.g. `anthropic/claude-sonnet-4.5` on OpenRouter). |
+| **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message. |
+| **Retries** | How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a `Retry-After` header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice. |
 | **Additional Parameters** | A JSON object with extra fields for every request to this provider, e.g. `{"top_k": 40, "min_p": 0.05}` for a local server, or `{"provider": {"order": ["anthropic"]}}` for OpenRouter. A field set here wins over the same setting from the [protocol](protocols.md) (e.g. `temperature`) or the response limit (`max_completion_tokens`). Must be a valid JSON object or empty. |
 
 When you edit an existing provider, the API key is not shown again. It is kept as it is unless you click
@@ -66,6 +72,11 @@ When you edit an existing provider, the API key is not shown again. It is kept a
 **Refresh** asks the API for its model list (`/v1/models`) with the URL and key from the form. If it fails with
 *Failed to download model list*, check the URL (it must end with `/v1`), the key, and that the server is running.
 Some services don't list models; type the model ID instead.
+
+**Test Connection** checks the values in the form without saving: it asks the API for its model list and then for a
+one-token answer from the selected **Model**, without retries. A success message means the URL, key and model work
+together. A failure names the cause (see [Error messages](#error-messages)). Some services have no model list; the
+test then only needs the one-token answer.
 
 ### General Settings
 
@@ -86,6 +97,30 @@ the prompt gets 30 000 tokens.
 Take **Max Context Size** from the documentation of the service, and set it a little lower: token counts are not
 always exact, and a request that exceeds the real limit fails. A [protocol](protocols.md) can override both limits
 for some books.
+
+## Error messages
+
+When the API refuses a request, Marginalia says what to fix instead of showing an internal error, followed by what the
+API itself said:
+
+| Message | Cause |
+|---|---|
+| *The provider rejected the API key.* | Wrong, expired or missing **Api Key**. |
+| *The API key is not allowed to use this model or endpoint.* | The key is valid but has no access to the model. |
+| *The provider does not know the configured model.* | Wrong **Model**; use **Refresh** to see the names the API knows. |
+| *Nothing was found at the configured URL.* | Wrong **OpenAI URL**; it usually ends with `/v1`. |
+| *The prompt does not fit into the context of the model.* | **Max Context Size** is higher than what the model really accepts. Lower it. |
+| *The provider is limiting requests.* | Rate limit or exhausted quota, even after the retries. |
+| *The provider failed to process the request.* | The service has a problem (5xx), even after the retries. |
+| *The provider did not answer in time.* | Raise **Timeout (seconds)**, or check the server. |
+| *Cannot connect to the provider.* | The server is not running or not reachable from Marginalia, or the URL has a typo. |
+| *The provider rejected the request.* | Another refusal, often an unsupported field in **Additional Parameters** or reasoning that the model doesn't support. |
+
+## Warning before sending
+
+Marginalia fills the context only up to **Max Context Size** minus **Max Response Tokens**. If the finished prompt is
+still bigger than that (for example because an extension added text, or the token count was off), a warning shows the
+estimated sizes before the request is sent. The request is sent anyway; the API may reject it or cut the prompt.
 
 ## Reasoning models
 
@@ -128,6 +163,8 @@ part; parts written before stay as they are.
 | Problem | What to check |
 |---|---|
 | *Failed to download model list* | URL ends with `/v1`, API key, the server is running and reachable from Marginalia. Type the model ID if the service has no model list. |
+| *The provider did not answer in time.* | Raise **Timeout (seconds)** of the provider; reasoning models may need minutes. |
+| *The provider is limiting requests.* | Wait, or raise **Retries**. |
 | *Book is missing model.* | The book has no provider. Select one in **About → Model**. |
 | *Contextual limit not sufficient.* | The prompt without any story doesn't fit into the context minus the response tokens. Raise **Max Context Size** (or the protocol's **Max Context Tokens**), lower **Max Response Tokens**, or shorten the templates and lorebook entries. |
 | Text stops in the middle | **Max Response Tokens** (or the protocol's **Max Reply Tokens**) is too low, especially for reasoning models. |
