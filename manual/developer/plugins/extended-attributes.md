@@ -139,6 +139,9 @@ Two things follow from this:
 
 - `saveWithoutEvent` (used by backup restore, which writes `extendedContent` directly) **does not serialize**:
   changes to `attributes` saved that way are lost. Always use `save`.
+- The `_fulltext` column that is written next to `extendedContent` is built only from the application's
+  `@Fulltextable` fields (see [Domain model](../domain-model.md#full-text-column)). A plugin's `attributes` are not in
+  it and can't be added to it.
 - `@ExtendedAttribute` is the application's own way of adding fields to an entity without a migration - many fields
   of `ChatMessage`, `Manuscript`, `Protocol` and the settings are stored like this. It works for `String`, the
   numeric types, `boolean`, `Date` and enums, stored as strings (dates as ISO-8601 instants in UTC).
