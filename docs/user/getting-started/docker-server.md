@@ -138,8 +138,15 @@ docker compose up -d --build
 
 With the [prebuilt image](#prebuilt-image) use `docker compose pull` and `docker compose up -d` instead.
 
-The database is upgraded automatically when the new version starts. Make a
-[database backup](../administration/database-backups.md) first.
+The database is upgraded automatically when the new version starts. Marginalia saves a
+[copy of the database](../administration/database-backups.md#copy-before-an-upgrade) before it changes its structure,
+but make a [database backup](../administration/database-backups.md) of your own first as well.
+
+## Health
+
+The image has a Docker health check: `docker ps` shows `(health: starting)` while Marginalia starts (up to two
+minutes), then `(healthy)`. It is `unhealthy` when port 8080 stops answering with a page. Docker does not restart an
+unhealthy container by itself; use the status for your monitoring or an auto-heal tool.
 
 ## Logs
 

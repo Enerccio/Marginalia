@@ -54,7 +54,12 @@ sqlite> select id, name, cast(extendedContent as text) from manuscripts;
 ## Startup: migrate, then validate
 
 1. Before the data source is created, `Configuration.resolveDb` swaps in a staged database restore, if there is one
-   (see [Database backups and restores](#database-backups-and-restores)).
+   (see [Database backups and restores](#database-backups-and-restores)). Then `Configuration.backupBeforeMigration`
+   asks `DatabaseCheck.pendingMigrationFrom` whether the existing file is behind the newest bundled `V<n>` migration
+   (or has no history table, which Flyway baselines at V1). If so it saves a `VACUUM INTO` copy as
+   `db-backups/pre-migration-<time>-V<from>-marginalia.sqlite` and keeps the newest three. A new installation (no file
+   or an empty one) and a current database are left alone, and a copy that fails is logged, not fatal. The check
+   looks at the Flyway history only, so a Java `Migration` bean without a `V<n>` file does not trigger a copy.
 2. Flyway runs every pending migration from `classpath:migration` (`src/main/resources/migration/`) and records it in
    `flyway_schema_history`. `baselineOnMigrate=true` with baseline version `1` makes databases created before Flyway
    was introduced (V1 schema without a history table) start at V1 and get V2 onwards.
@@ -69,7 +74,7 @@ log. Typical messages:
 | `Schema-validation: missing column [x] in table [y]` | An entity field was mapped as a column without a migration. |
 | `Schema-validation: missing table [x]` | A new entity without a migration, or the migration names the table differently. |
 | `Validate failed: Migrations have failed validation ... checksum mismatch` | An already applied migration file was edited. |
-| `Migration V<n>__... failed` | The SQL of a migration failed; Flyway rolls the migration back. |
+| `Migration V<n>__... failed` | The SQL of a migration failed; Flyway rolls that migration back (SQLite DDL is transactional, each file is its own transaction, earlier files of the same run stay applied) and startup stops. Flyway Community has no undo, so a migration that succeeded is only reversible from the `pre-migration-*` copy. |
 
 There is also a second, Java-level version check: `ApplicationInitializer` compares `AppSettings.dbVersion` /
 `appVersion` with the versions set in `container-config.xml` and runs registered `Migration` beans for data changes
@@ -293,7 +298,7 @@ means the index is used. `FlywayMigrationTest.tagRelationLookupsUseIndexes` does
 
 `DatabaseBackupServiceImpl` backs up the live database with SQLite's `VACUUM INTO '<file>'`, which writes a
 consistent, compacted copy without stopping the application. Backups go to `<data folder>/db-backups/` as
-`marginalia-<time>.sqlite` (manual) or `marginalia-scheduled-<time>.sqlite`; scheduled ones are rotated (keep last N). The methods the UI calls (create, list, download, upload, delete, restore, schedule) call `AdminGuard.requireAdmin()`; the scheduled run (`createScheduledBackup`) and the rotation need no logged-in user.
+`marginalia-<time>.sqlite` (manual) or `marginalia-scheduled-<time>.sqlite`; scheduled ones are rotated (keep last N). `Configuration` writes two more kinds into the same folder, `pre-restore-*` (the database a restore replaced) and `pre-migration-*` (see [Startup](#startup-migrate-then-validate)); the service lists every `.sqlite` file there, and only `marginalia-scheduled-*` counts as scheduled. The methods the UI calls (create, list, download, upload, delete, restore, schedule) call `AdminGuard.requireAdmin()`; the scheduled run (`createScheduledBackup`) and the rotation need no logged-in user.
 
 A database can't be replaced while it's open, so restoring is done in two steps:
 

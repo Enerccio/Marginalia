@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844975904508">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977120025">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844975904508" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844977120025" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844975904508" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844975904508" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844975904508" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844977120025" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -314,7 +314,8 @@ other devices use the <a href="../docker-server/">server</a> behind HTTPS instea
 </div>
 <h2 id="updating">Updating</h2>
 <p>Quit Marginalia, replace the app (or the portable folder) with the new version and start it again. Your data stays in
-<code translate="no" v-pre>.marginalia</code> and is upgraded automatically on the first start. Extensions are built for one Marginalia version, so
+<code translate="no" v-pre>.marginalia</code> and is upgraded automatically on the first start; before the structure of the database changes,
+Marginalia saves a <a href="../../administration/database-backups/#copy-before-an-upgrade">copy of it</a> in <code translate="no" v-pre>db-backups</code>. Extensions are built for one Marginalia version, so
 update them at the same time (see <a href="../../administration/extensions/">Managing extensions</a>).</p>
 <h2 id="uninstalling">Uninstalling</h2>
 <p>Delete the app or the folder. To remove your data as well, delete the <code translate="no" v-pre>.marginalia</code> folder.</p>

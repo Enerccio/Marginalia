@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844975904508">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977120025">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844975904508" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844977120025" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844975904508" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844975904508" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844975904508" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977120025" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -255,7 +255,12 @@ sqlite&gt; select id, name, cast(extendedContent as text) from manuscripts;</cod
 <ol>
 <li>
 <p>Before the data source is created, <code translate="no" v-pre>Configuration.resolveDb</code> swaps in a staged database restore, if there is one
-(see <doc-anchor-trigger to="#database-backups-and-restores">Database backups and restores</doc-anchor-trigger>).</p>
+(see <doc-anchor-trigger to="#database-backups-and-restores">Database backups and restores</doc-anchor-trigger>). Then <code translate="no" v-pre>Configuration.backupBeforeMigration</code>
+asks <code translate="no" v-pre>DatabaseCheck.pendingMigrationFrom</code> whether the existing file is behind the newest bundled <code translate="no" v-pre>V&lt;n&gt;</code> migration
+(or has no history table, which Flyway baselines at V1). If so it saves a <code translate="no" v-pre>VACUUM INTO</code> copy as
+<code translate="no" v-pre>db-backups/pre-migration-&lt;time&gt;-V&lt;from&gt;-marginalia.sqlite</code> and keeps the newest three. A new installation (no file
+or an empty one) and a current database are left alone, and a copy that fails is logged, not fatal. The check
+looks at the Flyway history only, so a Java <code translate="no" v-pre>Migration</code> bean without a <code translate="no" v-pre>V&lt;n&gt;</code> file does not trigger a copy.</p>
 </li>
 <li>
 <p>Flyway runs every pending migration from <code translate="no" v-pre>classpath:migration</code> (<code translate="no" v-pre>src/main/resources/migration/</code>) and records it in
@@ -274,7 +279,7 @@ log. Typical messages:</p>
 | `Schema-validation: missing column [x] in table [y]` | An entity field was mapped as a column without a migration. |
 | `Schema-validation: missing table [x]` | A new entity without a migration, or the migration names the table differently. |
 | `Validate failed: Migrations have failed validation ... checksum mismatch` | An already applied migration file was edited. |
-| `Migration V&lt;n&gt;__... failed` | The SQL of a migration failed; Flyway rolls the migration back. |">
+| `Migration V&lt;n&gt;__... failed` | The SQL of a migration failed; Flyway rolls that migration back (SQLite DDL is transactional, each file is its own transaction, earlier files of the same run stay applied) and startup stops. Flyway Community has no undo, so a migration that succeeded is only reversible from the `pre-migration-*` copy. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -298,7 +303,7 @@ log. Typical messages:</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Migration V&lt;n&gt;__... failed</code></td>
-<td>The SQL of a migration failed; Flyway rolls the migration back.</td>
+<td>The SQL of a migration failed; Flyway rolls that migration back (SQLite DDL is transactional, each file is its own transaction, earlier files of the same run stay applied) and startup stops. Flyway Community has no undo, so a migration that succeeded is only reversible from the <code translate="no" v-pre>pre-migration-*</code> copy.</td>
 </tr>
 </tbody>
 </table>
@@ -682,7 +687,7 @@ converter for any new secret column.</p>
 <h2 id="database-backups-and-restores">Database backups and restores</h2>
 <p><code translate="no" v-pre>DatabaseBackupServiceImpl</code> backs up the live database with SQLite&#x27;s <code translate="no" v-pre>VACUUM INTO '&lt;file&gt;'</code>, which writes a
 consistent, compacted copy without stopping the application. Backups go to <code translate="no" v-pre>&lt;data folder&gt;/db-backups/</code> as
-<code translate="no" v-pre>marginalia-&lt;time&gt;.sqlite</code> (manual) or <code translate="no" v-pre>marginalia-scheduled-&lt;time&gt;.sqlite</code>; scheduled ones are rotated (keep last N). The methods the UI calls (create, list, download, upload, delete, restore, schedule) call <code translate="no" v-pre>AdminGuard.requireAdmin()</code>; the scheduled run (<code translate="no" v-pre>createScheduledBackup</code>) and the rotation need no logged-in user.</p>
+<code translate="no" v-pre>marginalia-&lt;time&gt;.sqlite</code> (manual) or <code translate="no" v-pre>marginalia-scheduled-&lt;time&gt;.sqlite</code>; scheduled ones are rotated (keep last N). <code translate="no" v-pre>Configuration</code> writes two more kinds into the same folder, <code translate="no" v-pre>pre-restore-*</code> (the database a restore replaced) and <code translate="no" v-pre>pre-migration-*</code> (see <doc-anchor-trigger to="#startup-migrate-then-validate">Startup</doc-anchor-trigger>); the service lists every <code translate="no" v-pre>.sqlite</code> file there, and only <code translate="no" v-pre>marginalia-scheduled-*</code> counts as scheduled. The methods the UI calls (create, list, download, upload, delete, restore, schedule) call <code translate="no" v-pre>AdminGuard.requireAdmin()</code>; the scheduled run (<code translate="no" v-pre>createScheduledBackup</code>) and the rotation need no logged-in user.</p>
 <p>A database can&#x27;t be replaced while it&#x27;s open, so restoring is done in two steps:</p>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">sequenceDiagram
     participant A as Admin UI

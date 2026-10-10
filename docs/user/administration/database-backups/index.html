@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844975904508">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977120025">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844975904508" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844977120025" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844975904508" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844975904508" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844977120025" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -237,7 +237,10 @@ itself.</p>
         </div>
     </div>
 </div>
-<p>The files are stored in the <code translate="no" v-pre>db-backups</code> folder of the <a href="../#the-data-folder">data folder</a>. Book backups and
+<p>The files are stored in the <code translate="no" v-pre>db-backups</code> folder of the <a href="../#the-data-folder">data folder</a>. Copies Marginalia
+makes itself - <code translate="no" v-pre>pre-restore-...</code> before a <doc-anchor-trigger to="#restoring">restore</doc-anchor-trigger> and <code translate="no" v-pre>pre-migration-...</code> before an
+<doc-anchor-trigger to="#copy-before-an-upgrade">upgrade</doc-anchor-trigger> - are in the list too, shown as <em>Manual</em>, so they are never deleted by the rotation
+of scheduled backups. Book backups and
 extension JARs are separate files and are not part of a database backup.</p>
 <p><strong>Uploaded files (the <a href="../../books/story-editor/#images">pictures of the parts</a>) are not part of a database backup</strong>
 either. The database only knows them as entries of the <a href="../../resources/">Resources</a> tab; the files are in the
@@ -366,6 +369,14 @@ current database and starts normally; the refused file is moved to <code transla
 and the log says why.</p>
 <p>Everything after the backup is lost: books, parts and settings created since. Users who are logged in have to log in
 again if their account changed.</p>
+<h2 id="copy-before-an-upgrade">Copy before an upgrade</h2>
+<p>When a new version of Marginalia is going to change the structure of an existing database, it first saves a copy as
+<code translate="no" v-pre>db-backups/pre-migration-&lt;time&gt;-V&lt;version&gt;-marginalia.sqlite</code>, where the version is the one the database was at. The
+copy is in the list of backups, so an upgrade can be undone by installing the old version of Marginalia and
+<doc-anchor-trigger to="#restoring">restoring</doc-anchor-trigger> that copy. The last three copies are kept. A new installation has nothing to copy, and if the
+copy can&#x27;t be made (for example the disk is full), the log says so and the upgrade goes on.</p>
+<p>A migration that fails halfway is rolled back by itself and Marginalia does not start; the copy is for an upgrade that
+went through but did something you don&#x27;t want.</p>
 <h2 id="moving-to-another-computer">Moving to another computer</h2>
 <ol>
 <li>Create a backup and <strong>Download</strong> it.</li>

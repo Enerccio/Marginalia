@@ -30,7 +30,8 @@ UI; they are loaded on the next start. This is also how the Docker setup can be 
 !!!warning Use extensions built for this version
 Extensions change parts of the user interface of one Marginalia version. Use the extensions built from the same source
 as the application (see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md)).
-An incompatible extension may fail to load or break parts of the application.
+An incompatible extension may fail to load or break parts of the application. The extension API is not frozen in
+1.0, so expect to update extensions together with Marginalia.
 !!!
 
 ## Removing
