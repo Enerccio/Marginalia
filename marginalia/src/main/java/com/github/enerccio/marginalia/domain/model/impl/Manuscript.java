@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
+import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
@@ -35,6 +36,10 @@ public class Manuscript extends ExtendableEntity {
     @SuppressWarnings("deprecation")
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastOpened;
+
+    @ExtendedAttribute
+    @Transient
+    private Language language;
 
     @ExtendedAttribute
     @Transient
@@ -106,6 +111,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setProtocol(Protocol protocol) {
         this.protocol = protocol;
+    }
+
+    public Language getLanguage() {
+        return language != null ? language : Language.ENGLISH;
+    }
+
+    public void setLanguage(Language language) {
+        this.language = language;
     }
 
     public String getTemplate() {

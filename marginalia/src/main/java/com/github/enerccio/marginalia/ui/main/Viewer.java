@@ -342,6 +342,8 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
         // Always apply reading style
         container.addClassName(SharedStyles.MARKDOWN_MANUSCRIPT_STYLES);
+        // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
+        container.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
 
         UI.getCurrent().getPage().executeJs("""
                 if (!document.getElementById('marginalia-markdown-fix-style')) {
