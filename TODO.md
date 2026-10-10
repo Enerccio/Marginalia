@@ -102,9 +102,14 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - ✅ "Test Connection" button in `AIDialog` (list models + 1-token completion).
     - ✅ Warning before sending when the prompt plus the response limit exceed the context (`onWarning`).
 
-12. **Trash / restore UI.** Everything is soft deleted, but users can't undo a delete. Add a "Recently deleted"
+12. ✅ ~~**Trash / restore UI.** Everything is soft deleted, but users can't undo a delete. Add a "Recently deleted"
     view per user (books, lorebooks, entries, providers, protocols) with restore. Show its contents in the cleanup
-    page so admins know what a purge removes.
+    page so admins know what a purge removes.~~ The *Trash* tab (`TrashPart`, widget `TrashGrid`, service
+    `TrashService` implemented by `CleanupServiceImpl`): users restore their own deleted objects, administrators see
+    all users' (filter by user) and restore any. Filter by type (`Localization.localizeDomainObject`), a link shows the
+    extended content as JSON. Restore is refused while a deleted parent (owner, book, lorebook, strong reference) is not
+    restored with it. The same widget is in *Admin → Cleanup*. Not done: a restored story part does not get its
+    former children back (they were moved to its parent when it was deleted).
 
 13. ✅ ~~**Deleted users' data policy.** Cleanup never purges a deleted user while they own data (`owner` is STRONG).
     Decide: admin action "delete user and all their data" (mark owned data deleted, then cleanup), or

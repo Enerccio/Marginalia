@@ -71,5 +71,5 @@ using it, and it works again when you check it.
 
 **Delete Lorebook** removes the lorebook from your lists. Books that used it no longer get its entries, and lorebooks
 that included it as a sub lorebook skip it. The data stays in the database until an administrator runs
-[Cleanup](../administration/cleanup.md); copies in [book backups](../books/backups.md) and exported files are not
+[Cleanup](../administration/cleanup.md), and until then you can restore the lorebook from the [Trash](../trash.md); copies in [book backups](../books/backups.md) and exported files are not
 affected.
