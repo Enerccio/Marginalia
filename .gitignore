@@ -14,3 +14,4 @@ retype.manifest
 /marginalia/types.d.ts
 /marginalia/tsconfig.json
 /marginalia/types.d.ts
+.DS_Store
