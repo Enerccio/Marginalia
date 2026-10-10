@@ -31,9 +31,12 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 	}
 
 	public static ThreadCopyRequestAttributes create() {
-		ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-		if (attrs != null) {
-			return new ThreadCopyRequestAttributes(attrs.getRequest(), attrs.getResponse());
+		RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
+		if (attrs instanceof ThreadCopyRequestAttributes existing) {
+			return existing;
+		}
+		if (attrs instanceof ServletRequestAttributes servletAttrs) {
+			return new ThreadCopyRequestAttributes(servletAttrs.getRequest(), servletAttrs.getResponse());
 		}
 		return null;
 	}

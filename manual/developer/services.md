@@ -131,11 +131,27 @@ without any user and only use installation-wide data (`getOrCreateApp`).
 | `ChatMessageService` | The story tree: `createRoot`, `addChild`, `getBranchFromLeaf`, `getSwipesForMessage` (siblings), `swipeTo` (sets the book's active leaf to the deepest last descendant - the caller saves the book), `branch` (copy as sibling), `deleteNodeAndMigrateChildren`, word and token sums, `countWords`. |
 | `SummaryService` | `createSummary(book, part, callback)` streams a summary from the model into a new `Summary` and attaches it to the part when finished; returns a `CancellationToken`. `copySummary` for branching. |
 | `StoryGenerationService` | Generating parts, see [Generation pipeline](generation-pipeline.md). |
+| `ExporterService` | Registry of story exporters (`registerExporter`, `unregisterExporter`, `getExporters`). The built-in `TxtExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter` and `EpubExporter` (package `export`, all extend `ExporterBase`) are registered in `afterPropertiesSet`; an extension can register its own `Exporter` and it shows in the export dialog. See [Story export](#story-export). |
 | `BackupService` | Book backups as JSON files in `data/<login>/backups/manuscripts/<book id>/`: `takeBackup`, `getBackups`, `importBackup`, `applyBackup` (restore, optionally messages only), `cloneBackup` / `restoreAsNewManuscript`, `analyzeLorebooks` + `LorebookDecision`s for lorebooks found in the backup. |
 
 The automatic book backups (`BackupStrategy.AFTER_N_MESSAGES` / `AFTER_N_MINUTES`) are triggered by the story editor
 after a part is generated (`ManuscriptStoryPart`), not by a service - code that generates parts without the editor
 doesn't take them.
+
+### Story export
+
+`ExportDialog` (opened from the settings menu of `ManuscriptStoryPart`) collects the active branch in one
+`ProgressBarDialog` (indeterminate), cuts the chosen range and exports it in a second one whose total is the number of
+messages, then shows the download link. The exporter gets `ExportOptions` (title, author, title page, language), the
+messages and the progress dialog, on which it calls `updateProgress()` for every message.
+
+`ExporterBase` does the common work: it renders the title page from `Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE`
+(Handlebars, data `ExportHeaderTemplateData`), skips parts without text, reports progress and feeds the Markdown of
+each part to an `ExportWriter` that the exporter creates per export - exporters are shared between users, so any state
+must live in the writer. It also provides `toHtml` (CommonMark, raw HTML escaped, XHTML safe) and `walk`, which turns
+Markdown into paragraphs, headings, code and rules for formats built from styled text (`BlockSink`; used by TXT, DOCX
+and PDF). Libraries: CommonMark (parsing), Apache POI (DOCX), OpenPDF with the Liberation fonts (PDF); EPUB is written
+with `java.util.zip`.
 
 ### Lorebooks and tags
 

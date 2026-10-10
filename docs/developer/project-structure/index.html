@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844932853089">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844940490329">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844932853089" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844940490329" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844932853089" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844940490329" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844932853089" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844940490329" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -237,7 +237,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 <retype-table copy-text="| File | |
 |---|---|
 | `Configuration.java` | The `configuration` bean: data folder and its subfolders, database URL, staged database restore, saved login settings. |
-| `Defaults.java` | Built-in prompt defaults: master template, POV, tense, style, user prompt and summary prompt - used when neither the book nor the user's settings override them. |
+| `Defaults.java` | Built-in prompt defaults: master template, POV, tense, style, user prompt and summary prompt - used when neither the book nor the user's settings override them - and the template of the title page of story exports. |
 | `Constants.java` | Application constants: `DEAD_SESSION_CHECK_TIMEOUT` (seconds without a heartbeat before `SessionManager` closes a UI, default 120). |
 | `UIConstants.java`, `SharedStyles.java` | Column widths and dialog offsets; CSS class names defined in `shared-styles.css`. |
 | `SaneSQLiteDialect.java` | Hibernate's community SQLite dialect without generated `CHECK` constraints. |">
@@ -256,7 +256,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Defaults.java</code></td>
-<td>Built-in prompt defaults: master template, POV, tense, style, user prompt and summary prompt - used when neither the book nor the user&#x27;s settings override them.</td>
+<td>Built-in prompt defaults: master template, POV, tense, style, user prompt and summary prompt - used when neither the book nor the user&#x27;s settings override them - and the template of the title page of story exports.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Constants.java</code></td>
@@ -337,7 +337,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 | `ui.workspace` | `Workspace` (the tabbed workspace after login, footer buttons) and `WorkspaceComponent` (interface of its tabs). |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `AdminPart`. |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
-| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
+| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`. |
 | `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `TreantTree` (story tree drawn with treant.js), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
 | `ui.widgets` | Small widgets: `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
@@ -368,7 +368,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs</code></td>
-<td>Entity dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>UserDialog</code>), <code translate="no" v-pre>ManuscriptDialog</code> (the book window), <code translate="no" v-pre>LorebookImportDialog</code> (resolving lorebooks during restores), <code translate="no" v-pre>PromptDialog</code> (shows the prompt a part was generated from) and generic dialogs: <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ErrorDialog</code>, <code translate="no" v-pre>ProgressBarDialog</code>. Threading helpers <code translate="no" v-pre>ThreadAccessDialog</code> and <code translate="no" v-pre>UIPushGuard</code>.</td>
+<td>Entity dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>UserDialog</code>), <code translate="no" v-pre>ManuscriptDialog</code> (the book window), <code translate="no" v-pre>LorebookImportDialog</code> (resolving lorebooks during restores), <code translate="no" v-pre>PromptDialog</code> (shows the prompt a part was generated from) and generic dialogs: <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ErrorDialog</code>, <code translate="no" v-pre>ProgressBarDialog</code>. <code translate="no" v-pre>ExportDialog</code> exports the story of a book. Threading helpers <code translate="no" v-pre>ThreadAccessDialog</code> and <code translate="no" v-pre>UIPushGuard</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.manuscript</code></td>
@@ -588,6 +588,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 |---|---|
 | `TemplateData` | Base of all template data; implements the SillyTavern-compatible macros. |
 | `MasterTemplateData`, `UserPromptData`, `LorebookTemplateData`, `SummaryTemplateData` | The variables available in each kind of template (listed in the UI hints). |
+| `ExportHeaderTemplateData` | The variables (`title`, `author`) of the title page template of story exports. |
 | `TemplateContext` | What macros are evaluated against: POV character, model, story so far, variables. One per generation. |
 | `TemplateVariables` | Storage of `setvar` / `getvar` variables (local per branch, global per book). |
 | `MomentFormat` | moment.js date formats → `DateTimeFormatter` for ``. |
@@ -609,6 +610,10 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <tr>
 <td><code translate="no" v-pre>MasterTemplateData</code>, <code translate="no" v-pre>UserPromptData</code>, <code translate="no" v-pre>LorebookTemplateData</code>, <code translate="no" v-pre>SummaryTemplateData</code></td>
 <td>The variables available in each kind of template (listed in the UI hints).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ExportHeaderTemplateData</code></td>
+<td>The variables (<code translate="no" v-pre>title</code>, <code translate="no" v-pre>author</code>) of the title page template of story exports.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TemplateContext</code></td>
@@ -635,6 +640,33 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </div>
 </retype-table>
 <p>See <a href="../templating/">Templating &amp; macros</a>.</p>
+<h3 id="export---story-export"><code translate="no" v-pre>export</code> - story export</h3>
+<retype-table copy-text="| File | |
+|---|---|
+| `ExporterBase` | Common part of the exporters: title page, progress, Markdown parsing, `toHtml` and the `walk` over Markdown blocks. |
+| `TxtExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter`, `EpubExporter` | The built-in formats, registered by `ExporterServiceImpl`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>File</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>ExporterBase</code></td>
+<td>Common part of the exporters: title page, progress, Markdown parsing, <code translate="no" v-pre>toHtml</code> and the <code translate="no" v-pre>walk</code> over Markdown blocks.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>TxtExporter</code>, <code translate="no" v-pre>HtmlExporter</code>, <code translate="no" v-pre>DocxExporter</code>, <code translate="no" v-pre>PdfExporter</code>, <code translate="no" v-pre>EpubExporter</code></td>
+<td>The built-in formats, registered by <code translate="no" v-pre>ExporterServiceImpl</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>See <a href="../services/#story-export">Story export</a>.</p>
 <h3 id="domainsecurity"><code translate="no" v-pre>domain.security</code></h3>
 <p><code translate="no" v-pre>model/User</code>, <code translate="no" v-pre>repository/UserRepository</code> (+ <code translate="no" v-pre>impl/JpaUserRepository</code>), <code translate="no" v-pre>service/UserService</code> (+
 <code translate="no" v-pre>impl/UserServiceImpl</code>: authentication, password hashes, saved logins, protection of the last administrator) and

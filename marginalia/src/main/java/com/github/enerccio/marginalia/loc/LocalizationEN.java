@@ -230,6 +230,15 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_LANGUAGE, "Language");
         setValue(L.LABEL_FIT_TEXT_AREA_TO_CONTENT, "Grow to fit the whole text");
         setValue(L.LABEL_FIXED_TEXT_AREA_HEIGHT, "Fixed height, scroll the text");
+        setValue(L.LABEL_EXPORT_STORY, "Export story");
+        setValue(L.LABEL_EXPORT_FORMAT, "Format");
+        setValue(L.LABEL_FILE_NAME, "File name");
+        setValue(L.LABEL_BOOK_TITLE, "Book title");
+        setValue(L.LABEL_AUTHOR, "Author");
+        setValue(L.LABEL_FROM_MESSAGE, "From message");
+        setValue(L.LABEL_TO_MESSAGE, "To message (empty for the end)");
+        setValue(L.LABEL_INCLUDE_TITLE_PAGE, "Include title page");
+        setValue(L.LABEL_CLOSE, "Close");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -273,6 +282,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ERROR_MANUSCRIPT_UUID_NULL, "Manuscript and its UUID cannot be null.");
         setValue(L.ERROR_SUMMARY_FAILED, "Failed to reach inference service for generating summary.");
         setValue(L.ERROR_NAME_CANT_BE_EMPTY, "Name can't be empty.");
+        setValue(L.ERROR_EXPORT_RANGE_INVALID, "The last message can't be before the first message.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -319,6 +329,10 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_NO_PASSWORD_WARNING, "Warning! No password provided. If this is a server instance, please provide password for every user. Are you sure you want to save user with blank password?");
         setValue(L.MSG_CLEAR_PASSWORD_WARNING, "The password will be removed and the user's saved logins ended. The user then logs in with the user name only, anyone who knows it can log in until a new password is set. Continue?");
         setValue(L.MSG_UNSAVED_SETTINGS, "Unsaved changes - save or discard them to leave the tab.");
+        setValue(L.MSG_EXPORT_COLLECTING, "Collecting messages...");
+        setValue(L.MSG_EXPORTING, "Exporting the story...");
+        setValue(L.MSG_EXPORT_READY, "The export is ready: %s");
+        setValue(L.MSG_EXPORT_NOTHING, "There is nothing to export in the selected range.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

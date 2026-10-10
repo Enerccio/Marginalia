@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844932853089">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844940490329">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844932853089" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844940490329" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844932853089" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844940490329" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844932853089" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844932853089" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844940490329" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844940490329" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -365,6 +365,7 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 | `ChatMessageService` | The story tree: `createRoot`, `addChild`, `getBranchFromLeaf`, `getSwipesForMessage` (siblings), `swipeTo` (sets the book's active leaf to the deepest last descendant - the caller saves the book), `branch` (copy as sibling), `deleteNodeAndMigrateChildren`, word and token sums, `countWords`. |
 | `SummaryService` | `createSummary(book, part, callback)` streams a summary from the model into a new `Summary` and attaches it to the part when finished; returns a `CancellationToken`. `copySummary` for branching. |
 | `StoryGenerationService` | Generating parts, see [Generation pipeline](generation-pipeline.md). |
+| `ExporterService` | Registry of story exporters (`registerExporter`, `unregisterExporter`, `getExporters`). The built-in `TxtExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter` and `EpubExporter` (package `export`, all extend `ExporterBase`) are registered in `afterPropertiesSet`; an extension can register its own `Exporter` and it shows in the export dialog. See [Story export](#story-export). |
 | `BackupService` | Book backups as JSON files in `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/`: `takeBackup`, `getBackups`, `importBackup`, `applyBackup` (restore, optionally messages only), `cloneBackup` / `restoreAsNewManuscript`, `analyzeLorebooks` + `LorebookDecision`s for lorebooks found in the backup. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -392,6 +393,10 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 <td>Generating parts, see <a href="../generation-pipeline/">Generation pipeline</a>.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>ExporterService</code></td>
+<td>Registry of story exporters (<code translate="no" v-pre>registerExporter</code>, <code translate="no" v-pre>unregisterExporter</code>, <code translate="no" v-pre>getExporters</code>). The built-in <code translate="no" v-pre>TxtExporter</code>, <code translate="no" v-pre>HtmlExporter</code>, <code translate="no" v-pre>DocxExporter</code>, <code translate="no" v-pre>PdfExporter</code> and <code translate="no" v-pre>EpubExporter</code> (package <code translate="no" v-pre>export</code>, all extend <code translate="no" v-pre>ExporterBase</code>) are registered in <code translate="no" v-pre>afterPropertiesSet</code>; an extension can register its own <code translate="no" v-pre>Exporter</code> and it shows in the export dialog. See <doc-anchor-trigger to="#story-export">Story export</doc-anchor-trigger>.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>BackupService</code></td>
 <td>Book backups as JSON files in <code translate="no" v-pre>data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/</code>: <code translate="no" v-pre>takeBackup</code>, <code translate="no" v-pre>getBackups</code>, <code translate="no" v-pre>importBackup</code>, <code translate="no" v-pre>applyBackup</code> (restore, optionally messages only), <code translate="no" v-pre>cloneBackup</code> / <code translate="no" v-pre>restoreAsNewManuscript</code>, <code translate="no" v-pre>analyzeLorebooks</code> + <code translate="no" v-pre>LorebookDecision</code>s for lorebooks found in the backup.</td>
 </tr>
@@ -402,6 +407,18 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 <p>The automatic book backups (<code translate="no" v-pre>BackupStrategy.AFTER_N_MESSAGES</code> / <code translate="no" v-pre>AFTER_N_MINUTES</code>) are triggered by the story editor
 after a part is generated (<code translate="no" v-pre>ManuscriptStoryPart</code>), not by a service - code that generates parts without the editor
 doesn&#x27;t take them.</p>
+<h3 id="story-export">Story export</h3>
+<p><code translate="no" v-pre>ExportDialog</code> (opened from the settings menu of <code translate="no" v-pre>ManuscriptStoryPart</code>) collects the active branch in one
+<code translate="no" v-pre>ProgressBarDialog</code> (indeterminate), cuts the chosen range and exports it in a second one whose total is the number of
+messages, then shows the download link. The exporter gets <code translate="no" v-pre>ExportOptions</code> (title, author, title page, language), the
+messages and the progress dialog, on which it calls <code translate="no" v-pre>updateProgress()</code> for every message.</p>
+<p><code translate="no" v-pre>ExporterBase</code> does the common work: it renders the title page from <code translate="no" v-pre>Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE</code>
+(Handlebars, data <code translate="no" v-pre>ExportHeaderTemplateData</code>), skips parts without text, reports progress and feeds the Markdown of
+each part to an <code translate="no" v-pre>ExportWriter</code> that the exporter creates per export - exporters are shared between users, so any state
+must live in the writer. It also provides <code translate="no" v-pre>toHtml</code> (CommonMark, raw HTML escaped, XHTML safe) and <code translate="no" v-pre>walk</code>, which turns
+Markdown into paragraphs, headings, code and rules for formats built from styled text (<code translate="no" v-pre>BlockSink</code>; used by TXT, DOCX
+and PDF). Libraries: CommonMark (parsing), Apache POI (DOCX), OpenPDF with the Liberation fonts (PDF); EPUB is written
+with <code translate="no" v-pre>java.util.zip</code>.</p>
 <h3 id="lorebooks-and-tags">Lorebooks and tags</h3>
 <retype-table copy-text="| Service | Responsible for |
 |---|---|

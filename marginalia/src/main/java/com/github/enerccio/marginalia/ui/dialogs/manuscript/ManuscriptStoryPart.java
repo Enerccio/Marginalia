@@ -13,10 +13,7 @@ import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.Ja
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
-import com.github.enerccio.marginalia.ui.dialogs.PromptDialog;
-import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -260,6 +257,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
                 manuscriptService.save(manuscript);
                 applyBookStyles();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+        cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_EXPORT.create(), loc.getValue(L.LABEL_EXPORT_STORY)), event -> {
+            try {
+                new ExportDialog(parent.refreshManuscript()).open();
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
