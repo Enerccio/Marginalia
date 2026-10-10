@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.utils;
 
+import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -45,38 +46,15 @@ public class UIUtils {
     private static final ThreadLocal<SimpleDateFormat> simpleDateFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd.MM.yyyy HH:mm:ss"));
 
     /**
-     * Address of the client of the current request, null outside of one. Behind a reverse proxy (the peer is a
-     * loopback or private address) the last {@code X-Forwarded-For} entry is used, that is the address the proxy
-     * itself saw. Earlier entries and the header from any other peer are client controlled and ignored.
+     * Address of the client of the current request, null outside of one. {@code X-Forwarded-For} is only read when the
+     * connection comes from one of the configured trusted proxies, see {@link ClientAddressResolver}.
      */
-    public static String clientAddress() {
+    public static String clientAddress(Configuration configuration) {
         VaadinRequest request = VaadinService.getCurrentRequest();
         if (request == null) {
             return null;
         }
-        String remote = request.getRemoteAddr();
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (StringUtils.isBlank(forwarded) || !isProxyPeer(remote)) {
-            return remote;
-        }
-        String last = StringUtils.trimToEmpty(StringUtils.substringAfterLast(forwarded, ","));
-        if (last.isEmpty()) {
-            last = forwarded.trim();
-        }
-        return last;
-    }
-
-    private static boolean isProxyPeer(String address) {
-        if (StringUtils.isBlank(address)) {
-            return false;
-        }
-        try {
-            java.net.InetAddress a = java.net.InetAddress.getByName(address);
-            return a.isLoopbackAddress() || a.isSiteLocalAddress() || a.isLinkLocalAddress()
-                    || (a.getAddress().length == 16 && (a.getAddress()[0] & 0xfe) == 0xfc);
-        } catch (java.net.UnknownHostException e) {
-            return false;
-        }
+        return configuration.getClientAddressResolver().resolve(request.getRemoteAddr(), request.getHeader("X-Forwarded-For"));
     }
 
     public static void showError(String errorMessage, Throwable cause) {

@@ -42,10 +42,20 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     private static final String DUMMY_HASH = "";
 
     // per client address throttling, kept in memory only (a restart clears it); more free attempts than per user as
-    // several users can share an address (NAT, reverse proxy)
+    // several users can share an address (NAT, reverse proxy). A success does not clear the count - whoever owns any
+    // account could otherwise reset it between batches of guesses - failures are forgotten ADDRESS_FORGET_MILLIS after
+    // the last one. The table is bounded, the least recently used address is dropped first.
     static final int FREE_ADDRESS_ATTEMPTS = 30;
+    static final int MAX_TRACKED_ADDRESSES = 10_000;
     private static final long ADDRESS_FORGET_MILLIS = 60 * 60 * 1000L;
-    private final Map<String, AddressFailures> addressFailures = new HashMap<>();
+    private static final long ADDRESS_PURGE_INTERVAL_MILLIS = 60 * 1000L;
+    private final Map<String, AddressFailures> addressFailures = new LinkedHashMap<>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, AddressFailures> eldest) {
+            return size() > MAX_TRACKED_ADDRESSES;
+        }
+    };
+    private long lastAddressPurge;
 
     private static final class AddressFailures {
         int failed;
@@ -157,8 +167,9 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         boolean locked = user != null && user.getLockedUntil() > now;
 
         if (addressLocked) {
-            // not counted against the user, otherwise a blocked address could keep extending their lockout
-            log.warn("Login attempt for {} from blocked address {}", username, clientAddress);
+            // not counted against the user, otherwise a blocked address could keep extending their lockout; not logged
+            // as a warning either, the block itself was
+            log.debug("Login attempt for {} from blocked address {}", username, clientAddress);
             return false;
         }
 
@@ -181,9 +192,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         } else {
             log.warn("Failed login for unknown user {} from {}", username, clientAddress);
         }
-        if (ok && !locked) {
-            forgetAddress(clientAddress);
-        } else {
+        if (!ok || locked) {
             recordAddressFailure(clientAddress, now);
         }
         return ok && !locked;
@@ -194,18 +203,18 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         return failures != null && failures.lockedUntil > now;
     }
 
-    private synchronized void forgetAddress(String address) {
-        if (StringUtils.isNotBlank(address)) {
-            addressFailures.remove(address);
-        }
-    }
-
     private synchronized void recordAddressFailure(String address, long now) {
         if (StringUtils.isBlank(address)) {
             return;
         }
-        addressFailures.values().removeIf(f -> f.lastFailure + ADDRESS_FORGET_MILLIS < now && f.lockedUntil < now);
+        if (now - lastAddressPurge > ADDRESS_PURGE_INTERVAL_MILLIS) {
+            lastAddressPurge = now;
+            addressFailures.values().removeIf(f -> f.lastFailure + ADDRESS_FORGET_MILLIS < now && f.lockedUntil < now);
+        }
         AddressFailures failures = addressFailures.computeIfAbsent(address, a -> new AddressFailures());
+        if (failures.lastFailure + ADDRESS_FORGET_MILLIS < now && failures.lockedUntil < now) {
+            failures.failed = 0;
+        }
         failures.failed++;
         failures.lastFailure = now;
         if (failures.failed > FREE_ADDRESS_ATTEMPTS) {

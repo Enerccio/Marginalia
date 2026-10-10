@@ -1,6 +1,11 @@
 ---
 label: Extending the UI
 order: 70
+verified: b244ca1
+covers:
+  - marginalia/src/main/java/com/github/enerccio/marginalia/ui
+  - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
+  - marginalia/plugins
 ---
 
 # Extending the UI
@@ -255,7 +260,7 @@ screens can be garbage collected) and undo the changes in `onExtensionUnload`:
 private final Set<ContextMenu> menus = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
 @Override
-public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
     extensionService.unregisterDecorator(menuDecorator);
     synchronized (menus) {
         for (ContextMenu menu : menus) {

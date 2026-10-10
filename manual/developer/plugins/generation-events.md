@@ -1,6 +1,10 @@
 ---
 label: Generation events
 order: 65
+verified: b244ca1
+covers:
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation
+  - marginalia/plugins/authorsnote
 ---
 
 # Generation events
@@ -69,7 +73,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
     }
 
     @Override
-    public void onExtensionUnload(Bundle b, OsgiServiceImpl osgiService, ExtensionService extensionService) {
+    public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
         ...
         if (reserveRegistration != null) {
             reserveRegistration.unregister();

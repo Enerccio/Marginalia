@@ -1,6 +1,15 @@
 ---
 label: Packaging & releases
 order: 880
+verified: b244ca1
+covers:
+  - Dockerfile
+  - docker-compose.yml
+  - docker-entrypoint.sh
+  - .github
+  - marginalia/src/desktop
+  - marginalia/pom.xml
+  - retype.yml
 ---
 
 # Packaging & releases

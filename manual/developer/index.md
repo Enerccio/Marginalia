@@ -3,6 +3,11 @@ label: Developer guide
 icon: code
 expanded: true
 order: 800
+verified: b244ca1
+covers:
+  - marginalia/pom.xml
+  - Dockerfile
+  - docker-compose.yml
 ---
 
 # Developer guide

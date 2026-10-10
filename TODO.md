@@ -44,7 +44,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 5. ~~**Login brute-force protection.**~~ ✅ `UserServiceImpl.authenticate` does constant-work hashing (also for unknown
    users / missing passwords) and counts consecutive failures on `User` (`failedLogins`, `lockedUntil`): 10 free
    attempts, then 1s, 2s, 4s ... capped at 15 min; reset on success or password change/clear. Failures are logged.
-   Not done: per-IP throttling.
+   Per-IP throttling is in memory only (`UserServiceImpl`, 30 free failures per address, same back-off, logged; a
+   restart clears it; the address comes from `UIUtils.clientAddress()`, honouring `X-Forwarded-For` only from a
+   loopback/private peer).
 
 ---
 
