@@ -16,3 +16,6 @@ retype.manifest
 /marginalia/types.d.ts
 .DS_Store
 *.iml
+/src/main/bundles/dev.bundle
+/src/main/bundles/README.md
+/target/

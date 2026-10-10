@@ -173,6 +173,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
                         routerLink);
                 verticalLayout.setWidthFull();
                 verticalLayout.setSpacing(false);
+                verticalLayout.setPadding(false);
                 verticalLayout.setMargin(false);
                 publishedCheckbox.setHelperComponent(verticalLayout);
                 UI.getCurrent().getPage().fetchCurrentURL(url -> {

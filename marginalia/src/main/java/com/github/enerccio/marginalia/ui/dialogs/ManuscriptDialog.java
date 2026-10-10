@@ -14,6 +14,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.dialog.DialogVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -75,11 +76,12 @@ public class ManuscriptDialog extends Dialog {
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
+        addThemeVariants(DialogVariant.NO_PADDING);
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
         mainLayout.getStyle().set("overflow", "hidden");
-        mainLayout.setPadding(true);
+        mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
 
         tabs = new VTabSheet();

@@ -201,7 +201,7 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
 
             actions.add(restoreBtn, cloneBtn, exportAnchor, deleteBtn);
             return actions;
-        }).setHeader("").setFlexGrow(0).setWidth("440px");
+        }).setHeader("").setFlexGrow(0).setWidth("450px");
 
         mainLayout.add(strategyForm, toolbar, grid);
         mainLayout.setFlexGrow(1, grid);

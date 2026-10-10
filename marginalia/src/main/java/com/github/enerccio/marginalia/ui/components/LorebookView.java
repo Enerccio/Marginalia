@@ -27,6 +27,7 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
@@ -461,6 +462,7 @@ public class LorebookView extends VerticalLayout {
         });
 
         FormLayout settingsForm = new FormLayout();
+        settingsForm.setResponsiveSteps(new ResponsiveStep("400px", 2), new ResponsiveStep("800px", 4));
         settingsForm.setWidthFull();
 
         ComboBox<FilteringMode> filteringModeCombo = new ComboBox<>(loc.getValue(L.LABEL_FILTERING_MODE));
@@ -497,8 +499,6 @@ public class LorebookView extends VerticalLayout {
             }
         });
 
-        settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo);
-
         TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_NEGATIVE_TAGS), true);
         negativeTagCombo.setWidthFull();
         negativeTagCombo.setForEntity(entry, true);
@@ -514,7 +514,9 @@ public class LorebookView extends VerticalLayout {
             }
         });
 
-        detailsLayout.add(payloadField, payloadTokensSpan, settingsForm, negativeTagCombo, commentField);
+        settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo);
+
+        detailsLayout.add(payloadField, payloadTokensSpan, settingsForm, commentField);
         return detailsLayout;
     }
 
