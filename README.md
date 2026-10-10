@@ -87,7 +87,15 @@ Marginalia is then available on port 8080 and keeps its data in `./data`. Memory
 `docker-compose.yml` (`JAVA_TOOL_OPTIONS`).
 
 Marginalia uses login cookies, so **don't expose it to the internet over plain HTTP** - put it behind a reverse proxy
-with HTTPS (Caddy, nginx, Traefik...) and forward to port 8080.
+with HTTPS (Caddy, nginx, Traefik...) and forward to port 8080. Don't leave an account without a password on a server.
+
+The image reports its health to Docker (`docker ps` shows `healthy` once Marginalia is up, which takes a minute).
+
+**Upgrading:** the database is migrated automatically when a newer version starts. A migration that fails is rolled
+back and Marginalia does not start, but one that went through stays, and an older version refuses the migrated database.
+So before changing the structure of an existing database Marginalia saves a copy in `db-backups` (the last three are
+kept, listed in *Admin → Database Backups*). It's still wise to make your own database backup first, then
+`git pull && docker compose up -d --build` (or `docker compose pull && docker compose up -d` with the prebuilt image).
 
 ### Build from source
 
@@ -120,6 +128,9 @@ built separately with Maven:
 - [Lorebook VCS](marginalia/plugins/lorebookvcs/README.md) - revision history for lorebook entries,
 - [Reviewer](marginalia/plugins/reviewer/README.md) - AI reviews of story parts,
 - [Side Query](marginalia/plugins/sidequery/README.md) - ask the model about your book without changing it.
+
+The extension API is not frozen in 1.0: extensions are built for one Marginalia version, and Marginalia refuses to start
+one that does not fit the version it is running.
 
 ## License
 

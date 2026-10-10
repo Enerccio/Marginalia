@@ -20,12 +20,11 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 public class Configuration implements InitializingBean {
 
@@ -34,6 +33,11 @@ public class Configuration implements InitializingBean {
     public static final String PENDING_RESTORE_SUFFIX = ".restore";
     public static final String PRE_RESTORE_PREFIX = "pre-restore-";
     public static final String REJECTED_RESTORE_PREFIX = "rejected-restore-";
+    public static final String PRE_MIGRATION_PREFIX = "pre-migration-";
+    /**
+     * How many copies made before a migration are kept, older ones are deleted.
+     */
+    private static final int PRE_MIGRATION_KEEP = 3;
     private static final String[] SQLITE_SIDE_FILES = {"-wal", "-shm"};
     public static final String SECRET_KEY_FILE = "secret.key";
     public static final String ENCRYPTED_PREFIX = "enc:";
@@ -177,7 +181,55 @@ public class Configuration implements InitializingBean {
     public String resolveDb(String db) throws IOException {
         databaseFile = new File(folder, db);
         applyPendingRestore(databaseFile);
+        backupBeforeMigration(databaseFile);
         return jdbcUrl(databaseFile);
+    }
+
+    /**
+     * Flyway rolls back a migration that fails, but not one that succeeded and turned out wrong, and an older version
+     * refuses a database from a newer one. So before an upgrade migrates an existing database, a consistent copy of
+     * it is put in the backup folder (it shows up in Admin - Database Backups and can be restored from there). Done
+     * before the connection pool exists, nothing else uses the file yet.
+     * <p>
+     * A copy that can't be made is logged, not fatal: a desktop user with a full disk should still get to the
+     * application.
+     */
+    private void backupBeforeMigration(File db) {
+        try {
+            Optional<String> from = DatabaseCheck.pendingMigrationFrom(db);
+            if (from.isEmpty()) {
+                return;
+            }
+            String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
+            String prefix = PRE_MIGRATION_PREFIX + timestamp + "-V" + from.get() + "-";
+            File target = new File(databaseBackupFolder, prefix + db.getName());
+            for (int counter = 1; target.exists(); counter++) {
+                target = new File(databaseBackupFolder, prefix + counter + "-" + db.getName());
+            }
+            try (Connection connection = DriverManager.getConnection(jdbcUrl(db));
+                 Statement statement = connection.createStatement()) {
+                statement.execute("VACUUM INTO '" + target.getAbsolutePath().replace("'", "''") + "'");
+            }
+            log.warn("The database is at version {} and is going to be migrated, a copy was saved to {}", from.get(),
+                    target.getAbsolutePath());
+            deleteOldPreMigrationCopies();
+        } catch (Exception e) {
+            log.error("Could not save a copy of the database before migrating it, continuing without it", e);
+        }
+    }
+
+    private void deleteOldPreMigrationCopies() throws IOException {
+        File[] copies = databaseBackupFolder.listFiles(f -> f.isFile() && f.getName().startsWith(PRE_MIGRATION_PREFIX)
+                && f.getName().endsWith(".sqlite"));
+        if (copies == null || copies.length <= PRE_MIGRATION_KEEP) {
+            return;
+        }
+        // the names start with a sortable timestamp
+        Arrays.sort(copies, Comparator.comparing(File::getName).reversed());
+        for (int i = PRE_MIGRATION_KEEP; i < copies.length; i++) {
+            Files.deleteIfExists(copies[i].toPath());
+            log.info("Deleted old pre-migration database copy {}", copies[i].getName());
+        }
     }
 
     private static String jdbcUrl(File db) {

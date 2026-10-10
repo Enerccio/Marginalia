@@ -10,8 +10,7 @@
   <name>marginalia</name>
 
   <properties>
-    <marginalia-version>${project.version}</marginalia-version>
-    <marginalia-build-timestamp>${maven.build.timestamp}</marginalia-build-timestamp>
+    <marginalia.build.timestamp>${maven.build.timestamp}</marginalia.build.timestamp>
     <maven.build.timestamp.format>dd.MM.yyyy HH:mm</maven.build.timestamp.format>
 
     <java.version>25</java.version>
@@ -206,33 +205,6 @@
       </exclusions>
     </dependency>
 
-    <!-- TIKA - Text extraction from various file types -->
-    <dependency>
-      <groupId>org.apache.tika</groupId>
-      <artifactId>tika-async-cli</artifactId>
-      <version>3.2.3</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>log4j-slf4j2-impl</artifactId>
-          <groupId>org.apache.logging.log4j</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.tika</groupId>
-      <artifactId>tika-parsers-standard-package</artifactId>
-      <version>3.2.3</version>
-
-      <!-- xml-apis contains packages which are include in standard JDK -->
-      <exclusions>
-        <exclusion>
-          <groupId>xml-apis</groupId>
-          <artifactId>xml-apis</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
     <dependency>
       <groupId>com.flowingcode.addons</groupId>
       <artifactId>font-awesome-iron-iconset</artifactId>
@@ -275,6 +247,14 @@
       <groupId>com.github.librepdf</groupId>
       <artifactId>openpdf-fonts-extra</artifactId>
       <version>3.0.5</version>
+    </dependency>
+
+    <!-- reads the exported PDFs back in the export tests -->
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.5</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>

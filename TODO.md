@@ -45,8 +45,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
    users / missing passwords) and counts consecutive failures on `User` (`failedLogins`, `lockedUntil`): 10 free
    attempts, then 1s, 2s, 4s ... capped at 15 min; reset on success or password change/clear. Failures are logged.
    Per-IP throttling is in memory only (`UserServiceImpl`, 30 free failures per address, same back-off, logged; a
-   restart clears it; the address comes from `UIUtils.clientAddress()`, honouring `X-Forwarded-For` only from a
-   loopback/private peer).
+   restart clears it; the address comes from `UIUtils.clientAddress()` / `ClientAddressResolver`, which believes
+   `X-Forwarded-For` only from the proxies named in `-DtrustedProxies`).
 
 ---
 
@@ -54,8 +54,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 6. ✅ **README + user documentation** (`docs/user` is empty).
    - ✅ README (description, features, desktop/Docker/source installation, first start, data location, extensions,
-     license) and plugin READMEs in `marginalia/plugins`. Still missing: the screenshots listed in `TODO.IMAGES.md`,
-     upgrade notes.
+     license) and plugin READMEs in `marginalia/plugins`. Upgrade notes are in the README; no
+     screenshots are outstanding (`TODO.IMAGES.md`).
    - ✅User guide: books, story editor (generate / regenerate / swipe / branches / summaries / chapters),
      protocols vs. inference providers, lorebooks (tags, filtering, insertion modes, sub-lorebooks), macro
      reference (the `DESC_MACRO_*` texts already exist and can be used to generate it), backups, admin pages.
@@ -84,9 +84,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
      notarization (macOS Gatekeeper, Windows SmartScreen), an app icon, installers (dmg/msi/deb), and the release
      version is the pom version, not the tag.
 
-9. **WAR size / dependency hygiene.** The WAR is ~200 MB. `tika-parsers-standard-package` + `tika-async-cli`
-   look unused (no references in code). `Resource` is now used for the image attachments of parts (story editor, exports) and listed in the Resources tab. Logging is on
-   `slf4j-log4j12` + `reload4j` (log4j 1.x API) — move to logback or log4j2. Remove what's unused, or finish it (see 21).
+9. **WAR size / dependency hygiene.** The WAR was ~200 MB. `tika-parsers-standard-package` + `tika-async-cli`
+   were unused and are removed (the WAR is ~185 MB; the export tests declare PDFBox themselves). `Resource` is now used for the image attachments of parts (story editor, exports) and listed in the Resources tab. Logging is on
+   `slf4j-log4j12` + `reload4j` (log4j 1.x API) — move to logback or log4j2. Remove what's unused, or finish it (see 21). Still open: the logging move.
 
 10. ✅ **Story export.** The active branch (range of messages) is exported from the settings menu of the story editor
     as TXT / Markdown / HTML / DOCX / PDF / EPUB, optionally with a title page (`ExporterService`, `ExportDialog`). Missing:
@@ -120,7 +120,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 14. ~~**Admin-only operations should be checked server side.** `AdminPart` is only hidden in the UI. Services like
     `UserService.deleteUser`, `DatabaseBackupService`, `CleanupService`, `OsgiService.installPackage` should
     check `currentUser.isAdmin()` themselves. Installing an OSGi bundle runs arbitrary code, so this is the most
-    sensitive one.~~ Not required since server code checks it before calling the methods and extensions run arbitrary code anyways
+    sensitive one.~~ ✅ Done — `AdminGuard.requireAdmin()` is called in `UserServiceImpl` (admin methods), `DatabaseBackupServiceImpl`,
+    `CleanupServiceImpl` and `OsgiServiceImpl`; tests call them as a non-admin.
 
 ---
 
@@ -134,9 +135,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     data) win, what happens if the previous part has other children (branches), and invalidating a summary that
     covered either part. Optional helper: pre-fill the next turn's instructions with a "continue" text when the last
     part ended on a length cutoff. Separately: "impersonate/draft instructions for me".
-yeah
-16. **Search inside a book** — full text search across the messages of a book (active branch and all branches),
-    jump to the message. Global search across books is a nice extra.
+16. ✅ **Search inside a book** — the box above the branch tree searches the messages of all branches (`_fulltext`,
+    `FulltextQuery`) and jumps to a found part. Missing: global search across books.
 
 17. **Duplicate actions** — duplicate book (settings only / with story), lorebook, protocol, provider.
     Most of it exists via backup clone and lorebook export/import.
@@ -178,8 +178,9 @@ yeah
     - Lightweight read-only observers (synchronous, no executor hop) for hot events like `CHUNK_RECEIVED`.
     - Generation run id on the event to correlate data from concurrent generations.
 
-24. **Extension management polish.** Enable/disable without uninstalling, show bundle errors and dependencies,
-    validate a JAR before installing, reject plugins built for an incompatible core version.
+24. **Extension management polish.** ✅ A JAR is verified before it is installed and again after an update, and an
+    extension built for another core version is refused (`ExtensionVerifier`, *Verification* column). Still missing:
+    enable/disable without uninstalling, show bundle errors and dependencies. The plugin API is not frozen in 1.0.
 
 24b. **Summaries overview tools** 🧩 — the *Summaries* dialog (`SummariesDialog`, `@Extendable`) has an empty menu bar
     for these:
@@ -205,14 +206,7 @@ yeah
     published book in the Viewer are not; the Viewer deliberately shows them to the owner only). Files of deleted
     resources and of replaced content stay in the data folder: a garbage collection for them is still to be done. 🧩
 32. **Text-to-speech read-aloud** in the Viewer. 🧩
-33. **Health and metrics endpoint** for Docker (`HEALTHCHECK`), plus basic usage metrics (tokens per provider). The
-    compose file has no healthcheck.
+33. **Health and metrics endpoint.** ✅ The Dockerfile has a `HEALTHCHECK` (bash opens a socket to port 8080, a 2xx/3xx
+    answer is healthy). Missing: a dedicated health endpoint and basic usage metrics (tokens per provider).
 34. **Configuration via environment variables** — today it's `configuration.properties` plus
     `-Duser.home`. Document the keys and allow env overrides (data dir, localization, cookie TTL).
-
----
-
-## Housekeeping found while analyzing
-
-- `Workspace.refresh()` has an empty `internalEvent` block.
-- `LorebookVCSExtension.onExtensionLoad` has a `refreshCallback` that computes a value and throws it away.
