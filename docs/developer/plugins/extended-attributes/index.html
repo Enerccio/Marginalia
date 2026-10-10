@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844974379671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844974724764">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844974379671" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844974724764" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844974379671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844974724764" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844974379671" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844974379671" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844974724764" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844974724764" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -352,6 +352,11 @@ entity under its field name, as a string, and each key of <code translate="no" v
 <li>
 <p><code translate="no" v-pre>saveWithoutEvent</code> (used by backup restore, which writes <code translate="no" v-pre>extendedContent</code> directly) <strong>does not serialize</strong>:
 changes to <code translate="no" v-pre>attributes</code> saved that way are lost. Always use <code translate="no" v-pre>save</code>.</p>
+</li>
+<li>
+<p>The <code translate="no" v-pre>_fulltext</code> column that is written next to <code translate="no" v-pre>extendedContent</code> is built only from the application&#x27;s
+<code translate="no" v-pre>@Fulltextable</code> fields (see <a href="../../domain-model/#full-text-column">Domain model</a>). A plugin&#x27;s <code translate="no" v-pre>attributes</code> are not in
+it and can&#x27;t be added to it.</p>
 </li>
 <li>
 <p><code translate="no" v-pre>@ExtendedAttribute</code> is the application&#x27;s own way of adding fields to an entity without a migration - many fields
