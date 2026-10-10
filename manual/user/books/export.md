@@ -38,6 +38,7 @@ another version of the story, switch to that branch first.
 | Format | |
 |---|---|
 | **Plain text** (`.txt`) | Just the text in UTF-8. Formatting such as *italics* is dropped, paragraphs are separated by an empty line. |
+| **Markdown** (`.md`) | The text as it is written in the story, for editors such as Obsidian or Typora, a static site or a repository. Emphasis, headings, quotes, lists, code blocks and scene breaks stay Markdown. Raw HTML in the text is kept as typed, the Markdown reader decides whether to show it. |
 | **HTML** (`.html`) | One page with a book-like style included, so it looks the same in every browser. It can be printed and has no external files. |
 | **Word document** (`.docx`) | Opens in Word, LibreOffice and similar programs. Justified text, with the title and author set in the file properties. |
 | **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text. |
@@ -51,6 +52,7 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 | Format | |
 |---|---|
 | **HTML** | Embedded in the page, so it is still one file. |
+| **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
 | **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
 | **Plain text** | Marked with `[Image]` or `[Image: caption]`. |
 
@@ -72,6 +74,7 @@ The entries are links to the chapters:
 | **PDF** | Clickable entries with the page of the chapter, and the chapters are also in the outline (bookmarks) your PDF reader shows next to the pages. |
 | **EPUB** | The table of contents of the reader, which is also a page of the book after the title page. |
 | **Word document** (`.docx`) | Clickable entries with the page of the chapter. Word asks to update the fields when it opens the file, answer **Yes** to fill in the page numbers (LibreOffice fills them in on its own). It is a list of links and not a Word table of contents field. |
+| **Markdown** | No table of contents. The chapter headings stay in the text, and most Markdown editors build an outline from them. |
 | **Plain text** | No table of contents. |
 
 ## Page numbers

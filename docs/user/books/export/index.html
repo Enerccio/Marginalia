@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844956758069">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844957150052">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844956758069" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844957150052" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844957150052" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844957150052" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -251,6 +251,7 @@ bar shows how far it is.</p>
 <retype-table copy-text="| Format | |
 |---|---|
 | **Plain text** (`.txt`) | Just the text in UTF-8. Formatting such as *italics* is dropped, paragraphs are separated by an empty line. |
+| **Markdown** (`.md`) | The text as it is written in the story, for editors such as Obsidian or Typora, a static site or a repository. Emphasis, headings, quotes, lists, code blocks and scene breaks stay Markdown. Raw HTML in the text is kept as typed, the Markdown reader decides whether to show it. |
 | **HTML** (`.html`) | One page with a book-like style included, so it looks the same in every browser. It can be printed and has no external files. |
 | **Word document** (`.docx`) | Opens in Word, LibreOffice and similar programs. Justified text, with the title and author set in the file properties. |
 | **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text. |
@@ -267,6 +268,10 @@ bar shows how far it is.</p>
 <tr>
 <td><strong>Plain text</strong> (<code translate="no" v-pre>.txt</code>)</td>
 <td>Just the text in UTF-8. Formatting such as <em>italics</em> is dropped, paragraphs are separated by an empty line.</td>
+</tr>
+<tr>
+<td><strong>Markdown</strong> (<code translate="no" v-pre>.md</code>)</td>
+<td>The text as it is written in the story, for editors such as Obsidian or Typora, a static site or a repository. Emphasis, headings, quotes, lists, code blocks and scene breaks stay Markdown. Raw HTML in the text is kept as typed, the Markdown reader decides whether to show it.</td>
 </tr>
 <tr>
 <td><strong>HTML</strong> (<code translate="no" v-pre>.html</code>)</td>
@@ -294,6 +299,7 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 <retype-table copy-text="| Format | |
 |---|---|
 | **HTML** | Embedded in the page, so it is still one file. |
+| **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
 | **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
 | **Plain text** | Marked with `[Image]` or `[Image: caption]`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -308,6 +314,10 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 <tr>
 <td><strong>HTML</strong></td>
 <td>Embedded in the page, so it is still one file.</td>
+</tr>
+<tr>
+<td><strong>Markdown</strong></td>
+<td>Embedded in the file as <code translate="no" v-pre>![caption](data:...)</code> images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export.</td>
 </tr>
 <tr>
 <td><strong>EPUB</strong>, <strong>Word document</strong>, <strong>PDF</strong></td>
@@ -335,6 +345,7 @@ own as well.</p>
 | **PDF** | Clickable entries with the page of the chapter, and the chapters are also in the outline (bookmarks) your PDF reader shows next to the pages. |
 | **EPUB** | The table of contents of the reader, which is also a page of the book after the title page. |
 | **Word document** (`.docx`) | Clickable entries with the page of the chapter. Word asks to update the fields when it opens the file, answer **Yes** to fill in the page numbers (LibreOffice fills them in on its own). It is a list of links and not a Word table of contents field. |
+| **Markdown** | No table of contents. The chapter headings stay in the text, and most Markdown editors build an outline from them. |
 | **Plain text** | No table of contents. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -360,6 +371,10 @@ own as well.</p>
 <tr>
 <td><strong>Word document</strong> (<code translate="no" v-pre>.docx</code>)</td>
 <td>Clickable entries with the page of the chapter. Word asks to update the fields when it opens the file, answer <strong>Yes</strong> to fill in the page numbers (LibreOffice fills them in on its own). It is a list of links and not a Word table of contents field.</td>
+</tr>
+<tr>
+<td><strong>Markdown</strong></td>
+<td>No table of contents. The chapter headings stay in the text, and most Markdown editors build an outline from them.</td>
 </tr>
 <tr>
 <td><strong>Plain text</strong></td>

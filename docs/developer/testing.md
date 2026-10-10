@@ -63,7 +63,7 @@ fake is the model server.
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
 | `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
 | `backup` | `ManuscriptRestoreTest`, `ManuscriptBackupCopyTest`, `BackupLorebookTest`, `BackupAiProtocolLinkTest`, `BackupImagesTest`, `DatabaseBackupScheduleTest` | Book backups, restore and copy, lorebook and provider linking, the images of parts in backups (the archive made on export, own resources for restored and cloned books), scheduled database backups. |
-| `export` | `ExporterTest`, `ExporterImagesTest` | The story exporters (TXT, HTML, DOCX, PDF, EPUB): text and Unicode, linked contents and chapter navigation, splitting of long stories, embedded images. |
+| `export` | `ExporterTest`, `ExporterImagesTest` | The story exporters (TXT, Markdown, HTML, DOCX, PDF, EPUB): text and Unicode, linked contents and chapter navigation, splitting of long stories, embedded images. |
 | `security` | `ApiKeyEncryptionTest` | API keys stored encrypted with the installation key; the app migration encrypting plain ones. |
 | `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
 | `ui` | `ResourcesPartTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The only test that builds a Vaadin component. |

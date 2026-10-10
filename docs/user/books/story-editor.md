@@ -155,7 +155,7 @@ for a few rare languages it has no dictionary and the text is simply not hyphena
 
 ## Exporting the story
 
-The settings menu (⚙) also has **Export story**, which saves the active branch as a text, HTML, Word, PDF or EPUB
+The settings menu (⚙) also has **Export story**, which saves the active branch as a text, Markdown, HTML, Word, PDF or EPUB
 file. See [Exporting a book](export.md).
 
 ## What the model gets

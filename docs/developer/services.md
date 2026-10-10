@@ -126,7 +126,7 @@ without any user and only use installation-wide data (`getOrCreateApp`).
 | `ChatMessageService` | The story tree: `createRoot`, `addChild`, `getBranchFromLeaf`, `getSwipesForMessage` (siblings), `swipeTo` (sets the book's active leaf to the deepest last descendant - the caller saves the book), `branch` (copy as sibling), `deleteNodeAndMigrateChildren`, word and token sums, `countWords`. |
 | `SummaryService` | `createSummary(book, part, callback)` streams a summary from the model into a new `Summary` and attaches it to the part when finished; returns a `CancellationToken`. `createMetaSummary(book, from, to, callback)` does the same for a meta summary: it merges the summaries in use between the parts `from` (newest) and `to` (oldest, rounded to the end of its block), puts the result on `from` (`attachMetaSummary`) and returns `null` when there is nothing to merge. `removeSummary(part, unwind)` deletes the summary of a part, restoring the one a meta summary replaced when `unwind` is set. `updateSummaryText` edits a text and counts its tokens again. `collectBlocks(branch)` splits the branch into the summary blocks in use (with their hashes, `SummaryBlock.isValid()`), `collectTree(...)` returns the same as a tree of `SummaryNode`s with the summaries a meta summary stands in for as children (the overview uses it). `copySummary` for branching. See [the summary chain](domain-model.md#the-summary-chain). |
 | `StoryGenerationService` | Generating parts, see [Generation pipeline](generation-pipeline.md). |
-| `ExporterService` | Registry of story exporters (`registerExporter`, `unregisterExporter`, `getExporters`). The built-in `TxtExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter` and `EpubExporter` (package `export`, all extend `ExporterBase`) are registered in `afterPropertiesSet`; an extension can register its own `Exporter` and it shows in the export dialog. See [Story export](#story-export). |
+| `ExporterService` | Registry of story exporters (`registerExporter`, `unregisterExporter`, `getExporters`). The built-in `TxtExporter`, `MarkdownExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter` and `EpubExporter` (package `export`, all extend `ExporterBase`) are registered in `afterPropertiesSet`; an extension can register its own `Exporter` and it shows in the export dialog. See [Story export](#story-export). |
 | `BackupService` | Book backups as JSON files in `data/<login>/backups/manuscripts/<book id>/`: `takeBackup`, `getBackups`, `importBackup`, `applyBackup` (restore, optionally messages only), `cloneBackup` / `restoreAsNewManuscript`, `analyzeLorebooks` + `LorebookDecision`s for lorebooks found in the backup, `exportBackup` (see below). Import and restore read a `File` (the UI uploads to a temp file, the `byte[]` overloads are for small payloads and tests). |
 
 **Images in backups.** A stored backup is JSON and never contains image files, only the `imageAttachments` of the
@@ -162,14 +162,16 @@ each part to an `ExportWriter` that the exporter creates per export - exporters 
 must live in the writer. A part whose text has a Markdown heading is a chapter (`chapterTitle`, the same rule as the
 Chapter Marker plugin: the first `#` line); before the first part the writer gets the list of all chapters in
 `contents(...)` and every chapter start in `message(markdown, chapter)`, so it can put an anchor (`Chapter.anchor()`)
-on the chapter and link to it from the table of contents (HTML, EPUB navigation, PDF, DOCX; TXT ignores it).
+on the chapter and link to it from the table of contents (HTML, EPUB navigation, PDF, DOCX; TXT and Markdown ignore it).
 The PDF exporter keeps the export and renders it again until the pages shown in the contents match the pages the
 chapters landed on; DOCX uses `PAGEREF` fields and sets `updateFields`, so Word fills them in after asking.
 Images attached to a part (`ChatMessage.getImages()`) are loaded once per part (`ResourceService.findImage` +
 `getResourceData`, so only the exporting user's images; a missing one is skipped with a warning) and handed to the writer
 in `images(List<ExportImage>)` right after `message(...)`. A part with images but no text is exported with an empty text.
 HTML embeds them as data URIs, EPUB as files in `OEBPS/images/` with manifest items, DOCX with POI pictures (scaled to
-fit the page), PDF with OpenPDF images, TXT as `[Image: caption]`. `figure(src, caption)` renders the XHTML figure.
+fit the page), PDF with OpenPDF images, TXT as `[Image: caption]`, Markdown as `![caption](data:...)` plus an italic caption line. `figure(src, caption)` renders the XHTML figure.
+`MarkdownExporter` is the only one that does not parse: the Markdown of each part is written as it is (raw HTML included, since the output is
+source and not a rendered format), as blocks separated by an empty line.
 It also provides `toHtml` (CommonMark, raw HTML escaped, XHTML safe) and `walk`, which turns
 Markdown into paragraphs, headings, code and rules for formats built from styled text (`BlockSink`; used by TXT, DOCX
 and PDF). Libraries: CommonMark (parsing), Apache POI (DOCX), OpenPDF with the Liberation fonts (PDF); EPUB is written

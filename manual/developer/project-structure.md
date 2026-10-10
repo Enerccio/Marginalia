@@ -177,7 +177,7 @@ See [Templating & macros](templating.md).
 | File | |
 |---|---|
 | `ExporterBase` | Common part of the exporters: title page, progress, Markdown parsing, `toHtml` and the `walk` over Markdown blocks. |
-| `TxtExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter`, `EpubExporter` | The built-in formats, registered by `ExporterServiceImpl`. |
+| `TxtExporter`, `MarkdownExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter`, `EpubExporter` | The built-in formats, registered by `ExporterServiceImpl`. |
 
 See [Story export](services.md#story-export).
 

@@ -50,6 +50,6 @@ While a part is being generated, the other tabs and *Exit* are disabled until th
 - [Branches & story tree](branches-and-story-tree.md) - regenerate, swipe, branch, the tree view
 - [Book prompts](prompts.md) - templates, point of view, tense and style
 - [Summaries](summaries.md) - keeping long books within the model's context
-- [Exporting a book](export.md) - the story as text, HTML, Word, PDF or EPUB
+- [Exporting a book](export.md) - the story as text, Markdown, HTML, Word, PDF or EPUB
 - [Book backups](backups.md) - backups, restore, copies of a book
 - [Publishing & viewer](publishing.md) - reading view and sharing a book

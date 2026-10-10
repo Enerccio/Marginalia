@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844956758069">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844957150052">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844956758069" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844957150052" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844957150052" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844956758069" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844956758069" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844957150052" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844957150052" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -365,7 +365,7 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 | `ChatMessageService` | The story tree: `createRoot`, `addChild`, `getBranchFromLeaf`, `getSwipesForMessage` (siblings), `swipeTo` (sets the book's active leaf to the deepest last descendant - the caller saves the book), `branch` (copy as sibling), `deleteNodeAndMigrateChildren`, word and token sums, `countWords`. |
 | `SummaryService` | `createSummary(book, part, callback)` streams a summary from the model into a new `Summary` and attaches it to the part when finished; returns a `CancellationToken`. `createMetaSummary(book, from, to, callback)` does the same for a meta summary: it merges the summaries in use between the parts `from` (newest) and `to` (oldest, rounded to the end of its block), puts the result on `from` (`attachMetaSummary`) and returns `null` when there is nothing to merge. `removeSummary(part, unwind)` deletes the summary of a part, restoring the one a meta summary replaced when `unwind` is set. `updateSummaryText` edits a text and counts its tokens again. `collectBlocks(branch)` splits the branch into the summary blocks in use (with their hashes, `SummaryBlock.isValid()`), `collectTree(...)` returns the same as a tree of `SummaryNode`s with the summaries a meta summary stands in for as children (the overview uses it). `copySummary` for branching. See [the summary chain](domain-model.md#the-summary-chain). |
 | `StoryGenerationService` | Generating parts, see [Generation pipeline](generation-pipeline.md). |
-| `ExporterService` | Registry of story exporters (`registerExporter`, `unregisterExporter`, `getExporters`). The built-in `TxtExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter` and `EpubExporter` (package `export`, all extend `ExporterBase`) are registered in `afterPropertiesSet`; an extension can register its own `Exporter` and it shows in the export dialog. See [Story export](#story-export). |
+| `ExporterService` | Registry of story exporters (`registerExporter`, `unregisterExporter`, `getExporters`). The built-in `TxtExporter`, `MarkdownExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter` and `EpubExporter` (package `export`, all extend `ExporterBase`) are registered in `afterPropertiesSet`; an extension can register its own `Exporter` and it shows in the export dialog. See [Story export](#story-export). |
 | `BackupService` | Book backups as JSON files in `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/`: `takeBackup`, `getBackups`, `importBackup`, `applyBackup` (restore, optionally messages only), `cloneBackup` / `restoreAsNewManuscript`, `analyzeLorebooks` + `LorebookDecision`s for lorebooks found in the backup, `exportBackup` (see below). Import and restore read a `File` (the UI uploads to a temp file, the `byte[]` overloads are for small payloads and tests). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -394,7 +394,7 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 </tr>
 <tr>
 <td><code translate="no" v-pre>ExporterService</code></td>
-<td>Registry of story exporters (<code translate="no" v-pre>registerExporter</code>, <code translate="no" v-pre>unregisterExporter</code>, <code translate="no" v-pre>getExporters</code>). The built-in <code translate="no" v-pre>TxtExporter</code>, <code translate="no" v-pre>HtmlExporter</code>, <code translate="no" v-pre>DocxExporter</code>, <code translate="no" v-pre>PdfExporter</code> and <code translate="no" v-pre>EpubExporter</code> (package <code translate="no" v-pre>export</code>, all extend <code translate="no" v-pre>ExporterBase</code>) are registered in <code translate="no" v-pre>afterPropertiesSet</code>; an extension can register its own <code translate="no" v-pre>Exporter</code> and it shows in the export dialog. See <doc-anchor-trigger to="#story-export">Story export</doc-anchor-trigger>.</td>
+<td>Registry of story exporters (<code translate="no" v-pre>registerExporter</code>, <code translate="no" v-pre>unregisterExporter</code>, <code translate="no" v-pre>getExporters</code>). The built-in <code translate="no" v-pre>TxtExporter</code>, <code translate="no" v-pre>MarkdownExporter</code>, <code translate="no" v-pre>HtmlExporter</code>, <code translate="no" v-pre>DocxExporter</code>, <code translate="no" v-pre>PdfExporter</code> and <code translate="no" v-pre>EpubExporter</code> (package <code translate="no" v-pre>export</code>, all extend <code translate="no" v-pre>ExporterBase</code>) are registered in <code translate="no" v-pre>afterPropertiesSet</code>; an extension can register its own <code translate="no" v-pre>Exporter</code> and it shows in the export dialog. See <doc-anchor-trigger to="#story-export">Story export</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>BackupService</code></td>
@@ -432,14 +432,16 @@ each part to an <code translate="no" v-pre>ExportWriter</code> that the exporter
 must live in the writer. A part whose text has a Markdown heading is a chapter (<code translate="no" v-pre>chapterTitle</code>, the same rule as the
 Chapter Marker plugin: the first <code translate="no" v-pre>#</code> line); before the first part the writer gets the list of all chapters in
 <code translate="no" v-pre>contents(...)</code> and every chapter start in <code translate="no" v-pre>message(markdown, chapter)</code>, so it can put an anchor (<code translate="no" v-pre>Chapter.anchor()</code>)
-on the chapter and link to it from the table of contents (HTML, EPUB navigation, PDF, DOCX; TXT ignores it).
+on the chapter and link to it from the table of contents (HTML, EPUB navigation, PDF, DOCX; TXT and Markdown ignore it).
 The PDF exporter keeps the export and renders it again until the pages shown in the contents match the pages the
 chapters landed on; DOCX uses <code translate="no" v-pre>PAGEREF</code> fields and sets <code translate="no" v-pre>updateFields</code>, so Word fills them in after asking.
 Images attached to a part (<code translate="no" v-pre>ChatMessage.getImages()</code>) are loaded once per part (<code translate="no" v-pre>ResourceService.findImage</code> +
 <code translate="no" v-pre>getResourceData</code>, so only the exporting user&#x27;s images; a missing one is skipped with a warning) and handed to the writer
 in <code translate="no" v-pre>images(List&lt;ExportImage&gt;)</code> right after <code translate="no" v-pre>message(...)</code>. A part with images but no text is exported with an empty text.
 HTML embeds them as data URIs, EPUB as files in <code translate="no" v-pre>OEBPS/images/</code> with manifest items, DOCX with POI pictures (scaled to
-fit the page), PDF with OpenPDF images, TXT as <code translate="no" v-pre>[Image: caption]</code>. <code translate="no" v-pre>figure(src, caption)</code> renders the XHTML figure.
+fit the page), PDF with OpenPDF images, TXT as <code translate="no" v-pre>[Image: caption]</code>, Markdown as <code translate="no" v-pre>![caption](data:...)</code> plus an italic caption line. <code translate="no" v-pre>figure(src, caption)</code> renders the XHTML figure.
+<code translate="no" v-pre>MarkdownExporter</code> is the only one that does not parse: the Markdown of each part is written as it is (raw HTML included, since the output is
+source and not a rendered format), as blocks separated by an empty line.
 It also provides <code translate="no" v-pre>toHtml</code> (CommonMark, raw HTML escaped, XHTML safe) and <code translate="no" v-pre>walk</code>, which turns
 Markdown into paragraphs, headings, code and rules for formats built from styled text (<code translate="no" v-pre>BlockSink</code>; used by TXT, DOCX
 and PDF). Libraries: CommonMark (parsing), Apache POI (DOCX), OpenPDF with the Liberation fonts (PDF); EPUB is written
