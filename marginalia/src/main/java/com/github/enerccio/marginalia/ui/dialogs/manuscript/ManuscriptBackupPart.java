@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.BackupService;
+import com.github.enerccio.marginalia.domain.service.BackupService.BackupExport;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.BackupService.ManuscriptBackup;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
@@ -12,13 +13,11 @@ import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
-import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
+import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -33,19 +32,22 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.server.streams.DownloadResponse;
-import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
 import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
+import com.vaadin.flow.server.streams.UploadHandler;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Configurable
 @Extendable
@@ -168,6 +170,11 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
                 .setFlexGrow(0)
                 .setWidth("120px");
 
+        grid.addColumn(ManuscriptBackup::getImageCount)
+                .setHeader(loc.getValue(L.LABEL_IMAGES))
+                .setFlexGrow(0)
+                .setWidth("100px");
+
         grid.addComponentColumn(backup -> {
             HorizontalLayout actions = new HorizontalLayout();
             actions.setSpacing(true);
@@ -178,28 +185,12 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
             Button cloneBtn = new Button(loc.getValue(L.LABEL_CLONE_BACKUP), Solid.COPY.create(), event -> cloneBackup(backup));
             cloneBtn.setThemeName("small");
 
-            Anchor exportAnchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
-                try {
-                    ManuscriptBackup b = backup;
-                    if (!b.isLoaded()) {
-                        b = backupService.loadBackup(b);
-                    }
-                    byte[] data = b.getBackup() != null ? backupService.serializeBackup(b).getBytes(StandardCharsets.UTF_8) : new byte[0];
-                    return new DownloadResponse(new ByteArrayInputStream(data),
-                            getBackupFileName(backup), "application/json", data.length);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }), "");
-            exportAnchor.getElement().setAttribute("download", true);
-            Button exportBtn = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP), Solid.DOWNLOAD.create());
-            exportBtn.setThemeName("small");
-            exportAnchor.add(exportBtn);
+            Component exportComponent = createExport(backup);
 
             Button deleteBtn = new Button(Solid.TRASH.create(), event -> deleteBackup(backup));
             deleteBtn.setThemeName("small error");
 
-            actions.add(restoreBtn, cloneBtn, exportAnchor, deleteBtn);
+            actions.add(restoreBtn, cloneBtn, exportComponent, deleteBtn);
             return actions;
         }).setHeader("").setFlexGrow(0).setWidth("450px");
 
@@ -276,12 +267,140 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
         }
     }
 
-    private String getBackupFileName(ManuscriptBackup backup) {
-        String name = backup.getManuscriptName();
-        if (StringUtils.isBlank(name)) {
-            name = "manuscript";
+    /**
+     * A backup without images is downloaded right away, one with images asks first whether to pack them.
+     */
+    private Component createExport(ManuscriptBackup backup) {
+        if (backup.getImageCount() == 0) {
+            Button exportBtn = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP), Solid.DOWNLOAD.create());
+            exportBtn.setThemeName("small");
+            return downloadOf(backup, exportBtn);
         }
-        return name.replaceAll("[^a-zA-Z0-9.-]", "_") + "_backup.json";
+        Button exportBtn = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP), Solid.DOWNLOAD.create(), event -> askAboutImages(backup));
+        exportBtn.setThemeName("small");
+        return exportBtn;
+    }
+
+    /**
+     * @return an anchor around the button that downloads the JSON of the backup
+     */
+    private Anchor downloadOf(ManuscriptBackup backup, Button button) {
+        Anchor anchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
+            try {
+                // a copy of the stored file, deleted when it's downloaded, so a big backup is never in memory
+                BackupExport export = backupService.exportBackup(backup, false, null);
+                return new DownloadResponse(new TempFileInputStream(export.file()), export.fileName(), export.mimeType(), export.file().length());
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }), "");
+        anchor.getElement().setAttribute("download", true);
+        anchor.add(button);
+        return anchor;
+    }
+
+    private void askAboutImages(ManuscriptBackup backup) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_BACKUP));
+        dialog.setWidth("500px");
+
+        Button withImages = new Button(loc.getValue(L.LABEL_WITH_IMAGES), Solid.IMAGES.create(), event -> {
+            dialog.close();
+            packWithImages(backup);
+        });
+        withImages.setThemeName("primary");
+
+        Button without = new Button(loc.getValue(L.LABEL_WITHOUT_IMAGES), Solid.FILE_CODE.create());
+        // the download starts with the click, the dialog closes with it
+        Anchor withoutImages = downloadOf(backup, without);
+        without.addClickListener(event -> dialog.close());
+
+        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_BACKUP_EXPORT_IMAGES), backup.getImageCount())));
+        content.setPadding(false);
+        dialog.add(content);
+        dialog.getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> dialog.close()), withoutImages, withImages);
+        dialog.open();
+    }
+
+    /**
+     * Packs the images into a file on disk, one image at a time, and offers it for download.
+     */
+    private void packWithImages(ManuscriptBackup backup) {
+        AtomicReference<BackupExport> packed = new AtomicReference<>();
+        AtomicReference<Exception> failure = new AtomicReference<>();
+
+        ProgressBarDialog packing = new ProgressBarDialog(true);
+        packing.setTitle(loc.getValue(L.MSG_PACKING_BACKUP));
+        packing.setTotal((long) backup.getImageCount());
+        packing.create();
+        packing.setAction(dialog -> {
+            try {
+                packed.set(backupService.exportBackup(backup, true, dialog::updateProgress));
+            } catch (Exception e) {
+                failure.set(e);
+            }
+        });
+        packing.setAfterAction(() -> {
+            if (failure.get() != null) {
+                UIUtils.internalServerError(loc, failure.get());
+            } else {
+                showPacked(packed.get());
+            }
+        });
+        packing.open();
+    }
+
+    private void showPacked(BackupExport export) {
+        Dialog result = new Dialog();
+        result.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_BACKUP));
+        result.setCloseOnEsc(true);
+        result.setCloseOnOutsideClick(false);
+        result.setModality(ModalityMode.STRICT);
+
+        Anchor download = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) event ->
+                new DownloadResponse(new FileInputStream(export.file()), export.fileName(), export.mimeType(), export.file().length())), "");
+        download.getElement().setAttribute("download", true);
+        Button downloadButton = new Button(loc.getValue(L.LABEL_DOWNLOAD) + " " + export.fileName(), Solid.DOWNLOAD.create());
+        downloadButton.setThemeName("primary");
+        download.add(downloadButton);
+
+        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_BACKUP_READY), export.fileName())), download);
+        if (export.missingImages() > 0) {
+            Span missing = new Span(String.format(loc.getValue(L.MSG_BACKUP_IMAGES_MISSING), export.missingImages()));
+            missing.getStyle().set("color", "var(--lumo-error-text-color)");
+            content.add(missing);
+        }
+        content.setPadding(false);
+        result.add(content);
+        result.getFooter().add(new Button(loc.getValue(L.LABEL_CLOSE), event -> result.close()));
+        // the file is kept only as long as the dialog is open
+        result.addOpenedChangeListener(event -> {
+            if (!event.isOpened()) {
+                FileUtils.deleteQuietly(export.file());
+            }
+        });
+        result.open();
+    }
+
+    /**
+     * Deletes the file when it has been read.
+     */
+    private static final class TempFileInputStream extends FileInputStream {
+        private final File file;
+
+        private TempFileInputStream(File file) throws IOException {
+            super(file);
+            this.file = file;
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                super.close();
+            } finally {
+                FileUtils.deleteQuietly(file);
+            }
+        }
     }
 
     private void takeBackup() {
@@ -299,19 +418,22 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
         dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_BACKUP));
         dialog.setWidth("450px");
 
-        InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
+        // a backup can be big (and have images), it is read from a file and not held in memory
+        Upload upload = new Upload(UploadHandler.toTempFile((metadata, file) -> {
             try {
                 Manuscript manuscript = parent.refreshManuscript();
-                backupService.importBackup(manuscript, data);
+                backupService.importBackup(manuscript, file);
                 dialog.close();
                 refreshBackups();
+            } catch (IllegalArgumentException e) {
+                Notification.warning(e.getMessage());
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
+            } finally {
+                FileUtils.deleteQuietly(file);
             }
-        });
-
-        Upload upload = new Upload(handler);
-        upload.setAcceptedMimeTypes("application/json");
+        }));
+        upload.setAcceptedFileExtensions(".json", ".zip");
 
         Button cancelBtn = new Button(loc.getValue(L.LABEL_CANCEL), event -> dialog.close());
 
@@ -381,21 +503,31 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
 
     private void cloneBackup(ManuscriptBackup backup) {
         TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_MANUSCRIPT_NAME), newName -> {
-            try {
-                LorebookImportDialog.resolve(backupService.analyzeLorebooks(backup), decisions -> {
-                    try {
-                        Manuscript cloned = backupService.cloneBackup(backup, newName, decisions);
-                        Notification.success(loc.getValue(L.LABEL_CLONE_BACKUP) + ": " + cloned.getName());
-                        refreshBackups();
-                    } catch (Exception e) {
-                        UIUtils.internalServerError(loc, e);
-                    }
-                });
-            } catch (Exception e) {
-                UIUtils.internalServerError(loc, e);
+            if (backup.getImageCount() == 0) {
+                cloneBackup(backup, newName, false);
+                return;
             }
+            ConfirmDialog.show(String.format(loc.getValue(L.MSG_CLONE_BACKUP_IMAGES), backup.getImageCount()),
+                    loc.getValue(L.LABEL_WITH_IMAGES), loc.getValue(L.LABEL_WITHOUT_IMAGES),
+                    () -> cloneBackup(backup, newName, true), () -> cloneBackup(backup, newName, false), true);
         }).messageRequired().showCancel(true).build();
         dialog.open();
+    }
+
+    private void cloneBackup(ManuscriptBackup backup, String newName, boolean withImages) {
+        try {
+            LorebookImportDialog.resolve(backupService.analyzeLorebooks(backup), decisions -> {
+                try {
+                    Manuscript cloned = backupService.cloneBackup(backup, newName, decisions, withImages);
+                    Notification.success(loc.getValue(L.LABEL_CLONE_BACKUP) + ": " + cloned.getName());
+                    refreshBackups();
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            });
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     private void deleteBackup(ManuscriptBackup backup) {

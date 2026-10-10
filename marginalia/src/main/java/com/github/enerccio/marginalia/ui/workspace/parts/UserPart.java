@@ -34,12 +34,16 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.UploadHandler;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Configurable
 @Extendable
@@ -476,29 +480,45 @@ public class UserPart implements WorkspaceComponent {
         nameField.setWidthFull();
         nameField.setValueChangeMode(ValueChangeMode.EAGER);
 
-        InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
+        // the backup is read from a file, it can be big and have images; the file is needed until the lorebooks are
+        // resolved (a dialog), so it's deleted when the restore is done or the dialog is closed
+        AtomicReference<File> uploaded = new AtomicReference<>();
+        dialog.addOpenedChangeListener(e -> {
+            if (!e.isOpened()) {
+                FileUtils.deleteQuietly(uploaded.getAndSet(null));
+            }
+        });
+
+        Upload upload = new Upload(UploadHandler.toFile((metadata, file) -> {
+            FileUtils.deleteQuietly(uploaded.getAndSet(file));
             String newName = nameField.getValue();
             if (StringUtils.isBlank(newName)) {
                 Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
                 return;
             }
             try {
-                LorebookImportDialog.resolve(backupService.analyzeLorebooks(data), decisions -> {
+                LorebookImportDialog.resolve(backupService.analyzeLorebooks(file), decisions -> {
                     try {
-                        Manuscript newManuscript = backupService.restoreAsNewManuscript(data, newName, decisions);
+                        Manuscript newManuscript = backupService.restoreAsNewManuscript(file, newName, decisions);
                         dialog.close();
                         Notification.success(loc.getValue(L.LABEL_IMPORT_BACKUP) + ": " + newManuscript.getName());
+                    } catch (IllegalArgumentException e) {
+                        Notification.warning(e.getMessage());
                     } catch (Exception e) {
                         UIUtils.internalServerError(loc, e);
                     }
                 });
+            } catch (IllegalArgumentException e) {
+                Notification.warning(e.getMessage());
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
-        });
-
-        Upload upload = new Upload(handler);
-        upload.setAcceptedMimeTypes("application/json");
+        }, metadata -> {
+            File file = Files.createTempFile("marginalia-backup-", ".upload").toFile();
+            file.deleteOnExit();
+            return file;
+        }));
+        upload.setAcceptedFileExtensions(".json", ".zip");
         // the name is needed when the upload arrives, so the file can be picked only after it's entered
         upload.setEnabled(false);
         nameField.addValueChangeListener(e -> upload.setEnabled(StringUtils.isNotBlank(e.getValue())));

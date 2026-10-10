@@ -1,17 +1,27 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import jakarta.persistence.*;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 @Entity
 @Table(name = "messages")
 public class ChatMessage extends ExtendableEntity {
+
+    private static final Gson GSON = new Gson();
+    private static final Type IMAGES_TYPE = new TypeToken<List<ImageAttachment>>() {
+    }.getType();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @CleanupReference(Policy.OWNED_BY)
@@ -100,6 +110,10 @@ public class ChatMessage extends ExtendableEntity {
     @Transient
     private String backgroundLore;
 
+    // JSON array of ImageAttachment, extended attributes are plain strings
+    @ExtendedAttribute
+    @Transient
+    private String imageAttachments;
     /**
      * @return detached copy of all values of given message (extended attributes deep copied, summary not included),
      * meant to be restored later with {@link #loadFrom(ChatMessage)}, not to be saved itself
@@ -116,6 +130,7 @@ public class ChatMessage extends ExtendableEntity {
      */
     public void loadFrom(ChatMessage source) {
         this.backgroundLore = source.backgroundLore;
+        this.imageAttachments = source.imageAttachments;
         this.builtPrompt = source.builtPrompt;
         this.builtPromptTokens = source.builtPromptTokens;
         this.instructions = source.instructions;
@@ -322,6 +337,21 @@ public class ChatMessage extends ExtendableEntity {
 
     public void setBackgroundLore(String backgroundLore) {
         this.backgroundLore = backgroundLore;
+    }
+
+    /**
+     * @return images attached to the message in the order they are shown, never null
+     */
+    public List<ImageAttachment> getImages() {
+        if (imageAttachments == null || imageAttachments.isBlank()) {
+            return new ArrayList<>();
+        }
+        List<ImageAttachment> images = GSON.fromJson(imageAttachments, IMAGES_TYPE);
+        return images == null ? new ArrayList<>() : new ArrayList<>(images);
+    }
+
+    public void setImages(List<ImageAttachment> images) {
+        this.imageAttachments = images == null || images.isEmpty() ? null : GSON.toJson(images, IMAGES_TYPE);
     }
 
 }

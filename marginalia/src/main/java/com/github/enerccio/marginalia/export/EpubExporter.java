@@ -32,6 +32,9 @@ public class EpubExporter extends ExporterBase {
             .title-page { margin-top: 30%; text-align: center; }
             .title-page h1 { font-size: 2.4em; }
             .title-page p { text-align: center; font-size: 1.3em; }
+            figure { margin: 1.5em 0; text-align: center; page-break-inside: avoid; }
+            figure img { max-width: 100%; height: auto; }
+            figcaption { font-size: 0.9em; margin-top: 0.4em; }
             section.chapter { break-before: page; page-break-before: always; }
             nav ol { list-style: none; padding: 0; }
             nav li { margin: 0.4em 0; }
@@ -65,6 +68,7 @@ public class EpubExporter extends ExporterBase {
         private final List<Chapter> chapters = new ArrayList<>();
         // number of the part (file) a chapter is in, by the number of the chapter
         private final Map<Integer, Integer> chapterParts = new HashMap<>();
+        private final List<ExportImage> images = new ArrayList<>();
         private String titlePage;
 
         private EpubWriter(ExportOptions options) {
@@ -88,6 +92,18 @@ public class EpubExporter extends ExporterBase {
             } else {
                 chapterParts.put(chapter.number(), parts.size() + 1);
                 current.append("<section class=\"chapter\" id=\"").append(chapter.anchor()).append("\">\n").append(toHtml(markdown)).append("</section>\n");
+            }
+            if (current.length() >= PART_SIZE) {
+                parts.add(current.toString());
+                current.setLength(0);
+            }
+        }
+
+        @Override
+        public void images(List<ExportImage> messageImages) {
+            for (ExportImage image : messageImages) {
+                images.add(image);
+                current.append(figure("images/image" + images.size() + "." + image.extension(), image.caption()));
             }
             if (current.length() >= PART_SIZE) {
                 parts.add(current.toString());
@@ -126,6 +142,11 @@ public class EpubExporter extends ExporterBase {
                         </container>
                         """);
                 add(zip, "OEBPS/style.css", STYLE);
+                for (int i = 0; i < images.size(); i++) {
+                    zip.putNextEntry(new ZipEntry("OEBPS/images/image" + (i + 1) + "." + images.get(i).extension()));
+                    zip.write(images.get(i).data());
+                    zip.closeEntry();
+                }
 
                 List<String> files = new ArrayList<>();
                 List<String> labels = new ArrayList<>();
@@ -212,6 +233,10 @@ public class EpubExporter extends ExporterBase {
                 manifest.append("<item id=\"c").append(i).append("\" href=\"").append(files.get(i))
                         .append("\" media-type=\"application/xhtml+xml\"/>\n");
                 spine.append("<itemref idref=\"c").append(i).append("\"/>\n");
+            }
+            for (int i = 0; i < images.size(); i++) {
+                manifest.append("<item id=\"image").append(i + 1).append("\" href=\"images/image").append(i + 1).append('.')
+                        .append(images.get(i).extension()).append("\" media-type=\"").append(images.get(i).mimeType()).append("\"/>\n");
             }
             String author = StringUtils.isBlank(options.author()) ? "" :
                     "<dc:creator>" + escapeXml(options.author().trim()) + "</dc:creator>\n";

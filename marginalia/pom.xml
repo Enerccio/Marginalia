@@ -245,6 +245,13 @@
       <version>0.28.0</version>
     </dependency>
 
+    <!-- image attachments: the JDK can't read WebP, uploads of it are converted to PNG (pure Java, read only) -->
+    <dependency>
+      <groupId>com.twelvemonkeys.imageio</groupId>
+      <artifactId>imageio-webp</artifactId>
+      <version>3.15.3</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>

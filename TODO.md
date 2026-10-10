@@ -82,7 +82,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
      version is the pom version, not the tag.
 
 9. **WAR size / dependency hygiene.** The WAR is ~200 MB. `tika-parsers-standard-package` + `tika-async-cli`
-   look unused (no references in code). `Resource` entity/service exist but nothing in the UI uses them. Logging is on
+   look unused (no references in code). `Resource` is now used for the image attachments of parts (story editor, exports) and listed in the Resources tab. Logging is on
    `slf4j-log4j12` + `reload4j` (log4j 1.x API) — move to logback or log4j2. Remove what's unused, or finish it (see 21).
 
 10. ✅ **Story export.** The active branch (range of messages) is exported from the settings menu of the story editor
@@ -147,7 +147,7 @@ yeah
       ("which entries would fire for this prompt").
 
 21. **Character / persona management.** POV and present characters are free text per turn. A character card
-    entity (name, description, avatar via the unused `Resource` entity, linked lorebook entries) with
+    entity (name, description, avatar via the `Resource` entity (`ResourceService.uploadImage`), linked lorebook entries) with
     pick-lists in the turn editor. SillyTavern character card import. 🧩 possible extension.
 
 22. **Sharing between users.** Everything is private. Read-only sharing of lorebooks/protocols, or an
@@ -190,7 +190,10 @@ yeah
 28. **Mobile layout** — fixed widths (`setWidth("280px")`, 900px dialogs, 260px tab bar) don't fit phones.
 29. **Theming** — light/dark toggle per user, editor font/size settings.
 30. **Import from other tools** — SillyTavern chats → book with branches, NovelAI/KoboldAI stories. 🧩
-31. **Image generation / illustrations** for scenes (would use `Resource`). 🧩
+31. **Image generation / illustrations** for scenes (would use `Resource`; attaching images by hand is done, see
+    *Images* in the part menu - generation, sending images to vision models and showing them to the readers of a
+    published book in the Viewer are not; the Viewer deliberately shows them to the owner only). Files of deleted
+    resources and of replaced content stay in the data folder: a garbage collection for them is still to be done. 🧩
 32. **Text-to-speech read-aloud** in the Viewer. 🧩
 33. **Health and metrics endpoint** for Docker (`HEALTHCHECK`), plus basic usage metrics (tokens per provider). The
     compose file has no healthcheck.

@@ -51,6 +51,7 @@ public class PdfExporter extends ExporterBase {
         private final ExportOptions options;
         private final List<String> messages = new ArrayList<>();
         private final List<Chapter> chapterOf = new ArrayList<>();
+        private final List<List<ExportImage>> imagesOf = new ArrayList<>();
         private List<Chapter> chapters = List.of();
         private String titleMarkdown;
 
@@ -72,14 +73,20 @@ public class PdfExporter extends ExporterBase {
         public void message(String markdown, Chapter chapter) {
             messages.add(markdown);
             chapterOf.add(chapter);
+            imagesOf.add(List.of());
+        }
+
+        @Override
+        public void images(List<ExportImage> images) {
+            imagesOf.set(imagesOf.size() - 1, images);
         }
 
         @Override
         public byte[] finish() throws Exception {
-            PdfRendering rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, Map.of());
+            PdfRendering rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, imagesOf, Map.of());
             byte[] result = rendering.render();
             for (int pass = 1; pass < MAX_PASSES && !chapters.isEmpty() && !rendering.chapterPages.equals(rendering.shownPages); pass++) {
-                rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, rendering.chapterPages);
+                rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, imagesOf, rendering.chapterPages);
                 result = rendering.render();
             }
             return result;
@@ -97,6 +104,7 @@ public class PdfExporter extends ExporterBase {
         private final List<Chapter> chapters;
         private final List<String> messages;
         private final List<Chapter> chapterOf;
+        private final List<List<ExportImage>> imagesOf;
         // pages of the chapters (by anchor) as laid out in this rendering, and as the contents of it show them
         private final Map<String, Integer> chapterPages = new HashMap<>();
         private final Map<String, Integer> shownPages;
@@ -104,11 +112,12 @@ public class PdfExporter extends ExporterBase {
         private Chapter pendingChapter;
 
         private PdfRendering(ExportOptions options, String titleMarkdown, List<Chapter> chapters, List<String> messages,
-                             List<Chapter> chapterOf, Map<String, Integer> shownPages) throws Exception {
+                             List<Chapter> chapterOf, List<List<ExportImage>> imagesOf, Map<String, Integer> shownPages) throws Exception {
             this.titleMarkdown = titleMarkdown;
             this.chapters = chapters;
             this.messages = messages;
             this.chapterOf = chapterOf;
+            this.imagesOf = imagesOf;
             this.shownPages = shownPages;
 
             regular = Liberation.SERIF.create((int) BODY_SIZE);
@@ -160,6 +169,9 @@ public class PdfExporter extends ExporterBase {
                 }
                 walk(messages.get(i), bodySink);
                 pendingChapter = null;
+                for (ExportImage image : imagesOf.get(i)) {
+                    writeImage(image);
+                }
             }
             if (document.getPageNumber() == 0) {
                 // nothing was exported, the document needs at least one page
@@ -167,6 +179,21 @@ public class PdfExporter extends ExporterBase {
             }
             document.close();
             return bytes.toByteArray();
+        }
+
+        private void writeImage(ExportImage export) throws Exception {
+            Image image = Image.getInstance(export.data());
+            image.scaleToFit(document.right() - document.left(), (document.top() - document.bottom()) * 0.8f);
+            image.setAlignment(Element.ALIGN_CENTER);
+            image.setSpacingBefore(8);
+            image.setSpacingAfter(export.caption().isEmpty() ? 12 : 4);
+            document.add(image);
+            if (!export.caption().isEmpty()) {
+                Paragraph caption = new Paragraph(export.caption(), small);
+                caption.setAlignment(Element.ALIGN_CENTER);
+                caption.setSpacingAfter(12);
+                document.add(caption);
+            }
         }
 
         private void writeContents() {

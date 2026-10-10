@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.Ja
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
@@ -959,9 +960,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private MenuItem deleteSummaryItem;
         private MenuItem deleteItem;
         private MenuItem showPromptItem;
+        private MenuItem imagesItem;
         private Details reasoningDetails;
         private Markdown reasoningMarkdown;
         private Markdown responseMarkdown;
+        private MessageImages messageImages;
         private TextArea responseTextArea;
         private boolean editing = false;
 
@@ -1052,7 +1055,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
             responseTextArea.setVisible(false);
 
-            contentLayout.add(headerBar, reasoningDetails, responseMarkdown, responseTextArea);
+            messageImages = new MessageImages(message.getImages());
+
+            contentLayout.add(headerBar, reasoningDetails, responseMarkdown, responseTextArea, messageImages);
 
             metaLayout = new VerticalLayout();
             metaLayout.setWidth("220px");
@@ -1211,6 +1216,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
 
+            imagesItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_IMAGES), event -> openImagesDialog());
+
             summaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_GENERATE_SUMMARY), event -> openSummaryDialog());
             deleteSummaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE_SUMMARY), event -> confirmDeleteSummary());
 
@@ -1242,6 +1249,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     refreshSummaryMenuItems();
                 }
             });
+        }
+
+        private void openImagesDialog() {
+            new ImagesDialog(message, updated -> {
+                message = updated;
+                messageImages.setImages(updated.getImages());
+            }).open();
         }
 
         private void refreshSummaryMenuItems() {

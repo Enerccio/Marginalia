@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.crud;
 
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
+import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -275,5 +277,33 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         assertThat(chatMessageService.countWords("Hello, world! It's 2 o'clock")).isEqualTo(7);
         assertThat(chatMessageService.countWords("Příliš žluťoučký kůň")).isEqualTo(3);
         assertThat(chatMessageService.countWords("  ")).isZero();
+    }
+
+    @Test
+    void imageAttachmentsArePersistedAndStayOutOfTheText() throws Exception {
+        ChatMessage root = chatMessageService.createRoot(manuscript, message("root", 1));
+        assertThat(reload(root).getImages()).isEmpty();
+
+        root.setImages(List.of(new ImageAttachment("uuid-1", "First \"quoted\" caption"), new ImageAttachment("uuid-2", "")));
+        chatMessageService.save(root);
+
+        ChatMessage loaded = reload(root);
+        assertThat(loaded.getImages()).containsExactly(new ImageAttachment("uuid-1", "First \"quoted\" caption"), new ImageAttachment("uuid-2", ""));
+        assertThat(loaded.getResponse()).isEqualTo("root");
+
+        loaded.setImages(List.of());
+        chatMessageService.save(loaded);
+        assertThat(reload(root).getImages()).isEmpty();
+    }
+
+    @Test
+    void branchKeepsImageAttachments() throws Exception {
+        ChatMessage root = chatMessageService.createRoot(manuscript, message("root", 1));
+        root.setImages(List.of(new ImageAttachment("uuid-1", "map")));
+        root = chatMessageService.save(root);
+
+        ChatMessage branched = reload(chatMessageService.branch(manuscript, reload(root)));
+
+        assertThat(branched.getImages()).containsExactly(new ImageAttachment("uuid-1", "map"));
     }
 }
