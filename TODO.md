@@ -60,12 +60,12 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
    - ✅ Deployment: reverse proxy + HTTPS (the app sets remember-me cookies, so it must not be exposed over plain
      HTTP), memory settings, where plugins go.
 
-7. **Developer documentation.**
-   - Architecture overview: Spring XML wiring, `@Configurable` UI, `@Extendable` + bytecode instrumentation,
+7. ✅ **Developer documentation.**
+   - ✅ Architecture overview: Spring XML wiring, `@Configurable` UI, `@Extendable` + bytecode instrumentation,
      generation pipeline steps (`StoryGenerationServiceImpl.installedSteps`), extended attributes, localization.
-   - **Plugin authoring guide**: bundle layout, `MarginaliaExtension`, `ExtensionService.registerDecorator`,
+   - ✅ **Plugin authoring guide**: bundle layout, `MarginaliaExtension`, `ExtensionService.registerDecorator`,
      `CleanupService.registerContributor`, the context-variable API, and the 4 existing plugins as examples.
-   - How to add an entity (persistence.xml, Flyway migration, `@CleanupReference`, backup/export impact).
+   - ✅ How to add an entity (persistence.xml, Flyway migration, `@CleanupReference`, backup/export impact).
 
 8. **Build & CI.**
    - ✅ No CI. Add a GitHub Actions workflow: build core + all plugins, run tests, build the Docker image.
