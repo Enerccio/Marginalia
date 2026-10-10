@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -21,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 @Configurable
+@Extendable
 public class TagMultiComboBox extends MultiSelectComboBox<Tag> {
 
     private static final Logger log = LoggerFactory.getLogger(TagMultiComboBox.class);

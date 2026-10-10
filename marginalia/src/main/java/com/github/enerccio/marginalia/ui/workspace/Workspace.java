@@ -58,6 +58,9 @@ public class Workspace {
     private final ResourcesPart resourcesPart = new ResourcesPart(this);
     private Component resourcesPartComponent;
 
+    private final TrashPart trashPart = new TrashPart(this);
+    private Component trashPartComponent;
+
     private final AdminPart adminPart = new AdminPart(this);
     private Component adminPartComponent;
 
@@ -88,6 +91,7 @@ public class Workspace {
         protocolPartComponent = protocolPart.create();
         aiPartComponent = aiPart.create();
         resourcesPartComponent = resourcesPart.create();
+        trashPartComponent = trashPart.create();
         adminPartComponent = adminPart.create();
 
         HorizontalLayout manuscriptTabHeader = new HorizontalLayout();
@@ -142,6 +146,14 @@ public class Workspace {
 
         Tab resourcesTab = tabs.add(resourcesTabHeader, resourcesPartComponent);
         tabToComponent.put(resourcesTab, resourcesPart);
+
+        HorizontalLayout trashTabHeader = new HorizontalLayout();
+        trashTabHeader.setAlignItems(Alignment.CENTER);
+        trashTabHeader.setSpacing(true);
+        trashTabHeader.add(new Span(loc.getValue(L.LABEL_TRASH)));
+
+        Tab trashTab = tabs.add(trashTabHeader, trashPartComponent);
+        tabToComponent.put(trashTab, trashPart);
 
         User user = userService.find(currentUser.getId());
         tabs.setFooterComponent(createFooter(user));
@@ -273,6 +285,7 @@ public class Workspace {
         protocolPart.refresh();
         aiPart.refresh();
         resourcesPart.refresh();
+        trashPart.refresh();
         adminPart.refresh();
     }
 

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.components;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -21,6 +22,7 @@ import java.util.List;
  * them, not when the message is rendered.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class MessageImages extends Div {
     private static final Logger log = LoggerFactory.getLogger(MessageImages.class);
 

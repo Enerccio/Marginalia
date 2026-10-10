@@ -261,6 +261,13 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_REQUEST_TIMEOUT, "Timeout (seconds)");
         setValue(L.LABEL_MAX_RETRIES, "Retries");
         setValue(L.LABEL_TEST_CONNECTION, "Test Connection");
+        setValue(L.LABEL_TRASH, "Trash");
+        setValue(L.LABEL_RESTORE, "Restore");
+        setValue(L.LABEL_RESTORE_SELECTED, "Restore Selected");
+        setValue(L.LABEL_USER, "User");
+        setValue(L.LABEL_ALL_USERS, "All users");
+        setValue(L.LABEL_ALL_TYPES, "All types");
+        setValue(L.LABEL_EXTENDED_CONTENT, "Extended Content");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -286,6 +293,13 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ENUM_LOREBOOK_DECISION_LINK, "Link to existing");
         setValue(L.ENUM_LOREBOOK_DECISION_CREATE, "Create new");
         setValue(L.ENUM_LOREBOOK_DECISION_SKIP, "Skip");
+        setValue(L.ENUM_DOMAIN_LOREBOOK_ENTRY, "Lorebook Entry");
+        setValue(L.ENUM_DOMAIN_MESSAGE, "Message");
+        setValue(L.ENUM_DOMAIN_TAG, "Tag");
+        setValue(L.ENUM_DOMAIN_TAG_RELATION, "Tag Link");
+        setValue(L.ENUM_DOMAIN_RESOURCE, "Resource");
+        setValue(L.ENUM_DOMAIN_PROTOCOL, "Protocol");
+        setValue(L.ENUM_DOMAIN_SETTING, "Setting");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -384,6 +398,13 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_CONNECTION_OK, "Connection works: %s models available and the model answered.");
         setValue(L.MSG_CONNECTION_OK_NO_MODELS, "Connection works: the model answered (the provider does not list its models).");
         setValue(L.MSG_PROMPT_MAY_OVERFLOW, "The prompt has about %s tokens and %s are kept for the response, the context size is %s. The provider may reject the request or cut the prompt.");
+        setValue(L.MSG_TRASH_DESCRIPTION, "Deleted objects stay here until an administrator runs the cleanup. Select what you want back and restore it. An object that belongs to a deleted object (a message of a deleted book, an entry of a deleted lorebook) can only be restored together with it.");
+        setValue(L.MSG_TRASH_EMPTY, "Nothing is deleted.");
+        setValue(L.MSG_CONFIRM_RESTORE, "Restore %s selected objects?");
+        setValue(L.MSG_RESTORED, "%s objects were restored.");
+        setValue(L.MSG_RESTORE_BLOCKED, "Nothing was restored. These objects need a deleted object that is not selected. Select it too, or leave them deleted.");
+        setValue(L.MSG_RESTORE_BLOCKED_ITEM, "%s \"%s\" needs the deleted %s \"%s\" (%s)");
+        setValue(L.MSG_NO_EXTENDED_CONTENT, "This object has no extended content.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

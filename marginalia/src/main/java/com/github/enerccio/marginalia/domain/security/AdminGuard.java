@@ -28,9 +28,16 @@ public class AdminGuard {
      * @throws SecurityException when nobody is logged in, or the user is deleted or not an administrator
      */
     public void requireAdmin() throws Exception {
-        User user = currentUser.getId() == null ? null : userService.find(currentUser.getId());
-        if (user == null || user.isDeleted() || !user.isAdmin()) {
+        if (!isAdmin()) {
             throw new SecurityException("Only administrators can do this");
         }
+    }
+
+    /**
+     * For services that behave differently for administrators, the same check as {@link #requireAdmin()}.
+     */
+    public boolean isAdmin() throws Exception {
+        User user = currentUser.getId() == null ? null : userService.find(currentUser.getId());
+        return user != null && !user.isDeleted() && user.isAdmin();
     }
 }

@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.bound.SessionManager;
 import com.github.enerccio.marginalia.domain.security.PersistedLoginInfo;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
@@ -30,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configurable(preConstruction = true)
+@Extendable
 public abstract class LoginCheckRoute extends Div {
     private static final Logger log = LoggerFactory.getLogger(LoginCheckRoute.class);
 

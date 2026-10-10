@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.main;
 
 import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.DetachEvent;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 @Route("/")
 @Configurable(preConstruction = true)
+@Extendable
 public class Main extends LoginCheckRoute {
 
     @Autowired

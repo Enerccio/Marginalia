@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.TrashGrid;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -41,6 +42,7 @@ public class CleanupPanel {
     private Grid<BlockedEntity> blockedGrid;
     private Grid<ReferenceDescriptor> modelGrid;
     private Button runButton;
+    private TrashGrid trashGrid;
 
     public Component create() {
         VerticalLayout layout = new VerticalLayout();
@@ -119,7 +121,27 @@ public class CleanupPanel {
             }
         });
 
-        layout.add(description, toolbar, statsGrid, blockedTitle, blockedGrid, modelDetails);
+        // what a purge removes, and the way to get it back before that
+        Details trashDetails = new Details(loc.getValue(L.LABEL_TRASH));
+        trashDetails.setWidthFull();
+        trashDetails.addOpenedChangeListener(e -> {
+            if (!e.isOpened()) {
+                return;
+            }
+            try {
+                if (trashGrid == null) {
+                    trashGrid = new TrashGrid(true).create();
+                    trashGrid.setHeight("500px");
+                    trashDetails.add(trashGrid);
+                } else {
+                    trashGrid.refresh();
+                }
+            } catch (Exception ex) {
+                UIUtils.internalServerError(loc, ex);
+            }
+        });
+
+        layout.add(description, toolbar, statsGrid, blockedTitle, blockedGrid, trashDetails, modelDetails);
         layout.setFlexGrow(1, blockedGrid);
         return layout;
     }
@@ -145,6 +167,9 @@ public class CleanupPanel {
                     CleanupPlan result = cleanupService.purge();
                     Notification.success(String.format(loc.getValue(L.MSG_CLEANUP_DONE), result.getPurge().size()));
                     showPlan(cleanupService.analyze());
+                    if (trashGrid != null) {
+                        trashGrid.refresh();
+                    }
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
                 }
