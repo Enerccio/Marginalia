@@ -2,6 +2,9 @@ package com.github.enerccio.marginalia.loc;
 
 
 import com.github.enerccio.marginalia.domain.collections.*;
+import com.github.enerccio.marginalia.domain.model.Setting;
+import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
@@ -31,6 +34,7 @@ public abstract class LocalizationBase implements Localization {
     private final Map<CleanupReference.Policy, L> cleanupPolicies = new HashMap<>();
     private final Map<LorebookMatch, L> lorebookMatches = new HashMap<>();
     private final Map<LorebookDecision, L> lorebookDecisions = new HashMap<>();
+    private final Map<Class<?>, L> domainObjects = new HashMap<>();
 
     protected abstract void loadMessages();
 
@@ -73,6 +77,19 @@ public abstract class LocalizationBase implements Localization {
         lorebookDecisions.put(LorebookDecision.LINK, L.ENUM_LOREBOOK_DECISION_LINK);
         lorebookDecisions.put(LorebookDecision.CREATE, L.ENUM_LOREBOOK_DECISION_CREATE);
         lorebookDecisions.put(LorebookDecision.SKIP, L.ENUM_LOREBOOK_DECISION_SKIP);
+
+        domainObjects.put(Manuscript.class, L.LABEL_BOOK);
+        domainObjects.put(Lorebook.class, L.LABEL_LOREBOOK);
+        domainObjects.put(LorebookEntry.class, L.ENUM_DOMAIN_LOREBOOK_ENTRY);
+        domainObjects.put(ChatMessage.class, L.ENUM_DOMAIN_MESSAGE);
+        domainObjects.put(Summary.class, L.LABEL_SUMMARY);
+        domainObjects.put(AI.class, L.LABEL_MODEL);
+        domainObjects.put(Protocol.class, L.ENUM_DOMAIN_PROTOCOL);
+        domainObjects.put(Tag.class, L.ENUM_DOMAIN_TAG);
+        domainObjects.put(TagRelation.class, L.ENUM_DOMAIN_TAG_RELATION);
+        domainObjects.put(Resource.class, L.ENUM_DOMAIN_RESOURCE);
+        domainObjects.put(Setting.class, L.ENUM_DOMAIN_SETTING);
+        domainObjects.put(User.class, L.LABEL_USER);
     }
 
     protected void checkLocalization() {
@@ -206,5 +223,16 @@ public abstract class LocalizationBase implements Localization {
     @Override
     public L getLorebookDecision(LorebookDecision type) {
         return lorebookDecisions.get(type);
+    }
+
+    @Override
+    public String localizeDomainObject(Class<?> clazz) {
+        for (Class<?> c = clazz; c != null && c != Object.class; c = c.getSuperclass()) {
+            L key = domainObjects.get(c);
+            if (key != null) {
+                return getValue(key);
+            }
+        }
+        return clazz == null ? "" : clazz.getSimpleName();
     }
 }

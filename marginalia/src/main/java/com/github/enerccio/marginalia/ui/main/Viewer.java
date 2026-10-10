@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
@@ -52,6 +53,7 @@ import java.util.stream.Stream;
 
 @Route("view")
 @Configurable(preConstruction = true)
+@Extendable
 public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
     private static final Logger log = LoggerFactory.getLogger(Viewer.class);

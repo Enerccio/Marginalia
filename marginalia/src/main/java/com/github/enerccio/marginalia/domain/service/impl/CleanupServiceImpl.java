@@ -3,16 +3,19 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.CleanupService;
+import com.github.enerccio.marginalia.domain.service.TrashService;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import jakarta.persistence.*;
 import jakarta.persistence.metamodel.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -21,10 +24,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class CleanupServiceImpl implements CleanupService {
+/**
+ * Cleanup of soft deleted entities and, on the same reference model, listing and restoring them ({@link TrashService}).
+ * Cleanup is for administrators only, the trash is for every user (own objects) and administrators (all objects).
+ */
+public class CleanupServiceImpl implements CleanupService, TrashService {
 
     private static final Logger log = LoggerFactory.getLogger(CleanupServiceImpl.class);
 
@@ -38,6 +46,9 @@ public class CleanupServiceImpl implements CleanupService {
 
     @Autowired
     private AdminGuard adminGuard;
+
+    @Autowired
+    private User currentUser;
 
     private EntityManager entityManager;
     private volatile Model model;
@@ -570,6 +581,271 @@ public class CleanupServiceImpl implements CleanupService {
             entityManager.flush();
             entityManager.clear();
         }
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // trash (list and restore soft deleted entities)
+    // ---------------------------------------------------------------------------------------------------------------
+
+    private record TrashRow(EntityKey key, String uuid, Date modification, Long ownerId, String ownerLogin) {
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Class<?>> getTypes() throws Exception {
+        trashScope();
+        return trashTypes(getModel());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public long count(TrashFilter filter) throws Exception {
+        Model m = getModel();
+        Long owner = trashOwner(filter);
+        long total = 0;
+        for (Class<?> type : trashTypes(m, filter)) {
+            TypedQuery<Long> query = entityManager.createQuery("SELECT COUNT(e) FROM " + m.rootEntities.get(type)
+                    + " e WHERE e.deleted = true" + (owner != null ? " AND e.owner.id = :owner" : ""), Long.class);
+            if (owner != null) {
+                query.setParameter("owner", owner);
+            }
+            total += query.getSingleResult();
+        }
+        return total;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<TrashItem> find(TrashFilter filter, int offset, int limit) throws Exception {
+        Model m = getModel();
+        Long owner = trashOwner(filter);
+        // narrow rows only (no extended content), the entities are loaded for the requested page
+        List<TrashRow> rows = new ArrayList<>();
+        for (Class<?> type : trashTypes(m, filter)) {
+            TypedQuery<Object[]> query = entityManager.createQuery("SELECT e.id, e.uuid, e.modification, o.id, o.login FROM "
+                    + m.rootEntities.get(type) + " e LEFT JOIN e.owner o WHERE e.deleted = true"
+                    + (owner != null ? " AND o.id = :owner" : ""), Object[].class);
+            if (owner != null) {
+                query.setParameter("owner", owner);
+            }
+            for (Object[] row : query.getResultList()) {
+                rows.add(new TrashRow(new EntityKey(type, ((Number) row[0]).longValue()), (String) row[1],
+                        row[2] != null ? new Date(((Date) row[2]).getTime()) : null,
+                        row[3] != null ? ((Number) row[3]).longValue() : null, (String) row[4]));
+            }
+        }
+        rows.sort(Comparator.comparingLong((TrashRow row) -> row.modification() != null ? row.modification().getTime() : Long.MIN_VALUE)
+                .reversed().thenComparing(row -> row.key().id()));
+
+        int from = Math.min(Math.max(offset, 0), rows.size());
+        int to = (int) Math.min(rows.size(), (long) from + Math.max(limit, 0));
+        List<TrashItem> items = new ArrayList<>();
+        for (TrashRow row : rows.subList(from, to)) {
+            items.add(new TrashItem(row.key(), row.uuid(), label(row.key()), row.ownerId(), row.ownerLogin(),
+                    row.modification(), ExtendableEntity.class.isAssignableFrom(row.key().type())));
+        }
+        return items;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getExtendedContent(EntityKey key) throws Exception {
+        Model m = getModel();
+        if (!ExtendableEntity.class.isAssignableFrom(key.type()) || !deletedAccessible(m, List.of(key)).contains(key)) {
+            return null;
+        }
+        List<byte[]> content = entityManager.createQuery("SELECT e.extendedContent FROM " + m.rootEntities.get(key.type())
+                        + " e WHERE e.id = :id", byte[].class)
+                .setParameter("id", key.id())
+                .getResultList();
+        if (content.isEmpty() || content.getFirst() == null || content.getFirst().length == 0) {
+            return null;
+        }
+        String json = new String(content.getFirst(), StandardCharsets.UTF_8);
+        try {
+            JsonElement parsed = JsonParser.parseString(json);
+            return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(parsed);
+        } catch (Exception e) {
+            return json;
+        }
+    }
+
+    @Override
+    @CommonTx
+    public RestoreResult restore(Collection<EntityKey> keys) throws Exception {
+        Model m = getModel();
+        Set<EntityKey> selection = deletedAccessible(m, keys);
+        RestoreResult result = new RestoreResult();
+        if (selection.isEmpty()) {
+            return result;
+        }
+
+        Map<EntityKey, List<Blocker>> blocked = findDeletedParents(m, selection);
+        if (!blocked.isEmpty()) {
+            result.getBlocked().putAll(blocked);
+            for (EntityKey key : blocked.keySet()) {
+                result.getBlockedLabels().put(key, label(key));
+            }
+            return result;
+        }
+
+        // bulk update on purpose: no listeners, extended attributes of the entities stay as they are
+        Date now = new Date();
+        for (Map.Entry<Class<?>, List<Long>> group : group(selection).entrySet()) {
+            for (List<Long> chunk : chunks(group.getValue())) {
+                entityManager.createQuery("UPDATE " + m.rootEntities.get(group.getKey())
+                                + " e SET e.deleted = false, e.modification = :now WHERE e.id IN :ids")
+                        .setParameter("now", now)
+                        .setParameter("ids", chunk)
+                        .executeUpdate();
+            }
+        }
+        entityManager.flush();
+        entityManager.clear();
+        result.getRestored().addAll(selection);
+        log.info("Restored {} soft deleted entities", selection.size());
+        return result;
+    }
+
+    /**
+     * Owner the current user is limited to, null for administrator (all owners). Fails when nobody is logged in.
+     */
+    private Long trashScope() throws Exception {
+        if (currentUser.getId() == null) {
+            throw new SecurityException("Nobody is logged in");
+        }
+        return adminGuard.isAdmin() ? null : currentUser.getId();
+    }
+
+    private Long trashOwner(TrashFilter filter) throws Exception {
+        Long scope = trashScope();
+        return scope != null ? scope : filter != null ? filter.ownerId() : null;
+    }
+
+    private List<Class<?>> trashTypes(Model m) {
+        List<Class<?>> types = new ArrayList<>();
+        for (Class<?> type : m.rootEntities.keySet()) {
+            if (OwnedEntity.class.isAssignableFrom(type)) {
+                types.add(type);
+            }
+        }
+        return types;
+    }
+
+    private List<Class<?>> trashTypes(Model m, TrashFilter filter) {
+        List<Class<?>> types = trashTypes(m);
+        if (filter == null || filter.type() == null) {
+            return types;
+        }
+        if (!types.contains(filter.type())) {
+            throw new IllegalArgumentException("Not a restorable type: " + filter.type().getName());
+        }
+        return List.of(filter.type());
+    }
+
+    /**
+     * Requested objects that are still deleted. Objects that do not exist or were restored in the meantime are left
+     * out.
+     *
+     * @throws SecurityException when the object belongs to someone else, whatever its state
+     */
+    private Set<EntityKey> deletedAccessible(Model m, Collection<EntityKey> keys) throws Exception {
+        Long scope = trashScope();
+        List<Class<?>> types = trashTypes(m);
+        Set<EntityKey> deleted = new LinkedHashSet<>();
+        for (Map.Entry<Class<?>, List<Long>> group : group(new LinkedHashSet<>(keys)).entrySet()) {
+            if (!types.contains(group.getKey())) {
+                throw new IllegalArgumentException("Not a restorable type: " + group.getKey().getName());
+            }
+            for (List<Long> chunk : chunks(group.getValue())) {
+                List<Object[]> rows = entityManager.createQuery("SELECT e.id, o.id, e.deleted FROM " + m.rootEntities.get(group.getKey())
+                                + " e LEFT JOIN e.owner o WHERE e.id IN :ids", Object[].class)
+                        .setParameter("ids", chunk)
+                        .getResultList();
+                for (Object[] row : rows) {
+                    Long ownerId = row[1] != null ? ((Number) row[1]).longValue() : null;
+                    if (scope != null && !scope.equals(ownerId)) {
+                        throw new SecurityException("The object belongs to another user");
+                    }
+                    if (Boolean.TRUE.equals(row[2])) {
+                        deleted.add(new EntityKey(group.getKey(), ((Number) row[0]).longValue()));
+                    }
+                }
+            }
+        }
+        return deleted;
+    }
+
+    /**
+     * Objects of the selection that depend on a deleted object outside of the selection. Dependency is everything the
+     * object can't live without: the objects it is owned by or strongly references, and the object that owns it. Weak
+     * references are cleared by purge anyway, so they are not a dependency.
+     */
+    private Map<EntityKey, List<Blocker>> findDeletedParents(Model m, Set<EntityKey> selection) throws Exception {
+        Map<EntityKey, Map<EntityKey, String>> parentsOf = new LinkedHashMap<>();
+        Map<Class<?>, List<Long>> grouped = group(selection);
+        for (ReferenceDescriptor descriptor : m.references) {
+            switch (descriptor.getPolicy()) {
+                case STRONG, OWNED_BY -> {
+                    List<Long> ids = grouped.get(descriptor.getReferrerType());
+                    if (ids != null) {
+                        for (Edge edge : edgesByReferrer(m, descriptor, ids)) {
+                            parentsOf.computeIfAbsent(edge.referrer(), k -> new LinkedHashMap<>())
+                                    .putIfAbsent(edge.target(), descriptor.getField());
+                        }
+                    }
+                }
+                case OWNS -> {
+                    for (Map.Entry<Class<?>, List<Long>> group : grouped.entrySet()) {
+                        for (Edge edge : edgesByTarget(m, descriptor, group.getKey(), group.getValue())) {
+                            parentsOf.computeIfAbsent(edge.target(), k -> new LinkedHashMap<>())
+                                    .putIfAbsent(edge.referrer(), descriptor.getField());
+                        }
+                    }
+                }
+                case WEAK -> {
+                }
+            }
+        }
+
+        Set<EntityKey> outside = new LinkedHashSet<>();
+        for (Map<EntityKey, String> parents : parentsOf.values()) {
+            for (EntityKey parent : parents.keySet()) {
+                if (!selection.contains(parent)) {
+                    outside.add(parent);
+                }
+            }
+        }
+        Set<EntityKey> deletedOutside = deletedAmong(m, outside);
+
+        Map<EntityKey, List<Blocker>> blocked = new LinkedHashMap<>();
+        Map<EntityKey, String> labels = new HashMap<>();
+        for (Map.Entry<EntityKey, Map<EntityKey, String>> child : parentsOf.entrySet()) {
+            for (Map.Entry<EntityKey, String> parent : child.getValue().entrySet()) {
+                if (deletedOutside.contains(parent.getKey())) {
+                    blocked.computeIfAbsent(child.getKey(), k -> new ArrayList<>()).add(new Blocker(parent.getKey(),
+                            labels.computeIfAbsent(parent.getKey(), this::label), parent.getValue()));
+                }
+            }
+        }
+        return blocked;
+    }
+
+    private Set<EntityKey> deletedAmong(Model m, Set<EntityKey> keys) {
+        Set<EntityKey> deleted = new HashSet<>();
+        for (Map.Entry<Class<?>, List<Long>> group : group(keys).entrySet()) {
+            String entityName = m.rootEntities.get(group.getKey());
+            if (entityName == null) {
+                continue;
+            }
+            for (List<Long> chunk : chunks(group.getValue())) {
+                for (Long id : entityManager.createQuery("SELECT e.id FROM " + entityName + " e WHERE e.id IN :ids AND e.deleted = true", Long.class)
+                        .setParameter("ids", chunk).getResultList()) {
+                    deleted.add(new EntityKey(group.getKey(), id));
+                }
+            }
+        }
+        return deleted;
     }
 
     // ---------------------------------------------------------------------------------------------------------------

@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ExporterService;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -39,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * exports them and offers the result for download.
  */
 @Configurable(preConstruction = true)
+@Extendable
 public class ExportDialog extends Dialog {
 
     @Autowired

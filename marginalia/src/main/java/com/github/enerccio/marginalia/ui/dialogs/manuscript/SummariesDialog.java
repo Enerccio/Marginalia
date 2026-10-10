@@ -208,6 +208,7 @@ public class SummariesDialog extends Dialog {
      * Reasoning and text of a summary in a scroll area of the same height for every summary, so the rows of the grid are
      * uniform. Summaries generation uses have a pencil in the gutter next to the text that turns it into a text area.
      */
+    @Extendable
     private class SummaryContent extends Div {
         private static final String HEIGHT = "150px";
         private static final String GUTTER = "40px";

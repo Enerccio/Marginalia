@@ -31,4 +31,10 @@ public interface Localization {
     L getCleanupPolicy(CleanupReference.Policy t);
     L getLorebookMatch(LorebookMatch t);
     L getLorebookDecision(LorebookDecision t);
+
+    /**
+     * Localized name of the kind of object an entity class stands for (book, lorebook...), subclasses use the name of
+     * their closest known superclass.
+     */
+    String localizeDomainObject(Class<?> clazz);
 }
