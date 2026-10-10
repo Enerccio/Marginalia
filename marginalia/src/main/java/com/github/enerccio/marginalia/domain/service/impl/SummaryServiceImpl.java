@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Constants;
+import com.github.enerccio.marginalia.domain.collections.SummaryType;
+import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.repository.SummaryRepository;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -9,10 +11,12 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceA
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.templates.MetaSummaryTemplateData;
 import com.github.enerccio.marginalia.domain.templates.SummaryTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
+import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.apache.commons.lang3.StringUtils;
@@ -21,12 +25,12 @@ import org.springframework.context.annotation.Lazy;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.HexFormat;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRepository> implements SummaryService {
+
+    private final ExtendableEntityListener extendableListener = new ExtendableEntityListener();
 
     @Autowired
     @Lazy
@@ -53,6 +57,21 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     @Override
     @CommonTx
     public CancellationToken createSummary(Manuscript manuscript, ChatMessage from, AsyncCallback callback) throws Exception {
+        return createSummary(manuscript, from, null, callback);
+    }
+
+    @Override
+    @CommonTx
+    public CancellationToken createMetaSummary(Manuscript manuscript, ChatMessage from, ChatMessage to, AsyncCallback callback) throws Exception {
+        if (to == null)
+            return null;
+        return createSummary(manuscript, from, to, callback);
+    }
+
+    /**
+     * @param to null for summary of the messages, otherwise the oldest message of the range the meta summary merges
+     */
+    private CancellationToken createSummary(Manuscript manuscript, ChatMessage from, ChatMessage to, AsyncCallback callback) throws Exception {
         if (manuscript == null || from == null || callback == null || manuscript.getAi() == null)
             return null;
 
@@ -69,7 +88,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         newSummary.setReasoningTokens(0L);
         newSummary.setSummaryTokens(0L);
 
-        List<LLMChatMessage> payload = createSummaryPayload(manuscript, from, ai, protocol, inferenceService, newSummary);
+        List<LLMChatMessage> payload = to == null
+                ? createSummaryPayload(manuscript, from, ai, protocol, inferenceService, newSummary)
+                : createMetaSummaryPayload(manuscript, from, to, ai, protocol, inferenceService, newSummary);
         if (payload == null)
             return null;
 
@@ -107,9 +128,13 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
                     summary.setSummaryTokens(inferenceService.countTokens(summary.getSummary()));
                     summary.setReasoningTokens(inferenceService.countTokens(summary.getReasoning()));
                     summary = self.save(summary);
-                    ChatMessage message = chatMessageService.find(from);
-                    message.setSummary(summary);
-                    chatMessageService.save(message);
+                    if (to == null) {
+                        ChatMessage message = chatMessageService.find(from);
+                        message.setSummary(summary);
+                        chatMessageService.save(message);
+                    } else {
+                        summary = self.attachMetaSummary(summary, from);
+                    }
                     callback.onSummaryFinished(summary);
                 }
             }
@@ -149,7 +174,190 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         copy.setSummary(summary.getSummary());
         copy.setSummaryTokens(summary.getSummaryTokens());
         copy.setSummaryMessageHash(summary.getSummaryMessageHash());
+        copy.setSummaryType(summary.getSummaryType());
+        copy.setNextSummaryUuid(summary.getNextSummaryUuid());
+        copy.setReplacedSummary(summary.getReplacedSummary());
         return save(copy);
+    }
+
+    @Override
+    @CommonTx
+    public Summary attachMetaSummary(Summary metaSummary, ChatMessage message) throws Exception {
+        message = chatMessageService.find(message);
+        Summary replaced = message.getSummary() == null ? null : find(message.getSummary());
+        if (replaced != null) {
+            extendableListener.serialize(replaced);
+            metaSummary.setReplacedSummary(new String(replaced.getExtendedContent(), StandardCharsets.UTF_8));
+            swapUuid(replaced, metaSummary);
+            replaced = save(replaced);
+        }
+        metaSummary = save(metaSummary);
+        message.setSummary(metaSummary);
+        chatMessageService.save(message);
+        if (replaced != null) {
+            delete(replaced, true);
+        }
+        return metaSummary;
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage removeSummary(ChatMessage message, boolean unwind) throws Exception {
+        message = chatMessageService.find(message);
+        if (message == null || message.getSummary() == null) {
+            return message;
+        }
+        Summary summary = find(message.getSummary());
+        Summary restored = null;
+        if (unwind && summary != null && summary.getSummaryType() == SummaryType.META_SUMMARY
+                && StringUtils.isNotBlank(summary.getReplacedSummary())) {
+            restored = new Summary();
+            restored.setExtendedContent(summary.getReplacedSummary().getBytes(StandardCharsets.UTF_8));
+            extendableListener.deserialize(restored);
+        }
+
+        message.setSummary(null);
+        message = chatMessageService.save(message);
+        if (summary == null) {
+            return message;
+        }
+        if (restored != null) {
+            swapUuid(summary, restored);
+            summary = save(summary);
+            restored = save(restored);
+            message.setSummary(restored);
+            message = chatMessageService.save(message);
+        }
+        delete(summary, true);
+        return message;
+    }
+
+    /**
+     * Gives uuid of the summary that goes away to the one that takes its place (summaries point to each other by uuid).
+     * The outgoing one gets a new uuid, it must be saved before the incoming one.
+     */
+    private static void swapUuid(Summary outgoing, Summary incoming) {
+        incoming.setUuid(outgoing.getUuid());
+        outgoing.setUuid(UUID.randomUUID().toString());
+    }
+
+    @Override
+    @CommonTx
+    public Summary updateSummaryText(Manuscript manuscript, Summary summary, String text) throws Exception {
+        summary = find(summary);
+        summary.setSummary(text);
+        InferenceService inferenceService = inferenceServices.forAI(aiService.find(manuscript.getAi()));
+        summary.setSummaryTokens(inferenceService == null ? inferenceTokensFallback(text) : inferenceService.countTokens(text));
+        return save(summary);
+    }
+
+    private static long inferenceTokensFallback(String text) {
+        return StringUtils.length(text) / 4;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<SummaryNode> collectTree(List<ChatMessage> newestFirst) throws Exception {
+        List<SummaryNode> nodes = new ArrayList<>();
+        for (SummaryBlock block : collectBlocks(newestFirst)) {
+            nodes.add(createNode(newestFirst, newestFirst.indexOf(block.head()), block.summary(), false));
+        }
+        return nodes.reversed();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<SummaryNode> collectTree(Manuscript manuscript) throws Exception {
+        if (manuscript == null || manuscript.getActiveLeaf() == null) {
+            return new ArrayList<>();
+        }
+        return collectTree(chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf()).reversed());
+    }
+
+    private SummaryNode createNode(List<ChatMessage> newestFirst, int index, Summary summary, boolean replaced) throws Exception {
+        List<SummaryNode> children = summary.getSummaryType() == SummaryType.META_SUMMARY
+                ? createChildren(newestFirst, index, summary) : List.of();
+        return new SummaryNode(newestFirst.get(index), newestFirst.size() - index, summary, replaced, children);
+    }
+
+    /**
+     * Same walk as {@link #collectBlocks}, from the part of the meta summary to the summary it points to.
+     */
+    private List<SummaryNode> createChildren(List<ChatMessage> newestFirst, int index, Summary meta) throws Exception {
+        List<SummaryNode> children = new ArrayList<>();
+        boolean ignoring = false;
+        String nextUuid = null;
+
+        if (StringUtils.isNotBlank(meta.getReplacedSummary())) {
+            Summary replaced = new Summary();
+            replaced.setExtendedContent(meta.getReplacedSummary().getBytes(StandardCharsets.UTF_8));
+            extendableListener.deserialize(replaced);
+            children.add(createNode(newestFirst, index, replaced, true));
+            ignoring = replaced.getSummaryType() == SummaryType.META_SUMMARY;
+            nextUuid = replaced.getNextSummaryUuid();
+        }
+
+        for (int i = index + 1; i < newestFirst.size(); i++) {
+            ChatMessage message = newestFirst.get(i);
+            Summary summary = message.getSummary() == null ? null : find(message.getSummary());
+            if (summary == null) {
+                continue;
+            }
+            if (meta.getNextSummaryUuid() != null && Objects.equals(summary.getUuid(), meta.getNextSummaryUuid())) {
+                break;
+            }
+            if (!ignoring || Objects.equals(summary.getUuid(), nextUuid)) {
+                children.add(createNode(newestFirst, i, summary, false));
+                ignoring = summary.getSummaryType() == SummaryType.META_SUMMARY;
+                nextUuid = summary.getNextSummaryUuid();
+            }
+        }
+        return children.reversed();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst) throws Exception {
+        List<SummaryBlock> blocks = new ArrayList<>();
+        MessageDigest digest = null;
+        ChatMessage head = null;
+        Summary headSummary = null;
+        // meta summary stands in for the summaries until the one with this uuid (none: until the root)
+        boolean ignoring = false;
+        String nextUuid = null;
+
+        for (ChatMessage message : newestFirst) {
+            Summary summary = message.getSummary() == null ? null : find(message.getSummary());
+            if (summary != null && (!ignoring || Objects.equals(summary.getUuid(), nextUuid))) {
+                if (head != null) {
+                    blocks.add(new SummaryBlock(head, headSummary, HexFormat.of().formatHex(digest.digest())));
+                }
+                head = message;
+                headSummary = summary;
+                digest = MessageDigest.getInstance("SHA512");
+                ignoring = summary.getSummaryType() == SummaryType.META_SUMMARY;
+                nextUuid = summary.getNextSummaryUuid();
+                // summary of the head is what is being checked
+                updateHash(digest, message, null);
+            } else if (head != null) {
+                updateHash(digest, message, summary);
+            }
+        }
+        if (head != null) {
+            blocks.add(new SummaryBlock(head, headSummary, HexFormat.of().formatHex(digest.digest())));
+        }
+        return blocks;
+    }
+
+    /**
+     * What a summary block hash is made of: the story text and, for the summaries a meta summary stands in for, their
+     * text. Head of the block puts in no summary, that is the one being checked.
+     */
+    private static void updateHash(MessageDigest digest, ChatMessage message, Summary summary) {
+        digest.update(StringUtils.defaultString(message.getResponse()).getBytes(StandardCharsets.UTF_8));
+        if (summary != null) {
+            digest.update(StringUtils.defaultString(summary.getSummary()).getBytes(StandardCharsets.UTF_8));
+        }
     }
 
     private List<LLMChatMessage> createSummaryPayload(Manuscript manuscript, ChatMessage from, AI ai, Protocol protocol, InferenceService inferenceService, Summary newSummary) throws Exception {
@@ -212,6 +420,100 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         }
 
         return List.of(LLMChatMessage.of(LLMRole.SYSTEM, fullPrompt));
+    }
+
+    private List<LLMChatMessage> createMetaSummaryPayload(Manuscript manuscript, ChatMessage from, ChatMessage to, AI ai, Protocol protocol, InferenceService inferenceService, Summary newSummary) throws Exception {
+        if (from.getSummary() == null || to.getSummary() == null) {
+            return null;
+        }
+
+        List<ChatMessage> tree = chatMessageService.getBranchFromLeaf(from).reversed();
+        int toIndex = indexOf(tree, to);
+        if (toIndex <= 0) {
+            // not on the branch of from, or from itself
+            return null;
+        }
+
+        // the blocks the story uses are merged, the summaries inside of them are not the story summaries anymore
+        List<SummaryBlock> blocks = collectBlocks(tree);
+        List<SummaryBlock> merged = new ArrayList<>();
+        SummaryBlock next = null;
+        for (SummaryBlock block : blocks) {
+            if (indexOf(tree, block.head()) <= toIndex) {
+                merged.add(block);
+            } else {
+                next = block;
+                break;
+            }
+        }
+        if (merged.size() < 2) {
+            return null;
+        }
+
+        newSummary.setSummaryType(SummaryType.META_SUMMARY);
+        newSummary.setNextSummaryUuid(next == null ? null : next.summary().getUuid());
+
+        MessageDigest digest = MessageDigest.getInstance("SHA512");
+        int end = next == null ? tree.size() : indexOf(tree, next.head());
+        for (int i = 0; i < end; i++) {
+            ChatMessage message = tree.get(i);
+            updateHash(digest, message, i == 0 || message.getSummary() == null ? null : find(message.getSummary()));
+        }
+        newSummary.setSummaryMessageHash(HexFormat.of().formatHex(digest.digest()));
+
+        List<String> texts = merged.reversed().stream()
+                .map(block -> StringUtils.defaultString(block.summary().getSummary()))
+                .collect(Collectors.toList());
+
+        String systemPrompt = manuscriptService.getMetaSummaryPrompt(manuscript);
+        // room for the response is reserved, the prompt gets the rest of the context
+        int maxTokens = TokenLimits.promptTokens(ai, protocol);
+        MetaSummaryTemplateData template = new MetaSummaryTemplateData();
+        TemplateContext templateContext = createTemplateContext(manuscript, from, ai, protocol, tree);
+        // estimation render must not change variables or the real render would apply them twice
+        template.setTemplateContext(templateContext.fork());
+
+        // the jailbreak goes first, before everything else in the prompt
+        String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
+                ? ai.getJailbreak() + "\n\n" : "";
+
+        template.setBackgroundLore(StringUtils.defaultString(from.getBackgroundLore()));
+        template.setSummaryBlocks("");
+
+        long summaryTokens = 0;
+        for (String text : texts) {
+            summaryTokens += inferenceService.countTokens(text);
+        }
+
+        String prompt = jailbreak + templateService.processTemplate(systemPrompt, "metaSummaryPrompt", template);
+        long tokens = inferenceService.countTokens(prompt);
+        if (tokens > maxTokens) {
+            throw new SummaryContextInsufficient(tokens, maxTokens);
+        }
+
+        tokens += summaryTokens + texts.size();
+        if (tokens > maxTokens) {
+            throw new SummaryContextInsufficient(tokens, maxTokens);
+        }
+
+        template.setSummaryBlocks(String.join("\n\n", texts));
+        template.setTemplateContext(templateContext);
+        String fullPrompt = jailbreak + templateService.processTemplate(systemPrompt, "metaSummaryPrompt", template);
+        tokens = inferenceService.countTokens(fullPrompt);
+        if (tokens > maxTokens) {
+            throw new SummaryContextInsufficient(tokens, maxTokens);
+        }
+
+        return List.of(LLMChatMessage.of(LLMRole.SYSTEM, fullPrompt));
+    }
+
+    private static int indexOf(List<ChatMessage> messages, ChatMessage message) {
+        for (int i = 0; i < messages.size(); i++) {
+            if (Objects.equals(messages.get(i).getId(), message.getId())) {
+                return i;
+            }
+        }
+        return -1;
     }
 
 

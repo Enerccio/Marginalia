@@ -4,7 +4,6 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.SharedStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
@@ -19,13 +18,11 @@ import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.details.Details;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
@@ -87,6 +84,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private VerticalLayout sidebarList;
 
     private MenuBar menuBar;
+    private MenuItem summariesMenuItem;
+    private MenuItem cogsMenuItem;
     private MenuItem changeStyles;
     private Button actionButton;
 
@@ -249,25 +248,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         layout.getStyle().set("padding", "6px 12px");
         layout.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
 
-        menuBar = new MenuBar();
-        MenuItem cogs = menuBar.addItem(Solid.COGS.create());
-        changeStyles = cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.PEN_FANCY.create(), loc.getValue(L.LABEL_CHANGE_STYLES)), event -> {
-            try {
-                Manuscript manuscript = parent.refreshManuscript();
-                manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
-                manuscriptService.save(manuscript);
-                applyBookStyles();
-            } catch (Exception e) {
-                UIUtils.internalServerError(loc, e);
-            }
-        });
-        cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_EXPORT.create(), loc.getValue(L.LABEL_EXPORT_STORY)), event -> {
-            try {
-                new ExportDialog(parent.refreshManuscript()).open();
-            } catch (Exception e) {
-                UIUtils.internalServerError(loc, e);
-            }
-        });
+        menuBar = createMenuBar();
         applyBookStyles();
 
         actionButton = new Button(Solid.PLUS.create());
@@ -290,6 +271,91 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         layout.add(actionButton);
 
         return layout;
+    }
+
+    /**
+     * Menu bar of the story: the summaries item and the settings (cogs) item. Extensions add to it by decorating the
+     * methods that fill it (their argument {@code bar} is the menu bar): {@link #populateMenuBar} for new items of the
+     * bar, {@link #createCogsMenuItem} (local variable {@code cogs}) for new items of the settings menu.
+     */
+    private MenuBar createMenuBar() {
+        MenuBar bar = new MenuBar();
+        summariesMenuItem = createSummariesMenuItem(bar);
+        cogsMenuItem = createCogsMenuItem(bar);
+        populateMenuBar(bar);
+        return bar;
+    }
+
+    /**
+     * Nothing to do here, runs after the application's items were added: the hook for extensions that add their own
+     * items to the menu bar.
+     */
+    private void populateMenuBar(MenuBar bar) {
+    }
+
+    private MenuItem createSummariesMenuItem(MenuBar bar) {
+        MenuItem item = bar.addItem(Solid.LIST_UL.create(), event -> openSummariesDialog());
+        UIUtils.addTooltip(item, loc.getValue(L.LABEL_SUMMARIES));
+        return item;
+    }
+
+    /**
+     * The story settings menu, extensions add their items to its sub menu ({@code cogsMenuItem.getSubMenu()}).
+     */
+    private MenuItem createCogsMenuItem(MenuBar bar) {
+        MenuItem cogs = bar.addItem(Solid.COGS.create());
+        changeStyles = createChangeStylesMenuItem(cogs);
+        createExportMenuItem(cogs);
+        return cogs;
+    }
+
+    private MenuItem createChangeStylesMenuItem(MenuItem cogs) {
+        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.PEN_FANCY.create(), loc.getValue(L.LABEL_CHANGE_STYLES)), event -> {
+            try {
+                Manuscript manuscript = parent.refreshManuscript();
+                manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
+                manuscriptService.save(manuscript);
+                applyBookStyles();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+    }
+
+    private MenuItem createExportMenuItem(MenuItem cogs) {
+        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_EXPORT.create(), loc.getValue(L.LABEL_EXPORT_STORY)), event -> {
+            try {
+                new ExportDialog(parent.refreshManuscript()).open();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+    }
+
+    private void openSummariesDialog() {
+        try {
+            SummariesDialog dialog = new SummariesDialog(parent.refreshManuscript());
+            dialog.onClosed(this::refreshSummariesMenuItem);
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Shows how many tokens the summaries generation uses take, as the description of the summaries item.
+     */
+    private void refreshSummariesMenuItem() {
+        if (summariesMenuItem == null || currentManuscript == null) {
+            return;
+        }
+        try {
+            long tokens = summaryService.collectTree(currentManuscript).stream().mapToLong(SummaryNode::getTokens).sum();
+            UIUtils.addTooltip(summariesMenuItem, loc.getValue(L.LABEL_SUMMARIES) + "\n"
+                    + String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     private void applyBookStyles() throws Exception {
@@ -825,29 +891,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     private void applyMarkdownStyles(Markdown markdown) {
-        markdown.setWidthFull();
-        markdown.getStyle().set("min-width", "0");
-        markdown.getStyle().set("max-width", "100%");
-        markdown.getStyle().set("box-sizing", "border-box");
-        markdown.getElement().executeJs("""
-                const el = this;
-                const enforceWrap = () => {
-                  if (!el) return;
-                  const root = el.shadowRoot || el;
-                  const elements = root.querySelectorAll('pre, code, p, div, span');
-                  elements.forEach(node => {
-                    node.style.setProperty('white-space', 'pre-wrap', 'important');
-                    node.style.setProperty('word-break', 'break-word', 'important');
-                    node.style.setProperty('overflow-wrap', 'anywhere', 'important');
-                    node.style.setProperty('max-width', '100%', 'important');
-                    node.style.setProperty('box-sizing', 'border-box', 'important');
-                  });
-                };
-                enforceWrap();
-                const observer = new MutationObserver(enforceWrap);
-                observer.observe(el.shadowRoot || el, { childList: true, subtree: true, characterData: true });
-                """
-        );
+        UIUtils.applyMarkdownStyles(markdown);
     }
 
     @Override
@@ -883,6 +927,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             applyLanguage(manuscript);
         }
         renderStoryContent();
+        refreshSummariesMenuItem();
     }
 
     @Override
@@ -1220,20 +1265,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
 
         private void confirmDeleteSummary() {
-            ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
-                try {
-                    if (message != null && message.getSummary() != null) {
-                        Summary summaryToDelete = summaryService.find(message.getSummary());
-                        message.setSummary(null);
-                        message = chatMessageService.save(message);
-                        if (summaryToDelete != null) {
-                            summaryService.delete(summaryToDelete, true);
-                        }
-                        refreshSummaryMenuItems();
-                    }
-                } catch (Exception e) {
-                    UIUtils.internalServerError(loc, e);
-                }
+            SummaryRemoval.confirmAndRemove(loc, summaryService, message, updated -> {
+                message = updated;
+                refreshSummaryMenuItems();
+                refreshSummariesMenuItem();
             });
         }
 
@@ -1250,7 +1285,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private void openSummaryDialog() {
             refreshSummaryMenuItems();
             boolean hasSummary = (message != null && message.getSummary() != null);
-            SummaryDialog summaryDialog = new SummaryDialog(message, !hasSummary);
+            SummaryDialog summaryDialog = new SummaryDialog(currentManuscript, message, !hasSummary);
+            summaryDialog.onClosed(ManuscriptStoryPart.this::refreshSummariesMenuItem);
             summaryDialog.open();
             if (!hasSummary) {
                 summaryDialog.startGeneration();
@@ -1398,177 +1434,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             PromptDialog dialog = new PromptDialog(message.getBuiltPrompt());
             dialog.create();
             dialog.open();
-        }
-    }
-
-    @Extendable
-    private class SummaryDialog extends Dialog {
-        private final ChatMessage dialogMessage;
-
-        private final Button actionButton;
-        private final Details reasoningDetails;
-        private final Markdown reasoningMarkdown;
-        private final TextArea summaryArea;
-
-        private CancellationToken cancellationToken;
-        private boolean isGeneratingState;
-
-        public SummaryDialog(ChatMessage message, boolean isGenerating) {
-            this.dialogMessage = message;
-
-            setHeaderTitle(isGenerating ? loc.getValue(L.LABEL_GENERATING_SUMMARY) : loc.getValue(L.LABEL_SUMMARY));
-            setWidth("700px");
-            setHeight("500px");
-            setCloseOnEsc(false);
-            setCloseOnOutsideClick(false);
-            setModality(ModalityMode.STRICT);
-
-            VerticalLayout layout = new VerticalLayout();
-            layout.setSizeFull();
-            layout.setPadding(false);
-            layout.setSpacing(true);
-
-            reasoningMarkdown = new Markdown();
-            reasoningMarkdown.addClassName(SharedStyles.CHAT_MESSAGE_MARKDOWN);
-            applyMarkdownStyles(reasoningMarkdown);
-
-            reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
-            reasoningDetails.setWidthFull();
-            reasoningDetails.setVisible(false);
-
-            summaryArea = new TextArea();
-            summaryArea.setSizeFull();
-            summaryArea.setReadOnly(true);
-
-            ScrollPanel scrollPanel = new ScrollPanel();
-            scrollPanel.setSizeFull();
-            VerticalLayout scrollContent = new VerticalLayout(reasoningDetails, summaryArea);
-            scrollContent.setPadding(false);
-            scrollContent.setSpacing(true);
-            scrollContent.setWidthFull();
-            scrollPanel.add(scrollContent);
-
-            layout.add(scrollPanel);
-            layout.setFlexGrow(1, scrollPanel);
-            add(layout);
-
-            HorizontalLayout footer = new HorizontalLayout();
-            footer.setWidthFull();
-            footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-
-            actionButton = new Button();
-            updateActionButtonState(isGenerating);
-
-            actionButton.addClickListener(_ -> {
-                if (isGeneratingState) {
-                    if (cancellationToken != null && !cancellationToken.isCancelled()) {
-                        cancellationToken.cancel();
-                    }
-                    updateActionButtonState(false);
-                } else {
-                    close();
-                }
-            });
-
-            footer.add(actionButton);
-            getFooter().add(footer);
-
-            if (!isGenerating) {
-                loadExistingSummary();
-            }
-        }
-
-        private void updateActionButtonState(boolean generating) {
-            this.isGeneratingState = generating;
-            if (generating) {
-                actionButton.setText(loc.getValue(L.LABEL_STOP));
-                actionButton.setThemeName("error primary");
-            } else {
-                actionButton.setText(loc.getValue(L.LABEL_EXIT));
-                actionButton.setThemeName("primary");
-            }
-        }
-
-        private void loadExistingSummary() {
-            try {
-                if (dialogMessage.getSummary() != null) {
-                    Summary summary = summaryService.find(dialogMessage.getSummary());
-                    if (summary != null) {
-                        if (StringUtils.isNotBlank(summary.getReasoning())) {
-                            reasoningMarkdown.setContent(summary.getReasoning());
-                            reasoningDetails.setVisible(true);
-                        } else {
-                            reasoningDetails.setVisible(false);
-                        }
-                        summaryArea.setValue(StringUtils.defaultString(summary.getSummary()));
-                    }
-                }
-            } catch (Exception e) {
-                UIUtils.internalServerError(loc, e);
-            }
-        }
-
-        public void startGeneration() {
-            UI ui = UI.getCurrent();
-            try {
-                cancellationToken = summaryService.createSummary(currentManuscript, dialogMessage, new SummaryService.AsyncCallback() {
-                    @Override
-                    public void onSummaryProgress(String reasoning, String summaryText) {
-                        ui.access(() -> {
-                            if (StringUtils.isNotBlank(reasoning)) {
-                                reasoningMarkdown.setContent(reasoning);
-                                reasoningDetails.setVisible(true);
-                            }
-                            if (StringUtils.isNotBlank(summaryText)) {
-                                summaryArea.setValue(summaryText);
-                            }
-                            UIPushGuard.push(ui);
-                        });
-                    }
-
-                    @Override
-                    public void onSummaryFinished(Summary summary) {
-                        ui.access(() -> {
-                            try {
-                                dialogMessage.setSummary(summary);
-                                chatMessageService.save(dialogMessage);
-                                setHeaderTitle(loc.getValue(L.LABEL_SUMMARY));
-                                updateActionButtonState(false);
-                            } catch (Exception e) {
-                                UIUtils.internalServerError(loc, e);
-                            }
-                            UIPushGuard.push(ui);
-                        });
-                    }
-
-                    @Override
-                    public void onSummaryTerminated() {
-                        ui.access(() -> {
-                            setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_STOPPED));
-                            updateActionButtonState(false);
-                            UIPushGuard.push(ui);
-                        });
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        ui.access(() -> {
-                            setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
-                            updateActionButtonState(false);
-                            UIUtils.internalServerError(loc, throwable);
-                            UIPushGuard.push(ui);
-                        });
-                    }
-                });
-
-                if (cancellationToken == null) {
-                    Notification.error(loc.getValue(L.ERROR_SUMMARY_FAILED));
-                }
-            } catch (Exception e) {
-                setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
-                updateActionButtonState(false);
-                UIUtils.internalServerError(loc, e);
-            }
         }
     }
 }

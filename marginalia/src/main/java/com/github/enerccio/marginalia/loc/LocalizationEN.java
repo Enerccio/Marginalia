@@ -239,6 +239,15 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_TO_MESSAGE, "To message (empty for the end)");
         setValue(L.LABEL_INCLUDE_TITLE_PAGE, "Include title page");
         setValue(L.LABEL_CLOSE, "Close");
+        setValue(L.LABEL_META_SUMMARY_PROMPT, "Default Meta Summary Prompt");
+        setValue(L.LABEL_UNWIND, "Unwind");
+        setValue(L.LABEL_SUMMARIES, "Summaries");
+        setValue(L.LABEL_MESSAGE_ID, "Message ID");
+        setValue(L.LABEL_SELECT, "Select");
+        setValue(L.LABEL_CREATE_META_SUMMARY, "Create meta summary");
+        setValue(L.LABEL_GENERATING_META_SUMMARY, "Generating Meta Summary");
+        setValue(L.LABEL_META_SUMMARY, "Meta summary");
+        setValue(L.LABEL_REPLACED_SUMMARY, "Replaced");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -333,6 +342,9 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_EXPORTING, "Exporting the story...");
         setValue(L.MSG_EXPORT_READY, "The export is ready: %s");
         setValue(L.MSG_EXPORT_NOTHING, "There is nothing to export in the selected range.");
+        setValue(L.MSG_CONFIRM_DELETE_META_SUMMARY, "This is a meta summary. Unwind it to restore the summary it replaced, or delete it completely?");
+        setValue(L.MSG_ACTIVE_SUMMARIES_TOKENS, "Active summaries: %s tokens");
+        setValue(L.MSG_META_SUMMARY_SELECTION, "Select at least two summaries to merge.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -404,6 +416,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.DESC_MACRO_IF, "Renders content only if the condition (macro, variable or text) is truthy. Supports ! negation.");
         setValue(L.DESC_MACRO_VARIABLE_SHORTHAND, "Variable shorthands: . for local, $ for global. Operators: = ++ -- += -= || ?? ||= ??= == != > >= < <=");
         setValue(L.DESC_MACRO_COMMENT, "Comment, removed from the output.");
+        setValue(L.DESC_TEMPLATE_SUMMARY_BLOCKS, "The summaries being merged, oldest first.");
 
     }
 

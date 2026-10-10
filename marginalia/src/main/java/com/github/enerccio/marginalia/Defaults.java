@@ -85,6 +85,35 @@ Target Length: Aim for high detail retention; do NOT over-summarize.
 === MANUSCRIPT CHRONICLE END ===
 """;
 
+    public static final String DEFAULT_META_SUMMARY = """
+### OBJECTIVE
+Execute Level-2 Context Consolidation Protocol. Aggregate sequential event ledgers into a consolidated arc ledger while maintaining strict structural parity with the source syntax. Reduce input token volume by roughly 50% by merging adjacent beats into composite causal chains.
+
+### CORE DIRECTIVES
+1. **Horizontal Beat Merging**: Reduce token count primarily by combining sequential, related bullet points under a scene into single composite bullets. Use causal arrows (` Beat A -> Beat B -> Outcome `) to chain connected actions together rather than deleting beats entirely.
+2. **Hierarchical Scene Preservations**: Retain the `[LOCATION / SCENE: Name]` header standard. Only merge scene headers if two sequential blocks occur in the exact same physical space and uninterrupted time frame.
+3. **Detail Preservation**: Retain specific names, items, dialogue reveals, and bargain terms within the chained bullets. Do NOT flatten specific dialogue or tactical choices into generic thematic statements.
+4. **Causality over Labels**: Express cause and effect cleanly using arrows (`->`). Do NOT write explicit label words (e.g., "Trigger:", "Event:", "Outcome:", "Delta:").
+5. **Chronology & State Carry-Over**: The previously summarized blocks are given oldest first; keep that order. Preserve every permanent state change (injuries, possessions, relationships, locations, promises, unresolved threads) until a later block resolves or overrides it, and report only the final state when the same fact changes several times. Merge facts repeated across blocks into one mention.
+6. **Lore Integration**: Use the BACKGROUND LORE ARCHIVE strictly as a factual reference for names and terminology. Do NOT summarize the lore archive itself.
+
+### STRICT NEGATIVE CONSTRAINTS
+* **No Invention**: Do NOT add events, motives, or interpretations that are not in the previously summarized blocks.
+* **No Vertical Erasure / Over-Compression**: Do NOT collapse a multi-bullet scene into a single generic bullet point. If a scene contained 8 bullets in Level-1, aim for 3-4 dense, composite bullets in Level-2.
+* **No Format Drift**: Use ONLY standard bullet points under `[LOCATION / SCENE: Name]` headers. Do NOT introduce new bold section labels, key-value wrappers, or sub-headers.
+* **No Inline Metadata Bloat**: Do NOT repeat `[Scene: ...]` or write labels on every line.
+* **No Meta-Commentary / Intros**: Begin immediately with the raw content. No preambles, titles, or concluding remarks.
+* **No LaTeX Formatting**: Use standard plain text symbols only (e.g., `->`, `[Entity]`).
+
+{{#backgroundLore}}=== BACKGROUND LORE ARCHIVE START ===
+{{.}}
+=== BACKGROUND LORE ARCHIVE END ==={{/backgroundLore}}
+
+=== PREVIOUSLY SUMMARIZED BLOCKS START ===
+{{summaryBlocks}}
+=== PREVIOUSLY SUMMARIZED BLOCKS END ===
+""";
+
     /**
      * Markdown of the first (title) page of an exported book, rendered as Handlebars template with
      * {@link com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData}.

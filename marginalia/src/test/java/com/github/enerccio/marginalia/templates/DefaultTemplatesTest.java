@@ -1,10 +1,7 @@
 package com.github.enerccio.marginalia.templates;
 
 import com.github.enerccio.marginalia.Defaults;
-import com.github.enerccio.marginalia.domain.templates.MasterTemplateData;
-import com.github.enerccio.marginalia.domain.templates.SummaryTemplateData;
-import com.github.enerccio.marginalia.domain.templates.TemplateData;
-import com.github.enerccio.marginalia.domain.templates.UserPromptData;
+import com.github.enerccio.marginalia.domain.templates.*;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,12 +23,13 @@ class DefaultTemplatesTest extends TemplateTestBase {
     @Test
     void defaultsAreValid() throws Exception {
         for (String template : new String[]{Defaults.DEFAULT_MASTER_TEMPLATE, Defaults.DEFAULT_USER_PROMPT,
-                Defaults.DEFAULT_SUMMARY_PROMPT}) {
+                Defaults.DEFAULT_SUMMARY_PROMPT, Defaults.DEFAULT_META_SUMMARY}) {
             assertThat(templateService.isValidTemplate(template, "default").isValid()).isTrue();
         }
         assertThat(templateService.isValidTemplate(Defaults.DEFAULT_MASTER_TEMPLATE, "default", MasterTemplateData.class).unknownNames()).isEmpty();
         assertThat(templateService.isValidTemplate(Defaults.DEFAULT_USER_PROMPT, "default", UserPromptData.class).unknownNames()).isEmpty();
         assertThat(templateService.isValidTemplate(Defaults.DEFAULT_SUMMARY_PROMPT, "default", SummaryTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_META_SUMMARY, "default", MetaSummaryTemplateData.class).unknownNames()).isEmpty();
     }
 
     @Test
@@ -128,5 +126,29 @@ class DefaultTemplatesTest extends TemplateTestBase {
 
         assertClean(output);
         assertThat(output).doesNotContain("BACKGROUND LORE ARCHIVE START").contains("Alice walked to the harbour.");
+    }
+
+    @Test
+    void metaSummaryPrompt() throws Exception {
+        MetaSummaryTemplateData meta = withContext(new MetaSummaryTemplateData(), true);
+        meta.setBackgroundLore("Dragons exist.");
+        meta.setSummaryBlocks("First ledger.\n\nSecond ledger.");
+
+        String output = render(Defaults.DEFAULT_META_SUMMARY, meta);
+
+        assertClean(output);
+        assertThat(output).contains("=== BACKGROUND LORE ARCHIVE START ===\nDragons exist.")
+                .contains("First ledger.\n\nSecond ledger.");
+    }
+
+    @Test
+    void metaSummaryPromptWithoutLore() throws Exception {
+        MetaSummaryTemplateData meta = withContext(new MetaSummaryTemplateData(), false);
+        meta.setSummaryBlocks("First ledger.");
+
+        String output = render(Defaults.DEFAULT_META_SUMMARY, meta);
+
+        assertClean(output);
+        assertThat(output).doesNotContain("BACKGROUND LORE ARCHIVE START").contains("First ledger.");
     }
 }

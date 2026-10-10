@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
+import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.Entity;
@@ -29,6 +30,25 @@ public class Summary extends ExtendableEntity {
     @ExtendedAttribute
     @Transient
     private String summaryMessageHash;
+
+    @ExtendedAttribute
+    @Transient
+    private SummaryType summaryType;
+
+    /**
+     * Meta summary only: uuid of the summary where the summaries it merged end, the summary chain continues with it.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String nextSummaryUuid;
+
+    /**
+     * Meta summary only: serialized extended content of the summary this meta summary replaced on its message,
+     * deleting the meta summary can restore it. Nests when meta summaries are made of meta summaries.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String replacedSummary;
 
     public String getSummary() {
         return summary;
@@ -68,5 +88,29 @@ public class Summary extends ExtendableEntity {
 
     public void setSummaryMessageHash(String summaryMessageHash) {
         this.summaryMessageHash = summaryMessageHash;
+    }
+
+    public SummaryType getSummaryType() {
+        return summaryType == null ? SummaryType.SUMMARY : summaryType;
+    }
+
+    public void setSummaryType(SummaryType summaryType) {
+        this.summaryType = summaryType;
+    }
+
+    public String getNextSummaryUuid() {
+        return nextSummaryUuid;
+    }
+
+    public void setNextSummaryUuid(String nextSummaryUuid) {
+        this.nextSummaryUuid = nextSummaryUuid;
+    }
+
+    public String getReplacedSummary() {
+        return replacedSummary;
+    }
+
+    public void setReplacedSummary(String replacedSummary) {
+        this.replacedSummary = replacedSummary;
     }
 }

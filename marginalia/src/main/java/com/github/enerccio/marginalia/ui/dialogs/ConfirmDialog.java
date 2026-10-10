@@ -22,6 +22,8 @@ public class ConfirmDialog extends Dialog {
 	private final Runnable yes;
 	private final Runnable no;
 	private final boolean showCancel;
+	private final String yesLabel;
+	private final String noLabel;
 
 	public static void show(String message, Runnable yes) {
 		show(message, yes, () -> {});
@@ -35,11 +37,24 @@ public class ConfirmDialog extends Dialog {
 		new ConfirmDialog(message, yes, no, showCancel).create();
 	}
 
+	/**
+	 * Choice between two actions, buttons are labeled with the given texts instead of yes and no.
+	 */
+	public static void show(String message, String yesLabel, String noLabel, Runnable yes, Runnable no, boolean showCancel) {
+		new ConfirmDialog(message, yes, no, showCancel, yesLabel, noLabel).create();
+	}
+
 	private ConfirmDialog(String message, Runnable yes, Runnable no, boolean showCancel) {
+		this(message, yes, no, showCancel, null, null);
+	}
+
+	private ConfirmDialog(String message, Runnable yes, Runnable no, boolean showCancel, String yesLabel, String noLabel) {
 		this.message = message;
 		this.yes = yes;
 		this.no = no;
 		this.showCancel = showCancel;
+		this.yesLabel = yesLabel;
+		this.noLabel = noLabel;
 	}
 	
 	public void create() {
@@ -49,12 +64,12 @@ public class ConfirmDialog extends Dialog {
 		HorizontalLayout hl = new HorizontalLayout();
 		hl.setWidthFull();
 		
-		Button yes = new Button(loc.getValue(L.LABEL_YES), event -> {
+		Button yes = new Button(yesLabel != null ? yesLabel : loc.getValue(L.LABEL_YES), event -> {
 			this.yes.run();
 			close();
 		});
 		
-		Button no = new Button(loc.getValue(L.LABEL_NO), event -> {
+		Button no = new Button(noLabel != null ? noLabel : loc.getValue(L.LABEL_NO), event -> {
 			this.no.run();
 			close();
 		});

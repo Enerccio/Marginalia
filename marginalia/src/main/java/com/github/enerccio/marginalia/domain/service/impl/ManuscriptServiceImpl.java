@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
@@ -158,6 +159,18 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             return userSetting.getDefaultSummaryPrompt();
         }
         return Defaults.DEFAULT_SUMMARY_PROMPT;
+    }
+
+    @Override
+    public String getMetaSummaryPrompt(Manuscript manuscript) throws Exception {
+        if (StringUtils.isNotBlank(manuscript.getMetaSummaryPrompt())) {
+            return manuscript.getMetaSummaryPrompt();
+        }
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultMetaSummaryPrompt())) {
+            return userSetting.getDefaultMetaSummaryPrompt();
+        }
+        return Defaults.DEFAULT_META_SUMMARY;
     }
 
     @Override
@@ -533,6 +546,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         }
 
         Map<ChatMessage, String> parentUuidMap = new HashMap<>();
+        // restored summaries get new uuids, meta summaries point to summaries by uuid
+        Map<String, String> summaryUuids = new HashMap<>();
+        List<Summary> restoredSummaries = new ArrayList<>();
 
         for (JsonElement elem : messagesArray) {
             JsonObject msgObj = elem.getAsJsonObject();
@@ -563,6 +579,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 }
                 summary = summaryService.saveWithoutEvent(summary);
                 msg.setSummary(summary);
+                restoredSummaries.add(summary);
+                if (sumObj.has("uuid") && !sumObj.get("uuid").isJsonNull()) {
+                    summaryUuids.put(sumObj.get("uuid").getAsString(), summary.getUuid());
+                }
             }
 
             msg = chatMessageService.saveWithoutEvent(msg);
@@ -587,6 +607,47 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
         }
 
+        for (Summary summary : restoredSummaries) {
+            if (summary.getSummaryType() != SummaryType.META_SUMMARY || summary.getExtendedContent() == null) {
+                continue;
+            }
+            JsonObject extended = JsonParser.parseString(new String(summary.getExtendedContent(), StandardCharsets.UTF_8)).getAsJsonObject();
+            if (remapNextSummaryUuid(extended, summaryUuids)) {
+                summary.setExtendedContent(extended.toString().getBytes(StandardCharsets.UTF_8));
+                summaryService.saveWithoutEvent(summary);
+            }
+        }
+
         return uuidToNodeMap;
+    }
+
+    /**
+     * Points the meta summary (and the summaries it replaced, those are serialized inside of it) to the restored
+     * summaries.
+     *
+     * @param extended extended content of the summary
+     * @return true if something was changed
+     */
+    private boolean remapNextSummaryUuid(JsonObject extended, Map<String, String> summaryUuids) {
+        boolean changed = false;
+        if (extended.has("nextSummaryUuid") && extended.get("nextSummaryUuid").isJsonPrimitive()) {
+            String restored = summaryUuids.get(extended.get("nextSummaryUuid").getAsString());
+            if (restored != null) {
+                extended.addProperty("nextSummaryUuid", restored);
+                changed = true;
+            }
+        }
+        if (extended.has("replacedSummary") && extended.get("replacedSummary").isJsonPrimitive()) {
+            try {
+                JsonObject replaced = JsonParser.parseString(extended.get("replacedSummary").getAsString()).getAsJsonObject();
+                if (remapNextSummaryUuid(replaced, summaryUuids)) {
+                    extended.addProperty("replacedSummary", replaced.toString());
+                    changed = true;
+                }
+            } catch (Exception e) {
+                log.warn("Cannot read replaced summary of a restored meta summary: {}", e.getMessage());
+            }
+        }
+        return changed;
     }
 }
