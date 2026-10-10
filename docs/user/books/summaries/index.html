@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -217,12 +217,200 @@ interrupts it and discards the summary.</p>
     <img src="../../../images/summary-dialog.png" alt="A summary being generated" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="700" height="500" />
     <figcaption class="caption">A summary being generated</figcaption>
 </figure>
-<p>The part menu now has <strong>View summary</strong>, which opens the summary again, and <strong>Delete summary</strong>, which removes it.
-Summaries can&#x27;t be edited; to change one, delete it and generate it again, possibly with a different
-<doc-anchor-trigger to="#the-summary-prompt">summary prompt</doc-anchor-trigger>.</p>
+<p>The part menu now has <strong>View summary</strong>, which opens the summary again, and <strong>Delete summary</strong>, which removes it. To
+change a summary, edit it in the <doc-anchor-trigger to="#the-summaries-overview">Summaries overview</doc-anchor-trigger>, or delete it and generate it again,
+possibly with a different <doc-anchor-trigger to="#the-summary-prompt">summary prompt</doc-anchor-trigger>.</p>
 <p>The summary is written by the book&#x27;s model, with the book&#x27;s <a href="../../protocols/">protocol</a>, and must fit into the
 <a href="../../protocols/#limits">context limit</a> together with the text of the parts it covers. To summarize a long stretch
 with a small model, summarize in smaller steps.</p>
+<h2 id="the-summaries-overview">The Summaries overview</h2>
+<p>The <strong>Summaries</strong> button (the list icon, left of the settings menu ⚙) in the bottom bar of the story editor opens the
+overview of all summaries of the active branch. Hover the button to see how many tokens the summaries in use take
+in the prompt.</p>
+<figure class="content-center">
+    <img src="../../../images/summaries-menu-button.png" alt="The Summaries button with the tokens of the summaries in use" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="240" height="108" />
+    <figcaption class="caption">The Summaries button with the tokens of the summaries in use</figcaption>
+</figure>
+<p>The dialog lists the summaries the next generation will send, oldest first, and the sum of their tokens at the top.</p>
+<figure class="content-center">
+    <img src="../../../images/summaries-dialog.png" alt="The Summaries overview" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="793" />
+    <figcaption class="caption">The Summaries overview</figcaption>
+</figure>
+<retype-table copy-text="| Column | |
+|---|---|
+| **ID** | Database ID of the summary. A `-` marks a summary that was [replaced](#meta-summaries) by a meta summary. |
+| **Message ID** | Database ID of the part the summary belongs to (the same number the outline of the story editor shows as *DB ID*). |
+| **Order** | Position of that part in the branch, `1` is the first part. |
+| **Content** | The reasoning of the model (collapsed, if it was a reasoning model) and the text of the summary, in a scrolling area of the same height for every summary. |
+| **Tokens** | Size of the summary text. |
+| **Select** | Ticks the summary for a [meta summary](#creating-a-meta-summary). |
+| trash icon | Deletes the summary. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Column</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ID</strong></td>
+<td>Database ID of the summary. A <code translate="no" v-pre>-</code> marks a summary that was <doc-anchor-trigger to="#meta-summaries">replaced</doc-anchor-trigger> by a meta summary.</td>
+</tr>
+<tr>
+<td><strong>Message ID</strong></td>
+<td>Database ID of the part the summary belongs to (the same number the outline of the story editor shows as <em>DB ID</em>).</td>
+</tr>
+<tr>
+<td><strong>Order</strong></td>
+<td>Position of that part in the branch, <code translate="no" v-pre>1</code> is the first part.</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td>The reasoning of the model (collapsed, if it was a reasoning model) and the text of the summary, in a scrolling area of the same height for every summary.</td>
+</tr>
+<tr>
+<td><strong>Tokens</strong></td>
+<td>Size of the summary text.</td>
+</tr>
+<tr>
+<td><strong>Select</strong></td>
+<td>Ticks the summary for a <doc-anchor-trigger to="#creating-a-meta-summary">meta summary</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td>trash icon</td>
+<td>Deletes the summary.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Summaries that are merged into a meta summary are shown under it, see <doc-anchor-trigger to="#meta-summaries">below</doc-anchor-trigger>. They have no
+<strong>Select</strong> box, no trash icon and no pencil: only the summaries that are in use can be changed.</p>
+<p>The empty menu bar above the grid is for <a href="../../extensions/">extensions</a> that add tools to the overview.</p>
+<h3 id="editing-a-summary">Editing a summary</h3>
+<p>Click the pencil to the right of the content of a summary. The text turns into a text area of the same size. Click
+the green check to save the change, or the red trash icon to throw it away. The token count is counted again after
+saving.</p>
+<figure class="content-center">
+    <img src="../../../images/summary-edit.png" alt="Editing a summary" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="793" />
+    <figcaption class="caption">Editing a summary</figcaption>
+</figure>
+<p>Editing a summary changes what the model gets, nothing else: the summary stays valid. Only the text can be edited,
+not the reasoning.</p>
+<h3 id="deleting-a-summary">Deleting a summary</h3>
+<p>The trash icon of a summary does the same as <strong>Delete summary</strong> in the part menu. For a meta summary it asks what to
+do, see <doc-anchor-trigger to="#unwinding-a-meta-summary">Unwinding a meta summary</doc-anchor-trigger>.</p>
+<h2 id="meta-summaries">Meta summaries</h2>
+<p>Summaries stay in the prompt for good, so a long book fills the context with them. A <strong>meta summary</strong> condenses
+several summaries into one: it is a summary of summaries.</p>
+<div id="meta-summaries-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">#1  #2  #3  #4  #5  #6  #7  #8  #9  #10
+        [S1]        [S2]        [S3]
+        └─────────── M ─────────────┘</code></pre>
+</doc-codeblock></div>
+<p>Here <em>M</em> merges <em>S1</em>, <em>S2</em> and <em>S3</em>. It belongs to the part of the newest merged summary (#9 above, which had <em>S3</em>)
+and replaces that summary on the part. From then on:</p>
+<ul>
+<li>only <em>M</em> goes into the <code translate="no" v-pre>{{summaries}}</code> block, instead of <em>S1</em>, <em>S2</em> and <em>S3</em>;</li>
+<li><em>S1</em> and <em>S2</em> stay on their parts, but are not sent. They are shown under <em>M</em> in the overview;</li>
+<li><em>S3</em>, the summary <em>M</em> replaced, is kept inside <em>M</em>, shown under it with a <strong>Replaced</strong> badge.</li>
+</ul>
+<p>The parts covered by the merged summaries are still not sent in full; a meta summary doesn&#x27;t change what the
+summaries cover, only how long the text for it is.</p>
+<h3 id="creating-a-meta-summary">Creating a meta summary</h3>
+<ol>
+<li>
+<p>Open the <doc-anchor-trigger to="#the-summaries-overview">Summaries overview</doc-anchor-trigger>.</p>
+</li>
+<li>
+<p>Tick the <strong>Select</strong> box of the summaries to merge. At least two. You tick the summaries in use only (the ones on
+the top level of the grid).</p>
+</li>
+<li>
+<p>Click <strong>Create meta summary</strong>.</p>
+</li>
+</ol>
+<p>Marginalia merges everything from the newest to the oldest ticked summary, including the summaries in between that
+were not ticked. The meta summary dialog works like the summary dialog: it shows the text as the model writes it, and
+<strong>Stop</strong> cancels it and changes nothing. When it ends, close the dialog with <strong>Exit</strong> and the overview shows the
+result.</p>
+<figure class="content-center">
+    <img src="../../../images/meta-summary-create.png" alt="Ticked summaries and the meta summary being generated" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1606" height="797" />
+    <figcaption class="caption">Ticked summaries and the meta summary being generated</figcaption>
+</figure>
+<p>A meta summary can merge meta summaries too: tick them like any other summary. The merged ones are shown under the new
+one, with their own merged summaries under them.</p>
+<p>The summaries to merge and the request for the model must fit into the <a href="../../protocols/#limits">context limit</a>, so
+with a small model merge a few summaries at a time.</p>
+<h3 id="unwinding-a-meta-summary">Unwinding a meta summary</h3>
+<p>Deleting a meta summary (the trash icon in the overview, or <strong>Delete summary</strong> in the part menu) asks:</p>
+<retype-table copy-text="| Button | |
+|---|---|
+| **Unwind** | Removes the meta summary and puts back the summary it replaced on the part. Summaries that were merged into a meta summary made of meta summaries come back one level at a time, the way they were made. |
+| **Delete** | Removes the meta summary and leaves the part without a summary. The summaries it merged are in use again (but the one it replaced is gone). |
+| **Cancel** | Does nothing. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Button</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unwind</strong></td>
+<td>Removes the meta summary and puts back the summary it replaced on the part. Summaries that were merged into a meta summary made of meta summaries come back one level at a time, the way they were made.</td>
+</tr>
+<tr>
+<td><strong>Delete</strong></td>
+<td>Removes the meta summary and leaves the part without a summary. The summaries it merged are in use again (but the one it replaced is gone).</td>
+</tr>
+<tr>
+<td><strong>Cancel</strong></td>
+<td>Does nothing.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>After unwinding, the summaries that were merged are in use again and the overview shows them on the top level.</p>
+<figure class="content-center">
+    <img src="../../../images/meta-summary-delete.png" alt="Deleting a meta summary" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1014" height="167" />
+    <figcaption class="caption">Deleting a meta summary</figcaption>
+</figure>
+<h3 id="the-meta-summary-prompt">The meta summary prompt</h3>
+<p>The request for a meta summary is the <strong>Default Meta Summary Prompt</strong> of the book (on the <a href="../prompts/">Prompts</a> tab, or
+the default from <em>Settings → Templates</em>). It gets two variables:</p>
+<retype-table copy-text="| Variable | |
+|---|---|
+| `{{summaryBlocks}}` | The summaries to merge, oldest first, separated by an empty line. |
+| `{{backgroundLore}}` | The lorebook entries that were active when the part of the meta summary was written. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Variable</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{summaryBlocks}}</code></td>
+<td>The summaries to merge, oldest first, separated by an empty line.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{backgroundLore}}</code></td>
+<td>The lorebook entries that were active when the part of the meta summary was written.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The built-in prompt asks for the events to be chained into shorter entries - roughly half the size - without losing
+names, items, agreements or unresolved plot threads, and without adding anything new.</p>
 <h2 id="when-summaries-become-outdated">When summaries become outdated</h2>
 <p>A summary is only valid for the exact text it was made from. When you <a href="../story-editor/#editing-the-text">edit</a> or
 <a href="../story-editor/#deleting-a-part">delete</a> a part covered by a summary, the summary no longer matches.</p>
@@ -230,8 +418,13 @@ with a small model, summarize in smaller steps.</p>
 <em>Invalidated summaries for messages with IDs: [...]. Continue generation without those summaries?</em> Answer <strong>Yes</strong> to
 generate without them, or <strong>No</strong> to stop and generate new summaries first. Either way the outdated summaries are gone;
 the parts they covered are sent in full again (as far as they fit) until you summarize them again.</p>
+<p>A meta summary is outdated when a part it covers is edited or deleted, but also when a summary it merged is deleted.
+(That is why the merged summaries can&#x27;t be edited: the change would make the meta summary outdated.) Removing an
+outdated meta summary is the same as unwinding it: the summary it replaced comes back, and is checked as well. If it
+is outdated too, it is removed in the same way.</p>
 <p>When you <a href="../branches-and-story-tree/#branching-from-an-earlier-part">branch</a> from a part with a summary, the new
-branch gets a copy of the summary.</p>
+branch gets a copy of the summary. A copied meta summary keeps what it replaced, so it can be unwound in the new
+branch.</p>
 <h2 id="the-summary-prompt">The summary prompt</h2>
 <p>The request for a summary is the <strong>Default Summary Prompt</strong> of the book (on the <a href="../prompts/">Prompts</a> tab, or the
 default from <em>Settings → Templates</em>). It gets two variables:</p>
@@ -269,9 +462,13 @@ shorter summaries or a different format.</p>
 <p>Summarize at natural breaks: the end of a chapter or a scene.</p>
 </li>
 <li>
+<p>When the summaries start to take too much of the context (the tooltip of the <strong>Summaries</strong> button shows how much),
+merge the oldest ones into a meta summary. Repeat it later with the meta summary and the summaries after it.</p>
+</li>
+<li>
 <p>Summaries stay in the prompt for good. With many of them, the prompt can fill the context by itself, and generating
-stops with <em>Contextual limit not sufficient.</em> Then shorten them (a more concise summary prompt) or raise the
-context limit.</p>
+stops with <em>Contextual limit not sufficient.</em> Then shorten them (a more concise summary prompt), merge them into
+<doc-anchor-trigger to="#meta-summaries">meta summaries</doc-anchor-trigger> or raise the context limit.</p>
 </li>
 <li>
 <p>Keep facts that must never be forgotten (names, relationships, rules of the world) in the

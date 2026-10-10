@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844943100695" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844949309555" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -177,6 +177,7 @@ the part. An empty value prints nothing.</p>
 | **Master Template** | `{{backgroundLore}}` activated lorebook entries (*In Lore Block*), `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, `{{summaries}}` all summaries of the branch |
 | **User Prompt** | `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}` - the turn instructions |
 | **Summary Prompt** | `{{text}}` the parts to summarize, `{{backgroundLore}}` lore active when the summarized part was written |
+| **Meta Summary Prompt** | `{{summaryBlocks}}` the summaries to merge, oldest first, `{{backgroundLore}}` lore active when the part of the meta summary was written |
 | **Lorebook entry** | `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}`, `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -198,6 +199,10 @@ the part. An empty value prints nothing.</p>
 <tr>
 <td><strong>Summary Prompt</strong></td>
 <td><code translate="no" v-pre>{{text}}</code> the parts to summarize, <code translate="no" v-pre>{{backgroundLore}}</code> lore active when the summarized part was written</td>
+</tr>
+<tr>
+<td><strong>Meta Summary Prompt</strong></td>
+<td><code translate="no" v-pre>{{summaryBlocks}}</code> the summaries to merge, oldest first, <code translate="no" v-pre>{{backgroundLore}}</code> lore active when the part of the meta summary was written</td>
 </tr>
 <tr>
 <td><strong>Lorebook entry</strong></td>

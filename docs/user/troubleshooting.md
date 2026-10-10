@@ -118,8 +118,8 @@ The template field lists such names under it. See [Typos](templates/templates.md
 The *Settings* tab has unsaved changes. Click **Save** or **Discard Changes**.
 
 **My summary prompt isn't used.**
-The *Default Summary Prompt* in *Settings* isn't saved in the current version. Set the summary prompt on the book's
-*Prompts* tab instead.
+A book's own summary prompt (*Prompts* tab) wins over the *Default Summary Prompt* in *Settings*; clear the book's field
+to use the default. Meta summaries have their own prompt, the *Default Meta Summary Prompt*.
 
 **Macros in Style, Point of View or Tense don't work.**
 These fields are plain text; only templates process macros. Put the macro into the master template or user prompt.

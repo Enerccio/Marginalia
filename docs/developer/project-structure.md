@@ -84,7 +84,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `AdminPart`. |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
 | `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
-| `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`. |
+| `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed). |
 | `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `TreantTree` (story tree drawn with treant.js), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
 | `ui.widgets` | Small widgets: `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |
 
@@ -96,7 +96,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `Setting` | Base of settings, single table `settings` with a `DTYPE` discriminator. |
 | `impl/Manuscript` | A book. |
 | `impl/ChatMessage` | A story part - a node of the story tree. |
-| `impl/Summary` | A summary of the story up to a part. |
+| `impl/Summary` | A summary of the story up to a part, or a meta summary of summaries. |
 | `impl/Lorebook`, `impl/LorebookEntry` | Lorebooks and their entries. |
 | `impl/AI`, `impl/OpenAICompatible` | Inference providers (`AI` is the base, `OpenAICompatible` the only type). |
 | `impl/Protocol`, `impl/ChatCompletionProtocol` | Protocols (generation settings). |
@@ -132,7 +132,8 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `CleanupService` | Purging soft-deleted data that is no longer referenced. |
 | `OsgiService`, `ExtensionService` | Loading extensions; `@Extendable` decorators. |
 
-Also here: `TurnInput` (the four fields of the instruction panel), `CancellationToken`, `GenerationListener` (UI
+Also here: `TurnInput` (the four fields of the instruction panel), `SummaryNode` (a summary and the summaries it merges, for
+the summaries overview), `CancellationToken`, `GenerationListener` (UI
 callbacks of a generation) and `search/` (`Sorter`, `ManuscriptFilterValues` for the book lists).
 
 | Package | |
@@ -150,7 +151,7 @@ See [Services](services.md) and [Generation pipeline](generation-pipeline.md).
 | File | |
 |---|---|
 | `TemplateData` | Base of all template data; implements the SillyTavern-compatible macros. |
-| `MasterTemplateData`, `UserPromptData`, `LorebookTemplateData`, `SummaryTemplateData` | The variables available in each kind of template (listed in the UI hints). |
+| `MasterTemplateData`, `UserPromptData`, `LorebookTemplateData`, `SummaryTemplateData`, `MetaSummaryTemplateData` | The variables available in each kind of template (listed in the UI hints). |
 | `ExportHeaderTemplateData` | The variables (`title`, `author`) of the title page template of story exports. |
 | `TemplateContext` | What macros are evaluated against: POV character, model, story so far, variables. One per generation. |
 | `TemplateVariables` | Storage of `setvar` / `getvar` variables (local per branch, global per book). |
@@ -180,7 +181,7 @@ See [Story export](services.md#story-export).
 | Package | |
 |---|---|
 | `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes), `@ExtendedAttribute` (fields stored in `attributes`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). |
-| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `FilteringMode`, `InsertionMode`. |
+| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `FilteringMode`, `InsertionMode`, `SummaryType`. |
 | `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back. |
 
 ### Extensions, localization, helpers
@@ -296,6 +297,7 @@ See [Plugin development](plugins/index.md).
 | How lore is activated | `ProcessLorebookStep`, `LorebookServiceImpl` |
 | A macro | `domain/templates/TemplateData.java` (logic), `macros/Macros.java` (registry), `macros/MacroTranslator.java` (syntax) |
 | The story editor | `ui/dialogs/manuscript/ManuscriptStoryPart.java` |
+| Summaries and meta summaries | `SummaryServiceImpl` (chain, creation, unwinding), `ui/dialogs/manuscript/SummariesDialog.java`, `SummaryDialog.java` |
 | The story tree operations | `ChatMessageServiceImpl` (branch, swipe, delete), `ManuscriptTreePart` (UI) |
 | An entity or the schema | the entity in `domain/model/impl/`, a new Flyway migration, `persistence.xml` - see [Database & migrations](database.md) |
 | A new service | interface in `domain/service/`, implementation in `impl/`, a bean in `services-config.xml` |

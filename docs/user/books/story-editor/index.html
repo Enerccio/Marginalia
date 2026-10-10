@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -181,7 +181,7 @@ from the beginning to the end.</p>
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
-| **Bottom bar** | The settings menu (⚙) on the left and the **+** button on the right. |">
+| **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -201,7 +201,7 @@ from the beginning to the end.</p>
 </tr>
 <tr>
 <td><strong>Bottom bar</strong></td>
-<td>The settings menu (⚙) on the left and the <strong>+</strong> button on the right.</td>
+<td>The <strong>Summaries</strong> button (list icon) and the settings menu (⚙) on the left, the <strong>+</strong> button on the right.</td>
 </tr>
 </tbody>
 </table>
@@ -297,7 +297,7 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |
-| **Delete summary** | Removes the summary of this part. |
+| **Delete summary** | Removes the summary of this part. For a [meta summary](summaries.md#meta-summaries) it asks whether to unwind it or delete it completely. |
 | **Delete** | Deletes the part, see [below](#deleting-a-part). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -334,7 +334,7 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 </tr>
 <tr>
 <td><strong>Delete summary</strong></td>
-<td>Removes the summary of this part.</td>
+<td>Removes the summary of this part. For a <a href="../summaries/#meta-summaries">meta summary</a> it asks whether to unwind it or delete it completely.</td>
 </tr>
 <tr>
 <td><strong>Delete</strong></td>
@@ -405,6 +405,10 @@ generation and drops the summary.</p>
 <p><strong>Delete</strong> removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.</p>
+<h2 id="summaries">Summaries</h2>
+<p>The <strong>Summaries</strong> button in the bottom bar (left of the settings menu ⚙) opens the overview of the summaries of the
+branch, where they can be edited, deleted and merged into meta summaries. The tooltip of the button shows how many
+tokens the summaries in use take in the prompt. See <a href="../summaries/#the-summaries-overview">Summaries</a>.</p>
 <h2 id="book-styles">Book styles</h2>
 <p>The settings menu (⚙) in the bottom bar has <strong>Change Styles For Text</strong>. It switches the text of the parts between the
 normal look of the application and a book-like reading style (the one the <a href="../publishing/">viewer</a> uses). The setting

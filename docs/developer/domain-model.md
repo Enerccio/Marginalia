@@ -177,7 +177,7 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `activeLeaf` | FK column | The last part of the branch currently shown and continued. |
 | `published` | column | Readable by everyone at `/view/<uuid>`. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
-| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
+| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
 | `showBookStyles` | JSON | Story display option. |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |
 
@@ -226,15 +226,42 @@ follow the branch, in the new part's `attributes`, global ones (`setglobalvar`) 
 ### `Summary`
 
 A summary belongs to one part and covers that part and all earlier parts back to the previous part with a summary
-(see [Summaries](../user/books/summaries.md)).
+(see [Summaries](../user/books/summaries.md)). A **meta summary** (`summaryType` = `META_SUMMARY`) stands in for a
+range of summaries: it is stored on the part of the newest of them, in place of the summary that part had.
 
 | Field | |
 |---|---|
 | `summary`, `summaryTokens` | The text and its size. |
 | `reasoning`, `reasoningTokens` | Reasoning of a reasoning model. |
-| `summaryMessageHash` | SHA-512 of the texts of the covered parts. When the parts change (edit, regenerate), the hash no longer matches and the generation drops the summary as outdated. |
+| `summaryMessageHash` | SHA-512 of the **block** the summary stands for, see [below](#the-summary-chain). When the story in it changes (edit, regenerate), the hash no longer matches and the generation drops the summary as outdated. |
+| `summaryType` | `SummaryType`: `SUMMARY` or `META_SUMMARY`. Missing (null) in data from before meta summaries, `getSummaryType()` returns `SUMMARY` then. |
+| `nextSummaryUuid` | Meta summary only: `uuid` of the summary where the merged summaries end, the chain continues with it. `null`: the meta summary reaches back to the root. |
+| `replacedSummary` | Meta summary only: the extended content (JSON, as `ExtendableEntityListener` writes it) of the summary the meta summary replaced on its part. Deleting the meta summary can restore it. |
 
-A summary is owned by its part (`@CleanupReference(OWNS)`); branching a part copies its summary.
+All of them are `@ExtendedAttribute` fields, so no migration was needed and they travel with backups.
+
+A summary is owned by its part (`@CleanupReference(OWNS)`); branching a part copies its summary (all of the fields
+above).
+
+#### The summary chain
+
+The summaries of a branch are walked from the newest part to the root (`SummaryService.collectBlocks`; the generation,
+the invalidation check and the overview all use it):
+
+- A part with a summary starts a **block**: the part and the parts after it (older), up to the next block.
+- After a meta summary the summaries are skipped (they belong to its block) until the one whose `uuid` is its
+  `nextSummaryUuid`, which starts the next block. The meta summary block's hash includes the text of the skipped
+  summaries.
+- The hash of a block is SHA-512 over, part by part: the text of the part, and the text of the summary of the part if
+  it has one - except for the head of the block, whose own summary is what the hash checks (it didn't exist yet when
+  the hash was made). A normal block has no other summaries in it, so its hash is that of the texts only.
+
+Deleting a meta summary (`SummaryService.removeSummary(part, unwind)`) with `unwind` restores the summary from
+`replacedSummary`: it is deserialized into a new `Summary`. Because that summary can be a meta summary with its own
+`replacedSummary`, unwinding nests. A meta summary takes over the `uuid` of the summary it replaces
+(`attachMetaSummary`), and the restored summary gets it back, so the `nextSummaryUuid` of other meta summaries stays
+valid. Restoring a backup creates all summaries with new `uuid`s, so `ManuscriptServiceImpl.restoreMessages` rewrites
+the `nextSummaryUuid` of the restored meta summaries (also inside `replacedSummary`) to the new ones.
 
 ## Lorebooks
 
@@ -314,7 +341,7 @@ values are extended attributes.
 | Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`). |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`), default book backup strategy. |
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy. |
 
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;
 `getOrCreateApp(AppSettings.class)` the installation's. Extensions keep their settings in the `attributes` of

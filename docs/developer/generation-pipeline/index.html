@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844943100695" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844949309555" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -402,8 +402,10 @@ can be changed), <code translate="no" v-pre>AFTER_PROCESS_LOREBOOK</code>.</p>
 <h3 id="4-prepare_content---preparecontentstep">4. <code translate="no" v-pre>PREPARE_CONTENT</code> - <code translate="no" v-pre>PrepareContentStep</code></h3>
 <p>Decides which part of the story goes into the prompt and renders the system prompt.</p>
 <p><strong>Summaries.</strong> The branch from the root to the active leaf is read, and the summaries on it are collected (oldest
-first) into <code translate="no" v-pre>SUMMARIES</code>. Each summary stores a hash of the parts it covers; when those parts were edited since, the
-summary is deleted and the user is asked whether to continue without it (<code translate="no" v-pre>listener.askQuestion</code>). The newest part
+first) into <code translate="no" v-pre>SUMMARIES</code> with <code translate="no" v-pre>SummaryService.collectBlocks</code>: a meta summary replaces the summaries it merged, which are
+skipped, see <a href="../domain-model/#the-summary-chain">the summary chain</a>. Each summary stores a hash of the story it covers;
+when that was changed since, the summary is removed (a meta summary is unwound to the summary it replaced, which is
+checked in turn) and the user is asked whether to continue without it (<code translate="no" v-pre>listener.askQuestion</code>). The newest part
 with a summary is the <strong>stop part</strong>: it and everything before it is represented by the summaries.</p>
 <p><strong>Token budget.</strong> With <code translate="no" v-pre>TokenLimits</code>:</p>
 <div id="4-prepare_content---preparecontentstep-code-1" class="codeblock-wrapper"><doc-codeblock>

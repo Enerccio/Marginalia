@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844943100695" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844949309555" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -213,7 +213,8 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 | User prompt | `PrepareConstantsStep` | `UserPromptData` | `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions` |
 | Lorebook entry payload | `ProcessLorebookStep` (one data object for all active entries) | `LorebookTemplateData` | the four above + `narrativePov`, `narrativeTense`, `style` |
 | Master template | `PrepareContentStep` (twice: token estimate on a fork, then for real) | `MasterTemplateData` | `backgroundLore`, `narrativePov`, `narrativeTense`, `style`, `summaries` |
-| Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |">
+| Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |
+| Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -248,6 +249,12 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 <td><code translate="no" v-pre>SummaryServiceImpl.createSummaryPayload</code></td>
 <td><code translate="no" v-pre>SummaryTemplateData</code></td>
 <td><code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>text</code> (the parts to summarize)</td>
+</tr>
+<tr>
+<td>Meta summary prompt</td>
+<td><code translate="no" v-pre>SummaryServiceImpl.createMetaSummaryPayload</code></td>
+<td><code translate="no" v-pre>MetaSummaryTemplateData</code></td>
+<td><code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaryBlocks</code> (the summaries to merge, oldest first)</td>
 </tr>
 </tbody>
 </table>
@@ -291,8 +298,9 @@ the latest summary, the variables, a clock, a random generator and the seed for 
 <code translate="no" v-pre>GenerationProperties.TEMPLATE_CONTEXT</code>) and set into every data object of that generation, so all templates see
 the same variables. <code translate="no" v-pre>fork()</code> makes a copy with copied variables for renders whose side effects must not count - the
 token estimate of the master template uses one.</p>
-<p>Summaries build their own context (<code translate="no" v-pre>SummaryServiceImpl.createTemplateContext</code>) from the part being summarized; the
-variable changes made by a summary prompt are not stored.</p>
+<p>Summaries and meta summaries build their own context (<code translate="no" v-pre>SummaryServiceImpl.createTemplateContext</code>) from the part being
+summarized (for a meta summary: the part it is stored on); the variable changes made by a summary prompt are not
+stored.</p>
 <h2 id="how-macros-are-translated">How macros are translated</h2>
 <p><code translate="no" v-pre>MacroTranslator</code> scans the template, recognizes SillyTavern constructs, and rewrites only those into calls of
 helpers named <code translate="no" v-pre>st_*</code>. Everything else - <code translate="no" v-pre>{{variable}}</code>, <code translate="no" v-pre>{{#section}}...{{/section}}</code>, <code translate="no" v-pre>{{#if}}</code>, <code translate="no" v-pre>{{#each}}</code>,

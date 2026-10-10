@@ -152,8 +152,10 @@ can be changed), `AFTER_PROCESS_LOREBOOK`.
 Decides which part of the story goes into the prompt and renders the system prompt.
 
 **Summaries.** The branch from the root to the active leaf is read, and the summaries on it are collected (oldest
-first) into `SUMMARIES`. Each summary stores a hash of the parts it covers; when those parts were edited since, the
-summary is deleted and the user is asked whether to continue without it (`listener.askQuestion`). The newest part
+first) into `SUMMARIES` with `SummaryService.collectBlocks`: a meta summary replaces the summaries it merged, which are
+skipped, see [the summary chain](domain-model.md#the-summary-chain). Each summary stores a hash of the story it covers;
+when that was changed since, the summary is removed (a meta summary is unwound to the summary it replaced, which is
+checked in turn) and the user is asked whether to continue without it (`listener.askQuestion`). The newest part
 with a summary is the **stop part**: it and everything before it is represented by the summaries.
 
 **Token budget.** With `TokenLimits`:

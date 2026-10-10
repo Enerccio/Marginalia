@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -305,7 +305,8 @@ books. The backup strategy applies to all books without a <em>Per manuscript ove
 | **Point of View (POV)**, **Tense** | The narrative voice and tense. |
 | **Style** | Style and tone guidelines. |
 | **Default User Prompt** | The request for each part, see [User prompt](books/prompts.md#user-prompt). |
-| **Default Summary Prompt** | The request for a [summary](books/summaries.md#the-summary-prompt). |">
+| **Default Summary Prompt** | The request for a [summary](books/summaries.md#the-summary-prompt). |
+| **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -335,10 +336,18 @@ books. The backup strategy applies to all books without a <em>Per manuscript ove
 <td><strong>Default Summary Prompt</strong></td>
 <td>The request for a <a href="../books/summaries/#the-summary-prompt">summary</a>.</td>
 </tr>
+<tr>
+<td><strong>Default Meta Summary Prompt</strong></td>
+<td>The request for a <a href="../books/summaries/#the-meta-summary-prompt">meta summary</a>, which merges summaries.</td>
+</tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<figure class="content-center">
+    <img src="../../images/settings-templates.png" alt="The Templates tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The Templates tab</figcaption>
+</figure>
 <p>Each field shows the built-in default in grey while it is empty, and has the hints popover with
 <strong>Insert Default Template</strong> and the available <a href="../templates/">variables and macros</a>.</p>
 <p>These defaults apply to <strong>every book whose own field is empty</strong>, immediately - not only to new books. A book that
@@ -348,24 +357,6 @@ sets its own value on its <em>Prompts</em> tab keeps it. So:</p>
 <li>set what is special to one book on its <em>Prompts</em> tab;</li>
 <li>clear a book&#x27;s field to bring it back to the default from <em>Settings</em>.</li>
 </ul>
-<div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
-    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-            <h5>Default Summary Prompt</h5>
-<p>In the current version the <em>Default Summary Prompt</em> in Settings is not saved. Summaries use the built-in summary
-prompt, or the book&#x27;s own one.</p>
-        </div>
-    </div>
-</div>
 <h3 id="extension-settings">Extension Settings</h3>
 <p>Settings of the installed <a href="../extensions/">extensions</a>, one section per extension (for example <em>Reviewer Settings</em>
 and <em>SideQuery Settings</em>). They are saved with the same <strong>Save</strong> button. The tab is empty when no extension with

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -199,6 +199,7 @@ Before every part Marginalia builds the prompt for the model from:</p>
 | **Branch**             | Parts form a tree: you can write another version of a part or continue differently from any earlier one. The *active branch* is what you see and what the model reads. | [Branches &amp; story tree](books/branches-and-story-tree.md) |
 | **Lorebook**           | Notes about the world and characters. Each **entry** is put into the prompt only when it is relevant, e.g. when a character's name appears.                            | [Lorebooks](lorebooks/index.md)                           |
 | **Summary**            | A condensed version of older parts, so a long book still fits into what the model can read at once.                                                                    | [Summaries](books/summaries.md)                           |
+| **Meta summary**       | A summary of summaries: several summaries merged into one shorter text, to free up the context.                                                                        | [Summaries](books/summaries.md#meta-summaries)            |
 | **Template**           | The text with placeholders and macros from which the prompt is built. Every book has its own prompts, with defaults in *Settings*.                                     | [Templates &amp; macros](templates/index.md)                  |
 | **Inference provider** | The connection to a model: API address, API key, model and its limits.                                                                                                 | [Inference providers](inference-providers.md)             |
 | **Protocol**           | Generation settings: temperature, top P, penalties and optional limits. The provider says *which* model writes, the protocol *how*.                                    | [Protocols](protocols.md)                                 |
@@ -238,6 +239,11 @@ Before every part Marginalia builds the prompt for the model from:</p>
 <td><strong>Summary</strong></td>
 <td>A condensed version of older parts, so a long book still fits into what the model can read at once.</td>
 <td><a href="books/summaries/">Summaries</a></td>
+</tr>
+<tr>
+<td><strong>Meta summary</strong></td>
+<td>A summary of summaries: several summaries merged into one shorter text, to free up the context.</td>
+<td><a href="books/summaries/#meta-summaries">Summaries</a></td>
 </tr>
 <tr>
 <td><strong>Template</strong></td>

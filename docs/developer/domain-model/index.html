@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844943100695" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844949309555" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -444,7 +444,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 | `activeLeaf` | FK column | The last part of the branch currently shown and continued. |
 | `published` | column | Readable by everyone at `/view/&lt;uuid&gt;`. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
-| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
+| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
 | `showBookStyles` | JSON | Story display option. |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -493,7 +493,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <td>When the owner last opened the book; orders the book lists.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>template</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>tense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>userPrompt</code>, <code translate="no" v-pre>summaryPrompt</code></td>
+<td><code translate="no" v-pre>template</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>tense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>userPrompt</code>, <code translate="no" v-pre>summaryPrompt</code>, <code translate="no" v-pre>metaSummaryPrompt</code></td>
 <td>JSON</td>
 <td>The book&#x27;s prompt overrides (<em>Prompts</em> tab); empty means the user&#x27;s defaults from <code translate="no" v-pre>UserSetting</code>, then <code translate="no" v-pre>Defaults</code>.</td>
 </tr>
@@ -647,12 +647,16 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 follow the branch, in the new part&#x27;s <code translate="no" v-pre>attributes</code>, global ones (<code translate="no" v-pre>setglobalvar</code>) in the book&#x27;s <code translate="no" v-pre>attributes</code>.</p>
 <h3 id="summary"><code translate="no" v-pre>Summary</code></h3>
 <p>A summary belongs to one part and covers that part and all earlier parts back to the previous part with a summary
-(see <a href="../../user/books/summaries/">Summaries</a>).</p>
+(see <a href="../../user/books/summaries/">Summaries</a>). A <strong>meta summary</strong> (<code translate="no" v-pre>summaryType</code> = <code translate="no" v-pre>META_SUMMARY</code>) stands in for a
+range of summaries: it is stored on the part of the newest of them, in place of the summary that part had.</p>
 <retype-table copy-text="| Field | |
 |---|---|
 | `summary`, `summaryTokens` | The text and its size. |
 | `reasoning`, `reasoningTokens` | Reasoning of a reasoning model. |
-| `summaryMessageHash` | SHA-512 of the texts of the covered parts. When the parts change (edit, regenerate), the hash no longer matches and the generation drops the summary as outdated. |">
+| `summaryMessageHash` | SHA-512 of the **block** the summary stands for, see [below](#the-summary-chain). When the story in it changes (edit, regenerate), the hash no longer matches and the generation drops the summary as outdated. |
+| `summaryType` | `SummaryType`: `SUMMARY` or `META_SUMMARY`. Missing (null) in data from before meta summaries, `getSummaryType()` returns `SUMMARY` then. |
+| `nextSummaryUuid` | Meta summary only: `uuid` of the summary where the merged summaries end, the chain continues with it. `null`: the meta summary reaches back to the root. |
+| `replacedSummary` | Meta summary only: the extended content (JSON, as `ExtendableEntityListener` writes it) of the summary the meta summary replaced on its part. Deleting the meta summary can restore it. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -672,13 +676,51 @@ follow the branch, in the new part&#x27;s <code translate="no" v-pre>attributes<
 </tr>
 <tr>
 <td><code translate="no" v-pre>summaryMessageHash</code></td>
-<td>SHA-512 of the texts of the covered parts. When the parts change (edit, regenerate), the hash no longer matches and the generation drops the summary as outdated.</td>
+<td>SHA-512 of the <strong>block</strong> the summary stands for, see <doc-anchor-trigger to="#the-summary-chain">below</doc-anchor-trigger>. When the story in it changes (edit, regenerate), the hash no longer matches and the generation drops the summary as outdated.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>summaryType</code></td>
+<td><code translate="no" v-pre>SummaryType</code>: <code translate="no" v-pre>SUMMARY</code> or <code translate="no" v-pre>META_SUMMARY</code>. Missing (null) in data from before meta summaries, <code translate="no" v-pre>getSummaryType()</code> returns <code translate="no" v-pre>SUMMARY</code> then.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>nextSummaryUuid</code></td>
+<td>Meta summary only: <code translate="no" v-pre>uuid</code> of the summary where the merged summaries end, the chain continues with it. <code translate="no" v-pre>null</code>: the meta summary reaches back to the root.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>replacedSummary</code></td>
+<td>Meta summary only: the extended content (JSON, as <code translate="no" v-pre>ExtendableEntityListener</code> writes it) of the summary the meta summary replaced on its part. Deleting the meta summary can restore it.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p>A summary is owned by its part (<code translate="no" v-pre>@CleanupReference(OWNS)</code>); branching a part copies its summary.</p>
+<p>All of them are <code translate="no" v-pre>@ExtendedAttribute</code> fields, so no migration was needed and they travel with backups.</p>
+<p>A summary is owned by its part (<code translate="no" v-pre>@CleanupReference(OWNS)</code>); branching a part copies its summary (all of the fields
+above).</p>
+<h4 id="the-summary-chain">The summary chain</h4>
+<p>The summaries of a branch are walked from the newest part to the root (<code translate="no" v-pre>SummaryService.collectBlocks</code>; the generation,
+the invalidation check and the overview all use it):</p>
+<ul>
+<li>
+<p>A part with a summary starts a <strong>block</strong>: the part and the parts after it (older), up to the next block.</p>
+</li>
+<li>
+<p>After a meta summary the summaries are skipped (they belong to its block) until the one whose <code translate="no" v-pre>uuid</code> is its
+<code translate="no" v-pre>nextSummaryUuid</code>, which starts the next block. The meta summary block&#x27;s hash includes the text of the skipped
+summaries.</p>
+</li>
+<li>
+<p>The hash of a block is SHA-512 over, part by part: the text of the part, and the text of the summary of the part if
+it has one - except for the head of the block, whose own summary is what the hash checks (it didn&#x27;t exist yet when
+the hash was made). A normal block has no other summaries in it, so its hash is that of the texts only.</p>
+</li>
+</ul>
+<p>Deleting a meta summary (<code translate="no" v-pre>SummaryService.removeSummary(part, unwind)</code>) with <code translate="no" v-pre>unwind</code> restores the summary from
+<code translate="no" v-pre>replacedSummary</code>: it is deserialized into a new <code translate="no" v-pre>Summary</code>. Because that summary can be a meta summary with its own
+<code translate="no" v-pre>replacedSummary</code>, unwinding nests. A meta summary takes over the <code translate="no" v-pre>uuid</code> of the summary it replaces
+(<code translate="no" v-pre>attachMetaSummary</code>), and the restored summary gets it back, so the <code translate="no" v-pre>nextSummaryUuid</code> of other meta summaries stays
+valid. Restoring a backup creates all summaries with new <code translate="no" v-pre>uuid</code>s, so <code translate="no" v-pre>ManuscriptServiceImpl.restoreMessages</code> rewrites
+the <code translate="no" v-pre>nextSummaryUuid</code> of the restored meta summaries (also inside <code translate="no" v-pre>replacedSummary</code>) to the new ones.</p>
 <h2 id="lorebooks">Lorebooks</h2>
 <h3 id="lorebook"><code translate="no" v-pre>Lorebook</code></h3>
 <retype-table copy-text="| Field | |
@@ -929,7 +971,7 @@ values are extended attributes.</p>
 <retype-table copy-text="| Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`). |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`), default book backup strategy. |">
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -948,7 +990,7 @@ values are extended attributes.</p>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>
 <td>each user</td>
-<td>Default model and protocol (ids, <code translate="no" v-pre>@CleanupReference(WEAK)</code>), default prompts (<code translate="no" v-pre>masterTemplate</code>, <code translate="no" v-pre>defaultPov</code>, <code translate="no" v-pre>defaultTense</code>, <code translate="no" v-pre>defaultStyle</code>, <code translate="no" v-pre>defaultUserPrompt</code>, <code translate="no" v-pre>defaultSummaryPrompt</code>), default book backup strategy.</td>
+<td>Default model and protocol (ids, <code translate="no" v-pre>@CleanupReference(WEAK)</code>), default prompts (<code translate="no" v-pre>masterTemplate</code>, <code translate="no" v-pre>defaultPov</code>, <code translate="no" v-pre>defaultTense</code>, <code translate="no" v-pre>defaultStyle</code>, <code translate="no" v-pre>defaultUserPrompt</code>, <code translate="no" v-pre>defaultSummaryPrompt</code>, <code translate="no" v-pre>defaultMetaSummaryPrompt</code>), default book backup strategy.</td>
 </tr>
 </tbody>
 </table>

@@ -86,6 +86,9 @@ The defaults for the [book prompts](books/prompts.md):
 | **Style** | Style and tone guidelines. |
 | **Default User Prompt** | The request for each part, see [User prompt](books/prompts.md#user-prompt). |
 | **Default Summary Prompt** | The request for a [summary](books/summaries.md#the-summary-prompt). |
+| **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |
+
+![The Templates tab](../images/settings-templates.png)
 
 Each field shows the built-in default in grey while it is empty, and has the hints popover with
 **Insert Default Template** and the available [variables and macros](templates/index.md).
@@ -96,11 +99,6 @@ sets its own value on its *Prompts* tab keeps it. So:
 - set what all your books share here;
 - set what is special to one book on its *Prompts* tab;
 - clear a book's field to bring it back to the default from *Settings*.
-
-!!!warning Default Summary Prompt
-In the current version the *Default Summary Prompt* in Settings is not saved. Summaries use the built-in summary
-prompt, or the book's own one.
-!!!
 
 ### Extension Settings
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844943100695" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844949309555" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -212,6 +212,51 @@ reviewMenuItem.getSubMenu().addItem(&quot;View / Generate Review&quot;, e -&gt; 
 opened listener.</p>
 <p>The card replaces its <code translate="no" v-pre>message</code> with the saved copy whenever the part is edited, so read the field again in the click
 listener (<code translate="no" v-pre>context.getReflectiveFieldValue(card, &quot;message&quot;, ...)</code>) rather than capturing it when the menu is built.</p>
+<h3 id="the-story-menu-bar">The story menu bar</h3>
+<p>The bottom bar of the story editor has a menu bar with the <strong>Summaries</strong> item and the settings item (⚙). It is built
+by small methods of <code translate="no" v-pre>ManuscriptStoryPart</code> that get the bar as an argument (<code translate="no" v-pre>bar</code>), so decorate one of them on leave:</p>
+<retype-table copy-text="| Method | Add to |
+|---|---|
+| `populateMenuBar(bar)` | The bar itself - a new item next to the summaries and the settings item. The method is empty and runs after the application's items were added. |
+| `createCogsMenuItem(bar)` | The settings menu: the local variable `cogs` is its `MenuItem`, add to `cogs.getSubMenu()`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th>Add to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>populateMenuBar(bar)</code></td>
+<td>The bar itself - a new item next to the summaries and the settings item. The method is empty and runs after the application&#x27;s items were added.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>createCogsMenuItem(bar)</code></td>
+<td>The settings menu: the local variable <code translate="no" v-pre>cogs</code> is its <code translate="no" v-pre>MenuItem</code>, add to <code translate="no" v-pre>cogs.getSubMenu()</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<div id="the-story-menu-bar-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">MenuBar bar = context.getMethodArgument(&quot;bar&quot;, MenuBar.class);
+MenuItem cogs = context.getLocalVariable(&quot;cogs&quot;, MenuItem.class);
+cogs.getSubMenu().addItem(&quot;My tool&quot;, e -&gt; openMyTool(context.getReflectiveFieldValue(instrumented, &quot;currentManuscript&quot;, Manuscript.class)));</code></pre>
+</doc-codeblock></div>
+<p>The menu bar is built once per story editor, so it needs no marker. Read <code translate="no" v-pre>currentManuscript</code> when the item is clicked,
+not when it is built - the story editor loads other books into the same instance.</p>
+<h3 id="tools-in-the-summaries-overview">Tools in the summaries overview</h3>
+<p><code translate="no" v-pre>SummariesDialog</code> (the overview of the summaries, opened from the <strong>Summaries</strong> item) has an empty menu bar above its
+grid. Decorate <code translate="no" v-pre>populateMenuBar(bar)</code> on leave and add items to the argument <code translate="no" v-pre>bar</code>. A new dialog (and menu bar) is
+created every time the overview opens, so the decorator runs for each of them. The dialog&#x27;s fields (<code translate="no" v-pre>manuscript</code>,
+<code translate="no" v-pre>treeGrid</code>) are reachable by reflection; to reload the grid after your tool changed the summaries, close and reopen
+the dialog, or call its private <code translate="no" v-pre>refresh()</code> with <code translate="no" v-pre>callReflectiveMethod</code>.</p>
+<p>Changes to summaries should go through <code translate="no" v-pre>SummaryService</code> (<code translate="no" v-pre>updateSummaryText</code>, <code translate="no" v-pre>removeSummary</code>, <code translate="no" v-pre>createMetaSummary</code>):
+it keeps the token counts, the hashes of the summaries and the meta summaries that merged them consistent. In
+particular, don&#x27;t edit the text of a summary a meta summary stands in for (shown under it in the overview) - its text
+is part of the hash of the meta summary and it would be dropped as outdated.</p>
 <h3 id="a-tab-next-to-the-story">A tab next to the story</h3>
 <p><code translate="no" v-pre>ManuscriptStoryPart.renderStoryContent()</code> rebuilds the whole story view - and the <code translate="no" v-pre>leftBar</code> tab sheet with the story
 outline - every time the story is redrawn (opening the book, after a generation, after a delete). Side Query adds its

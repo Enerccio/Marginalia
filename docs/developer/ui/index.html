@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844943100695">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844949309555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844943100695" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844949309555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844943100695" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844943100695" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844949309555" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844949309555" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -447,8 +447,78 @@ check - services must check <code translate="no" v-pre>isAdmin()</code> themselv
 <code translate="no" v-pre>freeze()</code> / <code translate="no" v-pre>unfreeze()</code>, which disable the tabs, the exit button and every part during generation.</p>
 <p><code translate="no" v-pre>ManuscriptStoryPart</code> is the story editor and the largest UI class: the sidebar with one button per part, a
 <code translate="no" v-pre>ChatMessageCard</code> per part (Markdown view, edit mode, menu with Edit / Regenerate / Swipe / Branch / View prompt /
-Summary / Delete), the <em>New Turn Instructions</em> popover, starting generations and applying the result, and the
-automatic book backups.</p>
+Summary / Delete), the <em>New Turn Instructions</em> popover, starting generations and applying the result, the automatic
+book backups, and the menu bar of the bottom bar (see <doc-anchor-trigger to="#the-story-menu-bar">The story menu bar</doc-anchor-trigger>).</p>
+<h3 id="the-story-menu-bar">The story menu bar</h3>
+<p>The bottom bar of the story editor has a <code translate="no" v-pre>MenuBar</code> with two items, built by small methods so that extensions can add
+to it (see <a href="../plugins/ui-extensions/#the-story-menu-bar">Extending the UI</a>):</p>
+<retype-table copy-text="| Method | Builds |
+|---|---|
+| `createMenuBar()` | The bar: calls the three methods below. Stored in the field `menuBar`. |
+| `createSummariesMenuItem(bar)` | The **Summaries** item (field `summariesMenuItem`), which opens `SummariesDialog`. Its tooltip shows the tokens of the summaries in use (`refreshSummariesMenuItem()`, run when the story is loaded, after a summary is deleted and when a summary dialog is closed). |
+| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createExportMenuItem(cogs)`. |
+| `populateMenuBar(bar)` | Empty, runs last: the hook for new items of the bar. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th>Builds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>createMenuBar()</code></td>
+<td>The bar: calls the three methods below. Stored in the field <code translate="no" v-pre>menuBar</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>createSummariesMenuItem(bar)</code></td>
+<td>The <strong>Summaries</strong> item (field <code translate="no" v-pre>summariesMenuItem</code>), which opens <code translate="no" v-pre>SummariesDialog</code>. Its tooltip shows the tokens of the summaries in use (<code translate="no" v-pre>refreshSummariesMenuItem()</code>, run when the story is loaded, after a summary is deleted and when a summary dialog is closed).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>createCogsMenuItem(bar)</code></td>
+<td>The settings item (field <code translate="no" v-pre>cogsMenuItem</code>, local <code translate="no" v-pre>cogs</code>) and its sub menu: <code translate="no" v-pre>createChangeStylesMenuItem(cogs)</code>, <code translate="no" v-pre>createExportMenuItem(cogs)</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>populateMenuBar(bar)</code></td>
+<td>Empty, runs last: the hook for new items of the bar.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="the-summaries-overview">The summaries overview</h3>
+<p><code translate="no" v-pre>SummariesDialog</code> shows the summaries of the active branch (<code translate="no" v-pre>SummaryService.collectTree</code>) in a <code translate="no" v-pre>TreeGrid&lt;SummaryNode&gt;</code>:
+the summaries generation uses are the top level, the summaries a meta summary stands in for are its children
+(including the summary it replaced, read from <code translate="no" v-pre>replacedSummary</code>, which has no id). Columns: database id (the
+hierarchy column), message id, order in the branch, content, tokens, a checkbox and a delete button. Checkboxes,
+delete buttons and the edit pencil exist only on the top level - the text of the merged summaries is part of the hash
+of their meta summary, so editing them would invalidate it.</p>
+<ul>
+<li>
+<p><strong>Content</strong> (<code translate="no" v-pre>SummaryContent</code>): reasoning (a <code translate="no" v-pre>Details</code> with <code translate="no" v-pre>Markdown</code>, reasoning is mostly markdown), badges (<em>Meta summary</em>, <em>Replaced</em>) and the text as
+plain text (<code translate="no" v-pre>white-space: pre-wrap</code>, summaries are not markdown and the model&#x27;s single line breaks must show), in a scrolling <code translate="no" v-pre>Div</code> of a fixed height, so all rows have the same height. The pencil is in a gutter next
+to the scroll area (not over the text); it swaps the text for a <code translate="no" v-pre>TextArea</code> of the same size and the buttons for a
+green check (<code translate="no" v-pre>SummaryService.updateSummaryText</code>) and a red trash icon (back to the Markdown).</p>
+</li>
+<li>
+<p><strong>Delete</strong> goes through <code translate="no" v-pre>SummaryRemoval.confirmAndRemove</code>, shared with the part menu of the story editor: a normal
+summary is confirmed with yes/no, a meta summary asks <em>Unwind</em> / <em>Delete</em> / <em>Cancel</em> (<code translate="no" v-pre>ConfirmDialog</code> with custom
+button labels).</p>
+</li>
+<li>
+<p><strong>Create meta summary</strong> takes the ticked summaries, uses the newest as <code translate="no" v-pre>from</code> and the oldest as <code translate="no" v-pre>to</code> and opens
+<code translate="no" v-pre>SummaryDialog</code> with a meta request (<code translate="no" v-pre>createMetaSummary</code>); it needs at least two.</p>
+</li>
+<li>
+<p>The grid is reloaded after every change (<code translate="no" v-pre>refresh()</code>): editing, deleting, and closing the dialog of a meta summary.</p>
+</li>
+</ul>
+<p><code translate="no" v-pre>SummaryDialog</code> is the dialog of one summary: it generates it (<code translate="no" v-pre>startGeneration</code>, streaming into a read-only text area,
+with a <em>Stop</em> button), or shows the existing one. It is created with the part, and with the oldest part of the range
+for a meta summary. It was an inner class of <code translate="no" v-pre>ManuscriptStoryPart</code>; both the story editor and the overview open it now.
+Both dialogs are <code translate="no" v-pre>@Configurable(preConstruction = true)</code> (they use injected services in their constructors) and
+<code translate="no" v-pre>@Extendable</code>; the overview&#x27;s menu bar above the grid is empty, <code translate="no" v-pre>populateMenuBar(bar)</code> is where extensions add tools.</p>
 <h3 id="grids">Grids</h3>
 <p>Lists of entities use Vaadin <code translate="no" v-pre>Grid</code> with a lazy data provider. <code translate="no" v-pre>BackendTableProviderBase</code> (in <code translate="no" v-pre>ui.widgets</code>) is the
 common base: the owning part searches for the ids to show (<code translate="no" v-pre>ManuscriptService.searchManuscripts(...)</code> returns ids,
@@ -561,7 +631,7 @@ runs before and after that method and can read its arguments and local variables
 <retype-table copy-text="| Area | Classes |
 |---|---|
 | Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
-| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart` |
+| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog` |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `LorebookView`, `TreantTree` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -578,7 +648,7 @@ runs before and after that method and can read its arguments and local variables
 </tr>
 <tr>
 <td>Book window</td>
-<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>ManuscriptStoryPart</code> (and its <code translate="no" v-pre>ChatMessageCard</code>), <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code></td>
+<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>ManuscriptStoryPart</code> (and its <code translate="no" v-pre>ChatMessageCard</code>), <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code>, <code translate="no" v-pre>SummariesDialog</code>, <code translate="no" v-pre>SummaryDialog</code></td>
 </tr>
 <tr>
 <td>Dialogs and components</td>

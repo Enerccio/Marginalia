@@ -53,6 +53,38 @@ opened listener.
 The card replaces its `message` with the saved copy whenever the part is edited, so read the field again in the click
 listener (`context.getReflectiveFieldValue(card, "message", ...)`) rather than capturing it when the menu is built.
 
+### The story menu bar
+
+The bottom bar of the story editor has a menu bar with the **Summaries** item and the settings item (⚙). It is built
+by small methods of `ManuscriptStoryPart` that get the bar as an argument (`bar`), so decorate one of them on leave:
+
+| Method | Add to |
+|---|---|
+| `populateMenuBar(bar)` | The bar itself - a new item next to the summaries and the settings item. The method is empty and runs after the application's items were added. |
+| `createCogsMenuItem(bar)` | The settings menu: the local variable `cogs` is its `MenuItem`, add to `cogs.getSubMenu()`. |
+
+```java
+MenuBar bar = context.getMethodArgument("bar", MenuBar.class);
+MenuItem cogs = context.getLocalVariable("cogs", MenuItem.class);
+cogs.getSubMenu().addItem("My tool", e -> openMyTool(context.getReflectiveFieldValue(instrumented, "currentManuscript", Manuscript.class)));
+```
+
+The menu bar is built once per story editor, so it needs no marker. Read `currentManuscript` when the item is clicked,
+not when it is built - the story editor loads other books into the same instance.
+
+### Tools in the summaries overview
+
+`SummariesDialog` (the overview of the summaries, opened from the **Summaries** item) has an empty menu bar above its
+grid. Decorate `populateMenuBar(bar)` on leave and add items to the argument `bar`. A new dialog (and menu bar) is
+created every time the overview opens, so the decorator runs for each of them. The dialog's fields (`manuscript`,
+`treeGrid`) are reachable by reflection; to reload the grid after your tool changed the summaries, close and reopen
+the dialog, or call its private `refresh()` with `callReflectiveMethod`.
+
+Changes to summaries should go through `SummaryService` (`updateSummaryText`, `removeSummary`, `createMetaSummary`):
+it keeps the token counts, the hashes of the summaries and the meta summaries that merged them consistent. In
+particular, don't edit the text of a summary a meta summary stands in for (shown under it in the overview) - its text
+is part of the hash of the meta summary and it would be dropped as outdated.
+
 ### A tab next to the story
 
 `ManuscriptStoryPart.renderStoryContent()` rebuilds the whole story view - and the `leftBar` tab sheet with the story

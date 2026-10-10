@@ -160,8 +160,46 @@ The dialog holds the book (`getManuscript()`, `refreshManuscript()` reloads it, 
 
 `ManuscriptStoryPart` is the story editor and the largest UI class: the sidebar with one button per part, a
 `ChatMessageCard` per part (Markdown view, edit mode, menu with Edit / Regenerate / Swipe / Branch / View prompt /
-Summary / Delete), the *New Turn Instructions* popover, starting generations and applying the result, and the
-automatic book backups.
+Summary / Delete), the *New Turn Instructions* popover, starting generations and applying the result, the automatic
+book backups, and the menu bar of the bottom bar (see [The story menu bar](#the-story-menu-bar)).
+
+### The story menu bar
+
+The bottom bar of the story editor has a `MenuBar` with two items, built by small methods so that extensions can add
+to it (see [Extending the UI](plugins/ui-extensions.md#the-story-menu-bar)):
+
+| Method | Builds |
+|---|---|
+| `createMenuBar()` | The bar: calls the three methods below. Stored in the field `menuBar`. |
+| `createSummariesMenuItem(bar)` | The **Summaries** item (field `summariesMenuItem`), which opens `SummariesDialog`. Its tooltip shows the tokens of the summaries in use (`refreshSummariesMenuItem()`, run when the story is loaded, after a summary is deleted and when a summary dialog is closed). |
+| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createExportMenuItem(cogs)`. |
+| `populateMenuBar(bar)` | Empty, runs last: the hook for new items of the bar. |
+
+### The summaries overview
+
+`SummariesDialog` shows the summaries of the active branch (`SummaryService.collectTree`) in a `TreeGrid<SummaryNode>`:
+the summaries generation uses are the top level, the summaries a meta summary stands in for are its children
+(including the summary it replaced, read from `replacedSummary`, which has no id). Columns: database id (the
+hierarchy column), message id, order in the branch, content, tokens, a checkbox and a delete button. Checkboxes,
+delete buttons and the edit pencil exist only on the top level - the text of the merged summaries is part of the hash
+of their meta summary, so editing them would invalidate it.
+
+- **Content** (`SummaryContent`): reasoning (a `Details` with `Markdown`, reasoning is mostly markdown), badges (*Meta summary*, *Replaced*) and the text as
+  plain text (`white-space: pre-wrap`, summaries are not markdown and the model's single line breaks must show), in a scrolling `Div` of a fixed height, so all rows have the same height. The pencil is in a gutter next
+  to the scroll area (not over the text); it swaps the text for a `TextArea` of the same size and the buttons for a
+  green check (`SummaryService.updateSummaryText`) and a red trash icon (back to the Markdown).
+- **Delete** goes through `SummaryRemoval.confirmAndRemove`, shared with the part menu of the story editor: a normal
+  summary is confirmed with yes/no, a meta summary asks *Unwind* / *Delete* / *Cancel* (`ConfirmDialog` with custom
+  button labels).
+- **Create meta summary** takes the ticked summaries, uses the newest as `from` and the oldest as `to` and opens
+  `SummaryDialog` with a meta request (`createMetaSummary`); it needs at least two.
+- The grid is reloaded after every change (`refresh()`): editing, deleting, and closing the dialog of a meta summary.
+
+`SummaryDialog` is the dialog of one summary: it generates it (`startGeneration`, streaming into a read-only text area,
+with a *Stop* button), or shows the existing one. It is created with the part, and with the oldest part of the range
+for a meta summary. It was an inner class of `ManuscriptStoryPart`; both the story editor and the overview open it now.
+Both dialogs are `@Configurable(preConstruction = true)` (they use injected services in their constructors) and
+`@Extendable`; the overview's menu bar above the grid is empty, `populateMenuBar(bar)` is where extensions add tools.
 
 ### Grids
 
@@ -251,7 +289,7 @@ runs before and after that method and can read its arguments and local variables
 | Area | Classes |
 |---|---|
 | Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
-| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart` |
+| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog` |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `LorebookView`, `TreantTree` |
 
 The bundled plugins hook into these methods:
