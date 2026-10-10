@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.main.Viewer;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -121,7 +122,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
 
         descriptionField = new TextArea(loc.getValue(L.LABEL_DESCRIPTION));
         descriptionField.setWidthFull();
-        descriptionField.setMinHeight("100px");
+        ResizableTextArea.install(loc, descriptionField, "160px");
         descriptionField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();

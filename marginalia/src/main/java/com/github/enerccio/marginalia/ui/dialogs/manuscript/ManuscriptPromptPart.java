@@ -13,10 +13,7 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
-import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
-import com.github.enerccio.marginalia.ui.widgets.TextFieldPopOverComponent;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValue;
@@ -93,7 +90,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
     private void createFields() {
         masterTemplateField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_MASTER_TEMPLATE));
         masterTemplateField.setWidthFull();
-        masterTemplateField.setMinHeight("180px");
+        ResizableTextArea.install(loc, masterTemplateField, "240px");
         masterTemplateField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
@@ -102,7 +99,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
 
         userPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_USER_PROMPT));
         userPromptField.setWidthFull();
-        userPromptField.setMinHeight("180px");
+        ResizableTextArea.install(loc, userPromptField, "240px");
         userPromptField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
@@ -111,7 +108,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
 
         summaryField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_SUMMARY_PROMPT));
         summaryField.setWidthFull();
-        summaryField.setMinHeight("180px");
+        ResizableTextArea.install(loc, summaryField, "240px");
         summaryField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();
@@ -120,7 +117,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
 
         styleField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_STYLE));
         styleField.setWidthFull();
-        styleField.setMinHeight("120px");
+        ResizableTextArea.install(loc, styleField, "160px");
         styleField.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 autosave();

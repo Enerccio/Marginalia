@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.extensions.authorsnote.model.AuthorsNoteData;
 import com.github.enerccio.marginalia.extensions.authorsnote.service.AuthorsNoteService;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -92,6 +93,7 @@ public class AuthorsNoteView extends VerticalLayout {
 
         note = new TextArea("Author's Note");
         note.setWidthFull();
+        ResizableTextArea.install(loc, note, "160px");
         note.setValue(StringUtils.defaultString(data.getNote()));
         note.setValueChangeMode(ValueChangeMode.LAZY);
         note.setValueChangeTimeout(1000);
@@ -105,6 +107,7 @@ public class AuthorsNoteView extends VerticalLayout {
         TextArea privateNote = new TextArea("Author's Note (private)");
         privateNote.setHelperText("For you only, never sent to the model");
         privateNote.setWidthFull();
+        ResizableTextArea.install(loc, privateNote, "100px");
         privateNote.setValue(StringUtils.defaultString(data.getPrivateNote()));
         privateNote.setValueChangeMode(ValueChangeMode.LAZY);
         privateNote.setValueChangeTimeout(1000);

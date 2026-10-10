@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.extensions.sidequery.model.SideQuerySettin
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -101,11 +102,11 @@ public class SideQuerySettingsForm extends VerticalLayout {
 
         initialQueryArea = new TextArea("Initial System Query");
         initialQueryArea.setWidthFull();
-        initialQueryArea.setMinHeight("100px");
+        ResizableTextArea.install(loc, initialQueryArea, "160px");
 
         instructionsBeforeUserArea = new TextArea("Instructions Before User Input");
         instructionsBeforeUserArea.setWidthFull();
-        instructionsBeforeUserArea.setMinHeight("80px");
+        ResizableTextArea.install(loc, instructionsBeforeUserArea, "120px");
 
         enableAiTabNamesBox = new Checkbox("Enable AI Tab Naming");
 

@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -99,11 +100,11 @@ public class ReviewerSettingsForm extends VerticalLayout {
 
         reviewPromptPreArea = new TextArea("Review Pre-Prompt (System)");
         reviewPromptPreArea.setWidthFull();
-        reviewPromptPreArea.setMinHeight("80px");
+        ResizableTextArea.install(loc, reviewPromptPreArea, "120px");
 
         reviewPromptArea = new TextArea("Review Post-Prompt (User)");
         reviewPromptArea.setWidthFull();
-        reviewPromptArea.setMinHeight("120px");
+        ResizableTextArea.install(loc, reviewPromptArea, "160px");
 
         HorizontalLayout checkboxesLayout = new HorizontalLayout();
         checkboxesLayout.setWidthFull();
