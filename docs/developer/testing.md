@@ -67,7 +67,7 @@ fake is the model server.
 | `security` | `ApiKeyEncryptionTest` | API keys stored encrypted with the installation key; the app migration encrypting plain ones. |
 | `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
 | `ui` | `ResourcesPartTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The only test that builds a Vaadin component. |
-| `cleanup` | `CleanupServiceTest` | Purging soft-deleted data, owned data, strong and weak references. |
+| `cleanup` | `CleanupServiceTest`, `TrashServiceTest` | Purging soft-deleted data, owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent. |
 
 Not covered by automated tests: the Vaadin UI (apart from `ResourcesPartTest`), the bundled plugins, and the desktop launcher

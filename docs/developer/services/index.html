@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961373031">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844966488390">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844961373031" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844966488390" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844961373031" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844966488390" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -597,6 +597,7 @@ service method calls <code translate="no" v-pre>adminGuard.requireAdmin()</code>
 |---|---|
 | `DatabaseBackupService` | Database backups with `VACUUM INTO`, upload, staged restore, the cron schedule (`CronSchedule`, Spring `ThreadPoolTaskScheduler`) and its rotation. See [Database backups and restores](database.md#database-backups-and-restores). |
 | `CleanupService` | `analyze()` builds the plan of what can be purged (from the Hibernate metamodel and `@CleanupReference`s), `purge()` executes it. Extensions with their own references register a `CleanupContributor` (`collectReferences` to block purges, `beforePurge` to clean up). See [Cleanup references](domain-model.md#cleanup-references). |
+| `TrashService` | The trash: lists soft-deleted objects (`find`/`count` with a `TrashFilter` of owner and type), shows their extended content as JSON and restores them. Implemented by `CleanupServiceImpl` (same bean as `CleanupService`) because it needs the cleanup reference model. Not administrator-only: a user is limited to their own objects, an administrator (`AdminGuard.isAdmin()`) sees and restores everything, and objects of others raise `SecurityException`. `restore` is all or nothing: an object that depends on a deleted object outside the selection (`STRONG` and `OWNED_BY` references it holds, and the `OWNS` reference of the object that owns it) blocks the whole restore, see `RestoreResult.getBlocked()`. See [Trash](domain-model.md#trash). |
 | `OsgiService`, `ExtensionService` | Loading extensions and the `@Extendable` decorators, see [Plugin development](plugins/index.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -614,6 +615,10 @@ service method calls <code translate="no" v-pre>adminGuard.requireAdmin()</code>
 <tr>
 <td><code translate="no" v-pre>CleanupService</code></td>
 <td><code translate="no" v-pre>analyze()</code> builds the plan of what can be purged (from the Hibernate metamodel and <code translate="no" v-pre>@CleanupReference</code>s), <code translate="no" v-pre>purge()</code> executes it. Extensions with their own references register a <code translate="no" v-pre>CleanupContributor</code> (<code translate="no" v-pre>collectReferences</code> to block purges, <code translate="no" v-pre>beforePurge</code> to clean up). See <a href="../domain-model/#cleanup-references">Cleanup references</a>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>TrashService</code></td>
+<td>The trash: lists soft-deleted objects (<code translate="no" v-pre>find</code>/<code translate="no" v-pre>count</code> with a <code translate="no" v-pre>TrashFilter</code> of owner and type), shows their extended content as JSON and restores them. Implemented by <code translate="no" v-pre>CleanupServiceImpl</code> (same bean as <code translate="no" v-pre>CleanupService</code>) because it needs the cleanup reference model. Not administrator-only: a user is limited to their own objects, an administrator (<code translate="no" v-pre>AdminGuard.isAdmin()</code>) sees and restores everything, and objects of others raise <code translate="no" v-pre>SecurityException</code>. <code translate="no" v-pre>restore</code> is all or nothing: an object that depends on a deleted object outside the selection (<code translate="no" v-pre>STRONG</code> and <code translate="no" v-pre>OWNED_BY</code> references it holds, and the <code translate="no" v-pre>OWNS</code> reference of the object that owns it) blocks the whole restore, see <code translate="no" v-pre>RestoreResult.getBlocked()</code>. See <a href="../domain-model/#trash">Trash</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>OsgiService</code>, <code translate="no" v-pre>ExtensionService</code></td>

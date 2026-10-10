@@ -2,14 +2,15 @@
 
 When users delete something in Marginalia - a book, a story part, a lorebook, an inference provider - it disappears
 from their lists, but stays in the database. That makes deleting safe and keeps references working (a book still
-knows the provider that wrote its parts). **Cleanup** removes such deleted data for good, to keep the database small.
+knows the provider that wrote its parts). Until then users can restore their deleted objects from the
+[Trash](../trash.md) tab. **Cleanup** removes such deleted data for good, to keep the database small.
 
 ![The Cleanup tab](../../images/admin-cleanup.png)
 
 ## Running a cleanup
 
 !!!warning
-Cleanup can't be undone. [Create a database backup](database-backups.md) first.
+Cleanup can't be undone, what it removes is gone from the [Trash](../trash.md) too. [Create a database backup](database-backups.md) first.
 !!!
 
 1. Open the **Cleanup** tab of the admin page and click **Analyze**. Nothing is changed yet.
@@ -20,6 +21,14 @@ Cleanup covers the data of all users.
 
 Files are not removed. Cleanup deletes entries from the database only; the files of deleted
 [resources](../resources.md) (pictures of the parts) stay in the data folder of their owner.
+
+## Seeing what is deleted
+
+**Trash** below the tables lists the deleted objects of all users, one row per object (open it to load the table),
+so you can see what a cleanup would remove and restore what somebody asked you to bring back. It is the same table
+as the [Trash](../trash.md) tab, including the filters by user and type and the *Extended Content* link.
+
+![The Trash section of the Cleanup tab](../../images/admin-trash.png)
 
 ## Reading the analysis
 

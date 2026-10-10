@@ -31,6 +31,7 @@
 - [Book backups](https://enerccio.github.io/Marginalia/user/books/backups.md): A book backup is a snapshot of one book: its settings and prompts, all parts in all branches, summaries, tags and the lorebook. Use backups to go back to an earlier state of the story, to make a copy of a book, or to move a book to another Marginalia installation or user.
 - [Publishing & viewer](https://enerccio.github.io/Marginalia/user/books/publishing.md): The viewer is a reading view of your books: just the text of the story, without the editor around it. It works well on phones and tablets. Publishing a book lets other users of the same Marginalia installation read it in the viewer.
 - [Resources](https://enerccio.github.io/Marginalia/user/resources.md): The Resources tab lists the files you have uploaded to Marginalia. For now these are the pictures of the parts of your books. The tab is the place to find a picture again, to download it, to swap it for a better one without touching the books that use it, and to throw away what you no longer need.
+- [Trash](https://enerccio.github.io/Marginalia/user/trash.md): Deleting in Marginalia does not destroy anything right away: a deleted book, lorebook, story part or inference provider is only marked as deleted and hidden from your lists.
 
 ### Lorebooks
 

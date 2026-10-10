@@ -53,5 +53,6 @@ The trash button in the row deletes one file. To delete several, tick them in th
   from the database for good.
 - **The file stays in the data folder** (`data/<your login>/images`) for now, also after cleanup. Deleting a resource
   does not free disk space yet.
-- A deleted file can't be brought back from the application. A [backup of the whole database](administration/database-backups.md)
+- Until the cleanup removes the entry, you can bring it back from the [Trash](trash.md): the file is still in the data folder,
+  so the picture works again. After the cleanup only a [backup of the whole database](administration/database-backups.md)
   made before contains the entry; the file itself is still in the folder.

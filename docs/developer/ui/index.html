@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961373031">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844966488390">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844961373031" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844966488390" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844961373031" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844966488390" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -191,9 +191,12 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
     WS --&gt; PP[&quot;ProtocolPart - Protocols&quot;]
     WS --&gt; AP[&quot;AIPart - Inference Providers&quot;]
     WS --&gt; RP[&quot;ResourcesPart - Resources&quot;]
+    WS --&gt; TrP[&quot;TrashPart - Trash&quot;]
     WS --&gt; AdP[&quot;AdminPart - Admin (footer button)&quot;]
     AdP --&gt; DBP[&quot;DatabaseBackupPanel&quot;]
+    TrP --&gt; TG[&quot;TrashGrid&quot;]
     AdP --&gt; CP[&quot;CleanupPanel&quot;]
+    CP --&gt; TG
     MP --&gt;|open a book| MD[&quot;ManuscriptDialog&lt;br/&gt;VTabSheet&quot;]
     MD --&gt; Info[&quot;ManuscriptInfoPart - About&quot;]
     MD --&gt; Prompt[&quot;ManuscriptPromptPart - Prompts&quot;]
@@ -219,7 +222,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
 | `ui.components` | Larger reusable components: `LorebookView`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
-| `ui.widgets` | Small reusable widgets. |">
+| `ui.widgets` | Small reusable widgets, among them `TrashGrid` (see [Trash](#trash)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -255,7 +258,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.widgets</code></td>
-<td>Small reusable widgets.</td>
+<td>Small reusable widgets, among them <code translate="no" v-pre>TrashGrid</code> (see <doc-anchor-trigger to="#trash">Trash</doc-anchor-trigger>).</td>
 </tr>
 </tbody>
 </table>
@@ -537,6 +540,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
 | `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, &quot;160px&quot;)` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
+| `TrashGrid` | Deleted objects with a restore button, see [Trash](#trash). |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -572,6 +576,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <td><code translate="no" v-pre>ResizableTextArea.install(loc, textArea, &quot;160px&quot;)</code> on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>TrashGrid</code></td>
+<td>Deleted objects with a restore button, see <doc-anchor-trigger to="#trash">Trash</doc-anchor-trigger>.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>Notification</code></td>
 <td><code translate="no" v-pre>Notification.success(...)</code> / <code translate="no" v-pre>error(...)</code> with Marginalia&#x27;s durations and variants.</td>
 </tr>
@@ -579,13 +587,23 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 </table>
 </div>
 </retype-table>
+<h3 id="trash">Trash</h3>
+<p><code translate="no" v-pre>TrashGrid</code> is a self-contained widget (<code translate="no" v-pre>@Configurable</code>, create it with <code translate="no" v-pre>new TrashGrid(allUsers).create()</code>) over
+<code translate="no" v-pre>TrashService</code>: a lazy multi-select <code translate="no" v-pre>Grid&lt;TrashItem&gt;</code> (items identified by their <code translate="no" v-pre>EntityKey</code>, so the selection
+survives paging), a filter by type (names from <code translate="no" v-pre>Localization.localizeDomainObject(Class)</code>) and, with <code translate="no" v-pre>allUsers</code>, a
+filter by owner and an owner column. <code translate="no" v-pre>allUsers</code> only decides what the widget shows; the service decides what the
+current user may see and restore. <em>Restore Selected</em> confirms and calls <code translate="no" v-pre>TrashService.restore</code>; when it returns
+blockers the widget shows them in a dialog (nothing was restored), otherwise it refreshes and runs the listeners from
+<code translate="no" v-pre>addRestoreListener</code> (<code translate="no" v-pre>TrashPart</code> uses it to refresh the whole workspace). The <em>Extended Content</em> link opens the JSON
+from <code translate="no" v-pre>TrashService.getExtendedContent</code> in a read-only text area. <code translate="no" v-pre>TrashPart</code> (the <em>Trash</em> tab, <code translate="no" v-pre>allUsers</code> for
+administrators) and <code translate="no" v-pre>CleanupPanel</code> (a <code translate="no" v-pre>Details</code> section, created when first opened) both use it.</p>
 <p>Generic dialogs: <code translate="no" v-pre>ConfirmDialog.show(message, onYes)</code>, <code translate="no" v-pre>TextInputDialog.Builder</code>, <code translate="no" v-pre>ListSelectDialog</code>,
 <code translate="no" v-pre>ErrorDialog</code> (message and expandable stack trace), <code translate="no" v-pre>ProgressBarDialog</code>.</p>
 <h2 id="conventions">Conventions</h2>
 <h3 id="text">Text</h3>
 <p>Never hard-code user-visible text. Add a key to <code translate="no" v-pre>loc/L.java</code> and the English text to <code translate="no" v-pre>LocalizationEN</code>, and use
 <code translate="no" v-pre>loc.getValue(L.KEY)</code> (<code translate="no" v-pre>Localization</code> is injected into every UI class). Date formats come from the same bean
-(<code translate="no" v-pre>loc.getDateFormat()</code>...).</p>
+(<code translate="no" v-pre>loc.getDateFormat()</code>...). The name of a kind of entity (book, lorebook...) is <code translate="no" v-pre>loc.localizeDomainObject(entityClass)</code>; it falls back to the closest known superclass, then to the simple class name, so a new entity type needs a mapping in <code translate="no" v-pre>LocalizationBase.loadMaps()</code>.</p>
 <h3 id="errors">Errors</h3>
 <p>Wrap event handlers in <code translate="no" v-pre>try</code>/<code translate="no" v-pre>catch</code> and report unexpected exceptions with
 <code translate="no" v-pre>UIUtils.internalServerError(loc, e)</code> - it logs the exception and opens an <code translate="no" v-pre>ErrorDialog</code> with the stack trace.
@@ -642,9 +660,10 @@ runs before and after that method and can read its arguments and local variables
 <code translate="no" v-pre>@Extendable</code>:</p>
 <retype-table copy-text="| Area | Classes |
 |---|---|
-| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
-| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog`, `ImagesDialog` |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `LorebookView`, `TreantTree` |">
+| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
+| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `LorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid` |
+| Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `Workspace` in `proceedWithLogin`), `Viewer` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -656,20 +675,29 @@ runs before and after that method and can read its arguments and local variables
 <tbody>
 <tr>
 <td>Workspace</td>
-<td><code translate="no" v-pre>Workspace</code>, <code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code>, <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code>, <code translate="no" v-pre>ResourcesPart</code>, <code translate="no" v-pre>AdminPart</code>, <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code></td>
+<td><code translate="no" v-pre>Workspace</code>, <code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code>, <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code>, <code translate="no" v-pre>ResourcesPart</code>, <code translate="no" v-pre>TrashPart</code>, <code translate="no" v-pre>AdminPart</code>, <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code></td>
 </tr>
 <tr>
 <td>Book window</td>
-<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>ManuscriptStoryPart</code> (and its <code translate="no" v-pre>ChatMessageCard</code>), <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code>, <code translate="no" v-pre>SummariesDialog</code>, <code translate="no" v-pre>SummaryDialog</code>, <code translate="no" v-pre>ImagesDialog</code></td>
+<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>ManuscriptStoryPart</code> (and its <code translate="no" v-pre>ChatMessageCard</code>), <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code>, <code translate="no" v-pre>SummariesDialog</code> (and its <code translate="no" v-pre>SummaryContent</code>), <code translate="no" v-pre>SummaryDialog</code>, <code translate="no" v-pre>ImagesDialog</code></td>
 </tr>
 <tr>
 <td>Dialogs and components</td>
-<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>TreantTree</code></td>
+<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>TrashGrid</code></td>
+</tr>
+<tr>
+<td>Routes</td>
+<td><code translate="no" v-pre>LoginCheckRoute</code> (login, saved logins), <code translate="no" v-pre>Main</code> (creates the <code translate="no" v-pre>Workspace</code> in <code translate="no" v-pre>proceedWithLogin</code>), <code translate="no" v-pre>Viewer</code></td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<p>New screens, dialogs and components with their own logic get <code translate="no" v-pre>@Extendable</code> too (a nested class needs its own
+annotation). Left out on purpose: classes with only static methods (<code translate="no" v-pre>TemplateHints</code>, <code translate="no" v-pre>SummaryRemoval</code>, <code translate="no" v-pre>UIUtils</code>; static
+methods are not instrumented), the generic dialogs and widgets used everywhere (<code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>ErrorDialog</code>,
+<code translate="no" v-pre>ProgressBarDialog</code>, <code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>HTabSheet</code>, the <code translate="no" v-pre>BackendTable*</code> providers), the plumbing (servlet, app shell,
+initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and small data wrappers.</p>
 <p>The bundled plugins hook into these methods:</p>
 <retype-table copy-text="| Plugin | Class | Methods |
 |---|---|---|

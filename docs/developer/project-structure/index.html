@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961373031">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844966488390">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844961373031" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844966488390" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -336,12 +336,12 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 |---|---|
 | `ui.main` | `WebappApplicationInitializer` (creates the Spring context, registers the session listener), `MarginaliaServlet` (the `VaadinServlet`), `AppShellConfig` (push, theme, global CSS), `LoginCheckRoute` (login overlay, saved logins, first-start dialog), `Main` (route `/`), `Viewer` (route `/view`, published books). |
 | `ui.workspace` | `Workspace` (the tabbed workspace after login, footer buttons) and `WorkspaceComponent` (interface of its tabs). |
-| `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `AdminPart`. |
+| `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`. |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
 | `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
-| `ui.widgets` | Small widgets: `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
+| `ui.widgets` | Small widgets: `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TrashGrid` (restoring deleted objects, used by `TrashPart` and `CleanupPanel`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -361,7 +361,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace.parts</code></td>
-<td>One class per workspace tab: <code translate="no" v-pre>ManuscriptPart</code> (Books), <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code> (Settings), <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code> (Inference Providers), <code translate="no" v-pre>ResourcesPart</code> (Resources: lazy <code translate="no" v-pre>Grid</code> over <code translate="no" v-pre>ResourceService.findPageForUser</code>), <code translate="no" v-pre>AdminPart</code>.</td>
+<td>One class per workspace tab: <code translate="no" v-pre>ManuscriptPart</code> (Books), <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code> (Settings), <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code> (Inference Providers), <code translate="no" v-pre>ResourcesPart</code> (Resources: lazy <code translate="no" v-pre>Grid</code> over <code translate="no" v-pre>ResourceService.findPageForUser</code>), <code translate="no" v-pre>TrashPart</code> (Trash: the <code translate="no" v-pre>TrashGrid</code> widget), <code translate="no" v-pre>AdminPart</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace.parts.admin</code></td>
@@ -381,7 +381,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.widgets</code></td>
-<td>Small widgets: <code translate="no" v-pre>HTabSheet</code> (tab sheet with the tabs on the left and room for custom content, used by the workspace), <code translate="no" v-pre>BackendTableProvider*</code> / <code translate="no" v-pre>BackendTableItem</code> (lazy grids backed by a repository query), <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>TemplateHints</code> (hint popovers of prompt fields), <code translate="no" v-pre>TextAreaPopoverComponent</code> / <code translate="no" v-pre>TextFieldPopOverComponent</code>, <code translate="no" v-pre>HtmlText</code>, <code translate="no" v-pre>ScrollPanel</code>, <code translate="no" v-pre>ResizableTextArea</code> (<code translate="no" v-pre>install(loc, area, fixedHeight)</code> adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), <code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>PermissiveLoginOverlay</code> (allows empty passwords).</td>
+<td>Small widgets: <code translate="no" v-pre>HTabSheet</code> (tab sheet with the tabs on the left and room for custom content, used by the workspace), <code translate="no" v-pre>BackendTableProvider*</code> / <code translate="no" v-pre>BackendTableItem</code> (lazy grids backed by a repository query), <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>TrashGrid</code> (restoring deleted objects, used by <code translate="no" v-pre>TrashPart</code> and <code translate="no" v-pre>CleanupPanel</code>), <code translate="no" v-pre>TemplateHints</code> (hint popovers of prompt fields), <code translate="no" v-pre>TextAreaPopoverComponent</code> / <code translate="no" v-pre>TextFieldPopOverComponent</code>, <code translate="no" v-pre>HtmlText</code>, <code translate="no" v-pre>ScrollPanel</code>, <code translate="no" v-pre>ResizableTextArea</code> (<code translate="no" v-pre>install(loc, area, fixedHeight)</code> adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), <code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>PermissiveLoginOverlay</code> (allows empty passwords).</td>
 </tr>
 </tbody>
 </table>
@@ -478,7 +478,7 @@ See <a href="../domain-model/">Domain model</a>.</p>
 | `TokenizerService`, `TokenLimits` | Token counting and the context / reply limits of a generation. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService`, `CronSchedule` | Book backups (restore, clone, export); database backups and their schedule. |
-| `CleanupService` | Purging soft-deleted data that is no longer referenced. |
+| `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing and restoring it (one bean, `CleanupServiceImpl`, shares the reference model). |
 | `OsgiService`, `ExtensionService` | Loading extensions; `@Extendable` decorators. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -530,8 +530,8 @@ See <a href="../domain-model/">Domain model</a>.</p>
 <td>Book backups (restore, clone, export); database backups and their schedule.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>CleanupService</code></td>
-<td>Purging soft-deleted data that is no longer referenced.</td>
+<td><code translate="no" v-pre>CleanupService</code>, <code translate="no" v-pre>TrashService</code></td>
+<td>Purging soft-deleted data that is no longer referenced; listing and restoring it (one bean, <code translate="no" v-pre>CleanupServiceImpl</code>, shares the reference model).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>OsgiService</code>, <code translate="no" v-pre>ExtensionService</code></td>

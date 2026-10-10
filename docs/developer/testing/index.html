@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844961373031">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844966488390">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844961373031" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.844966488390" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844961373031" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844961373031" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844966488390" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844966488390" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -274,7 +274,7 @@ fake is the model server.</p>
 | `security` | `ApiKeyEncryptionTest` | API keys stored encrypted with the installation key; the app migration encrypting plain ones. |
 | `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
 | `ui` | `ResourcesPartTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The only test that builds a Vaadin component. |
-| `cleanup` | `CleanupServiceTest` | Purging soft-deleted data, owned data, strong and weak references. |
+| `cleanup` | `CleanupServiceTest`, `TrashServiceTest` | Purging soft-deleted data, owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -353,8 +353,8 @@ fake is the model server.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>cleanup</code></td>
-<td><code translate="no" v-pre>CleanupServiceTest</code></td>
-<td>Purging soft-deleted data, owned data, strong and weak references.</td>
+<td><code translate="no" v-pre>CleanupServiceTest</code>, <code translate="no" v-pre>TrashServiceTest</code></td>
+<td>Purging soft-deleted data, owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>instruct</code></td>

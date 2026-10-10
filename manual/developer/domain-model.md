@@ -418,6 +418,24 @@ pointing to other entities ("soft references", including extended attributes) ar
 `field = "..."` sets the policy of an inherited field (`OwnedEntity` makes `owner` `OWNED_BY`, so a deleted user
 is purged together with everything they own).
 
+### Trash
+
+The same reference model drives the trash (`TrashService`, implemented by `CleanupServiceImpl`; *Trash* tab and
+*Admin → Cleanup*). It lists the soft-deleted rows of every root entity that is an `OwnedEntity` (`Protocol` stands for
+its subclasses) with narrow projections - the `extendedContent` blob is only read by `getExtendedContent`, which
+pretty-prints it - and restores them with a bulk `UPDATE ... SET deleted = false, modification = now`, so no entity
+listener runs and extended attributes stay untouched. Before it restores, it looks up the *parents* of the selected rows:
+
+| Reference | Parent |
+|---|---|
+| `STRONG`, `OWNED_BY` held by the row | the referenced row (`Manuscript.ai`, `ChatMessage.parentScript`, `LorebookEntry.lorebook`, `owner`...) |
+| `OWNS` held by another row | that row (the `ChatMessage` whose `summary` it is) |
+| `WEAK` | none, purge clears it anyway |
+
+When a parent is deleted and not part of the same selection, nothing is restored and the result lists the blockers.
+A deleted owner counts as a parent, so the objects of a deleted user can't be restored. A restored `ChatMessage` does
+not get its children back: they were moved to its parent when it was deleted (`deleteNodeAndMigrateChildren`).
+
 So a deleted provider that a book still uses shows up as *blocked* on the Cleanup page until the book is switched to
 another provider, while a deleted book takes its parts, their summaries and its tag relations with it.
 

@@ -203,6 +203,7 @@ flowchart TB
     WS --> PP["ProtocolPart"]
     WS --> AP["AIPart<br/>Inference Providers"]
     WS --> RP["ResourcesPart<br/>Resources"]
+    WS --> TP["TrashPart<br/>Trash"]
     WS --> AdP["AdminPart<br/>Users, Backups, Cleanup, Extensions"]
     MP --> MD["ManuscriptDialog<br/>(book window)"]
     MD --> Story["ManuscriptStoryPart"]

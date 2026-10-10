@@ -68,7 +68,7 @@ A book needs a model and a protocol to generate. Without them, generating stops 
 
 Click the trash button in the book list and confirm. The book disappears from your list.
 
-Deleted books are not removed from the database right away: an administrator removes them, with all their parts,
-using [Cleanup](../administration/cleanup.md). Until then the data is still in the
+Deleted books are not removed from the database right away. Until an administrator removes them, with all their parts,
+using [Cleanup](../administration/cleanup.md), you can bring the book back from the [Trash](../trash.md) tab. Until then the data is still in the
 [database backups](../administration/database-backups.md). The book's own [backups](backups.md) are files and stay
 where they are.

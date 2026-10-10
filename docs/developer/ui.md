@@ -21,9 +21,12 @@ flowchart TB
     WS --> PP["ProtocolPart - Protocols"]
     WS --> AP["AIPart - Inference Providers"]
     WS --> RP["ResourcesPart - Resources"]
+    WS --> TrP["TrashPart - Trash"]
     WS --> AdP["AdminPart - Admin (footer button)"]
     AdP --> DBP["DatabaseBackupPanel"]
+    TrP --> TG["TrashGrid"]
     AdP --> CP["CleanupPanel"]
+    CP --> TG
     MP -->|open a book| MD["ManuscriptDialog<br/>VTabSheet"]
     MD --> Info["ManuscriptInfoPart - About"]
     MD --> Prompt["ManuscriptPromptPart - Prompts"]
@@ -47,7 +50,7 @@ flowchart TB
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
 | `ui.components` | Larger reusable components: `LorebookView`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
-| `ui.widgets` | Small reusable widgets. |
+| `ui.widgets` | Small reusable widgets, among them `TrashGrid` (see [Trash](#trash)). |
 
 ## The shell, routes and login
 
@@ -217,7 +220,20 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
 | `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, "160px")` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
+| `TrashGrid` | Deleted objects with a restore button, see [Trash](#trash). |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |
+
+### Trash
+
+`TrashGrid` is a self-contained widget (`@Configurable`, create it with `new TrashGrid(allUsers).create()`) over
+`TrashService`: a lazy multi-select `Grid<TrashItem>` (items identified by their `EntityKey`, so the selection
+survives paging), a filter by type (names from `Localization.localizeDomainObject(Class)`) and, with `allUsers`, a
+filter by owner and an owner column. `allUsers` only decides what the widget shows; the service decides what the
+current user may see and restore. *Restore Selected* confirms and calls `TrashService.restore`; when it returns
+blockers the widget shows them in a dialog (nothing was restored), otherwise it refreshes and runs the listeners from
+`addRestoreListener` (`TrashPart` uses it to refresh the whole workspace). The *Extended Content* link opens the JSON
+from `TrashService.getExtendedContent` in a read-only text area. `TrashPart` (the *Trash* tab, `allUsers` for
+administrators) and `CleanupPanel` (a `Details` section, created when first opened) both use it.
 
 Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`, `ListSelectDialog`,
 `ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`.
@@ -228,7 +244,7 @@ Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`
 
 Never hard-code user-visible text. Add a key to `loc/L.java` and the English text to `LocalizationEN`, and use
 `loc.getValue(L.KEY)` (`Localization` is injected into every UI class). Date formats come from the same bean
-(`loc.getDateFormat()`...).
+(`loc.getDateFormat()`...). The name of a kind of entity (book, lorebook...) is `loc.localizeDomainObject(entityClass)`; it falls back to the closest known superclass, then to the simple class name, so a new entity type needs a mapping in `LocalizationBase.loadMaps()`.
 
 ### Errors
 
@@ -291,9 +307,16 @@ runs before and after that method and can read its arguments and local variables
 
 | Area | Classes |
 |---|---|
-| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
-| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog`, `SummaryDialog`, `ImagesDialog` |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `LorebookView`, `TreantTree` |
+| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
+| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `LorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid` |
+| Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `Workspace` in `proceedWithLogin`), `Viewer` |
+
+New screens, dialogs and components with their own logic get `@Extendable` too (a nested class needs its own
+annotation). Left out on purpose: classes with only static methods (`TemplateHints`, `SummaryRemoval`, `UIUtils`; static
+methods are not instrumented), the generic dialogs and widgets used everywhere (`ConfirmDialog`, `ErrorDialog`,
+`ProgressBarDialog`, `Notification`, `HTabSheet`, the `BackendTable*` providers), the plumbing (servlet, app shell,
+initializer, `ThreadCopyRequestAttributes`) and small data wrappers.
 
 The bundled plugins hook into these methods:
 

@@ -46,6 +46,8 @@ After logging in you see the workspace. The tabs on the left are:
 | **Settings** | Your personal settings: default model and protocol for new books, prompt templates, backups. See [Account & settings](../account.md). |
 | **Protocols** | Generation settings. See [Protocols](../protocols.md). |
 | **Inference Providers** | The models Marginalia connects to. See [Inference providers](../inference-providers.md). |
+| **Resources** | The files you uploaded. See [Resources](../resources.md). |
+| **Trash** | What you deleted, until an administrator cleans up. See [Trash](../trash.md). |
 
 At the bottom are **Admin** (administrators only), **Change Password** and **Logout**
 (see [Administration](../administration/index.md) for the *Admin* pages).
