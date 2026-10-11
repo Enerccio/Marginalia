@@ -1,7 +1,7 @@
 ---
 label: Project structure
 order: 970
-verified: 37257c7
+verified: 33eb168
 covers:
   - marginalia/src
   - marginalia/plugins
