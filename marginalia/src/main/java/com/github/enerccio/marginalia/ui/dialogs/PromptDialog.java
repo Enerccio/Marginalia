@@ -26,6 +26,10 @@ public class PromptDialog extends Dialog {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+    private static final String FORMAT_YAML = "YAML";
+    private static final String FORMAT_JSON = "JSON";
+    private static final String FORMAT_RAW = "Raw";
+
     @Autowired
     private Localization loc;
 
@@ -54,8 +58,9 @@ public class PromptDialog extends Dialog {
         topBar.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
         formatCombo = new ComboBox<>();
-        formatCombo.setItems("YAML", "JSON", "Raw");
-        formatCombo.setValue("YAML");
+        formatCombo.setItems(FORMAT_YAML, FORMAT_JSON, FORMAT_RAW);
+        formatCombo.setItemLabelGenerator(format -> FORMAT_RAW.equals(format) ? loc.getValue(L.LABEL_RAW) : format);
+        formatCombo.setValue(FORMAT_YAML);
         formatCombo.setWidth("120px");
         formatCombo.addValueChangeListener(e -> updatePromptView(e.getValue()));
 
@@ -78,7 +83,7 @@ public class PromptDialog extends Dialog {
 
         getFooter().add(footerLayout);
 
-        updatePromptView("YAML");
+        updatePromptView(FORMAT_YAML);
     }
 
     private void updatePromptView(String format) {
@@ -88,8 +93,8 @@ public class PromptDialog extends Dialog {
         }
 
         switch (format) {
-            case "YAML" -> textArea.setValue(formatPromptAsYaml(prompt));
-            case "JSON" -> textArea.setValue(formatPromptAsJson(prompt));
+            case FORMAT_YAML -> textArea.setValue(formatPromptAsYaml(prompt));
+            case FORMAT_JSON -> textArea.setValue(formatPromptAsJson(prompt));
             default -> textArea.setValue(prompt);
         }
     }

@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.phone.PhoneWorkspace;
@@ -44,7 +45,7 @@ public class Main extends LoginCheckRoute {
 
     @Override
     protected String getAppDescription() {
-        return "Collaborative story writing app with LLM";
+        return loc.getValue(L.LABEL_APP_DESC);
     }
 
     @Override

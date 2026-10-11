@@ -304,7 +304,7 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
                     tags = tagRelationService.getTagsForObject(manuscript).stream().map(Tag::getValue).sorted().toList();
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
-                    return "ERROR";
+                    return loc.getValue(L.LABEL_ERROR);
                 }
             }
             return String.join(", ", tags);

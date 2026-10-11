@@ -163,7 +163,7 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
         grid.addColumn(backup -> backup.getBackupCreationDate() != null
                         ? loc.getDateHourFormat().format(backup.getBackupCreationDate())
                         : "")
-                .setHeader(loc.getValue(L.LABEL_BACKUP_DATE))
+                .setHeader(loc.getValue(L.LABEL_DATE))
                 .setFlexGrow(1);
 
         grid.addColumn(ManuscriptBackup::getTotalMessagesCount)
