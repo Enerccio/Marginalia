@@ -54,6 +54,8 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private static final Logger log = LoggerFactory.getLogger(OsgiServiceImpl.class);
 
     private static final long FRAMEWORK_TIMEOUT_MS = 30_000;
+    /** Where the JARs of older versions of an installed extension go, inside the extensions folder. */
+    private static final String OLD_VERSIONS_FOLDER = "old-versions";
 
     @Autowired
     private Configuration configuration;
@@ -174,6 +176,8 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
             }
         }
 
+        uninstallOlderVersions();
+
         for (Bundle b : getBundles()) {
             try {
                 startBundle(b);
@@ -185,6 +189,40 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         }
 
         onStart();
+    }
+
+    /**
+     * Several versions of one extension in the folder (an update copied next to the old JAR instead of replacing it)
+     * would all be started and their listeners would clash, so only the newest of each symbolic name stays. The JARs
+     * of the older ones are moved to {@link #OLD_VERSIONS_FOLDER} (not deleted, they can be put back).
+     */
+    private void uninstallOlderVersions() {
+        Map<String, List<Bundle>> byName = new LinkedHashMap<>();
+        for (Bundle b : getBundles()) {
+            byName.computeIfAbsent(String.valueOf(b.getSymbolicName()), n -> new ArrayList<>()).add(b);
+        }
+        for (List<Bundle> versions : byName.values()) {
+            if (versions.size() < 2) {
+                continue;
+            }
+            versions.sort(Comparator.comparing(Bundle::getVersion).reversed());
+            Bundle newest = versions.getFirst();
+            for (Bundle older : versions.subList(1, versions.size())) {
+                File jar = locationFile(older);
+                log.warn("Extension {} is installed in several versions, {} ({}) is not loaded because {} ({}) is newer; moving it to {}",
+                        older.getSymbolicName(), older.getVersion(), jar.getName(),
+                        newest.getVersion(), locationFile(newest).getName(), OLD_VERSIONS_FOLDER);
+                try {
+                    older.uninstall();
+                    File folder = new File(jar.getParentFile(), OLD_VERSIONS_FOLDER);
+                    Files.createDirectories(folder.toPath());
+                    Files.move(jar.toPath(), new File(folder, jar.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    deleteReports(jar);
+                } catch (BundleException | IOException e) {
+                    log.error("Failed to skip extension {} ({}): {}", older.getSymbolicName(), jar.getName(), e.getMessage(), e);
+                }
+            }
+        }
     }
 
     @Override

@@ -192,7 +192,9 @@ sequenceDiagram
   installs every `*.jar` in `~/.marginalia/extensions` and starts them. For each `MarginaliaExtension` service a
   bundle registered, it calls `onExtensionLoad`. Each JAR is installed and started on its own: one that can't be
   installed (not a bundle, a second copy of an installed plugin) or fails to start is logged with its file name and
-  skipped. Before a bundle is started it is **verified**: the decorators it registers are checked against this version
+  skipped. When the folder holds several versions of one extension (same symbolic name, e.g. an update copied next to
+  the old JAR), only the newest is started; a warning names the skipped JARs, which are moved to `extensions/old-versions` (not deleted). Before a bundle
+  is started it is **verified**: the decorators it registers are checked against this version
   of the application ([Verification before loading](extendable.md#verification-before-loading)). An invalid extension
   stays installed but is not started, and its report is logged.
 - **Installing at runtime.** *Admin → Extensions → Load Extension (.jar)* writes the uploaded file into

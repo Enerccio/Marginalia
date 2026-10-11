@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845065693299">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845068705583">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845065693299" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845068705583" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845065693299" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845068705583" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845065693299" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845065693299" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845068705583" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845068705583" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -368,7 +368,9 @@ storage in <code translate="no" v-pre>~/.marginalia/extensions/org.eclipse.osgi<
 installs every <code translate="no" v-pre>*.jar</code> in <code translate="no" v-pre>~/.marginalia/extensions</code> and starts them. For each <code translate="no" v-pre>MarginaliaExtension</code> service a
 bundle registered, it calls <code translate="no" v-pre>onExtensionLoad</code>. Each JAR is installed and started on its own: one that can&#x27;t be
 installed (not a bundle, a second copy of an installed plugin) or fails to start is logged with its file name and
-skipped. Before a bundle is started it is <strong>verified</strong>: the decorators it registers are checked against this version
+skipped. When the folder holds several versions of one extension (same symbolic name, e.g. an update copied next to
+the old JAR), only the newest is started; a warning names the skipped JARs, which are moved to <code translate="no" v-pre>extensions/old-versions</code> (not deleted). Before a bundle
+is started it is <strong>verified</strong>: the decorators it registers are checked against this version
 of the application (<a href="../extendable/#verification-before-loading">Verification before loading</a>). An invalid extension
 stays installed but is not started, and its report is logged.</p>
 </li>
