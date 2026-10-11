@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845045933431">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845046020649">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845045933431" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845046020649" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845045933431" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845046020649" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845045933431" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845045933431" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845046020649" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845046020649" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -251,6 +251,8 @@ cogs.getSubMenu().addItem(&quot;My tool&quot;, e -&gt; openMyTool(context.getRef
 </doc-codeblock></div>
 <p>The menu bar is built once per story editor, so it needs no marker. Read <code translate="no" v-pre>currentManuscript</code> when the item is clicked,
 not when it is built - the story editor loads other books into the same instance.</p>
+<p>Instruction Exporter is the small example of the settings menu: it adds <strong>Export instructions</strong> to <code translate="no" v-pre>cogs.getSubMenu()</code> and
+copies the text with <code translate="no" v-pre>navigator.clipboard.writeText</code> (plugins keep their own scripts).</p>
 <h3 id="tools-in-the-summaries-overview">Tools in the summaries overview</h3>
 <p><code translate="no" v-pre>SummariesDialog</code> (the overview of the summaries, opened from the <strong>Summaries</strong> item) has an empty menu bar above its
 grid. Decorate <code translate="no" v-pre>populateMenuBar(bar)</code> on leave and add items to the argument <code translate="no" v-pre>bar</code>. A new dialog (and menu bar) is

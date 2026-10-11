@@ -82,6 +82,9 @@ cogs.getSubMenu().addItem("My tool", e -> openMyTool(context.getReflectiveFieldV
 The menu bar is built once per story editor, so it needs no marker. Read `currentManuscript` when the item is clicked,
 not when it is built - the story editor loads other books into the same instance.
 
+Instruction Exporter is the small example of the settings menu: it adds **Export instructions** to `cogs.getSubMenu()` and
+copies the text with `navigator.clipboard.writeText` (plugins keep their own scripts).
+
 ### Tools in the summaries overview
 
 `SummariesDialog` (the overview of the summaries, opened from the **Summaries** item) has an empty menu bar above its
