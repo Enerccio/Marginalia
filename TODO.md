@@ -73,6 +73,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
    - ✅ No CI. Add a GitHub Actions workflow: build core + all plugins, run tests, build the Docker image.
    - Parent/aggregator POM: plugins are separate projects depending on `marginalia:1.0.1` and are **not built or
      shipped by the Dockerfile**. Make a multi-module build, and decide whether bundled plugins ship preinstalled.
+     Partly eased: `marginalia/plugins/Dockerfile` + `docker-compose.yml` build all plugins in a container (JARs in
+     `marginalia/plugins/build`), and `rebuild.sh` / `rebuild.bat` pull, rebuild the plugins into `data/extensions`
+     and restart the compose stack. Still no aggregator POM and no preinstalled plugins in the image.
    - ✅ `target/` folders are not in `.gitignore` (root and `plugins/*/target`).
    - ✅ Versioning: everything is `1.0.1`. `AppSettings.appVersion/dbVersion` and `ApplicationInitializer` are hard-coded `1`.
      Use the Maven version + git info (git-commit-id plugin is already present) and show it in the admin page.
@@ -198,7 +201,14 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 26. **Undo for edits** — message edits overwrite text in place; keep per-message edit history (branching
     covers generations but not manual edits). 🧩 (similar to `lorebookvcs`)
 27. **Keyboard shortcuts** in the story editor (generate, stop, swipe, regenerate, edit).
-28. **Mobile layout** — fixed widths (`setWidth("280px")`, 900px dialogs, 260px tab bar) don't fit phones.
+28. ✅ **Mobile layout** — below 768 px (decided once, at page load) the app uses `PhoneWorkspace`: a drawer instead of
+    the tab bar and phone twins of the parts (`workspace/phone/parts`) and of the book window
+    (`PhoneManuscriptDialog`, tabs in `dialogs/phone/manuscript`), documented in `manual/user/phone.md`. Not done: the
+    layout does not switch on resize/rotation without a reload; the lorebook editor is reduced (entry content only);
+    *Resources* and the provider/protocol dialogs are the desktop ones; no admin pages on a phone; an extension must
+    register its decorators for the phone twins too (`PhoneManuscriptStoryPart`, see `plugins/extendable.md`).
+    The twins duplicate a lot of the desktop classes (`PhoneManuscriptStoryPart` ~1.3k lines next to
+    `ManuscriptStoryPart` ~1.3k): shared code should move out when either is touched next.
 29. **Theming** — light/dark toggle per user, editor font/size settings.
 30. **Import from other tools** — SillyTavern chats → book with branches, NovelAI/KoboldAI stories. 🧩
 31. **Image generation / illustrations** for scenes (would use `Resource`; attaching images by hand is done, see
