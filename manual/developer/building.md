@@ -1,7 +1,7 @@
 ---
 label: Building from source
 order: 990
-verified: 66784ab
+verified: afed4e4
 covers:
   - marginalia/pom.xml
   - marginalia/src/main/java/com/github/enerccio/tools
