@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845041252046">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845043522738">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845041252046" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845043522738" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845041252046" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845043522738" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -623,7 +623,7 @@ extensions that were fine, and this catches them all at the first start. Both re
 </li>
 <li>
 <p><code translate="no" v-pre>.valid</code>: the extension is started. <code translate="no" v-pre>.invalid</code>: it is not - at startup the bundle stays installed, not started (state
-<code translate="no" v-pre>INSTALLED</code> or <code translate="no" v-pre>RESOLVED</code>), the report is logged as an error and <em>Admin → Extensions</em> shows an <code translate="no" v-pre>INVALID</code> button that
+<em>Installed</em> or <em>Resolved</em>), the report is logged as an error and <em>Admin → Extensions</em> shows an <em>Invalid</em> button that
 opens it. An upload that is invalid is rejected like one that fails to start: its JAR is deleted, the replaced version
 is put back and the report is shown to the administrator. A verification that can&#x27;t be done (an unreadable JAR) fails
 the extension too.</p>

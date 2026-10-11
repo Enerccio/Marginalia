@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
+import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
@@ -65,6 +66,7 @@ public class PhoneWorkspace implements Workspace {
     private WorkspaceComponent activeComponent;
     private Button changePasswordButton;
     private Button logoutButton;
+    private LanguageSelector languageSelector;
     private boolean navigationLocked;
     private Runnable onLogout;
 
@@ -144,6 +146,10 @@ public class PhoneWorkspace implements Workspace {
         footer.setSpacing(true);
         footer.setWidthFull();
 
+        languageSelector = new LanguageSelector();
+        languageSelector.setWidthFull();
+        footer.add(languageSelector);
+
         changePasswordButton = new Button(loc.getValue(L.LABEL_CHANGE_PASSWORD), Solid.KEY.create());
         changePasswordButton.setWidthFull();
         changePasswordButton.addClickListener(e -> {
@@ -188,6 +194,9 @@ public class PhoneWorkspace implements Workspace {
         }
         for (Tab tab : tabToComponent.keySet()) {
             tab.setEnabled(!locked);
+        }
+        if (languageSelector != null) {
+            languageSelector.setEnabled(!locked);
         }
         if (logoutButton != null) {
             logoutButton.setEnabled(!locked);

@@ -1,8 +1,11 @@
 package com.github.enerccio.marginalia.ui.main;
 
 import com.github.enerccio.marginalia.bound.ApplicationPoint;
+import com.github.enerccio.marginalia.bound.SessionPoint;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
@@ -32,6 +35,12 @@ public class Main extends LoginCheckRoute {
     @Autowired
     private OsgiService osgiService;
 
+    @Autowired
+    private SettingService settingService;
+
+    @Autowired
+    private SessionPoint sessionPoint;
+
     private CssRegistry cssRegistry;
 
     public Main() {
@@ -49,6 +58,11 @@ public class Main extends LoginCheckRoute {
     }
 
     @Override
+    protected String authenticatedSessionUser() {
+        return user.getId() == null ? null : user.getLogin();
+    }
+
+    @Override
     protected boolean authenticate(String userName, String password) throws Exception {
         return userService.authenticate(userName, password, clientAddress());
     }
@@ -63,6 +77,8 @@ public class Main extends LoginCheckRoute {
             user.setFullName(u.getFullName());
 
             sessionManager.userLoggedIn(user, VaadinSession.getCurrent());
+
+            sessionPoint.setLanguage(loc.resolveLanguage(settingService.getOrCreate(UserSetting.class).getLanguage()));
 
             ExtendedClientDetails details = UI.getCurrent().getPage().getExtendedClientDetails();
             boolean isPhone = details != null && details.getBodyClientWidth() < 768;

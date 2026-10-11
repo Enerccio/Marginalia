@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845041252046">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845043522738">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845041252046" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845043522738" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -286,7 +286,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 | `SessionInformation.java` | What `SessionManager` knows about one session: HTTP and Vaadin session, user, main UI, captured request attributes, close listeners. |
 | `SessionCloseListener.java`, `RunInSession.java` | Callbacks: another session was closed; code to run for a session in `runForUsers`. |
 | `ApplicationPoint.java` | The `applicationPoint` bean: application-wide maps of open UIs to their `Workspace` (only `Main`) and to a copy of their logged-in user. `Main` and `Viewer` `register` the UI after login; the entries are removed when the UI detaches. |
-| `SessionPoint.java` | Empty session-scoped bean. |">
+| `SessionPoint.java` | Session-scoped bean; holds the `Language` of the session's UI (set from the user's settings when the workspace opens, read by `LocalizationImpl`). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -326,7 +326,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>SessionPoint.java</code></td>
-<td>Empty session-scoped bean.</td>
+<td>Session-scoped bean; holds the <code translate="no" v-pre>Language</code> of the session&#x27;s UI (set from the user&#x27;s settings when the workspace opens, read by <code translate="no" v-pre>LocalizationImpl</code>).</td>
 </tr>
 </tbody>
 </table>
@@ -719,9 +719,9 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <h3 id="extensions-localization-helpers">Extensions, localization, helpers</h3>
 <retype-table copy-text="| Package | |
 |---|---|
-| `extensions` | `MarginaliaExtension` - the service interface every extension bundle registers. |
+| `extensions` | `MarginaliaExtension` - the service interface every extension bundle registers; `ExtensionHasCss` and `ExtensionHasLocalization` - optional interfaces of an extension (its styles, its languages). |
 | `instruct` | `RuntimeInstrumentationInitializer` (installs the ByteBuddy agent), `ExtendableMethodVisitor` (the bytecode rewrite), `ExtensionServiceHolder` (static access to `ExtensionService` from instrumented code); `instruct.verify`: `ExtensionVerifier` (checks an extension's decorators against the application before it is started, `ExtensionService.verifyExtension`), `ContextInterpreter` and `ContextValue` (its bytecode data-flow analysis), `ExtensionVerification` (the result). |
-| `loc` | `L` (all text keys), `Localization` / `LocalizationBase` / `LocalizationEN`, `NaturalOrderComparator`. |
+| `loc` | `L` (all text keys), `Localization` (the service interface) / `LocalizationImpl` (picks the bundle of the session's language), `Language`, `LocalizationBundle` (texts and formats of one language) / `LocalizationBundleBase` / `LocalizationBundleEN` / `LocalizationBundleJP`, `NaturalOrderComparator`. |
 | `concurrent` | `AsyncRunnableWrapper` (keeps the submitting stack trace for errors on worker threads), `ThrowingRunnable`. |
 | `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, `clientAddress`), `ClientAddressResolver` (the client address of a request: `X-Forwarded-For` only from the `trustedProxies`, see [Login throttling](services.md#login-throttling)), `ReflectUtils` (cached reflection), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
 | `com.github.enerccio.tools` | `Pair`, `Pointer` (small holders used across the code) and `GenerateFlywayDiff` (development tool, see [Database schema changes](building.md#database-schema-changes)). |">
@@ -736,7 +736,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <tbody>
 <tr>
 <td><code translate="no" v-pre>extensions</code></td>
-<td><code translate="no" v-pre>MarginaliaExtension</code> - the service interface every extension bundle registers.</td>
+<td><code translate="no" v-pre>MarginaliaExtension</code> - the service interface every extension bundle registers; <code translate="no" v-pre>ExtensionHasCss</code> and <code translate="no" v-pre>ExtensionHasLocalization</code> - optional interfaces of an extension (its styles, its languages).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>instruct</code></td>
@@ -744,7 +744,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>loc</code></td>
-<td><code translate="no" v-pre>L</code> (all text keys), <code translate="no" v-pre>Localization</code> / <code translate="no" v-pre>LocalizationBase</code> / <code translate="no" v-pre>LocalizationEN</code>, <code translate="no" v-pre>NaturalOrderComparator</code>.</td>
+<td><code translate="no" v-pre>L</code> (all text keys), <code translate="no" v-pre>Localization</code> (the service interface) / <code translate="no" v-pre>LocalizationImpl</code> (picks the bundle of the session&#x27;s language), <code translate="no" v-pre>Language</code>, <code translate="no" v-pre>LocalizationBundle</code> (texts and formats of one language) / <code translate="no" v-pre>LocalizationBundleBase</code> / <code translate="no" v-pre>LocalizationBundleEN</code> / <code translate="no" v-pre>LocalizationBundleJP</code>, <code translate="no" v-pre>NaturalOrderComparator</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>concurrent</code></td>
@@ -774,7 +774,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
 | `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.DEVELOPMENT` | Template of a development build info for IDE runs; never packaged into the WAR (see [Development and production mode](building.md#development-and-production-mode)). |
-| `src/main/webapp/config/configuration.properties` | Application settings (`localization`, saved logins). |
+| `src/main/webapp/config/configuration.properties` | Application settings (saved logins). |
 | `src/main/webapp/config/persistence.xml` | The persistence unit: list of entity classes, dialect, `hbm2ddl.auto=validate`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -823,7 +823,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/webapp/config/configuration.properties</code></td>
-<td>Application settings (<code translate="no" v-pre>localization</code>, saved logins).</td>
+<td>Application settings (saved logins).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/webapp/config/persistence.xml</code></td>
@@ -972,7 +972,8 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Reviewer | `extensions.reviewer` | Model, service, dialogs and a settings form. |
-| Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form. |">
+| Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form. |
+| Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -1007,6 +1008,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Side Query</td>
 <td><code translate="no" v-pre>extensions.sidequery</code></td>
 <td>Model, service, a chat panel and a settings form.</td>
+</tr>
+<tr>
+<td>Chinese localization</td>
+<td><code translate="no" v-pre>extensions.chineselocalization</code></td>
+<td>Activator, extension and one <code translate="no" v-pre>LocalizationBundle</code> - a language, no UI code.</td>
 </tr>
 </tbody>
 </table>
@@ -1064,7 +1070,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 <h2 id="where-to-find">Where to find...</h2>
 <retype-table copy-text="| I want to change... | Look at |
 |---|---|
-| A text in the UI | `loc/L.java` (key) and `loc/LocalizationEN.java` (text) |
+| A text in the UI | `loc/L.java` (key) and the text in every bundle: `loc/LocalizationBundleEN.java` (required), `LocalizationBundleJP.java` |
 | The default prompts | `Defaults.java` |
 | What is sent to the model | `domain/service/impl/generation/impl/` (the steps), `PreparePayloadStep` for the final messages |
 | How lore is activated | `ProcessLorebookStep`, `LorebookServiceImpl` |
@@ -1090,7 +1096,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 <tbody>
 <tr>
 <td>A text in the UI</td>
-<td><code translate="no" v-pre>loc/L.java</code> (key) and <code translate="no" v-pre>loc/LocalizationEN.java</code> (text)</td>
+<td><code translate="no" v-pre>loc/L.java</code> (key) and the text in every bundle: <code translate="no" v-pre>loc/LocalizationBundleEN.java</code> (required), <code translate="no" v-pre>LocalizationBundleJP.java</code></td>
 </tr>
 <tr>
 <td>The default prompts</td>

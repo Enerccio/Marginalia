@@ -5,9 +5,12 @@ import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.extensions.ExtensionHasLocalization;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerification;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerifier;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.LocalizationBundle;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.shared.Registration;
 import org.apache.commons.io.FileUtils;
@@ -61,6 +64,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     @Autowired
     private AdminGuard adminGuard;
 
+    @Autowired
+    private Localization localization;
+
     private String extensionPath;
     private Framework f;
     private BundleContext context;
@@ -68,6 +74,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private final Map<ServiceReference<?>, MarginaliaExtension> activeExtensions = new ConcurrentHashMap<>();
     private final Map<MarginaliaExtension, Set<ComponentBinding>> componentCallbacks = new ConcurrentHashMap<>();
     private final Map<ServiceReference<?>, LoadedExtension> loadedExtensions = new ConcurrentHashMap<>();
+    private final Map<MarginaliaExtension, List<LocalizationBundle>> localizationBundles = new ConcurrentHashMap<>();
     private final Set<WeakReference<ExtensionObserver>> observers = new HashSet<>();
     private final List<WeakReference<ExtensionListener>> extensionListeners = new CopyOnWriteArrayList<>();
     private volatile Long applicationTimestamp;
@@ -475,6 +482,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                     }
                     throw e;
                 }
+                registerLocalizationBundles(extension);
                 LoadedExtension loaded = new LoadedExtension(b, extension);
                 loadedExtensions.put(sr, loaded);
                 fireExtensionEvent(listener -> listener.extensionLoaded(b, extension));
@@ -500,6 +508,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         }
         // an extension that failed to load was never reported, so it is not reported as unloaded either
         boolean reported = loadedExtensions.remove(sr) != null;
+        unregisterLocalizationBundles(extension);
         try {
             extension.onExtensionUnload(b, this, extensionService);
         } finally {
@@ -507,6 +516,38 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
             if (reported) {
                 fireExtensionEvent(listener -> listener.extensionUnloaded(b, extension));
             }
+        }
+    }
+
+    /**
+     * Adds the languages of an {@link ExtensionHasLocalization} extension; a bundle that is refused (its language is
+     * taken) is logged and doesn't stop the extension.
+     */
+    private void registerLocalizationBundles(MarginaliaExtension extension) {
+        if (!(extension instanceof ExtensionHasLocalization hasLocalization)) {
+            return;
+        }
+        List<LocalizationBundle> registered = new ArrayList<>();
+        try {
+            for (LocalizationBundle bundle : hasLocalization.getLocalizationBundles()) {
+                try {
+                    localization.registerBundle(bundle);
+                    registered.add(bundle);
+                } catch (RuntimeException e) {
+                    log.error("Extension {} localization bundle {} is not registered: {}", extension.getClass().getName(),
+                            bundle.getLanguage(), e.getMessage());
+                }
+            }
+        } catch (RuntimeException e) {
+            log.error("Extension {} failed to provide its localization bundles: {}", extension.getClass().getName(), e.getMessage(), e);
+        }
+        localizationBundles.put(extension, registered);
+    }
+
+    private void unregisterLocalizationBundles(MarginaliaExtension extension) {
+        List<LocalizationBundle> registered = localizationBundles.remove(extension);
+        if (registered != null) {
+            registered.forEach(localization::unregisterBundle);
         }
     }
 

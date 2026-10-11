@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845041252046">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845043522738">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845041252046" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845043522738" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -177,6 +177,7 @@ and settings. Other users don&#x27;t see them (except books you <a href="../book
 <p>The buttons at the bottom of the workspace:</p>
 <retype-table copy-text="| Button | |
 |---|---|
+| **Language** | The language of the user interface, see [Language](#language). |
 | **Change Password** | Changes your password, user name and full name, see below. |
 | **Logout** | Logs you out on this device. |
 | **Admin** | Only for administrators, see [Administration](administration/index.md). |">
@@ -189,6 +190,10 @@ and settings. Other users don&#x27;t see them (except books you <a href="../book
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><strong>Language</strong></td>
+<td>The language of the user interface, see <doc-anchor-trigger to="#language">Language</doc-anchor-trigger>.</td>
+</tr>
 <tr>
 <td><strong>Change Password</strong></td>
 <td>Changes your password, user name and full name, see below.</td>
@@ -219,6 +224,14 @@ and settings. Other users don&#x27;t see them (except books you <a href="../book
 again with the new password. If a device was lost or your password leaked, changing the password logs that device
 out. Sessions that are open right now (a browser tab still showing the workspace) stay logged in until they log out
 or their session expires.</p>
+<h3 id="language">Language</h3>
+<p>The <strong>Language</strong> selector above the buttons switches the user interface to another language. The choice is saved in
+your account: the page reloads with the new language, and so does every other page you have open (on another device
+too), and it is used again the next time you log in. The login screen itself is always in the default language.</p>
+<p>The list contains only the languages that are installed. English and Japanese come with Marginalia; an administrator
+can add more by loading an <a href="../extensions/">extension</a>, for example
+<a href="../extensions/chinese-localization/">Chinese localization</a>. Texts a language doesn&#x27;t translate are shown in English.
+Dates are written the way that language does. Your books and their texts are not translated, only the interface.</p>
 <h3 id="logging-in">Logging in</h3>
 <p><strong>Save login</strong> on the login screen keeps you logged in on this device for 30 days (it needs HTTPS on a server, see
 <a href="../getting-started/docker-server/#https-and-reverse-proxy">Server (Docker)</a>). <strong>Logout</strong> ends it.</p>

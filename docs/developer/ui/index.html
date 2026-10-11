@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845041252046">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845043522738">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845041252046" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845043522738" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845041252046" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845043522738" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -317,7 +317,7 @@ full-viewport body, <code translate="no" v-pre>shared-styles.css</code>, page ti
 <p>On an empty installation it opens <code translate="no" v-pre>UserDialog</code> in <em>first time</em> mode (create the administrator) and reloads.</p>
 </li>
 <li>
-<p>Otherwise it tries the <em>Save login</em> cookies (<code translate="no" v-pre>authenticateFromCookie</code>, rotating the secret on success).</p>
+<p>Otherwise it tries a user that is already logged in this session (<code translate="no" v-pre>authenticatedSessionUser</code>, overridden by <code translate="no" v-pre>Main</code>: the page was reloaded, e.g. by the language selector) and then the <em>Save login</em> cookies (<code translate="no" v-pre>authenticateFromCookie</code>, rotating the secret on success).</p>
 </li>
 <li>
 <p>Otherwise it shows a <code translate="no" v-pre>LoginOverlay</code> (<code translate="no" v-pre>PermissiveLoginOverlay</code> - allows empty passwords to reach the server-side
@@ -328,7 +328,8 @@ throttles failed logins per address (see <a href="../services/#login-throttling"
 <li>
 <p>After a successful login it calls <code translate="no" v-pre>VaadinService.reinitializeSession</code> (new session id) and the subclass&#x27;s
 <code translate="no" v-pre>proceedWithLogin(login)</code>, which fills the session-scoped <code translate="no" v-pre>user</code> bean, registers the login with
-<code translate="no" v-pre>SessionManager.userLoggedIn</code> (see <a href="../architecture/#sessions">Sessions</a>) and builds the content.</p>
+<code translate="no" v-pre>SessionManager.userLoggedIn</code> (see <a href="../architecture/#sessions">Sessions</a>), sets the language of the session from
+the user&#x27;s settings (<a href="../architecture/#localization">Localization</a>) and builds the content.</p>
 </li>
 </ol>
 <p>Logout deletes the cookies, closes the Vaadin session, invalidates the HTTP session and redirects to the context
@@ -381,7 +382,7 @@ but follow the same pattern: construct with the entity, call <code translate="no
 <p><code translate="no" v-pre>Workspace</code> is the interface of the top-level layout shown after login (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>setNavigationLocked</code>,
 <code translate="no" v-pre>isNavigationLocked</code>, <code translate="no" v-pre>getOnLogout</code>, <code translate="no" v-pre>setOnLogout</code>). <code translate="no" v-pre>Main</code>, the parts, <code translate="no" v-pre>ApplicationPoint</code> and <code translate="no" v-pre>SessionInformation</code>
 only depend on this interface. <code translate="no" v-pre>DesktopWorkspace</code> is the implementation (<code translate="no" v-pre>@Configurable</code>, <code translate="no" v-pre>@Extendable</code>): it builds an
-<code translate="no" v-pre>HTabSheet</code> (tabs on the left, a footer with <em>Admin</em>, <em>Change Password</em>, <em>Logout</em>) and creates all tab components up
+<code translate="no" v-pre>HTabSheet</code> (tabs on the left, a footer with <em>Admin</em>, the language selector, <em>Change Password</em>, <em>Logout</em>) and creates all tab components up
 front. Each tab is a <code translate="no" v-pre>WorkspaceComponent</code>:</p>
 <retype-table copy-text="| Method | Called |
 |---|---|
@@ -425,7 +426,7 @@ in its layout (extension settings panels included) and unlocks on <em>Save</em>,
 (<code translate="no" v-pre>ExtendedClientDetails.getBodyClientWidth()</code>). The choice is made once per login: resizing or rotating the device
 does not switch the workspace until the page is reloaded, and a tablet or a phone in landscape gets the desktop one. <code translate="no" v-pre>PhoneWorkspace</code> replaces
 the left-hand tab sheet with an <code translate="no" v-pre>AppLayout</code>: the parts are listed in a drawer (opened with the toggle in the top bar)
-whose footer holds <em>Change Password</em> and <em>Logout</em>, and the active part fills the screen. <strong>There is no <em>Admin</em> button
+whose footer holds the language selector, <em>Change Password</em> and <em>Logout</em>, and the active part fills the screen. <strong>There is no <em>Admin</em> button
 and no <code translate="no" v-pre>AdminPart</code></strong> on a phone: the administration (users, database backups, cleanup, extension install) is only
 reachable in the desktop layout. The services still check <code translate="no" v-pre>AdminGuard.requireAdmin()</code> themselves. The user manual
 describes this for users in <a href="../../user/phone/">Using Marginalia on a phone</a>. Only the book list, the lorebooks, the settings, the protocols, the models and the trash differ. <code translate="no" v-pre>PhoneManuscriptPart</code> renders the book list
@@ -580,6 +581,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <retype-table copy-text="| Widget | Used for |
 |---|---|
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
+| `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
@@ -599,6 +601,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>HTabSheet</code></td>
 <td>The workspace&#x27;s left-hand tab sheet with a footer area.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LanguageSelector</code></td>
+<td>The language combo box of the workspace footers: saves the choice in <code translate="no" v-pre>UserSetting.language</code>, sets <code translate="no" v-pre>SessionPoint.language</code> and reloads every page of the user (<a href="../architecture/#localization">Localization</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TagMultiComboBox</code></td>
@@ -650,9 +656,9 @@ shows name, type, owner (<code translate="no" v-pre>allUsers</code>), delete tim
 <code translate="no" v-pre>ErrorDialog</code> (message and expandable stack trace), <code translate="no" v-pre>ProgressBarDialog</code>.</p>
 <h2 id="conventions">Conventions</h2>
 <h3 id="text">Text</h3>
-<p>Never hard-code user-visible text. Add a key to <code translate="no" v-pre>loc/L.java</code> and the English text to <code translate="no" v-pre>LocalizationEN</code>, and use
+<p>Never hard-code user-visible text. Add a key to <code translate="no" v-pre>loc/L.java</code> and the text to <code translate="no" v-pre>LocalizationBundleEN</code> (and <code translate="no" v-pre>LocalizationBundleJP</code>), and use
 <code translate="no" v-pre>loc.getValue(L.KEY)</code> (<code translate="no" v-pre>Localization</code> is injected into every UI class). Date formats come from the same bean
-(<code translate="no" v-pre>loc.getDateFormat()</code>...). The name of a kind of entity (book, lorebook...) is <code translate="no" v-pre>loc.localizeDomainObject(entityClass)</code>; it falls back to the closest known superclass, then to the simple class name, so a new entity type needs a mapping in <code translate="no" v-pre>LocalizationBase.loadMaps()</code>.</p>
+(<code translate="no" v-pre>loc.getDateFormat()</code>...). The name of a kind of entity (book, lorebook...) is <code translate="no" v-pre>loc.localizeDomainObject(entityClass)</code>; it falls back to the closest known superclass, then to the simple class name, so a new entity type needs a mapping in <code translate="no" v-pre>LocalizationImpl.loadMaps()</code>. The texts are in the language of the user&#x27;s session, so never keep a text in a field that outlives the page or the request - look it up when you show it (<a href="../architecture/#localization">Localization</a>).</p>
 <h3 id="errors">Errors</h3>
 <p>Wrap event handlers in <code translate="no" v-pre>try</code>/<code translate="no" v-pre>catch</code> and report unexpected exceptions with
 <code translate="no" v-pre>UIUtils.internalServerError(loc, e)</code> - it logs the exception and opens an <code translate="no" v-pre>ErrorDialog</code> with the stack trace.

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845041252046">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845043522738">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Example plugin</title>
     <meta name="title" content="Example plugin">
-    <meta name="description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to the model.">
+    <meta name="description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through three bundled plugins: Chapter">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/plugins/example/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/plugins/example/">
     <meta property="og:title" content="Example plugin">
-    <meta property="og:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to the model.">
+    <meta property="og:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through three bundled plugins: Chapter">
     <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/dev-plugin-bookmarks.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -35,7 +35,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/plugins/example/">
     <meta name="twitter:title" content="Example plugin">
-    <meta name="twitter:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to the model.">
+    <meta name="twitter:description" content="This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through three bundled plugins: Chapter">
     <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/dev-plugin-bookmarks.png">
     <meta name="twitter:image:alt" content="Example plugin">
 
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845041252046" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845043522738" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845041252046" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845041252046" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845043522738" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -173,8 +173,8 @@
                 <!-- Page content  -->
 <h1 id="example-plugin">Example plugin</h1>
 <p>This page builds a small plugin from scratch - <em>Bookmarks</em>, which lets you bookmark story parts - and then walks
-through two bundled plugins: Chapter Marker, the smallest one, and Author&#x27;s Note, which changes the prompt sent to
-the model. Together they use everything from the previous pages: a bundle, decorators reading arguments, locals and
+through three bundled plugins: Chapter Marker, the smallest one that changes the UI, Author&#x27;s Note, which changes
+the prompt sent to the model, and Chinese localization, which adds a language and no code besides the texts. Together they use everything from the previous pages: a bundle, decorators reading arguments, locals and
 fields, data in attributes, generation listeners, and cleanup on unload.</p>
 <h2 id="bookmarks">Bookmarks</h2>
 <p>What it does:</p>
@@ -597,6 +597,104 @@ reservation instead of overwriting it;</p>
 </ul>
 <p><a href="../generation-events/">Generation events</a> explains the payload, the choice of the events and reserving tokens in
 detail.</p>
+<h2 id="walkthrough-chinese-localization">Walkthrough: Chinese localization</h2>
+<p><code translate="no" v-pre>marginalia/plugins/chineselocalization</code> adds Simplified Chinese to the language selector of the workspace. It is the
+smallest possible plugin - no decorators, no UI, no data - and shows the third optional interface of an extension
+besides <code translate="no" v-pre>ExtensionHasCss</code>: <code translate="no" v-pre>ExtensionHasLocalization</code>.</p>
+<div id="walkthrough-chinese-localization-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">chineselocalization/
+├── pom.xml
+└── src/main/java/com/github/enerccio/marginalia/extensions/chineselocalization/
+    ├── ChineseLocalizationActivator.java   registers the extension service
+    ├── ChineseLocalizationExtension.java   returns the bundle
+    └── LocalizationBundleZH.java           the texts</code></pre>
+</doc-codeblock></div>
+<p>The <code translate="no" v-pre>pom.xml</code> is the one of the other plugins without what the plugin doesn&#x27;t use: it needs only the application
+(<code translate="no" v-pre>classes</code> classifier) and the Felix framework, both <code translate="no" v-pre>provided</code>, and the bundle plugin - no AspectJ, since there is
+no <code translate="no" v-pre>@Configurable</code> class, and no Vaadin.</p>
+<p><strong>The extension</strong> implements <code translate="no" v-pre>MarginaliaExtension</code> as always - both methods stay empty, there is nothing to set up -
+and <code translate="no" v-pre>ExtensionHasLocalization</code>:</p>
+<div id="walkthrough-chinese-localization-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">public class ChineseLocalizationExtension implements MarginaliaExtension, ExtensionHasLocalization {
+
+    @Override
+    public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+    }
+
+    @Override
+    public void onExtensionUnload(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+    }
+
+    @Override
+    public List&lt;LocalizationBundle&gt; getLocalizationBundles() {
+        return List.of(new LocalizationBundleZH());
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p>Marginalia calls <code translate="no" v-pre>getLocalizationBundles()</code> right after <code translate="no" v-pre>onExtensionLoad</code> and registers the bundles in
+<code translate="no" v-pre>Localization</code>; when the extension is unloaded they are removed again. Nothing else is needed: the language shows
+up in the <code translate="no" v-pre>LanguageSelector</code> of every workspace the next time it is attached, and a user who picks it is shown the
+whole UI in it after the page reloads.</p>
+<p><strong>The bundle</strong> extends <code translate="no" v-pre>LocalizationBundleBase</code>: <code translate="no" v-pre>loadMessages()</code> fills the texts with <code translate="no" v-pre>setValue</code>, the other
+methods describe the language.</p>
+<div id="walkthrough-chinese-localization-code-3" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">public class LocalizationBundleZH extends LocalizationBundleBase {
+
+    @Override
+    public Language getLanguage() {
+        return Language.of(&quot;zh&quot;);               // the code saved in the user's settings
+    }
+
+    @Override
+    public String getDisplayName() {
+        return &quot;中文（简体）&quot;;                      // shown in the selector, in the language itself
+    }
+
+    @Override
+    protected void loadMessages() {
+        setValue(L.LABEL_YES, &quot;是&quot;);
+        setValue(L.LABEL_NO, &quot;否&quot;);
+        // ... one setValue for every key of L
+    }
+
+    @Override
+    public Locale getLocale() {
+        return Locale.SIMPLIFIED_CHINESE;       // collation of lists, natural order of names
+    }
+
+    @Override
+    public DateFormat getDateFormat() {
+        return new SimpleDateFormat(&quot;yyyy-MM-dd&quot;);
+    }
+    // getHourFormat() and getDateHourFormat() the same way
+}</code></pre>
+</doc-codeblock></div>
+<p>What to take from it:</p>
+<ul>
+<li>
+<p>a <strong>language code</strong> is the identity of a bundle: only one bundle per code exists. A second one is refused (and
+logged) - an extension can add languages but not replace the English texts or the Japanese ones of the application;</p>
+</li>
+<li>
+<p>a bundle <strong>doesn&#x27;t have to be complete</strong>: a key it lacks is shown in the default language, and the application logs
+a warning listing the missing keys when the bundle is registered. A plugin built for an older version keeps working
+when the application adds keys;</p>
+</li>
+<li>
+<p>the <strong>placeholders</strong> (<code translate="no" v-pre>%s</code>, <code translate="no" v-pre>%d</code>) of a text must match the English text in number and order of their types, the
+application formats the text with them. Copy <code translate="no" v-pre>LocalizationBundleEN</code> as the start and translate in place;</p>
+</li>
+<li>
+<p>the bundle is created in <code translate="no" v-pre>getLocalizationBundles()</code>, and the texts are looked up when needed, so a plugin&#x27;s own
+user interface that uses <code translate="no" v-pre>Localization</code> gets the right language without more work;</p>
+</li>
+<li>
+<p>unloading the plugin makes sessions that used its language fall back to the default one - nothing is lost, the
+user&#x27;s setting stays and works again when the plugin is loaded.</p>
+</li>
+</ul>
+<p>To try it, build and load it like any plugin (<doc-anchor-trigger to="#5-build-and-load">Build and load</doc-anchor-trigger>): in <em>Admin → Extensions</em> load
+<code translate="no" v-pre>chineselocalization-1.0.1.jar</code>, then pick <em>中文（简体）</em> in the language selector.</p>
 
                 
                 <!-- Required only on API pages -->

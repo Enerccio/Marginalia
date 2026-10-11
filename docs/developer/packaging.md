@@ -183,7 +183,7 @@ cd marginalia && mvn install -DskipTests
 cd plugins/reviewer && mvn package        # target/reviewer-1.0.1.jar
 ```
 
-`server.yml` builds all five plugins against the freshly installed application and attaches the JARs to the release
+`server.yml` builds all the plugins against the freshly installed application and attaches the JARs to the release
 of a `v*` tag; the Docker image doesn't contain them (server users put them into `<data folder>/extensions` or install
 them in Admin → Extensions). When you change application classes that a plugin
 uses (decorated `@Extendable` methods, UI classes, services), rebuild the plugin and test it against the new

@@ -66,7 +66,7 @@ ones that ask for classes, methods, arguments, locals or fields that don't exist
 
 ## The bundled plugins
 
-The five plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
+The six plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
 
 | Plugin | What it adds | Shows how to |
 |---|---|---|
@@ -75,6 +75,7 @@ The five plugins in `marginalia/plugins/` are complete, working examples. Each i
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
 | [Reviewer](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer) | AI reviews of a story part with configurable reviewer profiles. | Add a sub-menu to every part, add a settings panel, stream an answer from the model. |
 | [Side Query](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery) | A chat panel next to the story for questions about the book. | Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts. |
+| [Chinese localization](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chineselocalization) | Simplified Chinese as a language of the user interface. | Add a language with `ExtensionHasLocalization` - no UI code at all. |
 
 Users install them as described in [Managing extensions](../../user/administration/extensions.md).
 

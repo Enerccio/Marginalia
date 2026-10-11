@@ -179,8 +179,9 @@ What plugins can't do:
   plugin uses goes into a CSS file in the bundle's `src/main/resources` that the application puts into the page for
   you ([Styles of a plugin](#styles-of-a-plugin)), with its class names as constants in the plugin. Use `getStyle()` only for a value known at runtime.
 - **Add localization keys.** `Localization` knows only the application's `L` keys. The bundled plugins use English
-  strings; a plugin that wants translations has to bring its own (a `ResourceBundle` in the bundle, chosen by
-  `UI.getCurrent().getLocale()`).
+  strings; a plugin that wants translations of its own texts has to bring its own (a `ResourceBundle` in the bundle,
+  chosen by `Localization.getCurrentLanguage()`). A plugin can add a *language* for the application's texts,
+  see [Example plugin → Chinese localization](example.md#walkthrough-chinese-localization).
 - **Add routes.** Routes are registered when the servlet starts. Use dialogs and tabs instead.
 
 ## Styles of a plugin

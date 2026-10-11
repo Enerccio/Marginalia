@@ -214,7 +214,7 @@ sequenceDiagram
   install, verify or start, its JAR is deleted and the old one is put back.
 - **Unloading.** *Unload* calls the callbacks registered with `bindAttachableComponent`, then `onExtensionUnload`,
   uninstalls the bundle and **deletes its JAR and its verification reports** (`OsgiService.uninstallPackage`). Bundles that failed to start are
-  listed too (state `INSTALLED` or `RESOLVED`) and can be unloaded the same way.
+  listed too (state *Installed* or *Resolved*) and can be unloaded the same way.
 - **Shutdown.** When the application stops (the root context closes), every extension is unloaded the same way -
   bound callbacks, `onExtensionUnload`, the activator's `stop` - and the framework is stopped. Still save data as you
   go: a killed process runs none of this.

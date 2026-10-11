@@ -266,7 +266,7 @@ Checked decorators (2):
   IDE). An older report is deleted and the extension is verified again: a new version of Marginalia can break
   extensions that were fine, and this catches them all at the first start. Both reports at once are treated as none.
 - `.valid`: the extension is started. `.invalid`: it is not - at startup the bundle stays installed, not started (state
-  `INSTALLED` or `RESOLVED`), the report is logged as an error and *Admin → Extensions* shows an `INVALID` button that
+  *Installed* or *Resolved*), the report is logged as an error and *Admin → Extensions* shows an *Invalid* button that
   opens it. An upload that is invalid is rejected like one that fails to start: its JAR is deleted, the replaced version
   is put back and the report is shown to the administrator. A verification that can't be done (an unreadable JAR) fails
   the extension too.

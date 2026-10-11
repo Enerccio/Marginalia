@@ -1,8 +1,8 @@
 # Example plugin
 
 This page builds a small plugin from scratch - *Bookmarks*, which lets you bookmark story parts - and then walks
-through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to
-the model. Together they use everything from the previous pages: a bundle, decorators reading arguments, locals and
+through three bundled plugins: Chapter Marker, the smallest one that changes the UI, Author's Note, which changes
+the prompt sent to the model, and Chinese localization, which adds a language and no code besides the texts. Together they use everything from the previous pages: a bundle, decorators reading arguments, locals and
 fields, data in attributes, generation listeners, and cleanup on unload.
 
 ## Bookmarks
@@ -393,3 +393,101 @@ What to take from it:
 
 [Generation events](generation-events.md) explains the payload, the choice of the events and reserving tokens in
 detail.
+
+## Walkthrough: Chinese localization
+
+`marginalia/plugins/chineselocalization` adds Simplified Chinese to the language selector of the workspace. It is the
+smallest possible plugin - no decorators, no UI, no data - and shows the third optional interface of an extension
+besides `ExtensionHasCss`: `ExtensionHasLocalization`.
+
+```
+chineselocalization/
+├── pom.xml
+└── src/main/java/com/github/enerccio/marginalia/extensions/chineselocalization/
+    ├── ChineseLocalizationActivator.java   registers the extension service
+    ├── ChineseLocalizationExtension.java   returns the bundle
+    └── LocalizationBundleZH.java           the texts
+```
+
+The `pom.xml` is the one of the other plugins without what the plugin doesn't use: it needs only the application
+(`classes` classifier) and the Felix framework, both `provided`, and the bundle plugin - no AspectJ, since there is
+no `@Configurable` class, and no Vaadin.
+
+**The extension** implements `MarginaliaExtension` as always - both methods stay empty, there is nothing to set up -
+and `ExtensionHasLocalization`:
+
+```java
+public class ChineseLocalizationExtension implements MarginaliaExtension, ExtensionHasLocalization {
+
+    @Override
+    public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+    }
+
+    @Override
+    public void onExtensionUnload(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+    }
+
+    @Override
+    public List<LocalizationBundle> getLocalizationBundles() {
+        return List.of(new LocalizationBundleZH());
+    }
+}
+```
+
+Marginalia calls `getLocalizationBundles()` right after `onExtensionLoad` and registers the bundles in
+`Localization`; when the extension is unloaded they are removed again. Nothing else is needed: the language shows
+up in the `LanguageSelector` of every workspace the next time it is attached, and a user who picks it is shown the
+whole UI in it after the page reloads.
+
+**The bundle** extends `LocalizationBundleBase`: `loadMessages()` fills the texts with `setValue`, the other
+methods describe the language.
+
+```java
+public class LocalizationBundleZH extends LocalizationBundleBase {
+
+    @Override
+    public Language getLanguage() {
+        return Language.of("zh");               // the code saved in the user's settings
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "中文（简体）";                      // shown in the selector, in the language itself
+    }
+
+    @Override
+    protected void loadMessages() {
+        setValue(L.LABEL_YES, "是");
+        setValue(L.LABEL_NO, "否");
+        // ... one setValue for every key of L
+    }
+
+    @Override
+    public Locale getLocale() {
+        return Locale.SIMPLIFIED_CHINESE;       // collation of lists, natural order of names
+    }
+
+    @Override
+    public DateFormat getDateFormat() {
+        return new SimpleDateFormat("yyyy-MM-dd");
+    }
+    // getHourFormat() and getDateHourFormat() the same way
+}
+```
+
+What to take from it:
+
+- a **language code** is the identity of a bundle: only one bundle per code exists. A second one is refused (and
+  logged) - an extension can add languages but not replace the English texts or the Japanese ones of the application;
+- a bundle **doesn't have to be complete**: a key it lacks is shown in the default language, and the application logs
+  a warning listing the missing keys when the bundle is registered. A plugin built for an older version keeps working
+  when the application adds keys;
+- the **placeholders** (`%s`, `%d`) of a text must match the English text in number and order of their types, the
+  application formats the text with them. Copy `LocalizationBundleEN` as the start and translate in place;
+- the bundle is created in `getLocalizationBundles()`, and the texts are looked up when needed, so a plugin's own
+  user interface that uses `Localization` gets the right language without more work;
+- unloading the plugin makes sessions that used its language fall back to the default one - nothing is lost, the
+  user's setting stays and works again when the plugin is loaded.
+
+To try it, build and load it like any plugin ([Build and load](#5-build-and-load)): in *Admin → Extensions* load
+`chineselocalization-1.0.1.jar`, then pick *中文（简体）* in the language selector.

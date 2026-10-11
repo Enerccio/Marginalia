@@ -155,7 +155,7 @@ the script stops with a message.
 
 The Docker image doesn't contain the [extensions](../extensions/index.md), and they have to be built from the same
 source as the application. You don't need Java or Maven for that: `marginalia/plugins/docker-compose.yml` builds all
-five in a container, which builds the application first and then every plugin, and copies the JARs into
+of them in a container, which builds the application first and then every plugin, and copies the JARs into
 `marginalia/plugins/build`:
 
 ```sh

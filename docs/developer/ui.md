@@ -69,14 +69,15 @@ flowchart TB
 `LoginCheckRoute` runs in the route's constructor (`showLogin()`):
 
 1. On an empty installation it opens `UserDialog` in *first time* mode (create the administrator) and reloads.
-2. Otherwise it tries the *Save login* cookies (`authenticateFromCookie`, rotating the secret on success).
+2. Otherwise it tries a user that is already logged in this session (`authenticatedSessionUser`, overridden by `Main`: the page was reloaded, e.g. by the language selector) and then the *Save login* cookies (`authenticateFromCookie`, rotating the secret on success).
 3. Otherwise it shows a `LoginOverlay` (`PermissiveLoginOverlay` - allows empty passwords to reach the server-side
    check) with the *Save login* checkbox.
    The check passes the client address (`LoginCheckRoute.clientAddress()`) to `UserService.authenticate`, which
    throttles failed logins per address (see [Login throttling](services.md#login-throttling)).
 4. After a successful login it calls `VaadinService.reinitializeSession` (new session id) and the subclass's
    `proceedWithLogin(login)`, which fills the session-scoped `user` bean, registers the login with
-   `SessionManager.userLoggedIn` (see [Sessions](architecture.md#sessions)) and builds the content.
+   `SessionManager.userLoggedIn` (see [Sessions](architecture.md#sessions)), sets the language of the session from
+   the user's settings ([Localization](architecture.md#localization)) and builds the content.
 
 Logout deletes the cookies, closes the Vaadin session, invalidates the HTTP session and redirects to the context
 root. Cookie names include the context path and the route class (`root_Main_llllm_rememberMe_login`...), so the workspace
@@ -131,7 +132,7 @@ but follow the same pattern: construct with the entity, call `create()`, then `o
 `Workspace` is the interface of the top-level layout shown after login (`create`, `refresh`, `setNavigationLocked`,
 `isNavigationLocked`, `getOnLogout`, `setOnLogout`). `Main`, the parts, `ApplicationPoint` and `SessionInformation`
 only depend on this interface. `DesktopWorkspace` is the implementation (`@Configurable`, `@Extendable`): it builds an
-`HTabSheet` (tabs on the left, a footer with *Admin*, *Change Password*, *Logout*) and creates all tab components up
+`HTabSheet` (tabs on the left, a footer with *Admin*, the language selector, *Change Password*, *Logout*) and creates all tab components up
 front. Each tab is a `WorkspaceComponent`:
 
 | Method | Called |
@@ -149,7 +150,7 @@ in its layout (extension settings panels included) and unlocks on *Save*, *Disca
 (`ExtendedClientDetails.getBodyClientWidth()`). The choice is made once per login: resizing or rotating the device
 does not switch the workspace until the page is reloaded, and a tablet or a phone in landscape gets the desktop one. `PhoneWorkspace` replaces
 the left-hand tab sheet with an `AppLayout`: the parts are listed in a drawer (opened with the toggle in the top bar)
-whose footer holds *Change Password* and *Logout*, and the active part fills the screen. **There is no *Admin* button
+whose footer holds the language selector, *Change Password* and *Logout*, and the active part fills the screen. **There is no *Admin* button
 and no `AdminPart`** on a phone: the administration (users, database backups, cleanup, extension install) is only
 reachable in the desktop layout. The services still check `AdminGuard.requireAdmin()` themselves. The user manual
 describes this for users in [Using Marginalia on a phone](../user/phone.md). Only the book list, the lorebooks, the settings, the protocols, the models and the trash differ. `PhoneManuscriptPart` renders the book list
@@ -254,6 +255,7 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | Widget | Used for |
 |---|---|
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
+| `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
@@ -286,9 +288,9 @@ Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`
 
 ### Text
 
-Never hard-code user-visible text. Add a key to `loc/L.java` and the English text to `LocalizationEN`, and use
+Never hard-code user-visible text. Add a key to `loc/L.java` and the text to `LocalizationBundleEN` (and `LocalizationBundleJP`), and use
 `loc.getValue(L.KEY)` (`Localization` is injected into every UI class). Date formats come from the same bean
-(`loc.getDateFormat()`...). The name of a kind of entity (book, lorebook...) is `loc.localizeDomainObject(entityClass)`; it falls back to the closest known superclass, then to the simple class name, so a new entity type needs a mapping in `LocalizationBase.loadMaps()`.
+(`loc.getDateFormat()`...). The name of a kind of entity (book, lorebook...) is `loc.localizeDomainObject(entityClass)`; it falls back to the closest known superclass, then to the simple class name, so a new entity type needs a mapping in `LocalizationImpl.loadMaps()`. The texts are in the language of the user's session, so never keep a text in a field that outlives the page or the request - look it up when you show it ([Localization](architecture.md#localization)).
 
 ### Errors
 

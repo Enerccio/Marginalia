@@ -10,6 +10,7 @@ a restart.
 | [Lorebook VCS](lorebookvcs/README.md) | Revision history for lorebook entries: snapshots, browsing and restoring old versions, export/import. |
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
 | [Side Query](sidequery/README.md) | A chat panel next to the story for asking the model questions about the book, its lore and recent parts. |
+| [Chinese localization](chineselocalization/README.md) | Simplified Chinese as a language of the user interface; the example for adding a language. |
 
 ## Installing
 
@@ -31,7 +32,7 @@ Plugins compile against the Marginalia application, which has to be installed in
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or authorsnote, lorebookvcs, reviewer, sidequery
+cd plugins/chaptermarker          # or authorsnote, lorebookvcs, reviewer, sidequery, chineselocalization
 mvn package                       # target/chaptermarker-1.0.1.jar
 ```
 
@@ -63,4 +64,4 @@ that's how these plugins add menu items, panels and settings. Through
 lore, the prompt and the answer; [Author's Note](authorsnote) inserts its note into the payload this way. Plugin data is usually kept in the `attributes` of
 existing entities (book, story part, lorebook, user settings), so it's included in backups and exports.
 
-The five plugins here are complete examples, [Chapter Marker](chaptermarker) is the smallest one.
+The plugins here are complete examples, [Chapter Marker](chaptermarker) is the smallest one.

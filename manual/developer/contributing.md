@@ -116,7 +116,8 @@ There is no formatter configuration in the repository; match the code around you
   are detached; reload them through the service before changing them.
 - **The current user** comes from the session-scoped `User` bean; services check ownership (`findForUser`) - the UI
   must not be the only thing protecting other users' data.
-- **UI text** is never hard-coded: add a key to `loc/L.java` and the English text to `loc/LocalizationEN.java`, and
+- **UI text** is never hard-coded: add a key to `loc/L.java` and the text to `loc/LocalizationBundleEN.java` (and to
+  `LocalizationBundleJP.java`; a language without the key shows the English text), and
   use `loc.getValue(L.KEY)` (see [User interface](ui.md#text)).
 - **Threads**: long work runs off the UI thread, and UI updates go through `ui.access(...)` (see
   [Background work and push](ui.md#background-work-and-push)).

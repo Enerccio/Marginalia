@@ -28,7 +28,7 @@ to it. The tab you are on fills the whole screen and its name is shown in the to
 ![The phone workspace with the drawer open](../images/phone-workspace-drawer.png)
 
 The drawer has the same tabs as the desktop - *Books*, *Lorebooks*, *Settings*, *Protocols*, *Inference Providers*,
-*Resources* and *Trash* - and **Change Password** and **Logout** at the bottom. Extensions may add buttons, but only
+*Resources* and *Trash* - and the **Language** selector, **Change Password** and **Logout** at the bottom. Extensions may add buttons, but only
 to the places they know on the phone, see [Extensions](#extensions).
 
 While the *Settings* tab has unsaved changes, the drawer is locked as on the desktop: save or discard first.

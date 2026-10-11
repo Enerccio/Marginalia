@@ -21,8 +21,8 @@ successfully.* confirms it. The extension appears in the list:
 | **ID** | The internal number of the extension in this run. |
 | **Extension Name** | Its name. |
 | **Version** | Its version. |
-| **State** | `ACTIVE` when it is running; `INSTALLED` or `RESOLVED` when it failed to start (see [When an extension fails](#when-an-extension-fails)). |
-| **Verification** | `VALID` or `INVALID`; click it to read the report of the check Marginalia made before starting the extension. |
+| **State** | *Active* when it is running; *Installed* or *Resolved* when it failed to start (see [When an extension fails](#when-an-extension-fails)). |
+| **Verification** | *Valid* or *Invalid*; click it to read the report of the check Marginalia made before starting the extension. |
 | **Actions** | **Unload** removes it. |
 
 Users see the extension in windows they open from then on - a book that was already open has to be closed and opened
@@ -59,14 +59,14 @@ If an uploaded extension can't be loaded, the upload shows *Failed to load exten
 
 Marginalia checks an extension against the version it is running in before it starts it. An extension that does not
 fit - typically one built for another version of Marginalia - is not loaded. An upload shows the report of the check
-and is not kept; an extension in the `extensions` folder stays in the list, not started, with **INVALID** in the
+and is not kept; an extension in the `extensions` folder stays in the list, not started, with **Invalid** in the
 *Verification* column, and the report is in the log. The check is repeated after Marginalia is updated, so an
 extension that worked before can be refused afterwards: get the version of the extension that was built for the new
 version of Marginalia and load it. Next to each extension's JAR you'll find a small `.valid` or `.invalid` file with the
 report; it is removed with the extension and can be left alone.
 
 An extension in the `extensions` folder that fails to start (for example one built for another version) doesn't stop
-the others from loading. It is listed with the state `INSTALLED` or `RESOLVED` instead of `ACTIVE` and can be removed
+the others from loading. It is listed with the state *Installed* or *Resolved* instead of *Active* and can be removed
 with **Unload**. A file that isn't an extension at all is skipped and not listed - delete it from the `extensions`
 folder. The log (`docker compose logs`, or `desktop/logs/marginalia.log` for the desktop app) has the details of the
 error.

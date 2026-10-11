@@ -75,7 +75,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `SessionInformation.java` | What `SessionManager` knows about one session: HTTP and Vaadin session, user, main UI, captured request attributes, close listeners. |
 | `SessionCloseListener.java`, `RunInSession.java` | Callbacks: another session was closed; code to run for a session in `runForUsers`. |
 | `ApplicationPoint.java` | The `applicationPoint` bean: application-wide maps of open UIs to their `Workspace` (only `Main`) and to a copy of their logged-in user. `Main` and `Viewer` `register` the UI after login; the entries are removed when the UI detaches. |
-| `SessionPoint.java` | Empty session-scoped bean. |
+| `SessionPoint.java` | Session-scoped bean; holds the `Language` of the session's UI (set from the user's settings when the workspace opens, read by `LocalizationImpl`). |
 
 ### `ui` - user interface
 
@@ -193,9 +193,9 @@ See [Story export](services.md#story-export).
 
 | Package | |
 |---|---|
-| `extensions` | `MarginaliaExtension` - the service interface every extension bundle registers. |
+| `extensions` | `MarginaliaExtension` - the service interface every extension bundle registers; `ExtensionHasCss` and `ExtensionHasLocalization` - optional interfaces of an extension (its styles, its languages). |
 | `instruct` | `RuntimeInstrumentationInitializer` (installs the ByteBuddy agent), `ExtendableMethodVisitor` (the bytecode rewrite), `ExtensionServiceHolder` (static access to `ExtensionService` from instrumented code); `instruct.verify`: `ExtensionVerifier` (checks an extension's decorators against the application before it is started, `ExtensionService.verifyExtension`), `ContextInterpreter` and `ContextValue` (its bytecode data-flow analysis), `ExtensionVerification` (the result). |
-| `loc` | `L` (all text keys), `Localization` / `LocalizationBase` / `LocalizationEN`, `NaturalOrderComparator`. |
+| `loc` | `L` (all text keys), `Localization` (the service interface) / `LocalizationImpl` (picks the bundle of the session's language), `Language`, `LocalizationBundle` (texts and formats of one language) / `LocalizationBundleBase` / `LocalizationBundleEN` / `LocalizationBundleJP`, `NaturalOrderComparator`. |
 | `concurrent` | `AsyncRunnableWrapper` (keeps the submitting stack trace for errors on worker threads), `ThrowingRunnable`. |
 | `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, `clientAddress`), `ClientAddressResolver` (the client address of a request: `X-Forwarded-For` only from the `trustedProxies`, see [Login throttling](services.md#login-throttling)), `ReflectUtils` (cached reflection), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
 | `com.github.enerccio.tools` | `Pair`, `Pointer` (small holders used across the code) and `GenerateFlywayDiff` (development tool, see [Database schema changes](building.md#database-schema-changes)). |
@@ -213,7 +213,7 @@ See [Story export](services.md#story-export).
 | `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging & releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
 | `src/main/resources/META-INF/VAADIN/config/flow-build-info.json.DEVELOPMENT` | Template of a development build info for IDE runs; never packaged into the WAR (see [Development and production mode](building.md#development-and-production-mode)). |
-| `src/main/webapp/config/configuration.properties` | Application settings (`localization`, saved logins). |
+| `src/main/webapp/config/configuration.properties` | Application settings (saved logins). |
 | `src/main/webapp/config/persistence.xml` | The persistence unit: list of entity classes, dialect, `hbm2ddl.auto=validate`. |
 
 ## Frontend (`src/main/frontend/`)
@@ -279,6 +279,7 @@ plugins/<name>/
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Reviewer | `extensions.reviewer` | Model, service, dialogs and a settings form. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form. |
+| Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |
 
 `plugins/Dockerfile` and `plugins/docker-compose.yml` build all of them in a container (JARs end up in `plugins/build/`,
 ignored by Git), see [Packaging](packaging.md#building-the-plugins-in-docker).
@@ -300,7 +301,7 @@ See [Plugin development](plugins/index.md).
 
 | I want to change... | Look at |
 |---|---|
-| A text in the UI | `loc/L.java` (key) and `loc/LocalizationEN.java` (text) |
+| A text in the UI | `loc/L.java` (key) and the text in every bundle: `loc/LocalizationBundleEN.java` (required), `LocalizationBundleJP.java` |
 | The default prompts | `Defaults.java` |
 | What is sent to the model | `domain/service/impl/generation/impl/` (the steps), `PreparePayloadStep` for the final messages |
 | How lore is activated | `ProcessLorebookStep`, `LorebookServiceImpl` |

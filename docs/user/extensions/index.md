@@ -1,6 +1,6 @@
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Five extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Six extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
@@ -9,6 +9,7 @@ Extensions add features to Marginalia without changing the application itself. F
 | [Lorebook VCS](lorebook-vcs.md) | Revision history for lorebook entries. |
 | [Reviewer](reviewer.md) | Reviews of story parts written by the model - reader reactions, critique. |
 | [Side Query](side-query.md) | A chat with the model about your book, next to the story. |
+| [Chinese localization](chinese-localization.md) | Simplified Chinese as a language of the user interface. |
 
 ## Installing
 
@@ -24,7 +25,7 @@ Extensions hook into the user interface of one Marginalia version. An extension 
 working or break parts of the application. Use the extensions that come with your version of Marginalia.
 !!!
 
-The five extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
+The six extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
 ## Extensions on a phone

@@ -112,7 +112,7 @@ sequenceDiagram
 
    | File | Defines |
    |---|---|
-   | `container-config.xml` | `localization`, `configuration`, `applicationPoint`, `sessionManager`, the session-scoped `user` and `sessionPoint`, `ApplicationInitializer` |
+   | `container-config.xml` | `localization` (with its language bundles), `configuration`, `applicationPoint`, `sessionManager`, the session-scoped `user` and `sessionPoint`, `ApplicationInitializer` |
    | `datasources-config.xml` | SQLite data source (commons-dbcp), Flyway, the `EntityManagerFactory`, the `common` transaction manager |
    | `services-config.xml` | Every repository and service, the generation steps, OSGi, extensions, backups, cleanup, the instrumentation initializer |
 
@@ -202,7 +202,6 @@ request attributes copied over - see [Threads and push](#threads-and-push).
 
 | Key | Default | |
 |---|---|---|
-| `localization` | `com.github.enerccio.marginalia.loc.LocalizationEN` | Class of the `Localization` bean - the language of the UI. |
 | `allowPersistentLogin` | `true` | Whether *Save login* is offered. |
 | `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
 | `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. Can also be given as `-DtrustedProxies=...`. |
@@ -435,6 +434,9 @@ sequenceDiagram
 - **UI lifetime.** An extension registers the components it adds with `OsgiService.bindAttachableComponent` together
   with a callback that removes them; the callbacks of components still attached run when the extension is unloaded,
   each inside `ui.access(...)` of the component's UI.
+- **Languages.** An extension that implements `ExtensionHasLocalization` adds languages to the UI: `OsgiServiceImpl`
+  registers its `LocalizationBundle`s in `Localization` after the extension loads and removes them on unload
+  ([Localization](#localization)).
 - **Styles.** An extension that implements `ExtensionHasCss` gets its CSS put into every open page: `CssRegistry`
   (owned by `Main` and `Viewer`) reads the loaded extensions when its page is attached and listens to the
   loaded/unloaded events of `OsgiService` afterwards ([Styles of a plugin](plugins/ui-extensions.md#styles-of-a-plugin)).
@@ -459,7 +461,37 @@ Everything is in `<user.home>/.marginalia/` (see also [The data folder](../user/
 
 ## Localization
 
-All UI texts are looked up through the `Localization` bean by an `L` key (`loc.getValue(L.LABEL_SAVE)`).
-`LocalizationEN` holds the English texts and is selected by the `localization` property; another language is a new
-`Localization` implementation and a changed property. Texts of template variables and macros (the hints shown next
-to prompt fields) are localized the same way.
+All UI texts are looked up through the `Localization` bean by an `L` key (`loc.getValue(L.LABEL_SAVE)`). The bean
+(`LocalizationImpl`) holds one `LocalizationBundle` per `Language`: the texts of every key, the `Locale` and the date
+formats of that language, and the name shown in the language selector. The application ships `LocalizationBundleEN`
+(the default language, which has to be complete - the application doesn't start otherwise) and `LocalizationBundleJP`;
+they are listed in the `localization` bean in `container-config.xml`. Texts of template variables and macros (the
+hints shown next to prompt fields) are localized the same way.
+
+```mermaid
+flowchart LR
+    SP["SessionPoint<br/>(session scoped)<br/>language"] -->|current language| Loc["LocalizationImpl<br/>getValue(L)"]
+    Loc --> B1["LocalizationBundleEN"]
+    Loc --> B2["LocalizationBundleJP"]
+    Loc --> B3["bundles of extensions"]
+    US["UserSetting.language"] -->|"Main, when the workspace opens"| SP
+    LS["LanguageSelector"] -->|saves, then reloads the user's pages| US
+```
+
+- **Which language.** `getValue` and the formats use the language in the session's `SessionPoint`. Without a
+  request (startup, scheduled backups) or with a language that has no bundle (any more) the default language is
+  used, and a text a bundle doesn't have is taken from the default language, so a bundle that lags behind the keys
+  keeps working. Worker threads get the session through `ThreadCopyRequestAttributes` like the `user` bean.
+- **Choosing.** The language of a user is `UserSetting.language` (a language code, `null` for the default).
+  `Main.proceedWithLogin` sets `SessionPoint.language` from it before the workspace is created, so the login page
+  itself is always in the default language. The `LanguageSelector` at the bottom of the workspace (desktop sidebar,
+  phone drawer) offers `Localization.getAvailableLanguages()`; a change saves the setting, sets the session and
+  reloads every UI of every session of the user (`SessionManager.runForUsers`), where the workspace opens again with
+  the new language. `Viewer` doesn't choose anything, it uses what is in its `SessionPoint`.
+- **Extensions.** An extension that implements `ExtensionHasLocalization` returns bundles of its own;
+  `OsgiServiceImpl` registers them after `onExtensionLoad` and removes them when the extension is unloaded (see
+  [Example plugin](plugins/example.md#walkthrough-chinese-localization)). A language that already has a bundle is
+  refused, so an extension can't replace English.
+- **Adding a language to the application.** Copy `LocalizationBundleEN`, translate, add the class as a bean to the
+  `bundles` list of `localization`. `BundleCompletenessTest` checks that a bundle has every key and the same
+  `%s`/`%d` placeholders as the English text.
