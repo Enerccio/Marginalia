@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845046028941">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845046355948">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845046028941" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845046355948" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845046028941" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845046355948" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845046028941" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845046028941" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845046355948" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845046355948" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -242,7 +242,8 @@ are faster.</p>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia
 mvn package                  # builds and tests, WAR in target/marginalia-1.0.1.war
 mvn package -DskipTests      # the same without tests
-mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)</code></pre>
+mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
+mvn install -DskipTests -Dvaadin.skip=true   # plugins only need the classes JAR: no frontend build, not a deployable WAR</code></pre>
 </doc-codeblock></div>
 <p>What a build does, in order:</p>
 <ol>
@@ -514,13 +515,17 @@ exact version of the application. See <a href="../plugins/">Plugin development</
 <p><code translate="no" v-pre>marginalia/plugins/Dockerfile</code> and <code translate="no" v-pre>docker-compose.yml</code> build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see <a href="../packaging/#plugins">Packaging</a>). The build context is the
 repository root; the image copies <code translate="no" v-pre>marginalia/pom.xml</code>, <code translate="no" v-pre>marginalia/src</code>, <code translate="no" v-pre>.git</code> and <code translate="no" v-pre>marginalia/plugins</code>, runs
-<code translate="no" v-pre>mvn install -DskipTests</code> for the application and <code translate="no" v-pre>mvn package</code> in every folder of <code translate="no" v-pre>plugins/</code> that has a <code translate="no" v-pre>pom.xml</code>.
+<code translate="no" v-pre>mvn install -DskipTests -Dvaadin.skip=true</code> for the application and <code translate="no" v-pre>mvn package</code> in every folder of <code translate="no" v-pre>plugins/</code> that has a <code translate="no" v-pre>pom.xml</code>.
 The JARs are copied out when the container runs, because they go into a bind mount:</p>
 <div id="in-docker-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">docker compose -f marginalia/plugins/docker-compose.yml build
 docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins     # JARs in marginalia/plugins/build</code></pre>
 </doc-codeblock></div>
 <p>A new plugin folder with a <code translate="no" v-pre>pom.xml</code> is picked up without changes to the Dockerfile.</p>
+<p><code translate="no" v-pre>-Dvaadin.skip=true</code> turns off every goal of <code translate="no" v-pre>vaadin-maven-plugin</code>, so the frontend (Node.js download, npm, Vite
+bundle) is not built; the plugins need only the classes JAR. The WAR of such a build has no frontend bundle and must not
+be deployed. Use the flag the same way for any build that only installs the classes JAR for plugins. Maven cannot tell
+that the goal was just <code translate="no" v-pre>install</code> (it runs the whole lifecycle up to <code translate="no" v-pre>package</code> first), so the flag has to be given.</p>
 <h2 id="database-schema-changes">Database schema changes</h2>
 <p>The schema is created and upgraded by Flyway from <code translate="no" v-pre>src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql</code>; Hibernate only
 validates it (<code translate="no" v-pre>hibernate.hbm2ddl.auto=validate</code>), so an entity change without a migration makes the application fail

@@ -42,9 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configurable
 @Extendable
@@ -124,6 +122,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         leftMarginLayout.setPadding(false);
         leftMarginLayout.setSpacing(false);
         leftMarginLayout.addClassName(CssStyles.BORDER_RIGHT_SUBTLE);
+
+        // created once: a redraw of the story only refills the outline, so the selected tab (and the tabs extensions add) survive it
+        leftBar = new VTabSheet();
+        leftBar.setSizeFull();
+        leftMarginLayout.add(leftBar);
+        createStoryOutlineTab();
 
         centerLayout = new VerticalLayout();
         centerLayout.setSizeFull();
@@ -383,16 +387,17 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         instructionsField.setValue(pendingInstructions);
     }
 
+    /**
+     * Redraws the message cards and the chapter outline. The left bar (and so the selected tab) is kept, the state of
+     * the cards that is not stored in the message - which reasonings are opened - is carried over to the new cards.
+     */
     private void renderStoryContent() {
+        Set<Long> openedReasonings = collectOpenedReasonings();
+
         centerContentPanel.removeAll();
-        leftMarginLayout.removeAll();
+        sidebarList.removeAll();
+        sidebarHeader.setText("");
         activeCardMap.clear();
-
-        leftBar = new VTabSheet();
-        leftBar.setSizeFull();
-        leftMarginLayout.add(leftBar);
-
-        createStoryOutlineTab();
 
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
@@ -413,6 +418,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     boolean isLast = (i == total - 1);
                     ChatMessageCard card = new ChatMessageCard(msg, isLast, orderId);
                     card.setFrozen(isFrozen);
+                    card.setReasoningOpened(openedReasonings.contains(dbId));
                     if (msg.getId() != null) {
                         activeCardMap.put(msg.getId(), card);
                     }
@@ -430,6 +436,19 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 restoreScrollPosition();
             }
         }
+    }
+
+    private Set<Long> collectOpenedReasonings() {
+        Set<Long> opened = new HashSet<>();
+        for (ChatMessageCard card : activeCardMap.values()) {
+            if (card.isReasoningOpened()) {
+                opened.add(card.message.getId());
+            }
+        }
+        if (streamingCard != null && streamingCard.message.getId() != null && streamingCard.isReasoningOpened()) {
+            opened.add(streamingCard.message.getId());
+        }
+        return opened;
     }
 
     /**
@@ -1250,6 +1269,17 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
                 }
+            }
+        }
+
+        public boolean isReasoningOpened() {
+            return reasoningDetails.isOpened();
+        }
+
+        public void setReasoningOpened(boolean opened) {
+            if (opened) {
+                reasoningDetails.setOpened(true);
+                wasReasoningOpenedByGeneration = true;
             }
         }
 

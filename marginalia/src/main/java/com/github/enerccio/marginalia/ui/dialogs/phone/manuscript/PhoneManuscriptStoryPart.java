@@ -51,9 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The story tab of the {@link PhoneManuscriptDialog}. One column: the parts of the story fill the screen and the
@@ -399,7 +397,13 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         instructionsField.setValue(pendingInstructions);
     }
 
+    /**
+     * Redraws the message cards and the chapter outline. The left bar (and so the selected tab) is kept, the state of
+     * the cards that is not stored in the message - which reasonings are opened - is carried over to the new cards.
+     */
     private void renderStoryContent() {
+        Set<Long> openedReasonings = collectOpenedReasonings();
+
         centerContentPanel.removeAll();
         sidebarList.removeAll();
         activeCardMap.clear();
@@ -427,6 +431,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     boolean isLast = (i == total - 1);
                     ChatMessageCard card = new ChatMessageCard(msg, isLast, orderId);
                     card.setFrozen(isFrozen);
+                    card.setReasoningOpened(openedReasonings.contains(dbId));
                     if (msg.getId() != null) {
                         activeCardMap.put(msg.getId(), card);
                     }
@@ -444,6 +449,19 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 restoreScrollPosition();
             }
         }
+    }
+
+    private Set<Long> collectOpenedReasonings() {
+        Set<Long> opened = new HashSet<>();
+        for (ChatMessageCard card : activeCardMap.values()) {
+            if (card.isReasoningOpened()) {
+                opened.add(card.message.getId());
+            }
+        }
+        if (streamingCard != null && streamingCard.message.getId() != null && streamingCard.isReasoningOpened()) {
+            opened.add(streamingCard.message.getId());
+        }
+        return opened;
     }
 
     /**
@@ -1281,6 +1299,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
                 }
+            }
+        }
+
+        public boolean isReasoningOpened() {
+            return reasoningDetails.isOpened();
+        }
+
+        public void setReasoningOpened(boolean opened) {
+            if (opened) {
+                reasoningDetails.setOpened(true);
+                wasReasoningOpenedByGeneration = true;
             }
         }
 

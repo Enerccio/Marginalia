@@ -28,6 +28,7 @@ cd marginalia
 mvn package                  # builds and tests, WAR in target/marginalia-1.0.1.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
+mvn install -DskipTests -Dvaadin.skip=true   # plugins only need the classes JAR: no frontend build, not a deployable WAR
 ```
 
 What a build does, in order:
@@ -257,7 +258,7 @@ exact version of the application. See [Plugin development](plugins/index.md).
 `marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
 repository root; the image copies `marginalia/pom.xml`, `marginalia/src`, `.git` and `marginalia/plugins`, runs
-`mvn install -DskipTests` for the application and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
+`mvn install -DskipTests -Dvaadin.skip=true` for the application and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
 The JARs are copied out when the container runs, because they go into a bind mount:
 
 ```sh
@@ -266,6 +267,11 @@ docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins     # J
 ```
 
 A new plugin folder with a `pom.xml` is picked up without changes to the Dockerfile.
+
+`-Dvaadin.skip=true` turns off every goal of `vaadin-maven-plugin`, so the frontend (Node.js download, npm, Vite
+bundle) is not built; the plugins need only the classes JAR. The WAR of such a build has no frontend bundle and must not
+be deployed. Use the flag the same way for any build that only installs the classes JAR for plugins. Maven cannot tell
+that the goal was just `install` (it runs the whole lifecycle up to `package` first), so the flag has to be given.
 
 ## Database schema changes
 
