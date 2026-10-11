@@ -32,7 +32,7 @@ cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
 cd plugins/chaptermarker          # or authorsnote, lorebookvcs, reviewer, sidequery
-mvn package                       # target/chaptermarker-1.0.0.jar
+mvn package                       # target/chaptermarker-1.0.1.jar
 ```
 
 Requirements are the same as for the application: JDK 25+ and Maven 3.9+.

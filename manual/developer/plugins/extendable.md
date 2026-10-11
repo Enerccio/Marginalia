@@ -234,7 +234,7 @@ checked:
 
 ```
 Extension: chaptermarker.jar
-Bundle: chaptermarker 1.0.0
+Bundle: chaptermarker 1.0.1
 Verified: 2026-10-10T18:18:31.781673Z
 Result: INVALID
 

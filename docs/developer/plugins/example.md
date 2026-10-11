@@ -257,10 +257,10 @@ edited).
 
 ```sh
 cd bookmarks
-mvn package                     # target/bookmarks-1.0.0.jar
+mvn package                     # target/bookmarks-1.0.1.jar
 ```
 
-Load `target/bookmarks-1.0.0.jar` in *Admin → Extensions* and open a book (books that were already open need to be
+Load `target/bookmarks-1.0.1.jar` in *Admin → Extensions* and open a book (books that were already open need to be
 closed and opened again). Open a part's menu, choose *Toggle bookmark* - the part's sidebar entry gets the ★.
 
 If nothing appears, look in the log for `Mod 'com.example.marginalia.bookmarks.BookmarksExtension$...' skipped on
