@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845027284737">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845028041832">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845027284737" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845028041832" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845027284737" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845028041832" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845027284737" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845027284737" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845028041832" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845028041832" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -487,7 +487,8 @@ docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins</code><
 <p><code translate="no" v-pre>rebuild.sh</code> (Linux, macOS) and <code translate="no" v-pre>rebuild.bat</code> (Windows) in the repository root update a Docker server: when the
 upstream branch has new commits they stop the container, <code translate="no" v-pre>git pull</code>, build the plugins as above, copy the JARs into
 <code translate="no" v-pre>data/extensions</code> (overwriting the installed ones; extensions load on start) and run <code translate="no" v-pre>docker compose up -d --build</code>.
-The two scripts must be kept in step; <code translate="no" v-pre>.gitattributes</code> keeps the shell script on LF and the batch file on CRLF.</p>
+<code translate="no" v-pre>--force</code> skips the check for new commits. The two scripts must be kept in step; <code translate="no" v-pre>.gitattributes</code> keeps the shell
+script on LF and the batch file on CRLF.</p>
 <h2 id="continuous-integration">Continuous integration</h2>
 <p>Two workflows, <code translate="no" v-pre>desktop.yml</code> (tests and the desktop archives) and <code translate="no" v-pre>server.yml</code> (WAR, plugins, Docker image). Both run
 on pushes to <code translate="no" v-pre>master</code>, on <code translate="no" v-pre>v*</code> tags, on pull requests that change <code translate="no" v-pre>marginalia/**</code> or the workflow, and by hand

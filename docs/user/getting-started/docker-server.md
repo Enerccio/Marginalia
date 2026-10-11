@@ -146,9 +146,10 @@ but make a [database backup](../administration/database-backups.md) of your own 
 
 `rebuild.sh` (Linux, macOS) and `rebuild.bat` (Windows) in the repository root do the update for you; run them from
 the root, for example from a cron job or a scheduled task. They fetch the remote branch and do nothing when there is
-nothing new. Otherwise they stop the container, `git pull`, rebuild the [bundled plugins](#plugins) and copy their
-JARs into `data/extensions` (replacing the installed ones), and start the container again with `docker compose up -d
---build`. If any step fails, the script stops with a message.
+nothing new (`--force` rebuilds and restarts anyway, for example after changing `docker-compose.yml`). Otherwise they
+stop the container, `git pull`, rebuild the [bundled plugins](#plugins) and copy their JARs into `data/extensions`
+(replacing the installed ones), and start the container again with `docker compose up -d --build`. If any step fails,
+the script stops with a message.
 
 ## Plugins
 
