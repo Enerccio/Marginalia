@@ -67,7 +67,7 @@ public class ErrorDialog {
             dialog.add(new Hr());
         }
 
-        Button close = new Button("Exit", event -> dialog.close());
+        Button close = new Button(loc.getValue(L.LABEL_EXIT), event -> dialog.close());
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setHeight("50px");
         buttons.add(close);

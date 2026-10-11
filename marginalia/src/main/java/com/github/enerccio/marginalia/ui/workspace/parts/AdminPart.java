@@ -263,7 +263,7 @@ public class AdminPart implements WorkspaceComponent {
                     if (report == null) {
                         return new Div();
                     }
-                    Button reportButton = new Button(report.valid() ? "VALID" : "INVALID");
+                    Button reportButton = new Button(loc.getValue(report.valid() ? L.LABEL_VALID : L.LABEL_INVALID));
                     reportButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                     if (!report.valid()) {
                         reportButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
@@ -337,13 +337,13 @@ public class AdminPart implements WorkspaceComponent {
 
     private String formatBundleState(int state) {
         return switch (state) {
-            case Bundle.UNINSTALLED -> "UNINSTALLED";
-            case Bundle.INSTALLED -> "INSTALLED";
-            case Bundle.RESOLVED -> "RESOLVED";
-            case Bundle.STARTING -> "STARTING";
-            case Bundle.STOPPING -> "STOPPING";
-            case Bundle.ACTIVE -> "ACTIVE";
-            default -> "UNKNOWN (" + state + ")";
+            case Bundle.UNINSTALLED -> loc.getValue(L.ENUM_BUNDLE_STATE_UNINSTALLED);
+            case Bundle.INSTALLED -> loc.getValue(L.ENUM_BUNDLE_STATE_INSTALLED);
+            case Bundle.RESOLVED -> loc.getValue(L.ENUM_BUNDLE_STATE_RESOLVED);
+            case Bundle.STARTING -> loc.getValue(L.ENUM_BUNDLE_STATE_STARTING);
+            case Bundle.STOPPING -> loc.getValue(L.ENUM_BUNDLE_STATE_STOPPING);
+            case Bundle.ACTIVE -> loc.getValue(L.ENUM_BUNDLE_STATE_ACTIVE);
+            default -> loc.getValue(L.ENUM_BUNDLE_STATE_UNKNOWN).formatted(state);
         };
     }
 

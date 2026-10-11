@@ -156,7 +156,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_IMPORT_BACKUP, "Import Backup");
         setValue(L.LABEL_EXPORT_BACKUP, "Export");
         setValue(L.LABEL_IMPORT_BACKUP_AS_NEW, "Import Backup as New Book");
-        setValue(L.LABEL_BACKUP_DATE, "Date");
+        setValue(L.LABEL_DATE, "Date");
         setValue(L.LABEL_MESSAGES_COUNT, "Messages");
         setValue(L.LABEL_FULL_RESTORE, "Full Restore");
         setValue(L.LABEL_MESSAGES_ONLY_RESTORE, "Messages Only Restore");
@@ -273,6 +273,15 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_SEARCH, "Search");
         setValue(L.LABEL_SEARCH_ALL_BRANCHES, "Search the text of all branches");
         setValue(L.LABEL_SHOW_IN_STORY, "Show in story");
+        setValue(L.LABEL_ROOT, "Root");
+        setValue(L.LABEL_SCENE, "Scene");
+        setValue(L.LABEL_PRESENT, "Present");
+        setValue(L.LABEL_CLICK_TO_EXPAND, "Click to expand");
+        setValue(L.LABEL_RAW, "Raw");
+        setValue(L.LABEL_ERROR, "Error");
+        setValue(L.LABEL_VALID, "Valid");
+        setValue(L.LABEL_INVALID, "Invalid");
+        setValue(L.LABEL_APP_DESC, "Collaborative story writing app with LLM");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -305,6 +314,13 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ENUM_DOMAIN_RESOURCE, "Resource");
         setValue(L.ENUM_DOMAIN_PROTOCOL, "Protocol");
         setValue(L.ENUM_DOMAIN_SETTING, "Setting");
+        setValue(L.ENUM_BUNDLE_STATE_UNINSTALLED, "Uninstalled");
+        setValue(L.ENUM_BUNDLE_STATE_INSTALLED, "Installed");
+        setValue(L.ENUM_BUNDLE_STATE_RESOLVED, "Resolved");
+        setValue(L.ENUM_BUNDLE_STATE_STARTING, "Starting");
+        setValue(L.ENUM_BUNDLE_STATE_STOPPING, "Stopping");
+        setValue(L.ENUM_BUNDLE_STATE_ACTIVE, "Active");
+        setValue(L.ENUM_BUNDLE_STATE_UNKNOWN, "Unknown (%d)");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -413,6 +429,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_NO_EXTENDED_CONTENT, "This object has no extended content.");
         setValue(L.MSG_SEARCH_RESULTS, "%s parts found in all branches. Click \"Show in story\" on a highlighted part.");
         setValue(L.MSG_SEARCH_NO_RESULTS, "Nothing found.");
+        setValue(L.MSG_TREE_BLOCK_MESSAGES, "%d messages");
+        setValue(L.MSG_TREE_BLOCK_TITLE, "Collapsed block (%d messages, [%d–%d]). Click to expand.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
