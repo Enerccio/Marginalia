@@ -200,6 +200,24 @@ class OsgiServiceImplTest {
     }
 
     @Test
+    void onlyTheNewestVersionOfAnExtensionIsLoadedAtStart() throws Exception {
+        writeJar("a-1.0.0.jar", bundle("test.a", "1.0.0"));
+        writeJar("a-1.0.10.jar", bundle("test.a", "1.0.10"));
+        writeJar("a-1.0.2.jar", bundle("test.a", "1.0.2"));
+        writeJar("b-1.0.0.jar", bundle("test.b", "1.0.0"));
+
+        service.start();
+
+        assertThat(service.getBundles()).extracting(b -> b.getSymbolicName() + ":" + b.getVersion())
+                .containsExactlyInAnyOrder("test.a:1.0.10", "test.b:1.0.0");
+        assertThat(TestExtensionActivator.LOADED).containsOnlyKeys("test.a:1.0.10", "test.b:1.0.0");
+        assertThat(log.warnings()).anyMatch(m -> m.contains("a-1.0.0.jar")).anyMatch(m -> m.contains("a-1.0.2.jar"));
+        // the skipped versions are kept, out of the way
+        assertThat(jarNames()).containsExactlyInAnyOrder("a-1.0.10.jar", "b-1.0.0.jar");
+        assertThat(new File(extensions, "old-versions").list()).containsExactlyInAnyOrder("a-1.0.0.jar", "a-1.0.2.jar");
+    }
+
+    @Test
     void extensionLanguageIsAvailableWhileItIsLoaded() throws Exception {
         writeJar("lang.jar", bundle("test.lang", "1.0.0", "X-Test-Language=cs"));
         writeJar("other.jar", bundle("test.other", "1.0.0"));
