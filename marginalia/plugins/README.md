@@ -37,6 +37,19 @@ mvn package                       # target/chaptermarker-1.0.1.jar
 
 Requirements are the same as for the application: JDK 25+ and Maven 3.9+.
 
+### Building in Docker
+
+Without a local JDK and Maven, `docker-compose.yml` in this folder builds the application and all plugins in a
+container and copies the JARs into `build/` (ignored by Git):
+
+```sh
+docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
+```
+
+Run both from the repository root. `rebuild.sh` / `rebuild.bat` in the root use this to update a Docker server and
+copy the JARs into `data/extensions`.
+
 ## Writing a plugin
 
 A plugin is a Maven project with `bundle` packaging (`maven-bundle-plugin`) that depends on

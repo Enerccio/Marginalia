@@ -1,0 +1,53 @@
+@echo off
+setlocal
+
+rem Windows version of rebuild.sh: updates the checkout, rebuilds the plugins and the image, restarts the container.
+rem Run it from the repository root.
+
+rem Fetch the latest commit info from the remote repository
+git fetch origin || goto :fail_fetch
+
+rem Compare current local commit with remote upstream commit
+for /f %%i in ('git rev-parse HEAD') do set LOCAL=%%i
+for /f %%i in ('git rev-parse @{u}') do set REMOTE=%%i
+
+if "%LOCAL%"=="%REMOTE%" (
+    echo No updates found in Git repository. Containers remain running.
+    exit /b 0
+)
+
+echo New changes detected. Updating services...
+
+rem Bring down existing containers
+docker compose down
+
+rem Pull the new code
+git pull || goto :fail_pull
+
+rem Build the plugins in a container (compose file in marginalia\plugins, jars end up in its build folder) and
+rem overwrite the installed ones, they are loaded on the application start
+set PLUGINS_COMPOSE=marginalia\plugins\docker-compose.yml
+docker compose -f "%PLUGINS_COMPOSE%" build || goto :fail_plugins
+docker compose -f "%PLUGINS_COMPOSE%" run --rm plugins || goto :fail_plugins
+if not exist data\extensions mkdir data\extensions
+copy /y marginalia\plugins\build\*.jar data\extensions\ >nul || goto :fail_copy
+
+rem Rebuild and start containers in detached mode
+docker compose up -d --build
+exit /b %errorlevel%
+
+:fail_fetch
+echo Git fetch failed
+exit /b 1
+
+:fail_pull
+echo Git pull failed
+exit /b 1
+
+:fail_plugins
+echo Plugin build failed
+exit /b 1
+
+:fail_copy
+echo Copying plugins failed
+exit /b 1
