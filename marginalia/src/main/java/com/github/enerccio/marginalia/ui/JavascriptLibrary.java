@@ -212,31 +212,6 @@ public final class JavascriptLibrary {
                 """, element);
     }
 
-    /**
-     * Fires {@code panel-resize} ({@code detail.width}) on the element, 150 ms after its width changes.
-     */
-    public static void fireDebouncedResizeEvent(Element element) {
-        element.executeJs("""
-                const el = $0;
-                if (!el._hasResizeObserver) {
-                  el._hasResizeObserver = true;
-                  let timer;
-                  const observer = new ResizeObserver(entries => {
-                    for (let entry of entries) {
-                      const w = Math.round(entry.contentRect.width);
-                      if (w > 0) {
-                        clearTimeout(timer);
-                        timer = setTimeout(() => {
-                          el.dispatchEvent(new CustomEvent('panel-resize', { detail: { width: w } }));
-                        }, 150);
-                      }
-                    }
-                  });
-                  observer.observe(el);
-                }
-                """, element);
-    }
-
     // --- tab sheet ---
 
     /**

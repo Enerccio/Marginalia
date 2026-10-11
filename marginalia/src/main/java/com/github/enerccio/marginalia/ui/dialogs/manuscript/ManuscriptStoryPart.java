@@ -105,7 +105,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private Manuscript currentManuscript;
     private boolean isFrozen = false;
-    private double currentPanelWidth = 0;
 
     private final Map<Long, ChatMessageCard> activeCardMap = new LinkedHashMap<>();
     private ChatMessageCard streamingCard;
@@ -136,7 +135,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         centerContentPanel.addClassName(CssStyles.STORY_SCROLL_PANEL);
 
         setupScrollListener();
-        setupResizeObserver();
 
         bottomControlsLayout = buildBottomControls();
 
@@ -169,27 +167,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }).addEventData("event.detail.scrollTop");
 
         JavascriptLibrary.fireDebouncedScrollEvent(centerContentPanel.getElement());
-    }
-
-    private void setupResizeObserver() {
-        centerContentPanel.getElement().addEventListener("panel-resize", event -> {
-            double width = event.getEventData().get("event.detail.width").asDouble();
-            if (width > 0 && Math.abs(width - currentPanelWidth) >= 5) {
-                currentPanelWidth = width;
-                recalculateAllMessageHeights(width);
-            }
-        }).addEventData("event.detail.width");
-
-        JavascriptLibrary.fireDebouncedResizeEvent(centerContentPanel.getElement());
-    }
-
-    private void recalculateAllMessageHeights(double panelWidth) {
-        for (ChatMessageCard card : activeCardMap.values()) {
-            card.updateIntrinsicSizeEstimate(panelWidth);
-        }
-        if (streamingCard != null) {
-            streamingCard.updateIntrinsicSizeEstimate(panelWidth);
-        }
     }
 
     private HorizontalLayout buildBottomControls() throws Exception {
@@ -933,10 +910,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             setSpacing(false);
             addClassName(CssStyles.CHAT_MESSAGE);
 
-            if (currentPanelWidth > 0) {
-                updateIntrinsicSizeEstimate(currentPanelWidth);
-            }
-
             contentLayout = new VerticalLayout();
             contentLayout.setWidthFull();
             contentLayout.setPadding(false);
@@ -1067,51 +1040,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             add(contentLayout, metaLayout);
             setFlexGrow(1, contentLayout);
             setFlexGrow(0, metaLayout);
-        }
-
-        public void updateIntrinsicSizeEstimate(double containerWidth) {
-            int estimatedHeight = calculateEstimatedHeight(this.message, containerWidth);
-            getStyle().set("contain-intrinsic-size", "auto " + estimatedHeight + "px");
-        }
-
-        private int calculateEstimatedHeight(ChatMessage msg, double containerWidth) {
-            if (msg == null) {
-                return 200;
-            }
-
-            // Available text area width = Panel Width - Padding (16px) - Meta panel width (220px) - Card inner padding (24px)
-            double availableWidth = Math.max(200.0, containerWidth - 260.0);
-            int charsPerLine = Math.max(20, (int) Math.floor(availableWidth / 8.5));
-
-            int baseHeight = 110; // Header, padding, margins, meta layout
-
-            String response = StringUtils.defaultString(msg.getResponse());
-            if (!response.isEmpty()) {
-                int responseLines = countLinesWithWrapping(response, charsPerLine);
-                baseHeight += responseLines * 28;
-            }
-
-            String reasoning = StringUtils.defaultString(msg.getResponseReasoning());
-            if (StringUtils.isNotBlank(reasoning)) {
-                int reasoningLines = countLinesWithWrapping(reasoning, charsPerLine);
-                baseHeight += 40 + (reasoningLines * 24);
-            }
-
-            return Math.max(120, baseHeight);
-        }
-
-        private int countLinesWithWrapping(String text, int charsPerLine) {
-            if (StringUtils.isBlank(text)) return 0;
-            int totalLines = 0;
-            String[] paragraphs = text.split("\r?\n");
-            for (String p : paragraphs) {
-                if (p.isEmpty()) {
-                    totalLines += 1;
-                } else {
-                    totalLines += Math.max(1, (int) Math.ceil((double) p.length() / charsPerLine));
-                }
-            }
-            return totalLines;
         }
 
         private void createMenuItems() {
@@ -1319,9 +1247,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     editing = false;
                     editItem.setText(loc.getValue(L.LABEL_EDIT));
                     updateMetrics(message);
-                    if (currentPanelWidth > 0) {
-                        updateIntrinsicSizeEstimate(currentPanelWidth);
-                    }
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
                 }
@@ -1335,9 +1260,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
             message.setResponseReasoning(reasoningText);
             reasoningMarkdown.setContent(StringUtils.defaultString(reasoningText));
-            if (currentPanelWidth > 0) {
-                updateIntrinsicSizeEstimate(currentPanelWidth);
-            }
         }
 
         public void updateResponse(String responseText) {
@@ -1345,9 +1267,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             responseMarkdown.setContent(StringUtils.defaultString(responseText));
             if (!editing) {
                 responseTextArea.setValue(StringUtils.defaultString(responseText));
-            }
-            if (currentPanelWidth > 0) {
-                updateIntrinsicSizeEstimate(currentPanelWidth);
             }
         }
 
