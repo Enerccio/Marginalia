@@ -1,0 +1,10 @@
+# Builds all plugins in a container and copies the JARs into ./build:
+#   docker compose -f marginalia/plugins/docker-compose.yml build
+#   docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
+services:
+  plugins:
+    build:
+      context: ../..
+      dockerfile: marginalia/plugins/Dockerfile
+    volumes:
+      - ./build:/output
