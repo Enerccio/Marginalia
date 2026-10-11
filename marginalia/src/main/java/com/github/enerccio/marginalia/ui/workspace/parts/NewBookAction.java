@@ -12,13 +12,14 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
+import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 /**
  * Asks for a name, creates a book with the user's default model and protocol and opens it in the book dialog.
- * Shared by the book lists of the desktop and phone workspaces.
+ * Shared by the book lists of the desktop and phone workspaces (the phone one opens the phone book dialog).
  */
 @Configurable
 public class NewBookAction {
@@ -39,12 +40,22 @@ public class NewBookAction {
     private ProtocolService protocolService;
 
     private final Runnable onClose;
+    private final boolean phone;
 
     /**
      * @param onClose called when the book dialog is closed
      */
     public NewBookAction(Runnable onClose) {
+        this(onClose, false);
+    }
+
+    /**
+     * @param onClose called when the book dialog is closed
+     * @param phone   opens the {@link PhoneManuscriptDialog} instead of the {@link ManuscriptDialog}
+     */
+    public NewBookAction(Runnable onClose, boolean phone) {
         this.onClose = onClose;
+        this.phone = phone;
     }
 
     public void run() {
@@ -71,10 +82,17 @@ public class NewBookAction {
 
                 manuscript = manuscriptService.save(manuscript);
                 manuscriptService.markOpened(manuscript);
-                ManuscriptDialog manuscriptDialog = new ManuscriptDialog(manuscript);
-                manuscriptDialog.setOnClose(onClose);
-                manuscriptDialog.create();
-                manuscriptDialog.open();
+                if (phone) {
+                    PhoneManuscriptDialog manuscriptDialog = new PhoneManuscriptDialog(manuscript);
+                    manuscriptDialog.setOnClose(onClose);
+                    manuscriptDialog.create();
+                    manuscriptDialog.open();
+                } else {
+                    ManuscriptDialog manuscriptDialog = new ManuscriptDialog(manuscript);
+                    manuscriptDialog.setOnClose(onClose);
+                    manuscriptDialog.create();
+                    manuscriptDialog.open();
+                }
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }

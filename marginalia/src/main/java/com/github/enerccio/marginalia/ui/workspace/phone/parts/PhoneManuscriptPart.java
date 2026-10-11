@@ -15,7 +15,7 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
+import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
@@ -95,7 +95,7 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         mainLayout.setSpacing(true);
 
         Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK), Solid.PLUS.create(),
-                event -> new NewBookAction(this::refreshGrid).run());
+                event -> new NewBookAction(this::refreshGrid, true).run());
         addBookButton.setThemeName("primary");
 
         Button refreshButton = new Button(Solid.REFRESH.create(), event -> refreshGrid());
@@ -216,7 +216,7 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         Button editButton = new Button(Solid.PENCIL.create(), _ -> {
             try {
                 manuscriptService.markOpened(wrapper.getManuscript());
-                ManuscriptDialog dialog = new ManuscriptDialog(wrapper.getManuscript());
+                PhoneManuscriptDialog dialog = new PhoneManuscriptDialog(wrapper.getManuscript());
                 dialog.setOnClose(this::refreshGrid);
                 dialog.create();
                 dialog.open();
