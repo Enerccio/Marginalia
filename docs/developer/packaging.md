@@ -66,7 +66,9 @@ The `Dockerfile` in the repository root has two stages:
      (`--user`, compose `user:`), it changes nothing and the folder must already be writable for that user.
 
 Tests are skipped in the image build - they run in CI. `.dockerignore` keeps `marginalia/target/`, `.idea/`, the
-server's `data/` folder and the plugin folders out of the build context.
+server's `data/` folder, `marginalia/node_modules/` and the plugin `target/` and `build/` folders out of the build context
+(the plugin sources are in it, because the [plugin image](#building-the-plugins-in-docker) is built from the same
+context).
 
 `docker-compose.yml` builds the image and sets the runtime configuration:
 
@@ -186,6 +188,27 @@ of a `v*` tag; the Docker image doesn't contain them (server users put them into
 them in Admin → Extensions). When you change application classes that a plugin
 uses (decorated `@Extendable` methods, UI classes, services), rebuild the plugin and test it against the new
 application. See [Plugin development](plugins/index.md).
+
+### Building the plugins in Docker
+
+`marginalia/plugins/Dockerfile` is a separate build environment for the plugins, used by servers that build from
+source (and by anyone without a local JDK/Maven). Its `builder` stage (Maven + JDK 25, like the main `Dockerfile`)
+installs the application into the image's local Maven repository and builds every plugin against it; the final
+stage is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`, replacing the
+`*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`) mounts
+`marginalia/plugins/build` as `/output`:
+
+```sh
+docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
+```
+
+The JARs are not copied while the image is built, because a bind mount exists only when a container runs.
+
+`rebuild.sh` (Linux, macOS) and `rebuild.bat` (Windows) in the repository root update a Docker server: when the
+upstream branch has new commits they stop the container, `git pull`, build the plugins as above, copy the JARs into
+`data/extensions` (overwriting the installed ones; extensions load on start) and run `docker compose up -d --build`.
+The two scripts must be kept in step; `.gitattributes` keeps the shell script on LF and the batch file on CRLF.
 
 ## Continuous integration
 

@@ -17,6 +17,7 @@ Marginalia/
 │   └── server.yml           CI: WAR, plugin JARs, Docker image (ghcr.io), release upload
 ├── Dockerfile               two-stage build: Maven builder → Jetty 12 image
 ├── docker-compose.yml       the server setup (port 8080, ./data volume, JVM options)
+├── rebuild.sh, rebuild.bat  update a Docker server: pull, build the plugins, copy them to data/extensions, restart
 ├── retype.yml               manual configuration (input manual/, output docs/)
 ├── README.md, LICENSE
 ├── TODO.md                  release plan
@@ -26,8 +27,8 @@ Marginalia/
 | Path | Notes |
 |---|---|
 | `data/` | Created by `docker compose`: the data folder of the Docker server. Ignored by Git. |
-| `.gitattributes` | Keeps line endings of the desktop launch scripts (`LF` for the shell script, `CRLF` for the batch file). |
-| `.dockerignore` | Excludes `marginalia/target/` and `.idea/` from the Docker build context. |
+| `.gitattributes` | Keeps line endings of the desktop launch scripts and of `rebuild.sh` / `rebuild.bat` (`LF` for the shell scripts, `CRLF` for the batch files). |
+| `.dockerignore` | Excludes `marginalia/target/`, `marginalia/node_modules/`, the plugin `target/` and `build/` folders and `.idea/` from the Docker build context. |
 
 ## The application (`marginalia/`)
 
@@ -275,6 +276,9 @@ plugins/<name>/
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Reviewer | `extensions.reviewer` | Model, service, dialogs and a settings form. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form. |
+
+`plugins/Dockerfile` and `plugins/docker-compose.yml` build all of them in a container (JARs end up in `plugins/build/`,
+ignored by Git), see [Packaging](packaging.md#building-the-plugins-in-docker).
 
 See [Plugin development](plugins/index.md).
 

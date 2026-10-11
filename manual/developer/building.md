@@ -6,6 +6,8 @@ covers:
   - marginalia/pom.xml
   - marginalia/src/main/java/com/github/enerccio/tools
   - Dockerfile
+  - marginalia/plugins/Dockerfile
+  - marginalia/plugins/docker-compose.yml
 ---
 
 # Building from source
@@ -261,6 +263,21 @@ mvn package                       # target/chaptermarker-1.0.1.jar
 Load the JAR in *Admin → Extensions* of your running instance, or copy it into `.marginalia/extensions` of your
 development home before starting. Rebuild the plugins whenever you change classes they use - they are built for one
 exact version of the application. See [Plugin development](plugins/index.md).
+
+### In Docker
+
+`marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
+needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
+repository root; the image copies `marginalia/pom.xml`, `marginalia/src`, `.git` and `marginalia/plugins`, runs
+`mvn install -DskipTests` for the application and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
+The JARs are copied out when the container runs, because they go into a bind mount:
+
+```sh
+docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins     # JARs in marginalia/plugins/build
+```
+
+A new plugin folder with a `pom.xml` is picked up without changes to the Dockerfile.
 
 ## Database schema changes
 

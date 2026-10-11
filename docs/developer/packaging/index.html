@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845026098126">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845027284737">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845026098126" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845027284737" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845026098126" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845027284737" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845026098126" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845026098126" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845027284737" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845027284737" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -300,7 +300,9 @@ by root - changes its owner to <code translate="no" v-pre>jetty</code> (recursiv
 </li>
 </ol>
 <p>Tests are skipped in the image build - they run in CI. <code translate="no" v-pre>.dockerignore</code> keeps <code translate="no" v-pre>marginalia/target/</code>, <code translate="no" v-pre>.idea/</code>, the
-server&#x27;s <code translate="no" v-pre>data/</code> folder and the plugin folders out of the build context.</p>
+server&#x27;s <code translate="no" v-pre>data/</code> folder, <code translate="no" v-pre>marginalia/node_modules/</code> and the plugin <code translate="no" v-pre>target/</code> and <code translate="no" v-pre>build/</code> folders out of the build context
+(the plugin sources are in it, because the <doc-anchor-trigger to="#building-the-plugins-in-docker">plugin image</doc-anchor-trigger> is built from the same
+context).</p>
 <p><code translate="no" v-pre>docker-compose.yml</code> builds the image and sets the runtime configuration:</p>
 <retype-table copy-text="| Setting | |
 |---|---|
@@ -470,6 +472,22 @@ of a <code translate="no" v-pre>v*</code> tag; the Docker image doesn&#x27;t con
 them in Admin → Extensions). When you change application classes that a plugin
 uses (decorated <code translate="no" v-pre>@Extendable</code> methods, UI classes, services), rebuild the plugin and test it against the new
 application. See <a href="../plugins/">Plugin development</a>.</p>
+<h3 id="building-the-plugins-in-docker">Building the plugins in Docker</h3>
+<p><code translate="no" v-pre>marginalia/plugins/Dockerfile</code> is a separate build environment for the plugins, used by servers that build from
+source (and by anyone without a local JDK/Maven). Its <code translate="no" v-pre>builder</code> stage (Maven + JDK 25, like the main <code translate="no" v-pre>Dockerfile</code>)
+installs the application into the image&#x27;s local Maven repository and builds every plugin against it; the final
+stage is a small Alpine image that holds the JARs in <code translate="no" v-pre>/jars</code>. Its command copies them to <code translate="no" v-pre>/output</code>, replacing the
+<code translate="no" v-pre>*.jar</code> files there, so the compose file (<code translate="no" v-pre>marginalia/plugins/docker-compose.yml</code>, build context <code translate="no" v-pre>../..</code>) mounts
+<code translate="no" v-pre>marginalia/plugins/build</code> as <code translate="no" v-pre>/output</code>:</p>
+<div id="building-the-plugins-in-docker-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins</code></pre>
+</doc-codeblock></div>
+<p>The JARs are not copied while the image is built, because a bind mount exists only when a container runs.</p>
+<p><code translate="no" v-pre>rebuild.sh</code> (Linux, macOS) and <code translate="no" v-pre>rebuild.bat</code> (Windows) in the repository root update a Docker server: when the
+upstream branch has new commits they stop the container, <code translate="no" v-pre>git pull</code>, build the plugins as above, copy the JARs into
+<code translate="no" v-pre>data/extensions</code> (overwriting the installed ones; extensions load on start) and run <code translate="no" v-pre>docker compose up -d --build</code>.
+The two scripts must be kept in step; <code translate="no" v-pre>.gitattributes</code> keeps the shell script on LF and the batch file on CRLF.</p>
 <h2 id="continuous-integration">Continuous integration</h2>
 <p>Two workflows, <code translate="no" v-pre>desktop.yml</code> (tests and the desktop archives) and <code translate="no" v-pre>server.yml</code> (WAR, plugins, Docker image). Both run
 on pushes to <code translate="no" v-pre>master</code>, on <code translate="no" v-pre>v*</code> tags, on pull requests that change <code translate="no" v-pre>marginalia/**</code> or the workflow, and by hand

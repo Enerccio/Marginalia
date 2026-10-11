@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845026098126">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845027284737">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845026098126" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845027284737" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845026098126" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845027284737" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845026098126" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845026098126" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845027284737" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845027284737" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -324,6 +324,24 @@ docker compose up -d --build</code></pre>
 <p>The database is upgraded automatically when the new version starts. Marginalia saves a
 <a href="../../administration/database-backups/#copy-before-an-upgrade">copy of the database</a> before it changes its structure,
 but make a <a href="../../administration/database-backups/">database backup</a> of your own first as well.</p>
+<h3 id="automatic-updates">Automatic updates</h3>
+<p><code translate="no" v-pre>rebuild.sh</code> (Linux, macOS) and <code translate="no" v-pre>rebuild.bat</code> (Windows) in the repository root do the update for you; run them from
+the root, for example from a cron job or a scheduled task. They fetch the remote branch and do nothing when there is
+nothing new. Otherwise they stop the container, <code translate="no" v-pre>git pull</code>, rebuild the <doc-anchor-trigger to="#plugins">bundled plugins</doc-anchor-trigger> and copy their
+JARs into <code translate="no" v-pre>data/extensions</code> (replacing the installed ones), and start the container again with <code translate="no" v-pre>docker compose up -d --build</code>. If any step fails, the script stops with a message.</p>
+<h2 id="plugins">Plugins</h2>
+<p>The Docker image doesn&#x27;t contain the <a href="../../extensions/">extensions</a>, and they have to be built from the same
+source as the application. You don&#x27;t need Java or Maven for that: <code translate="no" v-pre>marginalia/plugins/docker-compose.yml</code> builds all
+five in a container, which builds the application first and then every plugin, and copies the JARs into
+<code translate="no" v-pre>marginalia/plugins/build</code>:</p>
+<div id="plugins-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins</code></pre>
+</doc-codeblock></div>
+<p>The first build takes several minutes (it downloads the dependencies of the application). Then copy the JARs into
+<code translate="no" v-pre>data/extensions</code> and restart Marginalia, or load them in <em>Admin → Extensions</em> (see
+<a href="../../administration/extensions/">Extensions</a>). <code translate="no" v-pre>rebuild.sh</code> / <code translate="no" v-pre>rebuild.bat</code> do the copying for you, so on a server
+that uses them the plugins are always updated together with the application.</p>
 <h2 id="health">Health</h2>
 <p>The image has a Docker health check: <code translate="no" v-pre>docker ps</code> shows <code translate="no" v-pre>(health: starting)</code> while Marginalia starts (up to two
 minutes), then <code translate="no" v-pre>(healthy)</code>. It is <code translate="no" v-pre>unhealthy</code> when port 8080 stops answering with a page. Docker does not restart an

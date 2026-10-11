@@ -28,6 +28,9 @@
     <loc>https://enerccio.github.io/Marginalia/user/extensions/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/getting-started/docker-server/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/resources/</loc>
   </url>
   <url>
@@ -47,9 +50,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/templates/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/getting-started/docker-server/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/summaries/</loc>
@@ -160,10 +160,10 @@
     <loc>https://enerccio.github.io/Marginalia/user/administration/cleanup/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/administration/users/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/administration/extensions/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/administration/extensions/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/administration/users/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/extendable/</loc>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845026098126">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845027284737">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845026098126" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845027284737" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845026098126" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845027284737" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845026098126" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845027284737" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -180,6 +180,7 @@ something. <a href="../architecture/">Architecture</a> explains how the parts wo
 │   └── server.yml           CI: WAR, plugin JARs, Docker image (ghcr.io), release upload
 ├── Dockerfile               two-stage build: Maven builder → Jetty 12 image
 ├── docker-compose.yml       the server setup (port 8080, ./data volume, JVM options)
+├── rebuild.sh, rebuild.bat  update a Docker server: pull, build the plugins, copy them to data/extensions, restart
 ├── retype.yml               manual configuration (input manual/, output docs/)
 ├── README.md, LICENSE
 ├── TODO.md                  release plan
@@ -188,8 +189,8 @@ something. <a href="../architecture/">Architecture</a> explains how the parts wo
 <retype-table copy-text="| Path | Notes |
 |---|---|
 | `data/` | Created by `docker compose`: the data folder of the Docker server. Ignored by Git. |
-| `.gitattributes` | Keeps line endings of the desktop launch scripts (`LF` for the shell script, `CRLF` for the batch file). |
-| `.dockerignore` | Excludes `marginalia/target/` and `.idea/` from the Docker build context. |">
+| `.gitattributes` | Keeps line endings of the desktop launch scripts and of `rebuild.sh` / `rebuild.bat` (`LF` for the shell scripts, `CRLF` for the batch files). |
+| `.dockerignore` | Excludes `marginalia/target/`, `marginalia/node_modules/`, the plugin `target/` and `build/` folders and `.idea/` from the Docker build context. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -205,11 +206,11 @@ something. <a href="../architecture/">Architecture</a> explains how the parts wo
 </tr>
 <tr>
 <td><code translate="no" v-pre>.gitattributes</code></td>
-<td>Keeps line endings of the desktop launch scripts (<code translate="no" v-pre>LF</code> for the shell script, <code translate="no" v-pre>CRLF</code> for the batch file).</td>
+<td>Keeps line endings of the desktop launch scripts and of <code translate="no" v-pre>rebuild.sh</code> / <code translate="no" v-pre>rebuild.bat</code> (<code translate="no" v-pre>LF</code> for the shell scripts, <code translate="no" v-pre>CRLF</code> for the batch files).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>.dockerignore</code></td>
-<td>Excludes <code translate="no" v-pre>marginalia/target/</code> and <code translate="no" v-pre>.idea/</code> from the Docker build context.</td>
+<td>Excludes <code translate="no" v-pre>marginalia/target/</code>, <code translate="no" v-pre>marginalia/node_modules/</code>, the plugin <code translate="no" v-pre>target/</code> and <code translate="no" v-pre>build/</code> folders and <code translate="no" v-pre>.idea/</code> from the Docker build context.</td>
 </tr>
 </tbody>
 </table>
@@ -996,6 +997,8 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 </table>
 </div>
 </retype-table>
+<p><code translate="no" v-pre>plugins/Dockerfile</code> and <code translate="no" v-pre>plugins/docker-compose.yml</code> build all of them in a container (JARs end up in <code translate="no" v-pre>plugins/build/</code>,
+ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Packaging</a>.</p>
 <p>See <a href="../plugins/">Plugin development</a>.</p>
 <h2 id="build-output-marginaliatarget">Build output (<code translate="no" v-pre>marginalia/target/</code>)</h2>
 <retype-table copy-text="| Path | |

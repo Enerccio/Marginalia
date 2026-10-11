@@ -25,7 +25,8 @@ again, or the page reloaded.
 
 JAR files can also be copied into the `extensions` folder directly, for example on a server without access to the
 UI; they are loaded on the next start. This is also how the Docker setup can be prepared: put the JARs into
-`./data/extensions`.
+`./data/extensions`. The JARs can be built in Docker too, see
+[Plugins](../getting-started/docker-server.md#plugins) in the server guide.
 
 !!!warning Use extensions built for this version
 Extensions change parts of the user interface of one Marginalia version. Use the extensions built from the same source

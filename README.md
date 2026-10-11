@@ -121,7 +121,7 @@ model. Then create a book, choose the provider and a protocol, and start writing
 
 Extensions are OSGi bundles (JAR files). Administrators install them in *Admin → Extensions*; they are stored in
 `~/.marginalia/extensions`. Five plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
-built separately with Maven:
+built separately with Maven, or in Docker (see the plugins README):
 
 - [Author's Note](marginalia/plugins/authorsnote/README.md) - a note to the model inserted into every generation,
 - [Chapter Marker](marginalia/plugins/chaptermarker/README.md) - chapters in the story sidebar,
