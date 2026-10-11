@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845046355948">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845063418945">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845046355948" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845063418945" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845046355948" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845063418945" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845046355948" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845046355948" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845063418945" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845063418945" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -475,7 +475,8 @@ application. See <a href="../plugins/">Plugin development</a>.</p>
 <h3 id="building-the-plugins-in-docker">Building the plugins in Docker</h3>
 <p><code translate="no" v-pre>marginalia/plugins/Dockerfile</code> is a separate build environment for the plugins, used by servers that build from
 source (and by anyone without a local JDK/Maven). Its <code translate="no" v-pre>builder</code> stage (Maven + JDK 25, like the main <code translate="no" v-pre>Dockerfile</code>)
-installs the application into the image&#x27;s local Maven repository and builds every plugin against it; the final
+installs the application into the image&#x27;s local Maven repository (with <code translate="no" v-pre>-Dvaadin.skip=true</code>: the plugins need only the
+classes JAR, so the frontend is not built, see <a href="../building/">Building</a>) and builds every plugin against it; the final
 stage is a small Alpine image that holds the JARs in <code translate="no" v-pre>/jars</code>. Its command copies them to <code translate="no" v-pre>/output</code>, replacing the
 <code translate="no" v-pre>*.jar</code> files there, so the compose file (<code translate="no" v-pre>marginalia/plugins/docker-compose.yml</code>, build context <code translate="no" v-pre>../..</code>) mounts
 <code translate="no" v-pre>marginalia/plugins/build</code> as <code translate="no" v-pre>/output</code>:</p>

@@ -90,8 +90,9 @@ is part of the hash of the meta summary and it would be dropped as outdated.
 
 ### A tab next to the story
 
-`ManuscriptStoryPart.renderStoryContent()` rebuilds the whole story view - and the `leftBar` tab sheet with the story
-outline - every time the story is redrawn (opening the book, after a generation, after a delete). Side Query adds its
+`ManuscriptStoryPart.renderStoryContent()` redraws the message cards and the chapter outline every time the story is
+redrawn (opening the book, after a generation, after a delete); the `leftBar` tab sheet with the story outline is created
+once, so the selected tab survives a redraw. The method runs many times, so check for your tab first. Side Query adds its
 tab on leave:
 
 ```java
@@ -104,8 +105,7 @@ if (leftBar != null && book != null && ComponentUtil.getData(leftBar, KEY) == nu
 }
 ```
 
-Because the tab sheet is new on every redraw, so is the plugin's component - keep state that must survive a redraw
-in the plugin's data, not in the component.
+The tab sheet (and so the plugin's component) lives as long as the story part, a redraw does not recreate it.
 
 ### Panels in an existing layout
 

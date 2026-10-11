@@ -205,6 +205,10 @@ The dialog holds the book (`getManuscript()`, `refreshManuscript()` reloads it, 
 Summary / Delete), the *New Turn Instructions* popover, starting generations and applying the result, the automatic
 book backups, and the menu bar of the bottom bar (see [The story menu bar](#the-story-menu-bar)).
 
+`renderStoryContent()` redraws only the cards and the outline list: the left tab sheet is created once in `create()`
+(so the selected tab and the tabs of extensions survive), and the reasonings that were open are reopened on the new
+cards. `PhoneManuscriptStoryPart` does the same.
+
 ### The story menu bar
 
 The bottom bar of the story editor has a `MenuBar` with two items, built by small methods so that extensions can add

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845046355948">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845063418945">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845046355948" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845063418945" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845046355948" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845063418945" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845046355948" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845046355948" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845063418945" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845063418945" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -264,8 +264,9 @@ it keeps the token counts, the hashes of the summaries and the meta summaries th
 particular, don&#x27;t edit the text of a summary a meta summary stands in for (shown under it in the overview) - its text
 is part of the hash of the meta summary and it would be dropped as outdated.</p>
 <h3 id="a-tab-next-to-the-story">A tab next to the story</h3>
-<p><code translate="no" v-pre>ManuscriptStoryPart.renderStoryContent()</code> rebuilds the whole story view - and the <code translate="no" v-pre>leftBar</code> tab sheet with the story
-outline - every time the story is redrawn (opening the book, after a generation, after a delete). Side Query adds its
+<p><code translate="no" v-pre>ManuscriptStoryPart.renderStoryContent()</code> redraws the message cards and the chapter outline every time the story is
+redrawn (opening the book, after a generation, after a delete); the <code translate="no" v-pre>leftBar</code> tab sheet with the story outline is created
+once, so the selected tab survives a redraw. The method runs many times, so check for your tab first. Side Query adds its
 tab on leave:</p>
 <div id="a-tab-next-to-the-story-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">VTabSheet leftBar = context.getReflectiveFieldValue(instrumented, &quot;leftBar&quot;, VTabSheet.class);
@@ -276,8 +277,7 @@ if (leftBar != null &amp;&amp; book != null &amp;&amp; ComponentUtil.getData(lef
     ComponentUtil.setData(leftBar, KEY, view);
 }</code></pre>
 </doc-codeblock></div>
-<p>Because the tab sheet is new on every redraw, so is the plugin&#x27;s component - keep state that must survive a redraw
-in the plugin&#x27;s data, not in the component.</p>
+<p>The tab sheet (and so the plugin&#x27;s component) lives as long as the story part, a redraw does not recreate it.</p>
 <h3 id="panels-in-an-existing-layout">Panels in an existing layout</h3>
 <p>Find the layout and insert at a position relative to a known child. Lorebook VCS puts its panel above the lorebook
 header that <code translate="no" v-pre>LorebookView.create()</code> builds:</p>
