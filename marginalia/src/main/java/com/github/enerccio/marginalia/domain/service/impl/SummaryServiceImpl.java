@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
+import com.github.enerccio.marginalia.domain.components.SummaryNode;
+import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.repository.SummaryRepository;

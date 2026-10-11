@@ -1,9 +1,10 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
+import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
+import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
-import com.github.enerccio.marginalia.domain.service.TokenLimits;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.FromEventCallback;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
@@ -54,12 +55,15 @@ public class PrepareContentStep extends GenerationStepBase {
                 controller.emitEvent(Events.BEFORE_SUMMARIES, () -> {
                     // room for the response is reserved, the prompt gets the rest of the context
                     int limit = TokenLimits.promptTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol());
+                    PromptTokenBreakdown breakdown = createBreakdown(controller, data);
+                    controller.getProperties().put(GenerationProperties.TOKEN_BREAKDOWN, breakdown);
 
                     List<String> summaries = (List<String>) controller.getProperties().get(GenerationProperties.SUMMARIES);
                     String sumText = "";
                     if (summaries != null) {
                         sumText = String.join("\n", summaries);
                     }
+                    breakdown.setSummaryTokens(inferenceService.countTokens(sumText));
 
                     MasterTemplateData templateData = new MasterTemplateData();
                     templateData.setBackgroundLore(data.getBackgroundLore());
@@ -90,9 +94,13 @@ public class PrepareContentStep extends GenerationStepBase {
 
                         long tokens = baseTokens + reservedTokens;
                         List<String> storyText = new ArrayList<>();
+                        long historyTokens = 0;
+                        // set when the room ended before the story did (the rest is cut, not replaced by a summary)
+                        boolean outOfRoom = false;
 
                         while (true) {
                             if (tokens > limit - 256) {
+                                outOfRoom = true;
                                 break;
                             }
                             if (!iterator.hasNext())
@@ -103,12 +111,34 @@ public class PrepareContentStep extends GenerationStepBase {
                                     break;
                             }
                             if (StringUtils.isNotBlank(message.getResponse())) {
-                                if (tokens + message.getTokenCount() + 100 > limit - 256)
+                                if (tokens + message.getTokenCount() + 100 > limit - 256) {
+                                    outOfRoom = true;
+                                    // the message that did not fit is cut as well
+                                    breakdown.setCutMessages(breakdown.getCutMessages() + 1);
+                                    breakdown.setCutTokens(breakdown.getCutTokens() + message.getTokenCount());
                                     break;
+                                }
                                 storyText.add(message.getResponse());
+                                historyTokens += message.getTokenCount();
                                 tokens += message.getTokenCount() + 100; /* Buffer for dummy messages */
                             }
                         }
+
+                        if (outOfRoom) {
+                            // the rest of the story until the newest summary
+                            while (iterator.hasNext()) {
+                                ChatMessage message = iterator.next();
+                                if (stopMessage.isPresent() && stopMessage.fastGet().getId().equals(message.getId())) {
+                                    break;
+                                }
+                                if (StringUtils.isNotBlank(message.getResponse())) {
+                                    breakdown.setCutMessages(breakdown.getCutMessages() + 1);
+                                    breakdown.setCutTokens(breakdown.getCutTokens() + message.getTokenCount());
+                                }
+                            }
+                        }
+                        breakdown.setHistoryMessages(storyText.size());
+                        breakdown.setHistoryTokens(historyTokens);
 
                         Collections.reverse(storyText);
                         controller.getProperties().put(GenerationProperties.MANUSCRIPT_CHRONICLE, storyText);
@@ -117,11 +147,14 @@ public class PrepareContentStep extends GenerationStepBase {
                             String systemPrompt = templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData);
                             data.setSystemPrompt(systemPrompt);
                             data.setSystemPromptTokens(inferenceService.countTokens(systemPrompt));
+                            breakdown.setTemplateTokens(templateTokens(breakdown, data.getSystemPromptTokens()));
                             controller.emitEvent(Events.AFTER_PREPARE_CONTENT, controller::next);
                         });
                     } else {
                         data.setSystemPrompt(templateService.processTemplate(data.getGeneralTemplate(), "systemTemplate", templateData));
                         data.setSystemPromptTokens(baseTokens);
+                        breakdown.setTemplateTokens(templateTokens(breakdown,
+                                inferenceService.countTokens(data.getSystemPrompt())));
                         controller.emitEvent(Events.AFTER_PREPARE_CONTENT, controller::next);
                     }
                 });
@@ -134,6 +167,34 @@ public class PrepareContentStep extends GenerationStepBase {
                 callback.returnFromEvent();
             }
         });
+    }
+
+    /**
+     * Breakdown with the budget and the sections that are known before the story is chosen.
+     */
+    private PromptTokenBreakdown createBreakdown(GenerationController controller, PrePromptData data) {
+        PromptTokenBreakdown breakdown = new PromptTokenBreakdown();
+        breakdown.setContextTokens(TokenLimits.contextTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol()));
+        breakdown.setResponseTokens(TokenLimits.responseTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol()));
+        breakdown.setPromptLimitTokens(TokenLimits.promptTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol()));
+        breakdown.setJailbreakTokens(data.getJailbreakTokens());
+        breakdown.setLoreTokens(data.getBackgroundLoreTokens());
+        breakdown.setUserLoreTokens(data.getBackgroundUserLoreTokens());
+        // the lore in front of the user prompt is already added to its tokens
+        long userPrompt = data.getUserPromptProcessedTokens();
+        if (StringUtils.isNotBlank(data.getBackgroundUserLore())) {
+            userPrompt -= data.getBackgroundUserLoreTokens();
+        }
+        breakdown.setUserPromptTokens(Math.max(0, userPrompt));
+        breakdown.setReservedTokens(Math.max(0, data.getReservedTokens()));
+        return breakdown;
+    }
+
+    /**
+     * Tokens of the system prompt that are neither lore nor summaries.
+     */
+    private long templateTokens(PromptTokenBreakdown breakdown, long systemPromptTokens) {
+        return Math.max(0, systemPromptTokens - breakdown.getLoreTokens() - breakdown.getSummaryTokens());
     }
 
     /**

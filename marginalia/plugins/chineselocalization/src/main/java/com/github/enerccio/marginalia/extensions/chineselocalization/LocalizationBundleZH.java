@@ -300,6 +300,20 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_VALID, "有效");
         setValue(L.LABEL_INVALID, "无效");
         setValue(L.LABEL_APP_DESC, "与大语言模型协作创作故事的应用");
+        setValue(L.LABEL_TOKEN_USAGE, "令牌用量");
+        setValue(L.LABEL_TOKEN_CONTEXT, "上下文大小");
+        setValue(L.LABEL_TOKEN_TEMPLATE, "系统模板");
+        setValue(L.LABEL_TOKEN_LORE, "设定");
+        setValue(L.LABEL_TOKEN_STORY, "已有故事");
+        setValue(L.LABEL_TOKEN_USER_LORE, "用户提示中的设定");
+        setValue(L.LABEL_TOKEN_USER_PROMPT, "用户提示");
+        setValue(L.LABEL_TOKEN_RESERVED, "扩展预留");
+        setValue(L.LABEL_TOKEN_RESPONSE, "为回复预留");
+        setValue(L.LABEL_TOKEN_FREE, "空闲");
+        setValue(L.LABEL_ROLE, "角色");
+        setValue(L.LABEL_SYSTEM, "系统");
+        setValue(L.LABEL_ASSISTANT, "助手");
+        setValue(L.LABEL_PAYLOAD_MESSAGES, "发送给模型的消息");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -449,6 +463,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_SEARCH_NO_RESULTS, "未找到任何内容。");
         setValue(L.MSG_TREE_BLOCK_MESSAGES, "%d 条消息");
         setValue(L.MSG_TREE_BLOCK_TITLE, "已折叠的区块（%d 条消息，[%d–%d]）。点击展开。");
+        setValue(L.MSG_TOKEN_USAGE_UNAVAILABLE, "此部分未记录令牌用量。");
+        setValue(L.MSG_TOKEN_CUT, "%d 条消息（%d 个令牌）超出上下文，已被省略。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

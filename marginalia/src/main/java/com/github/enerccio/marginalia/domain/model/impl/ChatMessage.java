@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
+import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
@@ -112,6 +113,11 @@ public class ChatMessage extends ExtendableEntity {
     @Transient
     private String backgroundLore;
 
+    // JSON of PromptTokenBreakdown, extended attributes are plain strings; null for parts generated before it existed
+    @ExtendedAttribute
+    @Transient
+    private String tokenBreakdown;
+
     // JSON array of ImageAttachment, extended attributes are plain strings
     @ExtendedAttribute
     @Transient
@@ -135,6 +141,7 @@ public class ChatMessage extends ExtendableEntity {
         this.imageAttachments = source.imageAttachments;
         this.builtPrompt = source.builtPrompt;
         this.builtPromptTokens = source.builtPromptTokens;
+        this.tokenBreakdown = source.tokenBreakdown;
         this.instructions = source.instructions;
         this.modelUsed = source.modelUsed;
         this.parent = source.parent;
@@ -354,6 +361,18 @@ public class ChatMessage extends ExtendableEntity {
 
     public void setImages(List<ImageAttachment> images) {
         this.imageAttachments = images == null || images.isEmpty() ? null : GSON.toJson(images, IMAGES_TYPE);
+    }
+
+    /**
+     * @return token counts of the prompt this part was generated from, null when not recorded (parts generated before
+     * the breakdown existed, or imported without it)
+     */
+    public PromptTokenBreakdown getTokenBreakdown() {
+        return PromptTokenBreakdown.fromJson(tokenBreakdown);
+    }
+
+    public void setTokenBreakdown(PromptTokenBreakdown breakdown) {
+        this.tokenBreakdown = breakdown == null ? null : breakdown.toJson();
     }
 
 }

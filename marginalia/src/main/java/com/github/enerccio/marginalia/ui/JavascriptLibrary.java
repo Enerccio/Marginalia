@@ -26,6 +26,19 @@ public final class JavascriptLibrary {
         );
     }
 
+    // --- chart ---
+
+    /**
+     * Draws the Chart.js chart described by the JSON configuration into the element.
+     */
+    public static void renderChart(Element element, String jsonConfig) {
+        element.executeJs(
+                "if (window.renderChart) { window.renderChart($0, JSON.parse($1)); }",
+                element,
+                jsonConfig
+        );
+    }
+
     // --- page ---
 
     /**

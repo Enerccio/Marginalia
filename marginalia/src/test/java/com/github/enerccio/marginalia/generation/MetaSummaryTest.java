@@ -1,12 +1,12 @@
 package com.github.enerccio.marginalia.generation;
 
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
+import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.BackupService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.SummaryNode;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;

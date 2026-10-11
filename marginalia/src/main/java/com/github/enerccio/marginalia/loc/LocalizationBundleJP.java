@@ -292,6 +292,20 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_VALID, "有効");
         setValue(L.LABEL_INVALID, "無効");
         setValue(L.LABEL_APP_DESC, "LLM と共同で物語を執筆するアプリ");
+        setValue(L.LABEL_TOKEN_USAGE, "トークン使用量");
+        setValue(L.LABEL_TOKEN_CONTEXT, "コンテキストサイズ");
+        setValue(L.LABEL_TOKEN_TEMPLATE, "システムテンプレート");
+        setValue(L.LABEL_TOKEN_LORE, "設定資料");
+        setValue(L.LABEL_TOKEN_STORY, "これまでの物語");
+        setValue(L.LABEL_TOKEN_USER_LORE, "ユーザープロンプト内の設定資料");
+        setValue(L.LABEL_TOKEN_USER_PROMPT, "ユーザープロンプト");
+        setValue(L.LABEL_TOKEN_RESERVED, "拡張機能の予約分");
+        setValue(L.LABEL_TOKEN_RESPONSE, "応答用の予約分");
+        setValue(L.LABEL_TOKEN_FREE, "空き");
+        setValue(L.LABEL_ROLE, "ロール");
+        setValue(L.LABEL_SYSTEM, "システム");
+        setValue(L.LABEL_ASSISTANT, "アシスタント");
+        setValue(L.LABEL_PAYLOAD_MESSAGES, "モデルに送信されたメッセージ");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -441,6 +455,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_SEARCH_NO_RESULTS, "見つかりませんでした。");
         setValue(L.MSG_TREE_BLOCK_MESSAGES, "%d 件のメッセージ");
         setValue(L.MSG_TREE_BLOCK_TITLE, "折りたたまれたブロック（%d 件のメッセージ、[%d–%d]）。クリックで展開します。");
+        setValue(L.MSG_TOKEN_USAGE_UNAVAILABLE, "このパートのトークン使用量は記録されていません。");
+        setValue(L.MSG_TOKEN_CUT, "%d 件のメッセージ（%d トークン）はコンテキストに収まらず除外されました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

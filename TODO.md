@@ -149,8 +149,11 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - Native Anthropic / Gemini clients (tokenizer strategies for LiteLLM-Anthropic already exist).
     - 🧩 Each new provider could be a plugin if `InferenceServices` gets a registration API like decorators have.
 
-19. **Context / token budget view.** Show per-section token usage of the last prompt (system, lore, summaries,
-    history, instructions) and what was cut. The data is already computed in the generation steps.
+19. ✅ **Context / token budget view.** `PromptTokenBreakdown` (`domain.components`) records the raw tokens of every
+    prompt section (jailbreak, template, lore, summaries, story, user lore, user prompt, reserved), the budget, the
+    story parts that were cut and the tokens of each payload message; it is stored with the part
+    (`ChatMessage.tokenBreakdown`, `null` for older parts) and *Token Usage* in the part menu shows it with Chart.js
+    (`ChartJs` widget, `TokenUsageDialog`). Not done: a view of the whole book's budget before generating.
 
 20. **Lorebook improvements.**
     - ✅ Edit lorebook-level tags in `LorebookView` (generation reads them in `fillEntries`, but there's no UI).

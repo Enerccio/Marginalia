@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
 import com.github.enerccio.marginalia.Constants;
+import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
@@ -8,7 +9,6 @@ import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
-import com.github.enerccio.marginalia.domain.service.TokenLimits;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.loc.L;
