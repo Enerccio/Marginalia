@@ -7,6 +7,9 @@ import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.instruct.fixture.verify.VerifyFixtures;
+import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.LocalizationBundleEN;
+import com.github.enerccio.marginalia.loc.LocalizationImpl;
 import com.github.enerccio.marginalia.test.ExpectedLog;
 import com.vaadin.flow.component.html.Div;
 import org.junit.jupiter.api.AfterEach;
@@ -45,6 +48,7 @@ class OsgiServiceImplTest {
 
     private File extensions;
     private OsgiServiceImpl service;
+    private LocalizationImpl localization;
     private ExpectedLog log;
     private long applicationTimestamp;
 
@@ -66,6 +70,9 @@ class OsgiServiceImplTest {
         };
         ReflectionTestUtils.setField(service, "configuration", configuration);
         ReflectionTestUtils.setField(service, "extensionService", new ExtensionServiceImpl());
+        localization = new LocalizationImpl();
+        localization.setBundles(List.of(new LocalizationBundleEN()));
+        ReflectionTestUtils.setField(service, "localization", localization);
         // the administrator check is covered with the Spring context, here the current user is not available
         ReflectionTestUtils.setField(service, "adminGuard", new AdminGuard() {
             @Override
@@ -103,7 +110,9 @@ class OsgiServiceImplTest {
         attributes.putValue("Bundle-Version", version);
         attributes.putValue("Bundle-Activator", TestExtensionActivator.class.getName());
         for (String header : headers) {
-            attributes.putValue(header, "true");
+            // "Name=value" or only the name, then the value is "true"
+            int equals = header.indexOf('=');
+            attributes.putValue(equals < 0 ? header : header.substring(0, equals), equals < 0 ? "true" : header.substring(equals + 1));
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (JarOutputStream jar = new JarOutputStream(out, manifest)) {
@@ -188,6 +197,37 @@ class OsgiServiceImplTest {
         assertThat(TestExtensionActivator.UNLOADED).containsEntry("test.d:1.0.0", 1);
         assertThat(log.errors()).anyMatch(m -> m.contains("b.jar")).anyMatch(m -> m.contains("a-copy.jar") || m.contains("a.jar"))
                 .anyMatch(m -> m.contains("test.c")).anyMatch(m -> m.contains("test.d"));
+    }
+
+    @Test
+    void extensionLanguageIsAvailableWhileItIsLoaded() throws Exception {
+        writeJar("lang.jar", bundle("test.lang", "1.0.0", "X-Test-Language=cs"));
+        writeJar("other.jar", bundle("test.other", "1.0.0"));
+        service.start();
+        Language cs = Language.of("cs");
+        assertThat(localization.getAvailableLanguages()).containsExactlyInAnyOrder(Language.EN, cs);
+        assertThat(localization.getDisplayName(cs)).isEqualTo("Test cs");
+
+        service.uninstallPackage(bundleNamed("test.lang"));
+
+        assertThat(localization.getAvailableLanguages()).containsExactly(Language.EN);
+    }
+
+    @Test
+    void extensionCantReplaceALanguage() throws Exception {
+        service.start();
+
+        // English belongs to the application
+        Bundle en = service.installPackage("en.jar", bundle("test.en", "1.0.0", "X-Test-Language=en"));
+
+        assertThat(en.getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(localization.getAvailableLanguages()).containsExactly(Language.EN);
+        assertThat(localization.getDisplayName(Language.EN)).isEqualTo("English");
+        assertThat(log.errors()).anyMatch(m -> m.contains("already has"));
+
+        // unloading the extension doesn't take the application's English away
+        service.uninstallPackage(en);
+        assertThat(localization.getAvailableLanguages()).containsExactly(Language.EN);
     }
 
     @Test

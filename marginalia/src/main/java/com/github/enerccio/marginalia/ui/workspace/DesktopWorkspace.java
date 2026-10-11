@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.HTabSheet;
+import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
 import com.github.enerccio.marginalia.ui.workspace.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -67,6 +68,7 @@ public class DesktopWorkspace implements Workspace {
     private WorkspaceComponent activeComponent;
     private Button adminButton;
     private Button logoutButton;
+    private LanguageSelector languageSelector;
     private boolean navigationLocked;
     private Runnable onLogout;
 
@@ -193,6 +195,10 @@ public class DesktopWorkspace implements Workspace {
             footer.add(createAdminFooter());
         }
 
+        languageSelector = new LanguageSelector();
+        languageSelector.setWidthFull();
+        footer.add(languageSelector);
+
         Button changePasswordButton = new Button(loc.getValue(L.LABEL_CHANGE_PASSWORD), Solid.KEY.create());
         changePasswordButton.setWidthFull();
         changePasswordButton.addClickListener(e -> {
@@ -248,6 +254,9 @@ public class DesktopWorkspace implements Workspace {
         }
         if (adminButton != null) {
             adminButton.setEnabled(!locked);
+        }
+        if (languageSelector != null) {
+            languageSelector.setEnabled(!locked);
         }
         if (logoutButton != null) {
             logoutButton.setEnabled(!locked);

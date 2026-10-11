@@ -166,10 +166,22 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 22. **Sharing between users.** Everything is private. Read-only sharing of lorebooks/protocols, or an
     admin-managed "global" library, plus public read-only links for the Viewer (after fixing item 1).
 
-23. **Localization.** Only `LocalizationEN` exists, and the language is chosen by `configuration.properties`
-    for the whole instance. Allow a per-user language setting, and make the `L` key system plugin-friendly
-    (plugins currently can't add keys to the enum). Some strings are still hard-coded (e.g. bundle states in
-    `AdminPart.formatBundleState`, default names like "Imported Lorebook", "Entry" in services).
+23. ✅ **Localization.** Per-user UI language: `Localization` (`LocalizationImpl`) holds one `LocalizationBundle`
+    per `Language` and reads the language of the session from `SessionPoint`; it is set from `UserSetting.language`
+    when the workspace opens and changed with the `LanguageSelector` in the workspace footer (saves, then reloads every
+    page of the user). Bundles: `LocalizationBundleEN` (default, must be complete), `LocalizationBundleJP`, and
+    extensions can add languages (`ExtensionHasLocalization`; example plugin `chineselocalization`). A bundle may lack
+    keys (the English text is shown). The hard-coded UI strings found in a sweep (tree node cards, bundle states,
+    error dialog, prompt format list, login description) are now keys. Not done:
+    - the Japanese and Chinese texts are machine translations nobody who speaks the language has reviewed;
+    - plugins still have English-only texts of their own (they can't add keys to the `L` enum; a plugin can use
+      `Localization.getCurrentLanguage()` for its own tables);
+    - hard-coded text outside the UI classes: default names like "Imported Lorebook" and "Entry" in services, the
+      "Contents" title and other fixed words of the exported files (`ExporterBase`), exception messages of services
+      (developer-facing, except the ones the UI shows);
+    - the manual and the login page are English only (the login page uses the default language, the user's language is
+      known only after login);
+    - dates use one pattern per language (no per-user format), the date format of the book language is separate.
 
 24a. **Generation events for extensions** (groundwork for a 🧩 *Generation Inspector* plugin: per-message timeline,
     lorebook activation with skip reasons, context budget, exact payload).
@@ -219,4 +231,4 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 33. **Health and metrics endpoint.** ✅ The Dockerfile has a `HEALTHCHECK` (bash opens a socket to port 8080, a 2xx/3xx
     answer is healthy). Missing: a dedicated health endpoint and basic usage metrics (tokens per provider).
 34. **Configuration via environment variables** — today it's `configuration.properties` plus
-    `-Duser.home`. Document the keys and allow env overrides (data dir, localization, cookie TTL).
+    `-Duser.home`. Document the keys and allow env overrides (data dir, default language, cookie TTL).

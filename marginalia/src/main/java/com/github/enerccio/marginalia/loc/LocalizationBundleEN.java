@@ -4,7 +4,17 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-public class LocalizationEN extends LocalizationBase {
+public class LocalizationBundleEN extends LocalizationBundleBase {
+
+    @Override
+    public Language getLanguage() {
+        return Language.EN;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "English";
+    }
 
     @Override
     protected void loadMessages() {

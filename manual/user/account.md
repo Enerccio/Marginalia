@@ -15,6 +15,7 @@ The buttons at the bottom of the workspace:
 
 | Button | |
 |---|---|
+| **Language** | The language of the user interface, see [Language](#language). |
 | **Change Password** | Changes your password, user name and full name, see below. |
 | **Logout** | Logs you out on this device. |
 | **Admin** | Only for administrators, see [Administration](administration/index.md). |
@@ -35,6 +36,17 @@ Changing the password ends all saved logins (*Save login*), on every device incl
 again with the new password. If a device was lost or your password leaked, changing the password logs that device
 out. Sessions that are open right now (a browser tab still showing the workspace) stay logged in until they log out
 or their session expires.
+
+### Language
+
+The **Language** selector above the buttons switches the user interface to another language. The choice is saved in
+your account: the page reloads with the new language, and so does every other page you have open (on another device
+too), and it is used again the next time you log in. The login screen itself is always in the default language.
+
+The list contains only the languages that are installed. English and Japanese come with Marginalia; an administrator
+can add more by loading an [extension](extensions/index.md), for example
+[Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English.
+Dates are written the way that language does. Your books and their texts are not translated, only the interface.
 
 ### Logging in
 
