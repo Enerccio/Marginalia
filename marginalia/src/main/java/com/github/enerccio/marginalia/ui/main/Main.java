@@ -3,10 +3,13 @@ package com.github.enerccio.marginalia.ui.main;
 import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
+import com.github.enerccio.marginalia.ui.workspace.phone.PhoneWorkspace;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.page.ExtendedClientDetails;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +61,10 @@ public class Main extends LoginCheckRoute {
 
             sessionManager.userLoggedIn(user, VaadinSession.getCurrent());
 
-            Workspace workspace = new Workspace();
+            ExtendedClientDetails details = UI.getCurrent().getPage().getExtendedClientDetails();
+            boolean isPhone = details != null && details.getBodyClientWidth() < 768;
+
+            Workspace workspace = isPhone ? new PhoneWorkspace() : new DesktopWorkspace();
             User referenceCopy = new User();
             referenceCopy.setId(u.getId());
             referenceCopy.setLogin(u.getLogin());

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.popover.Popover;
@@ -19,8 +20,7 @@ public class TextFieldPopOverComponent extends TextField {
         super(label);
 
         infoIcon = Solid.INFO_CIRCLE.create();
-        infoIcon.getStyle().set("cursor", "pointer");
-        infoIcon.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        infoIcon.addClassName(CssStyles.INFO_ICON);
 
         popover = new Popover();
         popover.setTarget(infoIcon);

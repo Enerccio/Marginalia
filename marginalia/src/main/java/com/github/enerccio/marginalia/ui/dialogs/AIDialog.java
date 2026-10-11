@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
@@ -113,11 +114,11 @@ public class AIDialog extends Dialog {
 
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
-        tabSheet.getStyle().set("min-height", "0");
+        tabSheet.addClassName(CssStyles.MIN_HEIGHT_0);
 
         FormLayout generalFormLayout = new FormLayout();
         generalFormLayout.setWidthFull();
-        generalFormLayout.getStyle().set("padding-bottom", "16px");
+        generalFormLayout.addClassName(CssStyles.FORM_PADDING_BOTTOM);
         generalFormLayout.add(maxContextField, maxResponseField);
         generalFormLayout.add(needsJailbreakCheckbox, jailbreakField);
         generalFormLayout.setColspan(jailbreakField, 2);
@@ -127,7 +128,7 @@ public class AIDialog extends Dialog {
 
         dynamicFormLayout = new FormLayout();
         dynamicFormLayout.setWidthFull();
-        dynamicFormLayout.getStyle().set("padding-bottom", "16px");
+        dynamicFormLayout.addClassName(CssStyles.FORM_PADDING_BOTTOM);
 
         tabSheet.add(loc.getValue(L.LABEL_TYPE_SETTINGS), dynamicFormLayout);
 

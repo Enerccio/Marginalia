@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
@@ -300,7 +301,7 @@ public class AdminPart implements WorkspaceComponent {
         text.setReadOnly(true);
         text.setWidthFull();
         text.setHeight("400px");
-        text.getStyle().set("font-family", "monospace");
+        text.addClassName(CssStyles.TEXT_MONOSPACE);
         dialog.add(text);
 
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), e -> dialog.close());

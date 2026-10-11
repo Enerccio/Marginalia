@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.lorebookvcs.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LorebookVCSData;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.service.LorebookVCSService;
@@ -50,18 +51,14 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
 
         setWidthFull();
         setAlignItems(Alignment.CENTER);
-        getStyle().set("padding", "6px 12px");
-        getStyle().set("background", "var(--lumo-contrast-5pct)");
-        getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-        getStyle().set("border-radius", "var(--lumo-border-radius-m)");
-        getStyle().set("margin-bottom", "8px");
+        addClassNames(CssStyles.BORDERED_PANEL, CssStyles.PADDING_COMPACT);
 
         buildUI();
     }
 
     private void buildUI() {
         Span title = new Span("Lorebook Revisions");
-        title.getStyle().set("font-weight", "bold");
+        title.addClassName(CssStyles.TEXT_BOLD);
 
         Anchor exportAnchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
             try {
@@ -94,7 +91,7 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
 
         HorizontalLayout rightGroup = new HorizontalLayout(importBtn, exportAnchor);
         rightGroup.setAlignItems(Alignment.CENTER);
-        rightGroup.getStyle().set("margin-left", "auto");
+        rightGroup.addClassName(CssStyles.MARGIN_LEFT_AUTO);
 
         add(title, rightGroup);
     }

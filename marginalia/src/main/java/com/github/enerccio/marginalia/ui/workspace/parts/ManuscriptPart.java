@@ -1,14 +1,14 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
-import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
-import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
-import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.TagRelationService;
+import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
@@ -17,7 +17,6 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
-import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
@@ -56,15 +55,6 @@ public class ManuscriptPart implements WorkspaceComponent {
 
     @Autowired
     private ManuscriptService manuscriptService;
-
-    @Autowired
-    private SettingService settingService;
-
-    @Autowired
-    private AIService aiService;
-
-    @Autowired
-    private ProtocolService protocolService;
 
     @Autowired
     private TagService tagService;
@@ -106,43 +96,10 @@ public class ManuscriptPart implements WorkspaceComponent {
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Span titleSpan = new Span(loc.getValue(L.LABEL_BOOKS));
-        titleSpan.getStyle().set("font-size", "var(--lumo-font-size-l)");
-        titleSpan.getStyle().set("font-weight", "bold");
+        titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
-        Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK), event -> {
-            TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_BOOK), name -> {
-                try {
-                    Manuscript manuscript = new Manuscript();
-                    manuscript.setName(name);
-
-                    UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-                    Long defaultModelId = userSetting.getDefaultModel();
-                    if (defaultModelId != null) {
-                        AI ai = aiService.find(defaultModelId);
-                        if (ai != null && !ai.isDeleted()) {
-                            manuscript.setAi(ai);
-                        }
-                    }
-                    Long defaultProtocolId = userSetting.getDefaultProtocol();
-                    if (defaultProtocolId != null) {
-                        Protocol protocol = protocolService.find(defaultProtocolId);
-                        if (protocol != null && !protocol.isDeleted()) {
-                            manuscript.setProtocol(protocol);
-                        }
-                    }
-
-                    manuscript = manuscriptService.save(manuscript);
-                    manuscriptService.markOpened(manuscript);
-                    ManuscriptDialog manuscriptDialog = new ManuscriptDialog(manuscript);
-                    manuscriptDialog.setOnClose(this::refreshGrid);
-                    manuscriptDialog.create();
-                    manuscriptDialog.open();
-                } catch (Exception e) {
-                    UIUtils.internalServerError(loc, e);
-                }
-            }).messageRequired().showCancel(true).build();
-            dialog.open();
-        });
+        Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK),
+                event -> new NewBookAction(this::refreshGrid).run());
         addBookButton.setThemeName("primary");
 
         headerLayout.add(titleSpan, addBookButton);

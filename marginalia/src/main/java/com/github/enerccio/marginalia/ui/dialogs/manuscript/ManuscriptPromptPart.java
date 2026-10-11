@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
@@ -63,7 +64,7 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
 
         FormLayout formLayout = new FormLayout();
         formLayout.setWidthFull();
-        formLayout.getStyle().set("padding-bottom", "16px");
+        formLayout.addClassName(CssStyles.FORM_PADDING_BOTTOM);
 
         formLayout.add(masterTemplateField);
         formLayout.setColspan(masterTemplateField, 2);

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
@@ -110,13 +111,12 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         });
 
         searchStatus = new Span();
-        searchStatus.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        searchStatus.addClassName(CssStyles.TEXT_SECONDARY);
 
         HorizontalLayout bar = new HorizontalLayout(searchBox, searchButton, searchStatus);
         bar.setAlignItems(FlexComponent.Alignment.CENTER);
         bar.setWidthFull();
-        bar.getStyle().set("padding", "var(--lumo-space-s) var(--lumo-space-m)");
-        bar.getStyle().set("flex-wrap", "wrap");
+        bar.addClassName(CssStyles.TREE_TOOLBAR);
         return bar;
     }
 

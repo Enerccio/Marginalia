@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.ui.main;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.SharedStyles;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -162,8 +162,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Span titleSpan = new Span(loc.getValue(L.LABEL_BOOKS));
-        titleSpan.getStyle().set("font-size", "var(--lumo-font-size-l)");
-        titleSpan.getStyle().set("font-weight", "bold");
+        titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
         headerLayout.add(titleSpan);
 
@@ -253,15 +252,12 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
             itemLayout.setWidthFull();
 
             Span nameSpan = new Span(wrapper.getName());
-            nameSpan.getStyle().set("font-weight", "bold");
-            nameSpan.getStyle().set("font-size", "var(--lumo-font-size-m)");
+            nameSpan.addClassNames(CssStyles.TEXT_BOLD, CssStyles.TEXT_M);
 
             HorizontalLayout subRow = new HorizontalLayout();
             subRow.setWidthFull();
             subRow.setSpacing(true);
-            subRow.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-            subRow.getStyle().set("color", "var(--lumo-secondary-text-color)");
-            subRow.getStyle().set("margin-top", "2px");
+            subRow.addClassName(CssStyles.LIST_ITEM_SUBROW);
 
             String tagsText = wrapper.getTags();
             if (StringUtils.isNotBlank(tagsText)) {
@@ -272,7 +268,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
             String modText = wrapper.getLastOpened();
             if (StringUtils.isNotBlank(modText)) {
                 Span modSpan = new Span(modText);
-                modSpan.getStyle().set("margin-left", "auto");
+                modSpan.addClassName(CssStyles.MARGIN_LEFT_AUTO);
                 subRow.add(modSpan);
             }
 
@@ -341,51 +337,26 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         container.setSizeFull();
         container.setPadding(false);
         container.setSpacing(false);
-        container.getStyle().set("position", "relative");
+        container.addClassName(CssStyles.POSITION_RELATIVE);
 
         // Always apply reading style
-        container.addClassName(SharedStyles.MARKDOWN_MANUSCRIPT_STYLES);
+        container.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
         // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
         container.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
-
-        UI.getCurrent().getPage().executeJs("""
-                if (!document.getElementById('marginalia-markdown-fix-style')) {
-                  const style = document.createElement('style');
-                  style.id = 'marginalia-markdown-fix-style';
-                  style.textContent = `
-                    .markdown-content pre, .markdown-content code, .markdown-content p, .markdown-content span {
-                      white-space: pre-wrap !important;
-                      word-break: break-word !important;
-                      overflow-wrap: anywhere !important;
-                      max-width: 100% !important;
-                      box-sizing: border-box !important;
-                    }
-                  `;
-                  document.head.appendChild(style);
-                }
-                """);
 
         // Simple floating back button optimized for phone/touch
         Button backButton = new Button(Solid.ARROW_LEFT.create(), event -> UI.getCurrent().navigate(Viewer.class));
         backButton.setThemeName("primary icon");
-        backButton.getStyle()
-                .set("position", "fixed")
-                .set("top", "16px")
-                .set("left", "16px")
-                .set("z-index", "1000")
-                .set("box-shadow", "0 4px 12px rgba(0,0,0,0.3)")
-                .set("border-radius", "50%");
+        backButton.addClassName(CssStyles.FLOATING_BACK_BUTTON);
 
         ScrollPanel scrollPanel = new ScrollPanel();
         scrollPanel.setSizeFull();
-        scrollPanel.getStyle().set("padding", "12px");
-        scrollPanel.getStyle().set("overscroll-behavior", "contain");
+        scrollPanel.addClassName(CssStyles.READER_SCROLL_PANEL);
 
         VerticalLayout contentWrapper = new VerticalLayout();
         contentWrapper.setWidthFull();
         contentWrapper.setMaxWidth("800px");
-        contentWrapper.getStyle().set("margin", "0 auto");
-        contentWrapper.getStyle().set("padding-top", "48px");
+        contentWrapper.addClassName(CssStyles.READER_CONTENT);
         contentWrapper.setPadding(false);
         contentWrapper.setSpacing(true);
 
@@ -401,31 +372,8 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                 for (ChatMessage msg : branch) {
                     if (StringUtils.isNotBlank(msg.getResponse())) {
                         Markdown markdown = new Markdown();
-                        markdown.addClassName(SharedStyles.CHAT_MESSAGE_MARKDOWN);
+                        markdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
                         markdown.setContent(msg.getResponse());
-                        markdown.setWidthFull();
-                        markdown.getStyle().set("min-width", "0");
-                        markdown.getStyle().set("max-width", "100%");
-                        markdown.getStyle().set("box-sizing", "border-box");
-
-                        markdown.getElement().executeJs("""
-                                const el = this;
-                                const enforceWrap = () => {
-                                  if (!el) return;
-                                  const root = el.shadowRoot || el;
-                                  const elements = root.querySelectorAll('pre, code, p, div, span');
-                                  elements.forEach(node => {
-                                    node.style.setProperty('white-space', 'pre-wrap', 'important');
-                                    node.style.setProperty('word-break', 'break-word', 'important');
-                                    node.style.setProperty('overflow-wrap', 'anywhere', 'important');
-                                    node.style.setProperty('max-width', '100%', 'important');
-                                    node.style.setProperty('box-sizing', 'border-box', 'important');
-                                  });
-                                };
-                                enforceWrap();
-                                const observer = new MutationObserver(enforceWrap);
-                                observer.observe(el.shadowRoot || el, { childList: true, subtree: true, characterData: true });
-                                """);
 
                         contentWrapper.add(markdown);
                     }

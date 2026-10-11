@@ -1,0 +1,25 @@
+/* Styles of the Side Query plugin only. Injected into the page by SideQueryStyles.install(); the application's
+   shared-styles.css is not used for them. */
+
+/* Header bars (tabs, options) separated from the content below */
+.side-query-bar {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* Message of a side query conversation */
+.side-query-card {
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    background-color: transparent;
+    opacity: 1;
+}
+
+.side-query-card-user {
+    background-color: var(--lumo-contrast-5pct);
+}
+
+/* Message left out of the conversation sent to the model */
+.side-query-card-excluded {
+    opacity: 0.5;
+    border-style: dashed;
+}

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.ResourceService.ResourceLink;
@@ -82,8 +83,7 @@ public class ResourcesPart implements WorkspaceComponent {
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Span titleSpan = new Span(loc.getValue(L.LABEL_RESOURCES));
-        titleSpan.getStyle().set("font-size", "var(--lumo-font-size-l)");
-        titleSpan.getStyle().set("font-weight", "bold");
+        titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
         deleteSelectedButton = new Button(loc.getValue(L.LABEL_DELETE_SELECTED), Solid.TRASH.create(), event -> deleteSelected());
         deleteSelectedButton.setThemeName("error");
@@ -160,7 +160,7 @@ public class ResourcesPart implements WorkspaceComponent {
             ResourceLink link = resourceService.describeLink(resource);
             if (link == null) {
                 Span none = new Span(loc.getValue(L.MSG_RESOURCE_NOT_LINKED));
-                none.getStyle().set("color", "var(--lumo-secondary-text-color)");
+                none.addClassName(CssStyles.TEXT_SECONDARY);
                 return none;
             }
             if (link.present()) {
@@ -168,7 +168,7 @@ public class ResourcesPart implements WorkspaceComponent {
             }
             // the object was deleted, the resource is probably not needed any more
             Span missing = new Span(String.format(loc.getValue(L.MSG_RESOURCE_LINK_MISSING), link.description()));
-            missing.getStyle().set("color", "var(--lumo-error-text-color)");
+            missing.addClassName(CssStyles.TEXT_ERROR);
             return missing;
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

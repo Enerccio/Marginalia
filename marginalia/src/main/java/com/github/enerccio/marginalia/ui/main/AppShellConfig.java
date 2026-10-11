@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.ui.main;
 
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.BodySize;
@@ -19,6 +18,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 @ColorScheme(Value.DARK)
 @BodySize(height = "100vh", width = "100vw")
 @CssImport(value = "./styles/shared-styles.css")
+@CssImport(value = "./styles/reading-mode-styles.css")
 @Configurable(preConstruction = true)
 public class AppShellConfig implements AppShellConfigurator {
 

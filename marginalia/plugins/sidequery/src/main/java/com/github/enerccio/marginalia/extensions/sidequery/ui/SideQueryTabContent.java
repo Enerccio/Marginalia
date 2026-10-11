@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.sidequery.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -106,8 +107,7 @@ public class SideQueryTabContent extends VerticalLayout {
         optionsBar = new HorizontalLayout();
         optionsBar.setWidthFull();
         optionsBar.setAlignItems(Alignment.CENTER);
-        optionsBar.getStyle().set("padding", "6px 12px");
-        optionsBar.getStyle().set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
+        optionsBar.addClassNames(CssStyles.PADDING_COMPACT, SideQueryStyles.BAR);
 
         SideQueryOptions opts = session.getOptions();
 
@@ -160,8 +160,7 @@ public class SideQueryTabContent extends VerticalLayout {
         });
 
         tokenCountSpan = new Span("Tokens: 0");
-        tokenCountSpan.getStyle().set("margin-left", "auto");
-        tokenCountSpan.getStyle().set("font-size", "var(--lumo-font-size-s)");
+        tokenCountSpan.addClassNames(CssStyles.MARGIN_LEFT_AUTO, CssStyles.TEXT_S);
 
         optionsBar.add(lorebookBox, messagesBox, messagesFromField, new Span("to"), messagesToField, tokenCountSpan);
 
@@ -178,7 +177,7 @@ public class SideQueryTabContent extends VerticalLayout {
         controlsLayout.setWidthFull();
         controlsLayout.setPadding(true);
         controlsLayout.setSpacing(true);
-        controlsLayout.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
+        controlsLayout.addClassName(CssStyles.BORDER_TOP_SUBTLE);
 
         // Query Storage Selector Row
         storagePanel = new HorizontalLayout();
