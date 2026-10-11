@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -119,11 +120,10 @@ public class UserPart implements WorkspaceComponent {
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Span titleSpan = new Span(loc.getValue(L.LABEL_SETTINGS));
-        titleSpan.getStyle().set("font-size", "var(--lumo-font-size-l)");
-        titleSpan.getStyle().set("font-weight", "bold");
+        titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
         unsavedChangesSpan = new Span(loc.getValue(L.MSG_UNSAVED_SETTINGS));
-        unsavedChangesSpan.getStyle().set("color", "var(--lumo-error-text-color)");
+        unsavedChangesSpan.addClassName(CssStyles.TEXT_ERROR);
         unsavedChangesSpan.setVisible(false);
 
         Button importBackupAsNewButton = new Button(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
@@ -142,7 +142,7 @@ public class UserPart implements WorkspaceComponent {
 
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
-        tabSheet.getStyle().set("min-height", "0");
+        tabSheet.addClassName(CssStyles.MIN_HEIGHT_0);
 
         FormLayout defaultsFormLayout = new FormLayout();
         defaultsFormLayout.setWidthFull();
@@ -153,7 +153,7 @@ public class UserPart implements WorkspaceComponent {
 
         FormLayout templatesFormLayout = new FormLayout();
         templatesFormLayout.setWidthFull();
-        templatesFormLayout.getStyle().set("padding-bottom", "16px");
+        templatesFormLayout.addClassName(CssStyles.FORM_PADDING_BOTTOM);
 
         templatesFormLayout.add(masterTemplateField);
         templatesFormLayout.setColspan(masterTemplateField, 2);

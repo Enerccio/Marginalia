@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.lorebookvcs.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LoreEntryRevision;
@@ -57,11 +58,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
         setWidthFull();
         setAlignItems(Alignment.CENTER);
-        getStyle().set("padding", "6px 10px");
-        getStyle().set("background", "var(--lumo-contrast-5pct)");
-        getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-        getStyle().set("border-radius", "var(--lumo-border-radius-m)");
-        getStyle().set("margin-bottom", "8px");
+        addClassNames(CssStyles.BORDERED_PANEL, CssStyles.PADDING_COMPACT_NARROW);
 
         buildUI();
         initData();
@@ -76,12 +73,11 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
     private void buildUI() {
         Span label = new Span("Revision:");
-        label.getStyle().set("font-weight", "bold");
+        label.addClassName(CssStyles.TEXT_BOLD);
 
         indexSpan = new Span("None");
         modifiedSpan = new Span("");
-        modifiedSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-        modifiedSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        modifiedSpan.addClassName(CssStyles.HINT_TEXT);
 
         VerticalLayout infoLayout = new VerticalLayout(indexSpan, modifiedSpan);
         infoLayout.setPadding(false);
@@ -121,7 +117,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
         HorizontalLayout controls = new HorizontalLayout(deleteBtn, prevBtn, revSelectCombo, nextBtn, addBtn);
         controls.setAlignItems(Alignment.CENTER);
-        controls.getStyle().set("margin-left", "auto");
+        controls.addClassName(CssStyles.MARGIN_LEFT_AUTO);
 
         add(leftGroup, controls);
     }

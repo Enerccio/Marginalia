@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.CleanupService.EntityKey;
@@ -78,7 +79,7 @@ public class TrashGrid extends VerticalLayout {
         setSpacing(true);
 
         Span description = new Span(loc.getValue(L.MSG_TRASH_DESCRIPTION));
-        description.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        description.addClassName(CssStyles.TEXT_SECONDARY);
 
         HorizontalLayout toolbar = new HorizontalLayout();
         toolbar.setWidthFull();
@@ -211,7 +212,7 @@ public class TrashGrid extends VerticalLayout {
             text.setReadOnly(true);
             text.setWidthFull();
             text.setHeight("500px");
-            text.getStyle().set("font-family", "var(--lumo-font-family-monospace, monospace)");
+            text.addClassName(CssStyles.TEXT_MONOSPACE_LUMO);
             dialog.add(text);
             dialog.getFooter().add(new Button(loc.getValue(L.LABEL_CLOSE), e -> dialog.close()));
             dialog.open();

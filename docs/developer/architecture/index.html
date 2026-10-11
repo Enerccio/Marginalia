@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845028041832">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845031541532">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845028041832" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845031541532" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845028041832" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845031541532" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845028041832" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845028041832" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845031541532" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845031541532" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -578,7 +578,7 @@ request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">
 </retype-table>
 <h2 id="user-interface">User interface</h2>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart TB
-    Main[&quot;Main (route /)&lt;br/&gt;LoginCheckRoute&quot;] --&gt; WS[&quot;Workspace&quot;]
+    Main[&quot;Main (route /)&lt;br/&gt;LoginCheckRoute&quot;] --&gt; WS[&quot;DesktopWorkspace&quot;]
     Viewer[&quot;Viewer (route /view)&lt;br/&gt;read-only published books&quot;]
     WS --&gt; MP[&quot;ManuscriptPart&lt;br/&gt;Books&quot;]
     WS --&gt; LP[&quot;LorebookPart&quot;]
@@ -598,10 +598,11 @@ request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">
 <ul>
 <li>
 <p><code translate="no" v-pre>Main</code> shows the login (or the <em>create administrator</em> dialog on an empty installation), restores a saved login
-from cookies, and after login replaces its content with the <code translate="no" v-pre>Workspace</code>.</p>
+from cookies, and after login replaces its content with the <code translate="no" v-pre>DesktopWorkspace</code> (the implementation of the <code translate="no" v-pre>Workspace</code>
+interface).</p>
 </li>
 <li>
-<p><code translate="no" v-pre>Workspace</code> holds the left-hand tabs. Each tab is a <code translate="no" v-pre>WorkspaceComponent</code> (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>onTabSwitched</code>,
+<p><code translate="no" v-pre>DesktopWorkspace</code> holds the left-hand tabs. Each tab is a <code translate="no" v-pre>WorkspaceComponent</code> (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>onTabSwitched</code>,
 <code translate="no" v-pre>onTabClosed</code>).</p>
 </li>
 <li>

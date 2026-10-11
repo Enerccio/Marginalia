@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845028041832">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845031541532">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845028041832" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845031541532" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845028041832" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845031541532" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845028041832" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845028041832" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845031541532" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845031541532" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -290,7 +290,7 @@ method that switches it.</p>
 <pre translate="no" class="language-java"><code v-pre class="language-java">ChatMessage msg = context.getMethodArgument(&quot;msg&quot;, ChatMessage.class);
 Button sidebarBtn = context.getLocalVariable(&quot;sidebarBtn&quot;, Button.class);
 sidebarBtn.setText(orderId + &quot;. &quot; + chapterTitle);
-sidebarBtn.getStyle().set(&quot;color&quot;, &quot;var(--lumo-primary-color)&quot;);</code></pre>
+sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);</code></pre>
 </doc-codeblock></div>
 <p>If more plugins change the same component, they run in the order they were loaded and the last one wins - append
 or prefix rather than replace where you can.</p>
@@ -328,8 +328,11 @@ services. Follow the application&#x27;s conventions (<a href="../../ui/#conventi
 <p><strong>Add frontend resources.</strong> The browser side of Marginalia is one bundle built with the WAR. A plugin can use every
 Vaadin component and add-on the application already uses (Vaadin core components, the FontAwesome icons,
 Viritin&#x27;s <code translate="no" v-pre>VTabSheet</code>...), but <code translate="no" v-pre>@CssImport</code>, <code translate="no" v-pre>@JsModule</code>, <code translate="no" v-pre>@NpmPackage</code> and add-ons with their own web
-components don&#x27;t work from a plugin. Style with <code translate="no" v-pre>getStyle()</code> and Lumo CSS variables
-(<code translate="no" v-pre>var(--lumo-primary-color)</code>), or with <code translate="no" v-pre>executeJs</code> if you must.</p>
+components don&#x27;t work from a plugin. Style with the classes of <code translate="no" v-pre>CssStyles</code>
+(<code translate="no" v-pre>addClassName(CssStyles.TEXT_SECONDARY)</code>), which the application&#x27;s <code translate="no" v-pre>shared-styles.css</code> defines. A style only your
+plugin uses goes into a CSS file in the bundle&#x27;s <code translate="no" v-pre>src/main/resources</code> that the plugin injects as a <code translate="no" v-pre>&lt;style&gt;</code>
+element with <code translate="no" v-pre>executeJs</code> (once, guarded by the element id), with its class names as constants in the plugin; Side
+Query does this in <code translate="no" v-pre>SideQueryStyles</code>. Use <code translate="no" v-pre>getStyle()</code> only for a value known at runtime.</p>
 </li>
 <li>
 <p><strong>Add localization keys.</strong> <code translate="no" v-pre>Localization</code> knows only the application&#x27;s <code translate="no" v-pre>L</code> keys. The bundled plugins use English

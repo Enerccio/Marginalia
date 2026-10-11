@@ -14,7 +14,7 @@ flowchart TB
         Main["Main  /"]
         Viewer["Viewer  /view, /view/&lt;uuid&gt;"]
     end
-    Main -->|after login| WS["Workspace<br/>HTabSheet with left-hand tabs"]
+    Main -->|after login| WS["DesktopWorkspace<br/>HTabSheet with left-hand tabs"]
     WS --> MP["ManuscriptPart - Books"]
     WS --> LP["LorebookPart - Lorebooks"]
     WS --> UP["UserPart - Settings"]
@@ -45,7 +45,8 @@ flowchart TB
 | Package | Contains |
 |---|---|
 | `ui.main` | Servlet, app shell, routes, login (`LoginCheckRoute`). |
-| `ui.workspace` | `Workspace` and the `WorkspaceComponent` interface. |
+| `ui.workspace` | The `Workspace` interface, its `DesktopWorkspace` implementation and the `WorkspaceComponent` interface. |
+| `ui.workspace.phone`, `.parts` | `PhoneWorkspace` and the phone specific tabs (`PhoneManuscriptPart`). |
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
@@ -126,8 +127,11 @@ but follow the same pattern: construct with the entity, call `create()`, then `o
 
 ### The workspace
 
-`Workspace` builds an `HTabSheet` (tabs on the left, a footer with *Admin*, *Change Password*, *Logout*) and creates
-all tab components up front. Each tab is a `WorkspaceComponent`:
+`Workspace` is the interface of the top-level layout shown after login (`create`, `refresh`, `setNavigationLocked`,
+`isNavigationLocked`, `getOnLogout`, `setOnLogout`). `Main`, the parts, `ApplicationPoint` and `SessionInformation`
+only depend on this interface. `DesktopWorkspace` is the implementation (`@Configurable`, `@Extendable`): it builds an
+`HTabSheet` (tabs on the left, a footer with *Admin*, *Change Password*, *Logout*) and creates all tab components up
+front. Each tab is a `WorkspaceComponent`:
 
 | Method | Called |
 |---|---|
@@ -139,6 +143,13 @@ all tab components up front. Each tab is a `WorkspaceComponent`:
 `Workspace.setNavigationLocked(true)` disables the other tabs and the *Admin* and *Logout* buttons, so the user can't
 leave the active tab. `UserPart` locks it while the settings have unsaved changes: it listens to every `HasValue`
 in its layout (extension settings panels included) and unlocks on *Save*, *Discard Changes* or `refresh()`.
+
+`Main` picks `PhoneWorkspace` instead on phones (an iPhone, or a mobile user agent with a screen narrower than 768 px).
+It keeps the same parts but replaces the left-hand tab sheet with an `AppLayout`: the parts are listed in a drawer
+(opened with the toggle in the top bar, which also holds the *Admin*, *Change Password* and *Logout* buttons) and the
+active part fills the screen. Only the book list differs, `PhoneManuscriptPart` renders it like the `Viewer`
+(stacked filters, sort buttons, one column) with the controls of `ManuscriptPart`; both share the *Add Book* flow in
+`NewBookAction`. The other parts are the desktop ones.
 
 The *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
 `DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension). Note that the admin UI being hidden is not a permission
@@ -311,9 +322,14 @@ the part (and flashes it) instead of restoring the saved scroll position.
 ### Styles
 
 Global styles are in `src/main/frontend/styles/shared-styles.css` (imported by `AppShellConfig`): spacing helpers,
-the loading indicator, the story text (`.chat-message`, and `.manuscript-styles .chat-message-markdown` for the book
-style of the reader and editor) and the story tree (`.Treant`). Class names used from Java are constants in
-`SharedStyles`; column widths and offsets in `UIConstants`. Use Lumo's CSS custom properties (`--lumo-space-m`,
+the loading indicator, the story text (`.chat-message`), the story tree (`.Treant`) and the utility classes
+(`.text-secondary`, `.hint-text`, `.min-width-0`...). The book style of the reader and editor
+(`.manuscript-styles .chat-message-markdown`) is in `reading-mode-styles.css`, imported separately by `AppShellConfig`. Components are
+styled by adding these classes (`addClassName(CssStyles.TEXT_SECONDARY)`), not with `getStyle().set(...)`; keep that
+only for values computed at runtime (the card's `contain-intrinsic-size`, the combo box overlay width). A new class goes
+into the stylesheet and into `CssStyles` together. All `vaadin-markdown` elements wrap long lines through one rule
+there, so a `Markdown` needs no extra call. Class names used from Java are constants in
+`CssStyles`; column widths and offsets in `UIConstants`. Use Lumo's CSS custom properties (`--lumo-space-m`,
 `--lumo-contrast-10pct`...) instead of fixed colors, so the dark theme stays consistent.
 
 ## Extension points
@@ -324,10 +340,10 @@ runs before and after that method and can read its arguments and local variables
 
 | Area | Classes |
 |---|---|
-| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
+| Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `LorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid` |
-| Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `Workspace` in `proceedWithLogin`), `Viewer` |
+| Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |
 
 New screens, dialogs and components with their own logic get `@Extendable` too (a nested class needs its own
 annotation). Left out on purpose: classes with only static methods (`TemplateHints`, `SummaryRemoval`, `UIUtils`; static

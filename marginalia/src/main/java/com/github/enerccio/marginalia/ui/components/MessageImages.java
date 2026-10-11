@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
@@ -31,10 +32,7 @@ public class MessageImages extends Div {
 
     public MessageImages(List<ImageAttachment> images) {
         setWidthFull();
-        getStyle().set("display", "flex");
-        getStyle().set("flex-wrap", "wrap");
-        getStyle().set("gap", "var(--lumo-space-m)");
-        getStyle().set("margin-top", "var(--lumo-space-s)");
+        addClassName(CssStyles.MESSAGE_IMAGES);
         setImages(images);
     }
 
@@ -71,16 +69,13 @@ public class MessageImages extends Div {
 
         Image image = new Image(stream, StringUtils.defaultString(caption));
         image.setMaxWidth(maxWidth);
-        image.getStyle().set("height", "auto");
-        image.getStyle().set("border-radius", "var(--lumo-border-radius-s)");
+        image.addClassName(CssStyles.MESSAGE_IMAGE);
 
         Div figure = new Div(image);
-        figure.getStyle().set("max-width", "100%");
+        figure.addClassName(CssStyles.MAX_WIDTH_FULL);
         if (StringUtils.isNotBlank(caption)) {
             Span text = new Span(caption);
-            text.getStyle().set("display", "block");
-            text.getStyle().set("font-size", "var(--lumo-font-size-s)");
-            text.getStyle().set("color", "var(--lumo-secondary-text-color)");
+            text.addClassNames(CssStyles.DISPLAY_BLOCK, CssStyles.TEXT_S, CssStyles.TEXT_SECONDARY);
             figure.add(text);
         }
         return figure;

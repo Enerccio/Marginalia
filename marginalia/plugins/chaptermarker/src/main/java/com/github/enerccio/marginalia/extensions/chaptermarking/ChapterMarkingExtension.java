@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.chaptermarking;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
@@ -75,8 +76,7 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                             String formattedText = String.format("%d. %s", orderId != null ? orderId : 0, chapterTitle);
                             sidebarBtn.setText(formattedText);
 
-                            sidebarBtn.getStyle().set("color", "var(--lumo-primary-color)");
-                            sidebarBtn.getStyle().set("font-weight", "600");
+                            sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);
                             ComponentUtil.setData(sidebarBtn, MSG_SET, true);
                         }
                         ComponentUtil.setData(sidebarBtn, MSG_UUID, msg.getUuid());
@@ -113,8 +113,7 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                                         String chapterTitle = extractChapterTitle(chatMessage.getResponse());
                                         if (chapterTitle == null) {
                                             if ((Boolean) ComponentUtil.getData(sidebarBtn, MSG_SET)) {
-                                                sidebarBtn.getStyle().remove("color");
-                                                sidebarBtn.getStyle().remove("font-weight");
+                                                sidebarBtn.removeClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);
                                                 sidebarBtn.setText((String) ComponentUtil.getData(sidebarBtn, MSG_OLD_TEXT));
                                             }
                                             ComponentUtil.setData(sidebarBtn, MSG_SET, false);
@@ -123,8 +122,7 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                                             String formattedText = String.format("%d. %s", orderId != null ? orderId : 0, chapterTitle);
                                             sidebarBtn.setText(formattedText);
 
-                                            sidebarBtn.getStyle().set("color", "var(--lumo-primary-color)");
-                                            sidebarBtn.getStyle().set("font-weight", "600");
+                                            sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);
                                             ComponentUtil.setData(sidebarBtn, MSG_SET, true);
                                         }
                                     }

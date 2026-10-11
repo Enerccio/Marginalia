@@ -197,7 +197,7 @@ request attributes copied over - see [Threads and push](#threads-and-push).
 
 ```mermaid
 flowchart TB
-    Main["Main (route /)<br/>LoginCheckRoute"] --> WS["Workspace"]
+    Main["Main (route /)<br/>LoginCheckRoute"] --> WS["DesktopWorkspace"]
     Viewer["Viewer (route /view)<br/>read-only published books"]
     WS --> MP["ManuscriptPart<br/>Books"]
     WS --> LP["LorebookPart"]
@@ -217,8 +217,9 @@ flowchart TB
 ```
 
 - `Main` shows the login (or the *create administrator* dialog on an empty installation), restores a saved login
-  from cookies, and after login replaces its content with the `Workspace`.
-- `Workspace` holds the left-hand tabs. Each tab is a `WorkspaceComponent` (`create`, `refresh`, `onTabSwitched`,
+  from cookies, and after login replaces its content with the `DesktopWorkspace` (the implementation of the `Workspace`
+  interface).
+- `DesktopWorkspace` holds the left-hand tabs. Each tab is a `WorkspaceComponent` (`create`, `refresh`, `onTabSwitched`,
   `onTabClosed`).
 - Opening a book opens `ManuscriptDialog`, whose tabs are `ManuscriptDialogPart`s. The story editor
   (`ManuscriptStoryPart`) is the largest UI class: the parts sidebar, the text, the instruction panel, generation.

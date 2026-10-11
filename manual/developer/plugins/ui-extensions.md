@@ -133,7 +133,7 @@ The decorator can change any component the method built. Chapter Marker relabels
 ChatMessage msg = context.getMethodArgument("msg", ChatMessage.class);
 Button sidebarBtn = context.getLocalVariable("sidebarBtn", Button.class);
 sidebarBtn.setText(orderId + ". " + chapterTitle);
-sidebarBtn.getStyle().set("color", "var(--lumo-primary-color)");
+sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);
 ```
 
 If more plugins change the same component, they run in the order they were loaded and the last one wins - append
@@ -179,8 +179,11 @@ What plugins can't do:
 - **Add frontend resources.** The browser side of Marginalia is one bundle built with the WAR. A plugin can use every
   Vaadin component and add-on the application already uses (Vaadin core components, the FontAwesome icons,
   Viritin's `VTabSheet`...), but `@CssImport`, `@JsModule`, `@NpmPackage` and add-ons with their own web
-  components don't work from a plugin. Style with `getStyle()` and Lumo CSS variables
-  (`var(--lumo-primary-color)`), or with `executeJs` if you must.
+  components don't work from a plugin. Style with the classes of `CssStyles`
+  (`addClassName(CssStyles.TEXT_SECONDARY)`), which the application's `shared-styles.css` defines. A style only your
+  plugin uses goes into a CSS file in the bundle's `src/main/resources` that the plugin injects as a `<style>`
+  element with `executeJs` (once, guarded by the element id), with its class names as constants in the plugin; Side
+  Query does this in `SideQueryStyles`. Use `getStyle()` only for a value known at runtime.
 - **Add localization keys.** `Localization` knows only the application's `L` keys. The bundled plugins use English
   strings; a plugin that wants translations has to bring its own (a `ResourceBundle` in the bundle, chosen by
   `UI.getCurrent().getLocale()`).

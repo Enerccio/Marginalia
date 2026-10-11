@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
@@ -436,9 +437,7 @@ public class LorebookView extends VerticalLayout {
         detailsLayout.setPadding(false);
         detailsLayout.setSpacing(false);
         detailsLayout.getThemeList().add("spacing-xs");
-        detailsLayout.getStyle().set("padding", "var(--lumo-space-xs)");
-        detailsLayout.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
-        detailsLayout.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
+        detailsLayout.addClassName(CssStyles.SUBTLE_BOX);
 
         TextAreaPopoverComponent payloadField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_CONTENT));
         payloadField.setWidthFull();
@@ -522,8 +521,7 @@ public class LorebookView extends VerticalLayout {
 
     private Span createTokensSpan() {
         Span span = new Span();
-        span.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-        span.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        span.addClassName(CssStyles.HINT_TEXT);
         return span;
     }
 

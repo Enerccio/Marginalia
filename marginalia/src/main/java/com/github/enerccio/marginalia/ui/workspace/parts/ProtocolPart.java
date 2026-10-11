@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
@@ -59,8 +60,7 @@ public class ProtocolPart implements WorkspaceComponent {
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Span titleSpan = new Span(loc.getValue(L.LABEL_PROTOCOLS));
-        titleSpan.getStyle().set("font-size", "var(--lumo-font-size-l)");
-        titleSpan.getStyle().set("font-weight", "bold");
+        titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
         Button addProtocolButton = new Button(loc.getValue(L.LABEL_ADD_PROTOCOL), event -> {
             ProtocolDialog dialog = new ProtocolDialog();

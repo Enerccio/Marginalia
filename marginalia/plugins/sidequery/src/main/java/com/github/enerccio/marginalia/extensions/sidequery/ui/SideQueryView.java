@@ -52,6 +52,7 @@ public class SideQueryView extends VerticalLayout {
         setSpacing(false);
 
         loadData();
+        SideQueryStyles.install();
         buildUI();
     }
 
@@ -77,7 +78,7 @@ public class SideQueryView extends VerticalLayout {
         tabHeader = new HorizontalLayout();
         tabHeader.setWidthFull();
         tabHeader.setAlignItems(Alignment.CENTER);
-        tabHeader.getStyle().set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
+        tabHeader.addClassName(SideQueryStyles.BAR);
 
         tabs = new Tabs();
         tabs.setWidthFull();
