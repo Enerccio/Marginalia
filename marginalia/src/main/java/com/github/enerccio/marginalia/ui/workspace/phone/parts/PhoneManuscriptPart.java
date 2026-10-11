@@ -97,7 +97,6 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK), Solid.PLUS.create(),
                 event -> new NewBookAction(this::refreshGrid).run());
         addBookButton.setThemeName("primary");
-        addBookButton.setWidthFull();
 
         Button refreshButton = new Button(Solid.REFRESH.create(), event -> refreshGrid());
 

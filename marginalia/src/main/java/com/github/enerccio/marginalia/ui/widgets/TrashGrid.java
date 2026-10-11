@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -50,7 +51,7 @@ import java.util.stream.Stream;
 public class TrashGrid extends VerticalLayout {
 
     @Autowired
-    private Localization loc;
+    protected Localization loc;
 
     @Autowired
     private TrashService trashService;
@@ -58,13 +59,13 @@ public class TrashGrid extends VerticalLayout {
     @Autowired
     private UserService userService;
 
-    private final boolean allUsers;
+    protected final boolean allUsers;
     private final List<Runnable> restoreListeners = new ArrayList<>();
 
-    private Grid<TrashItem> grid;
-    private ComboBox<User> userFilter;
-    private ComboBox<Class<?>> typeFilter;
-    private Button restoreButton;
+    protected Grid<TrashItem> grid;
+    protected ComboBox<User> userFilter;
+    protected ComboBox<Class<?>> typeFilter;
+    protected Button restoreButton;
 
     /**
      * @param allUsers show the owner filter and column, for administrators
@@ -78,9 +79,50 @@ public class TrashGrid extends VerticalLayout {
         setPadding(false);
         setSpacing(true);
 
+        Component toolbar = createToolbar();
+
+        grid = new Grid<>(TrashItem.class, false);
+        grid.setSizeFull();
+        GridMultiSelectionModel<TrashItem> selection = (GridMultiSelectionModel<TrashItem>) grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        selection.setSelectAllCheckboxVisibility(GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE);
+        grid.setEmptyStateText(loc.getValue(L.MSG_TRASH_EMPTY));
+        // selection survives loading other pages of the lazy table, items are identified by what they are
+        grid.setItems(new CallbackDataProvider<TrashItem, Void>(this::fetch, query -> count(), TrashItem::key));
+        grid.addSelectionListener(e -> restoreButton.setEnabled(!e.getAllSelectedItems().isEmpty()));
+
+        addColumns();
+
+        Component description = createDescription();
+        if (description != null) {
+            add(description);
+        }
+        add(toolbar, grid);
+        setFlexGrow(1, grid);
+
+        if (allUsers) {
+            List<User> users = new ArrayList<>(userService.findAll());
+            users.sort(Comparator.comparing(User::getLogin, String.CASE_INSENSITIVE_ORDER));
+            userFilter.setItems(users);
+        }
+        typeFilter.setItems(trashService.getTypes().stream()
+                .sorted(Comparator.comparing(loc::localizeDomainObject, loc.createLocaleComparator())).toList());
+        return this;
+    }
+
+    /**
+     * Text above the table, null for none.
+     */
+    protected Component createDescription() {
         Span description = new Span(loc.getValue(L.MSG_TRASH_DESCRIPTION));
         description.addClassName(CssStyles.TEXT_SECONDARY);
+        return description;
+    }
 
+    /**
+     * Filters and buttons above the table, creates {@link #userFilter} (for administrators), {@link #typeFilter} and
+     * {@link #restoreButton}.
+     */
+    protected Component createToolbar() {
         HorizontalLayout toolbar = new HorizontalLayout();
         toolbar.setWidthFull();
         toolbar.setAlignItems(FlexComponent.Alignment.END);
@@ -109,16 +151,13 @@ public class TrashGrid extends VerticalLayout {
         Div spacer = new Div();
         toolbar.add(spacer, refreshButton, restoreButton);
         toolbar.setFlexGrow(1, spacer);
+        return toolbar;
+    }
 
-        grid = new Grid<>(TrashItem.class, false);
-        grid.setSizeFull();
-        GridMultiSelectionModel<TrashItem> selection = (GridMultiSelectionModel<TrashItem>) grid.setSelectionMode(Grid.SelectionMode.MULTI);
-        selection.setSelectAllCheckboxVisibility(GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE);
-        grid.setEmptyStateText(loc.getValue(L.MSG_TRASH_EMPTY));
-        // selection survives loading other pages of the lazy table, items are identified by what they are
-        grid.setItems(new CallbackDataProvider<TrashItem, Void>(this::fetch, query -> count(), TrashItem::key));
-        grid.addSelectionListener(e -> restoreButton.setEnabled(!e.getAllSelectedItems().isEmpty()));
-
+    /**
+     * Columns of the table.
+     */
+    protected void addColumns() {
         grid.addColumn(item -> loc.localizeDomainObject(item.key().type()))
                 .setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(1);
         grid.addColumn(TrashItem::label)
@@ -131,18 +170,6 @@ public class TrashGrid extends VerticalLayout {
                 .setHeader(loc.getValue(L.LABEL_SOFT_DELETED)).setFlexGrow(1);
         grid.addComponentColumn(this::contentLink)
                 .setHeader("").setFlexGrow(0).setWidth("200px");
-
-        add(description, toolbar, grid);
-        setFlexGrow(1, grid);
-
-        if (allUsers) {
-            List<User> users = new ArrayList<>(userService.findAll());
-            users.sort(Comparator.comparing(User::getLogin, String.CASE_INSENSITIVE_ORDER));
-            userFilter.setItems(users);
-        }
-        typeFilter.setItems(trashService.getTypes().stream()
-                .sorted(Comparator.comparing(loc::localizeDomainObject, loc.createLocaleComparator())).toList());
-        return this;
     }
 
     /**
@@ -156,7 +183,7 @@ public class TrashGrid extends VerticalLayout {
         refreshGrid();
     }
 
-    private void refreshGrid() {
+    protected void refreshGrid() {
         if (grid != null) {
             grid.deselectAll();
             grid.getDataProvider().refreshAll();
@@ -186,7 +213,7 @@ public class TrashGrid extends VerticalLayout {
         }
     }
 
-    private Button contentLink(TrashItem item) {
+    protected Button contentLink(TrashItem item) {
         if (!item.extendable()) {
             return null;
         }
@@ -221,7 +248,7 @@ public class TrashGrid extends VerticalLayout {
         }
     }
 
-    private void restoreSelected() {
+    protected void restoreSelected() {
         List<EntityKey> keys = grid.getSelectedItems().stream().map(TrashItem::key).toList();
         if (keys.isEmpty()) {
             return;

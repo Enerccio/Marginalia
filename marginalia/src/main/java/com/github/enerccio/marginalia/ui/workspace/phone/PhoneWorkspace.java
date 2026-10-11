@@ -11,8 +11,8 @@ import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
-import com.github.enerccio.marginalia.ui.workspace.parts.*;
-import com.github.enerccio.marginalia.ui.workspace.phone.parts.PhoneManuscriptPart;
+import com.github.enerccio.marginalia.ui.workspace.parts.ResourcesPart;
+import com.github.enerccio.marginalia.ui.workspace.phone.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * Workspace for phones. The vertical tab sheet of {@link DesktopWorkspace} would take most of the screen, so the
  * parts are reached from a drawer (opened by the toggle in the top bar) and the active part fills the whole screen.
- * The book list is the phone specific {@link PhoneManuscriptPart}, other parts are shared with the desktop.
+ * The book list, the lorebooks, the protocols, the models and the trash are the phone specific {@link PhoneManuscriptPart}, {@link PhoneLorebookPart}, {@link PhoneProtocolPart}, {@link PhoneAIPart} and {@link PhoneTrashPart}, the settings are the {@link PhoneSettingsPart}, other parts are shared with the desktop.
  */
 @Configurable
 @Extendable
@@ -47,13 +47,12 @@ public class PhoneWorkspace implements Workspace {
     private User currentUser;
 
     private final PhoneManuscriptPart manuscriptPart = new PhoneManuscriptPart(this);
-    private final LorebookPart lorebookPart = new LorebookPart(this);
-    private final UserPart userPart = new UserPart(this);
-    private final ProtocolPart protocolPart = new ProtocolPart(this);
-    private final AIPart aiPart = new AIPart(this);
+    private final PhoneLorebookPart lorebookPart = new PhoneLorebookPart(this);
+    private final PhoneSettingsPart settingsPart = new PhoneSettingsPart(this);
+    private final PhoneProtocolPart protocolPart = new PhoneProtocolPart(this);
+    private final PhoneAIPart aiPart = new PhoneAIPart(this);
     private final ResourcesPart resourcesPart = new ResourcesPart(this);
-    private final TrashPart trashPart = new TrashPart(this);
-    private final AdminPart adminPart = new AdminPart(this);
+    private final PhoneTrashPart trashPart = new PhoneTrashPart(this);
 
     private final Map<Tab, WorkspaceComponent> tabToComponent = new HashMap<>();
     private final Map<Tab, Component> tabToContent = new HashMap<>();
@@ -63,9 +62,7 @@ public class PhoneWorkspace implements Workspace {
     private DrawerToggle drawerToggle;
     private Span title;
     private Tabs tabs;
-    private Component adminPartComponent;
     private WorkspaceComponent activeComponent;
-    private Button adminButton;
     private Button changePasswordButton;
     private Button logoutButton;
     private boolean navigationLocked;
@@ -87,24 +84,16 @@ public class PhoneWorkspace implements Workspace {
 
         addTab(L.LABEL_BOOKS, manuscriptPart);
         addTab(L.LABEL_LOREBOOKS, lorebookPart);
-        addTab(L.LABEL_SETTINGS, userPart);
+        addTab(L.LABEL_SETTINGS, settingsPart);
         addTab(L.LABEL_PROTOCOLS, protocolPart);
         addTab(L.LABEL_MODELS, aiPart);
         addTab(L.LABEL_RESOURCES, resourcesPart);
         addTab(L.LABEL_TRASH, trashPart);
 
-        adminPartComponent = adminPart.create();
-
         tabs.addSelectedChangeListener(e -> {
             Tab selected = e.getSelectedTab();
-            if (selected == null) {
-                // the admin part is shown, it has no tab
-                return;
-            }
             show(tabToComponent.get(selected), tabToContent.get(selected), tabToTitle.get(selected));
         });
-
-        User user = userService.find(currentUser.getId());
 
         VerticalLayout drawer = new VerticalLayout();
         drawer.setSizeFull();
@@ -112,7 +101,7 @@ public class PhoneWorkspace implements Workspace {
         drawer.setSpacing(false);
         drawer.add(tabs);
         drawer.setFlexGrow(1, tabs);
-        drawer.add(createFooter(user));
+        drawer.add(createFooter());
         layout.addToDrawer(drawer);
 
         Tab first = tabs.getSelectedTab();
@@ -150,20 +139,10 @@ public class PhoneWorkspace implements Workspace {
         }
     }
 
-    private Component createFooter(User user) {
+    private Component createFooter() {
         VerticalLayout footer = new VerticalLayout();
         footer.setSpacing(true);
         footer.setWidthFull();
-
-        if (user != null && user.isAdmin()) {
-            adminButton = new Button(loc.getValue(L.LABEL_ADMIN), Solid.USER_TIE.create());
-            adminButton.setWidthFull();
-            adminButton.addClickListener(e -> {
-                tabs.setSelectedTab(null);
-                show(adminPart, adminPartComponent, loc.getValue(L.LABEL_ADMIN));
-            });
-            footer.add(adminButton);
-        }
 
         changePasswordButton = new Button(loc.getValue(L.LABEL_CHANGE_PASSWORD), Solid.KEY.create());
         changePasswordButton.setWidthFull();
@@ -193,12 +172,11 @@ public class PhoneWorkspace implements Workspace {
     public void refresh() throws Exception {
         manuscriptPart.refresh();
         lorebookPart.refresh();
-        userPart.refresh();
+        settingsPart.refresh();
         protocolPart.refresh();
         aiPart.refresh();
         resourcesPart.refresh();
         trashPart.refresh();
-        adminPart.refresh();
     }
 
     @Override
@@ -210,9 +188,6 @@ public class PhoneWorkspace implements Workspace {
         }
         for (Tab tab : tabToComponent.keySet()) {
             tab.setEnabled(!locked);
-        }
-        if (adminButton != null) {
-            adminButton.setEnabled(!locked);
         }
         if (logoutButton != null) {
             logoutButton.setEnabled(!locked);
