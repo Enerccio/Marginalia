@@ -1,14 +1,13 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.shared.HasPrefix;
 import com.vaadin.flow.component.shared.HasSuffix;
-import com.vaadin.flow.component.shared.HasThemeVariant;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
-import com.vaadin.flow.component.tabs.TabSheetVariant;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.tabs.Tabs.Orientation;
 import com.vaadin.flow.dom.DomEvent;
@@ -406,18 +405,7 @@ public class HTabSheet extends HorizontalLayout implements HasPrefix, HasStyle, 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        getElement().executeJs(
-                """
-var self = this;
-var el = this.querySelector("vaadin-horizontal-layout");
-if (el) {
-    el.addEventListener("scroll", function(e) {
-        if(el.scrollTop + el.clientHeight === el.scrollHeight) {
-            self.$server.onScrollToEnd();
-        }
-    });
-}"""
-        );
+        JavascriptLibrary.notifyTabSheetScrolledToEnd(getElement());
     }
 
     @ClientCallable
@@ -438,12 +426,7 @@ if (el) {
 
     public Registration addScrollListener(ComponentEventListener<ScrollEvent> listener) {
         if (scrollreg == null) {
-            getElement().executeJs("""
-                    var el = this;
-                    this.querySelector("vaadin-horizontal-layout").addEventListener('scroll', e => {
-                        const event = new CustomEvent('myscroll', { detail: e.target.scrollTop + ',' + e.target.scrollLeft });
-                        el.dispatchEvent(event);
-                    })""");
+            JavascriptLibrary.fireTabSheetScrollEvent(getElement());
             scrollreg = getElement().addEventListener("myscroll", (DomEvent de) -> {
                 getEventBus().fireEvent(new ScrollEvent(
                         this,
@@ -461,15 +444,15 @@ if (el) {
     }
 
     public void scrollToBottom() {
-        getElement().executeJs("this.scrollTop = this.scrollHeight");
+        JavascriptLibrary.scrollToBottom(getElement());
     }
 
     public void setScrollTop(int pixelsFromTop) {
-        getElement().executeJs("this.scrollTop = $0", pixelsFromTop);
+        JavascriptLibrary.setScrollTop(getElement(), pixelsFromTop);
     }
 
     public void setScrollLeft(int pixelsFromLeft) {
-        getElement().executeJs("this.scrollLeft = $0", pixelsFromLeft);
+        JavascriptLibrary.setScrollLeft(getElement(), pixelsFromLeft);
     }
 
     public void scrollIntoView(Component c) {
