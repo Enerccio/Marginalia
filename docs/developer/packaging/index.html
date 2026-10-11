@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845063428896">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845063773106">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845063428896" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845063773106" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845063428896" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845063773106" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845063428896" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845063428896" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845063773106" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845063773106" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -262,7 +262,7 @@ every WAR from <code translate="no" v-pre>mvn package</code> - the Docker image,
 <li><strong>builder</strong> (<code translate="no" v-pre>maven:3.9-eclipse-temurin-25</code>)
 <ul>
 <li>
-<p>copies <code translate="no" v-pre>marginalia/pom.xml</code> and runs <code translate="no" v-pre>mvn dependency:go-offline</code>, so the dependency layer is cached while only
+<p>copies the parent <code translate="no" v-pre>pom.xml</code> and <code translate="no" v-pre>marginalia/pom.xml</code> and runs <code translate="no" v-pre>mvn dependency:go-offline</code>, so the dependency layer is cached while only
 the sources change;</p>
 </li>
 <li>
@@ -464,7 +464,8 @@ in CI.</p>
 <code translate="no" v-pre>maven-bundle-plugin</code>) that depends on the application&#x27;s classes JAR with <code translate="no" v-pre>provided</code> scope. They are built against
 one exact version of the application:</p>
 <div id="plugins-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia &amp;&amp; mvn install -DskipTests
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">mvn -N install                            # the parent POM in the repository root
+cd marginalia &amp;&amp; mvn install -DskipTests
 cd plugins/reviewer &amp;&amp; mvn package        # target/reviewer-1.0.1.jar</code></pre>
 </doc-codeblock></div>
 <p><code translate="no" v-pre>server.yml</code> builds all the plugins against the freshly installed application and attaches the JARs to the release
@@ -594,8 +595,9 @@ JDK module, a launcher that can&#x27;t find <code translate="no" v-pre>server/</
 the first time it is pushed; make it public in the package settings on GitHub so that users can pull it without logging in.</p>
 <h2 id="making-a-release">Making a release</h2>
 <ol>
-<li><strong>Version.</strong> Set the new version in <code translate="no" v-pre>marginalia/pom.xml</code> (<code translate="no" v-pre>&lt;version&gt;</code>) and in the plugin POMs (the plugin
-version and the version of the <code translate="no" v-pre>marginalia</code> dependency). The archive names and the app version shown by the OS
+<li><strong>Version.</strong> Set the new version in the parent <code translate="no" v-pre>pom.xml</code> in the repository root and in the <code translate="no" v-pre>&lt;parent&gt;</code> of the
+application and the plugin POMs - <code translate="no" v-pre>mvn versions:set -DnewVersion=&lt;version&gt; -DgenerateBackupPoms=false</code> in the root
+does all of it (the plugins&#x27; <code translate="no" v-pre>marginalia</code> dependency follows <code translate="no" v-pre>${project.version}</code>). The archive names and the app version shown by the OS
 come from the POM, not from the tag, so the two must match: for a <code translate="no" v-pre>v*</code> tag the <code translate="no" v-pre>test</code> job first checks that the
 tag is <code translate="no" v-pre>v</code> + the POM version and fails otherwise, so no archives are built or attached. <code translate="no" v-pre>jpackage</code> on macOS
 requires a version of the form <code translate="no" v-pre>x.y.z</code> with <code translate="no" v-pre>x</code> ≥ 1.</li>

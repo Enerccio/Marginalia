@@ -15,6 +15,7 @@ Marginalia/
 ├── .github/workflows/
 │   ├── desktop.yml          CI: tests, desktop builds for 5 platforms, release upload
 │   └── server.yml           CI: WAR, plugin JARs, Docker image (ghcr.io), release upload
+├── pom.xml                  parent POM: the version of the application and the plugins, lists them as modules
 ├── Dockerfile               two-stage build: Maven builder → Jetty 12 image
 ├── docker-compose.yml       the server setup (port 8080, ./data volume, JVM options)
 ├── rebuild.sh, rebuild.bat  update a Docker server: pull, build the plugins, copy them to data/extensions, restart

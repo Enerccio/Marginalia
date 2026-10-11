@@ -3,6 +3,7 @@ label: Packaging & releases
 order: 880
 verified: afed4e4
 covers:
+  - pom.xml
   - Dockerfile
   - docker-compose.yml
   - docker-entrypoint.sh
@@ -65,7 +66,7 @@ The build also needs the Git history: `git-commit-id-plugin` writes the commit i
 The `Dockerfile` in the repository root has two stages:
 
 1. **builder** (`maven:3.9-eclipse-temurin-25`)
-   - copies `marginalia/pom.xml` and runs `mvn dependency:go-offline`, so the dependency layer is cached while only
+   - copies the parent `pom.xml` and `marginalia/pom.xml` and runs `mvn dependency:go-offline`, so the dependency layer is cached while only
      the sources change;
    - copies `marginalia/src` and `.git` (for `git-commit-id-plugin`);
    - runs `mvn clean package -DskipTests`.
@@ -197,6 +198,7 @@ Each plugin in `marginalia/plugins/` is a Maven project with `bundle` packaging 
 one exact version of the application:
 
 ```sh
+mvn -N install                            # the parent POM in the repository root
 cd marginalia && mvn install -DskipTests
 cd plugins/reviewer && mvn package        # target/reviewer-1.0.1.jar
 ```
@@ -286,8 +288,9 @@ the first time it is pushed; make it public in the package settings on GitHub so
 
 ## Making a release
 
-1. **Version.** Set the new version in `marginalia/pom.xml` (`<version>`) and in the plugin POMs (the plugin
-   version and the version of the `marginalia` dependency). The archive names and the app version shown by the OS
+1. **Version.** Set the new version in the parent `pom.xml` in the repository root and in the `<parent>` of the
+   application and the plugin POMs - `mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false` in the root
+   does all of it (the plugins' `marginalia` dependency follows `${project.version}`). The archive names and the app version shown by the OS
    come from the POM, not from the tag, so the two must match: for a `v*` tag the `test` job first checks that the
    tag is `v` + the POM version and fails otherwise, so no archives are built or attached. `jpackage` on macOS
    requires a version of the form `x.y.z` with `x` ≥ 1.

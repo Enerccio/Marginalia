@@ -3,6 +3,7 @@ label: Building from source
 order: 990
 verified: afed4e4
 covers:
+  - pom.xml
   - marginalia/pom.xml
   - marginalia/src/main/java/com/github/enerccio/tools
   - Dockerfile
@@ -33,13 +34,16 @@ are faster.
 
 ## Building the application
 
-The application is the Maven project in `marginalia/`:
+The repository root holds the parent POM (`pom.xml`): it carries the version, which the application and all plugins
+inherit, and lists them as modules, so `mvn package` there builds the application and every plugin in one go. The
+application is the Maven project in `marginalia/`:
 
 ```sh
 cd marginalia
 mvn package                  # builds and tests, WAR in target/marginalia-1.0.1.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
+mvn -N install                                # (repository root, once) installs the parent POM, the installed POMs refer to it
 mvn install -DskipTests -Dvaadin.skip=true   # plugins only need the classes JAR: no frontend build, not a deployable WAR
 ```
 
@@ -251,9 +255,10 @@ options. [Testing](testing.md) describes the test base and how to write tests.
 ## Building the plugins
 
 The seven bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
-JAR of the application, so install the application first:
+JAR of the application, so install the parent POM and the application first:
 
 ```sh
+mvn -N install                    # in the repository root
 cd marginalia
 mvn install -DskipTests
 
@@ -269,8 +274,8 @@ exact version of the application. See [Plugin development](plugins/index.md).
 
 `marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
-repository root; the image copies `marginalia/pom.xml`, `marginalia/src`, `.git` and `marginalia/plugins`, runs
-`mvn install -DskipTests -Dvaadin.skip=true` for the application and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
+repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `.git` and `marginalia/plugins`, runs
+`mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
 The JARs are copied out when the container runs, because they go into a bind mount:
 
 ```sh
@@ -320,5 +325,5 @@ are listed in `TODO.IMAGES.md`.
 | `couldn't find aspectjrt.jar on classpath` warning | Printed by the AspectJ plugin on every build; harmless. |
 | `Schema-validation: missing column ...` on start | An entity was changed without a Flyway migration. Add one ([Database schema changes](#database-schema-changes)). |
 | The frontend build fails downloading Node.js or npm packages | It needs internet access on the first build. Behind a proxy, configure it for Maven and npm, or delete `~/.vaadin` and `node_modules` and try again. |
-| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` and rebuild the plugin. |
+| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` (and `mvn -N install` in the root) and rebuild the plugin. |
 | `WARNING: A Java agent has been loaded dynamically` | Add the [JVM options](#jvm-options). |

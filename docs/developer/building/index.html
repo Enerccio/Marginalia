@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845063428896">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845063773106">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845063428896" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845063773106" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845063428896" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845063773106" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845063428896" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845063428896" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845063773106" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845063773106" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -237,12 +237,15 @@ this manual. Packaging for release (the Docker image, the desktop app, CI) is co
 <p>The first build downloads a lot (Maven dependencies, Node.js, npm packages) and takes several minutes. Later builds
 are faster.</p>
 <h2 id="building-the-application">Building the application</h2>
-<p>The application is the Maven project in <code translate="no" v-pre>marginalia/</code>:</p>
+<p>The repository root holds the parent POM (<code translate="no" v-pre>pom.xml</code>): it carries the version, which the application and all plugins
+inherit, and lists them as modules, so <code translate="no" v-pre>mvn package</code> there builds the application and every plugin in one go. The
+application is the Maven project in <code translate="no" v-pre>marginalia/</code>:</p>
 <div id="building-the-application-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia
 mvn package                  # builds and tests, WAR in target/marginalia-1.0.1.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
+mvn -N install                                # (repository root, once) installs the parent POM, the installed POMs refer to it
 mvn install -DskipTests -Dvaadin.skip=true   # plugins only need the classes JAR: no frontend build, not a deployable WAR</code></pre>
 </doc-codeblock></div>
 <p>What a build does, in order:</p>
@@ -500,9 +503,10 @@ needed. <code translate="no" v-pre>RuntimeInstrumentationTest</code> installs th
 options. <a href="../testing/">Testing</a> describes the test base and how to write tests.</p>
 <h2 id="building-the-plugins">Building the plugins</h2>
 <p>The seven bundled extensions in <code translate="no" v-pre>marginalia/plugins/</code> are separate Maven projects. They compile against the classes
-JAR of the application, so install the application first:</p>
+JAR of the application, so install the parent POM and the application first:</p>
 <div id="building-the-plugins-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">mvn -N install                    # in the repository root
+cd marginalia
 mvn install -DskipTests
 
 cd plugins/chaptermarker          # or authorsnote, instructionexporter, lorebookvcs, reviewer, sidequery, chineselocalization
@@ -514,8 +518,8 @@ exact version of the application. See <a href="../plugins/">Plugin development</
 <h3 id="in-docker">In Docker</h3>
 <p><code translate="no" v-pre>marginalia/plugins/Dockerfile</code> and <code translate="no" v-pre>docker-compose.yml</code> build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see <a href="../packaging/#plugins">Packaging</a>). The build context is the
-repository root; the image copies <code translate="no" v-pre>marginalia/pom.xml</code>, <code translate="no" v-pre>marginalia/src</code>, <code translate="no" v-pre>.git</code> and <code translate="no" v-pre>marginalia/plugins</code>, runs
-<code translate="no" v-pre>mvn install -DskipTests -Dvaadin.skip=true</code> for the application and <code translate="no" v-pre>mvn package</code> in every folder of <code translate="no" v-pre>plugins/</code> that has a <code translate="no" v-pre>pom.xml</code>.
+repository root; the image copies <code translate="no" v-pre>pom.xml</code>, <code translate="no" v-pre>marginalia/pom.xml</code>, <code translate="no" v-pre>marginalia/src</code>, <code translate="no" v-pre>.git</code> and <code translate="no" v-pre>marginalia/plugins</code>, runs
+<code translate="no" v-pre>mvn install -DskipTests -Dvaadin.skip=true</code> for the application, <code translate="no" v-pre>mvn install -N</code> for the parent POM and <code translate="no" v-pre>mvn package</code> in every folder of <code translate="no" v-pre>plugins/</code> that has a <code translate="no" v-pre>pom.xml</code>.
 The JARs are copied out when the container runs, because they go into a bind mount:</p>
 <div id="in-docker-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">docker compose -f marginalia/plugins/docker-compose.yml build
@@ -553,7 +557,7 @@ are listed in <code translate="no" v-pre>TODO.IMAGES.md</code>.</p>
 | `couldn't find aspectjrt.jar on classpath` warning | Printed by the AspectJ plugin on every build; harmless. |
 | `Schema-validation: missing column ...` on start | An entity was changed without a Flyway migration. Add one ([Database schema changes](#database-schema-changes)). |
 | The frontend build fails downloading Node.js or npm packages | It needs internet access on the first build. Behind a proxy, configure it for Maven and npm, or delete `~/.vaadin` and `node_modules` and try again. |
-| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` and rebuild the plugin. |
+| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` (and `mvn -N install` in the root) and rebuild the plugin. |
 | `WARNING: A Java agent has been loaded dynamically` | Add the [JVM options](#jvm-options). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -582,7 +586,7 @@ are listed in <code translate="no" v-pre>TODO.IMAGES.md</code>.</p>
 </tr>
 <tr>
 <td>A plugin fails with <code translate="no" v-pre>NoSuchMethodError</code> / <code translate="no" v-pre>ClassNotFoundException</code></td>
-<td>It was built against another version of the application. Run <code translate="no" v-pre>mvn install</code> in <code translate="no" v-pre>marginalia/</code> and rebuild the plugin.</td>
+<td>It was built against another version of the application. Run <code translate="no" v-pre>mvn install</code> in <code translate="no" v-pre>marginalia/</code> (and <code translate="no" v-pre>mvn -N install</code> in the root) and rebuild the plugin.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>WARNING: A Java agent has been loaded dynamically</code></td>
