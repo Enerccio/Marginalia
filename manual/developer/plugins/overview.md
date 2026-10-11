@@ -219,6 +219,30 @@ sequenceDiagram
   bound callbacks, `onExtensionUnload`, the activator's `stop` - and the framework is stopped. Still save data as you
   go: a killed process runs none of this.
 
+### Extension events
+
+`OsgiService` reports single extensions that are loaded or unloaded to `ExtensionListener`s, for code that has to
+react to the extension set - the application itself uses it to keep the styles of extensions in the pages
+([Styles of a plugin](ui-extensions.md#styles-of-a-plugin)):
+
+```java
+osgiService.addExtensionListener(listener);       // held weakly: the subscriber keeps the reference
+osgiService.removeExtensionListener(listener);
+osgiService.getLoadedExtensions();                // the extensions that are loaded now: (Bundle, MarginaliaExtension)
+```
+
+- `extensionLoaded(bundle, extension)` is called after `onExtensionLoad` returned. An extension whose load failed is
+  never reported (and not as unloaded either); it is unloaded again as before.
+- `extensionUnloaded(bundle, extension)` is called after `onExtensionUnload`, for every extension that was reported as
+  loaded: *Unload*, an update that replaces the bundle, the shutdown of the application.
+- The methods run on the thread that loads or unloads (an administrator's request, the startup), with no UI session.
+  Change a UI through `ui.access(...)`. An exception is logged and doesn't stop other listeners or the loading.
+- Listeners get no events for extensions that are loaded already. Subscribe first, then read `getLoadedExtensions()`;
+  an extension loaded between the two is seen twice, so handle repeats (`CssRegistry.attach` does).
+
+The older `ExtensionObserver` (`addSubscriber`) reports the start and stop of the whole framework, including the
+pauses during an upload or unload.
+
 ## Class loading
 
 Felix is started with `org.osgi.framework.bootdelegation=*` and the framework class loader as the bundle parent, which

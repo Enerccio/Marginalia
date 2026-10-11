@@ -171,13 +171,62 @@ What plugins can't do:
   Viritin's `VTabSheet`...), but `@CssImport`, `@JsModule`, `@NpmPackage` and add-ons with their own web
   components don't work from a plugin. Style with the classes of `CssStyles`
   (`addClassName(CssStyles.TEXT_SECONDARY)`), which the application's `shared-styles.css` defines. A style only your
-  plugin uses goes into a CSS file in the bundle's `src/main/resources` that the plugin injects as a `<style>`
-  element with `executeJs` (once, guarded by the element id), with its class names as constants in the plugin; Side
-  Query does this in `SideQueryStyles`. Use `getStyle()` only for a value known at runtime.
+  plugin uses goes into a CSS file in the bundle's `src/main/resources` that the application puts into the page for
+  you ([Styles of a plugin](#styles-of-a-plugin)), with its class names as constants in the plugin. Use `getStyle()` only for a value known at runtime.
 - **Add localization keys.** `Localization` knows only the application's `L` keys. The bundled plugins use English
   strings; a plugin that wants translations has to bring its own (a `ResourceBundle` in the bundle, chosen by
   `UI.getCurrent().getLocale()`).
 - **Add routes.** Routes are registered when the servlet starts. Use dialogs and tabs instead.
+
+## Styles of a plugin
+
+A plugin can't add to the application's stylesheet, but it can ship its own CSS. Implement `ExtensionHasCss` on the
+class that implements `MarginaliaExtension`:
+
+```java
+public class MyExtension implements MarginaliaExtension, ExtensionHasCss {
+
+    @Override
+    public String getCss(ApplicationEntryPoint entryPoint) {
+        // the card lives in the workspace only
+        return entryPoint instanceof Main ? MyStyles.css() : null;
+    }
+    ...
+}
+```
+
+`getCss` returns the CSS text for a page, or `null`/blank when the extension has no styles there. The entry point is
+the root component of the page: `Main` (the workspace) or `Viewer` (the reader); both implement
+`ApplicationEntryPoint`. The text is usually a resource of the bundle, read once and cached:
+
+```java
+try (InputStream in = MyStyles.class.getResourceAsStream("/my-plugin.css")) {
+    css = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+}
+```
+
+Use Lumo variables (`var(--lumo-contrast-10pct)`) in the rules and keep the class names as constants next to the
+loader (Side Query: `SideQueryStyles` and `sidequery.css`); prefix them with the plugin's name, the page is shared
+with the application and other plugins.
+
+**What the application does.** Each entry point owns a `CssRegistry` (created in `onAttach`, released in `onDetach`).
+For every UI it
+
+- adds the style of each extension that is loaded already when the entry point is attached (an extension loaded at
+  startup, or before the user opened the page),
+- adds the style of an extension that is loaded while the page is open (*Admin → Extensions → Load*), so it works
+  without a reload,
+- removes the style again when the extension is unloaded, replaced by a newer version or the application stops.
+
+The CSS goes into a `<style id="marginalia-extension-css-<extension class name>">` element in the document head; the
+element is replaced if it exists, so nothing is added twice. The registry listens to `OsgiService` through an
+`ExtensionListener` ([Extension events](overview.md#extension-events)). `getCss` is called once per page and extension
+and an exception from it is logged and skips only that extension, but it should not do anything expensive.
+
+!!!warning Do not inject the style yourself
+Don't add the `<style>` element from your own components (`executeJs` in a constructor): the style would not be
+removed when the extension is unloaded and would be added again for each component. Return it from `getCss`.
+!!!
 
 ## Errors
 

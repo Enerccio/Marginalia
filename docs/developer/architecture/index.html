@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845031541532">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845035050389">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845031541532" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845035050389" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845031541532" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845035050389" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845031541532" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845031541532" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845035050389" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845035050389" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -875,6 +875,11 @@ the data is part of backups. They can also listen to generation events and take 
 <p><strong>UI lifetime.</strong> An extension registers the components it adds with <code translate="no" v-pre>OsgiService.bindAttachableComponent</code> together
 with a callback that removes them; the callbacks of components still attached run when the extension is unloaded,
 each inside <code translate="no" v-pre>ui.access(...)</code> of the component&#x27;s UI.</p>
+</li>
+<li>
+<p><strong>Styles.</strong> An extension that implements <code translate="no" v-pre>ExtensionHasCss</code> gets its CSS put into every open page: <code translate="no" v-pre>CssRegistry</code>
+(owned by <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code>) reads the loaded extensions when its page is attached and listens to the
+loaded/unloaded events of <code translate="no" v-pre>OsgiService</code> afterwards (<a href="../plugins/ui-extensions/#styles-of-a-plugin">Styles of a plugin</a>).</p>
 </li>
 </ul>
 <p>Because hooks are attached by class and method <em>name</em> and read local variables by name, extensions are tied to one

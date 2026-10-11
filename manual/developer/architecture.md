@@ -435,6 +435,9 @@ sequenceDiagram
 - **UI lifetime.** An extension registers the components it adds with `OsgiService.bindAttachableComponent` together
   with a callback that removes them; the callbacks of components still attached run when the extension is unloaded,
   each inside `ui.access(...)` of the component's UI.
+- **Styles.** An extension that implements `ExtensionHasCss` gets its CSS put into every open page: `CssRegistry`
+  (owned by `Main` and `Viewer`) reads the loaded extensions when its page is attached and listens to the
+  loaded/unloaded events of `OsgiService` afterwards ([Styles of a plugin](plugins/ui-extensions.md#styles-of-a-plugin)).
 
 Because hooks are attached by class and method *name* and read local variables by name, extensions are tied to one
 version of the application. See [Plugin development](plugins/index.md).

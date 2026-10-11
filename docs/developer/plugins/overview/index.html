@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845031541532">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845035050389">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845031541532" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845035050389" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845031541532" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845035050389" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845031541532" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845031541532" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845035050389" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845035050389" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -392,6 +392,35 @@ bound callbacks, <code translate="no" v-pre>onExtensionUnload</code>, the activa
 go: a killed process runs none of this.</p>
 </li>
 </ul>
+<h3 id="extension-events">Extension events</h3>
+<p><code translate="no" v-pre>OsgiService</code> reports single extensions that are loaded or unloaded to <code translate="no" v-pre>ExtensionListener</code>s, for code that has to
+react to the extension set - the application itself uses it to keep the styles of extensions in the pages
+(<a href="../ui-extensions/#styles-of-a-plugin">Styles of a plugin</a>):</p>
+<div id="extension-events-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">osgiService.addExtensionListener(listener);       // held weakly: the subscriber keeps the reference
+osgiService.removeExtensionListener(listener);
+osgiService.getLoadedExtensions();                // the extensions that are loaded now: (Bundle, MarginaliaExtension)</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p><code translate="no" v-pre>extensionLoaded(bundle, extension)</code> is called after <code translate="no" v-pre>onExtensionLoad</code> returned. An extension whose load failed is
+never reported (and not as unloaded either); it is unloaded again as before.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>extensionUnloaded(bundle, extension)</code> is called after <code translate="no" v-pre>onExtensionUnload</code>, for every extension that was reported as
+loaded: <em>Unload</em>, an update that replaces the bundle, the shutdown of the application.</p>
+</li>
+<li>
+<p>The methods run on the thread that loads or unloads (an administrator&#x27;s request, the startup), with no UI session.
+Change a UI through <code translate="no" v-pre>ui.access(...)</code>. An exception is logged and doesn&#x27;t stop other listeners or the loading.</p>
+</li>
+<li>
+<p>Listeners get no events for extensions that are loaded already. Subscribe first, then read <code translate="no" v-pre>getLoadedExtensions()</code>;
+an extension loaded between the two is seen twice, so handle repeats (<code translate="no" v-pre>CssRegistry.attach</code> does).</p>
+</li>
+</ul>
+<p>The older <code translate="no" v-pre>ExtensionObserver</code> (<code translate="no" v-pre>addSubscriber</code>) reports the start and stop of the whole framework, including the
+pauses during an upload or unload.</p>
 <h2 id="class-loading">Class loading</h2>
 <p>Felix is started with <code translate="no" v-pre>org.osgi.framework.bootdelegation=*</code> and the framework class loader as the bundle parent, which
 is the web application&#x27;s class loader. Every class a bundle asks for is therefore looked up in the application

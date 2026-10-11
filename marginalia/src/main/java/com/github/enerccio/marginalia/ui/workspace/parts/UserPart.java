@@ -73,8 +73,8 @@ public class UserPart implements WorkspaceComponent {
     private final Workspace workspace;
 
     private VerticalLayout mainLayout;
-    private Span unsavedChangesSpan;
-    private Button discardButton;
+    protected Span unsavedChangesSpan;
+    protected Button discardButton;
 
     // Tab 1 fields
     private ComboBox<AI> defaultModelCombo;
@@ -115,28 +115,7 @@ public class UserPart implements WorkspaceComponent {
         mainLayout.setPadding(true);
         mainLayout.setSpacing(true);
 
-        HorizontalLayout headerLayout = new HorizontalLayout();
-        headerLayout.setWidthFull();
-        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        Span titleSpan = new Span(loc.getValue(L.LABEL_SETTINGS));
-        titleSpan.addClassName(CssStyles.SECTION_TITLE);
-
-        unsavedChangesSpan = new Span(loc.getValue(L.MSG_UNSAVED_SETTINGS));
-        unsavedChangesSpan.addClassName(CssStyles.TEXT_ERROR);
-        unsavedChangesSpan.setVisible(false);
-
-        Button importBackupAsNewButton = new Button(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
-
-        discardButton = new Button(loc.getValue(L.LABEL_DISCARD_CHANGES), event -> discard());
-        discardButton.setEnabled(false);
-
-        Button saveButton = new Button(loc.getValue(L.LABEL_SAVE), event -> save());
-        saveButton.setThemeName("primary");
-
-        headerLayout.add(titleSpan, unsavedChangesSpan, importBackupAsNewButton, discardButton, saveButton);
-        headerLayout.setFlexGrow(1, titleSpan);
-        headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        Component headerLayout = createHeader();
 
         createFields();
 
@@ -184,6 +163,54 @@ public class UserPart implements WorkspaceComponent {
         refresh();
 
         return mainLayout;
+    }
+
+    /**
+     * The top of the part: the title, the unsaved changes hint and the buttons. {@link #unsavedChangesSpan} and
+     * {@link #discardButton} must be created here, the change tracking toggles them.
+     */
+    protected Component createHeader() {
+        HorizontalLayout headerLayout = new HorizontalLayout();
+        headerLayout.setWidthFull();
+        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Span titleSpan = createTitle();
+        unsavedChangesSpan = createUnsavedChangesSpan();
+
+        Button importBackupAsNewButton = new Button(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
+
+        discardButton = createDiscardButton();
+        Button saveButton = createSaveButton();
+
+        headerLayout.add(titleSpan, unsavedChangesSpan, importBackupAsNewButton, discardButton, saveButton);
+        headerLayout.setFlexGrow(1, titleSpan);
+        headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        return headerLayout;
+    }
+
+    protected Span createTitle() {
+        Span titleSpan = new Span(loc.getValue(L.LABEL_SETTINGS));
+        titleSpan.addClassName(CssStyles.SECTION_TITLE);
+        return titleSpan;
+    }
+
+    protected Span createUnsavedChangesSpan() {
+        Span span = new Span(loc.getValue(L.MSG_UNSAVED_SETTINGS));
+        span.addClassName(CssStyles.TEXT_ERROR);
+        span.setVisible(false);
+        return span;
+    }
+
+    protected Button createDiscardButton() {
+        Button button = new Button(loc.getValue(L.LABEL_DISCARD_CHANGES), event -> discard());
+        button.setEnabled(false);
+        return button;
+    }
+
+    protected Button createSaveButton() {
+        Button button = new Button(loc.getValue(L.LABEL_SAVE), event -> save());
+        button.setThemeName("primary");
+        return button;
     }
 
     private void createFields() {

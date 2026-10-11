@@ -54,11 +54,11 @@ flowchart TB
 |---|---|
 | `ui.main` | Servlet, app shell, routes, login (`LoginCheckRoute`). |
 | `ui.workspace` | The `Workspace` interface, its `DesktopWorkspace` implementation and the `WorkspaceComponent` interface. |
-| `ui.workspace.phone`, `.parts` | `PhoneWorkspace` and the phone specific tabs (`PhoneManuscriptPart`). |
+| `ui.workspace.phone`, `.parts` | `PhoneWorkspace` and the phone specific tabs (`PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`). |
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
-| `ui.components` | Larger reusable components: `LorebookView`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
+| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
 | `ui.widgets` | Small reusable widgets, among them `TrashGrid` (see [Trash](#trash)). |
 
 ## The shell, routes and login
@@ -155,9 +155,16 @@ in its layout (extension settings panels included) and unlocks on *Save*, *Disca
 `Main` picks `PhoneWorkspace` instead on phones (an iPhone, or a mobile user agent with a screen narrower than 768 px).
 It keeps the same parts but replaces the left-hand tab sheet with an `AppLayout`: the parts are listed in a drawer
 (opened with the toggle in the top bar, which also holds the *Admin*, *Change Password* and *Logout* buttons) and the
-active part fills the screen. Only the book list differs, `PhoneManuscriptPart` renders it like the `Viewer`
-(stacked filters, sort buttons, one column) with the controls of `ManuscriptPart`; both share the *Add Book* flow in
-`NewBookAction`. The other parts are the desktop ones.
+active part fills the screen. Only the book list, the lorebooks, the settings, the protocols, the models and the trash differ. `PhoneManuscriptPart` renders the book list
+like the `Viewer` (stacked filters, sort buttons, one column) with the controls of `ManuscriptPart`; both share the
+*Add Book* flow in `NewBookAction`. `PhoneLorebookPart` hosts `PhoneLorebookView`, a reduced `LorebookView`: lorebooks can
+only be selected (no add, delete, import or export, no new entries) and only the enabled flags and the content of an
+entry are editable, every other setting of the lorebook and of an expanded entry is shown as text. `PhoneTrashPart`
+hosts `PhoneTrashGrid` (see [Trash](#trash)). `PhoneProtocolPart` and `PhoneAIPart` replace the type, name and
+action columns of their desktop lists with a text column (*Type:* and *Name:* on two lines) and a buttons column.
+`PhoneSettingsPart` extends `UserPart` (so the extension settings panels that decorate `UserPart.refresh`/`save` keep
+working) and only overrides `createHeader()`: the title, the unsaved changes hint and the *Discard*/*Save* buttons are
+stacked, and *Import backup as new book* is left out. The other parts are the desktop ones.
 
 The *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
 `DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension). Note that the admin UI being hidden is not a permission
@@ -254,6 +261,11 @@ blockers the widget shows them in a dialog (nothing was restored), otherwise it 
 from `TrashService.getExtendedContent` in a read-only text area. `TrashPart` (the *Trash* tab, `allUsers` for
 administrators) and `CleanupPanel` (a `Details` section, created when first opened) both use it.
 
+`PhoneTrashGrid` (used by `PhoneTrashPart`) subclasses it through the `createToolbar()` and `addColumns()` hooks: the
+filters are stacked over the whole width, the description is behind an info button (a `Popover`) instead of above the
+table (`createDescription()`), and the table has only the check box column and one content column that
+shows name, type, owner (`allUsers`), delete time and the *Extended Content* link below each other.
+
 Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`, `ListSelectDialog`,
 `ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`.
 
@@ -340,6 +352,10 @@ there, so a `Markdown` needs no extra call. Class names used from Java are const
 `CssStyles`; column widths and offsets in `UIConstants`. Use Lumo's CSS custom properties (`--lumo-space-m`,
 `--lumo-contrast-10pct`...) instead of fixed colors, so the dark theme stays consistent.
 
+Styles of plugins are not in the stylesheet. `Main` and `Viewer` (the `ApplicationEntryPoint`s) own a `CssRegistry` that
+injects the CSS returned by loaded extensions (`ExtensionHasCss.getCss`) as `<style>` elements and removes it when the
+extension is unloaded ([Styles of a plugin](plugins/ui-extensions.md#styles-of-a-plugin)).
+
 ## Extension points
 
 Every class annotated `@Extendable` can be extended by plugins: a decorator registered for a class and method name
@@ -348,9 +364,9 @@ runs before and after that method and can read its arguments and local variables
 
 | Area | Classes |
 |---|---|
-| Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
+| Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `LorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid`, `PhoneTrashGrid` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |
 
 New screens, dialogs and components with their own logic get `@Extendable` too (a nested class needs its own
