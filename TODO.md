@@ -71,10 +71,10 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 8. **Build & CI.**
    - ✅ No CI. Add a GitHub Actions workflow: build core + all plugins, run tests, build the Docker image.
-   - Parent/aggregator POM: plugins are separate projects depending on `marginalia:1.0.0` and are **not built or
+   - Parent/aggregator POM: plugins are separate projects depending on `marginalia:1.0.1` and are **not built or
      shipped by the Dockerfile**. Make a multi-module build, and decide whether bundled plugins ship preinstalled.
    - ✅ `target/` folders are not in `.gitignore` (root and `plugins/*/target`).
-   - ✅ Versioning: everything is `1.0.0`. `AppSettings.appVersion/dbVersion` and `ApplicationInitializer` are hard-coded `1`.
+   - ✅ Versioning: everything is `1.0.1`. `AppSettings.appVersion/dbVersion` and `ApplicationInitializer` are hard-coded `1`.
      Use the Maven version + git info (git-commit-id plugin is already present) and show it in the admin page.
    - ✅ Release artifacts: WAR + plugin JARs attached to a GitHub release and the Docker image (amd64 + arm64) pushed to
      `ghcr.io` by `.github/workflows/server.yml` (the desktop archives come from `desktop.yml`).

@@ -46,7 +46,7 @@ package names. The important parts:
     <dependency>
         <groupId>io.github.enerccio</groupId>
         <artifactId>marginalia</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <classifier>classes</classifier>
         <scope>provided</scope>
     </dependency>
