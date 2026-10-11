@@ -24,7 +24,7 @@ docker compose up --build    # from repo root; data in ./data
 
 Use a separate `-Duser.home` for dev runs: data lives in `~/.marginalia` (also the desktop app's folder). Note `user.home` also moves Maven's repo; add `-Dmaven.repo.local=$HOME/.m2/repository`.
 
-Plugins (`marginalia/plugins/{chaptermarker,lorebookvcs,reviewer,sidequery,authorsnote,chineselocalization}`) are separate Maven projects (OSGi bundles): after `mvn install` of the app, run `mvn package` in the plugin dir, then load the JAR in Admin → Extensions. They must be built from the same source tree as the app.
+Plugins (`marginalia/plugins/{chaptermarker,lorebookvcs,reviewer,sidequery,authorsnote,chineselocalization,instructionexporter}`) are separate Maven projects (OSGi bundles): after `mvn install` of the app, run `mvn package` in the plugin dir, then load the JAR in Admin → Extensions. They must be built from the same source tree as the app.
 
 There is no lint step. First build is slow (Vaadin downloads Node.js and npm packages).
 
