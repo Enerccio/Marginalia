@@ -226,7 +226,8 @@ The JARs are not copied while the image is built, because a bind mount exists on
 `rebuild.sh` (Linux, macOS) and `rebuild.bat` (Windows) in the repository root update a Docker server: when the
 upstream branch has new commits they stop the container, `git pull`, build the plugins as above, copy the JARs into
 `data/extensions` (overwriting the installed ones; extensions load on start) and run `docker compose up -d --build`.
-The two scripts must be kept in step; `.gitattributes` keeps the shell script on LF and the batch file on CRLF.
+`--force` skips the check for new commits. The two scripts must be kept in step; `.gitattributes` keeps the shell
+script on LF and the batch file on CRLF.
 
 ## Continuous integration
 
