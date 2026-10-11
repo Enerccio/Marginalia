@@ -32,6 +32,7 @@ What it does:
 The plugin compiles against the application's classes, installed in the local Maven repository:
 
 ```sh
+mvn -N install                  # in the repository root: the parent POM the application's POM refers to
 cd marginalia
 mvn install -DskipTests
 ```
@@ -48,7 +49,9 @@ bookmarks/
 
 Copy `marginalia/plugins/chaptermarker/pom.xml` and change:
 
-- `groupId` to `com.example.marginalia`, `artifactId` to `bookmarks`,
+- `groupId` to `com.example.marginalia`, `artifactId` to `bookmarks`, and replace the `<parent>` (the plugin is outside
+  the repository) with a `<version>` of its own, e.g. `1.0.1`; the dependency on `marginalia` then needs the version of
+  the installed application instead of `${project.version}`,
 - `Bundle-Activator` to `com.example.marginalia.bookmarks.BookmarksActivator`,
 - `Import-Package` to `!com.example.marginalia.bookmarks.*` and `Export-Package` to
   `com.example.marginalia.bookmarks.*`.
