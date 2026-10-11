@@ -52,7 +52,6 @@ public class SideQueryView extends VerticalLayout {
         setSpacing(false);
 
         loadData();
-        SideQueryStyles.install();
         buildUI();
     }
 

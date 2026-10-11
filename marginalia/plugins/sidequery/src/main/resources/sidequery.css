@@ -1,5 +1,5 @@
-/* Styles of the Side Query plugin only. Injected into the page by SideQueryStyles.install(); the application's
-   shared-styles.css is not used for them. */
+/* Styles of the Side Query plugin only. Put into the page by the application while the extension is loaded
+   (SideQueryExtension.getCss); the application's shared-styles.css is not used for them. */
 
 /* Header bars (tabs, options) separated from the content below */
 .side-query-bar {

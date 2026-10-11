@@ -6,11 +6,15 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.sidequery.model.SideQuerySettings;
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
 import com.github.enerccio.marginalia.extensions.sidequery.ui.SideQuerySettingsForm;
+import com.github.enerccio.marginalia.extensions.sidequery.ui.SideQueryStyles;
 import com.github.enerccio.marginalia.extensions.sidequery.ui.SideQueryView;
+import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
+import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
@@ -24,7 +28,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 @Configurable
-public class SideQueryExtension implements MarginaliaExtension {
+public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss {
 
     private static final String SIDE_QUERY_VIEW_KEY = SideQuerySettings.KEY + ".view";
     private static final String SETTINGS_PANEL_KEY = SideQuerySettings.KEY + ".settingsPanel";
@@ -135,6 +139,12 @@ public class SideQueryExtension implements MarginaliaExtension {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
             throw new IllegalStateException("Failed to load the Side Query extension", e);
         }
+    }
+
+    @Override
+    public String getCss(ApplicationEntryPoint entryPoint) {
+        // the Side Query tab lives in the workspace only
+        return entryPoint instanceof Main ? SideQueryStyles.css() : null;
     }
 
     @Override

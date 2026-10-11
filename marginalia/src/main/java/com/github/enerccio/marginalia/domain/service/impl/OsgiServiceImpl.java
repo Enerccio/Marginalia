@@ -40,8 +40,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
@@ -65,7 +67,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
 
     private final Map<ServiceReference<?>, MarginaliaExtension> activeExtensions = new ConcurrentHashMap<>();
     private final Map<MarginaliaExtension, Set<ComponentBinding>> componentCallbacks = new ConcurrentHashMap<>();
+    private final Map<ServiceReference<?>, LoadedExtension> loadedExtensions = new ConcurrentHashMap<>();
     private final Set<WeakReference<ExtensionObserver>> observers = new HashSet<>();
+    private final List<WeakReference<ExtensionListener>> extensionListeners = new CopyOnWriteArrayList<>();
     private volatile Long applicationTimestamp;
 
     @Override
@@ -198,6 +202,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
             log.trace("stopping extension stop");
         }
         activeExtensions.clear();
+        loadedExtensions.clear();
         componentCallbacks.clear();
         onStop();
     }
@@ -470,6 +475,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                     }
                     throw e;
                 }
+                LoadedExtension loaded = new LoadedExtension(b, extension);
+                loadedExtensions.put(sr, loaded);
+                fireExtensionEvent(listener -> listener.extensionLoaded(b, extension));
             }
         }
     }
@@ -490,10 +498,30 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 binding.release();
             }
         }
+        // an extension that failed to load was never reported, so it is not reported as unloaded either
+        boolean reported = loadedExtensions.remove(sr) != null;
         try {
             extension.onExtensionUnload(b, this, extensionService);
         } finally {
             getContext().ungetService(sr);
+            if (reported) {
+                fireExtensionEvent(listener -> listener.extensionUnloaded(b, extension));
+            }
+        }
+    }
+
+    private void fireExtensionEvent(Consumer<ExtensionListener> event) {
+        for (WeakReference<ExtensionListener> reference : extensionListeners) {
+            ExtensionListener listener = reference.get();
+            if (listener == null) {
+                extensionListeners.remove(reference);
+                continue;
+            }
+            try {
+                event.accept(listener);
+            } catch (Exception e) {
+                log.error("Extension listener {} failed: {}", listener.getClass().getName(), e.getMessage(), e);
+            }
         }
     }
 
@@ -609,6 +637,28 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 return;
             }
         }
+    }
+
+    @Override
+    public void addExtensionListener(ExtensionListener listener) {
+        synchronized (extensionListeners) {
+            for (WeakReference<ExtensionListener> reference : extensionListeners) {
+                if (reference.get() == listener) {
+                    return;
+                }
+            }
+            extensionListeners.add(new WeakReference<>(listener));
+        }
+    }
+
+    @Override
+    public void removeExtensionListener(ExtensionListener listener) {
+        extensionListeners.removeIf(reference -> reference.get() == null || reference.get() == listener);
+    }
+
+    @Override
+    public List<LoadedExtension> getLoadedExtensions() {
+        return new ArrayList<>(loadedExtensions.values());
     }
 
     @Override

@@ -2,11 +2,13 @@ package com.github.enerccio.marginalia.ui.main;
 
 import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.phone.PhoneWorkspace;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.ExtendedClientDetails;
@@ -26,6 +28,11 @@ public class Main extends LoginCheckRoute {
     @Autowired
     private ApplicationPoint applicationPoint;
 
+    @Autowired
+    private OsgiService osgiService;
+
+    private CssRegistry cssRegistry;
+
     public Main() {
         showLogin();
     }
@@ -43,11 +50,6 @@ public class Main extends LoginCheckRoute {
     @Override
     protected boolean authenticate(String userName, String password) throws Exception {
         return userService.authenticate(userName, password, clientAddress());
-    }
-
-    @Override
-    protected void onDetach(DetachEvent detachEvent) {
-
     }
 
     @Override
@@ -75,6 +77,24 @@ public class Main extends LoginCheckRoute {
             workspace.refresh();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        // called also by the login, before the route is attached, so the registry is created on demand
+        if (cssRegistry == null) {
+            cssRegistry = new CssRegistry(this, osgiService);
+        }
+        cssRegistry.attach(attachEvent.getUI());
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        if (cssRegistry != null) {
+            cssRegistry.detach();
         }
     }
 

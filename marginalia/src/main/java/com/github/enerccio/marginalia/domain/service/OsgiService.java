@@ -49,6 +49,20 @@ public interface OsgiService {
 
     void removeSubscriber(ExtensionObserver observer);
 
+    /**
+     * Subscribes to the loading and unloading of single extensions. The listener is held weakly, like the
+     * {@link ExtensionObserver}s - the subscriber has to keep a reference to it. Subscribing twice has no effect.
+     * Extensions that are loaded already are not reported, use {@link #getLoadedExtensions()} for them.
+     */
+    void addExtensionListener(ExtensionListener listener);
+
+    void removeExtensionListener(ExtensionListener listener);
+
+    /**
+     * The extensions that finished loading ({@code onExtensionLoad} returned) and were not unloaded yet.
+     */
+    List<LoadedExtension> getLoadedExtensions();
+
     String getExtensionsPath();
 
     /**
@@ -60,6 +74,9 @@ public interface OsgiService {
     record ExtensionReport(boolean valid, String text) {
     }
 
+    record LoadedExtension(Bundle bundle, MarginaliaExtension extension) {
+    }
+
     /**
      * Registers a cleanup callback for a component the extension added to the UI. When the extension is unloaded, the
      * callback runs for every bound component that is attached, inside {@code ui.access(...)} of the component's UI;
@@ -68,6 +85,28 @@ public interface OsgiService {
      * @throws IllegalStateException when the extension is not loaded
      */
     <T extends Component> T bindAttachableComponent(T component, Runnable callback, MarginaliaExtension extension) throws Exception;
+
+    /**
+     * Reports single extensions that are loaded or unloaded. The methods are called on the thread that loads or
+     * unloads the extension (an administrator's request, the start of the application), not in a UI session: change
+     * a UI only through {@code ui.access(...)}. An exception thrown by a listener is logged and doesn't stop the
+     * others.
+     */
+    interface ExtensionListener {
+
+        /**
+         * The extension finished {@code onExtensionLoad}.
+         */
+        void extensionLoaded(Bundle bundle, MarginaliaExtension extension);
+
+        /**
+         * The extension was unloaded ({@code onExtensionUnload} was called), only for an extension that was reported
+         * by {@link #extensionLoaded}. The extension is unloaded also when its bundle is replaced and when the
+         * framework stops.
+         */
+        void extensionUnloaded(Bundle bundle, MarginaliaExtension extension);
+
+    }
 
     interface ExtensionObserver {
 
