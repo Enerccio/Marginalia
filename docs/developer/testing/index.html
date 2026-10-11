@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845043522738">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845044166182">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845043522738" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845044166182" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845044166182" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845043522738" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845044166182" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845044166182" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -265,7 +265,7 @@ fake is the model server.</p>
 | `test/llm` | `MockLLMServerTest` | The fake OpenAI server against the real `openai-java` client. |
 | `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
 | `db` | `FlywayMigrationTest`, `FulltextMigrationTest`, `DatabaseRestoreCheckTest`, `PreMigrationBackupTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation (`FlywayMigrationTest` also checks that V9 keeps `manuscripts.description` in `extendedContent`); `FulltextMigrationTest` runs the app migration that fills `_fulltext` of existing rows on the Spring context; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context); `PreMigrationBackupTest` checks the copy `Configuration.resolveDb` saves before an existing database is migrated (an older version, no history table, nothing for a current or new database, only the newest three kept). |
-| `domain` | `ExtendableEntityListenerTest`, `FulltextQueryTest`, `ChatMessageSearchTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; `FulltextQueryTest` and `ChatMessageSearchTest` cover the full-text query (words, phrases, `*`, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context. |
+| `domain` | `ExtendableEntityListenerTest`, `FulltextQueryTest`, `ChatMessageSearchTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; `FulltextQueryTest` and `ChatMessageSearchTest` cover the full-text query (words, phrases, `*`, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context; it also checks that an extension's localization bundles are registered while it is loaded, removed on unload, and that an extension can't replace a language that already has a bundle. |
 | `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain. |
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
 | `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
@@ -273,6 +273,7 @@ fake is the model server.</p>
 | `export` | `ExporterTest`, `ExporterImagesTest` | The story exporters (TXT, Markdown, HTML, DOCX, PDF, EPUB): text and Unicode, linked contents and chapter navigation, splitting of long stories, embedded images. |
 | `security` | `ApiKeyEncryptionTest` | API keys stored encrypted with the installation key; the app migration encrypting plain ones. |
 | `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
+| `loc` | `LocalizationTest`, `BundleCompletenessTest` | The language of the session selects the bundle, texts a bundle lacks come from the default language, a language can't be registered twice, the default one can't be removed, `UserSetting.language` is saved (Spring context). Every key of the Japanese bundle is translated and its `%s`/`%d` placeholders match the English text. |
 | `ui` | `ResourcesPartTest`, `BranchSearchTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The search of the branch view (`ManuscriptTreePart` with a stand-in for the book window): the result line, &quot;Show in story&quot; switching the active branch and ignoring ids of other books. They build Vaadin components without a UI session. |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest` | Purging soft-deleted data, owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application. |">
@@ -309,7 +310,7 @@ fake is the model server.</p>
 <tr>
 <td><code translate="no" v-pre>domain</code></td>
 <td><code translate="no" v-pre>ExtendableEntityListenerTest</code>, <code translate="no" v-pre>FulltextQueryTest</code>, <code translate="no" v-pre>ChatMessageSearchTest</code>, <code translate="no" v-pre>TokenLimitsTest</code>, <code translate="no" v-pre>CronScheduleTest</code>, <code translate="no" v-pre>SillyTavernEntryConverterTest</code>, <code translate="no" v-pre>TemplateHelpersTest</code>, <code translate="no" v-pre>OsgiServiceImplTest</code></td>
-<td>Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; <code translate="no" v-pre>FulltextQueryTest</code> and <code translate="no" v-pre>ChatMessageSearchTest</code> cover the full-text query (words, phrases, <code translate="no" v-pre>*</code>, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). <code translate="no" v-pre>OsgiServiceImplTest</code> loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (<code translate="no" v-pre>TestExtensionActivator</code>), including the verification reports that allow or refuse starting them; it has no Spring context.</td>
+<td>Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; <code translate="no" v-pre>FulltextQueryTest</code> and <code translate="no" v-pre>ChatMessageSearchTest</code> cover the full-text query (words, phrases, <code translate="no" v-pre>*</code>, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). <code translate="no" v-pre>OsgiServiceImplTest</code> loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (<code translate="no" v-pre>TestExtensionActivator</code>), including the verification reports that allow or refuse starting them; it has no Spring context; it also checks that an extension&#x27;s localization bundles are registered while it is loaded, removed on unload, and that an extension can&#x27;t replace a language that already has a bundle.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>generation</code></td>
@@ -345,6 +346,11 @@ fake is the model server.</p>
 <td><code translate="no" v-pre>utils</code></td>
 <td><code translate="no" v-pre>ClientAddressResolverTest</code></td>
 <td>The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>loc</code></td>
+<td><code translate="no" v-pre>LocalizationTest</code>, <code translate="no" v-pre>BundleCompletenessTest</code></td>
+<td>The language of the session selects the bundle, texts a bundle lacks come from the default language, a language can&#x27;t be registered twice, the default one can&#x27;t be removed, <code translate="no" v-pre>UserSetting.language</code> is saved (Spring context). Every key of the Japanese bundle is translated and its <code translate="no" v-pre>%s</code>/<code translate="no" v-pre>%d</code> placeholders match the English text.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui</code></td>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845043522738">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845044166182">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845043522738" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845044166182" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845044166182" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845043522738" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845043522738" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845044166182" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845044166182" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -419,6 +419,11 @@ Change a UI through <code translate="no" v-pre>ui.access(...)</code>. An excepti
 an extension loaded between the two is seen twice, so handle repeats (<code translate="no" v-pre>CssRegistry.attach</code> does).</p>
 </li>
 </ul>
+<p><strong>Optional interfaces.</strong> Besides <code translate="no" v-pre>MarginaliaExtension</code>, the extension class can implement <code translate="no" v-pre>ExtensionHasCss</code> (styles
+put into every page, see <a href="../ui-extensions/#styles-of-a-plugin">Styles of a plugin</a>) and <code translate="no" v-pre>ExtensionHasLocalization</code>
+(languages for the UI: <code translate="no" v-pre>OsgiServiceImpl</code> registers the returned <code translate="no" v-pre>LocalizationBundle</code>s in <code translate="no" v-pre>Localization</code> right after
+<code translate="no" v-pre>onExtensionLoad</code> returned and removes them when the extension is unloaded; see
+<a href="../example/#walkthrough-chinese-localization">Example plugin</a>).</p>
 <p>The older <code translate="no" v-pre>ExtensionObserver</code> (<code translate="no" v-pre>addSubscriber</code>) reports the start and stop of the whole framework, including the
 pauses during an upload or unload.</p>
 <h2 id="class-loading">Class loading</h2>

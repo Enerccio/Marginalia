@@ -228,6 +228,12 @@ osgiService.getLoadedExtensions();                // the extensions that are loa
 - Listeners get no events for extensions that are loaded already. Subscribe first, then read `getLoadedExtensions()`;
   an extension loaded between the two is seen twice, so handle repeats (`CssRegistry.attach` does).
 
+**Optional interfaces.** Besides `MarginaliaExtension`, the extension class can implement `ExtensionHasCss` (styles
+put into every page, see [Styles of a plugin](ui-extensions.md#styles-of-a-plugin)) and `ExtensionHasLocalization`
+(languages for the UI: `OsgiServiceImpl` registers the returned `LocalizationBundle`s in `Localization` right after
+`onExtensionLoad` returned and removes them when the extension is unloaded; see
+[Example plugin](example.md#walkthrough-chinese-localization)).
+
 The older `ExtensionObserver` (`addSubscriber`) reports the start and stop of the whole framework, including the
 pauses during an upload or unload.
 
