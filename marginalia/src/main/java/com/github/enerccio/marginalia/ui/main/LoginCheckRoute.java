@@ -32,7 +32,7 @@ import java.util.List;
 
 @Configurable(preConstruction = true)
 @Extendable
-public abstract class LoginCheckRoute extends Div {
+public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoint {
     private static final Logger log = LoggerFactory.getLogger(LoginCheckRoute.class);
 
     private static final String ID = "UIRoot";

@@ -8,10 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.TagRelationService;
-import com.github.enerccio.marginalia.domain.service.TagService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
@@ -22,6 +19,7 @@ import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -76,6 +74,11 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
     @Autowired
     private ApplicationPoint applicationPoint;
 
+    @Autowired
+    private OsgiService osgiService;
+
+    private CssRegistry cssRegistry;
+
     private String manuscriptParam;
     private boolean isUserLoggedIn = false;
 
@@ -107,8 +110,21 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
     }
 
     @Override
-    protected void onDetach(DetachEvent detachEvent) {
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        // called also by the login, before the route is attached, so the registry is created on demand
+        if (cssRegistry == null) {
+            cssRegistry = new CssRegistry(this, osgiService);
+        }
+        cssRegistry.attach(attachEvent.getUI());
+    }
 
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        if (cssRegistry != null) {
+            cssRegistry.detach();
+        }
     }
 
     @Override

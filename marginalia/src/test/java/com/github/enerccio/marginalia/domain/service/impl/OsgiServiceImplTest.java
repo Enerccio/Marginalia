@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
+import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.instruct.fixture.verify.VerifyFixtures;
@@ -293,6 +294,88 @@ class OsgiServiceImplTest {
         assertThat(callbacks).doesNotContainKey(extension);
         assertThatThrownBy(() -> service.bindAttachableComponent(new Div(), () -> {
         }, extension)).isInstanceOf(IllegalStateException.class).hasMessageContaining("not loaded");
+    }
+
+    /**
+     * Records the events as {@code loaded:symbolicName} / {@code unloaded:symbolicName}.
+     */
+    private static class RecordingListener implements OsgiService.ExtensionListener {
+
+        final List<String> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+        @Override
+        public void extensionLoaded(Bundle bundle, MarginaliaExtension extension) {
+            events.add("loaded:" + bundle.getSymbolicName());
+        }
+
+        @Override
+        public void extensionUnloaded(Bundle bundle, MarginaliaExtension extension) {
+            events.add("unloaded:" + bundle.getSymbolicName());
+        }
+    }
+
+    @Test
+    void listenersAreToldAboutLoadedAndUnloadedExtensions() throws Exception {
+        RecordingListener listener = new RecordingListener();
+        service.addExtensionListener(listener);
+        service.addExtensionListener(listener);
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+
+        assertThat(listener.events).containsExactly("loaded:test.a");
+        assertThat(service.getLoadedExtensions()).extracting(l -> l.bundle().getSymbolicName()).containsExactly("test.a");
+
+        // replacing: the old one is unloaded, the new one loaded
+        service.installPackage("a.jar", bundle("test.a", "1.0.1"));
+        assertThat(listener.events).containsExactly("loaded:test.a", "unloaded:test.a", "loaded:test.a");
+
+        service.uninstallPackage(bundleNamed("test.a"));
+        assertThat(listener.events).hasSize(4).last().isEqualTo("unloaded:test.a");
+        assertThat(service.getLoadedExtensions()).isEmpty();
+
+        service.removeExtensionListener(listener);
+        service.installPackage("b.jar", bundle("test.b", "1.0.0"));
+        assertThat(listener.events).hasSize(4);
+        assertThat(service.getLoadedExtensions()).hasSize(1);
+    }
+
+    @Test
+    void listenersAreNotToldAboutExtensionsThatFailedToLoad() throws Exception {
+        RecordingListener listener = new RecordingListener();
+        service.addExtensionListener(listener);
+        writeJar("d.jar", bundle("test.d", "1.0.0", "X-Test-Fail-Load"));
+        writeJar("e.jar", bundle("test.e", "1.0.0"));
+
+        service.start();
+
+        assertThat(listener.events).containsExactly("loaded:test.e");
+        assertThat(service.getLoadedExtensions()).extracting(l -> l.bundle().getSymbolicName()).containsExactly("test.e");
+
+        service.destroy();
+        assertThat(listener.events).containsExactly("loaded:test.e", "unloaded:test.e");
+    }
+
+    @Test
+    void failingListenerDoesNotStopOthersOrTheLoading() throws Exception {
+        service.addExtensionListener(new OsgiService.ExtensionListener() {
+            @Override
+            public void extensionLoaded(Bundle bundle, MarginaliaExtension extension) {
+                throw new IllegalStateException("listener broke");
+            }
+
+            @Override
+            public void extensionUnloaded(Bundle bundle, MarginaliaExtension extension) {
+            }
+        });
+        RecordingListener listener = new RecordingListener();
+        service.addExtensionListener(listener);
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+
+        service.start();
+
+        assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(listener.events).containsExactly("loaded:test.a");
+        assertThat(log.errors()).anyMatch(m -> m.contains("listener broke") || m.contains("Extension listener"));
     }
 
     @Test
