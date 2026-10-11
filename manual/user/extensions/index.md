@@ -33,6 +33,12 @@ working or break parts of the application. Use the extensions that come with you
 The five extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
+## Extensions on a phone
+
+The [phone layout](../phone.md) has its own classes, so an extension has to support it. Author's Note, Chapter Marker
+and Reviewer do; Side Query and Lorebook VCS add nothing on a phone. Extensions are installed from the Admin page,
+which a phone doesn't have.
+
 ## Extension settings
 
 Extensions with settings add a section to **Settings → Extension Settings** (the third tab of the *Settings* page).

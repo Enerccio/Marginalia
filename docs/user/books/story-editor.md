@@ -5,6 +5,9 @@ from the beginning to the end.
 
 ![The story editor](../../images/hero-story-editor.png)
 
+This page describes the desktop layout. On a phone the story is one column with the outline in a drawer, see
+[Using Marginalia on a phone](../phone.md#the-story).
+
 | Area | |
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |

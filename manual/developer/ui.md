@@ -153,10 +153,14 @@ front. Each tab is a `WorkspaceComponent`:
 leave the active tab. `UserPart` locks it while the settings have unsaved changes: it listens to every `HasValue`
 in its layout (extension settings panels included) and unlocks on *Save*, *Discard Changes* or `refresh()`.
 
-`Main` picks `PhoneWorkspace` instead on phones (an iPhone, or a mobile user agent with a screen narrower than 768 px).
-It keeps the same parts but replaces the left-hand tab sheet with an `AppLayout`: the parts are listed in a drawer
-(opened with the toggle in the top bar, which also holds the *Admin*, *Change Password* and *Logout* buttons) and the
-active part fills the screen. Only the book list, the lorebooks, the settings, the protocols, the models and the trash differ. `PhoneManuscriptPart` renders the book list
+`Main.proceedWithLogin` picks `PhoneWorkspace` instead when the body of the page is narrower than 768 px
+(`ExtendedClientDetails.getBodyClientWidth()`). The choice is made once per login: resizing or rotating the device
+does not switch the workspace until the page is reloaded, and a tablet or a phone in landscape gets the desktop one. `PhoneWorkspace` replaces
+the left-hand tab sheet with an `AppLayout`: the parts are listed in a drawer (opened with the toggle in the top bar)
+whose footer holds *Change Password* and *Logout*, and the active part fills the screen. **There is no *Admin* button
+and no `AdminPart`** on a phone: the administration (users, database backups, cleanup, extension install) is only
+reachable in the desktop layout. The services still check `AdminGuard.requireAdmin()` themselves. The user manual
+describes this for users in [Using Marginalia on a phone](../user/phone.md). Only the book list, the lorebooks, the settings, the protocols, the models and the trash differ. `PhoneManuscriptPart` renders the book list
 like the `Viewer` (stacked filters, sort buttons, one column) with the controls of `ManuscriptPart`; both share the
 *Add Book* flow in `NewBookAction`. `PhoneLorebookPart` hosts `PhoneLorebookView`, a reduced `LorebookView`: lorebooks can
 only be selected (no add, delete, import or export, no new entries) and only the enabled flags and the content of an
@@ -183,7 +187,7 @@ and a popover with the metadata of the inference (ids, model, protocol, tokens, 
 right-hand column of the desktop card). Its summaries item opens `PhoneSummariesDialog`, the `SummariesDialog` with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
 `AppLayout` are kept inside the dialog by the `phone-story-layout` class.
 
-The *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
+On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
 `DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call `AdminGuard.requireAdmin()` themselves (see
 [Services](services.md#administration)).

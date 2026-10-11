@@ -179,7 +179,9 @@ You can also read it in the [viewer](books/publishing.md).
 
 **Does it work on a phone?**
 The [viewer](books/publishing.md) is made for phones, and Marginalia can be added to the home screen like an app
-(*Install app* / *Add to Home Screen* in the browser menu). The editor works best on a larger screen.
+(*Install app* / *Add to Home Screen* in the browser menu). The editor has a [phone layout](phone.md) when the browser
+window is narrower than 768 pixels. It has no Admin page, a reduced lorebook editor and not all extensions, so it works
+best for writing and reading; set-up and administration are easier on a larger screen.
 
 **Is there a light theme or another language?**
 Not yet: the interface is in English, with a dark theme.

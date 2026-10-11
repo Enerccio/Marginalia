@@ -1,5 +1,10 @@
 # Lorebooks
 
+!!!
+The [phone layout](../phone.md#lorebooks) can only select lorebooks, enable and disable them and their entries, and edit
+the content of an entry. Everything else on these pages needs the desktop layout.
+!!!
+
 A lorebook holds what the model must know about your world: characters, places, history, rules, terminology. Each
 piece of knowledge is an **entry**. Before every generated part, Marginalia decides which entries are relevant and puts
 them into the prompt - so the model knows who Captain Varro is when he walks into the scene, without every entry

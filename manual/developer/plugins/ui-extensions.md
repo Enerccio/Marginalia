@@ -14,6 +14,11 @@ Plugins add to the user interface from decorators: when a method that builds par
 decorator finds the component it built and adds to it. This page collects the patterns the bundled plugins use. Read
 [@Extendable hooks](extendable.md) first, and [User interface](../ui.md) for the conventions of the UI code.
 
+Every screen below exists twice: the desktop class and its phone twin (`ManuscriptStoryPart` and
+`PhoneManuscriptStoryPart` and so on), and a decorator only runs for the class it was registered for. Register it a
+second time for the phone class to support phones, or leave it out and the extension simply adds nothing there, see
+[The phone twins](extendable.md#the-phone-twins).
+
 ## The basic pattern
 
 ```java
