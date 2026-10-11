@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845037294748">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845039878863">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845037294748" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845039878863" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845037294748" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845039878863" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845037294748" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845037294748" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845039878863" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845039878863" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -472,6 +472,17 @@ stores them.</p>
 </div>
 </retype-table>
 <p>Inner classes reach their outer instance through the synthetic field <code translate="no" v-pre>this$0</code>.</p>
+<h3 id="the-phone-twins">The phone twins</h3>
+<p>On a phone the book opens in <code translate="no" v-pre>PhoneManuscriptDialog</code>, whose tabs are separate classes (not subclasses) in
+<code translate="no" v-pre>ui.dialogs.phone.manuscript</code>, so a decorator of the desktop class does not run there. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> and its
+<code translate="no" v-pre>PhoneManuscriptStoryPart$ChatMessageCard</code> have the same decorable methods, fields and locals as the desktop ones
+(<code translate="no" v-pre>createSidebarButton</code>, <code translate="no" v-pre>renderStoryContent</code>, <code translate="no" v-pre>populateMenuBar</code>, <code translate="no" v-pre>createCogsMenuItem</code>, <code translate="no" v-pre>createMenuItems</code>,
+<code translate="no" v-pre>refreshSummaryMenuItems</code>, <code translate="no" v-pre>autosaveAndSwapToMarkdown</code>; fields <code translate="no" v-pre>sidebarList</code>, <code translate="no" v-pre>leftBar</code>, <code translate="no" v-pre>currentManuscript</code>,
+<code translate="no" v-pre>hamburgerMenu</code>, <code translate="no" v-pre>message</code>, <code translate="no" v-pre>this$0</code>), so a plugin supports the phone by registering the same decorator a second time
+under the other class name. The Reviewer, Chapter Marker and Author&#x27;s Note do; Side Query and Lorebook VCS don&#x27;t.
+Two differences: the card has no right-hand column (the metadata is in a popover), and <code translate="no" v-pre>leftBar</code> is the tab sheet in
+the drawer of the story, created once and not rebuilt by <code translate="no" v-pre>renderStoryContent()</code> (check for your tab first, as Author&#x27;s
+Note does). Reach the outer part through <code translate="no" v-pre>this$0</code> as an <code translate="no" v-pre>Object</code>, since its type depends on the dialog.</p>
 <h2 id="verification-before-loading">Verification before loading</h2>
 <p>Every name a decorator uses is unchecked at compile time, so Marginalia checks them before it starts an extension:
 <code translate="no" v-pre>ExtensionService.verifyExtension(Bundle bundle, File jar)</code> (<code translate="no" v-pre>ExtensionVerifier</code> in <code translate="no" v-pre>instruct.verify</code>). It doesn&#x27;t run

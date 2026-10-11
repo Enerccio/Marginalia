@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.UIDetachedException;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -91,15 +92,22 @@ public class UIUtils {
     /**
      * Runs a change of a component that may belong to another user's session (e.g. from an extension unload) while
      * that session is locked, through {@code ui.access(...)}; directly when the component is not attached to a UI.
+     * A UI that was detached in the meantime (closed tab, expired session) is skipped: the component is gone with it.
      */
     public static void accessComponent(Component component, Runnable change) {
-        component.getUI().ifPresentOrElse(ui -> ui.access(() -> {
+        component.getUI().ifPresentOrElse(ui -> {
             try {
-                change.run();
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                ui.access(() -> {
+                    try {
+                        change.run();
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                    }
+                });
+            } catch (UIDetachedException e) {
+                log.debug("UI already detached, skipping component change");
             }
-        }), change);
+        }, change);
     }
 
     public static Component voidComponent() {

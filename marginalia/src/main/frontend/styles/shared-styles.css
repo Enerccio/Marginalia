@@ -514,6 +514,7 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
 .phone-story-layout {
     transform: translateZ(0);
     --vaadin-app-layout-touch-optimized: true;
+    --vaadin-app-layout-drawer-width: min(90vw, 24rem);
 }
 
 .phone-message {

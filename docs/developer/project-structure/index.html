@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845037294748">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845039878863">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845037294748" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845039878863" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845037294748" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845039878863" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845037294748" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845039878863" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -338,11 +338,12 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 | `ui.main` | `WebappApplicationInitializer` (creates the Spring context, registers the session listener), `MarginaliaServlet` (the `VaadinServlet`), `AppShellConfig` (push, theme, global CSS), `LoginCheckRoute` (login overlay, saved logins, first-start dialog), `Main` (route `/`), `Viewer` (route `/view`, published books). |
 | `ui.workspace` | `Workspace` (interface of the workspace shown after login), `DesktopWorkspace` (its tabbed implementation with footer buttons) and `WorkspaceComponent` (interface of its tabs). |
 | `ui.workspace.phone`, `ui.workspace.phone.parts` | `PhoneWorkspace` (the workspace for phones: an `AppLayout` with a drawer instead of the left-hand tabs) `PhoneManuscriptPart` (single column book list), `PhoneLorebookPart` (reduced lorebook view), `PhoneProtocolPart` / `PhoneAIPart` (two column protocol and model lists) `PhoneSettingsPart` (`UserPart` with a stacked header) and `PhoneTrashPart` (trash with `PhoneTrashGrid`). |
+| `ui.dialogs.phone`, `ui.dialogs.phone.manuscript` | `PhoneManuscriptDialog` (the book dialog for phones: full screen, one scrolling tab row), `PhoneSummariesDialog` (`SummariesDialog` with a wide content column) and its tabs `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart` (with `PhoneLorebookView`), `PhoneManuscriptStoryPart` (one column, outline in the drawer of an `AppLayout`, message cards with a header line of icons), `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`. |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`, plus `NewBookAction` (the *Add Book* flow shared by both book lists). |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
 | `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
-| `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
+| `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its reduced phone version), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
 | `ui.widgets` | Small widgets: `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TrashGrid` (restoring deleted objects, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -366,6 +367,10 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 <td><code translate="no" v-pre>PhoneWorkspace</code> (the workspace for phones: an <code translate="no" v-pre>AppLayout</code> with a drawer instead of the left-hand tabs) <code translate="no" v-pre>PhoneManuscriptPart</code> (single column book list), <code translate="no" v-pre>PhoneLorebookPart</code> (reduced lorebook view), <code translate="no" v-pre>PhoneProtocolPart</code> / <code translate="no" v-pre>PhoneAIPart</code> (two column protocol and model lists) <code translate="no" v-pre>PhoneSettingsPart</code> (<code translate="no" v-pre>UserPart</code> with a stacked header) and <code translate="no" v-pre>PhoneTrashPart</code> (trash with <code translate="no" v-pre>PhoneTrashGrid</code>).</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>ui.dialogs.phone</code>, <code translate="no" v-pre>ui.dialogs.phone.manuscript</code></td>
+<td><code translate="no" v-pre>PhoneManuscriptDialog</code> (the book dialog for phones: full screen, one scrolling tab row), <code translate="no" v-pre>PhoneSummariesDialog</code> (<code translate="no" v-pre>SummariesDialog</code> with a wide content column) and its tabs <code translate="no" v-pre>PhoneManuscriptInfoPart</code>, <code translate="no" v-pre>PhoneManuscriptPromptPart</code>, <code translate="no" v-pre>PhoneManuscriptLorebookPart</code> (with <code translate="no" v-pre>PhoneLorebookView</code>), <code translate="no" v-pre>PhoneManuscriptStoryPart</code> (one column, outline in the drawer of an <code translate="no" v-pre>AppLayout</code>, message cards with a header line of icons), <code translate="no" v-pre>PhoneManuscriptTreePart</code>, <code translate="no" v-pre>PhoneManuscriptBackupPart</code>.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>ui.workspace.parts</code></td>
 <td>One class per workspace tab: <code translate="no" v-pre>ManuscriptPart</code> (Books), <code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>UserPart</code> (Settings), <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>AIPart</code> (Inference Providers), <code translate="no" v-pre>ResourcesPart</code> (Resources: lazy <code translate="no" v-pre>Grid</code> over <code translate="no" v-pre>ResourceService.findPageForUser</code>), <code translate="no" v-pre>TrashPart</code> (Trash: the <code translate="no" v-pre>TrashGrid</code> widget), <code translate="no" v-pre>AdminPart</code>, plus <code translate="no" v-pre>NewBookAction</code> (the <em>Add Book</em> flow shared by both book lists).</td>
 </tr>
@@ -383,7 +388,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.components</code></td>
-<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code> (the lorebook editor, used in the Lorebooks tab and in books), <code translate="no" v-pre>TreantTree</code> (story tree drawn with treant.js), <code translate="no" v-pre>MessageImages</code> (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), <code translate="no" v-pre>ThreadCopyRequestAttributes</code> (carries the session to worker threads).</td>
+<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code> (the lorebook editor, used in the Lorebooks tab and in books), <code translate="no" v-pre>PhoneLorebookView</code> (its reduced phone version), <code translate="no" v-pre>TreantTree</code> (story tree drawn with treant.js), <code translate="no" v-pre>MessageImages</code> (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), <code translate="no" v-pre>ThreadCopyRequestAttributes</code> (carries the session to worker threads).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.widgets</code></td>

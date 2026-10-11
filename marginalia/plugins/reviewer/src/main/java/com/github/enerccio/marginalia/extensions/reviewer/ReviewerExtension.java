@@ -135,6 +135,12 @@ public class ReviewerExtension implements MarginaliaExtension {
                     "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart$ChatMessageCard",
                     "createMenuItems"
             );
+            // the story of the phone dialog has its own card with the same menu
+            extensionService.registerDecorator(
+                    cardDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart$ChatMessageCard",
+                    "createMenuItems"
+            );
 
             cardDecoratorRefresh = new ExtensionDecorator() {
 
@@ -160,6 +166,12 @@ public class ReviewerExtension implements MarginaliaExtension {
             extensionService.registerDecorator(
                     cardDecoratorRefresh,
                     "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart$ChatMessageCard",
+                    "refreshSummaryMenuItems"
+            );
+            // the story of the phone dialog has its own card with the same menu
+            extensionService.registerDecorator(
+                    cardDecoratorRefresh,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart$ChatMessageCard",
                     "refreshSummaryMenuItems"
             );
 

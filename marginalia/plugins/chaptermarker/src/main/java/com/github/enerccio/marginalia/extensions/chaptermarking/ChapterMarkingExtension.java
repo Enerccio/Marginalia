@@ -7,7 +7,6 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService.Extendable
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -84,10 +83,16 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                 }
             };
 
-            // Register decorator for createSidebarButton method in ManuscriptStoryPart
+            // Register decorator for createSidebarButton method in ManuscriptStoryPart (and its phone twin)
             extensionService.registerDecorator(
                     sidebarDecorator,
                     "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart",
+                    "createSidebarButton"
+            );
+            // the story of the phone dialog has the same outline
+            extensionService.registerDecorator(
+                    sidebarDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart",
                     "createSidebarButton"
             );
 
@@ -101,7 +106,8 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
                     ChatMessage chatMessage = context.getReflectiveFieldValue(instrumented, "message", ChatMessage.class);
                     if (chatMessage != null) {
-                        ManuscriptStoryPart parentPart = context.getReflectiveFieldValue(instrumented, "this$0", ManuscriptStoryPart.class);
+                        // the story part of the desktop or of the phone dialog
+                        Object parentPart = context.getReflectiveFieldValue(instrumented, "this$0", Object.class);
                         if (parentPart != null) {
                             VerticalLayout sidebarList = context.getReflectiveFieldValue(parentPart, "sidebarList", VerticalLayout.class);
                             if (sidebarList != null) {
@@ -136,6 +142,11 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
             extensionService.registerDecorator(
                     sidebarEditDecorator,
                     "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart$ChatMessageCard",
+                    "autosaveAndSwapToMarkdown"
+            );
+            extensionService.registerDecorator(
+                    sidebarEditDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart$ChatMessageCard",
                     "autosaveAndSwapToMarkdown"
             );
         } catch (Exception e) {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845037294748">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845039878863">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845037294748" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845039878863" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845037294748" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845039878863" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845037294748" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845037294748" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845039878863" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845039878863" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -219,6 +219,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 | `ui.main` | Servlet, app shell, routes, login (`LoginCheckRoute`). |
 | `ui.workspace` | The `Workspace` interface, its `DesktopWorkspace` implementation and the `WorkspaceComponent` interface. |
 | `ui.workspace.phone`, `.parts` | `PhoneWorkspace` and the phone specific tabs (`PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`). |
+| `ui.dialogs.phone`, `.manuscript` | `PhoneManuscriptDialog` and its tabs (`PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart`, `PhoneManuscriptStoryPart`, `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`), the book dialog for phones. |
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
@@ -244,6 +245,10 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 <tr>
 <td><code translate="no" v-pre>ui.workspace.phone</code>, <code translate="no" v-pre>.parts</code></td>
 <td><code translate="no" v-pre>PhoneWorkspace</code> and the phone specific tabs (<code translate="no" v-pre>PhoneManuscriptPart</code>, <code translate="no" v-pre>PhoneLorebookPart</code>, <code translate="no" v-pre>PhoneProtocolPart</code>, <code translate="no" v-pre>PhoneAIPart</code>, <code translate="no" v-pre>PhoneSettingsPart</code>, <code translate="no" v-pre>PhoneTrashPart</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui.dialogs.phone</code>, <code translate="no" v-pre>.manuscript</code></td>
+<td><code translate="no" v-pre>PhoneManuscriptDialog</code> and its tabs (<code translate="no" v-pre>PhoneManuscriptInfoPart</code>, <code translate="no" v-pre>PhoneManuscriptPromptPart</code>, <code translate="no" v-pre>PhoneManuscriptLorebookPart</code>, <code translate="no" v-pre>PhoneManuscriptStoryPart</code>, <code translate="no" v-pre>PhoneManuscriptTreePart</code>, <code translate="no" v-pre>PhoneManuscriptBackupPart</code>), the book dialog for phones.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace.parts</code>, <code translate="no" v-pre>.admin</code></td>
@@ -429,6 +434,21 @@ action columns of their desktop lists with a text column (<em>Type:</em> and <em
 <code translate="no" v-pre>PhoneSettingsPart</code> extends <code translate="no" v-pre>UserPart</code> (so the extension settings panels that decorate <code translate="no" v-pre>UserPart.refresh</code>/<code translate="no" v-pre>save</code> keep
 working) and only overrides <code translate="no" v-pre>createHeader()</code>: the title, the unsaved changes hint and the <em>Discard</em>/<em>Save</em> buttons are
 stacked, and <em>Import backup as new book</em> is left out. The other parts are the desktop ones.</p>
+<p>Opening a book on a phone shows the <code translate="no" v-pre>PhoneManuscriptDialog</code> (package <code translate="no" v-pre>ui.dialogs.phone</code>) instead of <code translate="no" v-pre>ManuscriptDialog</code>;
+<code translate="no" v-pre>NewBookAction(onClose, true)</code> opens it after <em>Add Book</em>. It is a separate class, not a subclass, so extensions know
+which dialog they decorate (decorators of <code translate="no" v-pre>ManuscriptDialog</code> and the desktop parts do not run on a phone). It fills the
+screen (the <code translate="no" v-pre>phone-dialog</code> class), the exit button is an icon in the header and the tabs are one scrolling <code translate="no" v-pre>Tabs</code> row
+above the content of the selected tab. Every tab is a <code translate="no" v-pre>PhoneManuscriptDialogPart</code> of <code translate="no" v-pre>ui.dialogs.phone.manuscript</code>
+(the desktop <code translate="no" v-pre>ManuscriptDialogPart</code> without the tab sheet argument): <code translate="no" v-pre>PhoneManuscriptInfoPart</code> and
+<code translate="no" v-pre>PhoneManuscriptPromptPart</code> (one column of fields), <code translate="no" v-pre>PhoneManuscriptLorebookPart</code> (the lorebook of the book and
+<code translate="no" v-pre>PhoneLorebookView(true)</code>, which hides its own lorebook selection like the pinned <code translate="no" v-pre>LorebookView</code>),
+<code translate="no" v-pre>PhoneManuscriptTreePart</code> (stacked search bar), <code translate="no" v-pre>PhoneManuscriptBackupPart</code> (one row per backup) and
+<code translate="no" v-pre>PhoneManuscriptStoryPart</code>. The story is a single column in an <code translate="no" v-pre>AppLayout</code>: the outline is its drawer (slid in by the
+toggle in the navbar, which also holds the summaries/settings menu bar), the new turn button is at the bottom. Its
+<code translate="no" v-pre>ChatMessageCard</code> is only the text of the part under a small header line with two icons: the menu (with <em>Show Prompt</em>)
+and a popover with the metadata of the inference (ids, model, protocol, tokens, words) and the turn details (the
+right-hand column of the desktop card). Its summaries item opens <code translate="no" v-pre>PhoneSummariesDialog</code>, the <code translate="no" v-pre>SummariesDialog</code> with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
+<code translate="no" v-pre>AppLayout</code> are kept inside the dialog by the <code translate="no" v-pre>phone-story-layout</code> class.</p>
 <p>The <em>Admin</em> button is only added for administrators; <code translate="no" v-pre>AdminPart</code> shows the users grid and the
 <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code> and extensions tab (with the verification report of each extension). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call <code translate="no" v-pre>AdminGuard.requireAdmin()</code> themselves (see
@@ -709,7 +729,7 @@ runs before and after that method and can read its arguments and local variables
 |---|---|
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid`, `PhoneTrashGrid` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid`, `PhoneTrashGrid` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -730,7 +750,7 @@ runs before and after that method and can read its arguments and local variables
 </tr>
 <tr>
 <td>Dialogs and components</td>
-<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>TrashGrid</code>, <code translate="no" v-pre>PhoneTrashGrid</code></td>
+<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code>, <code translate="no" v-pre>PhoneSummariesDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>TrashGrid</code>, <code translate="no" v-pre>PhoneTrashGrid</code></td>
 </tr>
 <tr>
 <td>Routes</td>
