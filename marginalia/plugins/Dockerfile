@@ -7,7 +7,8 @@ FROM maven:3.9-eclipse-temurin-25 AS builder
 
 WORKDIR /build/marginalia
 
-# Cache dependencies
+# Cache dependencies (the POMs inherit from the parent POM in the repository root)
+COPY pom.xml /build/pom.xml
 COPY marginalia/pom.xml .
 RUN mvn dependency:go-offline -B
 
@@ -15,7 +16,8 @@ RUN mvn dependency:go-offline -B
 # Vaadin frontend build (Node.js, npm, Vite) is skipped; the WAR of this build is not used and not production-ready.
 COPY marginalia/src ./src
 COPY .git /build/.git
-RUN mvn install -DskipTests -Dvaadin.skip=true -B
+RUN mvn install -DskipTests -Dvaadin.skip=true -B \
+    && mvn install -N -B -f /build/pom.xml
 
 # Build the plugins; each one is a separate Maven project
 COPY marginalia/plugins ./plugins

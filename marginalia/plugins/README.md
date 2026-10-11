@@ -30,6 +30,8 @@ different version may stop working. Use plugins built from the same source tree 
 Plugins compile against the Marginalia application, which has to be installed in the local Maven repository first:
 
 ```sh
+mvn -N install                   # in the repository root: installs the parent POM (holds the version)
+
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
@@ -37,7 +39,8 @@ cd plugins/chaptermarker          # or authorsnote, instructionexporter, loreboo
 mvn package                       # target/chaptermarker-1.0.1.jar
 ```
 
-Requirements are the same as for the application: JDK 25+ and Maven 3.9+.
+`mvn package` in the repository root builds the application and all plugins in one go. Requirements are the same as for
+the application: JDK 25+ and Maven 3.9+.
 
 ### Building in Docker
 

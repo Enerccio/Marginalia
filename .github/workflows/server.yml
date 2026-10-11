@@ -16,6 +16,7 @@ on:
   pull_request:
     paths:
       - 'marginalia/**'
+      - 'pom.xml'
       - 'Dockerfile'
       - 'docker-entrypoint.sh'
       - '.dockerignore'
@@ -56,9 +57,13 @@ jobs:
           pom_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           tag_version="${GITHUB_REF_NAME#v}"
           if [ "$pom_version" != "$tag_version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match the version in marginalia/pom.xml ($pom_version). Set <version>$tag_version</version> and tag again."
+            echo "::error::Tag $GITHUB_REF_NAME does not match the version in pom.xml ($pom_version). Set <version>$tag_version</version> and tag again."
             exit 1
           fi
+
+      - name: Install the parent POM
+        # the application's POM in the local repository refers to it, the plugins need both
+        run: mvn -N install
 
       - name: Build and install the application
         # install, not package: the plugins depend on the classes JAR in the local repository

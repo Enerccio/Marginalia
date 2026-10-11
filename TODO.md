@@ -71,7 +71,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 8. **Build & CI.**
    - ✅ No CI. Add a GitHub Actions workflow: build core + all plugins, run tests, build the Docker image.
-   - Parent/aggregator POM: plugins are separate projects depending on `marginalia:1.0.1` and are **not built or
+   - ✅ Parent/aggregator POM: plugins are separate projects depending on `marginalia:1.0.1` and are **not built or
      shipped by the Dockerfile**. Make a multi-module build, and decide whether bundled plugins ship preinstalled.
      Partly eased: `marginalia/plugins/Dockerfile` + `docker-compose.yml` build all plugins in a container (JARs in
      `marginalia/plugins/build`), and `rebuild.sh` / `rebuild.bat` pull, rebuild the plugins into `data/extensions`

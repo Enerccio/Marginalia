@@ -14,6 +14,7 @@ on:
   pull_request:
     paths:
       - 'marginalia/**'
+      - 'pom.xml'
       - '.github/workflows/desktop.yml'
   workflow_dispatch:
 
@@ -55,7 +56,7 @@ jobs:
           pom_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           tag_version="${GITHUB_REF_NAME#v}"
           if [ "$pom_version" != "$tag_version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match the version in marginalia/pom.xml ($pom_version). Set <version>$tag_version</version> and tag again."
+            echo "::error::Tag $GITHUB_REF_NAME does not match the version in pom.xml ($pom_version). Set <version>$tag_version</version> and tag again."
             exit 1
           fi
           echo "Version $pom_version matches tag $GITHUB_REF_NAME"
