@@ -396,6 +396,7 @@ The bundled plugins hook into these methods:
 |---|---|---|
 | Author's Note | `ManuscriptStoryPart` | `renderStoryContent` |
 | Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
+| Instruction Exporter | `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `createCogsMenuItem` |
 | Lorebook VCS | `LorebookView` | `create`, `createEntryDetailLayout` |
 | Reviewer | `ManuscriptStoryPart$ChatMessageCard`, `UserPart` | `createMenuItems`, `refreshSummaryMenuItems`; `refresh`, `save` |
 | Side Query | `ManuscriptStoryPart`, `UserPart` | `renderStoryContent`; `refresh`, `save` |

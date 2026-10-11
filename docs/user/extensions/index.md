@@ -1,11 +1,12 @@
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Six extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Seven extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
 | [Author's Note](authors-note.md) | A note to the model, inserted into every generation of the book. |
 | [Chapter Marker](chapter-marker.md) | Chapter titles in the story outline, from Markdown headings in the parts. |
+| [Instruction Exporter](instruction-exporter.md) | Copies the instructions, scene settings and characters of the story to the clipboard. |
 | [Lorebook VCS](lorebook-vcs.md) | Revision history for lorebook entries. |
 | [Reviewer](reviewer.md) | Reviews of story parts written by the model - reader reactions, critique. |
 | [Side Query](side-query.md) | A chat with the model about your book, next to the story. |
@@ -25,13 +26,13 @@ Extensions hook into the user interface of one Marginalia version. An extension 
 working or break parts of the application. Use the extensions that come with your version of Marginalia.
 !!!
 
-The six extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
+The seven extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
 ## Extensions on a phone
 
-The [phone layout](../phone.md) has its own classes, so an extension has to support it. Author's Note, Chapter Marker
-and Reviewer do; Side Query and Lorebook VCS add nothing on a phone. Extensions are installed from the Admin page,
+The [phone layout](../phone.md) has its own classes, so an extension has to support it. Author's Note, Chapter Marker,
+Instruction Exporter and Reviewer do; Side Query and Lorebook VCS add nothing on a phone. Extensions are installed from the Admin page,
 which a phone doesn't have.
 
 ## Extension settings

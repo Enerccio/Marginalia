@@ -276,6 +276,7 @@ plugins/<name>/
 |---|---|---|
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
+| Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Reviewer | `extensions.reviewer` | Model, service, dialogs and a settings form. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form. |
