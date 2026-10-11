@@ -1,7 +1,7 @@
 ---
 label: Architecture
 order: 980
-verified: 66784ab
+verified: aed7679
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound
   - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
