@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845065061927">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845065676399">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845065061927" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845065676399" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845065061927" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845065676399" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845065061927" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845065676399" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -532,7 +532,7 @@ no state besides their fields.</p>
 | `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
 | `TokenizerService` | Token counting. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
-| `BackupService`, `DatabaseBackupService`, `CronSchedule` | Book backups (restore, clone, export); database backups and their schedule. |
+| `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
 | `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing and restoring it (one bean, `CleanupServiceImpl`, shares the reference model). |
 | `OsgiService`, `ExtensionService` | Loading extensions; `@Extendable` decorators. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -581,7 +581,7 @@ no state besides their fields.</p>
 <td>Rendering Handlebars templates with macros.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>BackupService</code>, <code translate="no" v-pre>DatabaseBackupService</code>, <code translate="no" v-pre>CronSchedule</code></td>
+<td><code translate="no" v-pre>BackupService</code>, <code translate="no" v-pre>DatabaseBackupService</code></td>
 <td>Book backups (restore, clone, export); database backups and their schedule.</td>
 </tr>
 <tr>
@@ -882,6 +882,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 |---|---|
 | `styles/shared-styles.css` | Global CSS, imported by `AppShellConfig`: spacing helpers, utility classes, story text and Markdown wrapping, story tree. |
 | `styles/reading-mode-styles.css` | The book style of the reader and editor (`.manuscript-styles .chat-message-markdown`), imported separately by `AppShellConfig`. |
+| `chart-connector.js` | Draws Chart.js charts for the `ChartJs` widget (npm package `chart.js`, declared with `@NpmPackage` on `ChartJs`). |
 | `treant-connector.js` | Connects `TreantTree` to the treant.js library (npm packages `treant-js` and `raphael` are declared with `@NpmPackage` on `TreantTree`). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -899,6 +900,10 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <tr>
 <td><code translate="no" v-pre>styles/reading-mode-styles.css</code></td>
 <td>The book style of the reader and editor (<code translate="no" v-pre>.manuscript-styles .chat-message-markdown</code>), imported separately by <code translate="no" v-pre>AppShellConfig</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>chart-connector.js</code></td>
+<td>Draws Chart.js charts for the <code translate="no" v-pre>ChartJs</code> widget (npm package <code translate="no" v-pre>chart.js</code>, declared with <code translate="no" v-pre>@NpmPackage</code> on <code translate="no" v-pre>ChartJs</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>treant-connector.js</code></td>

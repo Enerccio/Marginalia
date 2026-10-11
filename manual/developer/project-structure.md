@@ -160,7 +160,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
 | `TokenizerService` | Token counting. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
-| `BackupService`, `DatabaseBackupService`, `CronSchedule` | Book backups (restore, clone, export); database backups and their schedule. |
+| `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
 | `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing and restoring it (one bean, `CleanupServiceImpl`, shares the reference model). |
 | `OsgiService`, `ExtensionService` | Loading extensions; `@Extendable` decorators. |
 
@@ -251,6 +251,7 @@ There is no hand-written frontend application - Vaadin generates it. The only so
 |---|---|
 | `styles/shared-styles.css` | Global CSS, imported by `AppShellConfig`: spacing helpers, utility classes, story text and Markdown wrapping, story tree. |
 | `styles/reading-mode-styles.css` | The book style of the reader and editor (`.manuscript-styles .chat-message-markdown`), imported separately by `AppShellConfig`. |
+| `chart-connector.js` | Draws Chart.js charts for the `ChartJs` widget (npm package `chart.js`, declared with `@NpmPackage` on `ChartJs`). |
 | `treant-connector.js` | Connects `TreantTree` to the treant.js library (npm packages `treant-js` and `raphael` are declared with `@NpmPackage` on `TreantTree`). |
 
 Generated and ignored by Git: `src/main/frontend/generated/`, `src/main/frontend/index.html`, the development bundle
