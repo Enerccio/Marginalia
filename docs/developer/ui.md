@@ -46,7 +46,7 @@ flowchart TB
 |---|---|
 | `ui.main` | Servlet, app shell, routes, login (`LoginCheckRoute`). |
 | `ui.workspace` | The `Workspace` interface, its `DesktopWorkspace` implementation and the `WorkspaceComponent` interface. |
-| `ui.workspace.phone`, `.parts` | `PhoneWorkspace` and the phone specific tabs (`PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneTrashPart`). |
+| `ui.workspace.phone`, `.parts` | `PhoneWorkspace` and the phone specific tabs (`PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`). |
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
@@ -147,13 +147,16 @@ in its layout (extension settings panels included) and unlocks on *Save*, *Disca
 `Main` picks `PhoneWorkspace` instead on phones (an iPhone, or a mobile user agent with a screen narrower than 768 px).
 It keeps the same parts but replaces the left-hand tab sheet with an `AppLayout`: the parts are listed in a drawer
 (opened with the toggle in the top bar, which also holds the *Admin*, *Change Password* and *Logout* buttons) and the
-active part fills the screen. Only the book list, the lorebooks, the protocols, the models and the trash differ. `PhoneManuscriptPart` renders the book list
+active part fills the screen. Only the book list, the lorebooks, the settings, the protocols, the models and the trash differ. `PhoneManuscriptPart` renders the book list
 like the `Viewer` (stacked filters, sort buttons, one column) with the controls of `ManuscriptPart`; both share the
 *Add Book* flow in `NewBookAction`. `PhoneLorebookPart` hosts `PhoneLorebookView`, a reduced `LorebookView`: lorebooks can
 only be selected (no add, delete, import or export, no new entries) and only the enabled flags and the content of an
 entry are editable, every other setting of the lorebook and of an expanded entry is shown as text. `PhoneTrashPart`
 hosts `PhoneTrashGrid` (see [Trash](#trash)). `PhoneProtocolPart` and `PhoneAIPart` replace the type, name and
-action columns of their desktop lists with a text column (*Type:* and *Name:* on two lines) and a buttons column. The other parts are the desktop ones.
+action columns of their desktop lists with a text column (*Type:* and *Name:* on two lines) and a buttons column.
+`PhoneSettingsPart` extends `UserPart` (so the extension settings panels that decorate `UserPart.refresh`/`save` keep
+working) and only overrides `createHeader()`: the title, the unsaved changes hint and the *Discard*/*Save* buttons are
+stacked, and *Import backup as new book* is left out. The other parts are the desktop ones.
 
 The *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
 `DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension). Note that the admin UI being hidden is not a permission
@@ -335,7 +338,7 @@ the loading indicator, the story text (`.chat-message`), the story tree (`.Trean
 (`.text-secondary`, `.hint-text`, `.min-width-0`...). The book style of the reader and editor
 (`.manuscript-styles .chat-message-markdown`) is in `reading-mode-styles.css`, imported separately by `AppShellConfig`. Components are
 styled by adding these classes (`addClassName(CssStyles.TEXT_SECONDARY)`), not with `getStyle().set(...)`; keep that
-only for values computed at runtime (the card's `contain-intrinsic-size`, the combo box overlay width). A new class goes
+only for values computed at runtime (the combo box overlay width). A new class goes
 into the stylesheet and into `CssStyles` together. All `vaadin-markdown` elements wrap long lines through one rule
 there, so a `Markdown` needs no extra call. Class names used from Java are constants in
 `CssStyles`; column widths and offsets in `UIConstants`. Use Lumo's CSS custom properties (`--lumo-space-m`,
@@ -353,7 +356,7 @@ runs before and after that method and can read its arguments and local variables
 
 | Area | Classes |
 |---|---|
-| Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
+| Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid`, `PhoneTrashGrid` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |

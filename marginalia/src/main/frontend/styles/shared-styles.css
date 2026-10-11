@@ -65,11 +65,8 @@ vaadin-markdown span {
     box-sizing: border-box !important;
 }
 
-/* A message card of the story; contain-intrinsic-size is set per card from the estimated height */
+/* A message card of the story */
 .chat-message {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 600px;
-    overflow-anchor: auto;
     margin-bottom: 8px;
     border: 1px solid var(--lumo-contrast-10pct);
     border-radius: var(--lumo-border-radius-s);
