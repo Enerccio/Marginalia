@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 

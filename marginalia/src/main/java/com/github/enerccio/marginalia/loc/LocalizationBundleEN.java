@@ -292,6 +292,20 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_VALID, "Valid");
         setValue(L.LABEL_INVALID, "Invalid");
         setValue(L.LABEL_APP_DESC, "Collaborative story writing app with LLM");
+        setValue(L.LABEL_TOKEN_USAGE, "Token Usage");
+        setValue(L.LABEL_TOKEN_CONTEXT, "Context size");
+        setValue(L.LABEL_TOKEN_TEMPLATE, "System template");
+        setValue(L.LABEL_TOKEN_LORE, "Lore");
+        setValue(L.LABEL_TOKEN_STORY, "Story so far");
+        setValue(L.LABEL_TOKEN_USER_LORE, "Lore in the user prompt");
+        setValue(L.LABEL_TOKEN_USER_PROMPT, "User prompt");
+        setValue(L.LABEL_TOKEN_RESERVED, "Reserved by extensions");
+        setValue(L.LABEL_TOKEN_RESPONSE, "Reserved for the response");
+        setValue(L.LABEL_TOKEN_FREE, "Free");
+        setValue(L.LABEL_ROLE, "Role");
+        setValue(L.LABEL_SYSTEM, "System");
+        setValue(L.LABEL_ASSISTANT, "Assistant");
+        setValue(L.LABEL_PAYLOAD_MESSAGES, "Messages sent to the model");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -441,6 +455,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_SEARCH_NO_RESULTS, "Nothing found.");
         setValue(L.MSG_TREE_BLOCK_MESSAGES, "%d messages");
         setValue(L.MSG_TREE_BLOCK_TITLE, "Collapsed block (%d messages, [%d–%d]). Click to expand.");
+        setValue(L.MSG_TOKEN_USAGE_UNAVAILABLE, "The token usage was not recorded for this part.");
+        setValue(L.MSG_TOKEN_CUT, "%d messages (%d tokens) did not fit into the context and were left out.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

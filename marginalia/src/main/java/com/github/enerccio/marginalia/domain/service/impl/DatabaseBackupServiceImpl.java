@@ -2,9 +2,9 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.DatabaseCheck;
+import com.github.enerccio.marginalia.domain.components.CronSchedule;
 import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
-import com.github.enerccio.marginalia.domain.service.CronSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.NoTx;

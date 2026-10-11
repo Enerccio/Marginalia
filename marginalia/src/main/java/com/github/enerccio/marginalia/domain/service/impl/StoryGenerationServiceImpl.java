@@ -2,12 +2,12 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.concurrent.AsyncRunnableWrapper;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
-import com.github.enerccio.marginalia.domain.service.TurnInput;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;

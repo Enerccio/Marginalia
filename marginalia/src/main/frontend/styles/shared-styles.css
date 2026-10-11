@@ -540,3 +540,15 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     overflow: auto;
     box-sizing: border-box;
 }
+
+/* Chart.js chart (ui.widgets.ChartJs): the chart fills the element, so the element needs a size and a positioning context */
+.chart-js {
+    position: relative;
+    width: 100%;
+    height: 320px;
+}
+
+.token-usage-summary {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}

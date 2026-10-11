@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845064180417">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845065061927">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845064180417" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845065061927" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845064180417" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845065061927" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845064180417" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845064180417" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845065061927" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845065061927" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -370,6 +370,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree) and small widgets. |
+| `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
 | `domain.service.impl.inference` | Services | The OpenAI-compatible client and the tokenizer strategies. |
@@ -411,6 +412,11 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <td><code translate="no" v-pre>ui.components</code>, <code translate="no" v-pre>ui.widgets</code></td>
 <td>UI</td>
 <td>Reusable components (lorebook editor, story tree) and small widgets.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>domain.components</code></td>
+<td>Services</td>
+<td>Plain data and helpers shared by services and the UI (<code translate="no" v-pre>TurnInput</code>, <code translate="no" v-pre>TokenLimits</code>, <code translate="no" v-pre>PromptTokenBreakdown</code>, <code translate="no" v-pre>SummaryNode</code>, <code translate="no" v-pre>CronSchedule</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.service</code> (+ <code translate="no" v-pre>impl</code>)</td>

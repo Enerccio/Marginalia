@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845064180417">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845065061927">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845064180417" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845065061927" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845064180417" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845065061927" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845064180417" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845064180417" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845065061927" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845065061927" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -653,6 +653,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 | `responseReasoning` | JSON | Reasoning of a reasoning model. |
 | `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` | JSON | The instruction panel it was generated from (`TurnInput`). |
 | `builtPrompt`, `builtPromptTokens`, `backgroundLore` | JSON | The full prompt sent to the model and the activated lore (*View prompt*). |
+| `tokenBreakdown` | JSON | Token counts of the prompt (`PromptTokenBreakdown`, JSON in an extended attribute); `null` for parts generated before it was recorded. |
 | `modelUsed`, `protocolUsed`, `promptTokens`, `tokenReasoningCount` | JSON | Generation metadata. |
 | `request`, `ttft`, `reasoningEnd` | JSON | Timestamps for the timing metrics. |
 | `scrollPosition` | JSON | UI state. |">
@@ -705,6 +706,11 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <td><code translate="no" v-pre>builtPrompt</code>, <code translate="no" v-pre>builtPromptTokens</code>, <code translate="no" v-pre>backgroundLore</code></td>
 <td>JSON</td>
 <td>The full prompt sent to the model and the activated lore (<em>View prompt</em>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>tokenBreakdown</code></td>
+<td>JSON</td>
+<td>Token counts of the prompt (<code translate="no" v-pre>PromptTokenBreakdown</code>, JSON in an extended attribute); <code translate="no" v-pre>null</code> for parts generated before it was recorded.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>modelUsed</code>, <code translate="no" v-pre>protocolUsed</code>, <code translate="no" v-pre>promptTokens</code>, <code translate="no" v-pre>tokenReasoningCount</code></td>

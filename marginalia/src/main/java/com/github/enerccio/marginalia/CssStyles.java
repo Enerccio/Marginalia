@@ -80,6 +80,10 @@ public final class CssStyles {
     public static final String SUMMARY_CONTENT = "summary-content";
     public static final String SUMMARY_ACTIONS = "summary-actions";
 
+    // --- Chart.js chart ---
+    public static final String CHART_JS = "chart-js";
+    public static final String TOKEN_USAGE_SUMMARY = "token-usage-summary";
+
     // --- Resizable text area toggle icon ---
     public static final String RESIZABLE_TEXT_AREA_ICON = "resizable-text-area-icon";
 

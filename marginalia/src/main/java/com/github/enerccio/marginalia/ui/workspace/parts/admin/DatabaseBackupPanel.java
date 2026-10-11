@@ -2,7 +2,7 @@ package com.github.enerccio.marginalia.ui.workspace.parts.admin;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.domain.service.CronSchedule;
+import com.github.enerccio.marginalia.domain.components.CronSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService.BackupSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService.DatabaseBackup;

@@ -128,6 +128,7 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree) and small widgets. |
+| `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
 | `domain.service.impl.inference` | Services | The OpenAI-compatible client and the tokenizer strategies. |

@@ -105,7 +105,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its reduced phone version), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
-| `ui.widgets` | Small widgets: `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TrashGrid` (restoring deleted objects, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |
+| `ui.widgets` | Small widgets: `ChartJs` (a Chart.js chart drawn from a JSON configuration, see [UI](ui.md)), `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TrashGrid` (restoring deleted objects, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |
 
 ### `domain.model` - entities
 
@@ -132,6 +132,19 @@ One interface and one JPA implementation (`impl/Jpa*Repository`) per entity, bui
 `OwnedRepository` → `ExtendableRepository` (and `JpaBaseRepository` → ...). The beans are defined in
 `services-config.xml` with the shared `EntityManager`.
 
+### `domain.components` - plain data and helpers
+
+Small classes that are neither entities nor services, shared by services, generation steps and the UI. No Spring beans,
+no state besides their fields.
+
+| Class | |
+|---|---|
+| `TurnInput` | The four fields of the instruction panel (scene, POV character, present characters, instructions). |
+| `TokenLimits` | Static helpers for the context, response and prompt budget of a generation (protocol overrides, else provider limits). |
+| `PromptTokenBreakdown` | Raw token counts of one built prompt: the budget, every section, what was cut and the tokens of each payload message. Filled by the generation steps, stored with the part (`ChatMessage.getTokenBreakdown()`), shown by `TokenUsageDialog`. |
+| `SummaryNode` | A summary and the summaries it merges, for the summaries overview. |
+| `CronSchedule` | Cron expression parsing and next-run computation, used by the database backup schedule. |
+
 ### `domain.service` - business logic
 
 Interfaces in `domain.service`, implementations in `domain.service.impl`:
@@ -145,14 +158,13 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `TagService`, `TagRelationService`, `SettingService`, `ResourceService` | Tags, settings, files. |
 | `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
 | `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
-| `TokenizerService`, `TokenLimits` | Token counting and the context / reply limits of a generation. |
+| `TokenizerService` | Token counting. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService`, `CronSchedule` | Book backups (restore, clone, export); database backups and their schedule. |
 | `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing and restoring it (one bean, `CleanupServiceImpl`, shares the reference model). |
 | `OsgiService`, `ExtensionService` | Loading extensions; `@Extendable` decorators. |
 
-Also here: `TurnInput` (the four fields of the instruction panel), `SummaryNode` (a summary and the summaries it merges, for
-the summaries overview), `CancellationToken`, `GenerationListener` (UI
+Also here: `CancellationToken`, `GenerationListener` (UI
 callbacks of a generation) and `search/` (`Sorter`, `ManuscriptFilterValues` for the book lists; `FulltextQuery`, `FulltextHit` and `LikePatterns` for the full-text search and `LIKE` patterns).
 
 | Package | |

@@ -273,6 +273,7 @@ Siblings are ordered by `creation`. The branch from the root to a leaf is read w
 | `responseReasoning` | JSON | Reasoning of a reasoning model. |
 | `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` | JSON | The instruction panel it was generated from (`TurnInput`). |
 | `builtPrompt`, `builtPromptTokens`, `backgroundLore` | JSON | The full prompt sent to the model and the activated lore (*View prompt*). |
+| `tokenBreakdown` | JSON | Token counts of the prompt (`PromptTokenBreakdown`, JSON in an extended attribute); `null` for parts generated before it was recorded. |
 | `modelUsed`, `protocolUsed`, `promptTokens`, `tokenReasoningCount` | JSON | Generation metadata. |
 | `request`, `ttft`, `reasoningEnd` | JSON | Timestamps for the timing metrics. |
 | `scrollPosition` | JSON | UI state. |

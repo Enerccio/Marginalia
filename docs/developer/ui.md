@@ -265,6 +265,7 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
 | `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, "160px")` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
+| `ChartJs` | A [Chart.js](https://www.chartjs.org/) chart: `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) as JSON and draws it responsively into the element (height 320px, the `chart-js` style). Used by `TokenUsageDialog` (doughnut of the prompt sections, bar chart of the payload messages), opened from *Token Usage* in the part menu of the desktop and phone story editors. |
 | `TrashGrid` | Deleted objects with a restore button, see [Trash](#trash). |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |
 
@@ -337,7 +338,11 @@ Prefer Java components. When the browser has to do something (scroll positions, 
 `element.executeJs(...)` and read the result with `.then(...)` - see `UIUtils.getPositionAndSizeOfElement` and the
 scroll handling in `ManuscriptStoryPart`.
 
-The only JavaScript module is `src/main/frontend/treant-connector.js`, loaded by `TreantTree` (`@JsModule`) together
+There are two JavaScript modules. `src/main/frontend/chart-connector.js` is loaded by `ChartJs` (`@JsModule`, with the
+npm package `chart.js`); it registers Chart.js and draws the configuration it gets from
+`JavascriptLibrary.renderChart`, taking the text and grid colors from the Lumo variables of the page.
+
+`src/main/frontend/treant-connector.js` is loaded by `TreantTree` (`@JsModule`) together
 with the npm packages `treant-js` and `raphael` (`@NpmPackage`) and treant's CSS (`@CssImport`). It draws the story
 tree; `TreantTree` sends the tree as JSON and receives clicks back: `node-click` (a card was clicked, with the
 `data-node-id` of the card) and `node-goto` (an element with `data-goto-id` inside a card was clicked; the card itself
@@ -385,7 +390,7 @@ runs before and after that method and can read its arguments and local variables
 |---|---|
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid`, `PhoneTrashGrid` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |
 
 New screens, dialogs and components with their own logic get `@Extendable` too (a nested class needs its own

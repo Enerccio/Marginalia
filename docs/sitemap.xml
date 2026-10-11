@@ -88,16 +88,19 @@
     <loc>https://enerccio.github.io/Marginalia/user/books/prompts/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/developer/project-structure/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/developer/services/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/publishing/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/project-structure/</loc>
+    <loc>https://enerccio.github.io/Marginalia/developer/domain-model/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/domain-model/</loc>
+    <loc>https://enerccio.github.io/Marginalia/developer/ui/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/credits/</loc>
@@ -113,9 +116,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/generation-pipeline/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/ui/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/contributing/</loc>

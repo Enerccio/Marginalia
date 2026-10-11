@@ -2,11 +2,11 @@ package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.TurnInput;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;

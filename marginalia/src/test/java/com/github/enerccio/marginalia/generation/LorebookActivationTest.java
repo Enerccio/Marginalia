@@ -2,12 +2,16 @@ package com.github.enerccio.marginalia.generation;
 
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
-import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
+import com.github.enerccio.marginalia.domain.service.LorebookService;
+import com.github.enerccio.marginalia.domain.service.TagRelationService;
+import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
 import com.github.enerccio.marginalia.domain.service.impl.generation.impl.ProcessLorebookStep;

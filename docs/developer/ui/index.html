@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845064180417">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845065061927">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845064180417" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845065061927" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845064180417" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845065061927" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845064180417" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845064180417" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845065061927" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845065061927" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -590,6 +590,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
 | `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, &quot;160px&quot;)` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
+| `ChartJs` | A [Chart.js](https://www.chartjs.org/) chart: `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) as JSON and draws it responsively into the element (height 320px, the `chart-js` style). Used by `TokenUsageDialog` (doughnut of the prompt sections, bar chart of the payload messages), opened from *Token Usage* in the part menu of the desktop and phone story editors. |
 | `TrashGrid` | Deleted objects with a restore button, see [Trash](#trash). |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -628,6 +629,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>ResizableTextArea</code></td>
 <td><code translate="no" v-pre>ResizableTextArea.install(loc, textArea, &quot;160px&quot;)</code> on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ChartJs</code></td>
+<td>A <a href="https://www.chartjs.org/">Chart.js</a> chart: <code translate="no" v-pre>setChartConfig(json)</code> takes a Chart.js configuration (<code translate="no" v-pre>type</code>, <code translate="no" v-pre>data</code>, <code translate="no" v-pre>options</code>) as JSON and draws it responsively into the element (height 320px, the <code translate="no" v-pre>chart-js</code> style). Used by <code translate="no" v-pre>TokenUsageDialog</code> (doughnut of the prompt sections, bar chart of the payload messages), opened from <em>Token Usage</em> in the part menu of the desktop and phone story editors.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TrashGrid</code></td>
@@ -703,7 +708,10 @@ request scope, and <code translate="no" v-pre>vaadinLocked(...)</code> / <code t
 <p>Prefer Java components. When the browser has to do something (scroll positions, element sizes), use
 <code translate="no" v-pre>element.executeJs(...)</code> and read the result with <code translate="no" v-pre>.then(...)</code> - see <code translate="no" v-pre>UIUtils.getPositionAndSizeOfElement</code> and the
 scroll handling in <code translate="no" v-pre>ManuscriptStoryPart</code>.</p>
-<p>The only JavaScript module is <code translate="no" v-pre>src/main/frontend/treant-connector.js</code>, loaded by <code translate="no" v-pre>TreantTree</code> (<code translate="no" v-pre>@JsModule</code>) together
+<p>There are two JavaScript modules. <code translate="no" v-pre>src/main/frontend/chart-connector.js</code> is loaded by <code translate="no" v-pre>ChartJs</code> (<code translate="no" v-pre>@JsModule</code>, with the
+npm package <code translate="no" v-pre>chart.js</code>); it registers Chart.js and draws the configuration it gets from
+<code translate="no" v-pre>JavascriptLibrary.renderChart</code>, taking the text and grid colors from the Lumo variables of the page.</p>
+<p><code translate="no" v-pre>src/main/frontend/treant-connector.js</code> is loaded by <code translate="no" v-pre>TreantTree</code> (<code translate="no" v-pre>@JsModule</code>) together
 with the npm packages <code translate="no" v-pre>treant-js</code> and <code translate="no" v-pre>raphael</code> (<code translate="no" v-pre>@NpmPackage</code>) and treant&#x27;s CSS (<code translate="no" v-pre>@CssImport</code>). It draws the story
 tree; <code translate="no" v-pre>TreantTree</code> sends the tree as JSON and receives clicks back: <code translate="no" v-pre>node-click</code> (a card was clicked, with the
 <code translate="no" v-pre>data-node-id</code> of the card) and <code translate="no" v-pre>node-goto</code> (an element with <code translate="no" v-pre>data-goto-id</code> inside a card was clicked; the card itself
@@ -742,7 +750,7 @@ runs before and after that method and can read its arguments and local variables
 |---|---|
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid`, `PhoneTrashGrid` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -763,7 +771,7 @@ runs before and after that method and can read its arguments and local variables
 </tr>
 <tr>
 <td>Dialogs and components</td>
-<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code>, <code translate="no" v-pre>PhoneSummariesDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>TrashGrid</code>, <code translate="no" v-pre>PhoneTrashGrid</code></td>
+<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>TokenUsageDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code>, <code translate="no" v-pre>PhoneSummariesDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>ChartJs</code>, <code translate="no" v-pre>TrashGrid</code>, <code translate="no" v-pre>PhoneTrashGrid</code></td>
 </tr>
 <tr>
 <td>Routes</td>

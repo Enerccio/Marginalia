@@ -50,6 +50,13 @@ public final class GenerationProperties {
     public static final String MANUSCRIPT_CHRONICLE = "MANUSCRIPT_CHRONICLE";
 
     /**
+     * {@code PromptTokenBreakdown} raw token counts of the prompt sections, available from
+     * {@link Events#AFTER_PREPARE_CONTENT}. The messages of the payload are added when the new part is created and the
+     * breakdown is stored with it ({@code ChatMessage#getTokenBreakdown()}).
+     */
+    public static final String TOKEN_BREAKDOWN = "TOKEN_BREAKDOWN";
+
+    /**
      * {@code String} reasoning chunk, set for each {@link Events#REASONING_CHUNK_RECEIVED}. Read back after the event.
      */
     public static final String REASONING_CHUNK = "REASONING_CHUNK";

@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.ui.dialogs.phone.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.components.SummaryNode;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -14,10 +16,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
-import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ExportDialog;
-import com.github.enerccio.marginalia.ui.dialogs.PromptDialog;
-import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ImagesDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
@@ -931,6 +930,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         private MenuItem deleteSummaryItem;
         private MenuItem deleteItem;
         private MenuItem showPromptItem;
+        private MenuItem tokenUsageItem;
         private MenuItem imagesItem;
         private Details reasoningDetails;
         private Markdown reasoningMarkdown;
@@ -1107,6 +1107,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             branchItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_BRANCH_STORY), event -> branch());
 
             showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
+
+            tokenUsageItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_TOKEN_USAGE), event -> showTokenUsage());
 
             imagesItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_IMAGES), event -> openImagesDialog());
 
@@ -1337,6 +1339,13 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             protocolSpan.setText(loc.getValue(L.LABEL_PROTOCOLS) + ": " + StringUtils.defaultIfBlank(msg.getProtocolUsed(), NOT_AVAILABLE));
             tokensSpan.setText(loc.getValue(L.LABEL_TOKENS) + ": " + msg.getTokenCount() + " (" + msg.getPromptTokens() + ")");
             wordsSpan.setText(loc.getValue(L.LABEL_WORDS) + ": " + msg.getWordCount());
+        }
+
+        private void showTokenUsage() {
+            // null for parts generated before the breakdown was recorded, the dialog says so
+            TokenUsageDialog dialog = new TokenUsageDialog(message.getTokenBreakdown());
+            dialog.create();
+            dialog.open();
         }
 
         private void showPrompt() {

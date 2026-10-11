@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.test;
 
 import com.github.enerccio.marginalia.domain.collections.ProtocolType;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
@@ -8,7 +9,6 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
-import com.github.enerccio.marginalia.domain.service.TurnInput;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
