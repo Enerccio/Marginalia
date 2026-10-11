@@ -36,7 +36,9 @@ plugin should not.
 ## pom.xml
 
 The easiest start is to copy the `pom.xml` of `marginalia/plugins/chaptermarker` and change the coordinates and the
-package names. The important parts:
+package names. The bundled plugins inherit their version from the repository's parent POM (`<parent>` with
+`marginalia-parent`); a plugin of your own outside the repository drops that `<parent>` and gives its `<version>`
+itself. The important parts:
 
 ```xml
 <packaging>bundle</packaging>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845063773106">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845064146443">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845063773106" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845064146443" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845063773106" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845064146443" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845063773106" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845063773106" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845064146443" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845064146443" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -190,7 +190,8 @@ fields, data in attributes, generation listeners, and cleanup on unload.</p>
 <h3 id="1-install-the-application">1. Install the application</h3>
 <p>The plugin compiles against the application&#x27;s classes, installed in the local Maven repository:</p>
 <div id="1-install-the-application-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">mvn -N install                  # in the repository root: the parent POM the application's POM refers to
+cd marginalia
 mvn install -DskipTests</code></pre>
 </doc-codeblock></div>
 <h3 id="2-create-the-project">2. Create the project</h3>
@@ -203,10 +204,18 @@ mvn install -DskipTests</code></pre>
 </doc-codeblock></div>
 <p>Copy <code translate="no" v-pre>marginalia/plugins/chaptermarker/pom.xml</code> and change:</p>
 <ul>
-<li><code translate="no" v-pre>groupId</code> to <code translate="no" v-pre>com.example.marginalia</code>, <code translate="no" v-pre>artifactId</code> to <code translate="no" v-pre>bookmarks</code>,</li>
-<li><code translate="no" v-pre>Bundle-Activator</code> to <code translate="no" v-pre>com.example.marginalia.bookmarks.BookmarksActivator</code>,</li>
-<li><code translate="no" v-pre>Import-Package</code> to <code translate="no" v-pre>!com.example.marginalia.bookmarks.*</code> and <code translate="no" v-pre>Export-Package</code> to
-<code translate="no" v-pre>com.example.marginalia.bookmarks.*</code>.</li>
+<li>
+<p><code translate="no" v-pre>groupId</code> to <code translate="no" v-pre>com.example.marginalia</code>, <code translate="no" v-pre>artifactId</code> to <code translate="no" v-pre>bookmarks</code>, and replace the <code translate="no" v-pre>&lt;parent&gt;</code> (the plugin is outside
+the repository) with a <code translate="no" v-pre>&lt;version&gt;</code> of its own, e.g. <code translate="no" v-pre>1.0.1</code>; the dependency on <code translate="no" v-pre>marginalia</code> then needs the version of
+the installed application instead of <code translate="no" v-pre>${project.version}</code>,</p>
+</li>
+<li>
+<p><code translate="no" v-pre>Bundle-Activator</code> to <code translate="no" v-pre>com.example.marginalia.bookmarks.BookmarksActivator</code>,</p>
+</li>
+<li>
+<p><code translate="no" v-pre>Import-Package</code> to <code translate="no" v-pre>!com.example.marginalia.bookmarks.*</code> and <code translate="no" v-pre>Export-Package</code> to
+<code translate="no" v-pre>com.example.marginalia.bookmarks.*</code>.</p>
+</li>
 </ul>
 <p>Keep the rest - the <code translate="no" v-pre>provided</code> dependencies, the AspectJ plugin (for <code translate="no" v-pre>@Configurable</code>) and the bundle plugin. See
 <a href="../overview/#pomxml">Plugin basics → pom.xml</a> for what each part does.</p>
