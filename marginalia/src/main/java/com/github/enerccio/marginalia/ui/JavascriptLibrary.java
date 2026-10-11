@@ -88,33 +88,67 @@ public final class JavascriptLibrary {
         element.executeJs("$0.scrollLeft = $1", element, pixelsFromLeft);
     }
 
+    /**
+     * Installs (once) the listener behind the sticky bottom scroll: {@code el._stick} is cleared as soon as the user
+     * scrolls up and set again when the bottom is reached. Content growth never changes {@code scrollTop}, so it cannot
+     * unstick or restick by itself, unlike measuring the distance to the bottom after the content already grew.
+     */
+    private static final String INSTALL_STICKY_SCROLL = """
+            const installSticky = (el) => {
+              if (el._stickInstalled) return;
+              el._stickInstalled = true;
+              el._lastTop = el.scrollTop;
+              el._stick = (el.scrollHeight - el.scrollTop - el.clientHeight) < 8;
+              el.addEventListener('scroll', () => {
+                const top = el.scrollTop;
+                if (top < el._lastTop) {
+                  el._stick = false;
+                }
+                if ((el.scrollHeight - top - el.clientHeight) < 8) {
+                  el._stick = true;
+                }
+                el._lastTop = top;
+              }, {passive: true});
+            };
+            """;
+
     public static void scrollToBottom(Element element) {
-        element.executeJs("$0.scrollTop = $0.scrollHeight", element);
+        element.executeJs(INSTALL_STICKY_SCROLL + """
+                installSticky($0);
+                $0._stick = true;
+                $0.scrollTop = $0.scrollHeight;
+                $0._lastTop = $0.scrollTop;
+                """, element);
     }
 
     /**
-     * Scrolls to the bottom once the layout following the current changes is done.
+     * Scrolls to the bottom once the layout following the current changes is done, and sticks to the bottom again.
      */
     public static void scrollToBottomAfterLayout(Element element) {
-        element.executeJs("""
+        element.executeJs(INSTALL_STICKY_SCROLL + """
+                installSticky($0);
+                $0._stick = true;
                 requestAnimationFrame(() => {
                   requestAnimationFrame(() => {
                     $0.scrollTop = $0.scrollHeight;
+                    $0._lastTop = $0.scrollTop;
                   });
                 });
                 """, element);
     }
 
     /**
-     * Scrolls to the bottom when the element is already (nearly) at the bottom, so a user who scrolled up is left alone.
+     * Scrolls to the bottom while the element is stuck to it, i.e. until the user scrolls up; reaching the bottom again
+     * sticks it again.
      */
     public static void scrollToBottomIfAtBottom(Element element) {
-        element.executeJs("""
+        element.executeJs(INSTALL_STICKY_SCROLL + """
+                const el = $0;
+                installSticky(el);
                 requestAnimationFrame(() => {
-                  const el = $0;
-                  const isAtBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 100;
-                  if (isAtBottom) {
+                  if (el._stick) {
                     el.scrollTop = el.scrollHeight;
+                    el._lastTop = el.scrollTop;
                   }
                 });
                 """, element);
@@ -124,7 +158,8 @@ public final class JavascriptLibrary {
      * Restores the scroll position once the layout is done; to the bottom when there is nothing saved.
      */
     public static void restoreScrollPosition(Element element, Integer savedPosition) {
-        element.executeJs("""
+        element.executeJs(INSTALL_STICKY_SCROLL + """
+                installSticky($0);
                 requestAnimationFrame(() => {
                   requestAnimationFrame(() => {
                     const el = $0;
@@ -134,6 +169,8 @@ public final class JavascriptLibrary {
                     } else {
                       el.scrollTop = el.scrollHeight;
                     }
+                    el._lastTop = el.scrollTop;
+                    el._stick = (el.scrollHeight - el.scrollTop - el.clientHeight) < 8;
                   });
                 });
                 """, element, savedPosition);
