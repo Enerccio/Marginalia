@@ -179,6 +179,19 @@ Methods the bundled plugins use, as examples:
 
 Inner classes reach their outer instance through the synthetic field `this$0`.
 
+### The phone twins
+
+On a phone the book opens in `PhoneManuscriptDialog`, whose tabs are separate classes (not subclasses) in
+`ui.dialogs.phone.manuscript`, so a decorator of the desktop class does not run there. `PhoneManuscriptStoryPart` and its
+`PhoneManuscriptStoryPart$ChatMessageCard` have the same decorable methods, fields and locals as the desktop ones
+(`createSidebarButton`, `renderStoryContent`, `populateMenuBar`, `createCogsMenuItem`, `createMenuItems`,
+`refreshSummaryMenuItems`, `autosaveAndSwapToMarkdown`; fields `sidebarList`, `leftBar`, `currentManuscript`,
+`hamburgerMenu`, `message`, `this$0`), so a plugin supports the phone by registering the same decorator a second time
+under the other class name. The Reviewer, Chapter Marker and Author's Note do; Side Query and Lorebook VCS don't.
+Two differences: the card has no right-hand column (the metadata is in a popover), and `leftBar` is the tab sheet in
+the drawer of the story, created once and not rebuilt by `renderStoryContent()` (check for your tab first, as Author's
+Note does). Reach the outer part through `this$0` as an `Object`, since its type depends on the dialog.
+
 ## Verification before loading
 
 Every name a decorator uses is unchecked at compile time, so Marginalia checks them before it starts an extension:

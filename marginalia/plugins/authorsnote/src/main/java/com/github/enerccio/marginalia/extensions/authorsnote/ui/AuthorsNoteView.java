@@ -8,8 +8,6 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -86,10 +84,9 @@ public class AuthorsNoteView extends VerticalLayout {
             }
         });
 
-        HorizontalLayout placement = new HorizontalLayout(depth, role);
-        placement.setWidthFull();
-        placement.setAlignItems(FlexComponent.Alignment.BASELINE);
-        placement.setFlexGrow(1, depth, role);
+        // stacked: side by side they are wider than the story sidebar (the drawer on a phone) and it scrolls sideways
+        depth.setWidthFull();
+        role.setWidthFull();
 
         note = new TextArea("Author's Note");
         note.setWidthFull();
@@ -116,7 +113,7 @@ public class AuthorsNoteView extends VerticalLayout {
             saveData();
         });
 
-        add(enabled, placement, note, privateNote);
+        add(enabled, depth, role, note, privateNote);
         setFlexGrow(1, note, privateNote);
     }
 

@@ -48,7 +48,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         try {
-            // the Author's Note tab in the left sidebar of the story view, next to the outline
+            // the Author's Note tab in the left sidebar of the story view (the drawer on a phone), next to the outline
             storyPartDecorator = new ExtensionDecorator() {
                 @Override
                 public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {}
@@ -75,6 +75,12 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
             extensionService.registerDecorator(
                     storyPartDecorator,
                     "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart",
+                    "renderStoryContent"
+            );
+            // the drawer of the story in the phone dialog has the same left bar
+            extensionService.registerDecorator(
+                    storyPartDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart",
                     "renderStoryContent"
             );
 

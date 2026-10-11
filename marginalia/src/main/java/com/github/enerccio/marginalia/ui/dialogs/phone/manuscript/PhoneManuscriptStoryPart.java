@@ -49,6 +49,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.vaadin.firitin.layouts.VTabSheet;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -62,7 +63,7 @@ import java.util.Map;
  * <p>
  * It is a separate class and not a subclass of the desktop {@code ManuscriptStoryPart}, so extensions know which of
  * them they decorate. The hooks for extensions are the same as there: {@link #populateMenuBar} and
- * {@link #createCogsMenuItem} fill the menu bar of the navbar, {@link #createStoryOutline} the drawer.
+ * {@link #createCogsMenuItem} fill the menu bar of the navbar, {@link #createStoryOutline} the drawer (its tab sheet {@code leftBar}).
  */
 @Configurable
 @Extendable
@@ -100,6 +101,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     private VerticalLayout centerLayout;
     private ScrollPanel centerContentPanel;
     private HorizontalLayout bottomControlsLayout;
+    private VTabSheet leftBar;
     private Span sidebarHeader;
     private VerticalLayout sidebarList;
 
@@ -472,14 +474,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     }
 
     /**
-     * The outline of the story, the content of the drawer. Extensions add their own components to the returned layout
-     * by decorating this method.
+     * The content of the drawer: a tab sheet ({@code leftBar}) with the outline of the story, like the left bar of the
+     * desktop story. Extensions add their own tabs to it.
      */
     private VerticalLayout createStoryOutline() {
-        VerticalLayout outline = new VerticalLayout();
-        outline.setSizeFull();
-        outline.setPadding(false);
-        outline.setSpacing(false);
+        leftBar = new VTabSheet();
+        leftBar.setSizeFull();
+
+        VerticalLayout outlineTab = new VerticalLayout();
+        outlineTab.setSizeFull();
+        outlineTab.setPadding(false);
+        outlineTab.setSpacing(false);
 
         sidebarHeader = new Span();
         sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
@@ -489,8 +494,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         sidebarList.setSpacing(false);
         sidebarList.setWidthFull();
 
-        outline.add(sidebarHeader, sidebarList);
-        outline.setFlexGrow(1, sidebarList);
+        outlineTab.add(sidebarHeader, sidebarList);
+        outlineTab.setFlexGrow(1, sidebarList);
+        leftBar.add(loc.getValue(L.LABEL_CHAPTERS), outlineTab);
+
+        VerticalLayout outline = new VerticalLayout(leftBar);
+        outline.setSizeFull();
+        outline.setPadding(false);
+        outline.setSpacing(false);
         return outline;
     }
 
