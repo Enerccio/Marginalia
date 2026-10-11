@@ -83,6 +83,13 @@ public final class CssStyles {
     // --- Resizable text area toggle icon ---
     public static final String RESIZABLE_TEXT_AREA_ICON = "resizable-text-area-icon";
 
+    // --- Phone manuscript dialog ---
+    public static final String PHONE_DIALOG = "phone-dialog";
+    public static final String PHONE_STORY_LAYOUT = "phone-story-layout";
+    public static final String PHONE_MESSAGE = "phone-message";
+    public static final String PHONE_MESSAGE_HEADER = "phone-message-header";
+    public static final String PHONE_POPOVER_CONTENT = "phone-popover-content";
+
     private CssStyles() {
     }
 

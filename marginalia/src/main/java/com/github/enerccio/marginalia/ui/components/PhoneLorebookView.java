@@ -60,6 +60,7 @@ public class PhoneLorebookView extends VerticalLayout {
     private TokenizerService tokenizerService;
 
     private Lorebook currentLorebook;
+    private boolean pinnedLorebook = false;
 
     private ComboBox<Lorebook> lorebookCombo;
     private Button refreshButton;
@@ -79,6 +80,15 @@ public class PhoneLorebookView extends VerticalLayout {
         this.currentLorebook = lorebook;
     }
 
+    /**
+     * @param pinnedLorebook the lorebook is chosen by the owner of the view ({@link #setLorebook}), so the lorebook
+     *                       selection is hidden, like in {@link LorebookView}
+     */
+    public PhoneLorebookView(boolean pinnedLorebook) {
+        this(null);
+        this.pinnedLorebook = pinnedLorebook;
+    }
+
     public Component create() throws Exception {
         setSizeFull();
         setPadding(false);
@@ -87,6 +97,7 @@ public class PhoneLorebookView extends VerticalLayout {
         lorebookCombo = new ComboBox<>(loc.getValue(L.LABEL_LOREBOOK));
         lorebookCombo.setItemLabelGenerator(Lorebook::getName);
         lorebookCombo.setWidthFull();
+        lorebookCombo.setVisible(!pinnedLorebook);
         lorebookCombo.addValueChangeListener(event -> {
             if (event.isFromClient()) {
                 currentLorebook = event.getValue();
@@ -103,6 +114,7 @@ public class PhoneLorebookView extends VerticalLayout {
         });
 
         HorizontalLayout controlsLayout = new HorizontalLayout(lorebookCombo, refreshButton);
+        controlsLayout.setVisible(!pinnedLorebook);
         controlsLayout.setWidthFull();
         controlsLayout.setAlignItems(FlexComponent.Alignment.END);
         controlsLayout.setFlexGrow(1, lorebookCombo);
@@ -317,6 +329,10 @@ public class PhoneLorebookView extends VerticalLayout {
     }
 
     private void loadLorebooks() {
+        if (pinnedLorebook) {
+            updateSelectedLorebook();
+            return;
+        }
         try {
             List<Lorebook> lorebooks = lorebookService.findAllForUser();
             lorebooks.sort(Comparator.comparing(Lorebook::getName));
