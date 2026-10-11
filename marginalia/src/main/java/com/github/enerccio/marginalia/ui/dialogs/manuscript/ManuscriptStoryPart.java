@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.Ja
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -167,19 +168,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }).addEventData("event.detail.scrollTop");
 
-        centerContentPanel.getElement().executeJs("""
-                const el = $0;
-                if (!el._hasScrollListener) {
-                  el._hasScrollListener = true;
-                  let timer;
-                  el.addEventListener('scroll', () => {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => {
-                      el.dispatchEvent(new CustomEvent('panel-scroll', { detail: { scrollTop: Math.round(el.scrollTop) } }));
-                    }, 300);
-                  });
-                }
-                """, centerContentPanel.getElement());
+        JavascriptLibrary.fireDebouncedScrollEvent(centerContentPanel.getElement());
     }
 
     private void setupResizeObserver() {
@@ -191,27 +180,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }).addEventData("event.detail.width");
 
-        centerContentPanel.getElement().executeJs("""
-                const el = $0;
-                if (!el._hasResizeObserver) {
-                  el._hasResizeObserver = true;
-                  let timer;
-                  const observer = new ResizeObserver(entries => {
-                    for (let entry of entries) {
-                      const w = Math.round(entry.contentRect.width);
-                      if (w > 0) {
-                        clearTimeout(timer);
-                        timer = setTimeout(() => {
-                          el.dispatchEvent(new CustomEvent('panel-resize', { detail: { width: w } }));
-                        }, 150);
-                      }
-                    }
-                  });
-                  observer.observe(el);
-                }
-                """,
-                centerContentPanel.getElement()
-        );
+        JavascriptLibrary.fireDebouncedResizeEvent(centerContentPanel.getElement());
     }
 
     private void recalculateAllMessageHeights(double panelWidth) {
@@ -495,15 +464,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     private void scrollToCard(ChatMessageCard card) {
-        card.getElement().executeJs("""
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    $0.scrollIntoView({block: 'start'});
-                    $0.animate([{outline: '3px solid var(--lumo-warning-color)'}, {outline: '3px solid transparent'}],
-                               {duration: 2000});
-                  });
-                });
-                """, card.getElement());
+        JavascriptLibrary.scrollToAndHighlight(card.getElement());
     }
 
     private void createSidebarButton(ChatMessage msg, int orderId, Long dbId) {
@@ -550,22 +511,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         ChatMessage leaf = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
         Integer savedPos = (leaf != null) ? leaf.getScrollPosition() : null;
 
-        centerContentPanel.getElement().executeJs("""
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    const el = $0;
-                    const target = $1;
-                    if (target !== null && target !== undefined) {
-                      el.scrollTop = target;
-                    } else {
-                      el.scrollTop = el.scrollHeight;
-                    }
-                  });
-                });
-                """,
-                centerContentPanel.getElement(),
-                savedPos
-        );
+        JavascriptLibrary.restoreScrollPosition(centerContentPanel.getElement(), savedPos);
     }
 
     public void autosaveAndSwapAllToMarkdown() {
@@ -580,27 +526,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     private void scrollToBottom() {
-        centerContentPanel.getElement().executeJs("""
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    $0.scrollTop = $0.scrollHeight;
-                  });
-                });
-                """
-        );
+        JavascriptLibrary.scrollToBottomAfterLayout(centerContentPanel.getElement());
     }
 
     private void scrollToBottomIfAtBottom() {
-        centerContentPanel.getElement().executeJs("""
-                requestAnimationFrame(() => {
-                  const el = $0;
-                  const isAtBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 100;
-                  if (isAtBottom) {
-                    el.scrollTop = el.scrollHeight;
-                  }
-                });
-                """
-        );
+        JavascriptLibrary.scrollToBottomIfAtBottom(centerContentPanel.getElement());
     }
 
     private void startGeneration() {
@@ -796,7 +726,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
                                 checkAndApplyBackupStrategy();
 
-                                centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
+                                JavascriptLibrary.getScrollTop(centerContentPanel.getElement())
                                         .then(Integer.class, scrollTop -> {
                                             if (scrollTop != null && message != null) {
                                                 message.setScrollPosition(scrollTop);
@@ -835,7 +765,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                                 streamingCard = null;
                                 parent.unfreeze();
 
-                                centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
+                                JavascriptLibrary.getScrollTop(centerContentPanel.getElement())
                                         .then(Integer.class, scrollTop -> {
                                             if (scrollTop != null && partialMessage != null) {
                                                 partialMessage.setScrollPosition(scrollTop);
@@ -1208,7 +1138,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
-                    centerContentPanel.getElement().executeJs("return $0.scrollTop").then(Integer.class, scrollTop -> {
+                    JavascriptLibrary.getScrollTop(centerContentPanel.getElement()).then(Integer.class, scrollTop -> {
                         try {
                             Long parentId = message.getParent() != null ? message.getParent().getId() : null;
 
@@ -1218,7 +1148,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                             load(parent.getManuscript());
 
                             if (scrollTop != null && scrollTop > 0) {
-                                centerContentPanel.getElement().executeJs("$0.scrollTop = $1", scrollTop);
+                                JavascriptLibrary.setScrollTop(centerContentPanel.getElement(), scrollTop);
                             } else if (parentId != null && activeCardMap.containsKey(parentId)) {
                                 activeCardMap.get(parentId).scrollIntoView();
                             }

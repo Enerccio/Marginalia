@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ErrorDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
@@ -237,15 +238,7 @@ public class UIUtils {
     }
 
     public static void getPositionAndSizeOfElement(Element element, PositionSizeCallback callback) {
-        element.executeJs("" +
-                "return (function () { \n" +
-                "   var w = $0.clientWidth; \n" +
-                "   var h = $0.clientHeight; \n" +
-                "   var bb = $0.getBoundingClientRect(); \n" +
-                "   var x = bb.left + window.scrollX; \n" +
-                "   var y = bb.top + window.scrollY; \n" +
-                "   return '' + x + ';' + y + ';' + w + ';' + h; \n" +
-                "} ())").then(data -> {
+        JavascriptLibrary.getPositionAndSize(element).then(data -> {
             String serializedData = data.asString();
             String[] items = serializedData.split(Pattern.quote(";"));
 

@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionListen
 import com.github.enerccio.marginalia.domain.service.OsgiService.LoadedExtension;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.vaadin.flow.component.UI;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
@@ -88,20 +89,12 @@ public class CssRegistry implements ExtensionListener {
             return;
         }
         String id = styleId(extension);
-        access(page -> page.getPage().executeJs("""
-                let style = document.getElementById($0);
-                if (!style) {
-                  style = document.createElement('style');
-                  style.id = $0;
-                  document.head.appendChild(style);
-                }
-                style.textContent = $1;
-                """, id, css));
+        access(page -> JavascriptLibrary.setPageStyle(page.getPage(), id, css));
     }
 
     private void remove(MarginaliaExtension extension) {
         String id = styleId(extension);
-        access(page -> page.getPage().executeJs("document.getElementById($0)?.remove();", id));
+        access(page -> JavascriptLibrary.removePageStyle(page.getPage(), id));
     }
 
     private void access(Consumer<UI> change) {
