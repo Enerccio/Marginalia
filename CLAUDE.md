@@ -51,6 +51,7 @@ The full suite is fast (about 35 s of test time, plus Maven startup). Run it in 
 
 ## Other
 
+- When creating new files, automatically add them to git
 - When you implement a feature or fix, update the docs that describe it: user docs in `manual/user`, developer docs in `manual/developer`. Developer pages carry `verified` (commit last checked) and `covers` (code described) in their front matter; after a code change run `python3 tools/check_dev_docs.py` (`-v` names modified files) and update the pages it flags. Once a page matches the code, stamp it with `--stamp <page.md>` in a commit of its own (the stamp is a commit that already exists).
 - `manual/` is the source of the published manual (Retype; `retype.yml`): `manual/user`, `manual/developer`, screenshots in `manual/images`. `docs/` is its generated output — never edit or read it; after changing anything in `manual/`, run `retype build` in the root folder.
 - `TODO.md`, `TODO.BUGS.md` track planned work.
