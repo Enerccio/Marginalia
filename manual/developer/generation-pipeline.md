@@ -210,6 +210,10 @@ Earlier parts are sent as the model's own previous answers, each preceded by a s
 user message carries the instructions. Only the text of the parts is sent: the images attached to a part are not part of
 it and the model never sees them.
 
+An `LLMChatMessage` can carry `LLMAttachment`s (images, audio, files) for models that accept them, and the OpenAI
+compatible provider sends those of a user message as content parts. This step adds none; a listener of
+`AFTER_PREPARE_PAYLOAD` can put them on a user message.
+
 The payload is stored in the part (`builtPrompt`) and can be inspected in the story editor with *View prompt*:
 
 ![The prompt of a part in the View prompt dialog](../images/dev-view-prompt.png)
