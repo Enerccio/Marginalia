@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136966719">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845147084903">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845136966719" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845147084903" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845136966719" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845147084903" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845136966719" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845136966719" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845147084903" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845147084903" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -507,6 +507,52 @@ book backups, and the menu bar of the bottom bar (see <doc-anchor-trigger to="#t
 <p><code translate="no" v-pre>renderStoryContent()</code> redraws only the cards and the outline list: the left tab sheet is created once in <code translate="no" v-pre>create()</code>
 (so the selected tab and the tabs of extensions survive), and the reasonings that were open are reopened on the new
 cards. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> does the same.</p>
+<p>What the desktop and the phone story editor have in common lives in <code translate="no" v-pre>ui.dialogs.story</code>, so the two classes keep only
+their layout and the methods extensions decorate (<code translate="no" v-pre>renderStoryContent</code>, <code translate="no" v-pre>createSidebarButton</code>, <code translate="no" v-pre>populateMenuBar</code>,
+<code translate="no" v-pre>createCogsMenuItem</code>, the card&#x27;s <code translate="no" v-pre>createMenuItems</code>, <code translate="no" v-pre>refreshSummaryMenuItems</code>, <code translate="no" v-pre>autosaveAndSwapToMarkdown</code>):</p>
+<retype-table copy-text="| Class | Does |
+|---|---|
+| `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it. |
+| `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave). |
+| `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
+| `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |
+| `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, and the scroll position tracking and saving of an edited part. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>StoryHost</code></td>
+<td>What a story tab needs from its dialog (<code translate="no" v-pre>refreshManuscript</code>, <code translate="no" v-pre>save</code>, <code translate="no" v-pre>freeze</code>, <code translate="no" v-pre>unfreeze</code>); <code translate="no" v-pre>ManuscriptDialog</code> and <code translate="no" v-pre>PhoneManuscriptDialog</code> implement it.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>StoryCard</code>, <code translate="no" v-pre>StoryCards</code></td>
+<td>The card interface both <code translate="no" v-pre>ChatMessageCard</code> classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>StoryGenerationListener</code></td>
+<td>The <code translate="no" v-pre>GenerationListener</code> of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through <code translate="no" v-pre>Callbacks</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code></td>
+<td>The fields of the <em>New Turn Instructions</em> popover, the turn details of a part, the metadata lines of a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code></td>
+<td>The automatic backup after N parts / minutes, and the scroll position tracking and saving of an edited part.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The helpers are <code translate="no" v-pre>@Extendable</code> instances (the tabs create them with <code translate="no" v-pre>new</code>, <code translate="no" v-pre>StoryBackup</code> and <code translate="no" v-pre>StorySupport</code> are
+<code translate="no" v-pre>@Configurable</code>), so a decorator of one of their methods applies to the desktop and the phone tab alike. The inner
+card classes stay inner classes of the tabs: extensions reach the outer part through <code translate="no" v-pre>this$0</code>.</p>
 <h3 id="the-story-menu-bar">The story menu bar</h3>
 <p>The bottom bar of the story editor has a <code translate="no" v-pre>MenuBar</code> with two items, built by small methods so that extensions can add
 to it (see <a href="../plugins/ui-extensions/#the-story-menu-bar">Extending the UI</a>):</p>
@@ -755,7 +801,7 @@ runs before and after that method and can read its arguments and local variables
 <retype-table copy-text="| Area | Classes |
 |---|---|
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
-| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
+| Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), the shared story helpers (`StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
 | Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -773,7 +819,7 @@ runs before and after that method and can read its arguments and local variables
 </tr>
 <tr>
 <td>Book window</td>
-<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>ManuscriptStoryPart</code> (and its <code translate="no" v-pre>ChatMessageCard</code>), <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code>, <code translate="no" v-pre>SummariesDialog</code> (and its <code translate="no" v-pre>SummaryContent</code>), <code translate="no" v-pre>SummaryDialog</code>, <code translate="no" v-pre>ImagesDialog</code></td>
+<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>ManuscriptStoryPart</code> (and its <code translate="no" v-pre>ChatMessageCard</code>), the shared story helpers (<code translate="no" v-pre>StoryCards</code>, <code translate="no" v-pre>StoryGenerationListener</code>, <code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code>, <code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code>), <code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>ManuscriptPromptPart</code>, <code translate="no" v-pre>ManuscriptLorebookPart</code>, <code translate="no" v-pre>ManuscriptTreePart</code>, <code translate="no" v-pre>ManuscriptBackupPart</code>, <code translate="no" v-pre>SummariesDialog</code> (and its <code translate="no" v-pre>SummaryContent</code>), <code translate="no" v-pre>SummaryDialog</code>, <code translate="no" v-pre>ImagesDialog</code></td>
 </tr>
 <tr>
 <td>Dialogs and components</td>
