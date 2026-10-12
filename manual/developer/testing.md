@@ -78,7 +78,7 @@ fake is the model server.
 | `loc` | `LocalizationTest`, `BundleCompletenessTest` | The language of the session selects the bundle, texts a bundle lacks come from the default language, a language can't be registered twice, the default one can't be removed, `UserSetting.language` is saved (Spring context). Every key of the Japanese bundle is translated and its `%s`/`%d` placeholders match the English text. |
 | `ui` | `ResourcesPartTest`, `BranchSearchTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The search of the branch view (`ManuscriptTreePart` with a stand-in for the book window): the result line, "Show in story" switching the active branch and ignoring ids of other books. They build Vaadin components without a UI session. |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest` | Purging soft-deleted data, owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content. |
-| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application. |
+| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |
 
 Not covered by automated tests: the Vaadin UI (apart from `ResourcesPartTest` and `BranchSearchTest`), the bundled plugins, and the desktop launcher
 (the [CI smoke test](packaging.md#continuous-integration) only checks that the packaged app starts).
@@ -356,6 +356,11 @@ The `instruct` tests check the bytecode that makes `@Extendable` methods extensi
   can't be followed) against the decorated `VerifyTarget`. Their class files are packed into a JAR on the fly and
   served by a stand-in `Bundle`. Decorators must be anonymous classes with the context calls inside them, as in a real
   extension - a decorator that delegates to a helper class would not be checked.
+- `PublicAPISignatureTest` checks the [`@PublicAPI`](plugins/extendable.md#the-public-api) of every instrumented method
+  of every `@Extendable` class of the application against the compiled classes (`target/classes`). It reads them with
+  ByteBuddy's type pool and the local variable table (`PublicAPISignatures`), so the application classes are not
+  loaded or initialized, and it needs the classes compiled by `ajc` like the application. A failure names the method
+  and prints the annotation the method needs.
 
 The fixtures are compiled with the same `-parameters` and `preserveAllLocals` options as the application; if you
 change the compiler settings in `pom.xml`, these tests tell you whether extensions still see names of arguments and
