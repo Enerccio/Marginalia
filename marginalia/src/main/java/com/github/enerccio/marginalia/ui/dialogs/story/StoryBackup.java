@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.BackupService;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +30,16 @@ public class StoryBackup {
     /**
      * Called after a part was generated: counts it and takes the backup when the limit of the book's strategy is reached.
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "host", type = StoryHost.class)},
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "strategy", type = BackupService.BackupStrategy.class),
+                    @APILocals(name = "strategyValStr", type = String.class),
+                    @APILocals(name = "prefix", type = String.class),
+                    @APILocals(name = "currentVal", type = String.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "ignored", type = NumberFormatException.class)})
     public void checkAndApplyBackupStrategy(StoryHost host) {
         try {
             Manuscript manuscript = host.refreshManuscript();

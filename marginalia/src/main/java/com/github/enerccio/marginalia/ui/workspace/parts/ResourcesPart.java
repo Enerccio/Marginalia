@@ -5,7 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.ResourceService.ResourceLink;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
@@ -65,10 +65,20 @@ public class ResourcesPart implements WorkspaceComponent {
         this.workspace = workspace;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     public String getName() {
         return loc.getValue(L.LABEL_RESOURCES);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "headerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "titleSpan", type = Span.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "buttons", type = HorizontalLayout.class),
+                    @APILocals(name = "selection", type = GridMultiSelectionModel.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -133,6 +143,12 @@ public class ResourcesPart implements WorkspaceComponent {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Stream.class),
+            parameters = {@APIParameter(name = "query", type = com.vaadin.flow.data.provider.Query.class)},
+            locals = {@APILocals(name = "orders", type = List.class),
+                    @APILocals(name = "property", type = String.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private Stream<Resource> fetch(com.vaadin.flow.data.provider.Query<Resource, Void> query) {
         try {
             List<QuerySortOrder> orders = query.getSortOrders() == null ? List.of() : query.getSortOrders();
@@ -146,6 +162,9 @@ public class ResourcesPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = int.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private int count() {
         try {
             return (int) Math.min(Integer.MAX_VALUE, resourceService.countForUser());
@@ -155,6 +174,13 @@ public class ResourcesPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "resource", type = Resource.class)},
+            locals = {@APILocals(name = "link", type = ResourceService.ResourceLink.class),
+                    @APILocals(name = "none", type = Span.class),
+                    @APILocals(name = "missing", type = Span.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private Component linkOf(Resource resource) {
         try {
             ResourceLink link = resourceService.describeLink(resource);
@@ -176,6 +202,15 @@ public class ResourcesPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "resource", type = Resource.class)},
+            locals = {@APILocals(name = "fileName", type = String.class),
+                    @APILocals(name = "download", type = Anchor.class),
+                    @APILocals(name = "downloadButton", type = Button.class),
+                    @APILocals(name = "replaceButton", type = Button.class),
+                    @APILocals(name = "deleteButton", type = Button.class),
+                    @APILocals(name = "actions", type = HorizontalLayout.class)})
     private Component actionsOf(Resource resource) {
         String fileName = StringUtils.defaultIfBlank(resource.getOriginalName(), resource.getUuid())
                 .replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_");
@@ -211,6 +246,9 @@ public class ResourcesPart implements WorkspaceComponent {
         return actions;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "selected", type = List.class)})
     private void deleteSelected() {
         List<Resource> selected = List.copyOf(grid.getSelectedItems());
         if (selected.isEmpty()) {
@@ -219,6 +257,10 @@ public class ResourcesPart implements WorkspaceComponent {
         ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_RESOURCES), selected.size()), () -> delete(selected));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "resources", type = List.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void delete(List<Resource> resources) {
         try {
             resourceService.softDelete(resources.stream().map(Resource::getUuid).toList());
@@ -229,6 +271,13 @@ public class ResourcesPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "resource", type = Resource.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "handler", type = InMemoryUploadHandler.class),
+                    @APILocals(name = "upload", type = Upload.class),
+                    @APILocals(name = "content", type = VerticalLayout.class)})
     private void openReplaceDialog(Resource resource) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_REPLACE_CONTENT));
@@ -261,22 +310,30 @@ public class ResourcesPart implements WorkspaceComponent {
         dialog.open();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         refreshGrid();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void refreshGrid() {
         if (grid != null) {
             grid.getDataProvider().refreshAll();
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
 

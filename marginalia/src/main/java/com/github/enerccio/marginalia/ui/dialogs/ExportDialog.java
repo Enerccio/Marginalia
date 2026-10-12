@@ -9,7 +9,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ExporterService;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -113,6 +113,13 @@ public class ExportDialog extends Dialog {
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> close()), export);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "exporter", type = ExporterService.Exporter.class),
+                    @APILocals(name = "field", type = TextField.class),
+                    @APILocals(name = "options", type = ExporterService.ExportOptions.class),
+                    @APILocals(name = "file", type = String.class),
+                    @APILocals(name = "last", type = Integer.class)})
     private void start() {
         Exporter exporter = format.getValue();
         boolean valid = true;
@@ -145,6 +152,15 @@ public class ExportDialog extends Dialog {
     /**
      * Messages are collected on the active branch as it is now, in a dialog of its own since long books take a while.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "exporter", type = ExporterService.Exporter.class),
+                    @APIParameter(name = "options", type = ExporterService.ExportOptions.class),
+                    @APIParameter(name = "file", type = String.class),
+                    @APIParameter(name = "first", type = int.class),
+                    @APIParameter(name = "last", type = Integer.class)},
+            locals = {@APILocals(name = "collected", type = AtomicReference.class),
+                    @APILocals(name = "collecting", type = ProgressBarDialog.class)})
     private void collect(Exporter exporter, ExportOptions options, String file, int first, Integer last) {
         AtomicReference<List<ChatMessage>> collected = new AtomicReference<>(List.of());
 
@@ -172,6 +188,14 @@ public class ExportDialog extends Dialog {
         collecting.open();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "exporter", type = ExporterService.Exporter.class),
+                    @APIParameter(name = "options", type = ExporterService.ExportOptions.class),
+                    @APIParameter(name = "file", type = String.class),
+                    @APIParameter(name = "messages", type = List.class)},
+            locals = {@APILocals(name = "exported", type = AtomicReference.class),
+                    @APILocals(name = "exporting", type = ProgressBarDialog.class)})
     private void export(Exporter exporter, ExportOptions options, String file, List<ChatMessage> messages) {
         AtomicReference<byte[]> exported = new AtomicReference<>();
 
@@ -193,6 +217,10 @@ public class ExportDialog extends Dialog {
     /**
      * Called on the worker thread of the progress dialog, which then must not run its after action.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "dialog", type = ProgressBarDialog.class),
+                    @APIParameter(name = "e", type = Exception.class)})
     private void failed(ProgressBarDialog dialog, Exception e) {
         dialog.manualCancel = true;
         dialog.vaadinLocked(() -> {
@@ -201,6 +229,15 @@ public class ExportDialog extends Dialog {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "exporter", type = ExporterService.Exporter.class),
+                    @APIParameter(name = "file", type = String.class),
+                    @APIParameter(name = "data", type = byte[].class)},
+            locals = {@APILocals(name = "result", type = Dialog.class),
+                    @APILocals(name = "download", type = Anchor.class),
+                    @APILocals(name = "downloadButton", type = Button.class),
+                    @APILocals(name = "content", type = VerticalLayout.class)})
     private void showResult(Exporter exporter, String file, byte[] data) {
         Dialog result = new Dialog();
         result.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_STORY));

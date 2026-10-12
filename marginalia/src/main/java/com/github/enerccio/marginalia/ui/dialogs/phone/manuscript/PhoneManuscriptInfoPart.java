@@ -9,7 +9,7 @@ import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
@@ -78,6 +78,10 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         this.parent = parent;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "statistics", type = VerticalLayout.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -98,6 +102,8 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void createFields() {
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setWidthFull();
@@ -188,10 +194,16 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         branchTokenCountSpan = new Span();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     private Manuscript refreshModel() throws Exception {
         return parent.refreshManuscript();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void autosave() {
         if (loading) {
             return;
@@ -218,6 +230,9 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     private void updateSyntheticFields(Manuscript manuscript) throws Exception {
         int totalWords = 0;
         int totalTokens = 0;
@@ -236,11 +251,20 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         branchTokenCountSpan.setText(loc.getValue(L.LABEL_BRANCH_TOKEN_COUNT) + ": " + branchTokens);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "frozen", type = boolean.class)})
     @Override
     public void setFrozen(boolean frozen) {
 
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "models", type = List.class),
+                    @APILocals(name = "protocols", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     @Override
     public void load(Manuscript manuscript) {
         if (manuscript == null) {
@@ -270,11 +294,15 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabLeave() throws Exception {
 
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
         updateSyntheticFields(parent.getManuscript());

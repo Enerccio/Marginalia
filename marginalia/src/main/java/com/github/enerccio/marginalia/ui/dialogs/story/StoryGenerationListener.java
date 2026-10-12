@@ -5,7 +5,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -89,14 +89,23 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         this.callbacks = callbacks;
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class))
     private void scrollToBottom() {
         JavascriptLibrary.scrollToBottomAfterLayout(panel.getElement());
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class))
     private void scrollToBottomIfAtBottom() {
         JavascriptLibrary.scrollToBottomIfAtBottom(panel.getElement());
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class),
+                    @APIParameter(name = "orderId", type = int.class)},
+            locals = {@APILocals(name = "card", type = Component.class)})
     private C addStreamingCard(ChatMessage message, int orderId) {
         C card = cardFactory.create(message, true, orderId);
         card.setFrozen(true);
@@ -106,6 +115,9 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         return card;
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     @Override
     public void onNodeCreated(ChatMessage message) {
         ui.access(() -> {
@@ -129,6 +141,10 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "chunk", type = String.class),
+                    @APIParameter(name = "message", type = ChatMessage.class)})
     @Override
     public void onReasoningChunk(String chunk, ChatMessage message) {
         ui.access(() -> {
@@ -141,6 +157,10 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "chunk", type = String.class),
+                    @APIParameter(name = "message", type = ChatMessage.class)})
     @Override
     public void onResponseChunk(String chunk, ChatMessage message) {
         ui.access(() -> {
@@ -153,6 +173,9 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     @Override
     public void onMetricsUpdated(ChatMessage message) {
         ui.access(() -> {
@@ -164,6 +187,9 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     @Override
     public void onComplete(ChatMessage message) {
         ui.access(() -> {
@@ -182,6 +208,9 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "partialMessage", type = ChatMessage.class)})
     @Override
     public void onCancelled(ChatMessage partialMessage) {
         ui.access(() -> {
@@ -221,6 +250,10 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class),
+                    @APIParameter(name = "scrollTop", type = Integer.class)})
     private void saveScrollPosition(ChatMessage message, Integer scrollTop) {
         if (scrollTop != null && message != null) {
             message.setScrollPosition(scrollTop);
@@ -231,6 +264,9 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         }
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "cause", type = Throwable.class)})
     @Override
     public void onError(Throwable cause) {
         ui.access(() -> {
@@ -239,6 +275,9 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "error", type = String.class)})
     @Override
     public void onSimpleError(String error) {
         ui.access(() -> {
@@ -247,6 +286,9 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "warning", type = String.class)})
     @Override
     public void onWarning(String warning) {
         ui.access(() -> {
@@ -255,6 +297,11 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "question", type = String.class),
+                    @APIParameter(name = "yes", type = Runnable.class),
+                    @APIParameter(name = "no", type = Runnable.class)})
     @Override
     public void askQuestion(String question, Runnable yes, Runnable no) {
         ui.access(() -> {

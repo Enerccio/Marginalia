@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
@@ -47,26 +47,44 @@ public class Main extends LoginCheckRoute {
         showLogin();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     @Override
     protected String getAppTitle() {
         return "Marginalia";
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     @Override
     protected String getAppDescription() {
         return loc.getValue(L.LABEL_APP_DESC);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     @Override
     protected String authenticatedSessionUser() {
         return user.getId() == null ? null : user.getLogin();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "userName", type = String.class),
+                    @APIParameter(name = "password", type = String.class)})
     @Override
     protected boolean authenticate(String userName, String password) throws Exception {
         return userService.authenticate(userName, password, clientAddress());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "username", type = String.class)},
+            locals = {@APILocals(name = "u", type = User.class),
+                    @APILocals(name = "details", type = ExtendedClientDetails.class),
+                    @APILocals(name = "workspace", type = Workspace.class),
+                    @APILocals(name = "referenceCopy", type = User.class),
+                    @APILocals(name = "e", type = Exception.class)})
     @Override
     protected void proceedWithLogin(String username) {
         try {
@@ -97,6 +115,9 @@ public class Main extends LoginCheckRoute {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "attachEvent", type = AttachEvent.class)})
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -107,6 +128,9 @@ public class Main extends LoginCheckRoute {
         cssRegistry.attach(attachEvent.getUI());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "detachEvent", type = DetachEvent.class)})
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);

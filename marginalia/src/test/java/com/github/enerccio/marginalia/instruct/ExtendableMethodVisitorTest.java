@@ -705,4 +705,184 @@ class ExtendableMethodVisitorTest {
         assertThat(mismatches).isEmpty();
         assertThat(recorder.events).hasSize(8 * 200 * 2);
     }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // return values
+    // ------------------------------------------------------------------------------------------------------------
+
+    @Test
+    void decoratorReplacesReturnValue() throws Throwable {
+        Recorder recorder = decorate("echo");
+        recorder.onLeave = context -> context.setCurrentReturn("changed " + context.getCurrentReturn(String.class));
+
+        assertThat(call(newInstrumented(), "echo", "text")).isEqualTo("changed text");
+        assertThat(recorder.events).containsExactly("enter", "leave");
+    }
+
+    @Test
+    void returnValueIsChainedThroughTheDecoratorsInOrder() throws Throwable {
+        List<String> seen = new ArrayList<>();
+        Recorder first = decorate("echo");
+        first.onLeave = context -> {
+            seen.add("first original=" + context.getOriginalReturn(String.class) + " current=" + context.getCurrentReturn(String.class));
+            context.setCurrentReturn(context.getCurrentReturn(String.class) + "-a");
+        };
+        Recorder second = decorate("echo");
+        second.onLeave = context -> {
+            seen.add("second original=" + context.getOriginalReturn(String.class) + " current=" + context.getCurrentReturn(String.class));
+            context.setCurrentReturn(context.getCurrentReturn(String.class) + "-b");
+        };
+
+        assertThat(call(newInstrumented(), "echo", "x")).isEqualTo("x-a-b");
+        assertThat(seen).containsExactly("first original=x current=x", "second original=x current=x-a");
+    }
+
+    @Test
+    void originalReturnIsKeptWhenTheReturnIsReplaced() throws Throwable {
+        List<Object> originals = new ArrayList<>();
+        Recorder recorder = decorate("echo");
+        recorder.onLeave = context -> {
+            context.setCurrentReturn("one");
+            context.setCurrentReturn("two");
+            originals.add(context.getOriginalReturn(String.class));
+            originals.add(context.getCurrentReturn(String.class));
+        };
+
+        assertThat(call(newInstrumented(), "echo", "text")).isEqualTo("two");
+        assertThat(originals).containsExactly("text", "two");
+    }
+
+    @Test
+    void returnValueIsNullAndCanBeSetToNull() throws Throwable {
+        Recorder recorder = decorate("echo");
+        recorder.onLeave = context -> context.setCurrentReturn(null);
+
+        assertThat(call(newInstrumented(), "echo", "text")).isNull();
+
+        recorder.onLeave = context -> {
+            assertThat(context.getOriginalReturn(String.class)).isNull();
+            context.setCurrentReturn("filled");
+        };
+        assertThat(call(newInstrumented(), "echo", (Object) null)).isEqualTo("filled");
+    }
+
+    @Test
+    void primitiveReturnValuesCanBeReadAndReplaced() throws Throwable {
+        List<Object> originals = new ArrayList<>();
+        decorate("add").onLeave = context -> {
+            originals.add(context.getOriginalReturn(int.class));
+            context.setCurrentReturn(context.getCurrentReturn(int.class) * 10);
+        };
+        decorate("returnsLong").onLeave = context -> {
+            originals.add(context.getOriginalReturn(long.class));
+            context.setCurrentReturn(Long.MAX_VALUE);
+        };
+        decorate("returnsBoolean").onLeave = context -> {
+            originals.add(context.getOriginalReturn(boolean.class));
+            context.setCurrentReturn(false);
+        };
+        decorate("returnsChar").onLeave = context -> {
+            originals.add(context.getOriginalReturn(char.class));
+            context.setCurrentReturn('z');
+        };
+        decorate("scale").onLeave = context -> {
+            originals.add(context.getOriginalReturn(double.class));
+            context.setCurrentReturn(0.5d);
+        };
+        Object subject = newInstrumented();
+
+        assertThat(call(subject, "add", 2, 3)).isEqualTo(50);
+        assertThat(call(subject, "returnsLong", 41L)).isEqualTo(Long.MAX_VALUE);
+        assertThat(call(subject, "returnsBoolean", 5)).isEqualTo(false);
+        assertThat(call(subject, "returnsChar", "abc")).isEqualTo('z');
+        assertThat(call(subject, "scale", 4.0d, 2.0f)).isEqualTo(0.5d);
+        assertThat(originals).containsExactly(5, 42L, true, 'a', 8.0d);
+    }
+
+    @Test
+    void arrayReturnValueCanBeReplaced() throws Throwable {
+        decorate("squares").onLeave = context -> {
+            int[] original = context.getOriginalReturn(int[].class);
+            context.setCurrentReturn(new int[]{original.length});
+        };
+
+        assertThat((int[]) call(newInstrumented(), "squares", 4)).containsExactly(4);
+    }
+
+    @Test
+    void everyReturnOfAMethodGoesThroughTheDecorators() throws Throwable {
+        Recorder recorder = decorate("branches");
+        recorder.onLeave = context -> context.setCurrentReturn(context.getCurrentReturn(String.class).toUpperCase());
+        Object subject = newInstrumented();
+
+        assertThat(call(subject, "branches", -1)).isEqualTo("NEGATIVE");
+        assertThat(call(subject, "branches", 0)).isEqualTo("ZERO");
+        assertThat(call(subject, "branches", 1)).isEqualTo("POSITIVE");
+        assertThat(recorder.events).hasSize(6);
+    }
+
+    @Test
+    void returnValueIsNotThereOnEnterVoidAndExceptions() throws Throwable {
+        List<String> seen = new ArrayList<>();
+        Recorder echo = decorate("echo");
+        echo.onEnter = context -> seen.add("enter " + context.hasReturn());
+        echo.onLeave = context -> seen.add("leave " + context.hasReturn());
+        Recorder noop = decorate("noop");
+        noop.onLeave = context -> seen.add("void " + context.hasReturn());
+        Recorder rethrow = decorate("rethrow");
+        rethrow.onLeave = context -> seen.add("throws " + context.hasReturn());
+        Object subject = newInstrumented();
+
+        call(subject, "echo", "x");
+        call(subject, "noop");
+        assertThatThrownBy(() -> call(subject, "rethrow", "x")).hasMessage("wrapped x");
+
+        assertThat(seen).containsExactly("enter false", "leave true", "void false", "throws false");
+    }
+
+    @Test
+    void invalidUseOfReturnValueIsRefusedAndTheMethodIsUnaffected() throws Throwable {
+        Recorder wrongValue = decorate("echo");
+        wrongValue.onLeave = context -> context.setCurrentReturn(42);
+        Recorder wrongType = decorate("add");
+        wrongType.onLeave = context -> context.getOriginalReturn(Integer.class);
+        Recorder nullPrimitive = decorate("returnsLong");
+        nullPrimitive.onLeave = context -> context.setCurrentReturn(null);
+        Recorder wrongPrimitive = decorate("returnsBoolean");
+        wrongPrimitive.onLeave = context -> context.setCurrentReturn(1);
+        Recorder voidMethod = decorate("noop");
+        voidMethod.onLeave = context -> context.setCurrentReturn("anything");
+        Recorder onEnter = decorate("scale");
+        onEnter.onEnter = context -> context.getCurrentReturn(double.class);
+        Object subject = newInstrumented();
+
+        try (ExpectedLog log = ExpectedLog.capture(ExtensionServiceImpl.class)) {
+            assertThat(call(subject, "echo", "text")).isEqualTo("text");
+            assertThat(call(subject, "add", 1, 2)).isEqualTo(3);
+            assertThat(call(subject, "returnsLong", 1L)).isEqualTo(2L);
+            assertThat(call(subject, "returnsBoolean", 1)).isEqualTo(true);
+            call(subject, "noop");
+            assertThat(call(subject, "scale", 1.0d, 2.0f)).isEqualTo(2.0d);
+
+            // onMethodLeave: a refused request is a warning of the extension, onMethodEnter: an error
+            assertThat(log.warnings()).filteredOn(m -> m.contains("skipped on")).hasSize(5);
+            assertThat(log.warnings()).anyMatch(m -> m.contains("set java.lang.Integer"));
+            assertThat(log.warnings()).anyMatch(m -> m.contains("expected java.lang.Integer"));
+            assertThat(log.warnings()).anyMatch(m -> m.contains("set null"));
+            assertThat(log.warnings()).anyMatch(m -> m.contains("which has none yet"));
+            assertThat(log.errors()).hasSize(1).allMatch(m -> m.contains("InstrumentedSubject.scale"));
+        }
+    }
+
+    @Test
+    void returnValueOfASubclassOfTheDeclaredTypeIsAccepted() throws Throwable {
+        // the type asked for may be a supertype of the declared one
+        Recorder recorder = decorate("echo");
+        recorder.onLeave = context -> {
+            CharSequence original = context.getOriginalReturn(CharSequence.class);
+            context.setCurrentReturn(new StringBuilder(original).reverse().toString());
+        };
+
+        assertThat(call(newInstrumented(), "echo", "abc")).isEqualTo("cba");
+    }
 }

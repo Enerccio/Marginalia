@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.components.CronSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService.BackupSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService.DatabaseBackup;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -57,6 +57,16 @@ public class DatabaseBackupPanel {
     private Span schedulePreview;
     private Span scheduleStatus;
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "toolbar", type = HorizontalLayout.class),
+                    @APILocals(name = "createButton", type = Button.class),
+                    @APILocals(name = "upload", type = Upload.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "pendingSpan", type = Span.class),
+                    @APILocals(name = "cancelRestoreButton", type = Button.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public Component create() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
@@ -148,6 +158,12 @@ public class DatabaseBackupPanel {
         return layout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "saveButton", type = Button.class),
+                    @APILocals(name = "fields", type = HorizontalLayout.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "details", type = Details.class)})
     private Component createSchedule() {
         scheduleEnabled = new Checkbox(loc.getValue(L.LABEL_BACKUP_SCHEDULE_ENABLED));
 
@@ -185,6 +201,9 @@ public class DatabaseBackupPanel {
         return details;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "schedule", type = DatabaseBackupService.BackupSchedule.class)})
     private void loadSchedule() throws Exception {
         BackupSchedule schedule = databaseBackupService.getSchedule();
         scheduleEnabled.setValue(schedule.enabled());
@@ -198,6 +217,11 @@ public class DatabaseBackupPanel {
      * Validates the typed expression and shows when it would run. An empty expression is valid while the schedule is
      * off, a set one is always validated so it can be turned on later.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class),
+            locals = {@APILocals(name = "schedule", type = CronSchedule.class),
+                    @APILocals(name = "next", type = List.class),
+                    @APILocals(name = "e", type = IllegalArgumentException.class)})
     private boolean previewSchedule() {
         if (!scheduleEnabled.getValue() && StringUtils.isBlank(scheduleCron.getValue())) {
             scheduleCron.setInvalid(false);
@@ -220,6 +244,11 @@ public class DatabaseBackupPanel {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "schedule", type = DatabaseBackupService.BackupSchedule.class)},
+            locals = {@APILocals(name = "next", type = Date.class),
+                    @APILocals(name = "last", type = String.class)})
     private void showScheduleStatus(BackupSchedule schedule) {
         Date next = databaseBackupService.getNextScheduledBackup();
         if (!schedule.enabled() || next == null) {
@@ -230,6 +259,11 @@ public class DatabaseBackupPanel {
         scheduleStatus.setText(String.format(loc.getValue(L.MSG_BACKUP_SCHEDULE_STATUS), last, loc.getDateHourFormat().format(next)));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "keep", type = Integer.class),
+                    @APILocals(name = "e", type = SecurityException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void saveSchedule() {
         if (!previewSchedule()) {
             return;
@@ -250,6 +284,15 @@ public class DatabaseBackupPanel {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "backup", type = DatabaseBackupService.DatabaseBackup.class)},
+            locals = {@APILocals(name = "actions", type = HorizontalLayout.class),
+                    @APILocals(name = "downloadAnchor", type = Anchor.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "downloadButton", type = Button.class),
+                    @APILocals(name = "restoreButton", type = Button.class),
+                    @APILocals(name = "deleteButton", type = Button.class)})
     private Component createActions(DatabaseBackup backup) {
         HorizontalLayout actions = new HorizontalLayout();
         actions.setSpacing(true);
@@ -293,6 +336,9 @@ public class DatabaseBackupPanel {
         return actions;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void createBackup() {
         try {
             databaseBackupService.createBackup();
@@ -303,6 +349,9 @@ public class DatabaseBackupPanel {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     public void refresh() {
         if (grid == null) {
             return;

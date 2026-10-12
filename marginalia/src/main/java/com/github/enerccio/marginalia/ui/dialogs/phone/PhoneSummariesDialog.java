@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
@@ -98,6 +98,9 @@ public class PhoneSummariesDialog extends Dialog {
     /**
      * Runs when the dialog is closed, the summaries may have changed.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "action", type = Runnable.class)})
     public void onClosed(Runnable action) {
         addOpenedChangeListener(e -> {
             if (!e.isOpened()) {
@@ -110,9 +113,16 @@ public class PhoneSummariesDialog extends Dialog {
      * The menu bar above the grid is empty, this is where extensions add their tools (decorate this method, the
      * argument {@code bar} is the menu bar).
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "bar", type = MenuBar.class)})
     private void populateMenuBar(MenuBar bar) {
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            locals = {@APILocals(name = "createMetaButton", type = Button.class),
+                    @APILocals(name = "toolbar", type = HorizontalLayout.class)})
     private HorizontalLayout createToolbar() {
         tokensSpan = new Span();
         tokensSpan.addClassName(CssStyles.TEXT_BOLD);
@@ -127,6 +137,8 @@ public class PhoneSummariesDialog extends Dialog {
         return toolbar;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = TreeGrid.class))
     private TreeGrid<SummaryNode> createGrid() {
         treeGrid = new TreeGrid<>();
         treeGrid.setSizeFull();
@@ -148,10 +160,17 @@ public class PhoneSummariesDialog extends Dialog {
         return treeGrid;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "node", type = SummaryNode.class)})
     private boolean isTopLevel(SummaryNode node) {
         return roots.contains(node);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "node", type = SummaryNode.class)},
+            locals = {@APILocals(name = "checkbox", type = Checkbox.class)})
     private Component createCheckbox(SummaryNode node) {
         if (!isTopLevel(node)) {
             return new Span();
@@ -167,6 +186,10 @@ public class PhoneSummariesDialog extends Dialog {
         return checkbox;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "node", type = SummaryNode.class)},
+            locals = {@APILocals(name = "delete", type = Button.class)})
     private Component createDeleteButton(SummaryNode node) {
         if (!isTopLevel(node)) {
             return new Span();
@@ -178,6 +201,12 @@ public class PhoneSummariesDialog extends Dialog {
         return delete;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "selected", type = List.class),
+                    @APILocals(name = "from", type = SummaryNode.class),
+                    @APILocals(name = "to", type = SummaryNode.class),
+                    @APILocals(name = "dialog", type = SummaryDialog.class)})
     private void createMetaSummary() {
         List<SummaryNode> selected = checked.stream().sorted(Comparator.comparingInt(SummaryNode::getOrder)).toList();
         if (selected.size() < 2) {
@@ -197,6 +226,9 @@ public class PhoneSummariesDialog extends Dialog {
     /**
      * Loads the summaries again; called after every change.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void refresh() {
         try {
             checked.clear();
@@ -270,6 +302,10 @@ public class PhoneSummariesDialog extends Dialog {
         /**
          * Summaries are plain text, the model's single line breaks must stay line breaks (markdown would join the lines).
          */
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = Div.class),
+                parameters = {@APIParameter(name = "text", type = String.class)},
+                locals = {@APILocals(name = "div", type = Div.class)})
         private Div plainText(String text) {
             Div div = new Div();
             div.setText(text);
@@ -278,12 +314,22 @@ public class PhoneSummariesDialog extends Dialog {
             return div;
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = Span.class),
+                parameters = {@APIParameter(name = "text", type = String.class)},
+                locals = {@APILocals(name = "badge", type = Span.class)})
         private Span badge(String text) {
             Span badge = new Span(text);
             badge.getElement().getThemeList().add("badge");
             return badge;
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "edit", type = Button.class),
+                        @APILocals(name = "save", type = Button.class),
+                        @APILocals(name = "abandon", type = Button.class),
+                        @APILocals(name = "actions", type = VerticalLayout.class)})
         private void createActions() {
             Button edit = floatingButton(Solid.PEN.create(), loc.getValue(L.LABEL_EDIT));
             edit.addClickListener(_ -> startEditing());
@@ -305,6 +351,11 @@ public class PhoneSummariesDialog extends Dialog {
             add(viewActions);
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = Button.class),
+                parameters = {@APIParameter(name = "icon", type = Icon.class),
+                        @APIParameter(name = "tooltip", type = String.class)},
+                locals = {@APILocals(name = "button", type = Button.class)})
         private Button floatingButton(Icon icon, String tooltip) {
             Button button = new Button(icon);
             button.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
@@ -312,17 +363,24 @@ public class PhoneSummariesDialog extends Dialog {
             return button;
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class))
         private void startEditing() {
             area.setValue(StringUtils.defaultString(node.getSummary().getSummary()));
             replace(view, editor);
             replace(viewActions, editActions);
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class))
         private void stopEditing() {
             replace(editor, view);
             replace(editActions, viewActions);
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
         private void save() {
             try {
                 summaryService.updateSummaryText(manuscript, node.getSummary(), area.getValue());

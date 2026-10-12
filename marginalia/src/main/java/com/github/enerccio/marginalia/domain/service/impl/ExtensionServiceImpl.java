@@ -93,11 +93,21 @@ public class ExtensionServiceImpl implements ExtensionService {
         return decorators != null ? decorators : Collections.emptyList();
     }
 
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_WRAPPERS = Map.of(
+            boolean.class, Boolean.class, byte.class, Byte.class, char.class, Character.class,
+            short.class, Short.class, int.class, Integer.class, long.class, Long.class,
+            float.class, Float.class, double.class, Double.class);
+
     @SuppressWarnings({"DuplicateExpressions", "unchecked"})
     private static class ContextImpl implements ExtendableMethodContext {
         private final Map<String, Pair<Object, Class<?>>> localVariables;
         private final Map<String, Pair<Object, Class<?>>> methodArguments;
         private final Object targetInstance;
+
+        private boolean hasReturn;
+        private Class<?> returnType;
+        private Object originalReturn;
+        private Object currentReturn;
 
         private ContextImpl(Object targetInstance) {
             this.targetInstance = targetInstance;
@@ -186,6 +196,73 @@ public class ExtensionServiceImpl implements ExtensionService {
         public boolean hasMethodArgument(String name, Class<?> isOfType) {
             Pair<Object, Class<?>> registeredPair = methodArguments.get(name);
             return registeredPair != null && isOfType.isAssignableFrom(registeredPair.getB());
+        }
+
+        @Override
+        public void registerReturnValue(Object value, Class<?> cls) {
+            hasReturn = true;
+            returnType = cls;
+            originalReturn = value;
+            currentReturn = value;
+        }
+
+        @Override
+        public Object resolveReturnValue() {
+            return currentReturn;
+        }
+
+        @Override
+        public boolean hasReturn() {
+            return hasReturn;
+        }
+
+        @Override
+        public <T> T getOriginalReturn(Class<T> expectedType) {
+            requireReturn("read");
+            requireReturnType(expectedType);
+            return (T) originalReturn;
+        }
+
+        @Override
+        public <T> T getCurrentReturn(Class<T> expectedType) {
+            requireReturn("read");
+            requireReturnType(expectedType);
+            return (T) currentReturn;
+        }
+
+        @Override
+        public void setCurrentReturn(Object value) {
+            requireReturn("replace");
+            if (returnType.isPrimitive()) {
+                if (value == null || !PRIMITIVE_WRAPPERS.get(returnType).isInstance(value)) {
+                    throw new ModCompatibilityException(String.format(
+                            "Return value of the method in %s is %s, the extension set %s.",
+                            targetInstance.getClass().getSimpleName(), returnType.getName(),
+                            value == null ? "null" : value.getClass().getName()));
+                }
+            } else if (value != null && !returnType.isInstance(value)) {
+                throw new ModCompatibilityException(String.format(
+                        "Return value of the method in %s is %s, the extension set %s.",
+                        targetInstance.getClass().getSimpleName(), returnType.getName(), value.getClass().getName()));
+            }
+            currentReturn = value;
+        }
+
+        private void requireReturn(String action) {
+            if (!hasReturn) {
+                throw new ModCompatibilityException(String.format(
+                        "The extension wanted to %s the return value of a method of %s, which has none yet: the method " +
+                                "is void, throws, or this is onMethodEnter.",
+                        action, targetInstance.getClass().getSimpleName()));
+            }
+        }
+
+        private void requireReturnType(Class<?> expectedType) {
+            if (!expectedType.isAssignableFrom(returnType)) {
+                throw new ModCompatibilityException(String.format(
+                        "Return value of the method in %s is of type %s, but extension expected %s.",
+                        targetInstance.getClass().getSimpleName(), returnType.getName(), expectedType.getName()));
+            }
         }
 
         @Override

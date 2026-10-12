@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +33,11 @@ public class StorySupport {
      * Stores the scroll position of the story panel on the last part of the branch, so the story opens where the
      * author left it (restored by {@code JavascriptLibrary.restoreScrollPosition}).
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "panel", type = ScrollPanel.class),
+                    @APIParameter(name = "manuscript", type = Supplier.class),
+                    @APIParameter(name = "frozen", type = BooleanSupplier.class)})
     public void trackScrollPosition(ScrollPanel panel, Supplier<Manuscript> manuscript, BooleanSupplier frozen) {
         panel.getElement().addEventListener("panel-scroll", event -> {
             if (frozen.getAsBoolean()) {
@@ -58,6 +63,13 @@ public class StorySupport {
      *
      * @return the saved message
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = ChatMessage.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class),
+                    @APIParameter(name = "message", type = ChatMessage.class),
+                    @APIParameter(name = "newResponse", type = String.class)},
+            locals = {@APILocals(name = "inferenceService", type = InferenceService.class),
+                    @APILocals(name = "strategy", type = JavaTokkitStrategy.class)})
     public ChatMessage saveEditedResponse(Manuscript manuscript, ChatMessage message, String newResponse) throws Exception {
         message.setResponse(newResponse);
 

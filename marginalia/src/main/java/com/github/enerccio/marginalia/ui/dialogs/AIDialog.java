@@ -10,7 +10,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.impl.inference.OpenAICompatibleInferenceService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -91,6 +91,15 @@ public class AIDialog extends Dialog {
         this.ai = ai;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "baseFormLayout", type = FormLayout.class),
+                    @APILocals(name = "tabSheet", type = TabSheet.class),
+                    @APILocals(name = "generalFormLayout", type = FormLayout.class),
+                    @APILocals(name = "footerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "saveButton", type = Button.class)})
     public void create() {
         boolean isEdit = ai != null && ai.getId() != null;
         setHeaderTitle(isEdit ? loc.getValue(L.LABEL_EDIT_AI) : loc.getValue(L.LABEL_NEW_AI));
@@ -166,6 +175,8 @@ public class AIDialog extends Dialog {
         getFooter().add(footerLayout);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void createFields() {
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setRequired(true);
@@ -249,6 +260,11 @@ public class AIDialog extends Dialog {
         testConnectionButton = new Button(loc.getValue(L.LABEL_TEST_CONNECTION), event -> testConnection());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "type", type = AIType.class)},
+            locals = {@APILocals(name = "apiKeyLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "modelLayout", type = HorizontalLayout.class)})
     private void updateDynamicFields(AIType type) {
         dynamicFormLayout.removeAll();
         if (type == AIType.OPEN_AI_COMPATIBLE) {
@@ -273,6 +289,10 @@ public class AIDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "compatible", type = OpenAICompatible.class),
+                    @APILocals(name = "modelName", type = String.class)})
     private void populateFields() {
         if (ai == null) {
             return;
@@ -317,6 +337,15 @@ public class AIDialog extends Dialog {
      * Provider with the values currently in the dialog (not saved), null when they can't be used - the user was told
      * why.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = OpenAICompatible.class),
+            parameters = {@APIParameter(name = "needsModel", type = boolean.class)},
+            locals = {@APILocals(name = "compatible", type = OpenAICompatible.class),
+                    @APILocals(name = "c", type = OpenAICompatible.class),
+                    @APILocals(name = "apiKeyToUse", type = String.class),
+                    @APILocals(name = "copy", type = OpenAICompatible.class),
+                    @APILocals(name = "parameters", type = JsonElement.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private OpenAICompatible currentProvider(boolean needsModel) {
         if (StringUtils.isBlank(urlField.getValue()) || (needsModel && StringUtils.isBlank(modelCombo.getValue()))) {
             Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
@@ -358,6 +387,11 @@ public class AIDialog extends Dialog {
         return copy;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "copy", type = OpenAICompatible.class),
+                    @APILocals(name = "models", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void fetchModels() {
         if (typeCombo.getValue() != AIType.OPEN_AI_COMPATIBLE) {
             return;
@@ -388,6 +422,11 @@ public class AIDialog extends Dialog {
      * Lists the models and asks the model for one token, with the values in the dialog. Not retried, so a wrong
      * setting shows up at once.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "copy", type = OpenAICompatible.class),
+                    @APILocals(name = "models", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void testConnection() {
         if (typeCombo.getValue() != AIType.OPEN_AI_COMPATIBLE) {
             return;
@@ -412,6 +451,17 @@ public class AIDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "name", type = String.class),
+                    @APILocals(name = "type", type = AIType.class),
+                    @APILocals(name = "maxContext", type = Integer.class),
+                    @APILocals(name = "maxResponse", type = Integer.class),
+                    @APILocals(name = "additionalParams", type = String.class),
+                    @APILocals(name = "jsonElement", type = JsonElement.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "compatible", type = OpenAICompatible.class),
+                    @APILocals(name = "selectedModel", type = String.class)})
     private void save() {
         String name = nameField.getValue();
         AIType type = typeCombo.getValue();
@@ -501,10 +551,15 @@ public class AIDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Runnable.class))
     public Runnable getOnSave() {
         return onSave;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onSave", type = Runnable.class)})
     public void setOnSave(Runnable onSave) {
         this.onSave = onSave;
     }

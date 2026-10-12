@@ -10,7 +10,7 @@ import com.github.enerccio.marginalia.domain.service.TrashService.Blocker;
 import com.github.enerccio.marginalia.domain.service.TrashService.RestoreResult;
 import com.github.enerccio.marginalia.domain.service.TrashService.TrashFilter;
 import com.github.enerccio.marginalia.domain.service.TrashService.TrashItem;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -74,6 +74,12 @@ public class TrashGrid extends VerticalLayout {
         this.allUsers = allUsers;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = TrashGrid.class),
+            locals = {@APILocals(name = "toolbar", type = Component.class),
+                    @APILocals(name = "selection", type = GridMultiSelectionModel.class),
+                    @APILocals(name = "description", type = Component.class),
+                    @APILocals(name = "users", type = List.class)})
     public TrashGrid create() throws Exception {
         setSizeFull();
         setPadding(false);
@@ -112,6 +118,9 @@ public class TrashGrid extends VerticalLayout {
     /**
      * Text above the table, null for none.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "description", type = Span.class)})
     protected Component createDescription() {
         Span description = new Span(loc.getValue(L.MSG_TRASH_DESCRIPTION));
         description.addClassName(CssStyles.TEXT_SECONDARY);
@@ -122,6 +131,11 @@ public class TrashGrid extends VerticalLayout {
      * Filters and buttons above the table, creates {@link #userFilter} (for administrators), {@link #typeFilter} and
      * {@link #restoreButton}.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "toolbar", type = HorizontalLayout.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "spacer", type = Div.class)})
     protected Component createToolbar() {
         HorizontalLayout toolbar = new HorizontalLayout();
         toolbar.setWidthFull();
@@ -157,6 +171,8 @@ public class TrashGrid extends VerticalLayout {
     /**
      * Columns of the table.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     protected void addColumns() {
         grid.addColumn(item -> loc.localizeDomainObject(item.key().type()))
                 .setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(1);
@@ -175,14 +191,21 @@ public class TrashGrid extends VerticalLayout {
     /**
      * Called after objects were restored, so the rest of the UI can show them again.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "listener", type = Runnable.class)})
     public void addRestoreListener(Runnable listener) {
         restoreListeners.add(listener);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void refresh() {
         refreshGrid();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     protected void refreshGrid() {
         if (grid != null) {
             grid.deselectAll();
@@ -190,11 +213,18 @@ public class TrashGrid extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = TrashService.TrashFilter.class),
+            locals = {@APILocals(name = "user", type = User.class)})
     private TrashFilter filter() {
         User user = userFilter != null ? userFilter.getValue() : null;
         return new TrashFilter(user != null ? user.getId() : null, typeFilter.getValue());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Stream.class),
+            parameters = {@APIParameter(name = "query", type = com.vaadin.flow.data.provider.Query.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private Stream<TrashItem> fetch(com.vaadin.flow.data.provider.Query<TrashItem, Void> query) {
         try {
             return trashService.find(filter(), query.getOffset(), query.getLimit()).stream();
@@ -204,6 +234,9 @@ public class TrashGrid extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = int.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private int count() {
         try {
             return (int) Math.min(Integer.MAX_VALUE, trashService.count(filter()));
@@ -213,6 +246,10 @@ public class TrashGrid extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Button.class),
+            parameters = {@APIParameter(name = "item", type = TrashService.TrashItem.class)},
+            locals = {@APILocals(name = "link", type = Button.class)})
     protected Button contentLink(TrashItem item) {
         if (!item.extendable()) {
             return null;
@@ -222,6 +259,13 @@ public class TrashGrid extends VerticalLayout {
         return link;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "item", type = TrashService.TrashItem.class)},
+            locals = {@APILocals(name = "json", type = String.class),
+                    @APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "text", type = TextArea.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void showExtendedContent(TrashItem item) {
         try {
             String json = trashService.getExtendedContent(item.key());
@@ -248,6 +292,9 @@ public class TrashGrid extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "keys", type = List.class)})
     protected void restoreSelected() {
         List<EntityKey> keys = grid.getSelectedItems().stream().map(TrashItem::key).toList();
         if (keys.isEmpty()) {
@@ -256,6 +303,11 @@ public class TrashGrid extends VerticalLayout {
         ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_RESTORE), keys.size()), () -> restore(keys));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "keys", type = List.class)},
+            locals = {@APILocals(name = "result", type = TrashService.RestoreResult.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void restore(List<EntityKey> keys) {
         try {
             RestoreResult result = trashService.restore(keys);
@@ -271,6 +323,14 @@ public class TrashGrid extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "result", type = TrashService.RestoreResult.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "blocked", type = Map.Entry.class),
+                    @APILocals(name = "key", type = com.github.enerccio.marginalia.domain.service.CleanupService.EntityKey.class),
+                    @APILocals(name = "blocker", type = TrashService.Blocker.class)})
     private void showBlocked(RestoreResult result) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_RESTORE));

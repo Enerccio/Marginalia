@@ -12,7 +12,10 @@ import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -80,10 +83,20 @@ public class ManuscriptPart implements WorkspaceComponent {
         this.workspace = workspace;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     public String getName() {
         return loc.getValue(L.LABEL_BOOKS);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "titleSpan", type = Span.class),
+                    @APILocals(name = "addBookButton", type = Button.class),
+                    @APILocals(name = "toolColumn", type = Grid.Column.class),
+                    @APILocals(name = "filterRow", type = HeaderRow.class),
+                    @APILocals(name = "refresh", type = Button.class)})
     @Override
     public Component create() throws Exception {
         mainLayout = new VerticalLayout();
@@ -211,11 +224,19 @@ public class ManuscriptPart implements WorkspaceComponent {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         refreshGrid();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "sortInfos", type = List.class),
+                    @APILocals(name = "sortOrder", type = GridSortOrder.class),
+                    @APILocals(name = "ids", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refreshGrid() {
         if (grid == null) {
             return;
@@ -234,11 +255,15 @@ public class ManuscriptPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
 

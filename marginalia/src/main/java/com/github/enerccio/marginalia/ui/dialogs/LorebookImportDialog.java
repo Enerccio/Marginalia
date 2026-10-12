@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
@@ -83,6 +83,15 @@ public class LorebookImportDialog extends Dialog {
         return decisions;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "message", type = Span.class),
+                    @APILocals(name = "grid", type = Grid.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "continueButton", type = Button.class),
+                    @APILocals(name = "skipButton", type = Button.class),
+                    @APILocals(name = "importButton", type = Button.class)})
     public void create() {
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
@@ -143,6 +152,10 @@ public class LorebookImportDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "candidate", type = com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate.class)},
+            locals = {@APILocals(name = "status", type = String.class)})
     private String formatStatus(LorebookImportCandidate candidate) {
         String status = loc.getValue(loc.getLorebookMatch(candidate.getMatch()));
         if (candidate.getMatch() == LorebookMatch.SAME_NAME && candidate.getMatchedLorebook() != null) {
@@ -151,6 +164,11 @@ public class LorebookImportDialog extends Dialog {
         return status;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "candidate", type = com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate.class)},
+            locals = {@APILocals(name = "select", type = Select.class),
+                    @APILocals(name = "checkbox", type = Checkbox.class)})
     private Component createActionComponent(LorebookImportCandidate candidate) {
         if (mode == Mode.SAME_NAME && candidate.getMatch() == LorebookMatch.SAME_NAME) {
             Select<LorebookDecision> select = new Select<>();

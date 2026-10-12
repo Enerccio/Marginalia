@@ -37,6 +37,8 @@ import static com.github.enerccio.marginalia.instruct.verify.ContextInterpreter.
  *     <li>the class exists, is {@code @Extendable} and declares an instrumented method of that name;</li>
  *     <li>{@code getMethodArgument}, {@code getLocalVariable} and their {@code has*} variants: the argument / local
  *     variable exists and has a compatible type;</li>
+ *     <li>{@code getOriginalReturn}, {@code getCurrentReturn}, {@code setCurrentReturn}: the method returns a value,
+ *     of a compatible type, and it is not asked in {@code onMethodEnter};</li>
  *     <li>{@code getReflectiveFieldValue}, {@code setReflectiveFieldValue}, {@code callReflectiveMethod}: the field /
  *     method exists on the object, which is followed through the code - {@code instrumented}, a value read from a
  *     field of it ({@code this$0} to reach the outer class), an argument, a cast.</li>
@@ -101,6 +103,10 @@ public final class ExtensionVerifier {
      * One method of the decorated class. All overloads of a name share the decorators, a name has to be found in one.
      */
     private record TargetMethod(String descriptor, List<Param> params, Map<String, List<Type>> locals) {
+
+        Type returnType() {
+            return Type.getReturnType(descriptor);
+        }
     }
 
     private record Target(Class<?> cls, String methodName, List<TargetMethod> methods) {
@@ -398,6 +404,8 @@ public final class ExtensionVerifier {
                 case "registerMethodArgument" -> checkRegisteredArgument(at, target, args.get(0), args.get(2));
                 case "getLocalVariable" -> checkLocal(at, target, true, call.inEnter, args.get(0), args.get(1));
                 case "hasLocalVariable" -> checkLocal(at, target, false, call.inEnter, args.get(0), args.size() > 1 ? args.get(1) : null);
+                case "getOriginalReturn", "getCurrentReturn" -> checkReturn(at, target, call.inEnter, args.get(0));
+                case "setCurrentReturn" -> checkReturn(at, target, call.inEnter, null);
                 case "getReflectiveFieldValue" -> checkField(at, target, args.get(0), args.get(1), args.get(2));
                 case "setReflectiveFieldValue" -> checkField(at, target, args.get(0), args.get(1), args.get(3));
                 case "callReflectiveMethod" -> checkMethod(at, target, args.get(0), args.get(1), args.get(2), args.get(4));
@@ -524,6 +532,45 @@ public final class ExtensionVerifier {
                         + expected.getTypeName() + ", which works only when the value is of that type at run time");
             } else {
                 issue(required, at + ": local variable '" + name.value() + "' is " + typeNames(declared) + ", the decorator asks for " + expected.getTypeName());
+            }
+        }
+
+        private void checkReturn(String at, Target target, boolean inEnter, ContextValue typeValue) {
+            if (inEnter) {
+                errors.add(at + ": the return value is asked in onMethodEnter, where the method has not returned yet");
+                return;
+            }
+            List<Type> declared = new ArrayList<>();
+            for (TargetMethod method : target.methods) {
+                if (method.returnType().getSort() != Type.VOID) {
+                    declared.add(method.returnType());
+                }
+            }
+            if (declared.isEmpty()) {
+                errors.add(at + ": the method is void, it has no return value");
+                return;
+            }
+            if (typeValue == null) {
+                return;
+            }
+            Class<?> expected = expectedType(at, typeValue);
+            if (expected == null) {
+                return;
+            }
+            boolean unresolved = false;
+            for (Type type : declared) {
+                Class<?> actual = load(type);
+                if (actual == null) {
+                    unresolved = true;
+                } else if (expected.isAssignableFrom(actual)) {
+                    return;
+                }
+            }
+            if (unresolved) {
+                warnings.add(at + ": the return type of the method could not be loaded, it was not checked");
+            } else {
+                errors.add(at + ": the method returns " + typeNames(declared) + ", the decorator asks for " + expected.getTypeName()
+                        + " (the registered type of the return value is its declared type, primitives included)");
             }
         }
 

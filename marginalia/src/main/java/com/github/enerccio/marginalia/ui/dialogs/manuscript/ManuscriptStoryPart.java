@@ -8,7 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -94,6 +94,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         this.parent = parent;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "container", type = VTabSheet.class)})
     @Override
     public Component create(VTabSheet container) throws Exception {
         mainLayout = new SplitLayout();
@@ -137,10 +140,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void setupScrollListener() {
         support.trackScrollPosition(centerContentPanel, () -> currentManuscript, () -> isFrozen);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            locals = {@APILocals(name = "layout", type = HorizontalLayout.class)})
     private HorizontalLayout buildBottomControls() throws Exception {
         HorizontalLayout layout = new HorizontalLayout();
         layout.setWidthFull();
@@ -179,6 +187,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
      * methods that fill it (their argument {@code bar} is the menu bar): {@link #populateMenuBar} for new items of the
      * bar, {@link #createCogsMenuItem} (local variable {@code cogs}) for new items of the settings menu.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = MenuBar.class),
+            locals = {@APILocals(name = "bar", type = MenuBar.class)})
     private MenuBar createMenuBar() {
         MenuBar bar = new MenuBar();
         summariesMenuItem = createSummariesMenuItem(bar);
@@ -191,9 +202,16 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
      * Nothing to do here, runs after the application's items were added: the hook for extensions that add their own
      * items to the menu bar.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "bar", type = MenuBar.class)})
     private void populateMenuBar(MenuBar bar) {
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "bar", type = MenuBar.class)},
+            locals = {@APILocals(name = "item", type = MenuItem.class)})
     private MenuItem createSummariesMenuItem(MenuBar bar) {
         MenuItem item = bar.addItem(Solid.LIST_UL.create(), event -> openSummariesDialog());
         UIUtils.addTooltip(item, loc.getValue(L.LABEL_SUMMARIES));
@@ -203,6 +221,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     /**
      * The story settings menu, extensions add their items to its sub menu ({@code cogsMenuItem.getSubMenu()}).
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "bar", type = MenuBar.class)},
+            locals = {@APILocals(name = "cogs", type = MenuItem.class)})
     private MenuItem createCogsMenuItem(MenuBar bar) {
         MenuItem cogs = bar.addItem(Solid.COGS.create());
         changeStyles = createChangeStylesMenuItem(cogs);
@@ -210,6 +232,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         return cogs;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
     private MenuItem createChangeStylesMenuItem(MenuItem cogs) {
         return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.PEN_FANCY.create(), loc.getValue(L.LABEL_CHANGE_STYLES)), event -> {
             try {
@@ -223,6 +248,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
     private MenuItem createExportMenuItem(MenuItem cogs) {
         return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.FILE_EXPORT.create(), loc.getValue(L.LABEL_EXPORT_STORY)), event -> {
             try {
@@ -233,6 +261,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = SummariesDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void openSummariesDialog() {
         try {
             SummariesDialog dialog = new SummariesDialog(parent.refreshManuscript());
@@ -246,6 +278,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     /**
      * Shows how many tokens the summaries generation uses take, as the description of the summaries item.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void refreshSummariesMenuItem() {
         if (summariesMenuItem == null || currentManuscript == null) {
             return;
@@ -259,6 +294,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class)})
     private void applyBookStyles() throws Exception {
         Manuscript manuscript = parent.refreshManuscript();
         applyLanguage(manuscript);
@@ -270,10 +308,18 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     private void applyLanguage(Manuscript manuscript) {
         mainLayout.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Popover.class),
+            parameters = {@APIParameter(name = "targetButton", type = Button.class)},
+            locals = {@APILocals(name = "popover", type = Popover.class),
+                    @APILocals(name = "content", type = VerticalLayout.class)})
     private Popover buildNewTurnPopover(Button targetButton) {
         Popover popover = new Popover();
         popover.setTarget(targetButton);
@@ -303,6 +349,16 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
      * Redraws the message cards and the chapter outline. The left bar (and so the selected tab) is kept, the state of
      * the cards that is not stored in the message - which reasonings are opened - is carried over to the new cards.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "openedReasonings", type = Set.class),
+                    @APILocals(name = "emptyLabel", type = Span.class),
+                    @APILocals(name = "branch", type = List.class),
+                    @APILocals(name = "msg", type = ChatMessage.class),
+                    @APILocals(name = "dbId", type = Long.class),
+                    @APILocals(name = "card", type = ManuscriptStoryPart.ChatMessageCard.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "target", type = ManuscriptStoryPart.ChatMessageCard.class)})
     private void renderStoryContent() {
         Set<Long> openedReasonings = cards.collectOpenedReasonings();
 
@@ -352,14 +408,26 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
      * The next render of the story (the tab being entered) scrolls to the part instead of restoring the scroll
      * position, used by the search of the tree.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "messageId", type = Long.class)})
     public void scrollToMessageOnNextRender(Long messageId) {
         this.scrollToMessageId = messageId;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "card", type = ManuscriptStoryPart.ChatMessageCard.class)})
     private void scrollToCard(ChatMessageCard card) {
         JavascriptLibrary.scrollToAndHighlight(card.getElement());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "msg", type = ChatMessage.class),
+                    @APIParameter(name = "orderId", type = int.class),
+                    @APIParameter(name = "dbId", type = Long.class)},
+            locals = {@APILocals(name = "sidebarBtn", type = Button.class)})
     private void createSidebarButton(ChatMessage msg, int orderId, Long dbId) {
         Button sidebarBtn = new Button(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
         sidebarBtn.setThemeName("tertiary small");
@@ -374,6 +442,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         sidebarList.add(sidebarBtn);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "leftMarginLayout", type = VerticalLayout.class)})
     private void createStoryOutlineTab() {
         VerticalLayout leftMarginLayout = new VerticalLayout();
         leftMarginLayout.setSizeFull();
@@ -391,6 +462,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         leftMarginLayout.setFlexGrow(1, sidebarList);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "leaf", type = ChatMessage.class),
+                    @APILocals(name = "savedPos", type = Integer.class)})
     private void restoreScrollPosition() {
         ChatMessage leaf = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
         Integer savedPos = (leaf != null) ? leaf.getScrollPosition() : null;
@@ -398,18 +473,30 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         JavascriptLibrary.restoreScrollPosition(centerContentPanel.getElement(), savedPos);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void autosaveAndSwapAllToMarkdown() {
         cards.autosaveAndSwapAllToMarkdown();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void startGeneration() {
         startGeneration(GenerationRequest.newMessage(), newTurnForm.toTurnInput());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void checkAndApplyBackupStrategy() {
         backup.checkAndApplyBackupStrategy(parent);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "request", type = GenerationRequest.class),
+                    @APIParameter(name = "turnInput", type = TurnInput.class)},
+            locals = {@APILocals(name = "ui", type = UI.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void startGeneration(GenerationRequest request, TurnInput turnInput) {
         autosaveAndSwapAllToMarkdown();
         UI ui = UI.getCurrent();
@@ -455,6 +542,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "frozen", type = boolean.class)})
     @Override
     public void setFrozen(boolean frozen) {
         this.isFrozen = frozen;
@@ -476,6 +566,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     @Override
     public void load(Manuscript manuscript) {
         this.currentManuscript = manuscript;
@@ -486,11 +579,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         refreshSummariesMenuItem();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabLeave() throws Exception {
         autosaveAndSwapAllToMarkdown();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
         if (parent != null) {
@@ -623,6 +720,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             setFlexGrow(0, metaLayout);
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class))
         private void createMenuItems() {
             hamburgerMenu = new ContextMenu();
             hamburgerMenu.setTarget(menuBtn);
@@ -677,6 +776,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             });
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class))
         private void openImagesDialog() {
             new ImagesDialog(message, updated -> {
                 message = updated;
@@ -684,6 +785,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }).open();
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "latest", type = ChatMessage.class)})
         private void refreshSummaryMenuItems() {
             try {
                 if (message != null && message.getId() != null) {
@@ -704,6 +808,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class))
         private void confirmDeleteSummary() {
             SummaryRemoval.confirmAndRemove(loc, summaryService, message, updated -> {
                 message = updated;
@@ -712,6 +818,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             });
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
         private void branch() {
             try {
                 currentManuscript = parent.refreshManuscript();
@@ -722,6 +831,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "summaryDialog", type = SummaryDialog.class)})
         private void openSummaryDialog() {
             refreshSummaryMenuItems();
             boolean hasSummary = (message != null && message.getSummary() != null);
@@ -733,14 +845,21 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class))
         private void regenerate() {
             startGeneration(GenerationRequest.regenerate(message), detailsForm.toTurnInput());
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class))
         private void swipe() {
             startGeneration(GenerationRequest.newSwipe(message), detailsForm.toTurnInput());
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
         private void saveMessage() {
             try {
                 this.message = chatMessageService.save(this.message);
@@ -749,6 +868,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "isLast", type = boolean.class)})
         public void setLastMessage(boolean isLast) {
             this.isLast = isLast;
             if (regenerateItem != null) {
@@ -760,6 +882,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             detailsForm.setLastMessage(isLast);
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "frozen", type = boolean.class)})
         public void setFrozen(boolean frozen) {
             if (menuBtn != null) {
                 menuBtn.setEnabled(!frozen);
@@ -769,10 +894,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = boolean.class))
         public boolean isEditing() {
             return editing;
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class))
         public void toggleEdit() {
             if (editing) {
                 autosaveAndSwapToMarkdown();
@@ -785,6 +914,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "newResponse", type = String.class),
+                        @APILocals(name = "e", type = Exception.class)})
         public void autosaveAndSwapToMarkdown() {
             if (editing) {
                 try {
@@ -802,10 +935,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = boolean.class))
         public boolean isReasoningOpened() {
             return reasoningDetails.isOpened();
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "opened", type = boolean.class)})
         public void setReasoningOpened(boolean opened) {
             if (opened) {
                 reasoningDetails.setOpened(true);
@@ -813,6 +951,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "reasoningText", type = String.class)})
         public void updateReasoning(String reasoningText) {
             if (!wasReasoningOpenedByGeneration) {
                 reasoningDetails.setOpened(true);
@@ -822,6 +963,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             reasoningMarkdown.setContent(StringUtils.defaultString(reasoningText));
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "responseText", type = String.class)})
         public void updateResponse(String responseText) {
             message.setResponse(responseText);
             responseMarkdown.setContent(StringUtils.defaultString(responseText));
@@ -830,11 +974,16 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }
 
+        @PublicAPI(from = "1.2.0",
+                returns = @APIReturn(type = ChatMessage.class))
         @Override
         public ChatMessage getMessage() {
             return message;
         }
 
+        @PublicAPI(from = "1.2.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "msg", type = ChatMessage.class)})
         @Override
         public void restartStreaming(ChatMessage msg) {
             updateReasoning("");
@@ -843,10 +992,16 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             wasReasoningOpenedByGeneration = false;
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "msg", type = ChatMessage.class)})
         public void updateMetrics(ChatMessage msg) {
             metrics.update(message, msg);
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "dialog", type = TokenUsageDialog.class)})
         private void showTokenUsage() {
             // null for parts generated before the breakdown was recorded, the dialog says so
             TokenUsageDialog dialog = new TokenUsageDialog(message.getTokenBreakdown());
@@ -854,6 +1009,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             dialog.open();
         }
 
+        @PublicAPI(from = "1.1.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "dialog", type = PromptDialog.class)})
         private void showPrompt() {
             PromptDialog dialog = new PromptDialog(message.getBuiltPrompt());
             dialog.create();

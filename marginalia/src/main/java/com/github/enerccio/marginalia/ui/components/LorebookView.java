@@ -13,7 +13,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -116,6 +116,11 @@ public class LorebookView extends VerticalLayout {
         this.pinnedLorebook = pinnedLorebook;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "controlsLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "importMenu", type = ContextMenu.class),
+                    @APILocals(name = "lorebookHeaderLayout", type = HorizontalLayout.class)})
     public Component create() throws Exception {
         setSizeFull();
         setPadding(false);
@@ -278,6 +283,9 @@ public class LorebookView extends VerticalLayout {
         return this;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "name", type = String.class)})
     private String getExportFileName() {
         String name = currentLorebook != null ? StringUtils.defaultIfBlank(currentLorebook.getName(), "lorebook") : "lorebook";
         return name.replaceAll("[\\\\/:*?\"<>|]", "_") + ".json";
@@ -288,6 +296,15 @@ public class LorebookView extends VerticalLayout {
         Lorebook importLorebook(String json, String name) throws Exception;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "title", type = String.class),
+                    @APIParameter(name = "importer", type = LorebookView.LorebookImporter.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "handler", type = InMemoryUploadHandler.class),
+                    @APILocals(name = "upload", type = Upload.class),
+                    @APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "dialogLayout", type = VerticalLayout.class)})
     private void openImportDialog(String title, LorebookImporter importer) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(title);
@@ -328,6 +345,14 @@ public class LorebookView extends VerticalLayout {
         dialog.open();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "startId", type = Long.class),
+                    @APIParameter(name = "targetId", type = Long.class),
+                    @APIParameter(name = "lorebookMap", type = Map.class),
+                    @APIParameter(name = "visited", type = Set.class)},
+            locals = {@APILocals(name = "start", type = Lorebook.class),
+                    @APILocals(name = "sub", type = Lorebook.class)})
     private boolean isReachable(Long startId, Long targetId, Map<Long, Lorebook> lorebookMap, Set<Long> visited) {
         if (startId == null || targetId == null) {
             return false;
@@ -352,6 +377,8 @@ public class LorebookView extends VerticalLayout {
         return false;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void setupGrid() {
         grid = new Grid<>(LorebookEntry.class, false);
         grid.setSizeFull();
@@ -431,6 +458,18 @@ public class LorebookView extends VerticalLayout {
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::createEntryDetailLayout));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "detailsLayout", type = VerticalLayout.class),
+                    @APILocals(name = "payloadField", type = TextAreaPopoverComponent.class),
+                    @APILocals(name = "payloadTokensSpan", type = Span.class),
+                    @APILocals(name = "settingsForm", type = FormLayout.class),
+                    @APILocals(name = "filteringModeCombo", type = ComboBox.class),
+                    @APILocals(name = "filteringField", type = TextField.class),
+                    @APILocals(name = "insertionModeCombo", type = ComboBox.class),
+                    @APILocals(name = "negativeTagCombo", type = TagMultiComboBox.class),
+                    @APILocals(name = "commentField", type = TextArea.class)})
     public Component createEntryDetailLayout(LorebookEntry entry) {
         VerticalLayout detailsLayout = new VerticalLayout();
         detailsLayout.setWidthFull();
@@ -519,21 +558,35 @@ public class LorebookView extends VerticalLayout {
         return detailsLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Span.class),
+            locals = {@APILocals(name = "span", type = Span.class)})
     private Span createTokensSpan() {
         Span span = new Span();
         span.addClassName(CssStyles.HINT_TEXT);
         return span;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "tokens", type = long.class)})
     private String formatTokens(long tokens) {
         return "~" + tokens + " " + loc.getValue(L.LABEL_TOKENS);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = long.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "cached", type = Long.class)})
     private long tokensOf(LorebookEntry entry) {
         Long cached = entry.getId() != null ? entryTokens.get(entry.getId()) : null;
         return cached != null ? cached : recountEntry(entry);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = long.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "ex", type = Exception.class)})
     private long recountEntry(LorebookEntry entry) {
         long tokens = 0;
         try {
@@ -547,6 +600,9 @@ public class LorebookView extends VerticalLayout {
         return tokens;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "entry", type = LorebookEntry.class)})
     private void updateLorebookTokens() {
         if (currentLorebook == null) {
             lorebookTokensSpan.setText("");
@@ -561,6 +617,12 @@ public class LorebookView extends VerticalLayout {
         lorebookTokensSpan.setText(formatTokens(total));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "payloadField", type = TextArea.class)},
+            locals = {@APILocals(name = "payload", type = String.class),
+                    @APILocals(name = "result", type = TemplateService.ValidationResult.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void validatePayload(TextArea payloadField) {
         String payload = payloadField.getValue();
         if (StringUtils.isBlank(payload)) {
@@ -579,6 +641,8 @@ public class LorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void refresh() throws Exception {
         if (!pinnedLorebook) {
             loadLorebooks();
@@ -587,6 +651,10 @@ public class LorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "lorebooks", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void loadLorebooks() {
         try {
             List<Lorebook> lorebooks = lorebookService.findAllForUser();
@@ -604,6 +672,13 @@ public class LorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "allLorebooks", type = List.class),
+                    @APILocals(name = "availableLorebooks", type = List.class),
+                    @APILocals(name = "subIds", type = Set.class),
+                    @APILocals(name = "selectedSubbooks", type = Set.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void updateSelectedLorebook() {
         boolean hasLorebook = currentLorebook != null;
         lorebookNameField.setEnabled(hasLorebook);
@@ -657,6 +732,10 @@ public class LorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "entries", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void refreshEntries() {
         if (currentLorebook == null || currentLorebook.getId() == null) {
             grid.setItems(new ArrayList<>());
@@ -676,6 +755,10 @@ public class LorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "newLorebook", type = Lorebook.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void createNewLorebook() {
         try {
             Lorebook newLorebook = new Lorebook();
@@ -689,6 +772,8 @@ public class LorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void deleteCurrentLorebook() {
         if (currentLorebook == null) {
             return;
@@ -708,6 +793,10 @@ public class LorebookView extends VerticalLayout {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "entry", type = LorebookEntry.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void createNewEntry() {
         if (currentLorebook == null) {
             return;
@@ -725,6 +814,10 @@ public class LorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void saveEntry(LorebookEntry entry) {
         try {
             lorebookEntryService.save(entry);
@@ -733,10 +826,15 @@ public class LorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Lorebook.class))
     public Lorebook getCurrentLorebook() {
         return currentLorebook;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "lorebook", type = Lorebook.class)})
     public void setLorebook(Lorebook lorebook) {
         this.currentLorebook = lorebook;
         updateSelectedLorebook();

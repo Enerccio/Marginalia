@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.Gson;
@@ -41,6 +41,12 @@ public class PromptDialog extends Dialog {
         this.prompt = prompt;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "topBar", type = HorizontalLayout.class),
+                    @APILocals(name = "closeButton", type = Button.class),
+                    @APILocals(name = "footerLayout", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_SHOW_PROMPT));
         setWidth("850px");
@@ -86,6 +92,9 @@ public class PromptDialog extends Dialog {
         updatePromptView(FORMAT_YAML);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "format", type = String.class)})
     private void updatePromptView(String format) {
         if (StringUtils.isBlank(prompt)) {
             textArea.setValue("");
@@ -99,6 +108,14 @@ public class PromptDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "rawPrompt", type = String.class)},
+            locals = {@APILocals(name = "parsedObject", type = Object.class),
+                    @APILocals(name = "options", type = DumperOptions.class),
+                    @APILocals(name = "representer", type = Representer.class),
+                    @APILocals(name = "yaml", type = Yaml.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private String formatPromptAsYaml(String rawPrompt) {
         try {
             Object parsedObject = parseJsonObject(rawPrompt);
@@ -138,6 +155,11 @@ public class PromptDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "rawPrompt", type = String.class)},
+            locals = {@APILocals(name = "parsedObject", type = Object.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private String formatPromptAsJson(String rawPrompt) {
         try {
             Object parsedObject = parseJsonObject(rawPrompt);
@@ -147,6 +169,11 @@ public class PromptDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Object.class),
+            parameters = {@APIParameter(name = "rawPrompt", type = String.class)},
+            locals = {@APILocals(name = "javaObject", type = Object.class),
+                    @APILocals(name = "strVal", type = String.class)})
     private Object parseJsonObject(String rawPrompt) {
         Object javaObject = gson.fromJson(rawPrompt, Object.class);
         if (javaObject instanceof String strVal && (strVal.startsWith("{") || strVal.startsWith("["))) {

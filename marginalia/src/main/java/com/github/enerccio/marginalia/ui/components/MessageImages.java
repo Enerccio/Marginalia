@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -36,6 +36,12 @@ public class MessageImages extends Div {
         setImages(images);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "images", type = List.class)},
+            locals = {@APILocals(name = "attachment", type = ImageAttachment.class),
+                    @APILocals(name = "resource", type = Resource.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public final void setImages(List<ImageAttachment> images) {
         removeAll();
         for (ImageAttachment attachment : images) {
@@ -54,6 +60,15 @@ public class MessageImages extends Div {
     /**
      * @return the image with its caption, the image is limited to the given width and keeps its proportions
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Div.class),
+            parameters = {@APIParameter(name = "resource", type = Resource.class),
+                    @APIParameter(name = "caption", type = String.class),
+                    @APIParameter(name = "maxWidth", type = String.class)},
+            locals = {@APILocals(name = "stream", type = StreamResource.class),
+                    @APILocals(name = "image", type = Image.class),
+                    @APILocals(name = "figure", type = Div.class),
+                    @APILocals(name = "text", type = Span.class)})
     public Div figure(Resource resource, String caption, String maxWidth) {
         StreamResource stream = new StreamResource(
                 StringUtils.defaultIfBlank(resource.getOriginalName(), resource.getUuid()),

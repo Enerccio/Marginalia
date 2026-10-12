@@ -2,7 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ChartJs;
@@ -50,6 +50,11 @@ public class TokenUsageDialog extends Dialog {
         this.breakdown = breakdown;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "closeButton", type = Button.class),
+                    @APILocals(name = "footerLayout", type = HorizontalLayout.class)})
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_TOKEN_USAGE));
         setWidth("850px");
@@ -77,6 +82,17 @@ public class TokenUsageDialog extends Dialog {
         getFooter().add(footerLayout);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "content", type = VerticalLayout.class)},
+            locals = {@APILocals(name = "labels", type = List.class),
+                    @APILocals(name = "values", type = List.class),
+                    @APILocals(name = "colors", type = List.class),
+                    @APILocals(name = "dataset", type = Map.class),
+                    @APILocals(name = "config", type = Map.class),
+                    @APILocals(name = "chart", type = ChartJs.class),
+                    @APILocals(name = "summary", type = Div.class),
+                    @APILocals(name = "cut", type = Div.class)})
     private void addSectionsChart(VerticalLayout content) {
         List<String> labels = new ArrayList<>();
         List<Long> values = new ArrayList<>();
@@ -125,6 +141,13 @@ public class TokenUsageDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "labels", type = List.class),
+                    @APIParameter(name = "values", type = List.class),
+                    @APIParameter(name = "colors", type = List.class),
+                    @APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "tokens", type = long.class)})
     private void addSection(List<String> labels, List<Long> values, List<String> colors, L label, long tokens) {
         if (tokens <= 0) {
             return;
@@ -134,6 +157,18 @@ public class TokenUsageDialog extends Dialog {
         colors.add(PALETTE.get(colors.size() % PALETTE.size()));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "content", type = VerticalLayout.class)},
+            locals = {@APILocals(name = "messages", type = List.class),
+                    @APILocals(name = "labels", type = List.class),
+                    @APILocals(name = "values", type = List.class),
+                    @APILocals(name = "colors", type = List.class),
+                    @APILocals(name = "message", type = PromptTokenBreakdown.MessageTokens.class),
+                    @APILocals(name = "dataset", type = Map.class),
+                    @APILocals(name = "config", type = Map.class),
+                    @APILocals(name = "chart", type = ChartJs.class),
+                    @APILocals(name = "summary", type = Div.class)})
     private void addMessagesChart(VerticalLayout content) {
         List<PromptTokenBreakdown.MessageTokens> messages = breakdown.getMessages();
         if (messages.isEmpty()) {
@@ -167,6 +202,9 @@ public class TokenUsageDialog extends Dialog {
         content.add(new H4(loc.getValue(L.LABEL_PAYLOAD_MESSAGES)), summary, chart);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "role", type = String.class)})
     private String roleName(String role) {
         if (role == null) {
             return "";

@@ -2,7 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Component;
@@ -58,6 +58,8 @@ public class MessageMetrics {
         wordsSpan.addClassName(CssStyles.TEXT_XS);
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Span.class))
     public Span getHeader() {
         return header;
     }
@@ -65,6 +67,9 @@ public class MessageMetrics {
     /**
      * The lines under the header, in display order.
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Component[].class),
+            locals = {@APILocals(name = "lines", type = List.class)})
     public Component[] getLines() {
         List<Component> lines = new ArrayList<>();
         lines.add(idSpan);
@@ -81,6 +86,10 @@ public class MessageMetrics {
      * @param card the message of the card, the id is of this one
      * @param msg  the message with the new values
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "card", type = ChatMessage.class),
+                    @APIParameter(name = "msg", type = ChatMessage.class)})
     public void update(ChatMessage card, ChatMessage msg) {
         idSpan.setText(idText(card));
         modelSpan.setText(modelText(msg));
@@ -91,22 +100,37 @@ public class MessageMetrics {
         wordsSpan.setText(wordsText(msg));
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     private String idText(ChatMessage message) {
         return String.format(loc.getValue(L.LABEL_MESSAGE_IDS), orderId, (message.getId() != null ? message.getId() : NOT_AVAILABLE));
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     private String modelText(ChatMessage message) {
         return loc.getValue(L.LABEL_MODEL) + ": " + StringUtils.defaultIfBlank(message.getModelUsed(), NOT_AVAILABLE);
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     private String protocolText(ChatMessage message) {
         return loc.getValue(L.LABEL_PROTOCOLS) + ": " + StringUtils.defaultIfBlank(message.getProtocolUsed(), NOT_AVAILABLE);
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     private String tokensText(ChatMessage message) {
         return loc.getValue(L.LABEL_TOKENS) + ": " + message.getTokenCount() + " (" + message.getPromptTokens() + ")";
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     private String wordsText(ChatMessage message) {
         return loc.getValue(L.LABEL_WORDS) + ": " + message.getWordCount();
     }

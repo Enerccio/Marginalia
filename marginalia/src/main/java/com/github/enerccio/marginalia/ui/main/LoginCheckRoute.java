@@ -5,7 +5,7 @@ import com.github.enerccio.marginalia.bound.SessionManager;
 import com.github.enerccio.marginalia.domain.security.PersistedLoginInfo;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
@@ -20,6 +20,7 @@ import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.server.WrappedSession;
 import jakarta.servlet.http.Cookie;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -58,6 +59,8 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
     /**
      * Address the current request came from, for throttling failed logins.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     protected String clientAddress() {
         return UIUtils.clientAddress(configuration);
     }
@@ -72,6 +75,11 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         setId(ID);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "authUser", type = String.class),
+                    @APILocals(name = "userDialog", type = UserDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
     protected void showLogin() {
         try {
             if (userService.existsUsers()) {
@@ -102,10 +110,23 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
     /**
      * Login of the user that is already logged in this session (the page was reloaded), {@code null} when nobody is.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     protected String authenticatedSessionUser() {
         return null;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "cookieLogin", type = String.class),
+                    @APILocals(name = "cookieIdentifier", type = String.class),
+                    @APILocals(name = "cookieSecret", type = String.class),
+                    @APILocals(name = "cookiePrefix", type = String.class),
+                    @APILocals(name = "cookies", type = Cookie[].class),
+                    @APILocals(name = "cookie", type = Cookie.class),
+                    @APILocals(name = "user", type = User.class),
+                    @APILocals(name = "loginInfo", type = PersistedLoginInfo.class),
+                    @APILocals(name = "e", type = Exception.class)})
     protected String authenticateFromCookie() {
         String cookieLogin = null;
         String cookieIdentifier = null;
@@ -147,6 +168,16 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "user", type = User.class),
+                    @APIParameter(name = "persistedLoginInfo", type = PersistedLoginInfo.class)},
+            locals = {@APILocals(name = "cookiePrefix", type = String.class),
+                    @APILocals(name = "cookieLogin", type = Cookie.class),
+                    @APILocals(name = "cookieIdentifier", type = Cookie.class),
+                    @APILocals(name = "cookieSecret", type = Cookie.class),
+                    @APILocals(name = "cookieSaved", type = Cookie.class),
+                    @APILocals(name = "cookie", type = Cookie.class)})
     protected void addRememberMeCookies(User user, PersistedLoginInfo persistedLoginInfo) {
         long ttl = configuration.getPersistentLoginInfoTTL() == null ?
                 60 * 60 * 24 * 30 : configuration.getPersistentLoginInfoTTL();
@@ -165,6 +196,13 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "cookiePrefix", type = String.class),
+                    @APILocals(name = "cookieLogin", type = Cookie.class),
+                    @APILocals(name = "cookieIdentifier", type = Cookie.class),
+                    @APILocals(name = "cookieSecret", type = Cookie.class),
+                    @APILocals(name = "cookie", type = Cookie.class)})
     protected void deleteRememberMeCookies() {
         String cookiePrefix = getCookiePrefix();
         Cookie cookieLogin = new Cookie(cookiePrefix + PERSISTED_LOGIN_COOKIE_LOGIN, "");
@@ -177,12 +215,19 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "rawContext", type = String.class),
+                    @APILocals(name = "context", type = String.class)})
     private String getCookiePrefix() {
         String rawContext = VaadinRequest.getCurrent().getContextPath();
         String context = (StringUtils.isBlank(rawContext) || "/".equals(rawContext)) ? "root" : rawContext.substring(1);
         return context + "_" + this.getClass().getSimpleName();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "saveLoginCheckBox", type = Checkbox.class)})
     private void login() {
         if (loginOverlay == null) {
             loginOverlay = new PermissiveLoginOverlay();
@@ -240,16 +285,24 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         loginOverlay.setOpened(true);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "user", type = String.class)})
     private void performLogin(String user) {
         proceedWithLogin(user);
 
         onAttach(new AttachEvent(UI.getCurrent(), false));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class))
     protected boolean showForgetPassword() {
         return false;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = LoginI18n.class),
+            locals = {@APILocals(name = "i18n", type = LoginI18n.class)})
     private LoginI18n getLoginI18n() {
         LoginI18n i18n = LoginI18n.createDefault();
 
@@ -268,6 +321,10 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         return i18n;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "prefix", type = String.class),
+                    @APILocals(name = "cookieSaved", type = Cookie.class)})
     public void logout() {
         deleteRememberMeCookies();
 
@@ -280,6 +337,13 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         logoutWithoutCookieClear();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "currentUi", type = UI.class),
+                    @APILocals(name = "rawContext", type = String.class),
+                    @APILocals(name = "redirectPath", type = String.class),
+                    @APILocals(name = "currentSession", type = VaadinSession.class),
+                    @APILocals(name = "wrappedSession", type = WrappedSession.class)})
     public void logoutWithoutCookieClear() {
         UI currentUi = UI.getCurrent();
         if (currentUi != null) {
@@ -300,10 +364,17 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "userName", type = String.class)})
     protected boolean canEnterApp(String userName) throws Exception {
         return true;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "currentUi", type = UI.class),
+                    @APILocals(name = "currentSession", type = VaadinSession.class)})
     public void exit() {
         UI currentUi = UI.getCurrent();
         if (currentUi != null) {

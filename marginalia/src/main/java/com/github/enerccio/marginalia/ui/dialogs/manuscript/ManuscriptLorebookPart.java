@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
@@ -41,6 +41,12 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
         this.parent = parent;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "container", type = VTabSheet.class)},
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "headerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "lorebookViewComponent", type = Component.class)})
     @Override
     public Component create(VTabSheet container) throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -75,10 +81,17 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     private Manuscript refreshModel() throws Exception {
         return parent.refreshManuscript();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "selectedLorebook", type = Lorebook.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void autosave() {
         if (loading) {
             return;
@@ -103,11 +116,21 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "frozen", type = boolean.class)})
     @Override
     public void setFrozen(boolean frozen) {
         // ignored, since tab will be unselectable
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "lorebooks", type = List.class),
+                    @APILocals(name = "manuscriptLorebook", type = Lorebook.class),
+                    @APILocals(name = "matched", type = Lorebook.class),
+                    @APILocals(name = "e", type = Exception.class)})
     @Override
     public void load(Manuscript manuscript) {
         if (manuscript == null) {
@@ -141,11 +164,15 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabLeave() throws Exception {
 
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
 

@@ -109,6 +109,10 @@ class ExtensionVerifierTest {
                 .anyMatch(e -> e.contains("local variable 'out' is asked in onMethodEnter"))
                 .anyMatch(e -> e.contains("no object local variable 'outt'"))
                 .anyMatch(e -> e.contains("local variable 'out' is [java.lang.StringBuilder], the decorator asks for java.lang.String"))
+                // return values
+                .anyMatch(e -> e.contains("onMethodEnter line") && e.contains("return value is asked in onMethodEnter"))
+                .anyMatch(e -> e.contains("the method returns [java.lang.String], the decorator asks for java.lang.Integer"))
+                .anyMatch(e -> e.contains("VerifyTarget$Card.edit") && e.contains("the method is void"))
                 // fields
                 .anyMatch(e -> e.contains("VerifyTarget has no field 'titel'"))
                 .anyMatch(e -> e.contains("field 'items' of") && e.contains("asks for java.lang.String"))
@@ -117,7 +121,7 @@ class ExtensionVerifierTest {
                 .anyMatch(e -> e.contains("VerifyTarget has no method nothing()"))
                 .anyMatch(e -> e.contains("has no method helper(java.lang.String), only [helper(java.lang.String, int)]"))
                 .anyMatch(e -> e.contains("method 'helper'") && e.contains("returns java.lang.String") && e.contains("asks for java.lang.Integer"))
-                .hasSize(12);
+                .hasSize(15);
         assertThat(result.warnings())
                 // optional access with the wrong type
                 .anyMatch(w -> w.contains("argument 'name' is [java.lang.String]") && w.contains("asks for java.lang.Integer"))

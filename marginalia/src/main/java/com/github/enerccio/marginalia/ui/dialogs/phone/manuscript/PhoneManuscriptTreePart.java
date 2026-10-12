@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.TreantTree;
@@ -69,6 +69,9 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         this.parent = parent;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "content", type = VerticalLayout.class)})
     @Override
     public Component create() throws Exception {
         treantTree = new TreantTree();
@@ -87,6 +90,11 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         return content;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = VerticalLayout.class),
+            locals = {@APILocals(name = "searchButton", type = Button.class),
+                    @APILocals(name = "searchRow", type = HorizontalLayout.class),
+                    @APILocals(name = "bar", type = VerticalLayout.class)})
     private VerticalLayout createSearchBar() {
         searchBox = new ComboBox<>();
         searchBox.setPlaceholder(loc.getValue(L.LABEL_SEARCH_ALL_BRANCHES));
@@ -131,6 +139,13 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
     /**
      * Searches the text of all branches and highlights the parts found in the tree.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "text", type = String.class)},
+            locals = {@APILocals(name = "query", type = String.class),
+                    @APILocals(name = "current", type = Manuscript.class),
+                    @APILocals(name = "hit", type = FulltextHit.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void search(String text) {
         String query = StringUtils.trimToNull(text);
         lastQuery = query;
@@ -155,6 +170,9 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         renderTree();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "query", type = String.class)})
     private void remember(String query) {
         searchHistory.remove(query);
         searchHistory.addFirst(query);
@@ -170,6 +188,8 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void clearSearch() {
         lastQuery = null;
         hitSnippets.clear();
@@ -184,11 +204,17 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "frozen", type = boolean.class)})
     @Override
     public void setFrozen(boolean frozen) {
         // ignore
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     @Override
     public void load(Manuscript manuscript) {
         this.manuscript = manuscript;
@@ -196,11 +222,15 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         clearSearch();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabLeave() throws Exception {
 
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
         this.manuscript = parent.refreshManuscript();
@@ -222,6 +252,45 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "allMessages", type = List.class),
+                    @APILocals(name = "idToMsgMap", type = Map.class),
+                    @APILocals(name = "childrenMap", type = Map.class),
+                    @APILocals(name = "rootMessages", type = List.class),
+                    @APILocals(name = "msg", type = ChatMessage.class),
+                    @APILocals(name = "parentId", type = Long.class),
+                    @APILocals(name = "activeLeaf", type = ChatMessage.class),
+                    @APILocals(name = "activeLeafId", type = Long.class),
+                    @APILocals(name = "activePathIds", type = Set.class),
+                    @APILocals(name = "currentId", type = Long.class),
+                    @APILocals(name = "flatNodes", type = JsonArray.class),
+                    @APILocals(name = "queue", type = Queue.class),
+                    @APILocals(name = "syntheticRoot", type = JsonObject.class),
+                    @APILocals(name = "rootMsg", type = ChatMessage.class),
+                    @APILocals(name = "task", type = PhoneManuscriptTreePart.StructuralTask.class),
+                    @APILocals(name = "structMsg", type = ChatMessage.class),
+                    @APILocals(name = "parentNodeId", type = String.class),
+                    @APILocals(name = "structNodeId", type = String.class),
+                    @APILocals(name = "structChildren", type = List.class),
+                    @APILocals(name = "child", type = ChatMessage.class),
+                    @APILocals(name = "section", type = List.class),
+                    @APILocals(name = "curr", type = ChatMessage.class),
+                    @APILocals(name = "currChildren", type = List.class),
+                    @APILocals(name = "lastEmittedNodeId", type = String.class),
+                    @APILocals(name = "blockKey", type = String.class),
+                    @APILocals(name = "m", type = ChatMessage.class),
+                    @APILocals(name = "mId", type = String.class),
+                    @APILocals(name = "collapsedSection", type = List.class),
+                    @APILocals(name = "cm", type = ChatMessage.class),
+                    @APILocals(name = "blockJson", type = JsonObject.class),
+                    @APILocals(name = "blockCssList", type = List.class),
+                    @APILocals(name = "dataJson", type = JsonObject.class),
+                    @APILocals(name = "chartConfig", type = JsonObject.class),
+                    @APILocals(name = "chart", type = JsonObject.class),
+                    @APILocals(name = "connectors", type = JsonObject.class),
+                    @APILocals(name = "nodeConfig", type = JsonObject.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void renderTree() {
         if (manuscript == null) {
             return;
@@ -399,6 +468,18 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = JsonObject.class),
+            parameters = {@APIParameter(name = "msg", type = ChatMessage.class),
+                    @APIParameter(name = "nodeId", type = String.class),
+                    @APIParameter(name = "parentNodeId", type = String.class),
+                    @APIParameter(name = "childrenMap", type = Map.class),
+                    @APIParameter(name = "activePathIds", type = Set.class),
+                    @APIParameter(name = "activeLeafId", type = Long.class)},
+            locals = {@APILocals(name = "nodeJson", type = JsonObject.class),
+                    @APILocals(name = "dataJson", type = JsonObject.class),
+                    @APILocals(name = "children", type = List.class),
+                    @APILocals(name = "classes", type = List.class)})
     private JsonObject buildSingleMsgJsonObject(ChatMessage msg,
                                                 String nodeId,
                                                 String parentNodeId,
@@ -443,6 +524,10 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         return nodeJson;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "messages", type = List.class)},
+            locals = {@APILocals(name = "message", type = ChatMessage.class)})
     private boolean hasHit(List<ChatMessage> messages) {
         for (ChatMessage message : messages) {
             if (hitSnippets.containsKey(message.getId())) {
@@ -452,6 +537,8 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         return false;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     private String buildSyntheticRootHtml() {
         return """
                <div class="tree-node-card">
@@ -460,6 +547,13 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
                """.formatted(HtmlUtils.htmlEscape(loc.getValue(L.LABEL_ROOT)));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "blockId", type = String.class),
+                    @APIParameter(name = "messageCount", type = int.class),
+                    @APIParameter(name = "startIdx", type = int.class),
+                    @APIParameter(name = "endIdx", type = int.class)},
+            locals = {@APILocals(name = "title", type = String.class)})
     private String buildBlockNodeHtml(String blockId, int messageCount, int startIdx, int endIdx) {
         String title = HtmlUtils.htmlEscape(
                 loc.getValue(L.MSG_TREE_BLOCK_TITLE).formatted(messageCount, startIdx, endIdx));
@@ -473,6 +567,20 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
                 startIdx, endIdx, HtmlUtils.htmlEscape(loc.getValue(L.LABEL_CLICK_TO_EXPAND)));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "msg", type = ChatMessage.class)},
+            locals = {@APILocals(name = "dateStr", type = String.class),
+                    @APILocals(name = "scene", type = String.class),
+                    @APILocals(name = "presentChars", type = String.class),
+                    @APILocals(name = "instructions", type = String.class),
+                    @APILocals(name = "tooltipLines", type = List.class),
+                    @APILocals(name = "cardTooltip", type = String.class),
+                    @APILocals(name = "dateHtml", type = String.class),
+                    @APILocals(name = "sceneHtml", type = String.class),
+                    @APILocals(name = "presentHtml", type = String.class),
+                    @APILocals(name = "instructionsHtml", type = String.class),
+                    @APILocals(name = "hitHtml", type = String.class)})
     private String buildNodeHtml(ChatMessage msg) {
         String dateStr = (msg.getCreation() != null) ? loc.getDateHourFormat().format(msg.getCreation()) : "";
         String scene = Objects.toString(msg.getSceneSetting(), "");
@@ -543,6 +651,14 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
      * "Show in story" of a found part: shows the part on the active branch (or on the nearest branch below it when it
      * is on another one), switches to the story tab and scrolls to it.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "event", type = TreantTree.NodeGotoEvent.class)},
+            locals = {@APILocals(name = "current", type = Manuscript.class),
+                    @APILocals(name = "target", type = ChatMessage.class),
+                    @APILocals(name = "leaf", type = ChatMessage.class),
+                    @APILocals(name = "activeLeaf", type = ChatMessage.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void onNodeGoto(TreantTree.NodeGotoEvent event) {
         try {
             long messageId = Long.parseLong(event.getNodeId());
@@ -574,6 +690,17 @@ public class PhoneManuscriptTreePart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "event", type = TreantTree.NodeClickEvent.class)},
+            locals = {@APILocals(name = "nodeIdStr", type = String.class),
+                    @APILocals(name = "messageId", type = Long.class),
+                    @APILocals(name = "currentManuscript", type = Manuscript.class),
+                    @APILocals(name = "allMessages", type = List.class),
+                    @APILocals(name = "targetMessage", type = ChatMessage.class),
+                    @APILocals(name = "activeLeaf", type = ChatMessage.class),
+                    @APILocals(name = "m", type = ChatMessage.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void onNodeClick(TreantTree.NodeClickEvent event) {
         String nodeIdStr = event.getNodeId();
         if (StringUtils.isBlank(nodeIdStr)) {

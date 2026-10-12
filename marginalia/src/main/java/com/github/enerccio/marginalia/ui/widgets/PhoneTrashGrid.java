@@ -4,7 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.TrashService.TrashItem;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -28,6 +28,8 @@ public class PhoneTrashGrid extends TrashGrid {
         super(allUsers);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = TrashGrid.class))
     @Override
     public TrashGrid create() throws Exception {
         super.create();
@@ -39,11 +41,21 @@ public class PhoneTrashGrid extends TrashGrid {
     /**
      * The description is too long for the small screen, it is behind the info button of the toolbar instead.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class))
     @Override
     protected Component createDescription() {
         return null;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "toolbar", type = VerticalLayout.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "infoButton", type = Button.class),
+                    @APILocals(name = "info", type = Popover.class),
+                    @APILocals(name = "description", type = Span.class),
+                    @APILocals(name = "buttons", type = HorizontalLayout.class)})
     @Override
     protected Component createToolbar() {
         VerticalLayout toolbar = new VerticalLayout();
@@ -90,11 +102,19 @@ public class PhoneTrashGrid extends TrashGrid {
         return toolbar;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     protected void addColumns() {
         grid.addComponentColumn(this::createContent).setHeader("").setFlexGrow(1);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "item", type = com.github.enerccio.marginalia.domain.service.TrashService.TrashItem.class)},
+            locals = {@APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "extendedContent", type = Button.class)})
     private Component createContent(TrashItem item) {
         VerticalLayout content = new VerticalLayout();
         content.setWidthFull();
@@ -119,6 +139,11 @@ public class PhoneTrashGrid extends TrashGrid {
         return content;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)},
+            locals = {@APILocals(name = "span", type = Span.class)})
     private Span info(L label, String value) {
         Span span = new Span(loc.getValue(label) + ": " + (value != null ? value : ""));
         span.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);

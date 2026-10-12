@@ -1,6 +1,9 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.domain.traits.APIParameter;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -19,14 +22,23 @@ import com.vaadin.flow.shared.Registration;
 @Extendable
 public class TreantTree extends Div {
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "jsonConfig", type = String.class)})
     public void setTreeConfig(String jsonConfig) {
         JavascriptLibrary.renderTreant(getElement(), jsonConfig);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Registration.class),
+            parameters = {@APIParameter(name = "listener", type = ComponentEventListener.class)})
     public Registration addNodeClickListener(ComponentEventListener<NodeClickEvent> listener) {
         return addListener(NodeClickEvent.class, listener);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Registration.class),
+            parameters = {@APIParameter(name = "listener", type = ComponentEventListener.class)})
     public Registration addNodeGotoListener(ComponentEventListener<NodeGotoEvent> listener) {
         return addListener(NodeGotoEvent.class, listener);
     }

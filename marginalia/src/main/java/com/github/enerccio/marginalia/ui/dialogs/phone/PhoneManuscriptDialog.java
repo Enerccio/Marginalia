@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.*;
@@ -77,6 +77,10 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
         this.manuscript = manuscript;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "mainLayout", type = VerticalLayout.class)})
     public void create() throws Exception {
         ai = aiService.find(manuscript.getAi());
         setHeaderTitle(manuscript.getName());
@@ -147,6 +151,13 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
         tabToContent.forEach((tab, component) -> component.setVisible(tab == tabs.getSelectedTab()));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Tab.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "part", type = PhoneManuscriptDialogPart.class),
+                    @APIParameter(name = "content", type = VerticalLayout.class)},
+            locals = {@APILocals(name = "component", type = Component.class),
+                    @APILocals(name = "tab", type = Tab.class)})
     private Tab addPart(L label, PhoneManuscriptDialogPart part, VerticalLayout content) throws Exception {
         Component component = part.create();
         Tab tab = new Tab(loc.getValue(label));
@@ -159,6 +170,10 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
         return tab;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "part", type = PhoneManuscriptDialogPart.class),
+                    @APILocals(name = "e", type = Exception.class)})
     @Override
     public void open() {
         super.open();
@@ -178,6 +193,8 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void selectStoryPart() {
         if (tabs != null && storyPartComponent != null) {
             tabs.setSelectedTab(storyTab);
@@ -187,11 +204,16 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
     /**
      * Switches to the story tab and scrolls to the part. The part has to be on the active branch.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "messageId", type = Long.class)})
     public void showMessage(Long messageId) {
         storyPart.scrollToMessageOnNextRender(messageId);
         selectStoryPart();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void freeze() {
         if (!frozen) {
             this.frozen = true;
@@ -199,6 +221,8 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void unfreeze() {
         if (frozen) {
             this.frozen = false;
@@ -206,6 +230,9 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "part", type = PhoneManuscriptDialogPart.class)})
     private void updateFreezeStatus() {
         exitButton.setEnabled(!frozen);
         tabs.getChildren().filter(Tab.class::isInstance).map(Tab.class::cast).forEach(tab -> tab.setEnabled(!frozen));
@@ -214,26 +241,39 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     public Manuscript getManuscript() {
         return manuscript;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     public Manuscript refreshManuscript() throws Exception {
         return manuscript = manuscriptService.find(manuscript);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     public Manuscript save() throws Exception {
         return manuscript = manuscriptService.save(manuscript);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Runnable.class))
     public Runnable getOnClose() {
         return onClose;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onClose", type = Runnable.class)})
     public void setOnClose(Runnable onClose) {
         this.onClose = onClose;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = AI.class))
     public AI getAi() {
         return ai;
     }
