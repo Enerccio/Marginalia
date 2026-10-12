@@ -56,6 +56,8 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private static final long FRAMEWORK_TIMEOUT_MS = 30_000;
     /** Where the JARs of older versions of an installed extension go, inside the extensions folder. */
     private static final String OLD_VERSIONS_FOLDER = "old-versions";
+    /** The flag file next to the JAR of an extension the administrator stopped. */
+    private static final String STOPPED_SUFFIX = ".STOPPED";
 
     @Autowired
     private Configuration configuration;
@@ -179,6 +181,10 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         uninstallOlderVersions();
 
         for (Bundle b : getBundles()) {
+            if (isStopped(b)) {
+                log.info("Extension {} ({}) is stopped, it is not started", b.getSymbolicName(), locationFile(b).getName());
+                continue;
+            }
             try {
                 startBundle(b);
             } catch (ExtensionVerificationException e) {
@@ -292,6 +298,8 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                         backups.put(oldFile, backup);
                     }
                     deleteReports(oldFile);
+                    // an uploaded extension is started, also over a stopped one
+                    Files.deleteIfExists(stoppedFlag(oldFile).toPath());
                 }
             }
             if (!backups.isEmpty()) {
@@ -350,14 +358,99 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                     stopBundleInternal(b);
                 } finally {
                     b.uninstall();
-                    locationFile(b).delete();
-                    deleteReports(locationFile(b));
+                    File jar = locationFile(b);
+                    jar.delete();
+                    deleteReports(jar);
+                    Files.deleteIfExists(stoppedFlag(jar).toPath());
+                    ExtensionLogger.delete(ExtensionLogger.logFile(jar));
                 }
                 refreshBundles();
             } finally {
                 onStart();
             }
         }
+    }
+
+    @Override
+    public boolean isStopped(Bundle b) {
+        return stoppedFlag(locationFile(b)).exists();
+    }
+
+    @Override
+    public synchronized void stopExtension(Bundle b) throws Exception {
+        adminGuard.requireAdmin();
+        requireInstalled(b);
+        if (isStopped(b)) {
+            return;
+        }
+        onBeforeStop();
+        onStop();
+        onBeforeStart();
+        try {
+            // the flag first: when the unload fails, the extension is still not started the next time
+            Files.createFile(stoppedFlag(locationFile(b)).toPath());
+            try {
+                stopBundleInternal(b);
+            } finally {
+                b.stop();
+            }
+        } finally {
+            onStart();
+        }
+    }
+
+    @Override
+    public synchronized void startExtension(Bundle b) throws Exception {
+        adminGuard.requireAdmin();
+        requireInstalled(b);
+        File flag = stoppedFlag(locationFile(b));
+        if (!flag.exists()) {
+            return;
+        }
+        onBeforeStop();
+        onStop();
+        onBeforeStart();
+        try {
+            startBundle(b);
+            Files.deleteIfExists(flag.toPath());
+        } finally {
+            onStart();
+        }
+    }
+
+    private static void requireInstalled(Bundle b) {
+        if (b == null || b.getBundleId() == 0 || b.getState() == Bundle.UNINSTALLED) {
+            throw new IllegalArgumentException("Not an installed extension");
+        }
+    }
+
+    /**
+     * The flag file of a stopped extension: {@code <jar name>.STOPPED} next to the JAR.
+     */
+    private static File stoppedFlag(File jar) {
+        return new File(jar.getAbsoluteFile().getParentFile(), jar.getName() + STOPPED_SUFFIX);
+    }
+
+    @Override
+    public Logger createLogger(Bundle b) {
+        return createLogger(b, b.getSymbolicName());
+    }
+
+    @Override
+    public Logger createLogger(Bundle b, String name) {
+        return new ExtensionLogger(name, ExtensionLogger.logFile(locationFile(b)));
+    }
+
+    @Override
+    public String readLog(Bundle b, int maxBytes) throws Exception {
+        adminGuard.requireAdmin();
+        return ExtensionLogger.tail(ExtensionLogger.logFile(locationFile(b)), maxBytes);
+    }
+
+    @Override
+    public void clearLog(Bundle b) throws Exception {
+        adminGuard.requireAdmin();
+        ExtensionLogger.delete(ExtensionLogger.logFile(locationFile(b)));
     }
 
     @Override

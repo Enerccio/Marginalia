@@ -314,6 +314,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SYSTEM, "系统");
         setValue(L.LABEL_ASSISTANT, "助手");
         setValue(L.LABEL_PAYLOAD_MESSAGES, "发送给模型的消息");
+        setValue(L.LABEL_START, "启动");
+        setValue(L.LABEL_LOG, "日志");
+        setValue(L.LABEL_CLEAR, "清除");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -353,6 +356,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_BUNDLE_STATE_STOPPING, "正在停止");
         setValue(L.ENUM_BUNDLE_STATE_ACTIVE, "运行中");
         setValue(L.ENUM_BUNDLE_STATE_UNKNOWN, "未知（%d）");
+        setValue(L.ENUM_BUNDLE_STATE_STOPPED, "已停止");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -386,6 +390,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_INFERENCE_BAD_REQUEST, "提供方拒绝了该请求。请检查推理提供方的模型和附加参数。");
         setValue(L.ERROR_INFERENCE_UNKNOWN, "向提供方发送请求失败。");
         setValue(L.ERROR_EXTENSION_INCOMPATIBLE, "扩展 %s 与此版本的 Marginalia 不兼容，未被加载。");
+        setValue(L.ERROR_EXTENSION_START_FAILED, "启动扩展失败：%s");
+        setValue(L.ERROR_EXTENSION_STOP_FAILED, "停止扩展失败：%s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -465,6 +471,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_TREE_BLOCK_TITLE, "已折叠的区块（%d 条消息，[%d–%d]）。点击展开。");
         setValue(L.MSG_TOKEN_USAGE_UNAVAILABLE, "此部分未记录令牌用量。");
         setValue(L.MSG_TOKEN_CUT, "%d 条消息（%d 个令牌）超出上下文，已被省略。");
+        setValue(L.MSG_EXTENSION_STARTED, "扩展已启动。");
+        setValue(L.MSG_EXTENSION_STOPPED, "扩展已停止。");
+        setValue(L.MSG_EXTENSION_LOG_EMPTY, "该扩展尚未写入任何日志。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

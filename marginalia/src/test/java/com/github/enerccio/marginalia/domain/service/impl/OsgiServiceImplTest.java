@@ -415,7 +415,8 @@ class OsgiServiceImplTest {
 
     @Test
     void failingListenerDoesNotStopOthersOrTheLoading() throws Exception {
-        service.addExtensionListener(new OsgiService.ExtensionListener() {
+        // listeners are held weakly: keep it, or a garbage collection before the start drops it
+        OsgiService.ExtensionListener failing = new OsgiService.ExtensionListener() {
             @Override
             public void extensionLoaded(Bundle bundle, MarginaliaExtension extension) {
                 throw new IllegalStateException("listener broke");
@@ -424,7 +425,8 @@ class OsgiServiceImplTest {
             @Override
             public void extensionUnloaded(Bundle bundle, MarginaliaExtension extension) {
             }
-        });
+        };
+        service.addExtensionListener(failing);
         RecordingListener listener = new RecordingListener();
         service.addExtensionListener(listener);
         writeJar("a.jar", bundle("test.a", "1.0.0"));
@@ -434,6 +436,7 @@ class OsgiServiceImplTest {
         assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
         assertThat(listener.events).containsExactly("loaded:test.a");
         assertThat(log.errors()).anyMatch(m -> m.contains("listener broke") || m.contains("Extension listener"));
+        assertThat(failing).isNotNull();
     }
 
     @Test
@@ -566,5 +569,160 @@ class OsgiServiceImplTest {
 
         assertThat(reportNames()).containsExactly("a.valid");
         assertThat(report).content().startsWith("Extension: a.jar");
+    }
+
+    @Test
+    void stoppedExtensionIsUnloadedAndStaysStoppedAfterRestart() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        writeJar("b.jar", bundle("test.b", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+
+        service.stopExtension(a);
+
+        assertThat(service.isStopped(a)).isTrue();
+        assertThat(new File(extensions, "a.jar.STOPPED")).exists();
+        assertThat(a.getState()).isNotEqualTo(Bundle.ACTIVE);
+        assertThat(TestExtensionActivator.UNLOADED).containsEntry("test.a:1.0.0", 1).doesNotContainKey("test.b:1.0.0");
+        assertThat(service.getLoadedExtensions()).extracting(l -> l.bundle().getSymbolicName()).containsExactly("test.b");
+
+        service.restart();
+
+        assertThat(service.isStopped(bundleNamed("test.a"))).isTrue();
+        assertThat(bundleNamed("test.a").getState()).isNotEqualTo(Bundle.ACTIVE);
+        assertThat(bundleNamed("test.b").getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(TestExtensionActivator.LOADED).containsEntry("test.a:1.0.0", 1).containsEntry("test.b:1.0.0", 2);
+    }
+
+    @Test
+    void stoppedExtensionCanBeStartedAgain() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        service.stopExtension(a);
+        service.stopExtension(a);
+        assertThat(TestExtensionActivator.UNLOADED).containsEntry("test.a:1.0.0", 1);
+
+        service.startExtension(a);
+
+        assertThat(service.isStopped(a)).isFalse();
+        assertThat(new File(extensions, "a.jar.STOPPED")).doesNotExist();
+        assertThat(a.getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(TestExtensionActivator.LOADED).containsEntry("test.a:1.0.0", 2);
+        assertThat(service.getLoadedExtensions()).hasSize(1);
+    }
+
+    @Test
+    void extensionThatFailsToStartStaysStopped() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0", "X-Test-Fail-Load"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        service.stopExtension(a);
+
+        assertThatThrownBy(() -> service.startExtension(a)).isInstanceOf(IllegalStateException.class);
+
+        assertThat(service.isStopped(a)).isTrue();
+        assertThat(a.getState()).isNotEqualTo(Bundle.ACTIVE);
+    }
+
+    @Test
+    void uploadingAnExtensionStartsItAlthoughItWasStopped() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        service.stopExtension(bundleNamed("test.a"));
+
+        Bundle replaced = service.installPackage("a.jar", bundle("test.a", "1.0.1"));
+
+        assertThat(replaced.getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(service.isStopped(replaced)).isFalse();
+    }
+
+    @Test
+    void stoppingAndStartingNeedAnAdministrator() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        ReflectionTestUtils.setField(service, "adminGuard", new AdminGuard() {
+            @Override
+            public void requireAdmin() {
+                throw new SecurityException("denied");
+            }
+        });
+
+        assertThatThrownBy(() -> service.stopExtension(a)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> service.startExtension(a)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> service.readLog(a, 100)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> service.clearLog(a)).isInstanceOf(SecurityException.class);
+        assertThat(a.getState()).isEqualTo(Bundle.ACTIVE);
+    }
+
+    @Test
+    void extensionLoggerWritesSlf4jFormattedLinesIntoTheLogOfTheJar() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        org.slf4j.Logger logger = service.createLogger(a);
+        org.slf4j.Logger named = service.createLogger(a, "my.logger");
+
+        assertThat(service.readLog(a, 10_000)).isEmpty();
+        logger.info("loaded {} of {}", 1, "two");
+        logger.debug("hidden? {}", "no");
+        logger.trace("not written");
+        named.error("failed {}", "x", new IllegalStateException("boom"));
+
+        File logFile = new File(extensions, "a.jar.log");
+        assertThat(logFile).exists();
+        String text = service.readLog(a, 100_000);
+        assertThat(text).contains("INFO ").contains("test.a - loaded 1 of two")
+                .contains("DEBUG").contains("hidden? no")
+                .doesNotContain("not written")
+                .contains("ERROR").contains("my.logger - failed x")
+                .contains("java.lang.IllegalStateException: boom").contains("at ");
+        // nothing goes to the application log
+        assertThat(log.errors()).noneMatch(m -> m.contains("failed x"));
+
+        service.clearLog(a);
+        assertThat(logFile).doesNotExist();
+        assertThat(service.readLog(a, 100)).isEmpty();
+    }
+
+    @Test
+    void readLogReturnsTheEndOfALargeLogFromALineStart() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        org.slf4j.Logger logger = service.createLogger(a);
+        for (int i = 0; i < 200; i++) {
+            logger.info("line number {}", i);
+        }
+
+        String tail = service.readLog(a, 1000);
+
+        assertThat(tail.length()).isLessThanOrEqualTo(1000);
+        assertThat(tail).contains("line number 199").startsWith("20");
+    }
+
+    @Test
+    void extensionLogIsRotatedAndDeletedWithTheExtension() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        org.slf4j.Logger logger = service.createLogger(a);
+        File logFile = new File(extensions, "a.jar.log");
+        Files.write(logFile.toPath(), new byte[(int) ExtensionLogger.MAX_LOG_BYTES + 1]);
+
+        logger.info("after the rotation");
+
+        assertThat(new File(extensions, "a.jar.log.old")).exists();
+        assertThat(service.readLog(a, 10_000)).contains("after the rotation");
+        assertThat(logFile.length()).isLessThan(1000);
+
+        service.stopExtension(a);
+        assertThat(logFile).exists();
+        service.uninstallPackage(a);
+
+        assertThat(logFile).doesNotExist();
+        assertThat(new File(extensions, "a.jar.log.old")).doesNotExist();
+        assertThat(new File(extensions, "a.jar.STOPPED")).doesNotExist();
     }
 }

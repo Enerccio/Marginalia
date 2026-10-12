@@ -208,7 +208,8 @@ sequenceDiagram
   the old JAR), only the newest is started; a warning names the skipped JARs, which are moved to `extensions/old-versions` (not deleted). Before a bundle
   is started it is **verified**: the decorators it registers are checked against this version
   of the application ([Verification before loading](extendable.md#verification-before-loading)). An invalid extension
-  stays installed but is not started, and its report is logged.
+  stays installed but is not started, and its report is logged. A bundle whose JAR has a `<jar name>.STOPPED` flag
+  next to it (see **Stopping**) is installed but not started either.
 - **Installing at runtime.** *Admin → Extensions → Load Extension (.jar)* writes the uploaded file into
   `~/.marginalia/extensions` (the file name is sanitized: only letters, digits, `.`, `_` and `-`) and installs and
   starts it the same way, verification included (`OsgiService.installPackage`, like `uninstallPackage` administrators only: `AdminGuard.requireAdmin()`; an invalid upload throws `ExtensionVerificationException` with the report). Screens that are already open are not rebuilt: the plugin's
@@ -219,9 +220,41 @@ sequenceDiagram
 - **Unloading.** *Unload* calls the callbacks registered with `bindAttachableComponent`, then `onExtensionUnload`,
   uninstalls the bundle and **deletes its JAR and its verification reports** (`OsgiService.uninstallPackage`). Bundles that failed to start are
   listed too (state *Installed* or *Resolved*) and can be unloaded the same way.
+- **Stopping.** *Stop* (`OsgiService.stopExtension`, administrators only) creates the `<jar name>.STOPPED` flag
+  file, unloads the extension like *Unload* does (bound callbacks, `onExtensionUnload`) and stops the bundle; the
+  bundle stays installed and is listed with the state *Stopped* (`isStopped`). *Start* (`startExtension`) verifies it,
+  starts it and deletes the flag; when that fails, the flag stays. The flag survives restarts. Uploading a
+  replacement of a stopped extension deletes the flag, and *Unload* deletes the flag too.
 - **Shutdown.** When the application stops (the root context closes), every extension is unloaded the same way -
   bound callbacks, `onExtensionUnload`, the activator's `stop` - and the framework is stopped. Still save data as you
   go: a killed process runs none of this.
+
+### Logging
+
+An extension should not write into the application log (it ends up mixed with everything else, and the release
+build logs at INFO). `OsgiService.createLogger(bundle)` returns an `org.slf4j.Logger` that writes to its own file,
+`<jar name>.log` in the extensions folder (`sidequery.jar.log`), which administrators read in *Admin → Extensions →
+Log*:
+
+```java
+private Logger log;
+
+@Override
+public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+    log = parentService.createLogger(bundle);           // or createLogger(bundle, "my.name")
+    log.info("Loaded {} {}", bundle.getSymbolicName(), bundle.getVersion());
+}
+```
+
+- The usual SLF4J API: `{}` placeholders and a trailing throwable (logged with its stack trace). TRACE is dropped,
+  DEBUG and above are written. Each line has the time, level, thread, logger name (the symbolic name by default) and
+  the message. Nothing is sent to the application log.
+- The logger is thread safe and can be kept; the file is opened for every line, so nothing stays open after the
+  extension is gone. A file over 2 MB is moved to `<jar name>.log.old` (replacing the previous one).
+- `OsgiService.readLog(bundle, maxBytes)` and `clearLog(bundle)` (administrators only) read the end of the file and
+  delete it. The log is deleted with the extension when it is unloaded.
+- The class `org.slf4j.Logger` comes from the application (boot delegation); if your bundle lists its
+  `Import-Package` explicitly, include `org.slf4j`.
 
 ### Extension events
 

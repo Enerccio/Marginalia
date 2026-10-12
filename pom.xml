@@ -18,6 +18,7 @@
     <module>marginalia/plugins/chaptermarker</module>
     <module>marginalia/plugins/chineselocalization</module>
     <module>marginalia/plugins/instructionexporter</module>
+    <module>marginalia/plugins/lore-generator</module>
     <module>marginalia/plugins/lorebookvcs</module>
     <module>marginalia/plugins/reviewer</module>
     <module>marginalia/plugins/sidequery</module>
