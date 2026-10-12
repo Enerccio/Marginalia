@@ -6,6 +6,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.slf4j.Logger;
 
 import java.util.List;
 
@@ -64,6 +65,51 @@ public interface OsgiService {
     List<LoadedExtension> getLoadedExtensions();
 
     String getExtensionsPath();
+
+    /**
+     * Whether the extension is stopped by the administrator: its JAR has a {@code <jar name>.STOPPED} flag file next
+     * to it. A stopped extension stays installed (and shown in Admin → Extensions) but is not started, also after the
+     * application restarts, until it is started again.
+     */
+    boolean isStopped(Bundle b);
+
+    /**
+     * Unloads the extension ({@code onExtensionUnload}), stops its bundle and creates the {@code .STOPPED} flag.
+     * Does nothing when it is stopped already.
+     */
+    void stopExtension(Bundle b) throws Exception;
+
+    /**
+     * Deletes the {@code .STOPPED} flag and starts the extension, it is verified first like at the start of the
+     * application. When that fails the extension stays stopped and the exception is thrown.
+     */
+    void startExtension(Bundle b) throws Exception;
+
+    /**
+     * A logger for the extension, in the usual SLF4J way ({@code log.info("Loaded {}", name)}, a trailing throwable is
+     * logged with its stack trace). Everything it logs goes to {@code <jar name>.log} in the extensions folder (for
+     * {@code sidequery.jar} that is {@code sidequery.jar.log}), not to the application log; TRACE is dropped. A file
+     * over 2 MB is moved to {@code .log.old}. Call it from {@code onExtensionLoad} with the bundle passed there; the
+     * returned logger can be kept and used from any thread.
+     */
+    Logger createLogger(Bundle b);
+
+    /**
+     * Same as {@link #createLogger(Bundle)} with the given logger name (shown in every line), by default the symbolic
+     * name of the bundle. Loggers of one extension write into the same file.
+     */
+    Logger createLogger(Bundle b, String name);
+
+    /**
+     * The last {@code maxBytes} bytes of the log of the extension (see {@link #createLogger(Bundle)}), cut at a line
+     * start; empty when nothing was logged.
+     */
+    String readLog(Bundle b, int maxBytes) throws Exception;
+
+    /**
+     * Deletes the log of the extension (and its {@code .old} rotation).
+     */
+    void clearLog(Bundle b) throws Exception;
 
     /**
      * The report of the verification of the extension ({@link ExtensionService#verifyExtension}), {@code null} when

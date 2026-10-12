@@ -97,6 +97,19 @@ public final class JavascriptLibrary {
         element.executeJs("$0.scrollTop = $1", element, pixelsFromTop);
     }
 
+    /**
+     * Scrolls the text area of a Vaadin {@code TextArea} (the element of the field) to its last line, after the value
+     * that was just set is rendered.
+     */
+    public static void scrollTextAreaToBottom(Element textArea) {
+        textArea.executeJs("""
+                requestAnimationFrame(() => {
+                  const input = $0.inputElement;
+                  if (input) input.scrollTop = input.scrollHeight;
+                });
+                """, textArea);
+    }
+
     public static void setScrollLeft(Element element, int pixelsFromLeft) {
         element.executeJs("$0.scrollLeft = $1", element, pixelsFromLeft);
     }

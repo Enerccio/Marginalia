@@ -197,8 +197,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - Generation run id on the event to correlate data from concurrent generations.
 
 24. **Extension management polish.** ✅ A JAR is verified before it is installed and again after an update, and an
-    extension built for another core version is refused (`ExtensionVerifier`, *Verification* column). Still missing:
-    enable/disable without uninstalling, show bundle errors and dependencies. The plugin API is not frozen in 1.0.
+    extension built for another core version is refused (`ExtensionVerifier`, *Verification* column). Extensions can be stopped and
+    started without uninstalling (`.STOPPED` flag file next to the JAR) and log into their own file, shown in the *Log*
+    dialog (`OsgiService.createLogger`, `ExtensionLogDialog`). Still missing: show bundle errors and dependencies. The plugin API is not frozen in 1.0.
 
 24b. **Summaries overview tools** 🧩 — the *Summaries* dialog (`SummariesDialog`, `@Extendable`) has an empty menu bar
     for these:

@@ -306,6 +306,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SYSTEM, "System");
         setValue(L.LABEL_ASSISTANT, "Assistant");
         setValue(L.LABEL_PAYLOAD_MESSAGES, "Messages sent to the model");
+        setValue(L.LABEL_START, "Start");
+        setValue(L.LABEL_LOG, "Log");
+        setValue(L.LABEL_CLEAR, "Clear");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -345,6 +348,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_BUNDLE_STATE_STOPPING, "Stopping");
         setValue(L.ENUM_BUNDLE_STATE_ACTIVE, "Active");
         setValue(L.ENUM_BUNDLE_STATE_UNKNOWN, "Unknown (%d)");
+        setValue(L.ENUM_BUNDLE_STATE_STOPPED, "Stopped");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -378,6 +382,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_INFERENCE_BAD_REQUEST, "The provider rejected the request. Check the model and the additional parameters of the inference provider.");
         setValue(L.ERROR_INFERENCE_UNKNOWN, "The request to the provider failed.");
         setValue(L.ERROR_EXTENSION_INCOMPATIBLE, "Extension %s does not fit this version of Marginalia and was not loaded.");
+        setValue(L.ERROR_EXTENSION_START_FAILED, "Failed to start extension: %s");
+        setValue(L.ERROR_EXTENSION_STOP_FAILED, "Failed to stop extension: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -457,6 +463,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_TREE_BLOCK_TITLE, "Collapsed block (%d messages, [%d–%d]). Click to expand.");
         setValue(L.MSG_TOKEN_USAGE_UNAVAILABLE, "The token usage was not recorded for this part.");
         setValue(L.MSG_TOKEN_CUT, "%d messages (%d tokens) did not fit into the context and were left out.");
+        setValue(L.MSG_EXTENSION_STARTED, "Extension started.");
+        setValue(L.MSG_EXTENSION_STOPPED, "Extension stopped.");
+        setValue(L.MSG_EXTENSION_LOG_EMPTY, "The extension has not written anything to its log.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

@@ -306,6 +306,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SYSTEM, "システム");
         setValue(L.LABEL_ASSISTANT, "アシスタント");
         setValue(L.LABEL_PAYLOAD_MESSAGES, "モデルに送信されたメッセージ");
+        setValue(L.LABEL_START, "開始");
+        setValue(L.LABEL_LOG, "ログ");
+        setValue(L.LABEL_CLEAR, "クリア");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -345,6 +348,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_BUNDLE_STATE_STOPPING, "停止中");
         setValue(L.ENUM_BUNDLE_STATE_ACTIVE, "稼働中");
         setValue(L.ENUM_BUNDLE_STATE_UNKNOWN, "不明（%d）");
+        setValue(L.ENUM_BUNDLE_STATE_STOPPED, "停止中");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -378,6 +382,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_INFERENCE_BAD_REQUEST, "プロバイダーがリクエストを拒否しました。推論プロバイダーのモデルと追加パラメータを確認してください。");
         setValue(L.ERROR_INFERENCE_UNKNOWN, "プロバイダーへのリクエストに失敗しました。");
         setValue(L.ERROR_EXTENSION_INCOMPATIBLE, "拡張機能 %s はこのバージョンの Marginalia に対応していないため、読み込まれませんでした。");
+        setValue(L.ERROR_EXTENSION_START_FAILED, "拡張機能を開始できませんでした: %s");
+        setValue(L.ERROR_EXTENSION_STOP_FAILED, "拡張機能を停止できませんでした: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -457,6 +463,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_TREE_BLOCK_TITLE, "折りたたまれたブロック（%d 件のメッセージ、[%d–%d]）。クリックで展開します。");
         setValue(L.MSG_TOKEN_USAGE_UNAVAILABLE, "このパートのトークン使用量は記録されていません。");
         setValue(L.MSG_TOKEN_CUT, "%d 件のメッセージ（%d トークン）はコンテキストに収まらず除外されました。");
+        setValue(L.MSG_EXTENSION_STARTED, "拡張機能を開始しました。");
+        setValue(L.MSG_EXTENSION_STOPPED, "拡張機能を停止しました。");
+        setValue(L.MSG_EXTENSION_LOG_EMPTY, "この拡張機能はまだログに何も書き込んでいません。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

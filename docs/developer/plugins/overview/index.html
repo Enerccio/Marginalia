@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845069148055">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845129897521">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845069148055" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845129897521" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845069148055" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845069148055" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845069148055" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845129897521" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -372,7 +372,8 @@ skipped. When the folder holds several versions of one extension (same symbolic 
 the old JAR), only the newest is started; a warning names the skipped JARs, which are moved to <code translate="no" v-pre>extensions/old-versions</code> (not deleted). Before a bundle
 is started it is <strong>verified</strong>: the decorators it registers are checked against this version
 of the application (<a href="../extendable/#verification-before-loading">Verification before loading</a>). An invalid extension
-stays installed but is not started, and its report is logged.</p>
+stays installed but is not started, and its report is logged. A bundle whose JAR has a <code translate="no" v-pre>&lt;jar name&gt;.STOPPED</code> flag
+next to it (see <strong>Stopping</strong>) is installed but not started either.</p>
 </li>
 <li>
 <p><strong>Installing at runtime.</strong> <em>Admin → Extensions → Load Extension (.jar)</em> writes the uploaded file into
@@ -391,9 +392,49 @@ uninstalls the bundle and <strong>deletes its JAR and its verification reports</
 listed too (state <em>Installed</em> or <em>Resolved</em>) and can be unloaded the same way.</p>
 </li>
 <li>
+<p><strong>Stopping.</strong> <em>Stop</em> (<code translate="no" v-pre>OsgiService.stopExtension</code>, administrators only) creates the <code translate="no" v-pre>&lt;jar name&gt;.STOPPED</code> flag
+file, unloads the extension like <em>Unload</em> does (bound callbacks, <code translate="no" v-pre>onExtensionUnload</code>) and stops the bundle; the
+bundle stays installed and is listed with the state <em>Stopped</em> (<code translate="no" v-pre>isStopped</code>). <em>Start</em> (<code translate="no" v-pre>startExtension</code>) verifies it,
+starts it and deletes the flag; when that fails, the flag stays. The flag survives restarts. Uploading a
+replacement of a stopped extension deletes the flag, and <em>Unload</em> deletes the flag too.</p>
+</li>
+<li>
 <p><strong>Shutdown.</strong> When the application stops (the root context closes), every extension is unloaded the same way -
 bound callbacks, <code translate="no" v-pre>onExtensionUnload</code>, the activator&#x27;s <code translate="no" v-pre>stop</code> - and the framework is stopped. Still save data as you
 go: a killed process runs none of this.</p>
+</li>
+</ul>
+<h3 id="logging">Logging</h3>
+<p>An extension should not write into the application log (it ends up mixed with everything else, and the release
+build logs at INFO). <code translate="no" v-pre>OsgiService.createLogger(bundle)</code> returns an <code translate="no" v-pre>org.slf4j.Logger</code> that writes to its own file,
+<code translate="no" v-pre>&lt;jar name&gt;.log</code> in the extensions folder (<code translate="no" v-pre>sidequery.jar.log</code>), which administrators read in <em>Admin → Extensions →
+Log</em>:</p>
+<div id="logging-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">private Logger log;
+
+@Override
+public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+    log = parentService.createLogger(bundle);           // or createLogger(bundle, &quot;my.name&quot;)
+    log.info(&quot;Loaded {} {}&quot;, bundle.getSymbolicName(), bundle.getVersion());
+}</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p>The usual SLF4J API: <code translate="no" v-pre>{}</code> placeholders and a trailing throwable (logged with its stack trace). TRACE is dropped,
+DEBUG and above are written. Each line has the time, level, thread, logger name (the symbolic name by default) and
+the message. Nothing is sent to the application log.</p>
+</li>
+<li>
+<p>The logger is thread safe and can be kept; the file is opened for every line, so nothing stays open after the
+extension is gone. A file over 2 MB is moved to <code translate="no" v-pre>&lt;jar name&gt;.log.old</code> (replacing the previous one).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>OsgiService.readLog(bundle, maxBytes)</code> and <code translate="no" v-pre>clearLog(bundle)</code> (administrators only) read the end of the file and
+delete it. The log is deleted with the extension when it is unloaded.</p>
+</li>
+<li>
+<p>The class <code translate="no" v-pre>org.slf4j.Logger</code> comes from the application (boot delegation); if your bundle lists its
+<code translate="no" v-pre>Import-Package</code> explicitly, include <code translate="no" v-pre>org.slf4j</code>.</p>
 </li>
 </ul>
 <h3 id="extension-events">Extension events</h3>
