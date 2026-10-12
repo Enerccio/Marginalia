@@ -156,7 +156,7 @@ with a summary is the **stop part**: it and everything before it is represented 
 **Token budget.** With `TokenLimits`:
 
 ```
-limit      = context tokens − response tokens        (protocol overrides, else provider limits)
+limit      = context tokens − response tokens        (smaller of protocol and provider limits)
 baseTokens = system template rendered with lore and summaries (no story)
            + jailbreak + rendered user prompt + 100
 reserved   = PrePromptData.reservedTokens            (set by extensions, 0 by default)
@@ -252,6 +252,16 @@ On completion the exact token counts are computed, the state becomes `SUCCESSFUL
 moves to `CLEANUP`. An error goes to `CLEANUP` too: a failure of the provider (`InferenceException`, see
 [Services](services.md)) is reported with `onSimpleError` and a localized text of what to fix, anything else with
 `onError`.
+
+### Usage counting
+
+`OpenAICompatibleInferenceService` counts every request in the `Usage` of the user who started it, so the generation, summaries and
+extensions that call `stream` are all counted without doing anything. The request carries `stream_options.include_usage`
+(unless the AI's additional parameters set `stream_options`), and the provider's last chunk then reports the prompt and completion
+tokens. Without a report (the provider doesn't send it, or the request was stopped) the service counts the payload and the text that
+arrived with `countTokensApprox`. It is recorded once, when the stream completes, is stopped (`terminateInference`, cancellation) or fails
+after some text arrived; a request that fails before any text is not counted. The stream threads have no request, so the service takes
+the `ThreadCopyRequestAttributes` of the thread that called `stream` and records inside it (`currentUser` resolves).
 
 ### 8. `CLEANUP` - `CleanupStep`
 

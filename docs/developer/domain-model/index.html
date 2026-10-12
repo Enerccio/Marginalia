@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845151073131">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845155765302">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845151073131" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845155765302" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845151073131" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845155765302" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845151073131" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845151073131" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845155765302" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845155765302" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -179,6 +179,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `Summary` | `summaries` | Summary |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible` | `ais`, `ais_openaicompat` | Inference provider |
+| `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
@@ -220,6 +221,11 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <td>Inference provider</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>Usage</code></td>
+<td><code translate="no" v-pre>usages</code></td>
+<td>Tokens sent / generated column of the Inference Providers tab</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>Protocol</code>, <code translate="no" v-pre>ChatCompletionProtocol</code></td>
 <td><code translate="no" v-pre>protocols</code>, <code translate="no" v-pre>protocols_chatcompletion</code></td>
 <td>Protocol</td>
@@ -253,6 +259,8 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
     User ||--o{ Manuscript : owns
     User ||--o{ Lorebook : owns
     User ||--o{ AI : owns
+    AI ||--o{ Usage : &quot;used by users&quot;
+    User ||--o{ Usage : owns
     User ||--o{ Protocol : owns
     User ||--o| UserSetting : has
 
@@ -301,6 +309,7 @@ and lorebook.</p>
     ExtendableEntity &lt;|-- Summary
     ExtendableEntity &lt;|-- Lorebook
     ExtendableEntity &lt;|-- LorebookEntry
+    OwnedEntity &lt;|-- Usage
     ExtendableEntity &lt;|-- AI
     ExtendableEntity &lt;|-- Protocol
     ExtendableEntity &lt;|-- Tag
@@ -945,7 +954,8 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 |---|---|---|
 | `aiType` | column (ordinal) | `AIType.OPEN_AI_COMPATIBLE`. `InferenceServices` picks the implementation by this type. |
 | `name` | column | |
-| `maxContext`, `maxCompletionTokens` | columns | Context size and maximum response tokens of the model. |
+| `maxContext`, `maxCompletionTokens` | columns | Context size and maximum response tokens of the model. A protocol can lower them, never raise them (`TokenLimits`). |
+| `shared` | column (indexed with `deleted`) | An AI of an administrator that every user can use: `AIRepository`'s `findAll(user)`, `findAllIds(user)` and `findByUuid` return the user's own AIs and the shared ones, so `findAllForUser()` / `findForUser(uuid)` see them, as do backup restore and the model combos. Only the owner changes or deletes it and only an administrator sets the flag (`AIServiceImpl`, server side; the UI hides edit, delete and the API key from others). Real column because the lookups filter on it. |
 | `enabledReasoning`, `reasoningEffort` | columns | Reasoning settings. |
 | `needsJailbreak`, `jailbreak` | columns | Text put before the system prompt. |
 | `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (encrypted, see [Encrypted columns](database.md#encrypted-columns)). |
@@ -974,7 +984,12 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 <tr>
 <td><code translate="no" v-pre>maxContext</code>, <code translate="no" v-pre>maxCompletionTokens</code></td>
 <td>columns</td>
-<td>Context size and maximum response tokens of the model.</td>
+<td>Context size and maximum response tokens of the model. A protocol can lower them, never raise them (<code translate="no" v-pre>TokenLimits</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>shared</code></td>
+<td>column (indexed with <code translate="no" v-pre>deleted</code>)</td>
+<td>An AI of an administrator that every user can use: <code translate="no" v-pre>AIRepository</code>&#x27;s <code translate="no" v-pre>findAll(user)</code>, <code translate="no" v-pre>findAllIds(user)</code> and <code translate="no" v-pre>findByUuid</code> return the user&#x27;s own AIs and the shared ones, so <code translate="no" v-pre>findAllForUser()</code> / <code translate="no" v-pre>findForUser(uuid)</code> see them, as do backup restore and the model combos. Only the owner changes or deletes it and only an administrator sets the flag (<code translate="no" v-pre>AIServiceImpl</code>, server side; the UI hides edit, delete and the API key from others). Real column because the lookups filter on it.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>enabledReasoning</code>, <code translate="no" v-pre>reasoningEffort</code></td>
@@ -1005,11 +1020,59 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 </table>
 </div>
 </retype-table>
+<h3 id="usage-tokens-used-with-an-ai"><code translate="no" v-pre>Usage</code> (tokens used with an AI)</h3>
+<p>One row per AI and user (<code translate="no" v-pre>owner</code>), unique on <code translate="no" v-pre>(ai_id, userId)</code>: a personal AI has one, a shared AI one for everybody who
+uses it. Counting only; nothing is limited by it yet.</p>
+<retype-table copy-text="| Field | Stored | |
+|---|---|---|
+| `ai` | column `ai_id` | `@ManyToOne`, `OWNED_BY` the AI for cleanup. |
+| `prefillTokens` | column | Tokens sent to the model (the prompt). |
+| `generatedTokens` | column | Tokens the model generated, reasoning included. |
+| `requests`, `lastUsed` | columns | Number of requests added up, time of the last one. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th>Stored</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>ai</code></td>
+<td>column <code translate="no" v-pre>ai_id</code></td>
+<td><code translate="no" v-pre>@ManyToOne</code>, <code translate="no" v-pre>OWNED_BY</code> the AI for cleanup.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>prefillTokens</code></td>
+<td>column</td>
+<td>Tokens sent to the model (the prompt).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>generatedTokens</code></td>
+<td>column</td>
+<td>Tokens the model generated, reasoning included.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>requests</code>, <code translate="no" v-pre>lastUsed</code></td>
+<td>columns</td>
+<td>Number of requests added up, time of the last one.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>All are real columns: they are added up in SQL (<code translate="no" v-pre>UsageRepository.add</code>, <code translate="no" v-pre>UPDATE ... SET x = x + :n</code>), not read and saved, so parallel
+requests don&#x27;t lose counts. <code translate="no" v-pre>UsageService.record(ai, prefill, generated)</code> is the way to count: it adds to the row of the
+current user, creating it on first use (under a lock held until the commit, so two first uses can&#x27;t both insert), and
+never throws. <code translate="no" v-pre>findAllForAI(ai)</code> lists every user&#x27;s usage for the owner of the AI or an administrator. See
+<a href="../generation-pipeline/#usage-counting">Inference</a>.</p>
 <h3 id="protocol--chatcompletionprotocol"><code translate="no" v-pre>Protocol</code> / <code translate="no" v-pre>ChatCompletionProtocol</code></h3>
 <retype-table copy-text="| Field | Stored | |
 |---|---|---|
 | `name`, `protocolType` | columns | `ProtocolType.CHAT_COMPLETION`. |
-| `maxTokens`, `replyTokens` | columns | Optional overrides of the provider's context and response limits; `null` = use the provider's (`TokenLimits`). |
+| `maxTokens`, `replyTokens` | columns | Optional limits lower than the provider's context and response limits; `null` = use the provider's, a larger value is capped to the provider's (`TokenLimits`). |
 | `temperature`, `topP`, `frequencyPenalty`, `presencePenalty` and their `...Enabled` flags | JSON | Sampling settings; a disabled setting is not sent. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1029,7 +1092,7 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 <tr>
 <td><code translate="no" v-pre>maxTokens</code>, <code translate="no" v-pre>replyTokens</code></td>
 <td>columns</td>
-<td>Optional overrides of the provider&#x27;s context and response limits; <code translate="no" v-pre>null</code> = use the provider&#x27;s (<code translate="no" v-pre>TokenLimits</code>).</td>
+<td>Optional limits lower than the provider&#x27;s context and response limits; <code translate="no" v-pre>null</code> = use the provider&#x27;s, a larger value is capped to the provider&#x27;s (<code translate="no" v-pre>TokenLimits</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>temperature</code>, <code translate="no" v-pre>topP</code>, <code translate="no" v-pre>frequencyPenalty</code>, <code translate="no" v-pre>presencePenalty</code> and their <code translate="no" v-pre>...Enabled</code> flags</td>
@@ -1064,7 +1127,7 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 values are extended attributes.</p>
 <retype-table copy-text="| Class | Owner | Contains |
 |---|---|---|
-| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`). |
+| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), `userAisAllowed` (users who are not administrators can create AIs, default and `null` = yes; `AIService.setUserCreationAllowed`, checked in `AIServiceImpl.save` for new AIs only, existing ones stay editable). |
 | `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1079,7 +1142,7 @@ values are extended attributes.</p>
 <tr>
 <td><code translate="no" v-pre>AppSettings</code></td>
 <td>none (one per installation)</td>
-<td>Data versions (<code translate="no" v-pre>dbVersion</code>, <code translate="no" v-pre>appVersion</code>), the database backup schedule (<code translate="no" v-pre>backupScheduleEnabled</code>, <code translate="no" v-pre>backupSchedule</code>, <code translate="no" v-pre>backupKeep</code>, <code translate="no" v-pre>lastScheduledBackup</code>, <code translate="no" v-pre>backupScheduleChanged</code>).</td>
+<td>Data versions (<code translate="no" v-pre>dbVersion</code>, <code translate="no" v-pre>appVersion</code>), the database backup schedule (<code translate="no" v-pre>backupScheduleEnabled</code>, <code translate="no" v-pre>backupSchedule</code>, <code translate="no" v-pre>backupKeep</code>, <code translate="no" v-pre>lastScheduledBackup</code>, <code translate="no" v-pre>backupScheduleChanged</code>), <code translate="no" v-pre>userAisAllowed</code> (users who are not administrators can create AIs, default and <code translate="no" v-pre>null</code> = yes; <code translate="no" v-pre>AIService.setUserCreationAllowed</code>, checked in <code translate="no" v-pre>AIServiceImpl.save</code> for new AIs only, existing ones stay editable).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>

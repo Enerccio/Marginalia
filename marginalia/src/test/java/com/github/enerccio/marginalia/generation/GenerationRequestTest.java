@@ -104,14 +104,34 @@ class GenerationRequestTest extends GenerationTestBase {
     }
 
     @Test
-    void protocolContextOverridesAi() throws Exception {
+    void protocolContextCannotRaiseTheAiContext() throws Exception {
         ai.setMaxContext(1000);
         ai.setMaxCompletionTokens(950);
         ai = (OpenAICompatible) aiService.save(ai);
 
-        JsonObject body = completedRequestBody(manuscript(protocol(x -> x.setMaxTokens(8000))));
+        // the protocol asks for 8000, the AI allows 1000 and 950 of them are for the response
+        GenerationRun run = generate(manuscript(protocol(x -> x.setMaxTokens(8000))), "write");
+        run.await(TIMEOUT);
 
-        assertThat(body.get("max_completion_tokens").getAsInt()).isEqualTo(950);
+        assertThat(run.getSimpleErrors()).containsExactly(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
+        assertThat(llm.getCompletionRequests()).isEmpty();
+    }
+
+    @Test
+    void protocolReplyLimitCannotRaiseTheAiLimit() throws Exception {
+        ai.setMaxCompletionTokens(500);
+        ai = (OpenAICompatible) aiService.save(ai);
+
+        JsonObject body = completedRequestBody(manuscript(protocol(x -> x.setReplyTokens(4000))));
+
+        assertThat(body.get("max_completion_tokens").getAsInt()).isEqualTo(500);
+    }
+
+    @Test
+    void protocolCanLowerTheAiLimits() throws Exception {
+        JsonObject body = completedRequestBody(manuscript(protocol(x -> x.setReplyTokens(300))));
+
+        assertThat(body.get("max_completion_tokens").getAsInt()).isEqualTo(300);
     }
 
     @Test

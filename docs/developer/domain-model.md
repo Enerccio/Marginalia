@@ -15,6 +15,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Summary` | `summaries` | Summary |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible` | `ais`, `ais_openaicompat` | Inference provider |
+| `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
@@ -28,6 +29,8 @@ erDiagram
     User ||--o{ Manuscript : owns
     User ||--o{ Lorebook : owns
     User ||--o{ AI : owns
+    AI ||--o{ Usage : "used by users"
+    User ||--o{ Usage : owns
     User ||--o{ Protocol : owns
     User ||--o| UserSetting : has
 
@@ -81,6 +84,7 @@ classDiagram
     ExtendableEntity <|-- Summary
     ExtendableEntity <|-- Lorebook
     ExtendableEntity <|-- LorebookEntry
+    OwnedEntity <|-- Usage
     ExtendableEntity <|-- AI
     ExtendableEntity <|-- Protocol
     ExtendableEntity <|-- Tag
@@ -357,19 +361,38 @@ Both use joined inheritance: a base table with the common fields and one table p
 |---|---|---|
 | `aiType` | column (ordinal) | `AIType.OPEN_AI_COMPATIBLE`. `InferenceServices` picks the implementation by this type. |
 | `name` | column | |
-| `maxContext`, `maxCompletionTokens` | columns | Context size and maximum response tokens of the model. |
+| `maxContext`, `maxCompletionTokens` | columns | Context size and maximum response tokens of the model. A protocol can lower them, never raise them (`TokenLimits`). |
+| `shared` | column (indexed with `deleted`) | An AI of an administrator that every user can use: `AIRepository`'s `findAll(user)`, `findAllIds(user)` and `findByUuid` return the user's own AIs and the shared ones, so `findAllForUser()` / `findForUser(uuid)` see them, as do backup restore and the model combos. Only the owner changes or deletes it and only an administrator sets the flag (`AIServiceImpl`, server side; the UI hides edit, delete and the API key from others). Real column because the lookups filter on it. |
 | `enabledReasoning`, `reasoningEffort` | columns | Reasoning settings. |
 | `needsJailbreak`, `jailbreak` | columns | Text put before the system prompt. |
 | `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (encrypted, see [Encrypted columns](database.md#encrypted-columns)). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
 | `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |
 
+### `Usage` (tokens used with an AI)
+
+One row per AI and user (`owner`), unique on `(ai_id, userId)`: a personal AI has one, a shared AI one for everybody who
+uses it. Counting only; nothing is limited by it yet.
+
+| Field | Stored | |
+|---|---|---|
+| `ai` | column `ai_id` | `@ManyToOne`, `OWNED_BY` the AI for cleanup. |
+| `prefillTokens` | column | Tokens sent to the model (the prompt). |
+| `generatedTokens` | column | Tokens the model generated, reasoning included. |
+| `requests`, `lastUsed` | columns | Number of requests added up, time of the last one. |
+
+All are real columns: they are added up in SQL (`UsageRepository.add`, `UPDATE ... SET x = x + :n`), not read and saved, so parallel
+requests don't lose counts. `UsageService.record(ai, prefill, generated)` is the way to count: it adds to the row of the
+current user, creating it on first use (under a lock held until the commit, so two first uses can't both insert), and
+never throws. `findAllForAI(ai)` lists every user's usage for the owner of the AI or an administrator. See
+[Inference](generation-pipeline.md#usage-counting).
+
 ### `Protocol` / `ChatCompletionProtocol`
 
 | Field | Stored | |
 |---|---|---|
 | `name`, `protocolType` | columns | `ProtocolType.CHAT_COMPLETION`. |
-| `maxTokens`, `replyTokens` | columns | Optional overrides of the provider's context and response limits; `null` = use the provider's (`TokenLimits`). |
+| `maxTokens`, `replyTokens` | columns | Optional limits lower than the provider's context and response limits; `null` = use the provider's, a larger value is capped to the provider's (`TokenLimits`). |
 | `temperature`, `topP`, `frequencyPenalty`, `presencePenalty` and their `...Enabled` flags | JSON | Sampling settings; a disabled setting is not sent. |
 
 !!!warning Enum columns
@@ -385,7 +408,7 @@ values are extended attributes.
 
 | Class | Owner | Contains |
 |---|---|---|
-| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`). |
+| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), `userAisAllowed` (users who are not administrators can create AIs, default and `null` = yes; `AIService.setUserCreationAllowed`, checked in `AIServiceImpl.save` for new AIs only, existing ones stay editable). |
 | `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)). |
 
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;

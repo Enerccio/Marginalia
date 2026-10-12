@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.BackupService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
+import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
 import com.github.enerccio.marginalia.test.GenerationRun;
@@ -42,6 +43,9 @@ class MetaSummaryTest extends GenerationTestBase {
 
     @Autowired
     private BackupService backupService;
+
+    @Autowired
+    private UsageService usageService;
 
     private Manuscript manuscript;
     private List<ChatMessage> story;
@@ -122,6 +126,17 @@ class MetaSummaryTest extends GenerationTestBase {
 
     private List<String> blockTexts() throws Exception {
         return blocks().stream().map(b -> b.summary().getSummary()).toList();
+    }
+
+    @Test
+    void summaryCountsItsUsage() throws Exception {
+        llm.enqueue(MockLLMResponse.text("S2").usage(321, 12));
+
+        AsyncResult result = run(callback -> summaryService.createSummary(manuscriptService.find(manuscript.getId()), m(2), callback));
+
+        assertThat(result.started()).isTrue();
+        assertThat(usageService.findForUser(ai).getPrefillTokens()).isEqualTo(321);
+        assertThat(usageService.findForUser(ai).getGeneratedTokens()).isEqualTo(12);
     }
 
     @Test

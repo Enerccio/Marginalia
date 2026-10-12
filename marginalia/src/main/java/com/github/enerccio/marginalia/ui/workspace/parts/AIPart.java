@@ -4,7 +4,9 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.service.AIService;
+import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.APILocals;
 import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
@@ -26,8 +28,11 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.text.NumberFormat;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Configurable
 @Extendable
@@ -39,8 +44,13 @@ public class AIPart implements WorkspaceComponent {
     @Autowired
     private AIService aiService;
 
+    @Autowired
+    private UsageService usageService;
+
     private final Workspace workspace;
     private Grid<AI> grid;
+    private Button addModelButton;
+    private final Map<Long, Usage> usages = new HashMap<>();
     private VerticalLayout mainLayout;
 
     public AIPart(Workspace workspace) {
@@ -79,6 +89,7 @@ public class AIPart implements WorkspaceComponent {
             dialog.open();
         });
         addModelButton.setThemeName("primary");
+        this.addModelButton = addModelButton;
 
         headerLayout.add(titleSpan, addModelButton);
         headerLayout.setFlexGrow(1, titleSpan);
@@ -94,6 +105,18 @@ public class AIPart implements WorkspaceComponent {
         grid.addColumn(AI::getName)
                 .setHeader(loc.getValue(L.LABEL_NAME))
                 .setFlexGrow(1);
+
+        grid.addColumn(ai -> loc.getValue(ai.isShared() ? L.LABEL_YES : L.LABEL_NO))
+                .setHeader(loc.getValue(L.LABEL_SHARED))
+                .setFlexGrow(0);
+
+        grid.addColumn(ai -> formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getPrefillTokens()))
+                .setHeader(loc.getValue(L.LABEL_TOKENS_SENT))
+                .setFlexGrow(0);
+
+        grid.addColumn(ai -> formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getGeneratedTokens()))
+                .setHeader(loc.getValue(L.LABEL_TOKENS_GENERATED))
+                .setFlexGrow(0);
 
         grid.addComponentColumn(ai -> {
             HorizontalLayout actions = new HorizontalLayout();
@@ -116,6 +139,11 @@ public class AIPart implements WorkspaceComponent {
                         }
                     }));
             deleteButton.setThemeName("error tertiary");
+
+            // AIs shared by somebody else can be used, not seen or changed
+            boolean own = aiService.isOwnedByCurrentUser(ai);
+            editButton.setVisible(own);
+            deleteButton.setVisible(own);
 
             actions.add(editButton, deleteButton);
             return actions;
@@ -147,6 +175,9 @@ public class AIPart implements WorkspaceComponent {
         try {
             List<AI> connections = aiService.findAllForUser();
             connections.sort(Comparator.comparing(AI::getName));
+            usages.clear();
+            usageService.findAllForUser().forEach(usage -> usages.put(usage.getAi().getId(), usage));
+            addModelButton.setVisible(aiService.canCreate());
             grid.setItems(connections);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -165,5 +196,9 @@ public class AIPart implements WorkspaceComponent {
     @Override
     public void onTabClosed() throws Exception {
 
+    }
+
+    private static String formatTokens(long tokens) {
+        return NumberFormat.getIntegerInstance().format(tokens);
     }
 }

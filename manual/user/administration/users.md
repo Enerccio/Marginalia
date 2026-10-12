@@ -56,6 +56,13 @@ the password only when the user can log in right away.
 
 The last administrator can't lose the administrator flag: *The last administrator cannot be deleted or demoted.*
 
+## Users and providers
+
+By default every user adds their own [inference providers](../inference-providers.md). Uncheck **Users can create
+their own models** above the user list to stop that: users can then only use the providers the administrators
+[share](../inference-providers.md#shared-providers). The providers a user already has keep working and can still be
+edited; administrators can always add providers.
+
 ## Deleting a user
 
 The trash button deletes the account after confirming. You can't delete your own account or the last administrator.

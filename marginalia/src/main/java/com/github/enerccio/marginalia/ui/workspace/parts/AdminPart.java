@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
@@ -22,6 +23,7 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -56,6 +58,9 @@ public class AdminPart implements WorkspaceComponent {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AIService aiService;
 
     @Autowired
     private User currentUser;
@@ -110,8 +115,9 @@ public class AdminPart implements WorkspaceComponent {
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "layout", type = VerticalLayout.class),
                     @APILocals(name = "toolbar", type = HorizontalLayout.class),
-                    @APILocals(name = "addUserButton", type = Button.class)})
-    private Component createUsersTab() {
+                    @APILocals(name = "addUserButton", type = Button.class),
+                    @APILocals(name = "userAisCheckbox", type = Checkbox.class)})
+    private Component createUsersTab() throws Exception {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
 
@@ -122,6 +128,21 @@ public class AdminPart implements WorkspaceComponent {
         Button addUserButton = new Button(loc.getValue(L.LABEL_ADD_USER), Solid.PLUS_CIRCLE.create(), e -> openUserDialog(new User()));
         addUserButton.setThemeName("primary");
         toolbar.add(addUserButton);
+
+        // when off, users can only use the AIs the administrators share (the ones they already have keep working)
+        Checkbox userAisCheckbox = new Checkbox(loc.getValue(L.LABEL_USERS_CAN_CREATE_AIS), aiService.isUserCreationAllowed());
+        userAisCheckbox.addValueChangeListener(e -> {
+            if (!e.isFromClient()) {
+                return;
+            }
+            try {
+                aiService.setUserCreationAllowed(e.getValue());
+            } catch (Exception ex) {
+                userAisCheckbox.setValue(e.getOldValue());
+                UIUtils.internalServerError(loc, ex);
+            }
+        });
+        toolbar.add(userAisCheckbox);
 
         usersGrid = new Grid<>(User.class, false);
         usersGrid.setSizeFull();

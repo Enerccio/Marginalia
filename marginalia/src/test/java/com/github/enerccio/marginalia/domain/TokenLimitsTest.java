@@ -25,10 +25,23 @@ class TokenLimitsTest {
     }
 
     @Test
-    void protocolLimitsWin() {
+    void lowerProtocolLimitsWin() {
         assertThat(TokenLimits.contextTokens(ai(32000, 1000), protocol(8000, 500))).isEqualTo(8000);
         assertThat(TokenLimits.responseTokens(ai(32000, 1000), protocol(8000, 500))).isEqualTo(500);
         assertThat(TokenLimits.promptTokens(ai(32000, 1000), protocol(8000, 500))).isEqualTo(7500);
+    }
+
+    @Test
+    void protocolCannotRaiseTheAiLimits() {
+        assertThat(TokenLimits.contextTokens(ai(32000, 1000), protocol(128000, 4000))).isEqualTo(32000);
+        assertThat(TokenLimits.responseTokens(ai(32000, 1000), protocol(128000, 4000))).isEqualTo(1000);
+        assertThat(TokenLimits.promptTokens(ai(32000, 1000), protocol(128000, 4000))).isEqualTo(31000);
+    }
+
+    @Test
+    void protocolLimitsApplyWhenTheAiHasNone() {
+        assertThat(TokenLimits.contextTokens(ai(null, null), protocol(8000, 500))).isEqualTo(8000);
+        assertThat(TokenLimits.responseTokens(ai(0, 0), protocol(8000, 500))).isEqualTo(500);
     }
 
     @Test
@@ -43,7 +56,7 @@ class TokenLimitsTest {
     @Test
     void limitsMixProtocolAndAi() {
         assertThat(TokenLimits.promptTokens(ai(32000, 1000), protocol(8000, null))).isEqualTo(7000);
-        assertThat(TokenLimits.promptTokens(ai(32000, 1000), protocol(null, 4000))).isEqualTo(28000);
+        assertThat(TokenLimits.promptTokens(ai(32000, 1000), protocol(null, 400))).isEqualTo(31600);
     }
 
     @Test

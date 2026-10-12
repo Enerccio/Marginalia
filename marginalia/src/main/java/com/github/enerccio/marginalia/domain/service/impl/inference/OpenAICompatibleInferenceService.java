@@ -8,15 +8,14 @@ import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.InferenceException;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.InferenceException.Type;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.google.gson.JsonElement;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
@@ -65,6 +64,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     @Autowired
     private Configuration configuration;
+
+    @Autowired
+    private UsageService usageService;
 
     private ExecutorService inferenceService;
 
@@ -159,6 +161,11 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
         Set<String> overridden = applyAdditionalParameters(paramsBuilder);
 
+        // the last chunk then carries the token counts of the request (an additional parameter stream_options replaces it)
+        if (!overridden.contains("stream_options")) {
+            paramsBuilder.streamOptions(ChatCompletionStreamOptions.builder().includeUsage(true).build());
+        }
+
         int responseTokens = TokenLimits.responseTokens(ai, protocol);
         if (responseTokens > 0 && !overridden.contains("max_completion_tokens")) {
             paramsBuilder.maxCompletionTokens(responseTokens);
@@ -185,6 +192,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             paramsBuilder.putAdditionalBodyProperty("allowed_openai_params", JsonValue.from(List.of("reasoning_effort")));
         }
 
+        // the request ends on other threads, the user it counts for is the one who started it
+        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
         CompletableFuture.runAsync(() -> {
             try {
@@ -192,7 +201,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     if (cancellationToken.isCancelled())
                         return;
                     StreamResponse<ChatCompletionChunk> streamResponse = client.chat().completions().createStreaming(paramsBuilder.build());
-                    OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse, callback, cancellationToken);
+                    OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse, callback, cancellationToken,
+                            (reported, generated) -> recordUsage(attributes, payload, reported, generated));
                     controller.continueInference();
                 });
             } catch (Throwable e) {
@@ -321,6 +331,31 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 .build();
     }
 
+    /**
+     * Counts a request for the user whose thread runs it, whoever started it (generation, summary, an extension): what
+     * the provider reported, otherwise our count of the payload and of the text that arrived (a stopped request has no
+     * report).
+     */
+    private void recordUsage(ThreadCopyRequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported, String generated) {
+        try (InRequestScope _ = new InRequestScope(attributes)) {
+            long prefill;
+            long generatedTokens;
+            if (reported != null) {
+                prefill = reported.promptTokens();
+                generatedTokens = reported.completionTokens();
+            } else {
+                prefill = 0;
+                for (LLMChatMessage message : payload) {
+                    prefill += tokenizerService.countTokensApprox(StringUtils.defaultString(message.getContent()));
+                }
+                generatedTokens = tokenizerService.countTokensApprox(generated);
+            }
+            usageService.record(ai, prefill, generatedTokens);
+        } catch (Exception e) {
+            log.warn("Failed to count the usage of AI {}", ai.getId(), e);
+        }
+    }
+
     private static Throwable translate(Throwable e) {
         return e instanceof RuntimeException r ? translateException(r) : e;
     }
@@ -434,6 +469,20 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     private record PendingChunk(ChunkType type, String text) {}
 
+    /**
+     * Token counts the provider reported for a request.
+     */
+    private record TokenUsage(long promptTokens, long completionTokens) {}
+
+    private interface UsageRecorder {
+
+        /**
+         * @param reported  what the provider reported, null if it didn't
+         * @param generated all the text that arrived, reasoning included
+         */
+        void record(TokenUsage reported, String generated);
+    }
+
     @Configurable(preConstruction = true)
     private static class OpenAIInferenceAsyncController implements InferenceAsyncController {
 
@@ -446,9 +495,15 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         private final Queue<PendingChunk> pendingChunks = new LinkedList<>();
         private final CancellationToken cancellationToken;
         private boolean completed = false;
+        private final UsageRecorder usageRecorder;
+        private final StringBuilder received = new StringBuilder();
+        private TokenUsage reportedUsage;
+        private boolean usageRecorded;
 
         public OpenAIInferenceAsyncController(StreamResponse<ChatCompletionChunk> streamResponse,
-                                              InferenceAsyncCallback callback, CancellationToken cancellationToken) {
+                                              InferenceAsyncCallback callback, CancellationToken cancellationToken,
+                                              UsageRecorder usageRecorder) {
+            this.usageRecorder = usageRecorder;
             this.streamResponse = streamResponse;
             this.iterator = streamResponse.stream().iterator();
             this.callback = callback;
@@ -469,6 +524,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             completed = true;
             pendingChunks.clear();
             closeStream();
+            recordUsage();
             log.debug("Inference execution terminated by controller request.");
         }
 
@@ -491,21 +547,25 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                         }
                         if (callback.isDead() || cancellationToken.isCancelled()) {
                             closeStream();
+                            recordUsage();
                             callback.onCancel();
                             return;
                         }
 
                         ChatCompletionChunk chunk = iterator.next();
+                        chunk.usage().ifPresent(usage -> reportedUsage = new TokenUsage(usage.promptTokens(), usage.completionTokens()));
                         for (ChatCompletionChunk.Choice choice : chunk.choices()) {
                             ChatCompletionChunk.Choice.Delta delta = choice.delta();
 
                             String reasoning = extractReasoningContent(delta);
                             if (reasoning != null && !reasoning.isEmpty()) {
+                                received.append(reasoning);
                                 pendingChunks.add(new PendingChunk(ChunkType.REASONING, reasoning));
                             }
 
                             delta.content().ifPresent(content -> {
                                 if (!content.isEmpty()) {
+                                    received.append(content);
                                     pendingChunks.add(new PendingChunk(ChunkType.RESPONSE, content));
                                 }
                             });
@@ -520,6 +580,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
                     completed = true;
                     closeStream();
+                    recordUsage();
                     try {
                         callback.onCompletion();
                     } catch (Throwable e) {
@@ -536,6 +597,10 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 if (!completed) {
                     completed = true;
                     closeStream();
+                    if (!received.isEmpty()) {
+                        // it answered before it failed, so that was billed; a failure before any text is not counted
+                        recordUsage();
+                    }
                     try {
                         callback.onError(translate(e));
                     } catch (Exception ex) {
@@ -553,6 +618,17 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 val = delta._additionalProperties().get("reasoning");
             }
             return (val != null && !val.isNull()) ? (String) val.asString().orElse((String) null) : null;
+        }
+
+        /**
+         * Counts the request, once, whichever way it ends.
+         */
+        private void recordUsage() {
+            if (usageRecorded) {
+                return;
+            }
+            usageRecorded = true;
+            usageRecorder.record(reportedUsage, received.toString());
         }
 
         private void closeStream() {

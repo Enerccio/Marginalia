@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845151073131">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845155765302">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845151073131" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845155765302" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845151073131" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845155765302" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845151073131" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845151073131" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845155765302" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845155765302" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -409,7 +409,7 @@ checked in turn) and the user is asked whether to continue without it (<code tra
 with a summary is the <strong>stop part</strong>: it and everything before it is represented by the summaries.</p>
 <p><strong>Token budget.</strong> With <code translate="no" v-pre>TokenLimits</code>:</p>
 <div id="4-prepare_content---preparecontentstep-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-none"><code v-pre class="language-none">limit      = context tokens − response tokens        (protocol overrides, else provider limits)
+<pre translate="no" class="language-none"><code v-pre class="language-none">limit      = context tokens − response tokens        (smaller of protocol and provider limits)
 baseTokens = system template rendered with lore and summaries (no story)
            + jailbreak + rendered user prompt + 100
 reserved   = PrePromptData.reservedTokens            (set by extensions, 0 by default)</code></pre>
@@ -523,6 +523,14 @@ down instead of piling up chunks.</p>
 moves to <code translate="no" v-pre>CLEANUP</code>. An error goes to <code translate="no" v-pre>CLEANUP</code> too: a failure of the provider (<code translate="no" v-pre>InferenceException</code>, see
 <a href="../services/">Services</a>) is reported with <code translate="no" v-pre>onSimpleError</code> and a localized text of what to fix, anything else with
 <code translate="no" v-pre>onError</code>.</p>
+<h3 id="usage-counting">Usage counting</h3>
+<p><code translate="no" v-pre>OpenAICompatibleInferenceService</code> counts every request in the <code translate="no" v-pre>Usage</code> of the user who started it, so the generation, summaries and
+extensions that call <code translate="no" v-pre>stream</code> are all counted without doing anything. The request carries <code translate="no" v-pre>stream_options.include_usage</code>
+(unless the AI&#x27;s additional parameters set <code translate="no" v-pre>stream_options</code>), and the provider&#x27;s last chunk then reports the prompt and completion
+tokens. Without a report (the provider doesn&#x27;t send it, or the request was stopped) the service counts the payload and the text that
+arrived with <code translate="no" v-pre>countTokensApprox</code>. It is recorded once, when the stream completes, is stopped (<code translate="no" v-pre>terminateInference</code>, cancellation) or fails
+after some text arrived; a request that fails before any text is not counted. The stream threads have no request, so the service takes
+the <code translate="no" v-pre>ThreadCopyRequestAttributes</code> of the thread that called <code translate="no" v-pre>stream</code> and records inside it (<code translate="no" v-pre>currentUser</code> resolves).</p>
 <h3 id="8-cleanup---cleanupstep">8. <code translate="no" v-pre>CLEANUP</code> - <code translate="no" v-pre>CleanupStep</code></h3>
 <p>Always the last step. Depending on the state:</p>
 <retype-table copy-text="| State | What happens |

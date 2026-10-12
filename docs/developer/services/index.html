@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845151073131">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845155765302">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845151073131" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845155765302" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845151073131" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845155765302" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845151073131" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845151073131" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845155765302" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845155765302" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -486,11 +486,13 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 <h3 id="models">Models</h3>
 <retype-table copy-text="| Service | Responsible for |
 |---|---|
-| `AIService`, `ProtocolService` | Plain CRUD of inference providers and protocols. |
+| `AIService` | CRUD of inference providers with rules in the service: the user's AIs are their own and the shared ones (`AI.shared`); `save` / `delete` accept only the owner (`SecurityException` otherwise) and `shared = true` only from an administrator (`AdminGuard`); a new AI needs `canCreate()` (administrators, or anybody while `AppSettings.userAisAllowed`, set by `setUserCreationAllowed`, administrators only). `isOwnedByCurrentUser(ai)` is for the UI. |
+| `ProtocolService` | Plain CRUD of protocols (not shared). |
+| `UsageService` | `record(ai, prefill, generated)` adds a request to the current user's `Usage` of the AI (never throws, see [Usage](domain-model.md#usage-tokens-used-with-an-ai)); `findForUser(ai)`, `findAllForAI(ai)` (owner of the AI or administrator). Called by `OpenAICompatibleInferenceService`, not by the callers of `stream`. |
 | `InferenceServices` | `forAI(ai)` returns the `InferenceService` for a provider. Implementations are listed in `services-config.xml` (`inferenceProviders`), each annotated `@SupportedAI(AIType...)` with a constructor taking the `AI`; the instance is cached on the (transient) `AI.inferenceService` field. |
 | `InferenceService` | One provider: `getModels()`, `testConnection()` (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of `AIDialog`), `countTokens` / `countTokensApprox`, `stream(payload, protocol, callback)`. Failures of the provider are `InferenceException` (classified by `Type`: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; `OpenAICompatibleInferenceService.translateException`), also passed to `callback.onError`; `InferenceErrors.describe(loc, throwable)` / `messageOf` give the localized text for the UI. `OpenAICompatible` has the extended attributes `requestTimeoutSeconds` and `maxRetries`, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). A user message of the payload (`LLMChatMessage`) can carry `LLMAttachment`s (images as data or URL, WAV/MP3 audio, files), which `OpenAICompatibleInferenceService` sends as content parts after the text; an attachment it cannot send (audio in another format, audio or a file given only by URL) throws `IllegalArgumentException` from `stream`, attachments of other roles are not sent. Streaming is asynchronous; the callback gets chunks (`REASONING` / `RESPONSE`) and must call `controller.continueInference()` to receive the next one. Implemented by `OpenAICompatibleInferenceService`. |
 | `TokenizerService` | Token counting per provider: tries the `TokenizerStrategy` candidates in order and caches the first that works, per provider id, until it fails or the provider is saved (`AIDialog` calls `invalidateCache`). The local JTokkit fallback is not cached, so a provider whose server was unreachable is probed again on the next count. `countTokensApprox` always uses JTokkit locally. |
-| `TokenLimits` | Static helpers (in `domain.components`) for the context, response and prompt budget of a generation (protocol overrides, else provider limits). |
+| `TokenLimits` | Static helpers (in `domain.components`) for the context, response and prompt budget of a generation: the smaller of the protocol's and the provider's limit when both are set, the one that is set otherwise. |
 | `TemplateService` | `processTemplate(template, name, data)` renders a Handlebars template with macros; `isValidTemplate` for the UI. See [Templating &amp; macros](templating.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -502,8 +504,16 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 </thead>
 <tbody>
 <tr>
-<td><code translate="no" v-pre>AIService</code>, <code translate="no" v-pre>ProtocolService</code></td>
-<td>Plain CRUD of inference providers and protocols.</td>
+<td><code translate="no" v-pre>AIService</code></td>
+<td>CRUD of inference providers with rules in the service: the user&#x27;s AIs are their own and the shared ones (<code translate="no" v-pre>AI.shared</code>); <code translate="no" v-pre>save</code> / <code translate="no" v-pre>delete</code> accept only the owner (<code translate="no" v-pre>SecurityException</code> otherwise) and <code translate="no" v-pre>shared = true</code> only from an administrator (<code translate="no" v-pre>AdminGuard</code>); a new AI needs <code translate="no" v-pre>canCreate()</code> (administrators, or anybody while <code translate="no" v-pre>AppSettings.userAisAllowed</code>, set by <code translate="no" v-pre>setUserCreationAllowed</code>, administrators only). <code translate="no" v-pre>isOwnedByCurrentUser(ai)</code> is for the UI.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ProtocolService</code></td>
+<td>Plain CRUD of protocols (not shared).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>UsageService</code></td>
+<td><code translate="no" v-pre>record(ai, prefill, generated)</code> adds a request to the current user&#x27;s <code translate="no" v-pre>Usage</code> of the AI (never throws, see <a href="../domain-model/#usage-tokens-used-with-an-ai">Usage</a>); <code translate="no" v-pre>findForUser(ai)</code>, <code translate="no" v-pre>findAllForAI(ai)</code> (owner of the AI or administrator). Called by <code translate="no" v-pre>OpenAICompatibleInferenceService</code>, not by the callers of <code translate="no" v-pre>stream</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>InferenceServices</code></td>
@@ -519,7 +529,7 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TokenLimits</code></td>
-<td>Static helpers (in <code translate="no" v-pre>domain.components</code>) for the context, response and prompt budget of a generation (protocol overrides, else provider limits).</td>
+<td>Static helpers (in <code translate="no" v-pre>domain.components</code>) for the context, response and prompt budget of a generation: the smaller of the protocol&#x27;s and the provider&#x27;s limit when both are set, the one that is set otherwise.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TemplateService</code></td>

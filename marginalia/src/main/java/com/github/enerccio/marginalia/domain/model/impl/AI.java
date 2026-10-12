@@ -42,6 +42,13 @@ public class AI extends ExtendableEntity {
     @Column
     private Integer maxContext;
 
+    /**
+     * Shared with all users: they can pick it for their books, only the owner (an administrator) can see and change
+     * it. Real column because the lookups of the user's AIs filter on it.
+     */
+    @Column(nullable = false)
+    private boolean shared = false;
+
     public AIType getAiType() {
         return aiType;
     }
@@ -113,5 +120,13 @@ public class AI extends ExtendableEntity {
 
     public void setMaxContext(Integer maxContext) {
         this.maxContext = maxContext;
+    }
+
+    public boolean isShared() {
+        return shared;
+    }
+
+    public void setShared(boolean shared) {
+        this.shared = shared;
     }
 }

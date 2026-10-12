@@ -51,6 +51,16 @@ public class AppSettings extends Setting {
     @ExtendedAttribute
     private Date backupScheduleChanged;
 
+    // AIs
+
+    /**
+     * Whether users who are not administrators can create their own AIs. When off they can only use the AIs the
+     * administrators share; the AIs they already have keep working. Null (never set) means allowed.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean userAisAllowed = true;
+
     public Integer getDbVersion() {
         return dbVersion;
     }
@@ -105,5 +115,13 @@ public class AppSettings extends Setting {
 
     public void setBackupScheduleChanged(Date backupScheduleChanged) {
         this.backupScheduleChanged = backupScheduleChanged;
+    }
+
+    public Boolean getUserAisAllowed() {
+        return userAisAllowed == null || userAisAllowed;
+    }
+
+    public void setUserAisAllowed(Boolean userAisAllowed) {
+        this.userAisAllowed = userAisAllowed;
     }
 }

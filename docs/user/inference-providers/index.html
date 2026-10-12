@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845151073131">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845155765302">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845151073131" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845155765302" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845151073131" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845155765302" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845151073131" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845155765302" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -409,8 +409,8 @@ templates, <a href="../lorebooks/">lorebook</a> entries and <a href="../books/su
 parts of the story that don&#x27;t fit are left out. With a context of 32 000 tokens and responses of up to 2 000 tokens,
 the prompt gets 30 000 tokens.</p>
 <p>Take <strong>Max Context Size</strong> from the documentation of the service, and set it a little lower: token counts are not
-always exact, and a request that exceeds the real limit fails. A <a href="../protocols/">protocol</a> can override both limits
-for some books.</p>
+always exact, and a request that exceeds the real limit fails. A <a href="../protocols/">protocol</a> can lower both limits
+for some books, but not raise them.</p>
 <h2 id="error-messages">Error messages</h2>
 <p>When the API refuses a request, Marginalia says what to fix instead of showing an internal error, followed by what the
 API itself said:</p>
@@ -509,6 +509,42 @@ and tries these methods in order:</p>
 </ol>
 <p>The first method that works is used from then on. The local estimate is close for most models but not exact, which
 is another reason to keep <strong>Max Context Size</strong> a little below the real limit.</p>
+<h2 id="shared-providers">Shared providers</h2>
+<p>On an installation with several users, an administrator can <strong>share</strong> a provider: check <strong>Shared with all users</strong> in
+the provider&#x27;s dialog (the checkbox is only there for administrators). Every user then finds it in the <strong>Model</strong> list
+of their books and in their <strong>Inference Providers</strong> tab, marked <em>Shared</em> <strong>Yes</strong>. They can use it, but they can&#x27;t open
+it, see its address or API key, change it or delete it; only its owner can. Books, backups and restores that refer to
+a shared provider keep working for everybody who can see it.</p>
+<p>Sharing a provider lets the other users spend the owner&#x27;s quota with the service. To stop users from adding providers
+of their own, so that they can only use the shared ones, see
+<a href="../administration/users/#users-and-providers">Users and providers</a>.</p>
+<h2 id="usage">Usage</h2>
+<p>The <strong>Inference Providers</strong> tab shows, per provider, the <strong>Tokens sent</strong> (the prompt, &quot;prefill&quot;) and <strong>Tokens generated</strong> (the
+response, reasoning included) you have used with it, added up over all your books, summaries and extensions. A shared
+provider has a count of its own for each user, so you see only your part.</p>
+<p>The numbers are what the service reports. A service that doesn&#x27;t report them (or a request you stop in the middle)
+is counted with the local estimate described in <doc-anchor-trigger to="#token-counting">Token counting</doc-anchor-trigger>, so those numbers are approximate.
+A request that fails before any text arrived isn&#x27;t counted. The counts are only informational for now: nothing is
+limited by them.</p>
+<div class="flex mb-6">
+    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-primary"></div>
+    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
+        <div class="flex items-center ml-4 h-7">
+            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-primary" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+                <g fill="currentColor"><g>
+                    <path d="M12 1C5.93 1 1 5.93 1 12s4.93 11 11 11 11-4.93 11-11S18.07 1 12 1zm0 20c-4.96 0-9-4.04-9-9s4.04-9 9-9 9 4.04 9 9-4.04 9-9 9z"></path>
+                    <path d="M12 11c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1s1-.45 1-1v-4c0-.55-.45-1-1-1zM12.01 7c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                    <path fill="none" d="M0 0h24v24H0z"></path>
+                </g></g>
+            </svg>
+        </div>
+        <div class="pr-5 ml-3 w-full">
+<p>Marginalia asks the service to report the token counts (<code translate="no" v-pre>stream_options</code> with <code translate="no" v-pre>include_usage</code>). To change that for a
+provider, put your own <code translate="no" v-pre>stream_options</code> into its <strong>Additional Parameters</strong>, for example
+<code translate="no" v-pre>{&quot;stream_options&quot;: {&quot;include_usage&quot;: false}}</code>: it replaces what Marginalia sends, and the local estimate is used.</p>
+        </div>
+    </div>
+</div>
 <h2 id="using-a-provider-in-a-book">Using a provider in a book</h2>
 <p>Each book has its model in the <strong>Model</strong> field of its <strong>About</strong> tab. To use a provider for all new books, select it
 as <strong>Default Model</strong> in the <strong>Settings</strong> tab. Changing the provider of a book takes effect with the next generated

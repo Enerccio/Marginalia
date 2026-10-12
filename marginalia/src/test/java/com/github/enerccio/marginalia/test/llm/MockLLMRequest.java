@@ -74,6 +74,15 @@ public class MockLLMRequest {
         return rawBody;
     }
 
+    /**
+     * Whether the request asked for the token counts in the stream ({@code stream_options.include_usage}).
+     */
+    public boolean includesUsage() {
+        return body.has("stream_options") && body.get("stream_options").isJsonObject()
+                && body.getAsJsonObject("stream_options").has("include_usage")
+                && body.getAsJsonObject("stream_options").get("include_usage").getAsBoolean();
+    }
+
     public JsonObject getBody() {
         return body;
     }

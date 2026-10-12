@@ -317,6 +317,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_START, "启动");
         setValue(L.LABEL_LOG, "日志");
         setValue(L.LABEL_CLEAR, "清除");
+        setValue(L.LABEL_SHARED, "共享");
+        setValue(L.LABEL_SHARED_WITH_ALL_USERS, "与所有用户共享");
+        setValue(L.LABEL_USERS_CAN_CREATE_AIS, "允许用户创建自己的模型");
+        setValue(L.LABEL_TOKENS_SENT, "已发送令牌");
+        setValue(L.LABEL_TOKENS_GENERATED, "已生成令牌");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
