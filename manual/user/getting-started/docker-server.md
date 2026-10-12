@@ -36,7 +36,7 @@ services:
     image: ghcr.io/enerccio/marginalia:latest
 ```
 
-`latest` is the newest release, `edge` the development version, and `1.0.1` (or `1.0`) pins a release. The rest of
+`latest` is the newest release, `edge` the development version, and `1.1.0` (or `1.1`) pins a release. The rest of
 the file stays the same.
 
 ## Configuration

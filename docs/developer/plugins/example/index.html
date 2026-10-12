@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136240256">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136540148">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845136240256" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845136540148" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845136240256" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845136540148" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845136240256" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845136240256" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845136540148" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845136540148" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -453,9 +453,9 @@ edited).</p>
 <h3 id="5-build-and-load">5. Build and load</h3>
 <div id="5-build-and-load-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd bookmarks
-mvn package                     # target/bookmarks-1.0.1.jar</code></pre>
+mvn package                     # target/bookmarks-1.1.0.jar</code></pre>
 </doc-codeblock></div>
-<p>Load <code translate="no" v-pre>target/bookmarks-1.0.1.jar</code> in <em>Admin → Extensions</em> and open a book (books that were already open need to be
+<p>Load <code translate="no" v-pre>target/bookmarks-1.1.0.jar</code> in <em>Admin → Extensions</em> and open a book (books that were already open need to be
 closed and opened again). Open a part&#x27;s menu, choose <em>Toggle bookmark</em> - the part&#x27;s sidebar entry gets the ★.</p>
 <p>If nothing appears, look in the log for <code translate="no" v-pre>Mod 'com.example.marginalia.bookmarks.BookmarksExtension$...' skipped on ...</code> (a name that doesn&#x27;t exist) or <code translate="no" v-pre>Unhandled exception in extension ...</code>. The lines of the extension itself (here
 <code translate="no" v-pre>log.error(&quot;Cannot toggle bookmark&quot;, e)</code>) are in <em>Admin → Extensions → Log</em> of the extension, see
@@ -707,7 +707,7 @@ user&#x27;s setting stays and works again when the plugin is loaded.</p>
 </li>
 </ul>
 <p>To try it, build and load it like any plugin (<doc-anchor-trigger to="#5-build-and-load">Build and load</doc-anchor-trigger>): in <em>Admin → Extensions</em> load
-<code translate="no" v-pre>chineselocalization-1.0.1.jar</code>, then pick <em>中文（简体）</em> in the language selector.</p>
+<code translate="no" v-pre>chineselocalization-1.1.0.jar</code>, then pick <em>中文（简体）</em> in the language selector.</p>
 
                 
                 <!-- Required only on API pages -->
