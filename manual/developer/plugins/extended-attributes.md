@@ -28,7 +28,7 @@ All data entities extend `ExtendableEntity` ([Domain model](../domain-model.md))
 | `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. |
 | `AppSettings` | Settings for the whole installation (administrators). |
 
-`User` and `Resource` are not extendable.
+`User`, `Resource` and `Usage` are not extendable.
 
 ```java
 JsonObject attributes = entity.getAttributes();       // never null after loading; a new entity starts with {}

@@ -120,6 +120,8 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V7 | `V7__user_login_backoff.sql` | `users.failedLogins` and `users.lockedUntil` (both `not null default 0`) for the login back-off, see [Users](domain-model.md#users). |
 | V8 | `V8__resource_link.sql` | `resources.objectId` and `resources.clazz` - the loose link of an uploaded file to the object that uses it - and the indexes of the Resources tab (`(userId, is_deleted, creation)`) and of the link (`(clazz, objectId)`). |
 | V9 | `V9__fulltext.sql` | `_fulltext` clob on every table of an extendable entity (`ais`, `entries`, `lorebooks`, `manuscripts`, `messages`, `protocols`, `settings`, `summaries`, `t2e`, `tags`), because the column is mapped in `ExtendableEntity`. Copies `manuscripts.description` into `extendedContent` where the JSON has no value (the extended attribute wins when both exist), then drops the column. The column is filled by `FulltextMigration` (app version 3). |
+| V10 | `V10__ai_shared.sql` | `ais.shared` (`not null default false`), the flag of an AI that an administrator shares with all users, and its index `(shared, is_deleted)`. See [`AI`](domain-model.md#ai--openaicompatible-inference-provider). |
+| V11 | `V11__usages.sql` | The `usages` table (tokens a user used with an AI, one row per AI and user, unique `(ai_id, userId)`), its `usages_SEQ` id table and the index of the owner lookup. See [`Usage`](domain-model.md#usage-tokens-used-with-an-ai). |
 
 ### Rules
 
@@ -273,6 +275,8 @@ Index what the queries filter on, in the order of the `WHERE` clause, with the e
 | `t2e (objectId, clazz, negative)` | Tags of a book, lorebook or entry (`findTagsForObject`, lorebook activation on every generation). |
 | `t2e (tag_id, clazz, negative)` | Objects with a tag (`findObjectIdsForTag`, tag filters). |
 | `<table> (userId, is_deleted)` | Listing and finding the owner's entities (`ais`, `protocols`, `manuscripts`, `lorebooks`, `tags`). |
+| `ais (shared, is_deleted)` | The shared AIs every user sees next to their own. |
+| `usages (ai_id, userId)` (unique), `usages (userId, is_deleted)` | The usage of an AI by a user (the row `UsageRepository.add` updates), the usages of a user. |
 | `entries (lorebook_id, ordinal)` | Entries of a lorebook in order. |
 | `messages (parentScript_id, creation)`, `messages (parent_id)` | Parts of a book in order, children of a part. |
 | `messages (summary_id)` | Parts using a summary (cleanup references). |
