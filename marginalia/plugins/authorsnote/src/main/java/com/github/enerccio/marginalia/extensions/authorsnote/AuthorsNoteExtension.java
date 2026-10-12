@@ -18,7 +18,6 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
@@ -30,7 +29,8 @@ import java.util.WeakHashMap;
 @Configurable
 public class AuthorsNoteExtension implements MarginaliaExtension {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthorsNoteExtension.class);
+    /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
+    private Logger log;
 
     private static final String AUTHORS_NOTE_VIEW_KEY = AuthorsNoteData.KEY + ".view";
 
@@ -47,6 +47,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        log = parentService.createLogger(bundle);
         try {
             // the Author's Note tab in the left sidebar of the story view (the drawer on a phone), next to the outline
             storyPartDecorator = new ExtensionDecorator() {

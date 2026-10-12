@@ -88,7 +88,7 @@ public interface OsgiService {
     /**
      * A logger for the extension, in the usual SLF4J way ({@code log.info("Loaded {}", name)}, a trailing throwable is
      * logged with its stack trace). Everything it logs goes to {@code <jar name>.log} in the extensions folder (for
-     * {@code sidequery.jar} that is {@code sidequery.jar.log}), not to the application log; TRACE is dropped. A file
+     * {@code sidequery.jar} that is {@code sidequery.jar.log}), and also, chained, to the application log (logger {@code extension.<name>}, at the level of the line); TRACE is dropped. A file
      * over 2 MB is moved to {@code .log.old}. Call it from {@code onExtensionLoad} with the bundle passed there; the
      * returned logger can be kept and used from any thread.
      */

@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.extensions.sidequery.SideQueryLog;
 import com.github.enerccio.marginalia.extensions.sidequery.model.*;
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -30,8 +31,6 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -41,8 +40,6 @@ import java.util.function.Consumer;
 
 @Configurable(preConstruction = true)
 public class SideQueryTabContent extends VerticalLayout {
-    private static final Logger log = LoggerFactory.getLogger(SideQueryTabContent.class);
-
     @Autowired
     private InferenceServices inferenceServices;
 
@@ -538,7 +535,7 @@ public class SideQueryTabContent extends VerticalLayout {
             }
         } catch (Exception e) {
             namingTab = false;
-            log.warn("Failed to name side query tab: {}", e.getMessage());
+            SideQueryLog.get().warn("Failed to name side query tab: {}", e.getMessage());
         }
     }
 
