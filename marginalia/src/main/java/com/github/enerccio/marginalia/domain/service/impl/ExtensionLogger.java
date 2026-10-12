@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
 import org.slf4j.helpers.FormattingTuple;
@@ -20,7 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The SLF4J logger an extension gets from {@code OsgiService.createLogger}: the usual {@code {}} placeholders and a
- * trailing throwable work, the lines go to the log file of the extension (next to its JAR) and nowhere else. TRACE is
+ * trailing throwable work. A line goes to the log file of the extension (next to its JAR) and is chained to the
+ * application log (logger {@code extension.<name>}, same level, filtered by the level of the application log). TRACE is
  * off. The file is opened for each line, so nothing is held open when the extension is removed; when it grows over
  * {@link #MAX_LOG_BYTES}, it is moved to {@code <log>.old} (replacing the previous one).
  */
@@ -34,10 +36,12 @@ final class ExtensionLogger extends LegacyAbstractLogger {
     private static final ConcurrentHashMap<String, Object> LOCKS = new ConcurrentHashMap<>();
 
     private final File file;
+    private final org.slf4j.Logger main;
 
     ExtensionLogger(String name, File file) {
         this.name = name;
         this.file = file;
+        this.main = LoggerFactory.getLogger("extension." + name);
     }
 
     /**
@@ -99,6 +103,9 @@ final class ExtensionLogger extends LegacyAbstractLogger {
             line.append(trace);
         }
         write(line.toString());
+        if (main.isEnabledForLevel(level)) {
+            main.atLevel(level).setCause(tuple.getThrowable()).log(tuple.getMessage());
+        }
     }
 
     private void write(String text) {

@@ -17,22 +17,17 @@ import com.vaadin.flow.component.notification.Notification;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Configurable
 public class InstructionExporterExtension implements MarginaliaExtension {
 
-    private static final Logger log = LoggerFactory.getLogger(InstructionExporterExtension.class);
+    /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
+    private Logger log;
 
     private static final String KEY = "com.github.enerccio.marginalia.extensions.instructionexporter.InstructionExporterExtension";
     private static final String MENU_ITEM_KEY = KEY + ".menuItem";
@@ -47,6 +42,7 @@ public class InstructionExporterExtension implements MarginaliaExtension {
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        log = parentService.createLogger(bundle);
         try {
             cogsDecorator = new ExtensionDecorator() {
                 @Override

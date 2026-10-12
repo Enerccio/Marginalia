@@ -663,6 +663,7 @@ class OsgiServiceImplTest {
         Bundle a = bundleNamed("test.a");
         org.slf4j.Logger logger = service.createLogger(a);
         org.slf4j.Logger named = service.createLogger(a, "my.logger");
+        ExpectedLog mainLog = ExpectedLog.capture("extension");
 
         assertThat(service.readLog(a, 10_000)).isEmpty();
         logger.info("loaded {} of {}", 1, "two");
@@ -678,8 +679,11 @@ class OsgiServiceImplTest {
                 .doesNotContain("not written")
                 .contains("ERROR").contains("my.logger - failed x")
                 .contains("java.lang.IllegalStateException: boom").contains("at ");
-        // nothing goes to the application log
-        assertThat(log.errors()).noneMatch(m -> m.contains("failed x"));
+        // chained to the application log
+        assertThat(mainLog.errors()).anyMatch(m -> m.contains("failed x"));
+        assertThat(mainLog.entries()).anyMatch(e -> e.throwable() instanceof IllegalStateException);
+        assertThat(mainLog.atLeast(org.apache.log4j.Level.INFO)).anyMatch(m -> m.contains("loaded 1 of two"));
+        mainLog.close();
 
         service.clearLog(a);
         assertThat(logFile).doesNotExist();

@@ -231,8 +231,8 @@ sequenceDiagram
 
 ### Logging
 
-An extension should not write into the application log (it ends up mixed with everything else, and the release
-build logs at INFO). `OsgiService.createLogger(bundle)` returns an `org.slf4j.Logger` that writes to its own file,
+An extension should not use `LoggerFactory` (its lines are mixed with everything else and the administrator cannot
+see them next to the extension). `OsgiService.createLogger(bundle)` returns an `org.slf4j.Logger` that writes to its own file,
 `<jar name>.log` in the extensions folder (`sidequery.jar.log`), which administrators read in *Admin → Extensions →
 Log*:
 
@@ -248,7 +248,9 @@ public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionS
 
 - The usual SLF4J API: `{}` placeholders and a trailing throwable (logged with its stack trace). TRACE is dropped,
   DEBUG and above are written. Each line has the time, level, thread, logger name (the symbolic name by default) and
-  the message. Nothing is sent to the application log.
+  the message. The line is also chained to the application log (logger `extension.<name>`, same level, so the
+  level settings of the application apply - the release build logs at INFO and keeps story content out of its log,
+  so don't log story text above DEBUG).
 - The logger is thread safe and can be kept; the file is opened for every line, so nothing stays open after the
   extension is gone. A file over 2 MB is moved to `<jar name>.log.old` (replacing the previous one).
 - `OsgiService.readLog(bundle, maxBytes)` and `clearLog(bundle)` (administrators only) read the end of the file and

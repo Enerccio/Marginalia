@@ -44,6 +44,7 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        SideQueryLog.install(parentService.createLogger(bundle));
         try {
             // Decorate ManuscriptStoryPart to inject SideQuery tab in leftMarginLayout (leftBar VTabSheet)
             storyPartDecorator = new ExtensionDecorator() {
@@ -149,6 +150,7 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
 
     @Override
     public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
+        SideQueryLog.reset();
         if (storyPartDecorator != null) {
             extensionService.unregisterDecorator(storyPartDecorator);
         }

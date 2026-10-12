@@ -35,6 +35,10 @@ public final class ExpectedLog extends AppenderSkeleton implements AutoCloseable
         logger.setAdditivity(false);
     }
 
+    public static ExpectedLog capture(String loggerName) {
+        return new ExpectedLog(Logger.getLogger(loggerName));
+    }
+
     public static ExpectedLog capture(Class<?> loggerClass) {
         return new ExpectedLog(Logger.getLogger(loggerClass));
     }
