@@ -82,6 +82,11 @@ bundle, no dev tools). The mode is decided by `META-INF/VAADIN/config/flow-build
 - `build-frontend` (in `prepare-package`, so only `mvn package` / `install`) builds the optimized bundle, writes a
   **production** build info into the WAR and removes the development one from `target/classes`.
 
+By default Vaadin scans the bytecode of the app and puts only the components it finds referenced into the production
+bundle. Extensions are loaded at runtime and may use any Vaadin component, so the plugin is configured with
+`<optimizeBundle>false</optimizeBundle>` (`-Dvaadin.devmode.optimizeBundle=false` on the command line): the bundle
+contains every component on the classpath, at the price of a bigger bundle and a slower frontend build.
+
 So `mvn package` always produces a **production** WAR - the one the Dockerfile, the `desktop` profile and CI use, and
 the one to deploy. Nothing has to be copied around. A build info in `src/main/resources` is never packaged into the
 WAR (`maven-war-plugin` excludes `META-INF/VAADIN/config/flow-build-info.json*`).

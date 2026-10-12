@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845161433465">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845161645289">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845161433465" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845161645289" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845161433465" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845161645289" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845161433465" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845161433465" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845161645289" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845161645289" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -329,6 +329,10 @@ the absolute paths of your checkout into <code translate="no" v-pre>target/class
 <strong>production</strong> build info into the WAR and removes the development one from <code translate="no" v-pre>target/classes</code>.</p>
 </li>
 </ul>
+<p>By default Vaadin scans the bytecode of the app and puts only the components it finds referenced into the production
+bundle. Extensions are loaded at runtime and may use any Vaadin component, so the plugin is configured with
+<code translate="no" v-pre>&lt;optimizeBundle&gt;false&lt;/optimizeBundle&gt;</code> (<code translate="no" v-pre>-Dvaadin.devmode.optimizeBundle=false</code> on the command line): the bundle
+contains every component on the classpath, at the price of a bigger bundle and a slower frontend build.</p>
 <p>So <code translate="no" v-pre>mvn package</code> always produces a <strong>production</strong> WAR - the one the Dockerfile, the <code translate="no" v-pre>desktop</code> profile and CI use, and
 the one to deploy. Nothing has to be copied around. A build info in <code translate="no" v-pre>src/main/resources</code> is never packaged into the
 WAR (<code translate="no" v-pre>maven-war-plugin</code> excludes <code translate="no" v-pre>META-INF/VAADIN/config/flow-build-info.json*</code>).</p>
