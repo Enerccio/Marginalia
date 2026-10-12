@@ -278,7 +278,7 @@ classDiagram
     ExtendableEntity <|-- Setting
 ```
 
-All data entities extend `ExtendableEntity`. `User` extends `BaseEntity` directly and `Resource` is an `OwnedEntity`.
+All data entities extend `ExtendableEntity`. `User` extends `BaseEntity` directly and `Resource` and `Usage` are `OwnedEntity`s.
 
 - Every entity has a numeric `id` (database key) and a `uuid` (stable identity used in URLs, backups and exports).
 - Deleting is **soft** by default (`deleted = true`); the admin *Cleanup* page purges deleted rows that nothing

@@ -180,7 +180,7 @@ and a popover with the metadata of the inference (ids, model, protocol, tokens, 
 right-hand column of the desktop card). Its summaries item opens `PhoneSummariesDialog`, the `SummariesDialog` with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
 `AppLayout` are kept inside the dialog by the `phone-story-layout` class.
 
-On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
+On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid (with the *Users can create their own models* checkbox, `AIService.setUserCreationAllowed`) and the
 `DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension and, per
 extension, the buttons *Stop* / *Start* (`OsgiService.stopExtension` / `startExtension`, state *Stopped*), *Log*
 (`ExtensionLogDialog`: the end of the extension's log with refresh and clear) and *Unload*). Note that the admin UI being hidden is not a permission
@@ -324,7 +324,8 @@ Expected problems (validation, missing configuration) are shown with `Notificati
 the field; `UIUtils.showValidationErrors(loc, e)` formats a binder's `ValidationException`. Failures of a request to the
 model API (`InferenceException`: wrong key, wrong URL, timeout...) go through `UIUtils.inferenceError(loc, e)`, which
 shows the localized cause (`InferenceErrors`) as a notification and falls back to `internalServerError` for anything
-else. `AIDialog` has the *Test Connection* button (`InferenceService.testConnection()` with the values of the form).
+else. `AIDialog` has the *Test Connection* button (`InferenceService.testConnection()` with the values of the form) and, for administrators only, the *Shared with all users* checkbox.
+`AIPart` / `PhoneAIPart` list the user's AIs and the shared ones with the user's own `Usage` (tokens sent / generated); the edit and delete buttons are only shown for AIs the user owns (`AIService.isOwnedByCurrentUser`) and the add button only when `AIService.canCreate()`. The service refuses the same things itself.
 
 ### Saving
 
