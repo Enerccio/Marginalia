@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845147084903">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845148756089">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845147084903" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845148756089" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845147084903" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845148756089" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845147084903" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845148756089" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -319,9 +319,12 @@ use <code translate="no" v-pre>loc.getValue(L.KEY)</code> (see <a href="../ui/#t
 <a href="../ui/#background-work-and-push">Background work and push</a>).</p>
 </li>
 <li>
-<p><strong>Extension points</strong>: methods that extensions decorate are <code translate="no" v-pre>@Extendable</code>. Renaming or removing such a method, its
-parameters or its local variables breaks plugins - check the bundled plugins and mention the change in the pull
-request (see <a href="../plugins/extendable/#keeping-hooks-working">Keeping hooks working</a>).</p>
+<p><strong>Extension points</strong>: methods that extensions decorate are <code translate="no" v-pre>@Extendable</code>, and each of them declares its signature
+with <code translate="no" v-pre>@PublicAPI</code> (<code translate="no" v-pre>PublicAPISignatureTest</code> fails when a method has none or the annotation is out of date). Renaming
+or removing such a method, its parameters or its local variables breaks plugins - update the annotation, check the
+bundled plugins and mention the change in the pull request (see
+<a href="../plugins/extendable/#the-public-api">The public API</a> and
+<a href="../plugins/extendable/#keeping-hooks-working">Keeping hooks working</a>).</p>
 </li>
 <li>
 <p><strong>Schema</strong>: every entity change comes with a migration; Hibernate only validates the schema.</p>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845147084903">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845148756089">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845147084903" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845148756089" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845147084903" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845148756089" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845147084903" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845147084903" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845148756089" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845148756089" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -834,7 +834,8 @@ runs before and after that method and can read its arguments and local variables
 </div>
 </retype-table>
 <p>New screens, dialogs and components with their own logic get <code translate="no" v-pre>@Extendable</code> too (a nested class needs its own
-annotation). Left out on purpose: classes with only static methods (<code translate="no" v-pre>TemplateHints</code>, <code translate="no" v-pre>SummaryRemoval</code>, <code translate="no" v-pre>UIUtils</code>; static
+annotation), and each of their instrumented methods gets a <a href="../plugins/extendable/#the-public-api"><code translate="no" v-pre>@PublicAPI</code></a> that
+declares its arguments, local variables and return type. Left out on purpose: classes with only static methods (<code translate="no" v-pre>TemplateHints</code>, <code translate="no" v-pre>SummaryRemoval</code>, <code translate="no" v-pre>UIUtils</code>; static
 methods are not instrumented), the generic dialogs and widgets used everywhere (<code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>ErrorDialog</code>,
 <code translate="no" v-pre>ProgressBarDialog</code>, <code translate="no" v-pre>Notification</code>, <code translate="no" v-pre>HTabSheet</code>, the <code translate="no" v-pre>BackendTable*</code> providers), the plumbing (servlet, app shell,
 initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and small data wrappers.</p>

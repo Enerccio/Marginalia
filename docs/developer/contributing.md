@@ -114,9 +114,12 @@ There is no formatter configuration in the repository; match the code around you
   use `loc.getValue(L.KEY)` (see [User interface](ui.md#text)).
 - **Threads**: long work runs off the UI thread, and UI updates go through `ui.access(...)` (see
   [Background work and push](ui.md#background-work-and-push)).
-- **Extension points**: methods that extensions decorate are `@Extendable`. Renaming or removing such a method, its
-  parameters or its local variables breaks plugins - check the bundled plugins and mention the change in the pull
-  request (see [Keeping hooks working](plugins/extendable.md#keeping-hooks-working)).
+- **Extension points**: methods that extensions decorate are `@Extendable`, and each of them declares its signature
+  with `@PublicAPI` (`PublicAPISignatureTest` fails when a method has none or the annotation is out of date). Renaming
+  or removing such a method, its parameters or its local variables breaks plugins - update the annotation, check the
+  bundled plugins and mention the change in the pull request (see
+  [The public API](plugins/extendable.md#the-public-api) and
+  [Keeping hooks working](plugins/extendable.md#keeping-hooks-working)).
 - **Schema**: every entity change comes with a migration; Hibernate only validates the schema.
 
 ### Tests

@@ -136,7 +136,7 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 | `domain.repository` (+ `impl`) | Data | JPA repositories. |
 | `domain.model` (+ `impl`) | Data | Entities and their base classes. |
 | `domain.security` | Data / services | `User`, its repository and service, saved logins. |
-| `domain.traits`, `domain.collections`, `domain.listener` | Shared | Annotations (`@CommonTx`, `@Extendable`, `@CleanupReference`...), enums, the entity listener for extended attributes. |
+| `domain.traits`, `domain.collections`, `domain.listener` | Shared | Annotations (`@CommonTx`, `@Extendable`, `@PublicAPI`, `@CleanupReference`...), enums, the entity listener for extended attributes. |
 | `extensions`, `instruct` | Extensions | The `MarginaliaExtension` interface, the bytecode instrumentation. |
 | `bound` | Startup, sessions | Application initializer and migrations hook, the `SessionManager` and its session bookkeeping. |
 | `loc` | Shared | Localization: the `L` keys and the English texts. |
@@ -409,12 +409,12 @@ sequenceDiagram
   extension that doesn't fit is not started.
 - **Instrumentation.** At startup a ByteBuddy agent rewrites every non-static, non-constructor method of each class
   annotated `@Extendable`: `ExtendableMethodVisitor` adds a call to `ExtensionService.onExtendableMethodEnter` at the
-  start, records each local variable as it is stored, and calls `onExtendableMethodLeave` on every return and throw.
+  start, records each local variable as it is stored, and calls `onExtendableMethodLeave` on every return and throw (at the return of a value the original value is registered first and the one the decorators leave is returned).
   This happens on every call, with or without decorators, so `@Extendable` belongs on UI classes, not on hot code.
 - **Decorators.** `ExtensionService.registerDecorator(decorator, className, methodName)` attaches code before and
   after a method. Through the `ExtendableMethodContext` it can read the method's arguments, read local variables by
   name (for example the menu the method just built, to add an item to it) and access fields and methods reflectively.
-  On enter it can replace arguments; it can't change the return value or skip the method.
+  On enter it can replace arguments, on leave it can replace the return value (chained through the decorators); it can't skip the method.
 - **Data.** Extensions keep their data in the `attributes` of existing entities, so no schema changes are needed and
   the data is part of backups. They can also listen to generation events and take part in cleanup
   (`CleanupService.registerContributor`).

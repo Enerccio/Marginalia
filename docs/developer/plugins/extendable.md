@@ -2,8 +2,9 @@
 
 Most of what a plugin does starts with a **decorator**: an object whose `onMethodEnter` and `onMethodLeave` run
 before and after a method of an application class. Any method of a class annotated `@Extendable` can be decorated,
-private ones included, and the decorator can read the method's arguments and local variables. This page explains how
-that works and how to use it.
+private ones included, and the decorator can read the method's arguments and local variables and change what
+the method returns. This page explains how that works and how to use it. The signature of every such method is declared in the source with
+[`@PublicAPI`](#the-public-api), which is what plugins can rely on.
 
 ## Instrumentation
 
@@ -35,9 +36,13 @@ ReturnType method(A a, B b) {
     try {
         ... original body; after every store into an object local variable:
         context.registerLocalVariable("name", value, value.getClass());
-        ... before every return:
+        ... at every return of a value (not in a void method):
+        context.registerReturnValue(result, ReturnType.class);      // declared return type, the original value
         service.onExtendableMethodLeave(DeclaringClass.class, this, context, "method", null);
-        return result;
+        return (ReturnType) context.resolveReturnValue();           // decorators may have replaced it
+        ... at a return in a void method:
+        service.onExtendableMethodLeave(DeclaringClass.class, this, context, "method", null);
+        return;
     } catch (Throwable t) {
         service.onExtendableMethodLeave(DeclaringClass.class, this, context, "method", t);
         throw t;
@@ -51,6 +56,63 @@ which run at human speed, and not on services or entities.
 Names come from the class file: parameter names from the `MethodParameters` attribute (the application is compiled
 with `-parameters`), local variable names from the local variable table (`preserveAllLocals`). If either is
 missing, arguments are called `arg0`, `arg1`... and locals `var<slot>`.
+
+## The public API
+
+Everything a decorator can name - the class, the method, its arguments, its local variables - is a promise the
+application makes to the plugins. Every instrumented method of an `@Extendable` class (not a constructor, not static,
+not synthetic, with a body - the methods that can be decorated) therefore declares its signature with `@PublicAPI`
+(`domain.traits`):
+
+```java
+@PublicAPI(from = "1.1.0",
+        returns = @APIReturn(type = MenuItem.class),
+        parameters = {@APIParameter(name = "bar", type = MenuBar.class)},
+        locals = {@APILocals(name = "cogs", type = MenuItem.class)})
+private MenuItem createCogsMenuItem(MenuBar bar) {
+```
+
+| Element | Meaning |
+|---|---|
+| `from` | The first version of the application in which the method has this signature (`"1.2.0"`). When a change of the signature can be seen by a plugin (below), set it to the version that contains the change. |
+| `returns` | `@APIReturn(type = ...)`: the declared return type, `void.class` for `void`. The type a decorator reads with `getOriginalReturn` / `getCurrentReturn` and the one `setCurrentReturn` has to fit: a plugin that replaces the result depends on it. |
+| `parameters` | One `@APIParameter(name, type)` for each argument, in declaration order: the name `getMethodArgument` takes and the declared type. Primitives stay primitive (`int.class`). |
+| `locals` | One `@APILocals(name, type)` for each named object local variable that is not an argument: what `getLocalVariable` in `onMethodLeave` can read. The type is the declared type of the variable; a name used for more than one type is listed once for each. Primitive locals are not recorded and not listed. Locals of lambdas and compiler-generated locals (`var5`) are not part of it. |
+
+Types are class literals, so a refactoring that renames or moves a class in the IDE updates them too. They are erased
+(`List.class` for `List<String>`).
+
+**What counts as a change.** Renaming or retyping an argument or a local variable, adding or removing one, changing
+the return type, renaming or removing the method, or moving it to another class (a decorator registered for the old
+class and name is never called) can break a plugin. Adding a method does not, and neither does changing the body in a
+way that keeps the arguments, the locals and what they hold. For each change that can be seen:
+
+1. update the annotation (see below) and set `from` to the current version of the project (`pom.xml`);
+2. search `marginalia/plugins/` for the class, method and variable names and fix the plugins;
+3. mention it in the release notes.
+
+A new method starts with the current version in `from`. The methods that existed in 1.1.0 (the same class, name and
+argument names) were given `"1.1.0"` when the annotation was introduced; the local variables were not compared with 1.1.0.
+
+**It is tested.** `PublicAPISignatureTest` (`instruct` package) reads the compiled `@Extendable` classes with
+ByteBuddy - the type pool, so nothing is loaded - and the local variable table, and fails when
+
+- an instrumented method has no `@PublicAPI`;
+- the annotation differs from the compiled method (name or type of an argument, return type, a local that is missing,
+  extra or of another type);
+- a class is compiled without parameter names (`-parameters`), so the names would be `arg0`...;
+- `from` is not `major.minor.patch`, or the annotation is on a method that is not instrumented (a constructor, a static
+  or abstract method) or in a class that is not `@Extendable`.
+
+The message names the method and prints the annotation to write, so after changing a method you run the test, paste
+what it says and review the difference - that difference is exactly the change a plugin would see. Methods that
+AspectJ adds to the `@Configurable` classes (`readResolve()`) have no source and are skipped.
+
+!!!
+`@PublicAPI` describes methods only. The fields a plugin reads with `getReflectiveFieldValue` (such as `sidebarList`
+or `this$0`) are not declared, so check `marginalia/plugins/` before renaming or retyping a field of an `@Extendable`
+class.
+!!!
 
 ## Registering a decorator
 
@@ -99,6 +161,10 @@ Each call gets its own `ExtendableMethodContext` (calls don't share them, recurs
 | `registerMethodArgument(name, value, type)` | In `onMethodEnter`: **replace** an argument - the method body sees the new value. Use the declared type. A value that can't be cast to the parameter type (or `null` for a primitive) makes the method throw before its body runs. |
 | `getLocalVariable(name, type)` | A local variable by name, with its latest value. Only in `onMethodLeave` (none exist on enter). |
 | `hasLocalVariable(name)`, `hasLocalVariable(name, type)` | Check before reading - a local stored only on some paths may be missing. |
+| `hasReturn()` | Whether the method returned a value: `false` in `onMethodEnter`, for a `void` method and when the method throws. |
+| `getOriginalReturn(type)` | What the body of the method returned, whatever the decorators did. Only in `onMethodLeave`. Primitives come boxed, but ask for the primitive type (`int.class`) like for arguments. |
+| `getCurrentReturn(type)` | What the method returns **as of now**: the original value, or the value set by the decorator that ran before this one ([chaining](#changing-the-return-value)). |
+| `setCurrentReturn(value)` | **Replace** the value the method returns. See [Changing the return value](#changing-the-return-value). |
 | `getReflectiveFieldValue(object, field, type)` | Read a field of any object, private fields and fields of superclasses included. |
 | `setReflectiveFieldValue(object, field, value, type)` | Write a field. |
 | `callReflectiveMethod(object, name, argTypes, args, returnType)` | Call any method, private ones included. `argTypes` must be the exact declared parameter types; pass `void.class` as the return type for `void` methods. |
@@ -113,6 +179,46 @@ Local variables, in detail:
 - A local is recorded each time it's assigned, so you get its last value. Locals in different scopes that reuse the
   same slot keep their own names.
 - Locals of lambdas (event listeners) belong to the synthetic lambda method, which is not instrumented.
+
+### Changing the return value
+
+A decorator of a method that returns a value can replace the value in `onMethodLeave`. The decorators of a method form
+a **chain** in the order they were registered, sharing one *current* value:
+
+```java
+@Override
+public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) {
+    if (!context.hasReturn()) {
+        return;                                         // void method, or it threw
+    }
+    String original = context.getOriginalReturn(String.class);   // what the body returned
+    String current = context.getCurrentReturn(String.class);     // original, or the previous decorator's result
+    context.setCurrentReturn(current + " (edited)");             // the next decorator and the caller get this
+}
+```
+
+- `getOriginalReturn` is always what the body returned, `getCurrentReturn` starts as the same value and is whatever the
+  last `setCurrentReturn` set. A decorator that only wants to add to the result reads the *current* value, so it keeps
+  what the decorators before it did; one that wants to start over reads the original.
+- When the last decorator is done, the caller of the method receives the current value. If nobody set one, the method
+  returns what its body returned.
+- The value must fit the **declared** return type of the method (a subtype is fine, `null` is fine for objects); for a
+  primitive return type pass the matching wrapper (`setCurrentReturn(5)` for `int`), not `null`. A value that does not
+  fit is refused with a `ModCompatibilityException` (a warning in the log, as for the other [errors](#errors)), the
+  current value stays and the method is not affected.
+- Type checks of the getters are against the declared return type: `getOriginalReturn(CharSequence.class)` works for a
+  method that returns `String`, `Integer.class` does not work for `int`.
+- The return value exists only after the body returned. In `onMethodEnter`, for a `void` method and when the method
+  throws, `hasReturn()` is `false` and the getters and the setter are refused. A decorator cannot swallow an exception
+  or turn a return into one, and the body always runs ([What a decorator can't do](#what-a-decorator-cant-do)).
+- The mutable objects a method returns (a component, a list) can be changed without replacing the value; replace it
+  when you need a different object, or the value is immutable (`String`, numbers, `Optional`).
+
+!!!warning The return value is part of the contract
+What a method returns is read by its caller, and every plugin that replaces it is now a part of that. A change of the
+declared return type of an `@Extendable` method is a change of its [public API](#the-public-api), and a plugin that
+replaces the value with a type that no longer fits is refused at run time.
+!!!
 
 ### Errors
 
@@ -129,8 +235,10 @@ log.
 
 ## What a decorator can't do
 
-- **Change the return value or skip the method.** The body always runs and its result is returned. To change what a
-  method produces, change it afterwards: the component it built (a local variable or field), the entity it saved.
+- **Skip the method.** The body always runs, with its arguments as they are after `onMethodEnter`. What it returns can
+  be [replaced](#changing-the-return-value) afterwards, and so can what it built (a local variable or field) or saved.
+- **Replace the result of a method that throws**, or throw instead of a return: a decorator can read the exception in
+  `onMethodLeave` but it is always rethrown.
 - **Decorate constructors, static methods or lambda bodies.** Decorate the method the constructor calls (for example
   `ChatMessageCard`'s constructor calls `createMenuItems()`), or the method that registers the listener.
 - **Decorate classes that aren't `@Extendable`**, plugin classes, or library classes.
@@ -210,6 +318,8 @@ extension and tracks constants, `new` objects and the objects that come out of t
 | `registerMethodArgument(name, value, type)` | No overload has an argument of that name. | `type` is not the declared type. |
 | `getLocalVariable(name, type)` | No overload stores an object local of that name (primitives are not recorded), or its type doesn't fit, or it's asked in `onMethodEnter`, where there are no locals. | The declared type is a supertype of `type`: works only if the value is of that type at run time. |
 | `hasLocalVariable(name[, type])` | | The same problems. |
+| `getOriginalReturn(type)`, `getCurrentReturn(type)` | No overload of the method returns a value (all are `void`), or the declared return type is not `type` or a subtype of it (`int.class`, not `Integer.class`), or it is asked in `onMethodEnter`. | The return type could not be loaded. |
+| `setCurrentReturn(value)` | No overload of the method returns a value, or it is called in `onMethodEnter`. The value itself is not checked. | |
 | `getReflectiveFieldValue`, `setReflectiveFieldValue` | The object's class or its superclasses have no field of that name, or the field's type is not `type` or a subtype. | The object can't be determined. |
 | `callReflectiveMethod` | No method of that name and exact parameter types, or its return type doesn't fit. | The parameter types are not constants (the name alone is checked). |
 
@@ -279,5 +389,6 @@ checked at compile time. To keep the damage small:
   the field.
 
 When you change the application, the other side applies: renaming or restructuring an `@Extendable` method can break
-plugins. Check `marginalia/plugins/` (a search for the method or variable name is usually enough) and mention the
-change in the release notes.
+plugins. `PublicAPISignatureTest` fails until the [`@PublicAPI`](#the-public-api) of the method says what the method
+is now - treat that as the prompt to check `marginalia/plugins/` (a search for the method or variable name is usually
+enough) and to mention the change in the release notes. Do not make the test pass by editing the annotation alone.

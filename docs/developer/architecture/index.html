@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845147084903">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845148756089">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845147084903" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845148756089" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845147084903" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845148756089" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845147084903" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845147084903" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845148756089" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845148756089" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -378,7 +378,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 | `domain.repository` (+ `impl`) | Data | JPA repositories. |
 | `domain.model` (+ `impl`) | Data | Entities and their base classes. |
 | `domain.security` | Data / services | `User`, its repository and service, saved logins. |
-| `domain.traits`, `domain.collections`, `domain.listener` | Shared | Annotations (`@CommonTx`, `@Extendable`, `@CleanupReference`...), enums, the entity listener for extended attributes. |
+| `domain.traits`, `domain.collections`, `domain.listener` | Shared | Annotations (`@CommonTx`, `@Extendable`, `@PublicAPI`, `@CleanupReference`...), enums, the entity listener for extended attributes. |
 | `extensions`, `instruct` | Extensions | The `MarginaliaExtension` interface, the bytecode instrumentation. |
 | `bound` | Startup, sessions | Application initializer and migrations hook, the `SessionManager` and its session bookkeeping. |
 | `loc` | Shared | Localization: the `L` keys and the English texts. |
@@ -456,7 +456,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <tr>
 <td><code translate="no" v-pre>domain.traits</code>, <code translate="no" v-pre>domain.collections</code>, <code translate="no" v-pre>domain.listener</code></td>
 <td>Shared</td>
-<td>Annotations (<code translate="no" v-pre>@CommonTx</code>, <code translate="no" v-pre>@Extendable</code>, <code translate="no" v-pre>@CleanupReference</code>...), enums, the entity listener for extended attributes.</td>
+<td>Annotations (<code translate="no" v-pre>@CommonTx</code>, <code translate="no" v-pre>@Extendable</code>, <code translate="no" v-pre>@PublicAPI</code>, <code translate="no" v-pre>@CleanupReference</code>...), enums, the entity listener for extended attributes.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>extensions</code>, <code translate="no" v-pre>instruct</code></td>
@@ -857,14 +857,14 @@ extension that doesn&#x27;t fit is not started.</p>
 <li>
 <p><strong>Instrumentation.</strong> At startup a ByteBuddy agent rewrites every non-static, non-constructor method of each class
 annotated <code translate="no" v-pre>@Extendable</code>: <code translate="no" v-pre>ExtendableMethodVisitor</code> adds a call to <code translate="no" v-pre>ExtensionService.onExtendableMethodEnter</code> at the
-start, records each local variable as it is stored, and calls <code translate="no" v-pre>onExtendableMethodLeave</code> on every return and throw.
+start, records each local variable as it is stored, and calls <code translate="no" v-pre>onExtendableMethodLeave</code> on every return and throw (at the return of a value the original value is registered first and the one the decorators leave is returned).
 This happens on every call, with or without decorators, so <code translate="no" v-pre>@Extendable</code> belongs on UI classes, not on hot code.</p>
 </li>
 <li>
 <p><strong>Decorators.</strong> <code translate="no" v-pre>ExtensionService.registerDecorator(decorator, className, methodName)</code> attaches code before and
 after a method. Through the <code translate="no" v-pre>ExtendableMethodContext</code> it can read the method&#x27;s arguments, read local variables by
 name (for example the menu the method just built, to add an item to it) and access fields and methods reflectively.
-On enter it can replace arguments; it can&#x27;t change the return value or skip the method.</p>
+On enter it can replace arguments, on leave it can replace the return value (chained through the decorators); it can&#x27;t skip the method.</p>
 </li>
 <li>
 <p><strong>Data.</strong> Extensions keep their data in the <code translate="no" v-pre>attributes</code> of existing entities, so no schema changes are needed and
