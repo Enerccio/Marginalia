@@ -73,6 +73,7 @@ public class UserPart implements WorkspaceComponent {
     private final Workspace workspace;
 
     private VerticalLayout mainLayout;
+    private TabSheet tabSheet;
     protected Span unsavedChangesSpan;
     protected Button discardButton;
 
@@ -113,7 +114,6 @@ public class UserPart implements WorkspaceComponent {
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "headerLayout", type = Component.class),
-                    @APILocals(name = "tabSheet", type = TabSheet.class),
                     @APILocals(name = "defaultsFormLayout", type = FormLayout.class),
                     @APILocals(name = "templatesFormLayout", type = FormLayout.class)})
     @Override
@@ -127,7 +127,7 @@ public class UserPart implements WorkspaceComponent {
 
         createFields();
 
-        TabSheet tabSheet = new TabSheet();
+        tabSheet = new TabSheet();
         tabSheet.setSizeFull();
         tabSheet.addClassName(CssStyles.MIN_HEIGHT_0);
 
@@ -428,6 +428,10 @@ public class UserPart implements WorkspaceComponent {
     private void finishLoading() {
         mainLayout.getElement().getNode().runWhenAttached(ui -> ui.beforeClientResponse(mainLayout, ctx -> {
             trackChanges(mainLayout);
+            // a TabSheet keeps only the content of the selected tab in the component tree
+            for (int i = 0; i < tabSheet.getTabCount(); i++) {
+                trackChanges(tabSheet.getComponent(tabSheet.getTabAt(i)));
+            }
             loading = false;
             setChanged(false);
         }));

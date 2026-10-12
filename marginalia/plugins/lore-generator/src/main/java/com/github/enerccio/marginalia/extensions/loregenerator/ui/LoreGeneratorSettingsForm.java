@@ -5,9 +5,10 @@ import com.github.enerccio.marginalia.extensions.loregenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
+import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -23,7 +24,7 @@ public class LoreGeneratorSettingsForm extends VerticalLayout {
 
     private final LoreGeneratorService loreGeneratorService;
 
-    private TextArea compactionPromptArea;
+    private TextAreaPopoverComponent compactionPromptArea;
 
     private LoreGeneratorData data;
 
@@ -34,10 +35,12 @@ public class LoreGeneratorSettingsForm extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
 
-        compactionPromptArea = new TextArea("Compaction prompt");
+        compactionPromptArea = new TextAreaPopoverComponent("Compaction prompt");
         compactionPromptArea.setWidthFull();
         compactionPromptArea.setPlaceholder(Defaults.COMPACTION_PROMPT);
         ResizableTextArea.install(loc, compactionPromptArea, "160px");
+        compactionPromptArea.setPopoverContent(TemplateHints.create(loc, compactionPromptArea,
+                compactionPromptArea.getPopover(), null, Defaults.COMPACTION_PROMPT));
         add(compactionPromptArea);
 
         refresh();
