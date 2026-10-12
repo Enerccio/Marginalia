@@ -290,7 +290,7 @@ Each plugin is a Maven project with `bundle` packaging and the same layout:
 
 ```
 plugins/<name>/
-├── pom.xml          depends on io.github.enerccio:marginalia:1.0.1:classes (provided)
+├── pom.xml          depends on io.github.enerccio:marginalia:1.1.0:classes (provided)
 ├── README.md        user documentation
 └── src/main/java/com/github/enerccio/marginalia/extensions/<name>/
     ├── <Name>Activator.java   OSGi BundleActivator - registers the extension service
@@ -320,8 +320,8 @@ See [Plugin development](plugins/index.md).
 
 | Path | |
 |---|---|
-| `marginalia-1.0.1.war`, `marginalia-1.0.1/` | The WAR and its exploded form. |
-| `marginalia-1.0.1-classes.jar` | Classes for plugin builds. |
+| `marginalia-1.1.0.war`, `marginalia-1.1.0/` | The WAR and its exploded form. |
+| `marginalia-1.1.0-classes.jar` | Classes for plugin builds. |
 | `classes/`, `test-classes/` | Woven classes. |
 | `dev-bundle/`, `sw.ts`, `vaadin-dev-server-settings.json` | Vaadin frontend build files. |
 | `surefire-reports/`, `test-home/` | Test reports and test data folders. |
