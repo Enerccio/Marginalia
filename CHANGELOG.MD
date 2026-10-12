@@ -58,6 +58,9 @@ No database migration: a 1.0.0 database opens unchanged.
 - `SessionManager` kept the session-scoped `user` proxy, so user filters running on another thread failed with
   `ScopeNotActiveException`; it now stores a plain copy taken at login.
 - The plugin Docker image no longer runs the Vaadin frontend build.
+- Summaries: the inference now starts after the transaction that creates the summary has committed. A fast answer
+  could be saved before the new summary row was visible, which failed with `OptimisticLockException` and left the
+  summary request unanswered (seen as intermittent `MetaSummaryTest` timeouts in CI).
 
 ### Known issues
 
