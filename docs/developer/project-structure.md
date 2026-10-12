@@ -265,7 +265,7 @@ Test classes mirror the areas they cover (paths relative to `src/test/java/com/g
 | `generation` | Generation requests and lorebook activation. |
 | `templates`, `domain.templates` | Template rendering, macros, default templates. |
 | `backup`, `cleanup`, `lorebook`, `db` | Book and database backups, cleanup planner, lorebook import/export, Flyway migrations. |
-| `instruct` | Bytecode instrumentation (with fixture classes in `instruct.fixture`). |
+| `instruct` | Bytecode instrumentation (with fixture classes in `instruct.fixture`), the extension verifier and the check that every method of an `@Extendable` class declares its `@PublicAPI` (`PublicAPISignatureTest`). |
 | `domain`, `domain.service` | Entity listener, token limits, cron expressions, SillyTavern conversion. |
 
 `src/test/resources/META-INF/spring/test-application-config.xml` is the test variant of the Spring configuration and
