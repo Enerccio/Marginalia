@@ -13,7 +13,9 @@ import com.github.enerccio.marginalia.domain.service.InferenceException;
 import com.github.enerccio.marginalia.domain.service.InferenceException.Type;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.google.gson.JsonElement;
 import com.openai.client.OpenAIClient;
@@ -139,14 +141,13 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
         List<ChatCompletionMessageParam> messages = new ArrayList<>();
         for (LLMChatMessage msg : payload) {
-            if (msg.getContent() == null) {
+            if (msg.getContent() == null && !(msg.getRole() == LLMRole.USER && msg.hasAttachments())) {
                 continue;
             }
             switch (msg.getRole()) {
                 case SYSTEM -> messages.add(ChatCompletionMessageParam.ofSystem(
                         ChatCompletionSystemMessageParam.builder().content(msg.getContent()).build()));
-                case USER -> messages.add(ChatCompletionMessageParam.ofUser(
-                        ChatCompletionUserMessageParam.builder().content(msg.getContent()).build()));
+                case USER -> messages.add(ChatCompletionMessageParam.ofUser(toUserMessage(msg)));
                 case ASSISTANT -> messages.add(ChatCompletionMessageParam.ofAssistant(
                         ChatCompletionAssistantMessageParam.builder().content(msg.getContent()).build()));
             }
@@ -204,6 +205,74 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             }
         });
         return cancellationToken;
+    }
+
+    /**
+     * A plain string content when the message has no attachments, otherwise the array of content parts: the text
+     * first, then the attachments in their order.
+     */
+    private static ChatCompletionUserMessageParam toUserMessage(LLMChatMessage msg) {
+        ChatCompletionUserMessageParam.Builder builder = ChatCompletionUserMessageParam.builder();
+        if (!msg.hasAttachments()) {
+            return builder.content(msg.getContent()).build();
+        }
+
+        List<ChatCompletionContentPart> parts = new ArrayList<>();
+        if (StringUtils.isNotEmpty(msg.getContent())) {
+            parts.add(ChatCompletionContentPart.ofText(
+                    ChatCompletionContentPartText.builder().text(msg.getContent()).build()));
+        }
+        for (LLMAttachment attachment : msg.getAttachments()) {
+            parts.add(toContentPart(attachment));
+        }
+        return builder.contentOfArrayOfContentParts(parts).build();
+    }
+
+    private static ChatCompletionContentPart toContentPart(LLMAttachment attachment) {
+        LLMAttachment.Kind kind = attachment.getKind() != null
+                ? attachment.getKind() : LLMAttachment.Kind.fromMimeType(attachment.getMimeType());
+        switch (kind) {
+            case IMAGE -> {
+                String url = attachment.toDataUrl();
+                if (url == null) {
+                    throw new IllegalArgumentException("Image attachment has neither data nor url");
+                }
+                return ChatCompletionContentPart.ofImageUrl(ChatCompletionContentPartImage.builder()
+                        .imageUrl(ChatCompletionContentPartImage.ImageUrl.builder().url(url).build())
+                        .build());
+            }
+            case AUDIO -> {
+                // the API takes the audio as base64 only and knows just wav and mp3
+                if (attachment.getData() == null) {
+                    throw new IllegalArgumentException("Audio attachment must carry its data, url is not supported");
+                }
+                String mime = StringUtils.defaultString(attachment.getMimeType()).toLowerCase();
+                ChatCompletionContentPartInputAudio.InputAudio.Format format;
+                if (mime.contains("wav")) {
+                    format = ChatCompletionContentPartInputAudio.InputAudio.Format.WAV;
+                } else if (mime.contains("mp3") || mime.contains("mpeg")) {
+                    format = ChatCompletionContentPartInputAudio.InputAudio.Format.MP3;
+                } else {
+                    throw new IllegalArgumentException("Unsupported audio type " + attachment.getMimeType() + ", only wav and mp3 are supported");
+                }
+                return ChatCompletionContentPart.ofInputAudio(ChatCompletionContentPartInputAudio.builder()
+                        .inputAudio(ChatCompletionContentPartInputAudio.InputAudio.builder()
+                                .data(attachment.toBase64()).format(format).build())
+                        .build());
+            }
+            case FILE -> {
+                if (attachment.getData() == null) {
+                    throw new IllegalArgumentException("File attachment must carry its data, url is not supported");
+                }
+                ChatCompletionContentPart.File.FileObject.Builder file = ChatCompletionContentPart.File.FileObject.builder()
+                        .fileData(attachment.toDataUrl());
+                if (attachment.getName() != null) {
+                    file.filename(attachment.getName());
+                }
+                return ChatCompletionContentPart.ofFile(ChatCompletionContentPart.File.builder().file(file.build()).build());
+            }
+            default -> throw new IllegalArgumentException("Unknown attachment kind " + kind);
+        }
     }
 
     /**
