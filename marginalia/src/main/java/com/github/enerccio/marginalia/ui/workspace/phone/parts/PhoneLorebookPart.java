@@ -1,0 +1,57 @@
+package com.github.enerccio.marginalia.ui.workspace.phone.parts;
+
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.components.PhoneLorebookView;
+import com.github.enerccio.marginalia.ui.workspace.Workspace;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.vaadin.flow.component.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+
+/**
+ * The lorebook tab for phones, hosting the reduced {@link PhoneLorebookView} instead of the full desktop editor.
+ */
+@Configurable
+@Extendable
+public class PhoneLorebookPart implements WorkspaceComponent {
+
+    @Autowired
+    private Localization loc;
+
+    private final Workspace workspace;
+    private PhoneLorebookView lorebookView;
+
+    public PhoneLorebookPart(Workspace workspace) {
+        this.workspace = workspace;
+    }
+
+    public String getName() {
+        return loc.getValue(L.LABEL_LOREBOOKS);
+    }
+
+    @Override
+    public Component create() throws Exception {
+        lorebookView = new PhoneLorebookView();
+        return lorebookView.create();
+    }
+
+    @Override
+    public void refresh() throws Exception {
+        if (lorebookView != null) {
+            lorebookView.refresh();
+        }
+    }
+
+    @Override
+    public void onTabSwitched() throws Exception {
+        refresh();
+    }
+
+    @Override
+    public void onTabClosed() throws Exception {
+
+    }
+
+}

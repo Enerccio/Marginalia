@@ -4,7 +4,17 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-public class LocalizationEN extends LocalizationBase {
+public class LocalizationBundleEN extends LocalizationBundleBase {
+
+    @Override
+    public Language getLanguage() {
+        return Language.EN;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "English";
+    }
 
     @Override
     protected void loadMessages() {
@@ -156,7 +166,7 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_IMPORT_BACKUP, "Import Backup");
         setValue(L.LABEL_EXPORT_BACKUP, "Export");
         setValue(L.LABEL_IMPORT_BACKUP_AS_NEW, "Import Backup as New Book");
-        setValue(L.LABEL_BACKUP_DATE, "Date");
+        setValue(L.LABEL_DATE, "Date");
         setValue(L.LABEL_MESSAGES_COUNT, "Messages");
         setValue(L.LABEL_FULL_RESTORE, "Full Restore");
         setValue(L.LABEL_MESSAGES_ONLY_RESTORE, "Messages Only Restore");
@@ -273,6 +283,32 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.LABEL_SEARCH, "Search");
         setValue(L.LABEL_SEARCH_ALL_BRANCHES, "Search the text of all branches");
         setValue(L.LABEL_SHOW_IN_STORY, "Show in story");
+        setValue(L.LABEL_ROOT, "Root");
+        setValue(L.LABEL_SCENE, "Scene");
+        setValue(L.LABEL_PRESENT, "Present");
+        setValue(L.LABEL_CLICK_TO_EXPAND, "Click to expand");
+        setValue(L.LABEL_RAW, "Raw");
+        setValue(L.LABEL_ERROR, "Error");
+        setValue(L.LABEL_VALID, "Valid");
+        setValue(L.LABEL_INVALID, "Invalid");
+        setValue(L.LABEL_APP_DESC, "Collaborative story writing app with LLM");
+        setValue(L.LABEL_TOKEN_USAGE, "Token Usage");
+        setValue(L.LABEL_TOKEN_CONTEXT, "Context size");
+        setValue(L.LABEL_TOKEN_TEMPLATE, "System template");
+        setValue(L.LABEL_TOKEN_LORE, "Lore");
+        setValue(L.LABEL_TOKEN_STORY, "Story so far");
+        setValue(L.LABEL_TOKEN_USER_LORE, "Lore in the user prompt");
+        setValue(L.LABEL_TOKEN_USER_PROMPT, "User prompt");
+        setValue(L.LABEL_TOKEN_RESERVED, "Reserved by extensions");
+        setValue(L.LABEL_TOKEN_RESPONSE, "Reserved for the response");
+        setValue(L.LABEL_TOKEN_FREE, "Free");
+        setValue(L.LABEL_ROLE, "Role");
+        setValue(L.LABEL_SYSTEM, "System");
+        setValue(L.LABEL_ASSISTANT, "Assistant");
+        setValue(L.LABEL_PAYLOAD_MESSAGES, "Messages sent to the model");
+        setValue(L.LABEL_START, "Start");
+        setValue(L.LABEL_LOG, "Log");
+        setValue(L.LABEL_CLEAR, "Clear");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -305,6 +341,14 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ENUM_DOMAIN_RESOURCE, "Resource");
         setValue(L.ENUM_DOMAIN_PROTOCOL, "Protocol");
         setValue(L.ENUM_DOMAIN_SETTING, "Setting");
+        setValue(L.ENUM_BUNDLE_STATE_UNINSTALLED, "Uninstalled");
+        setValue(L.ENUM_BUNDLE_STATE_INSTALLED, "Installed");
+        setValue(L.ENUM_BUNDLE_STATE_RESOLVED, "Resolved");
+        setValue(L.ENUM_BUNDLE_STATE_STARTING, "Starting");
+        setValue(L.ENUM_BUNDLE_STATE_STOPPING, "Stopping");
+        setValue(L.ENUM_BUNDLE_STATE_ACTIVE, "Active");
+        setValue(L.ENUM_BUNDLE_STATE_UNKNOWN, "Unknown (%d)");
+        setValue(L.ENUM_BUNDLE_STATE_STOPPED, "Stopped");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -338,6 +382,8 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.ERROR_INFERENCE_BAD_REQUEST, "The provider rejected the request. Check the model and the additional parameters of the inference provider.");
         setValue(L.ERROR_INFERENCE_UNKNOWN, "The request to the provider failed.");
         setValue(L.ERROR_EXTENSION_INCOMPATIBLE, "Extension %s does not fit this version of Marginalia and was not loaded.");
+        setValue(L.ERROR_EXTENSION_START_FAILED, "Failed to start extension: %s");
+        setValue(L.ERROR_EXTENSION_STOP_FAILED, "Failed to stop extension: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -413,6 +459,13 @@ public class LocalizationEN extends LocalizationBase {
         setValue(L.MSG_NO_EXTENDED_CONTENT, "This object has no extended content.");
         setValue(L.MSG_SEARCH_RESULTS, "%s parts found in all branches. Click \"Show in story\" on a highlighted part.");
         setValue(L.MSG_SEARCH_NO_RESULTS, "Nothing found.");
+        setValue(L.MSG_TREE_BLOCK_MESSAGES, "%d messages");
+        setValue(L.MSG_TREE_BLOCK_TITLE, "Collapsed block (%d messages, [%d–%d]). Click to expand.");
+        setValue(L.MSG_TOKEN_USAGE_UNAVAILABLE, "The token usage was not recorded for this part.");
+        setValue(L.MSG_TOKEN_CUT, "%d messages (%d tokens) did not fit into the context and were left out.");
+        setValue(L.MSG_EXTENSION_STARTED, "Extension started.");
+        setValue(L.MSG_EXTENSION_STOPPED, "Extension stopped.");
+        setValue(L.MSG_EXTENSION_LOG_EMPTY, "The extension has not written anything to its log.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

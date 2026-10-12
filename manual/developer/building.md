@@ -1,11 +1,14 @@
 ---
 label: Building from source
 order: 990
-verified: 37257c7
+verified: 15a991e
 covers:
+  - pom.xml
   - marginalia/pom.xml
   - marginalia/src/main/java/com/github/enerccio/tools
   - Dockerfile
+  - marginalia/plugins/Dockerfile
+  - marginalia/plugins/docker-compose.yml
 ---
 
 # Building from source
@@ -31,13 +34,17 @@ are faster.
 
 ## Building the application
 
-The application is the Maven project in `marginalia/`:
+The repository root holds the parent POM (`pom.xml`): it carries the version, which the application and all plugins
+inherit, and lists them as modules, so `mvn package` there builds the application and every plugin in one go. The
+application is the Maven project in `marginalia/`:
 
 ```sh
 cd marginalia
-mvn package                  # builds and tests, WAR in target/marginalia-1.0.0.war
+mvn package                  # builds and tests, WAR in target/marginalia-1.1.0.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
+mvn -N install                                # (repository root, once) installs the parent POM, the installed POMs refer to it
+mvn install -DskipTests -Dvaadin.skip=true   # plugins only need the classes JAR: no frontend build, not a deployable WAR
 ```
 
 What a build does, in order:
@@ -50,16 +57,16 @@ What a build does, in order:
    `target/classes` are the ones that get packaged.
 4. Tests run (`maven-surefire-plugin`), see [Running the tests](#running-the-tests).
 5. `vaadin-maven-plugin` builds the frontend bundle (`build-frontend`).
-6. `maven-war-plugin` packages `target/marginalia-1.0.0.war` (about 185 MB) and, because of `attachClasses`, also
-   `target/marginalia-1.0.0-classes.jar` - the application classes that plugins compile against.
+6. `maven-war-plugin` packages `target/marginalia-1.1.0.war` (about 185 MB) and, because of `attachClasses`, also
+   `target/marginalia-1.1.0-classes.jar` - the application classes that plugins compile against.
 
 Outputs in `marginalia/target/`:
 
 | Path | |
 |---|---|
-| `marginalia-1.0.0.war` | The web application. |
-| `marginalia-1.0.0/` | The same WAR, exploded (production mode). |
-| `marginalia-1.0.0-classes.jar` | Application classes, the compile dependency of plugins. |
+| `marginalia-1.1.0.war` | The web application. |
+| `marginalia-1.1.0/` | The same WAR, exploded (production mode). |
+| `marginalia-1.1.0-classes.jar` | Application classes, the compile dependency of plugins. |
 | `surefire-reports/` | Test reports. |
 | `test-home/` | Data folders created by tests (safe to delete). |
 
@@ -86,7 +93,7 @@ the classpath or the working directory.
 To check a WAR:
 
 ```sh
-unzip -p target/marginalia-1.0.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
+unzip -p target/marginalia-1.1.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
 ```
 
 ### AspectJ weaving
@@ -155,7 +162,7 @@ IntelliJ builds the exploded WAR itself, without the Vaadin plugin, so the appli
   `target/classes/META-INF/VAADIN/config/flow-build-info.json` to the same path under `src/main/resources/`
   (ignored by Git and never packaged into the WAR, but IntelliJ copies it into the exploded WAR on every build).
 
-Don't deploy `target/marginalia-1.0.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
+Don't deploy `target/marginalia-1.1.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
 
 ![IntelliJ IDEA Tomcat run configuration](../images/dev-intellij-tomcat.png)
 
@@ -176,7 +183,7 @@ export JETTY_HOME=/path/to/jetty-home-12.1.10
 mkdir -p ~/jetty-marginalia && cd ~/jetty-marginalia
 java -jar $JETTY_HOME/start.jar --create-startd \
      --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
-cp /path/to/Marginalia/marginalia/target/marginalia-1.0.0.war webapps/ROOT.war
+cp /path/to/Marginalia/marginalia/target/marginalia-1.1.0.war webapps/ROOT.war
 java -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=/path/to/dev-home \
      -jar $JETTY_HOME/start.jar jetty.http.port=8080
 ```
@@ -247,20 +254,41 @@ options. [Testing](testing.md) describes the test base and how to write tests.
 
 ## Building the plugins
 
-The five bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
-JAR of the application, so install the application first:
+The eight bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
+JAR of the application, so install the parent POM and the application first:
 
 ```sh
+mvn -N install                    # in the repository root
 cd marginalia
 mvn install -DskipTests
 
-cd plugins/chaptermarker          # or authorsnote, lorebookvcs, reviewer, sidequery
-mvn package                       # target/chaptermarker-1.0.0.jar
+cd plugins/chaptermarker          # or authorsnote, instructionexporter, lore-generator, lorebookvcs, reviewer, sidequery, chineselocalization
+mvn package                       # target/chaptermarker-1.1.0.jar
 ```
 
 Load the JAR in *Admin → Extensions* of your running instance, or copy it into `.marginalia/extensions` of your
 development home before starting. Rebuild the plugins whenever you change classes they use - they are built for one
 exact version of the application. See [Plugin development](plugins/index.md).
+
+### In Docker
+
+`marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
+needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
+repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `.git` and `marginalia/plugins`, runs
+`mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
+The JARs are copied out when the container runs, because they go into a bind mount:
+
+```sh
+docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins     # JARs in marginalia/plugins/build
+```
+
+A new plugin folder with a `pom.xml` is picked up without changes to the Dockerfile.
+
+`-Dvaadin.skip=true` turns off every goal of `vaadin-maven-plugin`, so the frontend (Node.js download, npm, Vite
+bundle) is not built; the plugins need only the classes JAR. The WAR of such a build has no frontend bundle and must not
+be deployed. Use the flag the same way for any build that only installs the classes JAR for plugins. Maven cannot tell
+that the goal was just `install` (it runs the whole lifecycle up to `package` first), so the flag has to be given.
 
 ## Database schema changes
 
@@ -297,5 +325,5 @@ are listed in `TODO.IMAGES.md`.
 | `couldn't find aspectjrt.jar on classpath` warning | Printed by the AspectJ plugin on every build; harmless. |
 | `Schema-validation: missing column ...` on start | An entity was changed without a Flyway migration. Add one ([Database schema changes](#database-schema-changes)). |
 | The frontend build fails downloading Node.js or npm packages | It needs internet access on the first build. Behind a proxy, configure it for Maven and npm, or delete `~/.vaadin` and `node_modules` and try again. |
-| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` and rebuild the plugin. |
+| A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` (and `mvn -N install` in the root) and rebuild the plugin. |
 | `WARNING: A Java agent has been loaded dynamically` | Add the [JVM options](#jvm-options). |

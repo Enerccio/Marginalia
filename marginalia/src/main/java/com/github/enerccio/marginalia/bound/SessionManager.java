@@ -103,7 +103,13 @@ public class SessionManager extends Thread implements InitializingBean, Disposab
                 sinfo.boundVaadinSession = session;
                 sinfo.accessAttributes = ThreadCopyRequestAttributes.create();
                 sinfo.boundSession.setAttribute("userName", user.getLogin());
-                sinfo.boundUser = user;
+                // the session scoped proxy can't be used outside of its session, and boundUser is read by other threads
+                User snapshot = new User();
+                snapshot.setId(user.getId());
+                snapshot.setLogin(user.getLogin());
+                snapshot.setFullName(user.getFullName());
+                snapshot.setAdmin(user.isAdmin());
+                sinfo.boundUser = snapshot;
                 sinfo.initialized = true;
             }
         }

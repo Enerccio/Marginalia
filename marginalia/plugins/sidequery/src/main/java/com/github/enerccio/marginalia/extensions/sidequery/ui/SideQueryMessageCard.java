@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.sidequery.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.extensions.sidequery.model.SideQueryMessage;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -73,7 +74,7 @@ public class SideQueryMessageCard extends VerticalLayout {
         headerLayout.setAlignItems(Alignment.CENTER);
 
         senderSpan = new Span();
-        senderSpan.getStyle().set("font-weight", "bold");
+        senderSpan.addClassName(CssStyles.TEXT_BOLD);
 
         moveUpBtn = new Button(Solid.ARROW_UP.create(), e -> {
             if (listener != null) listener.onMoveUp(message, index);
@@ -116,8 +117,7 @@ public class SideQueryMessageCard extends VerticalLayout {
         contentMarkdown.setWidthFull();
 
         infoSpan = new Span();
-        infoSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-        infoSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        infoSpan.addClassName(CssStyles.HINT_TEXT);
 
         // --- Edit Mode Components ---
         editHeaderLayout = new HorizontalLayout();
@@ -125,7 +125,7 @@ public class SideQueryMessageCard extends VerticalLayout {
         editHeaderLayout.setAlignItems(Alignment.CENTER);
 
         Span editSenderSpan = new Span((message.isFromUser() ? "User" : "AI") + " (Editing)");
-        editSenderSpan.getStyle().set("font-weight", "bold");
+        editSenderSpan.addClassName(CssStyles.TEXT_BOLD);
         editHeaderLayout.add(editSenderSpan);
 
         editArea = new TextArea();
@@ -149,17 +149,9 @@ public class SideQueryMessageCard extends VerticalLayout {
     }
 
     private void updateCardStyle() {
-        getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-        getStyle().set("border-radius", "var(--lumo-border-radius-m)");
-        getStyle().set("background-color", message.isFromUser() ? "var(--lumo-contrast-5pct)" : "transparent");
-
-        if (!message.isIncluded()) {
-            getStyle().set("opacity", "0.5");
-            getStyle().set("border-style", "dashed");
-        } else {
-            getStyle().set("opacity", "1.0");
-            getStyle().set("border-style", "solid");
-        }
+        addClassName(SideQueryStyles.CARD);
+        setClassName(SideQueryStyles.CARD_USER, message.isFromUser());
+        setClassName(SideQueryStyles.CARD_EXCLUDED, !message.isIncluded());
     }
 
     private void updateCardData() {

@@ -1,11 +1,11 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.SharedStyles;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
+import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
-import com.github.enerccio.marginalia.domain.service.SummaryNode;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
@@ -110,7 +110,7 @@ public class SummariesDialog extends Dialog {
 
     private HorizontalLayout createToolbar() {
         tokensSpan = new Span();
-        tokensSpan.getStyle().set("font-weight", "bold");
+        tokensSpan.addClassName(CssStyles.TEXT_BOLD);
 
         Button createMetaButton = new Button(loc.getValue(L.LABEL_CREATE_META_SUMMARY), Solid.LAYER_GROUP.create(), _ -> createMetaSummary());
         createMetaButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
@@ -211,7 +211,6 @@ public class SummariesDialog extends Dialog {
     @Extendable
     private class SummaryContent extends Div {
         private static final String HEIGHT = "150px";
-        private static final String GUTTER = "40px";
 
         private final SummaryNode node;
         private final Div view = new Div();
@@ -225,13 +224,10 @@ public class SummariesDialog extends Dialog {
             Summary summary = node.getSummary();
             setWidthFull();
             setHeight(HEIGHT);
-            getStyle().set("position", "relative");
-            getStyle().set("box-sizing", "border-box");
-            getStyle().set("padding-right", GUTTER);
+            addClassName(CssStyles.SUMMARY_CONTENT);
 
             view.setSizeFull();
-            view.getStyle().set("overflow", "auto");
-            view.getStyle().set("box-sizing", "border-box");
+            view.addClassNames(CssStyles.OVERFLOW_AUTO, CssStyles.BORDER_BOX);
 
             HorizontalLayout badges = new HorizontalLayout();
             badges.setSpacing(true);
@@ -247,8 +243,7 @@ public class SummariesDialog extends Dialog {
 
             if (StringUtils.isNotBlank(summary.getReasoning())) {
                 Markdown reasoning = new Markdown(summary.getReasoning());
-                reasoning.addClassName(SharedStyles.CHAT_MESSAGE_MARKDOWN);
-                UIUtils.applyMarkdownStyles(reasoning);
+                reasoning.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
                 Details details = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoning);
                 details.setWidthFull();
                 view.add(details);
@@ -274,8 +269,7 @@ public class SummariesDialog extends Dialog {
             Div div = new Div();
             div.setText(text);
             div.setWidthFull();
-            div.getStyle().set("white-space", "pre-wrap");
-            div.getStyle().set("overflow-wrap", "anywhere");
+            div.addClassNames(CssStyles.PRE_WRAP, CssStyles.WRAP_ANYWHERE);
             return div;
         }
 
@@ -291,20 +285,17 @@ public class SummariesDialog extends Dialog {
             viewActions.add(edit);
 
             Button save = floatingButton(Solid.CHECK.create(), loc.getValue(L.LABEL_SAVE));
-            save.getStyle().set("color", "var(--lumo-success-color)");
+            save.addClassName(CssStyles.TEXT_SUCCESS);
             save.addClickListener(_ -> save());
             Button abandon = floatingButton(Solid.TRASH.create(), loc.getValue(L.LABEL_DISCARD_CHANGES));
-            abandon.getStyle().set("color", "var(--lumo-error-color)");
+            abandon.addClassName(CssStyles.TEXT_DANGER);
             abandon.addClickListener(_ -> stopEditing());
             editActions.add(save, abandon);
 
             for (VerticalLayout actions : List.of(viewActions, editActions)) {
                 actions.setSpacing(false);
                 actions.setPadding(false);
-                actions.setWidth(GUTTER);
-                actions.getStyle().set("position", "absolute");
-                actions.getStyle().set("top", "0");
-                actions.getStyle().set("right", "0");
+                actions.addClassName(CssStyles.SUMMARY_ACTIONS);
             }
             add(viewActions);
         }

@@ -45,167 +45,35 @@ body {
     overflow: hidden !important;
 }
 
-.chat-message {
-    contain-intrinsic-size: auto 200px;
-    overflow-anchor: auto;
+/* Every markdown component wraps long lines instead of overflowing its container (rendered into the light DOM) */
+vaadin-markdown {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
-.chat-message {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 600px;
-    overflow-anchor: auto;
-}
-
-/* ==========================================================================
-   MANUSCRIPT READING MODE (Hybrid Style)
-   ========================================================================== */
-
-/* Base Container & Typography Setup */
-.manuscript-styles .chat-message-markdown {
-    font-family: "Garamond", "Georgia", "Times New Roman", serif;
-    font-size: 1.04rem;
-    line-height: 1.8;
-    letter-spacing: 0.012em;
-    color: var(--lumo-body-text-color, #e0e0e0);
-    width: 100% !important;
+vaadin-markdown pre,
+vaadin-markdown code,
+vaadin-markdown p,
+vaadin-markdown div,
+vaadin-markdown span {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    overflow-wrap: anywhere !important;
-    word-break: break-word !important;
 }
 
-/* Force child elements to stay flush-left and strictly inside boundaries */
-.manuscript-styles .chat-message-markdown *,
-.manuscript-styles .chat-message-markdown p,
-.manuscript-styles .chat-message-markdown div,
-.manuscript-styles .chat-message-markdown pre,
-.manuscript-styles .chat-message-markdown code,
-.manuscript-styles .chat-message-markdown blockquote,
-.manuscript-styles .chat-message-markdown ul,
-.manuscript-styles .chat-message-markdown ol,
-.manuscript-styles .chat-message-markdown li {
-    text-indent: 0 !important; /* Prevents dialogue stair-casing and offset bugs */
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    overflow-wrap: anywhere !important;
-    word-break: break-word !important;
-}
-
-/* Paragraph Flow (Flush-Left with Vertical Breathing Room) */
-.manuscript-styles .chat-message-markdown p {
-    margin-top: 0;
-    margin-bottom: 0.85em;
-    text-align: justify;
-    text-justify: inter-word;
-    white-space: pre-wrap !important;
-    /* TeX-like hyphenation; dictionary comes from the lang attribute set from the book language */
-    hyphens: auto;
-    -webkit-hyphens: auto;
-    hyphenate-limit-chars: 6 3 3; /* min word length, min chars before/after the break */
-    hyphenate-limit-lines: 2;     /* at most 2 consecutive hyphenated lines */
-    hyphenate-limit-last: always; /* never hyphenate the last line of a column/page */
-    orphans: 2;
-    widows: 2;
-}
-
-/* Character Actions & Internal Monologue (* * or _ _) */
-.manuscript-styles .chat-message-markdown em,
-.manuscript-styles .chat-message-markdown i {
-    font-style: italic;
-    color: #d1c4e9; /* Soft lavender tint */
-}
-
-/* Strong Text (** **) */
-.manuscript-styles .chat-message-markdown strong,
-.manuscript-styles .chat-message-markdown b {
-    font-weight: 700;
-    color: var(--lumo-header-text-color, #ffffff);
-}
-
-/* Blockquotes / Lore Highlights (> ) */
-.manuscript-styles .chat-message-markdown blockquote {
-    margin: 1em 0;
-    padding: 0.5em 1em;
-    border-left: 3px solid var(--lumo-primary-color, #7e57c2);
-    background-color: var(--lumo-contrast-5pct, rgba(255, 255, 255, 0.03));
-    border-radius: 0 4px 4px 0;
-    font-style: italic;
-    color: #b0bec5;
-}
-
-.manuscript-styles .chat-message-markdown blockquote p {
-    margin-bottom: 0.4em;
-}
-
-.manuscript-styles .chat-message-markdown blockquote p:last-child {
-    margin-bottom: 0;
-}
-
-/* Reasoning & Code Blocks (Locked within card bounds) */
-.manuscript-styles .chat-message-markdown pre {
-    background-color: var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.05));
-    border: 1px solid var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.1));
-    border-radius: 4px;
-    padding: 0.6em 0.8em;
-    margin: 0.8em 0;
-    font-family: var(--lumo-font-family-monospace, monospace);
-    font-size: 0.88em;
-    line-height: 1.5;
-    white-space: pre-wrap !important;
-    overflow-x: hidden !important;
-}
-
-.manuscript-styles .chat-message-markdown code {
-    font-family: var(--lumo-font-family-monospace, monospace);
-    font-size: 0.88em;
-    background-color: var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.08));
-    padding: 0.1em 0.3em;
-    border-radius: 3px;
-    white-space: pre-wrap !important;
-}
-
-/* Book Headings (# ## ###) */
-.manuscript-styles .chat-message-markdown h1,
-.manuscript-styles .chat-message-markdown h2,
-.manuscript-styles .chat-message-markdown h3 {
-    font-family: "Garamond", "Georgia", serif;
-    font-weight: 600;
-    text-align: center;
-    letter-spacing: 0.05em;
-    margin-top: 1.5em;
-    margin-bottom: 0.6em;
-    color: var(--lumo-header-text-color, #ffffff);
-}
-
-.manuscript-styles .chat-message-markdown h1 {
-    font-size: 1.35rem;
-    font-variant: small-caps;
-    border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.1));
-    padding-bottom: 0.3em;
-}
-
-.manuscript-styles .chat-message-markdown h2 {
-    font-size: 1.2rem;
-    font-variant: small-caps;
-}
-
-.manuscript-styles .chat-message-markdown h3 {
-    font-size: 1.08rem;
-}
-
-/* Scene Break Dividers (--- or ***) */
-.manuscript-styles .chat-message-markdown hr {
-    border: none;
-    text-align: center;
-    margin: 1.8em 0;
-}
-
-.manuscript-styles .chat-message-markdown hr::after {
-    content: "•  •  •";
-    display: inline-block;
-    font-size: 1rem;
-    letter-spacing: 0.5em;
-    color: var(--lumo-contrast-40pct, #888888);
+/* A message card of the story */
+.chat-message {
+    margin-bottom: 8px;
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-s);
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* branch tree */
@@ -329,4 +197,358 @@ body {
     font-size: 0.72em !important;
     color: var(--lumo-secondary-text-color, #888) !important;
     margin-top: 2px !important;
+}
+
+/* ==========================================================================
+   SHARED UTILITY CLASSES (see CssStyles.java, keep both in sync)
+   ========================================================================== */
+
+/* Typography */
+.section-title {
+    font-size: var(--lumo-font-size-l);
+    font-weight: bold;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-bold {
+    font-weight: bold;
+}
+
+.text-semibold {
+    font-weight: 600;
+}
+
+.text-xs {
+    font-size: var(--lumo-font-size-xs);
+}
+
+.text-s {
+    font-size: var(--lumo-font-size-s);
+}
+
+.text-m {
+    font-size: var(--lumo-font-size-m);
+}
+
+.text-monospace {
+    font-family: monospace;
+}
+
+.text-monospace-lumo {
+    font-family: var(--lumo-font-family-monospace, monospace);
+}
+
+.text-secondary {
+    color: var(--lumo-secondary-text-color);
+}
+
+.text-error {
+    color: var(--lumo-error-text-color);
+}
+
+.text-danger {
+    color: var(--lumo-error-color);
+}
+
+.text-success {
+    color: var(--lumo-success-color);
+}
+
+.text-primary {
+    color: var(--lumo-primary-color);
+}
+
+.hint-text {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.white-space-normal {
+    white-space: normal;
+}
+
+.pre-wrap {
+    white-space: pre-wrap;
+}
+
+.wrap-anywhere {
+    overflow-wrap: anywhere;
+}
+
+/* Layout helpers */
+.full-width {
+    width: 100%;
+}
+
+.full-size {
+    width: 100%;
+    height: 100%;
+}
+
+.min-width-0 {
+    min-width: 0;
+}
+
+.min-height-0 {
+    min-height: 0;
+}
+
+.max-width-full {
+    max-width: 100%;
+}
+
+.border-box {
+    box-sizing: border-box;
+}
+
+.overflow-hidden {
+    overflow: hidden;
+}
+
+.overflow-auto {
+    overflow: auto;
+}
+
+.display-block {
+    display: block;
+}
+
+.position-relative {
+    position: relative;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.flex-shrink-0 {
+    flex-shrink: 0;
+}
+
+.gap-s {
+    gap: var(--lumo-space-s);
+}
+
+.margin-left-auto {
+    margin-left: auto;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.form-padding-bottom {
+    padding-bottom: 16px;
+}
+
+.padding-compact {
+    padding: 6px 12px;
+}
+
+.padding-compact-narrow {
+    padding: 6px 10px;
+}
+
+.border-top-subtle {
+    border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+.border-right-subtle {
+    border-right: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* Panels and boxes */
+.notice-warning {
+    background-color: var(--lumo-warning-color-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    padding: var(--lumo-space-s);
+}
+
+.subtle-box {
+    padding: var(--lumo-space-xs);
+    background-color: var(--lumo-contrast-5pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+.bordered-panel {
+    background: var(--lumo-contrast-5pct);
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    margin-bottom: 8px;
+}
+
+.info-icon {
+    cursor: pointer;
+    color: var(--lumo-secondary-text-color);
+}
+
+.popover-form {
+    padding: 12px;
+}
+
+.tree-toolbar {
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    flex-wrap: wrap;
+}
+
+/* Lists, scroll panels and reader */
+.list-item-subrow {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+    margin-top: 2px;
+}
+
+.sidebar-button {
+    text-align: left;
+    justify-content: flex-start;
+    padding-left: 12px;
+}
+
+.sidebar-header {
+    font-weight: bold;
+    font-size: var(--lumo-font-size-s);
+    padding: 12px 12px 4px 12px;
+}
+
+.story-scroll-panel {
+    padding: 8px;
+    overscroll-behavior: contain;
+}
+
+.reader-scroll-panel {
+    padding: 12px;
+    overscroll-behavior: contain;
+}
+
+.reader-content {
+    margin: 0 auto;
+    padding-top: 48px;
+}
+
+.floating-back-button {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+}
+
+/* Message images */
+.message-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--lumo-space-m);
+    margin-top: var(--lumo-space-s);
+}
+
+.message-image {
+    height: auto;
+    border-radius: var(--lumo-border-radius-s);
+}
+
+/* Story messages and summaries */
+.chat-message-content {
+    padding: 8px 12px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.chat-message-meta {
+    min-width: 220px;
+    max-width: 220px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border-left: 1px solid var(--lumo-contrast-10pct);
+    background-color: var(--lumo-contrast-5pct);
+}
+
+.summary-content {
+    position: relative;
+    box-sizing: border-box;
+    padding-right: 40px;
+}
+
+.summary-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+}
+
+/* Resizable text area toggle icon */
+.resizable-text-area-icon {
+    cursor: pointer;
+    color: var(--lumo-secondary-text-color);
+    opacity: 0.7;
+    align-self: flex-end;
+    position: relative;
+    top: 0;
+    transform: translateY(var(--_text-area-vertical-scroll-position, 0px));
+    margin-top: 0;
+    margin-bottom: var(--lumo-space-xs);
+    margin-left: calc(-1 * var(--lumo-space-m));
+    margin-right: var(--lumo-space-xs);
+    z-index: 1;
+}
+
+/* Phone manuscript dialog */
+vaadin-dialog-overlay.phone-dialog {
+    --vaadin-dialog-viewport-margin: 0px;
+}
+
+vaadin-dialog-overlay.phone-dialog::part(overlay) {
+    border-radius: 0;
+    max-width: 100vw;
+    max-height: 100dvh;
+}
+
+/* The navbar and the drawer of an app layout are fixed to the viewport, the transform keeps them inside the layout */
+.phone-story-layout {
+    transform: translateZ(0);
+    --vaadin-app-layout-touch-optimized: true;
+    --vaadin-app-layout-drawer-width: min(90vw, 24rem);
+}
+
+.phone-message {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+    padding-bottom: var(--lumo-space-s);
+    margin-bottom: var(--lumo-space-s);
+}
+
+.phone-message-header {
+    width: 100%;
+    gap: var(--lumo-space-xs);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+}
+
+.phone-popover-content {
+    width: min(520px, calc(100vw - 2 * var(--lumo-space-m)));
+    max-width: 100%;
+    max-height: 70dvh;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+/* Chart.js chart (ui.widgets.ChartJs): the chart fills the element, so the element needs a size and a positioning context */
+.chart-js {
+    position: relative;
+    width: 100%;
+    height: 320px;
+}
+
+.token-usage-summary {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
 }

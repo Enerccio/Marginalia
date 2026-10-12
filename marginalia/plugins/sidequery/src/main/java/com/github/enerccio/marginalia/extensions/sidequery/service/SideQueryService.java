@@ -8,14 +8,13 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
+import com.github.enerccio.marginalia.extensions.sidequery.SideQueryLog;
 import com.github.enerccio.marginalia.extensions.sidequery.model.*;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -60,8 +59,6 @@ public class SideQueryService {
 
     @Autowired
     private InferenceServices inferenceServices;
-
-    private static final Logger log = LoggerFactory.getLogger(SideQueryService.class);
 
     private static final String TAB_NAME_PROMPT = "Give the following conversation a short title of at most five "
             + "words. Reply with the title only, without quotes or punctuation at the end.";
@@ -322,7 +319,7 @@ public class SideQueryService {
             return templateService.processTemplate(entry.getPayload(), "lorebookEntry", templateData);
         } catch (Exception e) {
             // a broken entry must not break the side query, use it as it is
-            log.warn("Failed to process template of lorebook entry '{}': {}", entry.getName(), e.getMessage());
+            SideQueryLog.get().warn("Failed to process template of lorebook entry '{}': {}", entry.getName(), e.getMessage());
             return entry.getPayload();
         }
     }
@@ -451,7 +448,7 @@ public class SideQueryService {
 
             @Override
             public void onError(Throwable exception) {
-                log.warn("Failed to name side query tab: {}", exception.getMessage());
+                SideQueryLog.get().warn("Failed to name side query tab: {}", exception.getMessage());
             }
 
             @Override

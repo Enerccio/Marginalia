@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.loc;
 
 
+import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.model.Setting;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -11,19 +12,23 @@ import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMat
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.text.Collator;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class LocalizationBase implements Localization {
+public class LocalizationImpl implements Localization, InitializingBean {
 
-    private final static Logger log = LoggerFactory.getLogger(LocalizationBase.class);
-    private final Map<L, String> messages = new HashMap<>();
+    private final static Logger log = LoggerFactory.getLogger(LocalizationImpl.class);
+    private final Map<Language, LocalizationBundle> bundles = new ConcurrentHashMap<>();
+    private Language defaultLanguage = Language.EN;
+
+    @Autowired
+    private SessionPoint sessionPoint;
 
     private final Map<AIType, L> aiTypes = new HashMap<>();
     private final Map<ProtocolType, L> protocolTypes = new HashMap<>();
@@ -36,13 +41,34 @@ public abstract class LocalizationBase implements Localization {
     private final Map<LorebookDecision, L> lorebookDecisions = new HashMap<>();
     private final Map<Class<?>, L> domainObjects = new HashMap<>();
 
-    protected abstract void loadMessages();
-
-    public LocalizationBase() {
-        loadMessages();
+    public LocalizationImpl() {
         loadMaps();
+    }
 
-        checkLocalization();
+    public void setBundles(List<LocalizationBundle> bundles) {
+        for (LocalizationBundle bundle : bundles) {
+            registerBundle(bundle);
+        }
+    }
+
+    public void setDefaultLanguage(Language defaultLanguage) {
+        this.defaultLanguage = defaultLanguage;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        LocalizationBundle bundle = bundles.get(defaultLanguage);
+        if (bundle == null) {
+            throw new IllegalStateException("No localization bundle for the default language " + defaultLanguage);
+        }
+        // the other bundles fall back to this one, so it has to be complete
+        String missing = missingKeys(bundle);
+        if (!missing.isEmpty()) {
+            log.error("\n*********** LOCALIZATION IS MISSING! ***********\n"
+                    + missing
+                    + "\n************************************************\n");
+            throw new IllegalStateException("The bundle of the default language " + defaultLanguage + " is incomplete");
+        }
     }
 
     private void loadMaps() {
@@ -92,56 +118,33 @@ public abstract class LocalizationBase implements Localization {
         domainObjects.put(User.class, L.LABEL_USER);
     }
 
-    protected void checkLocalization() {
-        L[] keys = L.values();
-        StringBuilder missingKeys = new StringBuilder();
-
-        for(L key : keys) {
-            if(!messages.containsKey(key)) {
-                missingKeys.append(key.name());
-                missingKeys.append("\n");
+    private static String missingKeys(LocalizationBundle bundle) {
+        StringBuilder missing = new StringBuilder();
+        for (L key : L.values()) {
+            if (bundle.getValue(key) == null) {
+                missing.append(key.name()).append('\n');
             }
         }
-
-        evaluateMissingLocalization(missingKeys);
-    }
-
-    protected void evaluateMissingLocalization(StringBuilder missingKeys) {
-        String missing = missingKeys.toString();
-
-        if(!missing.isEmpty()) {
-            if(log.isErrorEnabled()) {
-                log.error("\n*********** LOCALIZATION IS MISSING! ***********\n"
-                        + missing
-                        + "\n************************************************\n");
-            }
-            else {
-                System.err.println("\n*********** LOCALIZATION IS MISSING! ***********");
-                System.err.println(missing);
-                System.err.println("************************************************\n");
-            }
-
-            throw new IllegalStateException();
-        }
+        return missing.toString();
     }
 
     @Override
     public String getValue(L l) {
-        if (messages.containsKey(l)) {
-            return messages.get(l);
-        } else {
+        String text = currentBundle().getValue(l);
+        if (text == null) {
+            LocalizationBundle fallback = bundles.get(defaultLanguage);
+            text = fallback == null ? null : fallback.getValue(l);
+        }
+        if (text == null) {
             log.error("Key {} is not localized!", l.name());
             return "NOT LOCALIZED!";
         }
-    }
-
-    public void setValue(L l, String caption) {
-        messages.put(l, caption);
+        return text;
     }
 
     @Override
     public L parseValue(String text) {
-        for(Map.Entry<L, String> entry : messages.entrySet()) {
+        for(Map.Entry<L, String> entry : currentBundle().getMessages().entrySet()) {
             if(entry.getValue().equals(text)) {
                 return entry.getKey();
             }
@@ -152,22 +155,100 @@ public abstract class LocalizationBase implements Localization {
 
     @Override
     public Locale getLocale() {
-        return Locale.getDefault();
+        return currentBundle().getLocale();
     }
 
     @Override
     public DateFormat getDateFormat() {
-        return new SimpleDateFormat("dd.MM.yyyy", getLocale());
+        return currentBundle().getDateFormat();
     }
 
     @Override
     public DateFormat getHourFormat() {
-        return new SimpleDateFormat("HH:mm:ss", getLocale());
+        return currentBundle().getHourFormat();
     }
 
     @Override
     public DateFormat getDateHourFormat() {
-        return new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", getLocale());
+        return currentBundle().getDateHourFormat();
+    }
+
+    @Override
+    public Language getDefaultLanguage() {
+        return defaultLanguage;
+    }
+
+    @Override
+    public Language getCurrentLanguage() {
+        Language language = sessionLanguage();
+        return language != null && bundles.containsKey(language) ? language : defaultLanguage;
+    }
+
+    @Override
+    public List<Language> getAvailableLanguages() {
+        return bundles.values().stream()
+                .sorted(Comparator.comparing(LocalizationBundle::getDisplayName, String.CASE_INSENSITIVE_ORDER))
+                .map(LocalizationBundle::getLanguage)
+                .toList();
+    }
+
+    @Override
+    public String getDisplayName(Language language) {
+        LocalizationBundle bundle = bundles.get(language);
+        return bundle == null ? language.code() : bundle.getDisplayName();
+    }
+
+    @Override
+    public Language resolveLanguage(String code) {
+        if (code == null || code.isBlank()) {
+            return defaultLanguage;
+        }
+        Language language = Language.of(code);
+        return bundles.containsKey(language) ? language : defaultLanguage;
+    }
+
+    @Override
+    public void registerBundle(LocalizationBundle bundle) {
+        Language language = bundle.getLanguage();
+        if (bundles.putIfAbsent(language, bundle) != null) {
+            throw new IllegalArgumentException("Language " + language + " already has a localization bundle");
+        }
+        if (!language.equals(defaultLanguage)) {
+            String missing = missingKeys(bundle);
+            if (!missing.isEmpty()) {
+                log.warn("Localization bundle {} lacks texts, the {} ones are used instead:\n{}", language,
+                        defaultLanguage, missing);
+            }
+        }
+    }
+
+    @Override
+    public void unregisterBundle(LocalizationBundle bundle) {
+        Language language = bundle.getLanguage();
+        if (!language.equals(defaultLanguage)) {
+            bundles.remove(language, bundle);
+        }
+    }
+
+    private LocalizationBundle currentBundle() {
+        return bundles.get(getCurrentLanguage());
+    }
+
+    /**
+     * Language stored in the session, {@code null} when there is no session to ask: the session scoped bean can be
+     * used only in a request (or in a thread that got its attributes, see {@code ThreadCopyRequestAttributes}).
+     */
+    private Language sessionLanguage() {
+        if (sessionPoint == null || RequestContextHolder.getRequestAttributes() == null) {
+            return null;
+        }
+        try {
+            return sessionPoint.getLanguage();
+        } catch (RuntimeException e) {
+            // the session is gone
+            log.trace("No session to read the language from: {}", e.getMessage());
+            return null;
+        }
     }
 
     @Override

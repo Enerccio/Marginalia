@@ -32,7 +32,7 @@ import java.util.List;
 
 @Configurable(preConstruction = true)
 @Extendable
-public abstract class LoginCheckRoute extends Div {
+public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoint {
     private static final Logger log = LoggerFactory.getLogger(LoginCheckRoute.class);
 
     private static final String ID = "UIRoot";
@@ -75,7 +75,10 @@ public abstract class LoginCheckRoute extends Div {
     protected void showLogin() {
         try {
             if (userService.existsUsers()) {
-                String authUser = authenticateFromCookie();
+                String authUser = authenticatedSessionUser();
+                if (authUser == null) {
+                    authUser = authenticateFromCookie();
+                }
                 if (authUser == null) {
                     login();
                 } else {
@@ -94,6 +97,13 @@ public abstract class LoginCheckRoute extends Div {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * Login of the user that is already logged in this session (the page was reloaded), {@code null} when nobody is.
+     */
+    protected String authenticatedSessionUser() {
+        return null;
     }
 
     protected String authenticateFromCookie() {

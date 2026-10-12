@@ -5,18 +5,19 @@ import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ErrorDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.UIDetachedException;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -91,15 +92,22 @@ public class UIUtils {
     /**
      * Runs a change of a component that may belong to another user's session (e.g. from an extension unload) while
      * that session is locked, through {@code ui.access(...)}; directly when the component is not attached to a UI.
+     * A UI that was detached in the meantime (closed tab, expired session) is skipped: the component is gone with it.
      */
     public static void accessComponent(Component component, Runnable change) {
-        component.getUI().ifPresentOrElse(ui -> ui.access(() -> {
+        component.getUI().ifPresentOrElse(ui -> {
             try {
-                change.run();
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                ui.access(() -> {
+                    try {
+                        change.run();
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                    }
+                });
+            } catch (UIDetachedException e) {
+                log.debug("UI already detached, skipping component change");
             }
-        }), change);
+        }, change);
     }
 
     public static Component voidComponent() {
@@ -122,35 +130,6 @@ public class UIUtils {
         Tab delim = tabs.addTab("", voidComponent());
         delim.setEnabled(false);
         delim.add(VaadinIcon.LINE_V.create());
-    }
-
-    /**
-     * Makes the markdown wrap long lines instead of overflowing its container.
-     */
-    public static void applyMarkdownStyles(Markdown markdown) {
-        markdown.setWidthFull();
-        markdown.getStyle().set("min-width", "0");
-        markdown.getStyle().set("max-width", "100%");
-        markdown.getStyle().set("box-sizing", "border-box");
-        markdown.getElement().executeJs("""
-                const el = this;
-                const enforceWrap = () => {
-                  if (!el) return;
-                  const root = el.shadowRoot || el;
-                  const elements = root.querySelectorAll('pre, code, p, div, span');
-                  elements.forEach(node => {
-                    node.style.setProperty('white-space', 'pre-wrap', 'important');
-                    node.style.setProperty('word-break', 'break-word', 'important');
-                    node.style.setProperty('overflow-wrap', 'anywhere', 'important');
-                    node.style.setProperty('max-width', '100%', 'important');
-                    node.style.setProperty('box-sizing', 'border-box', 'important');
-                  });
-                };
-                enforceWrap();
-                const observer = new MutationObserver(enforceWrap);
-                observer.observe(el.shadowRoot || el, { childList: true, subtree: true, characterData: true });
-                """
-        );
     }
 
     public static void addTooltip(Component component, String text) {
@@ -267,15 +246,7 @@ public class UIUtils {
     }
 
     public static void getPositionAndSizeOfElement(Element element, PositionSizeCallback callback) {
-        element.executeJs("" +
-                "return (function () { \n" +
-                "   var w = $0.clientWidth; \n" +
-                "   var h = $0.clientHeight; \n" +
-                "   var bb = $0.getBoundingClientRect(); \n" +
-                "   var x = bb.left + window.scrollX; \n" +
-                "   var y = bb.top + window.scrollY; \n" +
-                "   return '' + x + ';' + y + ';' + w + ';' + h; \n" +
-                "} ())").then(data -> {
+        JavascriptLibrary.getPositionAndSize(element).then(data -> {
             String serializedData = data.asString();
             String[] items = serializedData.split(Pattern.quote(";"));
 

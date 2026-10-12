@@ -19,3 +19,5 @@ retype.manifest
 /src/main/bundles/dev.bundle
 /src/main/bundles/README.md
 /target/
+/marginalia/plugins/build
+/tmp/

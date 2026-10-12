@@ -71,10 +71,13 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 8. **Build & CI.**
    - ✅ No CI. Add a GitHub Actions workflow: build core + all plugins, run tests, build the Docker image.
-   - Parent/aggregator POM: plugins are separate projects depending on `marginalia:1.0.0` and are **not built or
+   - ✅ Parent/aggregator POM: plugins are separate projects depending on `marginalia:1.1.0` and are **not built or
      shipped by the Dockerfile**. Make a multi-module build, and decide whether bundled plugins ship preinstalled.
+     Partly eased: `marginalia/plugins/Dockerfile` + `docker-compose.yml` build all plugins in a container (JARs in
+     `marginalia/plugins/build`), and `rebuild.sh` / `rebuild.bat` pull, rebuild the plugins into `data/extensions`
+     and restart the compose stack. Still no aggregator POM and no preinstalled plugins in the image.
    - ✅ `target/` folders are not in `.gitignore` (root and `plugins/*/target`).
-   - ✅ Versioning: everything is `1.0.0`. `AppSettings.appVersion/dbVersion` and `ApplicationInitializer` are hard-coded `1`.
+   - ✅ Versioning: everything is `1.1.0`. `AppSettings.appVersion/dbVersion` and `ApplicationInitializer` are hard-coded `1`.
      Use the Maven version + git info (git-commit-id plugin is already present) and show it in the admin page.
    - ✅ Release artifacts: WAR + plugin JARs attached to a GitHub release and the Docker image (amd64 + arm64) pushed to
      `ghcr.io` by `.github/workflows/server.yml` (the desktop archives come from `desktop.yml`).
@@ -146,8 +149,11 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - Native Anthropic / Gemini clients (tokenizer strategies for LiteLLM-Anthropic already exist).
     - 🧩 Each new provider could be a plugin if `InferenceServices` gets a registration API like decorators have.
 
-19. **Context / token budget view.** Show per-section token usage of the last prompt (system, lore, summaries,
-    history, instructions) and what was cut. The data is already computed in the generation steps.
+19. ✅ **Context / token budget view.** `PromptTokenBreakdown` (`domain.components`) records the raw tokens of every
+    prompt section (jailbreak, template, lore, summaries, story, user lore, user prompt, reserved), the budget, the
+    story parts that were cut and the tokens of each payload message; it is stored with the part
+    (`ChatMessage.tokenBreakdown`, `null` for older parts) and *Token Usage* in the part menu shows it with Chart.js
+    (`ChartJs` widget, `TokenUsageDialog`). Not done: a view of the whole book's budget before generating.
 
 20. **Lorebook improvements.**
     - ✅ Edit lorebook-level tags in `LorebookView` (generation reads them in `fillEntries`, but there's no UI).
@@ -163,10 +169,22 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 22. **Sharing between users.** Everything is private. Read-only sharing of lorebooks/protocols, or an
     admin-managed "global" library, plus public read-only links for the Viewer (after fixing item 1).
 
-23. **Localization.** Only `LocalizationEN` exists, and the language is chosen by `configuration.properties`
-    for the whole instance. Allow a per-user language setting, and make the `L` key system plugin-friendly
-    (plugins currently can't add keys to the enum). Some strings are still hard-coded (e.g. bundle states in
-    `AdminPart.formatBundleState`, default names like "Imported Lorebook", "Entry" in services).
+23. ✅ **Localization.** Per-user UI language: `Localization` (`LocalizationImpl`) holds one `LocalizationBundle`
+    per `Language` and reads the language of the session from `SessionPoint`; it is set from `UserSetting.language`
+    when the workspace opens and changed with the `LanguageSelector` in the workspace footer (saves, then reloads every
+    page of the user). Bundles: `LocalizationBundleEN` (default, must be complete), `LocalizationBundleJP`, and
+    extensions can add languages (`ExtensionHasLocalization`; example plugin `chineselocalization`). A bundle may lack
+    keys (the English text is shown). The hard-coded UI strings found in a sweep (tree node cards, bundle states,
+    error dialog, prompt format list, login description) are now keys. Not done:
+    - the Japanese and Chinese texts are machine translations nobody who speaks the language has reviewed;
+    - plugins still have English-only texts of their own (they can't add keys to the `L` enum; a plugin can use
+      `Localization.getCurrentLanguage()` for its own tables);
+    - hard-coded text outside the UI classes: default names like "Imported Lorebook" and "Entry" in services, the
+      "Contents" title and other fixed words of the exported files (`ExporterBase`), exception messages of services
+      (developer-facing, except the ones the UI shows);
+    - the manual and the login page are English only (the login page uses the default language, the user's language is
+      known only after login);
+    - dates use one pattern per language (no per-user format), the date format of the book language is separate.
 
 24a. **Generation events for extensions** (groundwork for a 🧩 *Generation Inspector* plugin: per-message timeline,
     lorebook activation with skip reasons, context budget, exact payload).
@@ -179,8 +197,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - Generation run id on the event to correlate data from concurrent generations.
 
 24. **Extension management polish.** ✅ A JAR is verified before it is installed and again after an update, and an
-    extension built for another core version is refused (`ExtensionVerifier`, *Verification* column). Still missing:
-    enable/disable without uninstalling, show bundle errors and dependencies. The plugin API is not frozen in 1.0.
+    extension built for another core version is refused (`ExtensionVerifier`, *Verification* column). Extensions can be stopped and
+    started without uninstalling (`.STOPPED` flag file next to the JAR) and log into their own file, shown in the *Log*
+    dialog (`OsgiService.createLogger`, `ExtensionLogDialog`). Still missing: show bundle errors and dependencies. The plugin API is not frozen in 1.0.
 
 24b. **Summaries overview tools** 🧩 — the *Summaries* dialog (`SummariesDialog`, `@Extendable`) has an empty menu bar
     for these:
@@ -198,7 +217,14 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 26. **Undo for edits** — message edits overwrite text in place; keep per-message edit history (branching
     covers generations but not manual edits). 🧩 (similar to `lorebookvcs`)
 27. **Keyboard shortcuts** in the story editor (generate, stop, swipe, regenerate, edit).
-28. **Mobile layout** — fixed widths (`setWidth("280px")`, 900px dialogs, 260px tab bar) don't fit phones.
+28. ✅ **Mobile layout** — below 768 px (decided once, at page load) the app uses `PhoneWorkspace`: a drawer instead of
+    the tab bar and phone twins of the parts (`workspace/phone/parts`) and of the book window
+    (`PhoneManuscriptDialog`, tabs in `dialogs/phone/manuscript`), documented in `manual/user/phone.md`. Not done: the
+    layout does not switch on resize/rotation without a reload; the lorebook editor is reduced (entry content only);
+    *Resources* and the provider/protocol dialogs are the desktop ones; no admin pages on a phone; an extension must
+    register its decorators for the phone twins too (`PhoneManuscriptStoryPart`, see `plugins/extendable.md`).
+    The twins duplicate a lot of the desktop classes (`PhoneManuscriptStoryPart` ~1.3k lines next to
+    `ManuscriptStoryPart` ~1.3k): shared code should move out when either is touched next.
 29. **Theming** — light/dark toggle per user, editor font/size settings.
 30. **Import from other tools** — SillyTavern chats → book with branches, NovelAI/KoboldAI stories. 🧩
 31. **Image generation / illustrations** for scenes (would use `Resource`; attaching images by hand is done, see
@@ -209,4 +235,4 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 33. **Health and metrics endpoint.** ✅ The Dockerfile has a `HEALTHCHECK` (bash opens a socket to port 8080, a 2xx/3xx
     answer is healthy). Missing: a dedicated health endpoint and basic usage metrics (tokens per provider).
 34. **Configuration via environment variables** — today it's `configuration.properties` plus
-    `-Duser.home`. Document the keys and allow env overrides (data dir, localization, cookie TTL).
+    `-Duser.home`. Document the keys and allow env overrides (data dir, default language, cookie TTL).

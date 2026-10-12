@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.SharedStyles;
+import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.components.SummaryNode;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -12,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.Ja
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -41,9 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configurable
 @Extendable
@@ -104,7 +105,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private Manuscript currentManuscript;
     private boolean isFrozen = false;
-    private double currentPanelWidth = 0;
 
     private final Map<Long, ChatMessageCard> activeCardMap = new LinkedHashMap<>();
     private ChatMessageCard streamingCard;
@@ -123,7 +123,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         leftMarginLayout.setSizeFull();
         leftMarginLayout.setPadding(false);
         leftMarginLayout.setSpacing(false);
-        leftMarginLayout.getStyle().set("border-right", "1px solid var(--lumo-contrast-10pct)");
+        leftMarginLayout.addClassName(CssStyles.BORDER_RIGHT_SUBTLE);
+
+        // created once: a redraw of the story only refills the outline, so the selected tab (and the tabs extensions add) survive it
+        leftBar = new VTabSheet();
+        leftBar.setSizeFull();
+        leftMarginLayout.add(leftBar);
+        createStoryOutlineTab();
 
         centerLayout = new VerticalLayout();
         centerLayout.setSizeFull();
@@ -132,11 +138,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         centerContentPanel = new ScrollPanel();
         centerContentPanel.setSizeFull();
-        centerContentPanel.getStyle().set("padding", "8px");
-        centerContentPanel.getStyle().set("overscroll-behavior", "contain");
+        centerContentPanel.addClassName(CssStyles.STORY_SCROLL_PANEL);
 
         setupScrollListener();
-        setupResizeObserver();
 
         bottomControlsLayout = buildBottomControls();
 
@@ -148,23 +152,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         mainLayout.addToPrimary(leftMarginLayout);
         mainLayout.addToSecondary(centerLayout);
         mainLayout.setSplitterPosition(20);
-
-        UI.getCurrent().getPage().executeJs("""
-                if (!document.getElementById('marginalia-markdown-fix-style')) {
-                  const style = document.createElement('style');
-                  style.id = 'marginalia-markdown-fix-style';
-                  style.textContent = `
-                    .markdown-content pre, .markdown-content code, .markdown-content p, .markdown-content span {
-                      white-space: pre-wrap !important;
-                      word-break: break-word !important;
-                      overflow-wrap: anywhere !important;
-                      max-width: 100% !important;
-                      box-sizing: border-box !important;
-                    }
-                  `;
-                  document.head.appendChild(style);
-                }
-                """);
 
         container.add(loc.getValue(L.LABEL_STORY_PART), mainLayout);
         return mainLayout;
@@ -185,60 +172,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
         }).addEventData("event.detail.scrollTop");
 
-        centerContentPanel.getElement().executeJs("""
-                const el = $0;
-                if (!el._hasScrollListener) {
-                  el._hasScrollListener = true;
-                  let timer;
-                  el.addEventListener('scroll', () => {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => {
-                      el.dispatchEvent(new CustomEvent('panel-scroll', { detail: { scrollTop: Math.round(el.scrollTop) } }));
-                    }, 300);
-                  });
-                }
-                """, centerContentPanel.getElement());
-    }
-
-    private void setupResizeObserver() {
-        centerContentPanel.getElement().addEventListener("panel-resize", event -> {
-            double width = event.getEventData().get("event.detail.width").asDouble();
-            if (width > 0 && Math.abs(width - currentPanelWidth) >= 5) {
-                currentPanelWidth = width;
-                recalculateAllMessageHeights(width);
-            }
-        }).addEventData("event.detail.width");
-
-        centerContentPanel.getElement().executeJs("""
-                const el = $0;
-                if (!el._hasResizeObserver) {
-                  el._hasResizeObserver = true;
-                  let timer;
-                  const observer = new ResizeObserver(entries => {
-                    for (let entry of entries) {
-                      const w = Math.round(entry.contentRect.width);
-                      if (w > 0) {
-                        clearTimeout(timer);
-                        timer = setTimeout(() => {
-                          el.dispatchEvent(new CustomEvent('panel-resize', { detail: { width: w } }));
-                        }, 150);
-                      }
-                    }
-                  });
-                  observer.observe(el);
-                }
-                """,
-                centerContentPanel.getElement()
-        );
-    }
-
-    private void recalculateAllMessageHeights(double panelWidth) {
-        for (ChatMessageCard card : activeCardMap.values()) {
-            card.updateIntrinsicSizeEstimate(panelWidth);
-        }
-        if (streamingCard != null) {
-            streamingCard.updateIntrinsicSizeEstimate(panelWidth);
-        }
+        JavascriptLibrary.fireDebouncedScrollEvent(centerContentPanel.getElement());
     }
 
     private HorizontalLayout buildBottomControls() throws Exception {
@@ -247,8 +181,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         layout.setPadding(false);
         layout.setSpacing(false);
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
-        layout.getStyle().set("padding", "6px 12px");
-        layout.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
+        layout.addClassNames(CssStyles.PADDING_COMPACT, CssStyles.BORDER_TOP_SUBTLE);
 
         menuBar = createMenuBar();
         applyBookStyles();
@@ -364,9 +297,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         Manuscript manuscript = parent.refreshManuscript();
         applyLanguage(manuscript);
         if (manuscript.getShowBookStyles()) {
-            mainLayout.addClassName(SharedStyles.MARKDOWN_MANUSCRIPT_STYLES);
+            mainLayout.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
         } else {
-            mainLayout.removeClassName(SharedStyles.MARKDOWN_MANUSCRIPT_STYLES);
+            mainLayout.removeClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
         }
     }
 
@@ -385,7 +318,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         content.setWidth("540px");
 
         Span title = new Span(loc.getValue(L.LABEL_NEW_TURN_INSTRUCTIONS));
-        title.getStyle().set("font-weight", "bold");
+        title.addClassName(CssStyles.TEXT_BOLD);
 
         sceneSettingField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING));
         sceneSettingField.setWidthFull();
@@ -456,16 +389,17 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         instructionsField.setValue(pendingInstructions);
     }
 
+    /**
+     * Redraws the message cards and the chapter outline. The left bar (and so the selected tab) is kept, the state of
+     * the cards that is not stored in the message - which reasonings are opened - is carried over to the new cards.
+     */
     private void renderStoryContent() {
+        Set<Long> openedReasonings = collectOpenedReasonings();
+
         centerContentPanel.removeAll();
-        leftMarginLayout.removeAll();
+        sidebarList.removeAll();
+        sidebarHeader.setText("");
         activeCardMap.clear();
-
-        leftBar = new VTabSheet();
-        leftBar.setSizeFull();
-        leftMarginLayout.add(leftBar);
-
-        createStoryOutlineTab();
 
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             Span emptyLabel = new Span(loc.getValue(L.MSG_NO_ACTIVE_BRANCH));
@@ -486,6 +420,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     boolean isLast = (i == total - 1);
                     ChatMessageCard card = new ChatMessageCard(msg, isLast, orderId);
                     card.setFrozen(isFrozen);
+                    card.setReasoningOpened(openedReasonings.contains(dbId));
                     if (msg.getId() != null) {
                         activeCardMap.put(msg.getId(), card);
                     }
@@ -505,6 +440,19 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
     }
 
+    private Set<Long> collectOpenedReasonings() {
+        Set<Long> opened = new HashSet<>();
+        for (ChatMessageCard card : activeCardMap.values()) {
+            if (card.isReasoningOpened()) {
+                opened.add(card.message.getId());
+            }
+        }
+        if (streamingCard != null && streamingCard.message.getId() != null && streamingCard.isReasoningOpened()) {
+            opened.add(streamingCard.message.getId());
+        }
+        return opened;
+    }
+
     /**
      * The next render of the story (the tab being entered) scrolls to the part instead of restoring the scroll
      * position, used by the search of the tree.
@@ -514,24 +462,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     private void scrollToCard(ChatMessageCard card) {
-        card.getElement().executeJs("""
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    $0.scrollIntoView({block: 'start'});
-                    $0.animate([{outline: '3px solid var(--lumo-warning-color)'}, {outline: '3px solid transparent'}],
-                               {duration: 2000});
-                  });
-                });
-                """, card.getElement());
+        JavascriptLibrary.scrollToAndHighlight(card.getElement());
     }
 
     private void createSidebarButton(ChatMessage msg, int orderId, Long dbId) {
         Button sidebarBtn = new Button(String.format(loc.getValue(L.LABEL_CHAPTER_OUTLINE_NODE), orderId, dbId));
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
-        sidebarBtn.getStyle().set("text-align", "left");
-        sidebarBtn.getStyle().set("justify-content", "flex-start");
-        sidebarBtn.getStyle().set("padding-left", "12px");
+        sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
 
         sidebarBtn.addClickListener(event -> {
             if (dbId != null && activeCardMap.containsKey(dbId)) {
@@ -547,9 +485,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         leftBar.add(loc.getValue(L.LABEL_CHAPTERS), leftMarginLayout);
 
         sidebarHeader = new Span();
-        sidebarHeader.getStyle().set("font-weight", "bold");
-        sidebarHeader.getStyle().set("font-size", "var(--lumo-font-size-s)");
-        sidebarHeader.getStyle().set("padding", "12px 12px 4px 12px");
+        sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
 
         sidebarList = new VerticalLayout();
         sidebarList.setPadding(false);
@@ -573,22 +509,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         ChatMessage leaf = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
         Integer savedPos = (leaf != null) ? leaf.getScrollPosition() : null;
 
-        centerContentPanel.getElement().executeJs("""
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    const el = $0;
-                    const target = $1;
-                    if (target !== null && target !== undefined) {
-                      el.scrollTop = target;
-                    } else {
-                      el.scrollTop = el.scrollHeight;
-                    }
-                  });
-                });
-                """,
-                centerContentPanel.getElement(),
-                savedPos
-        );
+        JavascriptLibrary.restoreScrollPosition(centerContentPanel.getElement(), savedPos);
     }
 
     public void autosaveAndSwapAllToMarkdown() {
@@ -603,27 +524,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     }
 
     private void scrollToBottom() {
-        centerContentPanel.getElement().executeJs("""
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    $0.scrollTop = $0.scrollHeight;
-                  });
-                });
-                """
-        );
+        JavascriptLibrary.scrollToBottomAfterLayout(centerContentPanel.getElement());
     }
 
     private void scrollToBottomIfAtBottom() {
-        centerContentPanel.getElement().executeJs("""
-                requestAnimationFrame(() => {
-                  const el = $0;
-                  const isAtBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 100;
-                  if (isAtBottom) {
-                    el.scrollTop = el.scrollHeight;
-                  }
-                });
-                """
-        );
+        JavascriptLibrary.scrollToBottomIfAtBottom(centerContentPanel.getElement());
     }
 
     private void startGeneration() {
@@ -819,7 +724,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
                                 checkAndApplyBackupStrategy();
 
-                                centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
+                                JavascriptLibrary.getScrollTop(centerContentPanel.getElement())
                                         .then(Integer.class, scrollTop -> {
                                             if (scrollTop != null && message != null) {
                                                 message.setScrollPosition(scrollTop);
@@ -858,7 +763,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                                 streamingCard = null;
                                 parent.unfreeze();
 
-                                centerContentPanel.getElement().executeJs("return Math.round($0.scrollTop);")
+                                JavascriptLibrary.getScrollTop(centerContentPanel.getElement())
                                         .then(Integer.class, scrollTop -> {
                                             if (scrollTop != null && partialMessage != null) {
                                                 partialMessage.setScrollPosition(scrollTop);
@@ -926,10 +831,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         return streamingCard;
     }
 
-    private void applyMarkdownStyles(Markdown markdown) {
-        UIUtils.applyMarkdownStyles(markdown);
-    }
-
     @Override
     public void setFrozen(boolean frozen) {
         this.isFrozen = frozen;
@@ -995,6 +896,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         private MenuItem deleteSummaryItem;
         private MenuItem deleteItem;
         private MenuItem showPromptItem;
+        private MenuItem tokenUsageItem;
         private MenuItem imagesItem;
         private Details reasoningDetails;
         private Markdown reasoningMarkdown;
@@ -1028,28 +930,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             setWidthFull();
             setPadding(false);
             setSpacing(false);
-            getStyle().set("margin-bottom", "8px");
-            getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-            getStyle().set("border-radius", "var(--lumo-border-radius-s)");
-            getStyle().set("min-width", "0");
-            getStyle().set("max-width", "100%");
-            getStyle().set("box-sizing", "border-box");
-            getStyle().set("overflow", "hidden");
-            addClassName(SharedStyles.CHAT_MESSAGE);
-
-            if (currentPanelWidth > 0) {
-                updateIntrinsicSizeEstimate(currentPanelWidth);
-            }
+            addClassName(CssStyles.CHAT_MESSAGE);
 
             contentLayout = new VerticalLayout();
             contentLayout.setWidthFull();
             contentLayout.setPadding(false);
             contentLayout.setSpacing(false);
-            contentLayout.getStyle().set("padding", "8px 12px");
-            contentLayout.getStyle().set("min-width", "0");
-            contentLayout.getStyle().set("max-width", "100%");
-            contentLayout.getStyle().set("box-sizing", "border-box");
-            contentLayout.getStyle().set("overflow", "hidden");
+            contentLayout.addClassName(CssStyles.CHAT_MESSAGE_CONTENT);
 
             HorizontalLayout headerBar = new HorizontalLayout();
             headerBar.setWidthFull();
@@ -1059,27 +946,24 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             menuBtn = new Button(Solid.HAMBURGER.create());
             menuBtn.setThemeName("tertiary icon small");
-            menuBtn.getStyle().set("margin-left", "auto");
+            menuBtn.addClassName(CssStyles.MARGIN_LEFT_AUTO);
 
             createMenuItems();
 
             headerBar.add(UIUtils.voidComponent(), menuBtn);
 
             reasoningMarkdown = new Markdown();
-            reasoningMarkdown.addClassName(SharedStyles.CHAT_MESSAGE_MARKDOWN);
-            applyMarkdownStyles(reasoningMarkdown);
+            reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
             if (StringUtils.isNotBlank(message.getResponseReasoning())) {
                 reasoningMarkdown.setContent(message.getResponseReasoning());
             }
 
             reasoningDetails = new Details(loc.getValue(L.LABEL_VIEW_REASONING), reasoningMarkdown);
             reasoningDetails.setWidthFull();
-            reasoningDetails.getStyle().set("max-width", "100%");
-            reasoningDetails.getStyle().set("min-width", "0");
-            reasoningDetails.getStyle().set("box-sizing", "border-box");
+            reasoningDetails.addClassNames(CssStyles.MAX_WIDTH_FULL, CssStyles.MIN_WIDTH_0, CssStyles.BORDER_BOX);
 
             responseMarkdown = new Markdown();
-            responseMarkdown.addClassName(SharedStyles.CHAT_MESSAGE_MARKDOWN);
+            responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
             if (StringUtils.isNotBlank(message.getResponse())) {
                 responseMarkdown.setContent(message.getResponse());
             }
@@ -1096,34 +980,25 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             metaLayout = new VerticalLayout();
             metaLayout.setWidth("220px");
-            metaLayout.getStyle().set("min-width", "220px");
-            metaLayout.getStyle().set("max-width", "220px");
-            metaLayout.getStyle().set("flex-shrink", "0");
-            metaLayout.getStyle().set("flex-grow", "0");
-            metaLayout.getStyle().set("box-sizing", "border-box");
+            metaLayout.addClassName(CssStyles.CHAT_MESSAGE_META);
             metaLayout.setPadding(false);
             metaLayout.setSpacing(false);
-            metaLayout.getStyle().set("padding", "8px 12px");
-            metaLayout.getStyle().set("border-left", "1px solid var(--lumo-contrast-10pct)");
-            metaLayout.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
 
             Span metaHeader = new Span(loc.getValue(L.LABEL_NODE_METADATA));
-            metaHeader.getStyle().set("font-weight", "600");
-            metaHeader.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+            metaHeader.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_XS);
 
             idSpan = new Span(String.format(loc.getValue(L.LABEL_MESSAGE_IDS), this.orderId, (message.getId() != null ? message.getId() : NOT_AVAILABLE)));
-            idSpan.getStyle().set("font-weight", "600");
-            idSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+            idSpan.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_XS);
 
             String modelName = StringUtils.defaultIfBlank(message.getModelUsed(), NOT_AVAILABLE);
             modelSpan = new Span(loc.getValue(L.LABEL_MODEL) + ": " + modelName);
-            modelSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+            modelSpan.addClassName(CssStyles.TEXT_XS);
 
             tokensSpan = new Span(loc.getValue(L.LABEL_TOKENS) + ": " + message.getTokenCount() + " (" + message.getPromptTokens() + ")");
-            tokensSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+            tokensSpan.addClassName(CssStyles.TEXT_XS);
 
             wordsSpan = new Span(loc.getValue(L.LABEL_WORDS) + ": " + message.getWordCount());
-            wordsSpan.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+            wordsSpan.addClassName(CssStyles.TEXT_XS);
 
             turnDetailsBtn = new Button(loc.getValue(L.LABEL_TURN_DETAILS), Solid.INFO_CIRCLE.create());
             turnDetailsBtn.setThemeName("tertiary small");
@@ -1134,7 +1009,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             FormLayout detailsForm = new FormLayout();
             detailsForm.setWidth("520px");
-            detailsForm.getStyle().set("padding", "12px");
+            detailsForm.addClassName(CssStyles.POPOVER_FORM);
 
             detailsSceneField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING), StringUtils.defaultString(message.getSceneSetting()), "");
             detailsSceneField.setReadOnly(!this.isLast);
@@ -1189,51 +1064,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             setFlexGrow(0, metaLayout);
         }
 
-        public void updateIntrinsicSizeEstimate(double containerWidth) {
-            int estimatedHeight = calculateEstimatedHeight(this.message, containerWidth);
-            getStyle().set("contain-intrinsic-size", "auto " + estimatedHeight + "px");
-        }
-
-        private int calculateEstimatedHeight(ChatMessage msg, double containerWidth) {
-            if (msg == null) {
-                return 200;
-            }
-
-            // Available text area width = Panel Width - Padding (16px) - Meta panel width (220px) - Card inner padding (24px)
-            double availableWidth = Math.max(200.0, containerWidth - 260.0);
-            int charsPerLine = Math.max(20, (int) Math.floor(availableWidth / 8.5));
-
-            int baseHeight = 110; // Header, padding, margins, meta layout
-
-            String response = StringUtils.defaultString(msg.getResponse());
-            if (!response.isEmpty()) {
-                int responseLines = countLinesWithWrapping(response, charsPerLine);
-                baseHeight += responseLines * 28;
-            }
-
-            String reasoning = StringUtils.defaultString(msg.getResponseReasoning());
-            if (StringUtils.isNotBlank(reasoning)) {
-                int reasoningLines = countLinesWithWrapping(reasoning, charsPerLine);
-                baseHeight += 40 + (reasoningLines * 24);
-            }
-
-            return Math.max(120, baseHeight);
-        }
-
-        private int countLinesWithWrapping(String text, int charsPerLine) {
-            if (StringUtils.isBlank(text)) return 0;
-            int totalLines = 0;
-            String[] paragraphs = text.split("\r?\n");
-            for (String p : paragraphs) {
-                if (p.isEmpty()) {
-                    totalLines += 1;
-                } else {
-                    totalLines += Math.max(1, (int) Math.ceil((double) p.length() / charsPerLine));
-                }
-            }
-            return totalLines;
-        }
-
         private void createMenuItems() {
             hamburgerMenu = new ContextMenu();
             hamburgerMenu.setTarget(menuBtn);
@@ -1251,6 +1081,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             showPromptItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_SHOW_PROMPT), event -> showPrompt());
 
+            tokenUsageItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_TOKEN_USAGE), event -> showTokenUsage());
+
             imagesItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_IMAGES), event -> openImagesDialog());
 
             summaryItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_GENERATE_SUMMARY), event -> openSummaryDialog());
@@ -1258,7 +1090,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             deleteItem = hamburgerMenu.addItem(loc.getValue(L.LABEL_DELETE), event -> {
                 ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
-                    centerContentPanel.getElement().executeJs("return $0.scrollTop").then(Integer.class, scrollTop -> {
+                    JavascriptLibrary.getScrollTop(centerContentPanel.getElement()).then(Integer.class, scrollTop -> {
                         try {
                             Long parentId = message.getParent() != null ? message.getParent().getId() : null;
 
@@ -1268,7 +1100,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                             load(parent.getManuscript());
 
                             if (scrollTop != null && scrollTop > 0) {
-                                centerContentPanel.getElement().executeJs("$0.scrollTop = $1", scrollTop);
+                                JavascriptLibrary.setScrollTop(centerContentPanel.getElement(), scrollTop);
                             } else if (parentId != null && activeCardMap.containsKey(parentId)) {
                                 activeCardMap.get(parentId).scrollIntoView();
                             }
@@ -1439,12 +1271,20 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                     editing = false;
                     editItem.setText(loc.getValue(L.LABEL_EDIT));
                     updateMetrics(message);
-                    if (currentPanelWidth > 0) {
-                        updateIntrinsicSizeEstimate(currentPanelWidth);
-                    }
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
                 }
+            }
+        }
+
+        public boolean isReasoningOpened() {
+            return reasoningDetails.isOpened();
+        }
+
+        public void setReasoningOpened(boolean opened) {
+            if (opened) {
+                reasoningDetails.setOpened(true);
+                wasReasoningOpenedByGeneration = true;
             }
         }
 
@@ -1455,9 +1295,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             }
             message.setResponseReasoning(reasoningText);
             reasoningMarkdown.setContent(StringUtils.defaultString(reasoningText));
-            if (currentPanelWidth > 0) {
-                updateIntrinsicSizeEstimate(currentPanelWidth);
-            }
         }
 
         public void updateResponse(String responseText) {
@@ -1465,9 +1302,6 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             responseMarkdown.setContent(StringUtils.defaultString(responseText));
             if (!editing) {
                 responseTextArea.setValue(StringUtils.defaultString(responseText));
-            }
-            if (currentPanelWidth > 0) {
-                updateIntrinsicSizeEstimate(currentPanelWidth);
             }
         }
 
@@ -1477,6 +1311,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             modelSpan.setText(loc.getValue(L.LABEL_MODEL) + ": " + modelName);
             tokensSpan.setText(loc.getValue(L.LABEL_TOKENS) + ": " + msg.getTokenCount() + " (" + msg.getPromptTokens() + ")");
             wordsSpan.setText(loc.getValue(L.LABEL_WORDS) + ": " + msg.getWordCount());
+        }
+
+        private void showTokenUsage() {
+            // null for parts generated before the breakdown was recorded, the dialog says so
+            TokenUsageDialog dialog = new TokenUsageDialog(message.getTokenBreakdown());
+            dialog.create();
+            dialog.open();
         }
 
         private void showPrompt() {

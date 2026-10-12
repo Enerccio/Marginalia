@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -103,7 +104,7 @@ public class ExportDialog extends Dialog {
         FormLayout form = new FormLayout();
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
         form.add(format, fileName, bookTitle, author, from, to, includeHeaders);
-        form.getChildren().forEach(c -> c.getElement().getStyle().set("width", "100%"));
+        form.getChildren().forEach(c -> c.getElement().getClassList().add(CssStyles.FULL_WIDTH));
         add(form);
 
         Button export = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP), Solid.FILE_EXPORT.create(), event -> start());

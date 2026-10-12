@@ -3,7 +3,14 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
 
-    <bean name="localization" class="${localization}" />
+    <bean name="localization" class="com.github.enerccio.marginalia.loc.LocalizationImpl">
+        <property name="bundles">
+            <list>
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleEN" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleJP" />
+            </list>
+        </property>
+    </bean>
 
     <bean name="configuration" class="com.github.enerccio.marginalia.Configuration">
         <property name="allowPersistentLogin" value="${allowPersistentLogin:true}" />

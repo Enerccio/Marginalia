@@ -9,6 +9,10 @@ Revision history for [lorebook entries](../lorebooks/entries.md): keep earlier v
 between them - for example the state of the world before and after a war, or a character at different points of the
 story.
 
+!!!
+Lorebook VCS is not available in the [phone layout](../phone.md#extensions).
+!!!
+
 A revision is a snapshot of the whole entry: name, content, note, enabled, order, filter and filtering mode, insertion
 mode, tags and negative tags.
 

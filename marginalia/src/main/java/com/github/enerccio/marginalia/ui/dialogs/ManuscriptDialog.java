@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AIService;
@@ -80,7 +81,7 @@ public class ManuscriptDialog extends Dialog {
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
-        mainLayout.getStyle().set("overflow", "hidden");
+        mainLayout.addClassName(CssStyles.OVERFLOW_HIDDEN);
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
 

@@ -29,7 +29,7 @@ Everything is run from the `marginalia/` directory:
 mvn package                 # build + tests
 mvn package -DskipTests
 mvn test -Dtest=LorebookActivationTest
-mvn install -DskipTests     # needed before building plugins
+mvn install -DskipTests     # needed before building plugins (and `mvn -N install` once in the repository root)
 ```
 
 The first build is slow: Vaadin downloads Node.js and npm packages. See
@@ -66,8 +66,9 @@ mvn -DskipTests jetty:run -Dmaven.repo.local=$HOME/.m2/repository
   prefix group in both files, not at the end of the file. Keys name the English text, not the screen, so reuse an
   existing key (e.g. `LABEL_REFRESH`) instead of adding a per-screen duplicate; grep `LocalizationEN` first.
 - **Don't log story content** above `DEBUG`, and never log API keys or passwords.
-- **Plugins** are separate Maven projects: run `mvn install -DskipTests` for the app first, then `mvn package` in the
-  plugin directory. They must be built from the same source tree as the app.
+- **Plugins** are separate Maven projects: run `mvn -N install` in the repository root (the parent POM that holds the version)
+  and `mvn install -DskipTests` for the app first, then `mvn package` in the plugin directory. `mvn package` in the
+  root builds the app and all plugins in one go. They must be built from the same source tree as the app.
 
 ## Making a change
 

@@ -1,4 +1,4 @@
-package com.github.enerccio.marginalia.domain.service;
+package com.github.enerccio.marginalia.domain.components;
 
 public record TurnInput(
     String sceneSetting,

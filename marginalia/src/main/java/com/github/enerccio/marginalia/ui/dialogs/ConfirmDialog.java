@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.Html;
@@ -86,7 +87,7 @@ public class ConfirmDialog extends Dialog {
 		vl.setPadding(true);
 		vl.setSpacing(true);
 
-		Html msg = new Html("<h3 style='text-align: center;'>" + getMessage(message) + "</h3>");
+		Html msg = new Html("<h3 class='" + CssStyles.TEXT_CENTER + "'>" + getMessage(message) + "</h3>");
 
 		vl.add(msg);
 		vl.add(hl);

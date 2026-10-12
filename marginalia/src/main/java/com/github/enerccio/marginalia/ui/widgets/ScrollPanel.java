@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
@@ -18,9 +19,9 @@ public class ScrollPanel extends VerticalLayout {
     }
 
     private void preparePanel() {
-        getStyle().set("overflow", "auto");
+        addClassName(CssStyles.OVERFLOW_AUTO);
         content = new VerticalLayout();
-        content.getStyle().set("display", "block");
+        content.addClassName(CssStyles.DISPLAY_BLOCK);
         content.setWidth("100%");
         super.add(content);
         setHeight("100%");

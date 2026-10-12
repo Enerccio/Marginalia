@@ -7,9 +7,12 @@ a restart.
 |---|---|
 | [Author's Note](authorsnote/README.md) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
+| [Instruction Exporter](instructionexporter/README.md) | "Export instructions" in the story settings menu: copies the instructions, scene settings and characters of the active branch to the clipboard. |
+| [Lore Generator](lore-generator/README.md) | Writes the content of a lorebook entry with the model from the existing lore (generation, compaction, attachments), from a button in the lorebook editor. |
 | [Lorebook VCS](lorebookvcs/README.md) | Revision history for lorebook entries: snapshots, browsing and restoring old versions, export/import. |
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
 | [Side Query](sidequery/README.md) | A chat panel next to the story for asking the model questions about the book, its lore and recent parts. |
+| [Chinese localization](chineselocalization/README.md) | Simplified Chinese as a language of the user interface; the example for adding a language. |
 
 ## Installing
 
@@ -28,14 +31,30 @@ different version may stop working. Use plugins built from the same source tree 
 Plugins compile against the Marginalia application, which has to be installed in the local Maven repository first:
 
 ```sh
+mvn -N install                   # in the repository root: installs the parent POM (holds the version)
+
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or authorsnote, lorebookvcs, reviewer, sidequery
-mvn package                       # target/chaptermarker-1.0.0.jar
+cd plugins/chaptermarker          # or authorsnote, instructionexporter, lore-generator, lorebookvcs, reviewer, sidequery, chineselocalization
+mvn package                       # target/chaptermarker-1.1.0.jar
 ```
 
-Requirements are the same as for the application: JDK 25+ and Maven 3.9+.
+`mvn package` in the repository root builds the application and all plugins in one go. Requirements are the same as for
+the application: JDK 25+ and Maven 3.9+.
+
+### Building in Docker
+
+Without a local JDK and Maven, `docker-compose.yml` in this folder builds the application and all plugins in a
+container and copies the JARs into `build/` (ignored by Git):
+
+```sh
+docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
+```
+
+Run both from the repository root. `rebuild.sh` / `rebuild.bat` in the root use this to update a Docker server and
+copy the JARs into `data/extensions`.
 
 ## Writing a plugin
 
@@ -50,4 +69,4 @@ that's how these plugins add menu items, panels and settings. Through
 lore, the prompt and the answer; [Author's Note](authorsnote) inserts its note into the payload this way. Plugin data is usually kept in the `attributes` of
 existing entities (book, story part, lorebook, user settings), so it's included in backups and exports.
 
-The five plugins here are complete examples, [Chapter Marker](chaptermarker) is the smallest one.
+The plugins here are complete examples, [Chapter Marker](chaptermarker) is the smallest one.

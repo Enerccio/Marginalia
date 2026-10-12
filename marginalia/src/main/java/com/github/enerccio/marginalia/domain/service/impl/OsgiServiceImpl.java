@@ -5,9 +5,12 @@ import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.extensions.ExtensionHasLocalization;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerification;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerifier;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.loc.LocalizationBundle;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.shared.Registration;
 import org.apache.commons.io.FileUtils;
@@ -40,8 +43,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
@@ -49,6 +54,10 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private static final Logger log = LoggerFactory.getLogger(OsgiServiceImpl.class);
 
     private static final long FRAMEWORK_TIMEOUT_MS = 30_000;
+    /** Where the JARs of older versions of an installed extension go, inside the extensions folder. */
+    private static final String OLD_VERSIONS_FOLDER = "old-versions";
+    /** The flag file next to the JAR of an extension the administrator stopped. */
+    private static final String STOPPED_SUFFIX = ".STOPPED";
 
     @Autowired
     private Configuration configuration;
@@ -59,13 +68,19 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     @Autowired
     private AdminGuard adminGuard;
 
+    @Autowired
+    private Localization localization;
+
     private String extensionPath;
     private Framework f;
     private BundleContext context;
 
     private final Map<ServiceReference<?>, MarginaliaExtension> activeExtensions = new ConcurrentHashMap<>();
     private final Map<MarginaliaExtension, Set<ComponentBinding>> componentCallbacks = new ConcurrentHashMap<>();
+    private final Map<ServiceReference<?>, LoadedExtension> loadedExtensions = new ConcurrentHashMap<>();
+    private final Map<MarginaliaExtension, List<LocalizationBundle>> localizationBundles = new ConcurrentHashMap<>();
     private final Set<WeakReference<ExtensionObserver>> observers = new HashSet<>();
+    private final List<WeakReference<ExtensionListener>> extensionListeners = new CopyOnWriteArrayList<>();
     private volatile Long applicationTimestamp;
 
     @Override
@@ -163,7 +178,13 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
             }
         }
 
+        uninstallOlderVersions();
+
         for (Bundle b : getBundles()) {
+            if (isStopped(b)) {
+                log.info("Extension {} ({}) is stopped, it is not started", b.getSymbolicName(), locationFile(b).getName());
+                continue;
+            }
             try {
                 startBundle(b);
             } catch (ExtensionVerificationException e) {
@@ -174,6 +195,40 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         }
 
         onStart();
+    }
+
+    /**
+     * Several versions of one extension in the folder (an update copied next to the old JAR instead of replacing it)
+     * would all be started and their listeners would clash, so only the newest of each symbolic name stays. The JARs
+     * of the older ones are moved to {@link #OLD_VERSIONS_FOLDER} (not deleted, they can be put back).
+     */
+    private void uninstallOlderVersions() {
+        Map<String, List<Bundle>> byName = new LinkedHashMap<>();
+        for (Bundle b : getBundles()) {
+            byName.computeIfAbsent(String.valueOf(b.getSymbolicName()), n -> new ArrayList<>()).add(b);
+        }
+        for (List<Bundle> versions : byName.values()) {
+            if (versions.size() < 2) {
+                continue;
+            }
+            versions.sort(Comparator.comparing(Bundle::getVersion).reversed());
+            Bundle newest = versions.getFirst();
+            for (Bundle older : versions.subList(1, versions.size())) {
+                File jar = locationFile(older);
+                log.warn("Extension {} is installed in several versions, {} ({}) is not loaded because {} ({}) is newer; moving it to {}",
+                        older.getSymbolicName(), older.getVersion(), jar.getName(),
+                        newest.getVersion(), locationFile(newest).getName(), OLD_VERSIONS_FOLDER);
+                try {
+                    older.uninstall();
+                    File folder = new File(jar.getParentFile(), OLD_VERSIONS_FOLDER);
+                    Files.createDirectories(folder.toPath());
+                    Files.move(jar.toPath(), new File(folder, jar.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    deleteReports(jar);
+                } catch (BundleException | IOException e) {
+                    log.error("Failed to skip extension {} ({}): {}", older.getSymbolicName(), jar.getName(), e.getMessage(), e);
+                }
+            }
+        }
     }
 
     @Override
@@ -198,6 +253,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
             log.trace("stopping extension stop");
         }
         activeExtensions.clear();
+        loadedExtensions.clear();
         componentCallbacks.clear();
         onStop();
     }
@@ -242,6 +298,8 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                         backups.put(oldFile, backup);
                     }
                     deleteReports(oldFile);
+                    // an uploaded extension is started, also over a stopped one
+                    Files.deleteIfExists(stoppedFlag(oldFile).toPath());
                 }
             }
             if (!backups.isEmpty()) {
@@ -300,14 +358,99 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                     stopBundleInternal(b);
                 } finally {
                     b.uninstall();
-                    locationFile(b).delete();
-                    deleteReports(locationFile(b));
+                    File jar = locationFile(b);
+                    jar.delete();
+                    deleteReports(jar);
+                    Files.deleteIfExists(stoppedFlag(jar).toPath());
+                    ExtensionLogger.delete(ExtensionLogger.logFile(jar));
                 }
                 refreshBundles();
             } finally {
                 onStart();
             }
         }
+    }
+
+    @Override
+    public boolean isStopped(Bundle b) {
+        return stoppedFlag(locationFile(b)).exists();
+    }
+
+    @Override
+    public synchronized void stopExtension(Bundle b) throws Exception {
+        adminGuard.requireAdmin();
+        requireInstalled(b);
+        if (isStopped(b)) {
+            return;
+        }
+        onBeforeStop();
+        onStop();
+        onBeforeStart();
+        try {
+            // the flag first: when the unload fails, the extension is still not started the next time
+            Files.createFile(stoppedFlag(locationFile(b)).toPath());
+            try {
+                stopBundleInternal(b);
+            } finally {
+                b.stop();
+            }
+        } finally {
+            onStart();
+        }
+    }
+
+    @Override
+    public synchronized void startExtension(Bundle b) throws Exception {
+        adminGuard.requireAdmin();
+        requireInstalled(b);
+        File flag = stoppedFlag(locationFile(b));
+        if (!flag.exists()) {
+            return;
+        }
+        onBeforeStop();
+        onStop();
+        onBeforeStart();
+        try {
+            startBundle(b);
+            Files.deleteIfExists(flag.toPath());
+        } finally {
+            onStart();
+        }
+    }
+
+    private static void requireInstalled(Bundle b) {
+        if (b == null || b.getBundleId() == 0 || b.getState() == Bundle.UNINSTALLED) {
+            throw new IllegalArgumentException("Not an installed extension");
+        }
+    }
+
+    /**
+     * The flag file of a stopped extension: {@code <jar name>.STOPPED} next to the JAR.
+     */
+    private static File stoppedFlag(File jar) {
+        return new File(jar.getAbsoluteFile().getParentFile(), jar.getName() + STOPPED_SUFFIX);
+    }
+
+    @Override
+    public Logger createLogger(Bundle b) {
+        return createLogger(b, b.getSymbolicName());
+    }
+
+    @Override
+    public Logger createLogger(Bundle b, String name) {
+        return new ExtensionLogger(name, ExtensionLogger.logFile(locationFile(b)));
+    }
+
+    @Override
+    public String readLog(Bundle b, int maxBytes) throws Exception {
+        adminGuard.requireAdmin();
+        return ExtensionLogger.tail(ExtensionLogger.logFile(locationFile(b)), maxBytes);
+    }
+
+    @Override
+    public void clearLog(Bundle b) throws Exception {
+        adminGuard.requireAdmin();
+        ExtensionLogger.delete(ExtensionLogger.logFile(locationFile(b)));
     }
 
     @Override
@@ -470,6 +613,10 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                     }
                     throw e;
                 }
+                registerLocalizationBundles(extension);
+                LoadedExtension loaded = new LoadedExtension(b, extension);
+                loadedExtensions.put(sr, loaded);
+                fireExtensionEvent(listener -> listener.extensionLoaded(b, extension));
             }
         }
     }
@@ -490,10 +637,63 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 binding.release();
             }
         }
+        // an extension that failed to load was never reported, so it is not reported as unloaded either
+        boolean reported = loadedExtensions.remove(sr) != null;
+        unregisterLocalizationBundles(extension);
         try {
             extension.onExtensionUnload(b, this, extensionService);
         } finally {
             getContext().ungetService(sr);
+            if (reported) {
+                fireExtensionEvent(listener -> listener.extensionUnloaded(b, extension));
+            }
+        }
+    }
+
+    /**
+     * Adds the languages of an {@link ExtensionHasLocalization} extension; a bundle that is refused (its language is
+     * taken) is logged and doesn't stop the extension.
+     */
+    private void registerLocalizationBundles(MarginaliaExtension extension) {
+        if (!(extension instanceof ExtensionHasLocalization hasLocalization)) {
+            return;
+        }
+        List<LocalizationBundle> registered = new ArrayList<>();
+        try {
+            for (LocalizationBundle bundle : hasLocalization.getLocalizationBundles()) {
+                try {
+                    localization.registerBundle(bundle);
+                    registered.add(bundle);
+                } catch (RuntimeException e) {
+                    log.error("Extension {} localization bundle {} is not registered: {}", extension.getClass().getName(),
+                            bundle.getLanguage(), e.getMessage());
+                }
+            }
+        } catch (RuntimeException e) {
+            log.error("Extension {} failed to provide its localization bundles: {}", extension.getClass().getName(), e.getMessage(), e);
+        }
+        localizationBundles.put(extension, registered);
+    }
+
+    private void unregisterLocalizationBundles(MarginaliaExtension extension) {
+        List<LocalizationBundle> registered = localizationBundles.remove(extension);
+        if (registered != null) {
+            registered.forEach(localization::unregisterBundle);
+        }
+    }
+
+    private void fireExtensionEvent(Consumer<ExtensionListener> event) {
+        for (WeakReference<ExtensionListener> reference : extensionListeners) {
+            ExtensionListener listener = reference.get();
+            if (listener == null) {
+                extensionListeners.remove(reference);
+                continue;
+            }
+            try {
+                event.accept(listener);
+            } catch (Exception e) {
+                log.error("Extension listener {} failed: {}", listener.getClass().getName(), e.getMessage(), e);
+            }
         }
     }
 
@@ -609,6 +809,28 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 return;
             }
         }
+    }
+
+    @Override
+    public void addExtensionListener(ExtensionListener listener) {
+        synchronized (extensionListeners) {
+            for (WeakReference<ExtensionListener> reference : extensionListeners) {
+                if (reference.get() == listener) {
+                    return;
+                }
+            }
+            extensionListeners.add(new WeakReference<>(listener));
+        }
+    }
+
+    @Override
+    public void removeExtensionListener(ExtensionListener listener) {
+        extensionListeners.removeIf(reference -> reference.get() == null || reference.get() == listener);
+    }
+
+    @Override
+    public List<LoadedExtension> getLoadedExtensions() {
+        return new ArrayList<>(loadedExtensions.values());
     }
 
     @Override

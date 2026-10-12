@@ -63,6 +63,13 @@ public class UserSetting extends Setting {
     @Transient
     private String backupStrategyValue;
 
+    /**
+     * Code of the language of the UI, {@code null} for the default one.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String language;
+
     public Long getDefaultModel() {
         return defaultModel;
     }
@@ -141,6 +148,14 @@ public class UserSetting extends Setting {
 
     public void setBackupStrategy(BackupStrategy backupStrategy) {
         this.backupStrategy = backupStrategy;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public String getBackupStrategyValue() {

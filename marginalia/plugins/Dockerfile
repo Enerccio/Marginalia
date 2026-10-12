@@ -1,0 +1,35 @@
+# Build environment for the plugins: builds and installs the application (the plugins compile against its classes
+# JAR), then builds every plugin. Build context is the repository root, see docker-compose.yml.
+#
+# The finished JARs are copied to /output when the container runs, so mount a folder there
+# (docker compose run --rm plugins).
+FROM maven:3.9-eclipse-temurin-25 AS builder
+
+WORKDIR /build/marginalia
+
+# Cache dependencies (the POMs inherit from the parent POM in the repository root)
+COPY pom.xml /build/pom.xml
+COPY marginalia/pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Build and install the application into the local Maven repository. The plugins need only its classes JAR, so the
+# Vaadin frontend build (Node.js, npm, Vite) is skipped; the WAR of this build is not used and not production-ready.
+COPY marginalia/src ./src
+COPY .git /build/.git
+RUN mvn install -DskipTests -Dvaadin.skip=true -B \
+    && mvn install -N -B -f /build/pom.xml
+
+# Build the plugins; each one is a separate Maven project
+COPY marginalia/plugins ./plugins
+RUN mkdir /jars \
+    && for pom in plugins/*/pom.xml; do \
+        (cd "$(dirname "$pom")" && mvn package -B) || exit 1; \
+        cp "$(dirname "$pom")"/target/*.jar /jars/ || exit 1; \
+    done
+
+FROM alpine:3
+
+COPY --from=builder /jars /jars
+
+# copies the plugin JARs into the mounted folder, replacing the ones from an earlier build
+CMD ["sh", "-c", "mkdir -p /output && rm -f /output/*.jar && cp /jars/*.jar /output/ && ls -l /output"]

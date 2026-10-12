@@ -1,4 +1,4 @@
-package com.github.enerccio.marginalia.domain.service;
+package com.github.enerccio.marginalia.domain.components;
 
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;

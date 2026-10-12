@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.generation;
 
+import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.TokenLimits;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
 import com.github.enerccio.marginalia.loc.L;

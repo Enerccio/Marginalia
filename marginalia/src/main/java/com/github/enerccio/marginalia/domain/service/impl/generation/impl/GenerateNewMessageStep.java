@@ -1,9 +1,10 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
+import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.TurnInput;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
@@ -12,8 +13,7 @@ import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class GenerateNewMessageStep extends GenerationStepBase {
     private static final Logger log = LoggerFactory.getLogger(GenerateNewMessageStep.class);
@@ -57,6 +57,7 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             initialNode.setProtocolUsed(manuscript.getProtocol().getName());
             initialNode.setBuiltPrompt(gson.toJson(payload));
             initialNode.setBuiltPromptTokens(inferenceService.countTokens(initialNode.getBuiltPrompt()));
+            initialNode.setTokenBreakdown(createTokenBreakdown(controller, inferenceService, payload));
             initialNode.setBackgroundLore(controller.getPrePromptData().getBackgroundLore());
             initialNode.setRequest(new Date());
 
@@ -106,6 +107,34 @@ public class GenerateNewMessageStep extends GenerationStepBase {
                 controller.next();
             });
         });
+    }
+
+    /**
+     * Breakdown filled by {@link PrepareContentStep} with the tokens of each message of the final payload (listeners
+     * may have changed it). Null when the content step did not run.
+     */
+    private PromptTokenBreakdown createTokenBreakdown(GenerationController controller, InferenceService inferenceService,
+                                                      List<LLMChatMessage> payload) throws Exception {
+        PromptTokenBreakdown breakdown = (PromptTokenBreakdown) controller.getProperties().get(GenerationProperties.TOKEN_BREAKDOWN);
+        if (breakdown == null || payload == null) {
+            return null;
+        }
+        // the generated "[ Generate more story. ]" messages repeat
+        Map<String, Long> counted = new HashMap<>();
+        List<PromptTokenBreakdown.MessageTokens> messages = new ArrayList<>();
+        for (LLMChatMessage message : payload) {
+            String content = message.getContent();
+            Long tokens = counted.get(content);
+            if (tokens == null) {
+                tokens = content == null ? 0 : inferenceService.countTokens(content);
+                if (content != null) {
+                    counted.put(content, tokens);
+                }
+            }
+            messages.add(new PromptTokenBreakdown.MessageTokens(message.getRole() == null ? null : message.getRole().name(), tokens));
+        }
+        breakdown.setMessages(messages);
+        return breakdown;
     }
 
     @Override

@@ -13,6 +13,18 @@ The manual is at **[enerccio.github.io/Marginalia](https://enerccio.github.io/Ma
 
 ![Marginalia story editor](manual/images/hero-story-editor.png)
 
+## 日本語
+
+Marginalia は、大規模言語モデル（LLM）と共同で長編小説を書くためのセルフホスト型ツールです。各場面の指示を
+書くとモデルが本文を生成し、Marginalia が分岐するストーリー、世界設定（ロアブック）、長い作品をコンテキストに
+収めるための要約、文体を決めるプロンプト設定を管理します。
+
+- ブラウザで動作します。サーバー（Docker）としても、デスクトップアプリとしても使え、OpenAI 互換 API
+  （OpenAI、OpenRouter、LiteLLM、llama.cpp、LM Studio、Ollama、vLLM など）に対応しています。
+- 画面は日本語に翻訳済みです。ワークスペース下部の「言語」セレクターで日本語を選ぶと、設定がアカウントに保存され、
+  次回ログイン時にも使われます。ログイン画面は英語です。
+- インストール方法は下の [Installation](#installation) を、マニュアル（英語）は上のリンクをご覧ください。
+
 ## Features
 
 - **Books with branching stories** - regenerate or swipe a part, branch from any point, navigate the story tree,
@@ -27,6 +39,8 @@ The manual is at **[enerccio.github.io/Marginalia](https://enerccio.github.io/Ma
   generation settings ("protocols") you can switch per book.
 - **Backups** - per-book backups with restore and copy, plus full database backups on a cron schedule.
 - **Multiple users** - each with their own books, lore and models; administrators manage users, backups and cleanup.
+- **Languages** - the interface is available in English and Japanese; every user picks their own language, and
+  extensions can add more (Simplified Chinese is included as a plugin).
 - **Published books** - share a read-only view of a book.
 - **Extensions** - plugins add features at runtime (chapter markers, lorebook version history, AI reviews, side
   questions to the model).
@@ -120,14 +134,17 @@ model. Then create a book, choose the provider and a protocol, and start writing
 ## Extensions
 
 Extensions are OSGi bundles (JAR files). Administrators install them in *Admin → Extensions*; they are stored in
-`~/.marginalia/extensions`. Five plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
-built separately with Maven:
+`~/.marginalia/extensions`. Eight plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
+built separately with Maven, or in Docker (see the plugins README):
 
 - [Author's Note](marginalia/plugins/authorsnote/README.md) - a note to the model inserted into every generation,
 - [Chapter Marker](marginalia/plugins/chaptermarker/README.md) - chapters in the story sidebar,
+- [Instruction Exporter](marginalia/plugins/instructionexporter/README.md) - copy the instructions and scene fields of the story to the clipboard,
+- [Lore Generator](marginalia/plugins/lore-generator/README.md) - write a lorebook entry with the model from the existing lore,
 - [Lorebook VCS](marginalia/plugins/lorebookvcs/README.md) - revision history for lorebook entries,
 - [Reviewer](marginalia/plugins/reviewer/README.md) - AI reviews of story parts,
-- [Side Query](marginalia/plugins/sidequery/README.md) - ask the model about your book without changing it.
+- [Side Query](marginalia/plugins/sidequery/README.md) - ask the model about your book without changing it,
+- [Chinese localization](marginalia/plugins/chineselocalization/README.md) - Simplified Chinese as a language of the interface (the example for adding a language).
 
 The extension API is not frozen in 1.0: extensions are built for one Marginalia version, and Marginalia refuses to start
 one that does not fit the version it is running.

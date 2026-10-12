@@ -1,7 +1,7 @@
 ---
 label: Plugin basics
 order: 100
-verified: 199209e
+verified: 7146d6a
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
@@ -36,7 +36,9 @@ plugin should not.
 ## pom.xml
 
 The easiest start is to copy the `pom.xml` of `marginalia/plugins/chaptermarker` and change the coordinates and the
-package names. The important parts:
+package names. The bundled plugins inherit their version from the repository's parent POM (`<parent>` with
+`marginalia-parent`); a plugin of your own outside the repository drops that `<parent>` and gives its `<version>`
+itself. The important parts:
 
 ```xml
 <packaging>bundle</packaging>
@@ -46,7 +48,7 @@ package names. The important parts:
     <dependency>
         <groupId>io.github.enerccio</groupId>
         <artifactId>marginalia</artifactId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
         <classifier>classes</classifier>
         <scope>provided</scope>
     </dependency>
@@ -202,9 +204,12 @@ sequenceDiagram
   installs every `*.jar` in `~/.marginalia/extensions` and starts them. For each `MarginaliaExtension` service a
   bundle registered, it calls `onExtensionLoad`. Each JAR is installed and started on its own: one that can't be
   installed (not a bundle, a second copy of an installed plugin) or fails to start is logged with its file name and
-  skipped. Before a bundle is started it is **verified**: the decorators it registers are checked against this version
+  skipped. When the folder holds several versions of one extension (same symbolic name, e.g. an update copied next to
+  the old JAR), only the newest is started; a warning names the skipped JARs, which are moved to `extensions/old-versions` (not deleted). Before a bundle
+  is started it is **verified**: the decorators it registers are checked against this version
   of the application ([Verification before loading](extendable.md#verification-before-loading)). An invalid extension
-  stays installed but is not started, and its report is logged.
+  stays installed but is not started, and its report is logged. A bundle whose JAR has a `<jar name>.STOPPED` flag
+  next to it (see **Stopping**) is installed but not started either.
 - **Installing at runtime.** *Admin → Extensions → Load Extension (.jar)* writes the uploaded file into
   `~/.marginalia/extensions` (the file name is sanitized: only letters, digits, `.`, `_` and `-`) and installs and
   starts it the same way, verification included (`OsgiService.installPackage`, like `uninstallPackage` administrators only: `AdminGuard.requireAdmin()`; an invalid upload throws `ExtensionVerificationException` with the report). Screens that are already open are not rebuilt: the plugin's
@@ -214,10 +219,77 @@ sequenceDiagram
   install, verify or start, its JAR is deleted and the old one is put back.
 - **Unloading.** *Unload* calls the callbacks registered with `bindAttachableComponent`, then `onExtensionUnload`,
   uninstalls the bundle and **deletes its JAR and its verification reports** (`OsgiService.uninstallPackage`). Bundles that failed to start are
-  listed too (state `INSTALLED` or `RESOLVED`) and can be unloaded the same way.
+  listed too (state *Installed* or *Resolved*) and can be unloaded the same way.
+- **Stopping.** *Stop* (`OsgiService.stopExtension`, administrators only) creates the `<jar name>.STOPPED` flag
+  file, unloads the extension like *Unload* does (bound callbacks, `onExtensionUnload`) and stops the bundle; the
+  bundle stays installed and is listed with the state *Stopped* (`isStopped`). *Start* (`startExtension`) verifies it,
+  starts it and deletes the flag; when that fails, the flag stays. The flag survives restarts. Uploading a
+  replacement of a stopped extension deletes the flag, and *Unload* deletes the flag too.
 - **Shutdown.** When the application stops (the root context closes), every extension is unloaded the same way -
   bound callbacks, `onExtensionUnload`, the activator's `stop` - and the framework is stopped. Still save data as you
   go: a killed process runs none of this.
+
+### Logging
+
+An extension should not use `LoggerFactory` (its lines are mixed with everything else and the administrator cannot
+see them next to the extension). `OsgiService.createLogger(bundle)` returns an `org.slf4j.Logger` that writes to its own file,
+`<jar name>.log` in the extensions folder (`sidequery.jar.log`), which administrators read in *Admin → Extensions →
+Log*:
+
+```java
+private Logger log;
+
+@Override
+public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+    log = parentService.createLogger(bundle);           // or createLogger(bundle, "my.name")
+    log.info("Loaded {} {}", bundle.getSymbolicName(), bundle.getVersion());
+}
+```
+
+- The usual SLF4J API: `{}` placeholders and a trailing throwable (logged with its stack trace). TRACE is dropped,
+  DEBUG and above are written. Each line has the time, level, thread, logger name (the symbolic name by default) and
+  the message. The line is also chained to the application log (logger `extension.<name>`, same level, so the
+  level settings of the application apply - the release build logs at INFO and keeps story content out of its log,
+  so don't log story text above DEBUG).
+- The logger is thread safe and can be kept; the file is opened for every line, so nothing stays open after the
+  extension is gone. A file over 2 MB is moved to `<jar name>.log.old` (replacing the previous one).
+- `OsgiService.readLog(bundle, maxBytes)` and `clearLog(bundle)` (administrators only) read the end of the file and
+  delete it. The log is deleted with the extension when it is unloaded.
+- Code that is not created by the extension class (components made by `new`, services) needs the logger too: pass it
+  on (Lore Generator gives it to its service) or keep it in a static holder that is set in `onExtensionLoad` and
+  reset in `onExtensionUnload`, with `LoggerFactory` as the fallback before and after (Side Query's `SideQueryLog`).
+- The class `org.slf4j.Logger` comes from the application (boot delegation); if your bundle lists its
+  `Import-Package` explicitly, include `org.slf4j`.
+
+### Extension events
+
+`OsgiService` reports single extensions that are loaded or unloaded to `ExtensionListener`s, for code that has to
+react to the extension set - the application itself uses it to keep the styles of extensions in the pages
+([Styles of a plugin](ui-extensions.md#styles-of-a-plugin)):
+
+```java
+osgiService.addExtensionListener(listener);       // held weakly: the subscriber keeps the reference
+osgiService.removeExtensionListener(listener);
+osgiService.getLoadedExtensions();                // the extensions that are loaded now: (Bundle, MarginaliaExtension)
+```
+
+- `extensionLoaded(bundle, extension)` is called after `onExtensionLoad` returned. An extension whose load failed is
+  never reported (and not as unloaded either); it is unloaded again as before.
+- `extensionUnloaded(bundle, extension)` is called after `onExtensionUnload`, for every extension that was reported as
+  loaded: *Unload*, an update that replaces the bundle, the shutdown of the application.
+- The methods run on the thread that loads or unloads (an administrator's request, the startup), with no UI session.
+  Change a UI through `ui.access(...)`. An exception is logged and doesn't stop other listeners or the loading.
+- Listeners get no events for extensions that are loaded already. Subscribe first, then read `getLoadedExtensions()`;
+  an extension loaded between the two is seen twice, so handle repeats (`CssRegistry.attach` does).
+
+**Optional interfaces.** Besides `MarginaliaExtension`, the extension class can implement `ExtensionHasCss` (styles
+put into every page, see [Styles of a plugin](ui-extensions.md#styles-of-a-plugin)) and `ExtensionHasLocalization`
+(languages for the UI: `OsgiServiceImpl` registers the returned `LocalizationBundle`s in `Localization` right after
+`onExtensionLoad` returned and removes them when the extension is unloaded; see
+[Example plugin](example.md#walkthrough-chinese-localization)).
+
+The older `ExtensionObserver` (`addSubscriber`) reports the start and stop of the whole framework, including the
+pauses during an upload or unload.
 
 ## Class loading
 
