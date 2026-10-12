@@ -462,6 +462,12 @@
         <groupId>com.vaadin</groupId>
         <artifactId>vaadin-maven-plugin</artifactId>
         <version>${vaadin.version}</version>
+        <configuration>
+          <!-- the default (true) scans the bytecode of the app and bundles only the components it references;
+               OSGi extensions are loaded at runtime and may use any Vaadin component (e.g. RadioButtonGroup),
+               so bundle every component on the classpath -->
+          <optimizeBundle>false</optimizeBundle>
+        </configuration>
         <executions>
           <execution>
             <goals>
