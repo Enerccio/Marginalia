@@ -133,6 +133,22 @@ when the user picks another lorebook, so a panel bound to the lorebook it was cr
 wrong one. Look the current value up when it's needed (`lorebookView.getCurrentLorebook()`), or hook the
 method that switches it.
 
+### Columns in an existing grid
+
+A grid the view keeps in a field can get more columns. Lore Generator adds a button to every row of the lorebook
+entries after `LorebookView.create()` has built the grid, and keeps the column to remove it on unload:
+
+```java
+Grid<LorebookEntry> grid = context.getReflectiveFieldValue(instrumented, "grid", Grid.class);
+Grid.Column<LorebookEntry> column = grid.addComponentColumn(entry -> new Button(icon, e -> openDialog(entry)));
+ComponentUtil.setData(lorebookView, COLUMN_KEY, column);          // onExtensionUnload: grid.removeColumn(column)
+```
+
+The row's item is the entity itself; read the context that is not part of it (the selected lorebook) from the view
+when the button is clicked, as above. A dialog the button opens is an ordinary component of the plugin: it can call the
+model with `InferenceService.stream` (put `LLMAttachment`s on the user message to send images or files, see
+[Services](../services.md)) and must update the UI through `ui.access(...)` and `UIPushGuard`.
+
 ### Changing what the application built
 
 The decorator can change any component the method built. Chapter Marker relabels the sidebar button of a part:
@@ -316,7 +332,7 @@ like Author's Note does ([Generation events](generation-events.md)).
 When a plugin is unloaded, components it added to open screens stay there - with listeners pointing into a bundle
 that is gone - unless the plugin removes them. There are two ways.
 
-**Track and remove** - what Reviewer, Side Query and Lorebook VCS do. Keep the extended components in weak sets (so that closed
+**Track and remove** - what Reviewer, Side Query, Lore Generator and Lorebook VCS do. Keep the extended components in weak sets (so that closed
 screens can be garbage collected) and undo the changes in `onExtensionUnload`:
 
 ```java
@@ -359,7 +375,7 @@ detached when the extension is unloaded runs its callback when it is attached ag
 `onExtensionUnload` runs on the request thread of the administrator who clicked *Unload*, but the components belong
 to every user's open screens. Change them inside `component.getUI().ifPresent(ui -> ui.access(...))`, as above, or
 with `UIUtils.accessComponent(component, () -> ...)`, which does the same and runs the change directly when the
-component isn't attached. The bundled Reviewer, Side Query and Lorebook VCS do it this way.
+component isn't attached. The bundled Reviewer, Side Query, Lore Generator and Lorebook VCS do it this way.
 !!!
 
 Data in attributes stays after unloading, so loading the plugin again picks up where it left off. If your plugin is

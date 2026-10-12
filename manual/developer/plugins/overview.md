@@ -255,6 +255,9 @@ public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionS
   extension is gone. A file over 2 MB is moved to `<jar name>.log.old` (replacing the previous one).
 - `OsgiService.readLog(bundle, maxBytes)` and `clearLog(bundle)` (administrators only) read the end of the file and
   delete it. The log is deleted with the extension when it is unloaded.
+- Code that is not created by the extension class (components made by `new`, services) needs the logger too: pass it
+  on (Lore Generator gives it to its service) or keep it in a static holder that is set in `onExtensionLoad` and
+  reset in `onExtensionUnload`, with `LoggerFactory` as the fallback before and after (Side Query's `SideQueryLog`).
 - The class `org.slf4j.Logger` comes from the application (boot delegation); if your bundle lists its
   `Import-Package` explicitly, include `org.slf4j`.
 
