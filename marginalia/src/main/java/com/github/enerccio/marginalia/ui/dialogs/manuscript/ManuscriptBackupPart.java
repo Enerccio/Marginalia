@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.BackupService;
@@ -162,7 +163,7 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
         grid.addColumn(backup -> backup.getBackupCreationDate() != null
                         ? loc.getDateHourFormat().format(backup.getBackupCreationDate())
                         : "")
-                .setHeader(loc.getValue(L.LABEL_BACKUP_DATE))
+                .setHeader(loc.getValue(L.LABEL_DATE))
                 .setFlexGrow(1);
 
         grid.addColumn(ManuscriptBackup::getTotalMessagesCount)
@@ -367,7 +368,7 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
         VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_BACKUP_READY), export.fileName())), download);
         if (export.missingImages() > 0) {
             Span missing = new Span(String.format(loc.getValue(L.MSG_BACKUP_IMAGES_MISSING), export.missingImages()));
-            missing.getStyle().set("color", "var(--lumo-error-text-color)");
+            missing.addClassName(CssStyles.TEXT_ERROR);
             content.add(missing);
         }
         content.setPadding(false);

@@ -44,7 +44,7 @@ After logging in you see the workspace. The tabs on the left are:
 | **Resources** | The files you uploaded. See [Resources](../resources.md). |
 | **Trash** | What you deleted, until an administrator cleans up. See [Trash](../trash.md). |
 
-At the bottom are **Admin** (administrators only), **Change Password** and **Logout**
+At the bottom are **Admin** (administrators only), the **Language** selector, **Change Password** and **Logout**
 (see [Administration](../administration/index.md) for the *Admin* pages).
 
 ![The workspace after the first login](../../images/workspace.png)

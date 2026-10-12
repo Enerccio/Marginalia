@@ -1,7 +1,7 @@
 ---
 label: Extending the UI
 order: 70
-verified: 37257c7
+verified: 15a991e
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
@@ -13,6 +13,11 @@ covers:
 Plugins add to the user interface from decorators: when a method that builds part of a screen runs, the plugin's
 decorator finds the component it built and adds to it. This page collects the patterns the bundled plugins use. Read
 [@Extendable hooks](extendable.md) first, and [User interface](../ui.md) for the conventions of the UI code.
+
+Every screen below exists twice: the desktop class and its phone twin (`ManuscriptStoryPart` and
+`PhoneManuscriptStoryPart` and so on), and a decorator only runs for the class it was registered for. Register it a
+second time for the phone class to support phones, or leave it out and the extension simply adds nothing there, see
+[The phone twins](extendable.md#the-phone-twins).
 
 ## The basic pattern
 
@@ -77,6 +82,9 @@ cogs.getSubMenu().addItem("My tool", e -> openMyTool(context.getReflectiveFieldV
 The menu bar is built once per story editor, so it needs no marker. Read `currentManuscript` when the item is clicked,
 not when it is built - the story editor loads other books into the same instance.
 
+Instruction Exporter is the small example of the settings menu: it adds **Export instructions** to `cogs.getSubMenu()` and
+copies the text with `navigator.clipboard.writeText` (plugins keep their own scripts).
+
 ### Tools in the summaries overview
 
 `SummariesDialog` (the overview of the summaries, opened from the **Summaries** item) has an empty menu bar above its
@@ -92,8 +100,9 @@ is part of the hash of the meta summary and it would be dropped as outdated.
 
 ### A tab next to the story
 
-`ManuscriptStoryPart.renderStoryContent()` rebuilds the whole story view - and the `leftBar` tab sheet with the story
-outline - every time the story is redrawn (opening the book, after a generation, after a delete). Side Query adds its
+`ManuscriptStoryPart.renderStoryContent()` redraws the message cards and the chapter outline every time the story is
+redrawn (opening the book, after a generation, after a delete); the `leftBar` tab sheet with the story outline is created
+once, so the selected tab survives a redraw. The method runs many times, so check for your tab first. Side Query adds its
 tab on leave:
 
 ```java
@@ -106,8 +115,7 @@ if (leftBar != null && book != null && ComponentUtil.getData(leftBar, KEY) == nu
 }
 ```
 
-Because the tab sheet is new on every redraw, so is the plugin's component - keep state that must survive a redraw
-in the plugin's data, not in the component.
+The tab sheet (and so the plugin's component) lives as long as the story part, a redraw does not recreate it.
 
 ### Panels in an existing layout
 
@@ -125,6 +133,22 @@ when the user picks another lorebook, so a panel bound to the lorebook it was cr
 wrong one. Look the current value up when it's needed (`lorebookView.getCurrentLorebook()`), or hook the
 method that switches it.
 
+### Columns in an existing grid
+
+A grid the view keeps in a field can get more columns. Lore Generator adds a button to every row of the lorebook
+entries after `LorebookView.create()` has built the grid, and keeps the column to remove it on unload:
+
+```java
+Grid<LorebookEntry> grid = context.getReflectiveFieldValue(instrumented, "grid", Grid.class);
+Grid.Column<LorebookEntry> column = grid.addComponentColumn(entry -> new Button(icon, e -> openDialog(entry)));
+ComponentUtil.setData(lorebookView, COLUMN_KEY, column);          // onExtensionUnload: grid.removeColumn(column)
+```
+
+The row's item is the entity itself; read the context that is not part of it (the selected lorebook) from the view
+when the button is clicked, as above. A dialog the button opens is an ordinary component of the plugin: it can call the
+model with `InferenceService.stream` (put `LLMAttachment`s on the user message to send images or files, see
+[Services](../services.md)) and must update the UI through `ui.access(...)` and `UIPushGuard`.
+
 ### Changing what the application built
 
 The decorator can change any component the method built. Chapter Marker relabels the sidebar button of a part:
@@ -133,7 +157,7 @@ The decorator can change any component the method built. Chapter Marker relabels
 ChatMessage msg = context.getMethodArgument("msg", ChatMessage.class);
 Button sidebarBtn = context.getLocalVariable("sidebarBtn", Button.class);
 sidebarBtn.setText(orderId + ". " + chapterTitle);
-sidebarBtn.getStyle().set("color", "var(--lumo-primary-color)");
+sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);
 ```
 
 If more plugins change the same component, they run in the order they were loaded and the last one wins - append
@@ -179,12 +203,67 @@ What plugins can't do:
 - **Add frontend resources.** The browser side of Marginalia is one bundle built with the WAR. A plugin can use every
   Vaadin component and add-on the application already uses (Vaadin core components, the FontAwesome icons,
   Viritin's `VTabSheet`...), but `@CssImport`, `@JsModule`, `@NpmPackage` and add-ons with their own web
-  components don't work from a plugin. Style with `getStyle()` and Lumo CSS variables
-  (`var(--lumo-primary-color)`), or with `executeJs` if you must.
+  components don't work from a plugin. Style with the classes of `CssStyles`
+  (`addClassName(CssStyles.TEXT_SECONDARY)`), which the application's `shared-styles.css` defines. A style only your
+  plugin uses goes into a CSS file in the bundle's `src/main/resources` that the application puts into the page for
+  you ([Styles of a plugin](#styles-of-a-plugin)), with its class names as constants in the plugin. Use `getStyle()` only for a value known at runtime.
+  Charts are the exception: the application's `ChartJs` widget (`ui.widgets`) draws any Chart.js configuration given as
+  JSON, so a plugin can show a chart without a frontend module of its own.
 - **Add localization keys.** `Localization` knows only the application's `L` keys. The bundled plugins use English
-  strings; a plugin that wants translations has to bring its own (a `ResourceBundle` in the bundle, chosen by
-  `UI.getCurrent().getLocale()`).
+  strings; a plugin that wants translations of its own texts has to bring its own (a `ResourceBundle` in the bundle,
+  chosen by `Localization.getCurrentLanguage()`). A plugin can add a *language* for the application's texts,
+  see [Example plugin → Chinese localization](example.md#walkthrough-chinese-localization).
 - **Add routes.** Routes are registered when the servlet starts. Use dialogs and tabs instead.
+
+## Styles of a plugin
+
+A plugin can't add to the application's stylesheet, but it can ship its own CSS. Implement `ExtensionHasCss` on the
+class that implements `MarginaliaExtension`:
+
+```java
+public class MyExtension implements MarginaliaExtension, ExtensionHasCss {
+
+    @Override
+    public String getCss(ApplicationEntryPoint entryPoint) {
+        // the card lives in the workspace only
+        return entryPoint instanceof Main ? MyStyles.css() : null;
+    }
+    ...
+}
+```
+
+`getCss` returns the CSS text for a page, or `null`/blank when the extension has no styles there. The entry point is
+the root component of the page: `Main` (the workspace) or `Viewer` (the reader); both implement
+`ApplicationEntryPoint`. The text is usually a resource of the bundle, read once and cached:
+
+```java
+try (InputStream in = MyStyles.class.getResourceAsStream("/my-plugin.css")) {
+    css = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+}
+```
+
+Use Lumo variables (`var(--lumo-contrast-10pct)`) in the rules and keep the class names as constants next to the
+loader (Side Query: `SideQueryStyles` and `sidequery.css`); prefix them with the plugin's name, the page is shared
+with the application and other plugins.
+
+**What the application does.** Each entry point owns a `CssRegistry` (created in `onAttach`, released in `onDetach`).
+For every UI it
+
+- adds the style of each extension that is loaded already when the entry point is attached (an extension loaded at
+  startup, or before the user opened the page),
+- adds the style of an extension that is loaded while the page is open (*Admin → Extensions → Load*), so it works
+  without a reload,
+- removes the style again when the extension is unloaded, replaced by a newer version or the application stops.
+
+The CSS goes into a `<style id="marginalia-extension-css-<extension class name>">` element in the document head; the
+element is replaced if it exists, so nothing is added twice. The registry listens to `OsgiService` through an
+`ExtensionListener` ([Extension events](overview.md#extension-events)). `getCss` is called once per page and extension
+and an exception from it is logged and skips only that extension, but it should not do anything expensive.
+
+!!!warning Do not inject the style yourself
+Don't add the `<style>` element from your own components (`executeJs` in a constructor): the style would not be
+removed when the extension is unloaded and would be added again for each component. Return it from `getCss`.
+!!!
 
 ## Errors
 
@@ -253,7 +332,7 @@ like Author's Note does ([Generation events](generation-events.md)).
 When a plugin is unloaded, components it added to open screens stay there - with listeners pointing into a bundle
 that is gone - unless the plugin removes them. There are two ways.
 
-**Track and remove** - what Reviewer, Side Query and Lorebook VCS do. Keep the extended components in weak sets (so that closed
+**Track and remove** - what Reviewer, Side Query, Lore Generator and Lorebook VCS do. Keep the extended components in weak sets (so that closed
 screens can be garbage collected) and undo the changes in `onExtensionUnload`:
 
 ```java
@@ -296,7 +375,7 @@ detached when the extension is unloaded runs its callback when it is attached ag
 `onExtensionUnload` runs on the request thread of the administrator who clicked *Unload*, but the components belong
 to every user's open screens. Change them inside `component.getUI().ifPresent(ui -> ui.access(...))`, as above, or
 with `UIUtils.accessComponent(component, () -> ...)`, which does the same and runs the change directly when the
-component isn't attached. The bundled Reviewer, Side Query and Lorebook VCS do it this way.
+component isn't attached. The bundled Reviewer, Side Query, Lore Generator and Lorebook VCS do it this way.
 !!!
 
 Data in attributes stays after unloading, so loading the plugin again picks up where it left off. If your plugin is

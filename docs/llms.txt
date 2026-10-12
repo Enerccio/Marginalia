@@ -16,6 +16,7 @@
 - [Server (Docker)](https://enerccio.github.io/Marginalia/user/getting-started/docker-server.md): Run Marginalia as a server when several people use it, or when you want to open it from other devices. Every user gets their own books, lorebooks, inference providers and protocols.
 - [First start](https://enerccio.github.io/Marginalia/user/getting-started/first-start.md): When Marginalia starts with an empty database, it asks for the first account instead of showing the login screen. This account is the administrator: it can manage users, database backups, cleanup and extensions.
 - [Quick start](https://enerccio.github.io/Marginalia/user/getting-started/quick-start.md): From a fresh installation to the first generated part of a story. It assumes Marginalia is installed and you are logged in as the administrator.
+- [Using Marginalia on a phone](https://enerccio.github.io/Marginalia/user/phone.md): Marginalia has a layout made for phones. You write, edit and regenerate parts, read and tweak lorebooks and manage your models from the phone browser, but the phone layout is not a copy of the desktop one: it is simpler, a few things are missing and not every extension works in it.
 - [Inference providers](https://enerccio.github.io/Marginalia/user/inference-providers.md): An inference provider is a connection to a model: the API address, the API key, the model and its limits. Every book uses one provider. You can have as many as you like, for example a large cloud model for the story and a small local one for experiments, and switch a book between them at any time.
 - [Protocols](https://enerccio.github.io/Marginalia/user/protocols.md): A protocol is a set of generation settings: the sampling parameters (temperature, top P and penalties) and, optionally, its own context and reply limits. The inference provider says which model writes; the protocol says how.
 
@@ -35,7 +36,7 @@
 
 ### Lorebooks
 
-- [Lorebooks](https://enerccio.github.io/Marginalia/user/lorebooks/index.md): A lorebook holds what the model must know about your world: characters, places, history, rules, terminology. Each piece of knowledge is an entry. Before
+- [Lorebooks](https://enerccio.github.io/Marginalia/user/lorebooks/index.md): The phone layout can only select lorebooks, enable and disable them and their entries, and edit the content of an entry. Everything else on these pages needs the desktop layout.
 - [Creating lorebooks](https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks.md): Open the Lorebooks tab. The editor shows one lorebook at a time; pick it in the Lorebook field at the top. Lorebooks belong to your account: other users don't see them.
 - [Entries & activation](https://enerccio.github.io/Marginalia/user/lorebooks/entries.md): Each row of the lorebook editor is one entry:
 - [Import & export](https://enerccio.github.io/Marginalia/user/lorebooks/import-export.md): Select the lorebook in the editor and click the export button (file icon, Export Lorebook). The browser downloads lorebook name.json with:
@@ -48,10 +49,13 @@
 
 ### Extensions
 
-- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Five extensions come with Marginalia:
+- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Eight extensions come with Marginalia:
 - [Author's Note](https://enerccio.github.io/Marginalia/user/extensions/authors-note.md): A note to the model that is sent with every generation of the book: the tone you want right now, what the current chapter is about, a reminder the model keeps forgetting.
+- [Chinese localization](https://enerccio.github.io/Marginalia/user/extensions/chinese-localization.md): Adds Simplified Chinese (中文（简体）) to the languages of the user interface.
 - [Chapter Marker](https://enerccio.github.io/Marginalia/user/extensions/chapter-marker.md): Turns the Outline of the story editor into a table of contents.
+- [Instruction Exporter](https://enerccio.github.io/Marginalia/user/extensions/instruction-exporter.md): Copies the instructions of the story, with the scene setting, POV character and present characters, to the clipboard.
 - [Lorebook VCS](https://enerccio.github.io/Marginalia/user/extensions/lorebook-vcs.md): Revision history for lorebook entries: keep earlier versions of your lore and switch between them - for example the state of the world before and after a war, or a character at different points of the story.
+- [Lore Generator](https://enerccio.github.io/Marginalia/user/extensions/lore-generator.md): Lets the model write the content of a lorebook entry for you. It reads the lore you already have, so the new entry fits the world, and compacts the result into the short, dense form lore entries work best in.
 - [Reviewer](https://enerccio.github.io/Marginalia/user/extensions/reviewer.md): Lets the model review what you've written: reader reactions, an editor's critique, a continuity check - whatever you prompt it for. Reviews are kept with the part, next to the story, and never become part of the book.
 - [Side Query](https://enerccio.github.io/Marginalia/user/extensions/side-query.md): A chat with the model next to your story: ask about the plot, check continuity, brainstorm names or the next chapter - without adding anything to the book.
 - [Account & settings](https://enerccio.github.io/Marginalia/user/account.md): Everything you create in Marginalia belongs to your account: books, lorebooks, tags, inference providers, protocols and settings. Other users don't see them (except books you publish), and you don't see theirs.
@@ -85,7 +89,7 @@
 - [Extended attributes](https://enerccio.github.io/Marginalia/developer/plugins/extended-attributes.md): Plugins can't add tables or columns - there is no way to run their own Flyway migrations. Instead, every data entity carries a JSON object where a plugin can keep whatever it needs: ExtendableEntity.attributes.
 - [Extending the UI](https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions.md): Plugins add to the user interface from decorators: when a method that builds part of a screen runs, the plugin's decorator finds the component it built and adds to it.
 - [Generation events](https://enerccio.github.io/Marginalia/developer/plugins/generation-events.md): @Extendable hooks change what the user sees; generation events change what the model sees. A plugin registers listeners with
-- [Example plugin](https://enerccio.github.io/Marginalia/developer/plugins/example.md): This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through two bundled plugins: Chapter Marker, the smallest one, and Author's Note, which changes the prompt sent to the model.
+- [Example plugin](https://enerccio.github.io/Marginalia/developer/plugins/example.md): This page builds a small plugin from scratch - Bookmarks, which lets you bookmark story parts - and then walks through three bundled plugins: Chapter
 - [Testing](https://enerccio.github.io/Marginalia/developer/testing.md): Marginalia's tests are integration tests first: most of them start the real Spring XML configuration against a throwaway SQLite database and talk to a fake OpenAI-compatible server.
 - [Packaging & releases](https://enerccio.github.io/Marginalia/developer/packaging.md): Marginalia is built once as a WAR and then shipped in two forms: a Docker image for servers and a desktop app with its own Java runtime and Jetty. This page describes how each is built, what CI does, and how a release is made.
 - [Contributing](https://enerccio.github.io/Marginalia/developer/contributing.md): Contributions are welcome: bug reports, fixes, new features, extensions, and corrections to this manual. This page describes how to report a problem, how changes are made and what a pull request should contain.

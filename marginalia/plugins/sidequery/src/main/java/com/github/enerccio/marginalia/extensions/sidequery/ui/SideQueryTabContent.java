@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.sidequery.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -9,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.extensions.sidequery.SideQueryLog;
 import com.github.enerccio.marginalia.extensions.sidequery.model.*;
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -29,8 +31,6 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -40,8 +40,6 @@ import java.util.function.Consumer;
 
 @Configurable(preConstruction = true)
 public class SideQueryTabContent extends VerticalLayout {
-    private static final Logger log = LoggerFactory.getLogger(SideQueryTabContent.class);
-
     @Autowired
     private InferenceServices inferenceServices;
 
@@ -106,8 +104,7 @@ public class SideQueryTabContent extends VerticalLayout {
         optionsBar = new HorizontalLayout();
         optionsBar.setWidthFull();
         optionsBar.setAlignItems(Alignment.CENTER);
-        optionsBar.getStyle().set("padding", "6px 12px");
-        optionsBar.getStyle().set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
+        optionsBar.addClassNames(CssStyles.PADDING_COMPACT, SideQueryStyles.BAR);
 
         SideQueryOptions opts = session.getOptions();
 
@@ -160,8 +157,7 @@ public class SideQueryTabContent extends VerticalLayout {
         });
 
         tokenCountSpan = new Span("Tokens: 0");
-        tokenCountSpan.getStyle().set("margin-left", "auto");
-        tokenCountSpan.getStyle().set("font-size", "var(--lumo-font-size-s)");
+        tokenCountSpan.addClassNames(CssStyles.MARGIN_LEFT_AUTO, CssStyles.TEXT_S);
 
         optionsBar.add(lorebookBox, messagesBox, messagesFromField, new Span("to"), messagesToField, tokenCountSpan);
 
@@ -178,7 +174,7 @@ public class SideQueryTabContent extends VerticalLayout {
         controlsLayout.setWidthFull();
         controlsLayout.setPadding(true);
         controlsLayout.setSpacing(true);
-        controlsLayout.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
+        controlsLayout.addClassName(CssStyles.BORDER_TOP_SUBTLE);
 
         // Query Storage Selector Row
         storagePanel = new HorizontalLayout();
@@ -539,7 +535,7 @@ public class SideQueryTabContent extends VerticalLayout {
             }
         } catch (Exception e) {
             namingTab = false;
-            log.warn("Failed to name side query tab: {}", e.getMessage());
+            SideQueryLog.get().warn("Failed to name side query tab: {}", e.getMessage());
         }
     }
 

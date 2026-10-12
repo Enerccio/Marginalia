@@ -1,6 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.dto;
 
-import com.github.enerccio.marginalia.domain.service.TurnInput;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 
 public class PrePromptData {
 

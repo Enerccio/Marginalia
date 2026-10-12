@@ -6,6 +6,11 @@ icon: archive
 
 # Lorebooks
 
+!!!
+The [phone layout](../phone.md#lorebooks) can only select lorebooks, enable and disable them and their entries, and edit
+the content of an entry. Everything else on these pages needs the desktop layout.
+!!!
+
 A lorebook holds what the model must know about your world: characters, places, history, rules, terminology. Each
 piece of knowledge is an **entry**. Before every generated part, Marginalia decides which entries are relevant and puts
 them into the prompt - so the model knows who Captain Varro is when he walks into the scene, without every entry
@@ -44,6 +49,7 @@ Entries without tags and without a filter are always active: use them for what t
 - Lorebook entries can use [templates and macros](../templates/index.md) - SillyTavern world info keeps working.
 - [SillyTavern world info](import-export.md#importing-sillytavern-world-info) can be imported.
 - [Book backups](../books/backups.md) contain the book's lorebook with its sub lorebooks.
+- The [Lore Generator](../extensions/lore-generator.md) extension writes the content of an entry with the model, from the lore you already have.
 - The [Lorebook VCS](../extensions/lorebook-vcs.md) extension keeps a revision history of entries.
 
 ## In this section

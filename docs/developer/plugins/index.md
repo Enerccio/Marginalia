@@ -57,15 +57,18 @@ ones that ask for classes, methods, arguments, locals or fields that don't exist
 
 ## The bundled plugins
 
-The five plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
+The eight plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
 
 | Plugin | What it adds | Shows how to |
 |---|---|---|
 | [Author's Note](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. | Listen to generation events and change the payload sent to the model; add a tab to the story editor. |
 | [Chapter Marker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker) | Story parts that start with a Markdown heading are shown as chapters in the story sidebar. | Read method arguments and locals, change a component the method built. The smallest one - start here. |
+| [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions and scene fields of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
+| [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
 | [Reviewer](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer) | AI reviews of a story part with configurable reviewer profiles. | Add a sub-menu to every part, add a settings panel, stream an answer from the model. |
 | [Side Query](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery) | A chat panel next to the story for questions about the book. | Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts. |
+| [Chinese localization](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chineselocalization) | Simplified Chinese as a language of the user interface. | Add a language with `ExtensionHasLocalization` - no UI code at all. |
 
 Users install them as described in [Managing extensions](../../user/administration/extensions.md).
 

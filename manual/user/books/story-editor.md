@@ -10,6 +10,9 @@ from the beginning to the end.
 
 ![The story editor](../../images/hero-story-editor.png)
 
+This page describes the desktop layout. On a phone the story is one column with the outline in a drawer, see
+[Using Marginalia on a phone](../phone.md#the-story).
+
 | Area | |
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
@@ -68,6 +71,7 @@ Every part has a menu (☰) in its top right corner:
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
+| **Token Usage** | Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart. |
 | **Images** | Attaches pictures to the part, see [Images](#images). |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |
 | **Delete summary** | Removes the summary of this part. For a [meta summary](summaries.md#meta-summaries) it asks whether to unwind it or delete it completely. |

@@ -3,9 +3,13 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
+import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.instruct.fixture.verify.VerifyFixtures;
+import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.LocalizationBundleEN;
+import com.github.enerccio.marginalia.loc.LocalizationImpl;
 import com.github.enerccio.marginalia.test.ExpectedLog;
 import com.vaadin.flow.component.html.Div;
 import org.junit.jupiter.api.AfterEach;
@@ -44,6 +48,7 @@ class OsgiServiceImplTest {
 
     private File extensions;
     private OsgiServiceImpl service;
+    private LocalizationImpl localization;
     private ExpectedLog log;
     private long applicationTimestamp;
 
@@ -65,6 +70,9 @@ class OsgiServiceImplTest {
         };
         ReflectionTestUtils.setField(service, "configuration", configuration);
         ReflectionTestUtils.setField(service, "extensionService", new ExtensionServiceImpl());
+        localization = new LocalizationImpl();
+        localization.setBundles(List.of(new LocalizationBundleEN()));
+        ReflectionTestUtils.setField(service, "localization", localization);
         // the administrator check is covered with the Spring context, here the current user is not available
         ReflectionTestUtils.setField(service, "adminGuard", new AdminGuard() {
             @Override
@@ -102,7 +110,9 @@ class OsgiServiceImplTest {
         attributes.putValue("Bundle-Version", version);
         attributes.putValue("Bundle-Activator", TestExtensionActivator.class.getName());
         for (String header : headers) {
-            attributes.putValue(header, "true");
+            // "Name=value" or only the name, then the value is "true"
+            int equals = header.indexOf('=');
+            attributes.putValue(equals < 0 ? header : header.substring(0, equals), equals < 0 ? "true" : header.substring(equals + 1));
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (JarOutputStream jar = new JarOutputStream(out, manifest)) {
@@ -187,6 +197,55 @@ class OsgiServiceImplTest {
         assertThat(TestExtensionActivator.UNLOADED).containsEntry("test.d:1.0.0", 1);
         assertThat(log.errors()).anyMatch(m -> m.contains("b.jar")).anyMatch(m -> m.contains("a-copy.jar") || m.contains("a.jar"))
                 .anyMatch(m -> m.contains("test.c")).anyMatch(m -> m.contains("test.d"));
+    }
+
+    @Test
+    void onlyTheNewestVersionOfAnExtensionIsLoadedAtStart() throws Exception {
+        writeJar("a-1.0.0.jar", bundle("test.a", "1.0.0"));
+        writeJar("a-1.0.10.jar", bundle("test.a", "1.0.10"));
+        writeJar("a-1.0.2.jar", bundle("test.a", "1.0.2"));
+        writeJar("b-1.0.0.jar", bundle("test.b", "1.0.0"));
+
+        service.start();
+
+        assertThat(service.getBundles()).extracting(b -> b.getSymbolicName() + ":" + b.getVersion())
+                .containsExactlyInAnyOrder("test.a:1.0.10", "test.b:1.0.0");
+        assertThat(TestExtensionActivator.LOADED).containsOnlyKeys("test.a:1.0.10", "test.b:1.0.0");
+        assertThat(log.warnings()).anyMatch(m -> m.contains("a-1.0.0.jar")).anyMatch(m -> m.contains("a-1.0.2.jar"));
+        // the skipped versions are kept, out of the way
+        assertThat(jarNames()).containsExactlyInAnyOrder("a-1.0.10.jar", "b-1.0.0.jar");
+        assertThat(new File(extensions, "old-versions").list()).containsExactlyInAnyOrder("a-1.0.0.jar", "a-1.0.2.jar");
+    }
+
+    @Test
+    void extensionLanguageIsAvailableWhileItIsLoaded() throws Exception {
+        writeJar("lang.jar", bundle("test.lang", "1.0.0", "X-Test-Language=cs"));
+        writeJar("other.jar", bundle("test.other", "1.0.0"));
+        service.start();
+        Language cs = Language.of("cs");
+        assertThat(localization.getAvailableLanguages()).containsExactlyInAnyOrder(Language.EN, cs);
+        assertThat(localization.getDisplayName(cs)).isEqualTo("Test cs");
+
+        service.uninstallPackage(bundleNamed("test.lang"));
+
+        assertThat(localization.getAvailableLanguages()).containsExactly(Language.EN);
+    }
+
+    @Test
+    void extensionCantReplaceALanguage() throws Exception {
+        service.start();
+
+        // English belongs to the application
+        Bundle en = service.installPackage("en.jar", bundle("test.en", "1.0.0", "X-Test-Language=en"));
+
+        assertThat(en.getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(localization.getAvailableLanguages()).containsExactly(Language.EN);
+        assertThat(localization.getDisplayName(Language.EN)).isEqualTo("English");
+        assertThat(log.errors()).anyMatch(m -> m.contains("already has"));
+
+        // unloading the extension doesn't take the application's English away
+        service.uninstallPackage(en);
+        assertThat(localization.getAvailableLanguages()).containsExactly(Language.EN);
     }
 
     @Test
@@ -293,6 +352,91 @@ class OsgiServiceImplTest {
         assertThat(callbacks).doesNotContainKey(extension);
         assertThatThrownBy(() -> service.bindAttachableComponent(new Div(), () -> {
         }, extension)).isInstanceOf(IllegalStateException.class).hasMessageContaining("not loaded");
+    }
+
+    /**
+     * Records the events as {@code loaded:symbolicName} / {@code unloaded:symbolicName}.
+     */
+    private static class RecordingListener implements OsgiService.ExtensionListener {
+
+        final List<String> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+        @Override
+        public void extensionLoaded(Bundle bundle, MarginaliaExtension extension) {
+            events.add("loaded:" + bundle.getSymbolicName());
+        }
+
+        @Override
+        public void extensionUnloaded(Bundle bundle, MarginaliaExtension extension) {
+            events.add("unloaded:" + bundle.getSymbolicName());
+        }
+    }
+
+    @Test
+    void listenersAreToldAboutLoadedAndUnloadedExtensions() throws Exception {
+        RecordingListener listener = new RecordingListener();
+        service.addExtensionListener(listener);
+        service.addExtensionListener(listener);
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+
+        assertThat(listener.events).containsExactly("loaded:test.a");
+        assertThat(service.getLoadedExtensions()).extracting(l -> l.bundle().getSymbolicName()).containsExactly("test.a");
+
+        // replacing: the old one is unloaded, the new one loaded
+        service.installPackage("a.jar", bundle("test.a", "1.0.1"));
+        assertThat(listener.events).containsExactly("loaded:test.a", "unloaded:test.a", "loaded:test.a");
+
+        service.uninstallPackage(bundleNamed("test.a"));
+        assertThat(listener.events).hasSize(4).last().isEqualTo("unloaded:test.a");
+        assertThat(service.getLoadedExtensions()).isEmpty();
+
+        service.removeExtensionListener(listener);
+        service.installPackage("b.jar", bundle("test.b", "1.0.0"));
+        assertThat(listener.events).hasSize(4);
+        assertThat(service.getLoadedExtensions()).hasSize(1);
+    }
+
+    @Test
+    void listenersAreNotToldAboutExtensionsThatFailedToLoad() throws Exception {
+        RecordingListener listener = new RecordingListener();
+        service.addExtensionListener(listener);
+        writeJar("d.jar", bundle("test.d", "1.0.0", "X-Test-Fail-Load"));
+        writeJar("e.jar", bundle("test.e", "1.0.0"));
+
+        service.start();
+
+        assertThat(listener.events).containsExactly("loaded:test.e");
+        assertThat(service.getLoadedExtensions()).extracting(l -> l.bundle().getSymbolicName()).containsExactly("test.e");
+
+        service.destroy();
+        assertThat(listener.events).containsExactly("loaded:test.e", "unloaded:test.e");
+    }
+
+    @Test
+    void failingListenerDoesNotStopOthersOrTheLoading() throws Exception {
+        // listeners are held weakly: keep it, or a garbage collection before the start drops it
+        OsgiService.ExtensionListener failing = new OsgiService.ExtensionListener() {
+            @Override
+            public void extensionLoaded(Bundle bundle, MarginaliaExtension extension) {
+                throw new IllegalStateException("listener broke");
+            }
+
+            @Override
+            public void extensionUnloaded(Bundle bundle, MarginaliaExtension extension) {
+            }
+        };
+        service.addExtensionListener(failing);
+        RecordingListener listener = new RecordingListener();
+        service.addExtensionListener(listener);
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+
+        service.start();
+
+        assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(listener.events).containsExactly("loaded:test.a");
+        assertThat(log.errors()).anyMatch(m -> m.contains("listener broke") || m.contains("Extension listener"));
+        assertThat(failing).isNotNull();
     }
 
     @Test
@@ -425,5 +569,164 @@ class OsgiServiceImplTest {
 
         assertThat(reportNames()).containsExactly("a.valid");
         assertThat(report).content().startsWith("Extension: a.jar");
+    }
+
+    @Test
+    void stoppedExtensionIsUnloadedAndStaysStoppedAfterRestart() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        writeJar("b.jar", bundle("test.b", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+
+        service.stopExtension(a);
+
+        assertThat(service.isStopped(a)).isTrue();
+        assertThat(new File(extensions, "a.jar.STOPPED")).exists();
+        assertThat(a.getState()).isNotEqualTo(Bundle.ACTIVE);
+        assertThat(TestExtensionActivator.UNLOADED).containsEntry("test.a:1.0.0", 1).doesNotContainKey("test.b:1.0.0");
+        assertThat(service.getLoadedExtensions()).extracting(l -> l.bundle().getSymbolicName()).containsExactly("test.b");
+
+        service.restart();
+
+        assertThat(service.isStopped(bundleNamed("test.a"))).isTrue();
+        assertThat(bundleNamed("test.a").getState()).isNotEqualTo(Bundle.ACTIVE);
+        assertThat(bundleNamed("test.b").getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(TestExtensionActivator.LOADED).containsEntry("test.a:1.0.0", 1).containsEntry("test.b:1.0.0", 2);
+    }
+
+    @Test
+    void stoppedExtensionCanBeStartedAgain() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        service.stopExtension(a);
+        service.stopExtension(a);
+        assertThat(TestExtensionActivator.UNLOADED).containsEntry("test.a:1.0.0", 1);
+
+        service.startExtension(a);
+
+        assertThat(service.isStopped(a)).isFalse();
+        assertThat(new File(extensions, "a.jar.STOPPED")).doesNotExist();
+        assertThat(a.getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(TestExtensionActivator.LOADED).containsEntry("test.a:1.0.0", 2);
+        assertThat(service.getLoadedExtensions()).hasSize(1);
+    }
+
+    @Test
+    void extensionThatFailsToStartStaysStopped() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0", "X-Test-Fail-Load"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        service.stopExtension(a);
+
+        assertThatThrownBy(() -> service.startExtension(a)).isInstanceOf(IllegalStateException.class);
+
+        assertThat(service.isStopped(a)).isTrue();
+        assertThat(a.getState()).isNotEqualTo(Bundle.ACTIVE);
+    }
+
+    @Test
+    void uploadingAnExtensionStartsItAlthoughItWasStopped() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        service.stopExtension(bundleNamed("test.a"));
+
+        Bundle replaced = service.installPackage("a.jar", bundle("test.a", "1.0.1"));
+
+        assertThat(replaced.getState()).isEqualTo(Bundle.ACTIVE);
+        assertThat(service.isStopped(replaced)).isFalse();
+    }
+
+    @Test
+    void stoppingAndStartingNeedAnAdministrator() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        ReflectionTestUtils.setField(service, "adminGuard", new AdminGuard() {
+            @Override
+            public void requireAdmin() {
+                throw new SecurityException("denied");
+            }
+        });
+
+        assertThatThrownBy(() -> service.stopExtension(a)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> service.startExtension(a)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> service.readLog(a, 100)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> service.clearLog(a)).isInstanceOf(SecurityException.class);
+        assertThat(a.getState()).isEqualTo(Bundle.ACTIVE);
+    }
+
+    @Test
+    void extensionLoggerWritesSlf4jFormattedLinesIntoTheLogOfTheJar() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        org.slf4j.Logger logger = service.createLogger(a);
+        org.slf4j.Logger named = service.createLogger(a, "my.logger");
+        ExpectedLog mainLog = ExpectedLog.capture("extension");
+
+        assertThat(service.readLog(a, 10_000)).isEmpty();
+        logger.info("loaded {} of {}", 1, "two");
+        logger.debug("hidden? {}", "no");
+        logger.trace("not written");
+        named.error("failed {}", "x", new IllegalStateException("boom"));
+
+        File logFile = new File(extensions, "a.jar.log");
+        assertThat(logFile).exists();
+        String text = service.readLog(a, 100_000);
+        assertThat(text).contains("INFO ").contains("test.a - loaded 1 of two")
+                .contains("DEBUG").contains("hidden? no")
+                .doesNotContain("not written")
+                .contains("ERROR").contains("my.logger - failed x")
+                .contains("java.lang.IllegalStateException: boom").contains("at ");
+        // chained to the application log
+        assertThat(mainLog.errors()).anyMatch(m -> m.contains("failed x"));
+        assertThat(mainLog.entries()).anyMatch(e -> e.throwable() instanceof IllegalStateException);
+        assertThat(mainLog.atLeast(org.apache.log4j.Level.INFO)).anyMatch(m -> m.contains("loaded 1 of two"));
+        mainLog.close();
+
+        service.clearLog(a);
+        assertThat(logFile).doesNotExist();
+        assertThat(service.readLog(a, 100)).isEmpty();
+    }
+
+    @Test
+    void readLogReturnsTheEndOfALargeLogFromALineStart() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        org.slf4j.Logger logger = service.createLogger(a);
+        for (int i = 0; i < 200; i++) {
+            logger.info("line number {}", i);
+        }
+
+        String tail = service.readLog(a, 1000);
+
+        assertThat(tail.length()).isLessThanOrEqualTo(1000);
+        assertThat(tail).contains("line number 199").startsWith("20");
+    }
+
+    @Test
+    void extensionLogIsRotatedAndDeletedWithTheExtension() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+        Bundle a = bundleNamed("test.a");
+        org.slf4j.Logger logger = service.createLogger(a);
+        File logFile = new File(extensions, "a.jar.log");
+        Files.write(logFile.toPath(), new byte[(int) ExtensionLogger.MAX_LOG_BYTES + 1]);
+
+        logger.info("after the rotation");
+
+        assertThat(new File(extensions, "a.jar.log.old")).exists();
+        assertThat(service.readLog(a, 10_000)).contains("after the rotation");
+        assertThat(logFile.length()).isLessThan(1000);
+
+        service.stopExtension(a);
+        assertThat(logFile).exists();
+        service.uninstallPackage(a);
+
+        assertThat(logFile).doesNotExist();
+        assertThat(new File(extensions, "a.jar.log.old")).doesNotExist();
+        assertThat(new File(extensions, "a.jar.STOPPED")).doesNotExist();
     }
 }

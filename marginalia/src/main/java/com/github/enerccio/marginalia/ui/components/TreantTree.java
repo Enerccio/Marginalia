@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.components;
 
 import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.DomEvent;
@@ -19,11 +20,7 @@ import com.vaadin.flow.shared.Registration;
 public class TreantTree extends Div {
 
     public void setTreeConfig(String jsonConfig) {
-        getElement().executeJs(
-                "if (window.renderTreant) { window.renderTreant($0, JSON.parse($1)); }",
-                getElement(),
-                jsonConfig
-        );
+        JavascriptLibrary.renderTreant(getElement(), jsonConfig);
     }
 
     public Registration addNodeClickListener(ComponentEventListener<NodeClickEvent> listener) {

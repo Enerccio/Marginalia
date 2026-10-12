@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
@@ -51,8 +52,7 @@ public class TrashPart implements WorkspaceComponent {
         mainLayout.setSpacing(true);
 
         Span titleSpan = new Span(loc.getValue(L.LABEL_TRASH));
-        titleSpan.getStyle().set("font-size", "var(--lumo-font-size-l)");
-        titleSpan.getStyle().set("font-weight", "bold");
+        titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
         User user = userService.find(currentUser.getId());
         trashGrid = new TrashGrid(user != null && user.isAdmin()).create();

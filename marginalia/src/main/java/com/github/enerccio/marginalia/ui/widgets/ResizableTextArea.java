@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.icon.Icon;
@@ -49,22 +50,11 @@ public final class ResizableTextArea {
         Icon icon = solid.create();
         icon.setSize("var(--lumo-font-size-xs)");
         icon.getElement().setAttribute("title", tooltip);
-        icon.getStyle().set("cursor", "pointer");
-        icon.getStyle().set("color", "var(--lumo-secondary-text-color)");
-        icon.getStyle().set("opacity", "0.7");
         // the field's inner container scrolls the text and the icon is a child of it, so it is pinned to the visible
         // bottom right corner by shifting it with the scroll position the text area publishes as a CSS variable
         // (position: sticky does not work here, it stays inside the unscrolled height of the container).
         // It is pulled over the text instead of taking space from it.
-        icon.getStyle().set("align-self", "flex-end");
-        icon.getStyle().set("position", "relative");
-        icon.getStyle().set("top", "0");
-        icon.getStyle().set("transform", "translateY(var(--_text-area-vertical-scroll-position, 0px))");
-        icon.getStyle().set("margin-top", "0");
-        icon.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
-        icon.getStyle().set("margin-left", "calc(-1 * var(--lumo-space-m))");
-        icon.getStyle().set("margin-right", "var(--lumo-space-xs)");
-        icon.getStyle().set("z-index", "1");
+        icon.addClassName(CssStyles.RESIZABLE_TEXT_AREA_ICON);
         icon.getElement().setAttribute(SLOT_ATTRIBUTE, "suffix");
         return icon;
     }

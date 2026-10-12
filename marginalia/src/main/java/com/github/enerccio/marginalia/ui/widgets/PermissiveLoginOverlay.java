@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.login.LoginOverlay;
 
@@ -20,6 +21,6 @@ public class PermissiveLoginOverlay extends LoginOverlay {
     }
 
     private void disablePasswordValidation() {
-        getElement().executeJs("document.getElementById('vaadinLoginPassword').validate = document.getElementById('vaadinLoginPassword').checkValidity = function () { return true; };");
+        JavascriptLibrary.disableLoginPasswordValidation(getElement());
     }
 }

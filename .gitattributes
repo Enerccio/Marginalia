@@ -3,3 +3,6 @@ marginalia/src/desktop/bin/marginalia      text eol=lf
 marginalia/src/desktop/bin/marginalia.bat  text eol=crlf
 # Docker entrypoint runs in Linux, must keep LF
 docker-entrypoint.sh                       text eol=lf
+# server update scripts: shell script LF, batch file CRLF
+rebuild.sh                                 text eol=lf
+rebuild.bat                                text eol=crlf

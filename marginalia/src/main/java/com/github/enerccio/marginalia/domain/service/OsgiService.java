@@ -6,6 +6,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.slf4j.Logger;
 
 import java.util.List;
 
@@ -49,7 +50,66 @@ public interface OsgiService {
 
     void removeSubscriber(ExtensionObserver observer);
 
+    /**
+     * Subscribes to the loading and unloading of single extensions. The listener is held weakly, like the
+     * {@link ExtensionObserver}s - the subscriber has to keep a reference to it. Subscribing twice has no effect.
+     * Extensions that are loaded already are not reported, use {@link #getLoadedExtensions()} for them.
+     */
+    void addExtensionListener(ExtensionListener listener);
+
+    void removeExtensionListener(ExtensionListener listener);
+
+    /**
+     * The extensions that finished loading ({@code onExtensionLoad} returned) and were not unloaded yet.
+     */
+    List<LoadedExtension> getLoadedExtensions();
+
     String getExtensionsPath();
+
+    /**
+     * Whether the extension is stopped by the administrator: its JAR has a {@code <jar name>.STOPPED} flag file next
+     * to it. A stopped extension stays installed (and shown in Admin → Extensions) but is not started, also after the
+     * application restarts, until it is started again.
+     */
+    boolean isStopped(Bundle b);
+
+    /**
+     * Unloads the extension ({@code onExtensionUnload}), stops its bundle and creates the {@code .STOPPED} flag.
+     * Does nothing when it is stopped already.
+     */
+    void stopExtension(Bundle b) throws Exception;
+
+    /**
+     * Deletes the {@code .STOPPED} flag and starts the extension, it is verified first like at the start of the
+     * application. When that fails the extension stays stopped and the exception is thrown.
+     */
+    void startExtension(Bundle b) throws Exception;
+
+    /**
+     * A logger for the extension, in the usual SLF4J way ({@code log.info("Loaded {}", name)}, a trailing throwable is
+     * logged with its stack trace). Everything it logs goes to {@code <jar name>.log} in the extensions folder (for
+     * {@code sidequery.jar} that is {@code sidequery.jar.log}), and also, chained, to the application log (logger {@code extension.<name>}, at the level of the line); TRACE is dropped. A file
+     * over 2 MB is moved to {@code .log.old}. Call it from {@code onExtensionLoad} with the bundle passed there; the
+     * returned logger can be kept and used from any thread.
+     */
+    Logger createLogger(Bundle b);
+
+    /**
+     * Same as {@link #createLogger(Bundle)} with the given logger name (shown in every line), by default the symbolic
+     * name of the bundle. Loggers of one extension write into the same file.
+     */
+    Logger createLogger(Bundle b, String name);
+
+    /**
+     * The last {@code maxBytes} bytes of the log of the extension (see {@link #createLogger(Bundle)}), cut at a line
+     * start; empty when nothing was logged.
+     */
+    String readLog(Bundle b, int maxBytes) throws Exception;
+
+    /**
+     * Deletes the log of the extension (and its {@code .old} rotation).
+     */
+    void clearLog(Bundle b) throws Exception;
 
     /**
      * The report of the verification of the extension ({@link ExtensionService#verifyExtension}), {@code null} when
@@ -60,6 +120,9 @@ public interface OsgiService {
     record ExtensionReport(boolean valid, String text) {
     }
 
+    record LoadedExtension(Bundle bundle, MarginaliaExtension extension) {
+    }
+
     /**
      * Registers a cleanup callback for a component the extension added to the UI. When the extension is unloaded, the
      * callback runs for every bound component that is attached, inside {@code ui.access(...)} of the component's UI;
@@ -68,6 +131,28 @@ public interface OsgiService {
      * @throws IllegalStateException when the extension is not loaded
      */
     <T extends Component> T bindAttachableComponent(T component, Runnable callback, MarginaliaExtension extension) throws Exception;
+
+    /**
+     * Reports single extensions that are loaded or unloaded. The methods are called on the thread that loads or
+     * unloads the extension (an administrator's request, the start of the application), not in a UI session: change
+     * a UI only through {@code ui.access(...)}. An exception thrown by a listener is logged and doesn't stop the
+     * others.
+     */
+    interface ExtensionListener {
+
+        /**
+         * The extension finished {@code onExtensionLoad}.
+         */
+        void extensionLoaded(Bundle bundle, MarginaliaExtension extension);
+
+        /**
+         * The extension was unloaded ({@code onExtensionUnload} was called), only for an extension that was reported
+         * by {@link #extensionLoaded}. The extension is unloaded also when its bundle is replaced and when the
+         * framework stops.
+         */
+        void extensionUnloaded(Bundle bundle, MarginaliaExtension extension);
+
+    }
 
     interface ExtensionObserver {
 

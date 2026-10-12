@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136847239">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Using Marginalia on a phone</title>
+    <meta name="title" content="Using Marginalia on a phone">
+    <meta name="description" content="Marginalia has a layout made for phones. You write, edit and regenerate parts, read and tweak lorebooks and manage your models from the phone browser, but the phone layout is not a copy of the desktop one: it is simpler, a few things are missing and not every extension works in it.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/phone/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/phone/">
+    <meta property="og:title" content="Using Marginalia on a phone">
+    <meta property="og:description" content="Marginalia has a layout made for phones. You write, edit and regenerate parts, read and tweak lorebooks and manage your models from the phone browser, but the phone layout is not a copy of the desktop one: it is simpler, a few things are missing and not every extension works in it.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/phone-workspace-drawer.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Using Marginalia on a phone">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/phone/">
+    <meta name="twitter:title" content="Using Marginalia on a phone">
+    <meta name="twitter:description" content="Marginalia has a layout made for phones. You write, edit and regenerate parts, read and tweak lorebooks and manage your models from the phone browser, but the phone layout is not a copy of the desktop one: it is simpler, a few things are missing and not every extension works in it.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/phone-workspace-drawer.png">
+    <meta name="twitter:image:alt" content="Using Marginalia on a phone">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/phone.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../resources/css/retype.css?v=4.6.0.845136847239" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="using-marginalia-on-a-phone">Using Marginalia on a phone</h1>
+<p>Marginalia has a layout made for phones. You write, edit and regenerate parts, read and tweak lorebooks and manage your
+models from the phone browser, but the phone layout is <strong>not a copy of the desktop one</strong>: it is simpler, a few things
+are missing and not every extension works in it. This page lists the differences.</p>
+<p>For reading a book on a phone, there is also the <a href="../books/publishing/">viewer</a>, which is made for it.</p>
+<h2 id="when-the-phone-layout-is-used">When the phone layout is used</h2>
+<p>Marginalia looks at the width of the browser window <strong>when the page loads</strong>. Narrower than 768 pixels gives you the phone
+layout, anything wider the normal <a href="../#the-workspace">workspace</a>.</p>
+<ul>
+<li>
+<p>Tablets and phones in landscape mode are usually wider than 768 pixels and get the desktop layout.</p>
+</li>
+<li>
+<p>The layout is <strong>not switched while you work</strong>. If you turn the phone or tablet on its side, or resize the window, the
+layout stays as it was until you <strong>reload the page</strong>. So to get the larger desktop layout on a tablet or a turned
+phone, turn it and reload; to go back to the phone layout, turn it back and reload again.</p>
+</li>
+<li>
+<p>A narrow desktop browser window gets the phone layout too, which is handy to try it.</p>
+</li>
+</ul>
+<p>Like the desktop, the phone layout can be added to the home screen like an app (<em>Install app</em> / <em>Add to Home Screen</em>
+in the browser menu).</p>
+<h2 id="the-workspace">The workspace</h2>
+<p>The tabs on the left are replaced by a <strong>drawer</strong>. Tap the menu button in the top bar to open it, tap a tab to switch
+to it. The tab you are on fills the whole screen and its name is shown in the top bar.</p>
+<figure class="content-center">
+    <img src="../../images/phone-workspace-drawer.png" alt="The phone workspace with the drawer open" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">The phone workspace with the drawer open</figcaption>
+</figure>
+<p>The drawer has the same tabs as the desktop - <em>Books</em>, <em>Lorebooks</em>, <em>Settings</em>, <em>Protocols</em>, <em>Inference Providers</em>,
+<em>Resources</em> and <em>Trash</em> - and the <strong>Language</strong> selector, <strong>Change Password</strong> and <strong>Logout</strong> at the bottom. Extensions may add buttons, but only
+to the places they know on the phone, see <doc-anchor-trigger to="#extensions">Extensions</doc-anchor-trigger>.</p>
+<p>While the <em>Settings</em> tab has unsaved changes, the drawer is locked as on the desktop: save or discard first.</p>
+<h3 id="books">Books</h3>
+<p>The book list is one column. Above it are the name filter, the tag filter and the sort buttons (<em>Last Modified</em>,
+<em>Created</em>, <em>Name</em>; tap the active one again to reverse the order), then <strong>Add Book</strong> and refresh. Each book has two
+buttons: the pencil opens it, the trash deletes it (into the <a href="../trash/">Trash</a>).</p>
+<figure class="content-center">
+    <img src="../../images/phone-book-list.png" alt="The book list on a phone" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">The book list on a phone</figcaption>
+</figure>
+<h3 id="lorebooks">Lorebooks</h3>
+<p>The phone shows a <strong>reduced lorebook editor</strong>. You can pick a lorebook, enable or disable it and its entries, and
+edit the <strong>content</strong> of an entry. Everything else is shown as text only: name, order, tags, filtering and insertion
+mode, negative tags and note. You cannot create, delete, import or export lorebooks, or add entries. Use the desktop
+for that, see <a href="../lorebooks/">Lorebooks</a>.</p>
+<p>The same reduced editor is used in the <em>Lorebook</em> tab of a book.</p>
+<figure class="content-center">
+    <img src="../../images/phone-lorebook.png" alt="A lorebook on a phone" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">A lorebook on a phone</figcaption>
+</figure>
+<h3 id="settings-protocols-providers-resources-trash">Settings, protocols, providers, resources, trash</h3>
+<ul>
+<li>
+<p><strong>Settings</strong> are the same as on the desktop, only laid out in a narrow column. The one thing missing is
+<strong>Import Backup as New Book</strong>. To bring a backup file back on the phone, create a book, use <strong>Import Backup</strong> in
+its <a href="../books/backups/">Backups tab</a> and restore it there, or import it as a new book on the desktop.</p>
+</li>
+<li>
+<p><strong>Protocols</strong> and <strong>Inference Providers</strong> list each entry as text with the edit and delete buttons next to it. The
+editing dialogs are the desktop ones.</p>
+</li>
+<li>
+<p><strong>Resources</strong> is the desktop tab, not adapted to the phone.</p>
+</li>
+<li>
+<p><strong>Trash</strong> shows each deleted object as a card (name, type, when it was deleted). The explanation of the trash is
+behind the <em>i</em> button. Restoring works as described in <a href="../trash/">Trash</a>.</p>
+</li>
+</ul>
+<h2 id="the-book-window">The book window</h2>
+<p>Opening a book shows it <strong>full screen</strong>. The close button is the <strong>✕</strong> in the top corner, and the tabs - <em>About</em>,
+<em>Prompts</em>, <em>Lorebook</em>, <em>Story</em>, <em>Branch view</em>, <em>Backups</em> - are one row you scroll sideways. They do the same as on the
+desktop (see <a href="../books/">Books</a>), with their fields in one column.</p>
+<h3 id="the-story">The story</h3>
+<p>The story tab is one column of parts. The differences from the <a href="../books/story-editor/">story editor</a>:</p>
+<figure class="content-center">
+    <img src="../../images/phone-book-story.png" alt="The story of a book on a phone" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">The story of a book on a phone</figcaption>
+</figure>
+<ul>
+<li>
+<p>The <strong>outline</strong> (and the tabs extensions add next to it, such as the <a href="../extensions/authors-note/">Author&#x27;s Note</a>)
+is in a <strong>drawer</strong>. Open it with the button at the top left.</p>
+</li>
+<li>
+<p>The <strong>Summaries</strong> button and the settings menu (⚙, with <em>Change Styles For Text</em> and <em>Export story</em>) are in the top bar, not
+at the bottom.</p>
+</li>
+<li>
+<p>The <strong>+</strong> button for a new part is at the bottom.</p>
+</li>
+<li>
+<p>A part is only its text under one small line with two icons. The first is the part&#x27;s <strong>menu</strong> (edit, regenerate,
+swipe, branch, show prompt, images, summary, delete); the second opens a <strong>popup</strong> with what the desktop shows in the
+column on the right of a part: the ids, model, protocol, tokens, words and the turn details.</p>
+</li>
+<li>
+<p>The <a href="../books/summaries/">summaries</a> overview keeps a fixed width and scrolls sideways.</p>
+</li>
+</ul>
+<h2 id="what-is-missing">What is missing</h2>
+<retype-table copy-text="| Missing on the phone | Where to do it |
+|---|---|
+| **Admin**: users, database backups, cleanup, installing extensions | Desktop layout, logged in as an administrator. |
+| Creating, deleting, importing and exporting lorebooks, adding lorebook entries, changing the settings of an entry | Desktop layout, [Lorebooks](lorebooks/index.md). |
+| **Import Backup as New Book** in *Settings* | Desktop layout, or **Import Backup** in the *Backups* tab of a new book. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Missing on the phone</th>
+<th>Where to do it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Admin</strong>: users, database backups, cleanup, installing extensions</td>
+<td>Desktop layout, logged in as an administrator.</td>
+</tr>
+<tr>
+<td>Creating, deleting, importing and exporting lorebooks, adding lorebook entries, changing the settings of an entry</td>
+<td>Desktop layout, <a href="../lorebooks/">Lorebooks</a>.</td>
+</tr>
+<tr>
+<td><strong>Import Backup as New Book</strong> in <em>Settings</em></td>
+<td>Desktop layout, or <strong>Import Backup</strong> in the <em>Backups</em> tab of a new book.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Everything not in this list works the same as on the desktop: generating, editing, regenerating, swiping and branching
+parts, summaries and meta summaries, book prompts, the branch tree, book backups, export, resources and the trash.</p>
+<div class="flex mb-6">
+    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
+    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
+        <div class="flex items-center ml-4 h-7">
+            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+                <g fill="currentColor"><g>
+                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
+                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                </g></g>
+            </svg>
+        </div>
+        <div class="pr-5 ml-3 w-full">
+            <h5>Administrators</h5>
+<p>An administrator on a phone is a normal user: there is <strong>no Admin button</strong>. The administrator tasks have to be done in
+the desktop layout, that is in a window wider than 768 pixels (reload the page after widening it).</p>
+        </div>
+    </div>
+</div>
+<h2 id="extensions">Extensions</h2>
+<p>The phone layout has its own classes, so an extension has to support it explicitly. The extensions that come with
+Marginalia:</p>
+<retype-table copy-text="| Extension | On the phone |
+|---|---|
+| [Author's Note](extensions/authors-note.md) | Works. The note is in the outline drawer of the story. |
+| [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
+| [Reviewer](extensions/reviewer.md) | Works. Its items are in the menu of a part, its settings in *Settings → Extension Settings*. |
+| [Side Query](extensions/side-query.md) | **Not available.** The side chat is only added to the desktop story editor. |
+| [Lore Generator](extensions/lore-generator.md) | **Not available.** The generator button is only added to the desktop lorebook editor. |
+| [Lorebook VCS](extensions/lorebook-vcs.md) | **Not available.** The revision history is only added to the desktop lorebook editor. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Extension</th>
+<th>On the phone</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../extensions/authors-note/">Author&#x27;s Note</a></td>
+<td>Works. The note is in the outline drawer of the story.</td>
+</tr>
+<tr>
+<td><a href="../extensions/chapter-marker/">Chapter Marker</a></td>
+<td>Works. Chapter titles are in the outline drawer.</td>
+</tr>
+<tr>
+<td><a href="../extensions/reviewer/">Reviewer</a></td>
+<td>Works. Its items are in the menu of a part, its settings in <em>Settings → Extension Settings</em>.</td>
+</tr>
+<tr>
+<td><a href="../extensions/side-query/">Side Query</a></td>
+<td><strong>Not available.</strong> The side chat is only added to the desktop story editor.</td>
+</tr>
+<tr>
+<td><a href="../extensions/lore-generator/">Lore Generator</a></td>
+<td><strong>Not available.</strong> The generator button is only added to the desktop lorebook editor.</td>
+</tr>
+<tr>
+<td><a href="../extensions/lorebook-vcs/">Lorebook VCS</a></td>
+<td><strong>Not available.</strong> The revision history is only added to the desktop lorebook editor.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Extensions from other sources may behave differently or add nothing at all on the phone; they appear where their
+author made them work. If an extension seems to be missing, check it in the desktop layout. How an extension
+supports the phone is described in the <a href="../../developer/plugins/extendable/#the-phone-twins">developer manual</a>.</p>
+<h2 id="tips">Tips</h2>
+<ul>
+<li>
+<p>Writing long text on a phone is easier in landscape mode. The layout stays the phone one after the turn, until you
+reload the page.</p>
+</li>
+<li>
+<p>If you need something that is missing on the phone, turn the phone on its side and reload, or open Marginalia in a
+wider window; your books and settings are the same everywhere.</p>
+</li>
+<li>
+<p>To reach Marginalia from a phone it has to run as a <a href="../getting-started/docker-server/">server</a>: the
+<a href="../getting-started/desktop-app/">desktop app</a> listens on your computer only.</p>
+</li>
+</ul>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../user/getting-started/quick-start/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Quick start</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../user/inference-providers/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Inference providers</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Using Marginalia on a phone", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/phone.md" }</script>
+</body>
+</html>

@@ -65,6 +65,10 @@ After logging in you see the workspace. The tabs on the left are the main areas 
 At the bottom are **Change Password**, **Logout** and, for administrators, **Admin**. Extensions may add more tabs
 and buttons.
 
+On a narrow screen (under 768 pixels) you get a simpler [phone layout](phone.md) instead: the tabs are in a drawer, and
+there is no Admin page. The layout is chosen when the page loads: after turning a device or resizing the window,
+reload the page to get the other one.
+
 ## Sections of this guide
 
 | Section                                       | For                                                                                                                                                                                                                  |
@@ -77,9 +81,10 @@ and buttons.
 | [Books](books/index.md)                       | Managing books, the story editor, branches, book prompts, summaries, backups and publishing.                                                                                                                         |
 | [Lorebooks](lorebooks/index.md)               | Creating lorebooks, entries and how they are activated, import and export (including SillyTavern).                                                                                                                   |
 | [Templates & macros](templates/index.md)      | What is sent to the model and how to change it; the macro reference.                                                                                                                                                 |
-| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Lorebook VCS, Reviewer, Side Query.                                                                                                                                          |
+| [Extensions](extensions/index.md)             | The bundled extensions: Author's Note, Chapter Marker, Instruction Exporter, Lore Generator, Lorebook VCS, Reviewer, Side Query.                                                                                                                                          |
 | [Account & settings](account.md)              | Your password, user name and default settings.                                                                                                                                                                       |
 | [Administration](administration/index.md)     | For administrators: users, database backups, cleanup, installing extensions.                                                                                                                                         |
+| [Using Marginalia on a phone](phone.md)       | The phone layout: how it differs from the desktop, what is missing, which extensions work.                                                                                                                           |
 | [Troubleshooting & FAQ](troubleshooting.md)   | Logs, common problems and their solutions.                                                                                                                                                                           |
 
 ## Conventions

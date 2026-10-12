@@ -1,7 +1,7 @@
 ---
 label: Templating & macros
 order: 920
-verified: b244ca1
+verified: 66784ab
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/templates
   - marginalia/src/main/java/com/github/enerccio/marginalia/Defaults.java
@@ -229,7 +229,7 @@ handled with `BigDecimal` (`addVar`, `++`, `+=`); non-numeric `add` concatenates
 
 1. Add a field with getter and setter to the data class (e.g. `MasterTemplateData`) and annotate the field with
    `@LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_X)`.
-2. Add the key to `L` and the text to `LocalizationEN` - it is shown in the hints.
+2. Add the key to `L` and the text to `LocalizationBundleEN` (and `LocalizationBundleJP`) - it is shown in the hints.
 3. Set the value where the data object is filled (the generation step or `SummaryServiceImpl`).
 4. If it should be available in *every* template, add it to `TemplateContext` (field, `fork()`, `property(name)`)
    and fill it in `GenerationStepBase.createTemplateContext` instead.
@@ -242,7 +242,7 @@ handled with `BigDecimal` (`addVar`, `++`, `+=`); non-numeric `add` concatenates
 2. Register it in the static block of `Macros` with `define(signature, minArgs, maxArgs, L.DESC_MACRO_X, function,
    names...)`. `maxArgs` -1 means unlimited; a macro with `minArgs > 0` called with fewer arguments becomes a block
    whose content is the last argument.
-3. Add the description to `L` / `LocalizationEN`.
+3. Add the description to `L` / `LocalizationBundleEN`.
 4. Document it in the user guide's [Macro reference](../user/templates/macros.md).
 5. Add rendering tests to `templates/MacroRenderingTest`.
 

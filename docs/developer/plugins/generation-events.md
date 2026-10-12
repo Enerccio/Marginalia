@@ -206,6 +206,7 @@ Points worth copying:
 | Reserve room for text added later | `BEFORE_PREPARE_CONTENT` | add to `PrePromptData.reservedTokens` |
 | Shorten the story sent to the model | `AFTER_MANUSCRIPT_CONCATENATION` | replace `MANUSCRIPT_CHRONICLE` |
 | Change the instructions of the turn | `AFTER_PREPARE_CONSTANT_DATA` | change the processed user prompt in `PrePromptData` |
+| Read how the context was spent | `AFTER_PREPARE_CONTENT` | read the `TOKEN_BREAKDOWN` property (`PromptTokenBreakdown`: tokens of each section and of what was cut); the tokens of the payload messages are added when the part is created, so changes made in `AFTER_PREPARE_PAYLOAD` are counted |
 | Post-process the answer as it streams | `CHUNK_RECEIVED` | replace the `CHUNK` property |
 | Act on the finished part | `AFTER_INFERENCE` | read `event.getMessage()` |
 

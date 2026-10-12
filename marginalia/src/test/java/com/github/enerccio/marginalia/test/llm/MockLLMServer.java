@@ -283,6 +283,8 @@ public class MockLLMServer implements AutoCloseable {
         error.add("code", null);
         JsonObject body = new JsonObject();
         body.add("error", error);
+        // a client that retries must not reuse this connection (a stale pooled one ends with "unexpected end of stream")
+        exchange.getResponseHeaders().set("Connection", "close");
         sendJson(exchange, status, body);
     }
 

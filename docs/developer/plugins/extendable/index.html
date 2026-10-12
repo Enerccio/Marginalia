@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977263947">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136847239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844977263947" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845136847239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.844977263947" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845136847239" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -393,8 +393,9 @@ stores them.</p>
 | `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu (Reviewer). |
 | `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Update menu items when the menu opens (Reviewer). |
 | `ManuscriptStoryPart$ChatMessageCard` | `autosaveAndSwapToMarkdown()` | fields `message`, `this$0` (the outer `ManuscriptStoryPart`) | React to an edited part (Chapter Marker). |
-| `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query). |
-| `LorebookView` | `create()` | local `lorebookHeaderLayout` | Add a panel above the lorebook header (Lorebook VCS). |
+| `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query, Lore Generator). |
+| `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
+| `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
 | `LorebookView` | `createEntryDetailLayout(entry)` | argument `entry`; local `detailsLayout` | Add a panel to each entry's details (Lorebook VCS). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -453,13 +454,19 @@ stores them.</p>
 <td><code translate="no" v-pre>UserPart</code></td>
 <td><code translate="no" v-pre>refresh()</code> / <code translate="no" v-pre>save()</code></td>
 <td>fields <code translate="no" v-pre>extensionSettings</code>, <code translate="no" v-pre>userSetting</code></td>
-<td>Add a settings panel; save its values (Reviewer, Side Query).</td>
+<td>Add a settings panel; save its values (Reviewer, Side Query, Lore Generator).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookView</code></td>
 <td><code translate="no" v-pre>create()</code></td>
-<td>local <code translate="no" v-pre>lorebookHeaderLayout</code></td>
-<td>Add a panel above the lorebook header (Lorebook VCS).</td>
+<td>local <code translate="no" v-pre>lorebookHeaderLayout</code>; field <code translate="no" v-pre>grid</code></td>
+<td>Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LorebookPart</code></td>
+<td><code translate="no" v-pre>refresh()</code></td>
+<td>field <code translate="no" v-pre>lorebookView</code></td>
+<td>Reach the view of the workspace tab, which was built when the page opened (Lore Generator).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookView</code></td>
@@ -472,6 +479,17 @@ stores them.</p>
 </div>
 </retype-table>
 <p>Inner classes reach their outer instance through the synthetic field <code translate="no" v-pre>this$0</code>.</p>
+<h3 id="the-phone-twins">The phone twins</h3>
+<p>On a phone the book opens in <code translate="no" v-pre>PhoneManuscriptDialog</code>, whose tabs are separate classes (not subclasses) in
+<code translate="no" v-pre>ui.dialogs.phone.manuscript</code>, so a decorator of the desktop class does not run there. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> and its
+<code translate="no" v-pre>PhoneManuscriptStoryPart$ChatMessageCard</code> have the same decorable methods, fields and locals as the desktop ones
+(<code translate="no" v-pre>createSidebarButton</code>, <code translate="no" v-pre>renderStoryContent</code>, <code translate="no" v-pre>populateMenuBar</code>, <code translate="no" v-pre>createCogsMenuItem</code>, <code translate="no" v-pre>createMenuItems</code>,
+<code translate="no" v-pre>refreshSummaryMenuItems</code>, <code translate="no" v-pre>autosaveAndSwapToMarkdown</code>; fields <code translate="no" v-pre>sidebarList</code>, <code translate="no" v-pre>leftBar</code>, <code translate="no" v-pre>currentManuscript</code>,
+<code translate="no" v-pre>hamburgerMenu</code>, <code translate="no" v-pre>message</code>, <code translate="no" v-pre>this$0</code>), so a plugin supports the phone by registering the same decorator a second time
+under the other class name. The Reviewer, Chapter Marker and Author&#x27;s Note do; Side Query, Lore Generator and Lorebook VCS don&#x27;t.
+Two differences: the card has no right-hand column (the metadata is in a popover), and <code translate="no" v-pre>leftBar</code> is the tab sheet in
+the drawer of the story; on both, <code translate="no" v-pre>leftBar</code> is created once and not rebuilt by <code translate="no" v-pre>renderStoryContent()</code> (check for your
+tab first, as Author&#x27;s Note does). Reach the outer part through <code translate="no" v-pre>this$0</code> as an <code translate="no" v-pre>Object</code>, since its type depends on the dialog.</p>
 <h2 id="verification-before-loading">Verification before loading</h2>
 <p>Every name a decorator uses is unchecked at compile time, so Marginalia checks them before it starts an extension:
 <code translate="no" v-pre>ExtensionService.verifyExtension(Bundle bundle, File jar)</code> (<code translate="no" v-pre>ExtensionVerifier</code> in <code translate="no" v-pre>instruct.verify</code>). It doesn&#x27;t run
@@ -591,7 +609,7 @@ extension, the bundle, the time, <code translate="no" v-pre>Result: VALID</code>
 checked:</p>
 <div id="verification-before-loading-code-2" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-none"><code v-pre class="language-none">Extension: chaptermarker.jar
-Bundle: chaptermarker 1.0.0
+Bundle: chaptermarker 1.1.0
 Verified: 2026-10-10T18:18:31.781673Z
 Result: INVALID
 
@@ -612,7 +630,7 @@ extensions that were fine, and this catches them all at the first start. Both re
 </li>
 <li>
 <p><code translate="no" v-pre>.valid</code>: the extension is started. <code translate="no" v-pre>.invalid</code>: it is not - at startup the bundle stays installed, not started (state
-<code translate="no" v-pre>INSTALLED</code> or <code translate="no" v-pre>RESOLVED</code>), the report is logged as an error and <em>Admin → Extensions</em> shows an <code translate="no" v-pre>INVALID</code> button that
+<em>Installed</em> or <em>Resolved</em>), the report is logged as an error and <em>Admin → Extensions</em> shows an <em>Invalid</em> button that
 opens it. An upload that is invalid is rejected like one that fails to start: its JAR is deleted, the replaced version
 is put back and the report is shown to the administrator. A verification that can&#x27;t be done (an unreadable JAR) fails
 the extension too.</p>

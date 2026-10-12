@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
@@ -11,6 +12,7 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ExtensionLogDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
@@ -252,7 +254,9 @@ public class AdminPart implements WorkspaceComponent {
                 .setFlexGrow(0)
                 .setWidth("150px");
 
-        extensionsGrid.addColumn(bundle -> formatBundleState(bundle.getState()))
+        extensionsGrid.addColumn(bundle -> osgiService.isStopped(bundle)
+                        ? loc.getValue(L.ENUM_BUNDLE_STATE_STOPPED)
+                        : formatBundleState(bundle.getState()))
                 .setHeader(loc.getValue(L.LABEL_BUNDLE_STATE))
                 .setFlexGrow(0)
                 .setWidth("140px");
@@ -262,7 +266,7 @@ public class AdminPart implements WorkspaceComponent {
                     if (report == null) {
                         return new Div();
                     }
-                    Button reportButton = new Button(report.valid() ? "VALID" : "INVALID");
+                    Button reportButton = new Button(loc.getValue(report.valid() ? L.LABEL_VALID : L.LABEL_INVALID));
                     reportButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                     if (!report.valid()) {
                         reportButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
@@ -275,14 +279,25 @@ public class AdminPart implements WorkspaceComponent {
                 .setWidth("140px");
 
         extensionsGrid.addComponentColumn(bundle -> {
+                    boolean stopped = osgiService.isStopped(bundle);
+                    Button toggleButton = stopped
+                            ? new Button(loc.getValue(L.LABEL_START), VaadinIcon.PLAY.create())
+                            : new Button(loc.getValue(L.LABEL_STOP), VaadinIcon.STOP.create());
+                    toggleButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+                    toggleButton.addClickListener(e -> toggleExtension(bundle, stopped));
+
+                    Button logButton = new Button(loc.getValue(L.LABEL_LOG), VaadinIcon.FILE_TEXT_O.create());
+                    logButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+                    logButton.addClickListener(e -> ExtensionLogDialog.show(bundle, extensionName(bundle)));
+
                     Button unloadButton = new Button(loc.getValue(L.LABEL_UNLOAD_EXTENSION), VaadinIcon.TRASH.create());
                     unloadButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
                     unloadButton.addClickListener(e -> unloadExtension(bundle));
-                    return unloadButton;
+                    return new HorizontalLayout(toggleButton, logButton, unloadButton);
                 })
                 .setHeader(loc.getValue(L.LABEL_ACTIONS))
                 .setFlexGrow(0)
-                .setWidth("130px");
+                .setWidth("400px");
 
         layout.add(toolbar, extensionsGrid);
         refreshGrid();
@@ -300,7 +315,7 @@ public class AdminPart implements WorkspaceComponent {
         text.setReadOnly(true);
         text.setWidthFull();
         text.setHeight("400px");
-        text.getStyle().set("font-family", "monospace");
+        text.addClassName(CssStyles.TEXT_MONOSPACE);
         dialog.add(text);
 
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), e -> dialog.close());
@@ -308,10 +323,38 @@ public class AdminPart implements WorkspaceComponent {
         dialog.open();
     }
 
-    private void unloadExtension(Bundle bundle) {
+    private static String extensionName(Bundle bundle) {
         String name = bundle.getHeaders().get("Bundle-Name");
-        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_UNLOAD_EXTENSION),
-                (name != null && !name.isBlank()) ? name : bundle.getSymbolicName()), () -> {
+        return (name != null && !name.isBlank()) ? name : bundle.getSymbolicName();
+    }
+
+    private void toggleExtension(Bundle bundle, boolean stopped) {
+        try {
+            if (stopped) {
+                osgiService.startExtension(bundle);
+                Notification.show(loc.getValue(L.MSG_EXTENSION_STARTED));
+            } else {
+                osgiService.stopExtension(bundle);
+                Notification.show(loc.getValue(L.MSG_EXTENSION_STOPPED));
+            }
+        } catch (ExtensionVerificationException e) {
+            log.error("Extension {} was rejected:\n{}", e.getExtension(), e.getReport());
+            Notification.show(String.format(loc.getValue(L.ERROR_EXTENSION_INCOMPATIBLE), e.getExtension()),
+                    5000, Notification.Position.MIDDLE);
+            showReport(e.getReport());
+        } catch (Exception e) {
+            log.error("Failed to {} extension", stopped ? "start" : "stop", e);
+            Notification.show(
+                    String.format(loc.getValue(stopped ? L.ERROR_EXTENSION_START_FAILED : L.ERROR_EXTENSION_STOP_FAILED), e.getMessage()),
+                    5000,
+                    Notification.Position.MIDDLE
+            );
+        }
+        refreshGrid();
+    }
+
+    private void unloadExtension(Bundle bundle) {
+        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_UNLOAD_EXTENSION), extensionName(bundle)), () -> {
             try {
                 osgiService.uninstallPackage(bundle);
                 Notification.show(loc.getValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS));
@@ -336,13 +379,13 @@ public class AdminPart implements WorkspaceComponent {
 
     private String formatBundleState(int state) {
         return switch (state) {
-            case Bundle.UNINSTALLED -> "UNINSTALLED";
-            case Bundle.INSTALLED -> "INSTALLED";
-            case Bundle.RESOLVED -> "RESOLVED";
-            case Bundle.STARTING -> "STARTING";
-            case Bundle.STOPPING -> "STOPPING";
-            case Bundle.ACTIVE -> "ACTIVE";
-            default -> "UNKNOWN (" + state + ")";
+            case Bundle.UNINSTALLED -> loc.getValue(L.ENUM_BUNDLE_STATE_UNINSTALLED);
+            case Bundle.INSTALLED -> loc.getValue(L.ENUM_BUNDLE_STATE_INSTALLED);
+            case Bundle.RESOLVED -> loc.getValue(L.ENUM_BUNDLE_STATE_RESOLVED);
+            case Bundle.STARTING -> loc.getValue(L.ENUM_BUNDLE_STATE_STARTING);
+            case Bundle.STOPPING -> loc.getValue(L.ENUM_BUNDLE_STATE_STOPPING);
+            case Bundle.ACTIVE -> loc.getValue(L.ENUM_BUNDLE_STATE_ACTIVE);
+            default -> loc.getValue(L.ENUM_BUNDLE_STATE_UNKNOWN).formatted(state);
         };
     }
 

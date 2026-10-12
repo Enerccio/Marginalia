@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977263947">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136847239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844977263947" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845136847239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977263947" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845136847239" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -171,7 +171,7 @@
 with its own Java runtime and Jetty. This page describes how each is built, what CI does, and how a release is made.
 For everyday builds see <a href="../building/">Building from source</a>.</p>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
-    src[&quot;marginalia/ sources&quot;] --&gt; war[&quot;marginalia-1.0.0.war&quot;]
+    src[&quot;marginalia/ sources&quot;] --&gt; war[&quot;marginalia-1.1.0.war&quot;]
     war --&gt; docker[&quot;Docker image&lt;br/&gt;Jetty 12 + WAR&quot;]
     war --&gt; desktop[&quot;Desktop distribution&lt;br/&gt;jlink runtime + Jetty + WAR + launcher&quot;]
     desktop --&gt; portable[&quot;portable archive&lt;br/&gt;marginalia-&amp;lt;v&amp;gt;-&amp;lt;os&amp;gt;-&amp;lt;arch&amp;gt;&quot;]
@@ -224,7 +224,7 @@ For everyday builds see <a href="../building/">Building from source</a>.</p>
 </div>
 </retype-table>
 <h2 id="the-war">The WAR</h2>
-<p><code translate="no" v-pre>mvn package</code> in <code translate="no" v-pre>marginalia/</code> produces <code translate="no" v-pre>target/marginalia-1.0.0.war</code> (see
+<p><code translate="no" v-pre>mvn package</code> in <code translate="no" v-pre>marginalia/</code> produces <code translate="no" v-pre>target/marginalia-1.1.0.war</code> (see
 <a href="../building/#building-the-application">Building the application</a>). The WAR always runs in Vaadin production mode:
 <code translate="no" v-pre>build-frontend</code> writes the production <code translate="no" v-pre>flow-build-info.json</code> into it, and a development one left in
 <code translate="no" v-pre>src/main/resources</code> is never packaged (see <a href="../building/#development-and-production-mode">Development and production mode</a>).</p>
@@ -262,7 +262,7 @@ every WAR from <code translate="no" v-pre>mvn package</code> - the Docker image,
 <li><strong>builder</strong> (<code translate="no" v-pre>maven:3.9-eclipse-temurin-25</code>)
 <ul>
 <li>
-<p>copies <code translate="no" v-pre>marginalia/pom.xml</code> and runs <code translate="no" v-pre>mvn dependency:go-offline</code>, so the dependency layer is cached while only
+<p>copies the parent <code translate="no" v-pre>pom.xml</code> and <code translate="no" v-pre>marginalia/pom.xml</code> and runs <code translate="no" v-pre>mvn dependency:go-offline</code>, so the dependency layer is cached while only
 the sources change;</p>
 </li>
 <li>
@@ -300,7 +300,9 @@ by root - changes its owner to <code translate="no" v-pre>jetty</code> (recursiv
 </li>
 </ol>
 <p>Tests are skipped in the image build - they run in CI. <code translate="no" v-pre>.dockerignore</code> keeps <code translate="no" v-pre>marginalia/target/</code>, <code translate="no" v-pre>.idea/</code>, the
-server&#x27;s <code translate="no" v-pre>data/</code> folder and the plugin folders out of the build context.</p>
+server&#x27;s <code translate="no" v-pre>data/</code> folder, <code translate="no" v-pre>marginalia/node_modules/</code> and the plugin <code translate="no" v-pre>target/</code> and <code translate="no" v-pre>build/</code> folders out of the build context
+(the plugin sources are in it, because the <doc-anchor-trigger to="#building-the-plugins-in-docker">plugin image</doc-anchor-trigger> is built from the same
+context).</p>
 <p><code translate="no" v-pre>docker-compose.yml</code> builds the image and sets the runtime configuration:</p>
 <retype-table copy-text="| Setting | |
 |---|---|
@@ -381,10 +383,10 @@ the <code translate="no" v-pre>server/</code> folder as app content;</p>
 <p>Outputs in <code translate="no" v-pre>target/desktop/</code>:</p>
 <retype-table copy-text="| Path | |
 |---|---|
-| `marginalia-1.0.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
+| `marginalia-1.1.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
 | `package/` | The app image: `Marginalia.app` (macOS), `Marginalia/Marginalia.exe` (Windows), `Marginalia/bin/Marginalia` (Linux). |
-| `marginalia-1.0.0-&lt;os&gt;-&lt;arch&gt;.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
-| `marginalia-1.0.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz` / `.zip` | Archive of the app image. |">
+| `marginalia-1.1.0-&lt;os&gt;-&lt;arch&gt;.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
+| `marginalia-1.1.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz` / `.zip` | Archive of the app image. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -395,7 +397,7 @@ the <code translate="no" v-pre>server/</code> folder as app content;</p>
 </thead>
 <tbody>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.0.0/</code></td>
+<td><code translate="no" v-pre>marginalia-1.1.0/</code></td>
 <td>The portable folder: <code translate="no" v-pre>bin/marginalia</code>, <code translate="no" v-pre>bin/marginalia.bat</code>, <code translate="no" v-pre>app/</code>, <code translate="no" v-pre>server/</code>, <code translate="no" v-pre>runtime/</code>.</td>
 </tr>
 <tr>
@@ -403,11 +405,11 @@ the <code translate="no" v-pre>server/</code> folder as app content;</p>
 <td>The app image: <code translate="no" v-pre>Marginalia.app</code> (macOS), <code translate="no" v-pre>Marginalia/Marginalia.exe</code> (Windows), <code translate="no" v-pre>Marginalia/bin/Marginalia</code> (Linux).</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.0.0-&lt;os&gt;-&lt;arch&gt;.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
+<td><code translate="no" v-pre>marginalia-1.1.0-&lt;os&gt;-&lt;arch&gt;.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
 <td>Archive of the portable folder (<code translate="no" v-pre>.zip</code> on Windows).</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>marginalia-1.0.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
+<td><code translate="no" v-pre>marginalia-1.1.0-&lt;os&gt;-&lt;arch&gt;-app.tar.gz</code> / <code translate="no" v-pre>.zip</code></td>
 <td>Archive of the app image.</td>
 </tr>
 </tbody>
@@ -462,14 +464,33 @@ in CI.</p>
 <code translate="no" v-pre>maven-bundle-plugin</code>) that depends on the application&#x27;s classes JAR with <code translate="no" v-pre>provided</code> scope. They are built against
 one exact version of the application:</p>
 <div id="plugins-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd marginalia &amp;&amp; mvn install -DskipTests
-cd plugins/reviewer &amp;&amp; mvn package        # target/reviewer-1.0.0.jar</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">mvn -N install                            # the parent POM in the repository root
+cd marginalia &amp;&amp; mvn install -DskipTests
+cd plugins/reviewer &amp;&amp; mvn package        # target/reviewer-1.1.0.jar</code></pre>
 </doc-codeblock></div>
-<p><code translate="no" v-pre>server.yml</code> builds all five plugins against the freshly installed application and attaches the JARs to the release
+<p><code translate="no" v-pre>server.yml</code> builds all the plugins against the freshly installed application and attaches the JARs to the release
 of a <code translate="no" v-pre>v*</code> tag; the Docker image doesn&#x27;t contain them (server users put them into <code translate="no" v-pre>&lt;data folder&gt;/extensions</code> or install
 them in Admin → Extensions). When you change application classes that a plugin
 uses (decorated <code translate="no" v-pre>@Extendable</code> methods, UI classes, services), rebuild the plugin and test it against the new
 application. See <a href="../plugins/">Plugin development</a>.</p>
+<h3 id="building-the-plugins-in-docker">Building the plugins in Docker</h3>
+<p><code translate="no" v-pre>marginalia/plugins/Dockerfile</code> is a separate build environment for the plugins, used by servers that build from
+source (and by anyone without a local JDK/Maven). Its <code translate="no" v-pre>builder</code> stage (Maven + JDK 25, like the main <code translate="no" v-pre>Dockerfile</code>)
+installs the application into the image&#x27;s local Maven repository (with <code translate="no" v-pre>-Dvaadin.skip=true</code>: the plugins need only the
+classes JAR, so the frontend is not built, see <a href="../building/">Building</a>) and builds every plugin against it; the final
+stage is a small Alpine image that holds the JARs in <code translate="no" v-pre>/jars</code>. Its command copies them to <code translate="no" v-pre>/output</code>, replacing the
+<code translate="no" v-pre>*.jar</code> files there, so the compose file (<code translate="no" v-pre>marginalia/plugins/docker-compose.yml</code>, build context <code translate="no" v-pre>../..</code>) mounts
+<code translate="no" v-pre>marginalia/plugins/build</code> as <code translate="no" v-pre>/output</code>:</p>
+<div id="building-the-plugins-in-docker-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins</code></pre>
+</doc-codeblock></div>
+<p>The JARs are not copied while the image is built, because a bind mount exists only when a container runs.</p>
+<p><code translate="no" v-pre>rebuild.sh</code> (Linux, macOS) and <code translate="no" v-pre>rebuild.bat</code> (Windows) in the repository root update a Docker server: when the
+upstream branch has new commits they stop the container, <code translate="no" v-pre>git pull</code>, build the plugins as above, copy the JARs into
+<code translate="no" v-pre>data/extensions</code> (overwriting the installed ones; extensions load on start) and run <code translate="no" v-pre>docker compose up -d --build</code>.
+<code translate="no" v-pre>--force</code> skips the check for new commits. The two scripts must be kept in step; <code translate="no" v-pre>.gitattributes</code> keeps the shell
+script on LF and the batch file on CRLF.</p>
 <h2 id="continuous-integration">Continuous integration</h2>
 <p>Two workflows, <code translate="no" v-pre>desktop.yml</code> (tests and the desktop archives) and <code translate="no" v-pre>server.yml</code> (WAR, plugins, Docker image). Both run
 on pushes to <code translate="no" v-pre>master</code>, on <code translate="no" v-pre>v*</code> tags, on pull requests that change <code translate="no" v-pre>marginalia/**</code> or the workflow, and by hand
@@ -574,8 +595,9 @@ JDK module, a launcher that can&#x27;t find <code translate="no" v-pre>server/</
 the first time it is pushed; make it public in the package settings on GitHub so that users can pull it without logging in.</p>
 <h2 id="making-a-release">Making a release</h2>
 <ol>
-<li><strong>Version.</strong> Set the new version in <code translate="no" v-pre>marginalia/pom.xml</code> (<code translate="no" v-pre>&lt;version&gt;</code>) and in the plugin POMs (the plugin
-version and the version of the <code translate="no" v-pre>marginalia</code> dependency). The archive names and the app version shown by the OS
+<li><strong>Version.</strong> Set the new version in the parent <code translate="no" v-pre>pom.xml</code> in the repository root and in the <code translate="no" v-pre>&lt;parent&gt;</code> of the
+application and the plugin POMs - <code translate="no" v-pre>mvn versions:set -DnewVersion=&lt;version&gt; -DgenerateBackupPoms=false</code> in the root
+does all of it (the plugins&#x27; <code translate="no" v-pre>marginalia</code> dependency follows <code translate="no" v-pre>${project.version}</code>). The archive names and the app version shown by the OS
 come from the POM, not from the tag, so the two must match: for a <code translate="no" v-pre>v*</code> tag the <code translate="no" v-pre>test</code> job first checks that the
 tag is <code translate="no" v-pre>v</code> + the POM version and fails otherwise, so no archives are built or attached. <code translate="no" v-pre>jpackage</code> on macOS
 requires a version of the form <code translate="no" v-pre>x.y.z</code> with <code translate="no" v-pre>x</code> ≥ 1.</li>

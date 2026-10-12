@@ -87,7 +87,9 @@ There is no formatter configuration in the repository; match the code around you
 - Javadoc on classes and on public methods whose purpose isn't obvious from the name. Write *why* and the contract
   (what `null` means, which thread, which transaction), not a restatement of the signature.
 - Logging through SLF4J (`private static final Logger log = LoggerFactory.getLogger(X.class)`), with `{}`
-  placeholders. Story content, prompts and lore are logged at `DEBUG` only; API keys and passwords never.
+  placeholders. Story content, prompts and lore are logged at `DEBUG` only; API keys and passwords never. Plugins
+  don't use `LoggerFactory`: they take the logger from `OsgiService.createLogger(bundle)` so their lines reach the
+  extension log ([Logging](plugins/overview.md#logging)).
 - Return `null` for "not found" where the existing service API does (`find`, `findForUser`), and keep that consistent
   within a class.
 
@@ -106,7 +108,9 @@ There is no formatter configuration in the repository; match the code around you
   are detached; reload them through the service before changing them.
 - **The current user** comes from the session-scoped `User` bean; services check ownership (`findForUser`) - the UI
   must not be the only thing protecting other users' data.
-- **UI text** is never hard-coded: add a key to `loc/L.java` and the English text to `loc/LocalizationEN.java`, and
+- **UI text** is never hard-coded: add a key to `loc/L.java` and the text to `loc/LocalizationBundleEN.java` (and to
+  `LocalizationBundleJP.java` and to the Chinese plugin's `LocalizationBundleZH.java`; a language without the key shows
+  the English text), and
   use `loc.getValue(L.KEY)` (see [User interface](ui.md#text)).
 - **Threads**: long work runs off the UI thread, and UI updates go through `ui.access(...)` (see
   [Background work and push](ui.md#background-work-and-push)).

@@ -10,6 +10,8 @@ Marginalia runs in your browser. You can install it in two ways:
 | Data | `~/.marginalia` | `./data` next to `docker-compose.yml` |
 
 Both versions are the same application with the same features: books, lorebooks, users, backups and extensions.
+To write from a phone, run the server version and open it in the phone's browser: see
+[Using Marginalia on a phone](../phone.md).
 
 Marginalia has no model of its own. It needs an **OpenAI-compatible API** to write text: a cloud service (OpenAI,
 OpenRouter...) or a model running on your own computer (llama.cpp, LM Studio, Ollama, vLLM...). Have the API address

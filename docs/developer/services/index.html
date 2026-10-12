@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977263947">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136847239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844977263947" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845136847239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977263947" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845136847239" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -488,9 +488,9 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 |---|---|
 | `AIService`, `ProtocolService` | Plain CRUD of inference providers and protocols. |
 | `InferenceServices` | `forAI(ai)` returns the `InferenceService` for a provider. Implementations are listed in `services-config.xml` (`inferenceProviders`), each annotated `@SupportedAI(AIType...)` with a constructor taking the `AI`; the instance is cached on the (transient) `AI.inferenceService` field. |
-| `InferenceService` | One provider: `getModels()`, `testConnection()` (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of `AIDialog`), `countTokens` / `countTokensApprox`, `stream(payload, protocol, callback)`. Failures of the provider are `InferenceException` (classified by `Type`: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; `OpenAICompatibleInferenceService.translateException`), also passed to `callback.onError`; `InferenceErrors.describe(loc, throwable)` / `messageOf` give the localized text for the UI. `OpenAICompatible` has the extended attributes `requestTimeoutSeconds` and `maxRetries`, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). Streaming is asynchronous; the callback gets chunks (`REASONING` / `RESPONSE`) and must call `controller.continueInference()` to receive the next one. Implemented by `OpenAICompatibleInferenceService`. |
+| `InferenceService` | One provider: `getModels()`, `testConnection()` (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of `AIDialog`), `countTokens` / `countTokensApprox`, `stream(payload, protocol, callback)`. Failures of the provider are `InferenceException` (classified by `Type`: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; `OpenAICompatibleInferenceService.translateException`), also passed to `callback.onError`; `InferenceErrors.describe(loc, throwable)` / `messageOf` give the localized text for the UI. `OpenAICompatible` has the extended attributes `requestTimeoutSeconds` and `maxRetries`, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). A user message of the payload (`LLMChatMessage`) can carry `LLMAttachment`s (images as data or URL, WAV/MP3 audio, files), which `OpenAICompatibleInferenceService` sends as content parts after the text; an attachment it cannot send (audio in another format, audio or a file given only by URL) throws `IllegalArgumentException` from `stream`, attachments of other roles are not sent. Streaming is asynchronous; the callback gets chunks (`REASONING` / `RESPONSE`) and must call `controller.continueInference()` to receive the next one. Implemented by `OpenAICompatibleInferenceService`. |
 | `TokenizerService` | Token counting per provider: tries the `TokenizerStrategy` candidates in order and caches the first that works, per provider id, until it fails or the provider is saved (`AIDialog` calls `invalidateCache`). The local JTokkit fallback is not cached, so a provider whose server was unreachable is probed again on the next count. `countTokensApprox` always uses JTokkit locally. |
-| `TokenLimits` | Static helpers for the context, response and prompt budget of a generation (protocol overrides, else provider limits). |
+| `TokenLimits` | Static helpers (in `domain.components`) for the context, response and prompt budget of a generation (protocol overrides, else provider limits). |
 | `TemplateService` | `processTemplate(template, name, data)` renders a Handlebars template with macros; `isValidTemplate` for the UI. See [Templating &amp; macros](templating.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -511,7 +511,7 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>InferenceService</code></td>
-<td>One provider: <code translate="no" v-pre>getModels()</code>, <code translate="no" v-pre>testConnection()</code> (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of <code translate="no" v-pre>AIDialog</code>), <code translate="no" v-pre>countTokens</code> / <code translate="no" v-pre>countTokensApprox</code>, <code translate="no" v-pre>stream(payload, protocol, callback)</code>. Failures of the provider are <code translate="no" v-pre>InferenceException</code> (classified by <code translate="no" v-pre>Type</code>: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; <code translate="no" v-pre>OpenAICompatibleInferenceService.translateException</code>), also passed to <code translate="no" v-pre>callback.onError</code>; <code translate="no" v-pre>InferenceErrors.describe(loc, throwable)</code> / <code translate="no" v-pre>messageOf</code> give the localized text for the UI. <code translate="no" v-pre>OpenAICompatible</code> has the extended attributes <code translate="no" v-pre>requestTimeoutSeconds</code> and <code translate="no" v-pre>maxRetries</code>, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). Streaming is asynchronous; the callback gets chunks (<code translate="no" v-pre>REASONING</code> / <code translate="no" v-pre>RESPONSE</code>) and must call <code translate="no" v-pre>controller.continueInference()</code> to receive the next one. Implemented by <code translate="no" v-pre>OpenAICompatibleInferenceService</code>.</td>
+<td>One provider: <code translate="no" v-pre>getModels()</code>, <code translate="no" v-pre>testConnection()</code> (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of <code translate="no" v-pre>AIDialog</code>), <code translate="no" v-pre>countTokens</code> / <code translate="no" v-pre>countTokensApprox</code>, <code translate="no" v-pre>stream(payload, protocol, callback)</code>. Failures of the provider are <code translate="no" v-pre>InferenceException</code> (classified by <code translate="no" v-pre>Type</code>: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; <code translate="no" v-pre>OpenAICompatibleInferenceService.translateException</code>), also passed to <code translate="no" v-pre>callback.onError</code>; <code translate="no" v-pre>InferenceErrors.describe(loc, throwable)</code> / <code translate="no" v-pre>messageOf</code> give the localized text for the UI. <code translate="no" v-pre>OpenAICompatible</code> has the extended attributes <code translate="no" v-pre>requestTimeoutSeconds</code> and <code translate="no" v-pre>maxRetries</code>, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). A user message of the payload (<code translate="no" v-pre>LLMChatMessage</code>) can carry <code translate="no" v-pre>LLMAttachment</code>s (images as data or URL, WAV/MP3 audio, files), which <code translate="no" v-pre>OpenAICompatibleInferenceService</code> sends as content parts after the text; an attachment it cannot send (audio in another format, audio or a file given only by URL) throws <code translate="no" v-pre>IllegalArgumentException</code> from <code translate="no" v-pre>stream</code>, attachments of other roles are not sent. Streaming is asynchronous; the callback gets chunks (<code translate="no" v-pre>REASONING</code> / <code translate="no" v-pre>RESPONSE</code>) and must call <code translate="no" v-pre>controller.continueInference()</code> to receive the next one. Implemented by <code translate="no" v-pre>OpenAICompatibleInferenceService</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TokenizerService</code></td>
@@ -519,7 +519,7 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TokenLimits</code></td>
-<td>Static helpers for the context, response and prompt budget of a generation (protocol overrides, else provider limits).</td>
+<td>Static helpers (in <code translate="no" v-pre>domain.components</code>) for the context, response and prompt budget of a generation (protocol overrides, else provider limits).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TemplateService</code></td>
@@ -599,7 +599,7 @@ service method calls <code translate="no" v-pre>adminGuard.requireAdmin()</code>
 | `DatabaseBackupService` | Database backups with `VACUUM INTO`, upload, staged restore, the cron schedule (`CronSchedule`, Spring `ThreadPoolTaskScheduler`) and its rotation. See [Database backups and restores](database.md#database-backups-and-restores). |
 | `CleanupService` | `analyze()` builds the plan of what can be purged (from the Hibernate metamodel and `@CleanupReference`s), `purge()` executes it. Extensions with their own references register a `CleanupContributor` (`collectReferences` to block purges, `beforePurge` to clean up). See [Cleanup references](domain-model.md#cleanup-references). |
 | `TrashService` | The trash: lists soft-deleted objects (`find`/`count` with a `TrashFilter` of owner and type), shows their extended content as JSON and restores them. Implemented by `CleanupServiceImpl` (same bean as `CleanupService`) because it needs the cleanup reference model. Not administrator-only: a user is limited to their own objects, an administrator (`AdminGuard.isAdmin()`) sees and restores everything, and objects of others raise `SecurityException`. `restore` is all or nothing: an object that depends on a deleted object outside the selection (`STRONG` and `OWNED_BY` references it holds, and the `OWNS` reference of the object that owns it) blocks the whole restore, see `RestoreResult.getBlocked()`. See [Trash](domain-model.md#trash). |
-| `OsgiService`, `ExtensionService` | Loading extensions and the `@Extendable` decorators, see [Plugin development](plugins/index.md). |">
+| `OsgiService`, `ExtensionService` | Loading extensions and the `@Extendable` decorators, see [Plugin development](plugins/index.md). `OsgiService` also stops and starts extensions without uninstalling them (`stopExtension` / `startExtension` / `isStopped`, the `&lt;jar name&gt;.STOPPED` flag next to the JAR) and gives each extension its own logger: `createLogger(bundle)` returns an SLF4J logger (implemented by `ExtensionLogger`) that appends to `&lt;jar name&gt;.log` in the extensions folder (moved to `.log.old` over 2 MB) and chains each line to the application log (logger `extension.&lt;name&gt;`); `readLog` / `clearLog` serve the Admin page. See [Logging](plugins/overview.md#logging). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -623,7 +623,7 @@ service method calls <code translate="no" v-pre>adminGuard.requireAdmin()</code>
 </tr>
 <tr>
 <td><code translate="no" v-pre>OsgiService</code>, <code translate="no" v-pre>ExtensionService</code></td>
-<td>Loading extensions and the <code translate="no" v-pre>@Extendable</code> decorators, see <a href="../plugins/">Plugin development</a>.</td>
+<td>Loading extensions and the <code translate="no" v-pre>@Extendable</code> decorators, see <a href="../plugins/">Plugin development</a>. <code translate="no" v-pre>OsgiService</code> also stops and starts extensions without uninstalling them (<code translate="no" v-pre>stopExtension</code> / <code translate="no" v-pre>startExtension</code> / <code translate="no" v-pre>isStopped</code>, the <code translate="no" v-pre>&lt;jar name&gt;.STOPPED</code> flag next to the JAR) and gives each extension its own logger: <code translate="no" v-pre>createLogger(bundle)</code> returns an SLF4J logger (implemented by <code translate="no" v-pre>ExtensionLogger</code>) that appends to <code translate="no" v-pre>&lt;jar name&gt;.log</code> in the extensions folder (moved to <code translate="no" v-pre>.log.old</code> over 2 MB) and chains each line to the application log (logger <code translate="no" v-pre>extension.&lt;name&gt;</code>); <code translate="no" v-pre>readLog</code> / <code translate="no" v-pre>clearLog</code> serve the Admin page. See <a href="../plugins/overview/#logging">Logging</a>.</td>
 </tr>
 </tbody>
 </table>

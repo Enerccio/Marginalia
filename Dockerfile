@@ -1,14 +1,15 @@
 FROM maven:3.9-eclipse-temurin-25 AS builder
 
-WORKDIR /build
+WORKDIR /build/marginalia
 
-# Cache dependencies
+# Cache dependencies (the application's POM inherits from the parent POM in the repository root)
+COPY pom.xml /build/pom.xml
 COPY marginalia/pom.xml .
 RUN mvn dependency:go-offline -B
 
 # Copy source code and build the application
 COPY marginalia/src ./src
-COPY .git ./.git
+COPY .git /build/.git
 RUN mvn clean package -DskipTests
 
 FROM jetty:12-jdk25-eclipse-temurin
@@ -19,7 +20,7 @@ WORKDIR $JETTY_BASE
 RUN java -jar "$JETTY_HOME/start.jar" --create-startd \
     --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
 
-COPY --from=builder /build/target/*.war $JETTY_BASE/webapps/ROOT.war
+COPY --from=builder /build/marginalia/target/*.war $JETTY_BASE/webapps/ROOT.war
 
 USER root
 RUN mkdir -p /var/marginalia/.marginalia && chown -R jetty:jetty /var/marginalia

@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.backup;
 
+import com.github.enerccio.marginalia.domain.components.CronSchedule;
 import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
-import com.github.enerccio.marginalia.domain.service.CronSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService.BackupSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService.DatabaseBackup;
 import com.github.enerccio.marginalia.domain.service.SettingService;

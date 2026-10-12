@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977263947">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136847239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.844977263947" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845136847239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -177,6 +177,8 @@ from the beginning to the end.</p>
     <img src="../../../images/hero-story-editor.png" alt="The story editor" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The story editor</figcaption>
 </figure>
+<p>This page describes the desktop layout. On a phone the story is one column with the outline in a drawer, see
+<a href="../../phone/#the-story">Using Marginalia on a phone</a>.</p>
 <retype-table copy-text="| Area | |
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
@@ -296,6 +298,7 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches &amp; story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
+| **Token Usage** | Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart. |
 | **Images** | Attaches pictures to the part, see [Images](#images). |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |
 | **Delete summary** | Removes the summary of this part. For a [meta summary](summaries.md#meta-summaries) it asks whether to unwind it or delete it completely. |
@@ -328,6 +331,10 @@ prompt, the model gets them as <em>Current Location &amp; Time</em>, <em>Point o
 <tr>
 <td><strong>Show Prompt</strong></td>
 <td>Shows the exact prompt that was sent to the model for this part.</td>
+</tr>
+<tr>
+<td><strong>Token Usage</strong></td>
+<td>Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart.</td>
 </tr>
 <tr>
 <td><strong>Images</strong></td>

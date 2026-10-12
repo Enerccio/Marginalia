@@ -1,7 +1,7 @@
 ---
 label: Testing
 order: 890
-verified: 37257c7
+verified: 15a991e
 covers:
   - marginalia/src/test
   - marginalia/pom.xml
@@ -67,14 +67,15 @@ fake is the model server.
 | `test/llm` | `MockLLMServerTest` | The fake OpenAI server against the real `openai-java` client. |
 | `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
 | `db` | `FlywayMigrationTest`, `FulltextMigrationTest`, `DatabaseRestoreCheckTest`, `PreMigrationBackupTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation (`FlywayMigrationTest` also checks that V9 keeps `manuscripts.description` in `extendedContent`); `FulltextMigrationTest` runs the app migration that fills `_fulltext` of existing rows on the Spring context; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context); `PreMigrationBackupTest` checks the copy `Configuration.resolveDb` saves before an existing database is migrated (an older version, no history table, nothing for a current or new database, only the newest three kept). |
-| `domain` | `ExtendableEntityListenerTest`, `FulltextQueryTest`, `ChatMessageSearchTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; `FulltextQueryTest` and `ChatMessageSearchTest` cover the full-text query (words, phrases, `*`, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context. |
-| `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain. |
+| `domain` | `ExtendableEntityListenerTest`, `FulltextQueryTest`, `ChatMessageSearchTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; `FulltextQueryTest` and `ChatMessageSearchTest` cover the full-text query (words, phrases, `*`, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context; it also checks that an extension's localization bundles are registered while it is loaded, removed on unload, and that an extension can't replace a language that already has a bundle; at startup only the newest version of an extension in the folder is loaded and the older JARs are moved to `old-versions`; stopping and starting extensions (the `.STOPPED` flag survives a restart, an upload starts a stopped extension) and the extension logger (SLF4J formatting, tail reading, rotation, removal with the extension). |
+| `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `TokenBreakdownTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `InferenceAttachmentsTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, the stored token breakdown of a prompt (sections, reserved and cut story, payload messages, `null` for parts without it), a failed request leaving the story unchanged, images staying with a part and never reaching the model, the attachments of an `LLMChatMessage` (image as a data URL or URL, WAV audio, a file; a plain string content without attachments; audio of an unsupported format rejected before any request) as the content parts of the request, meta summaries and the summary chain. |
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
 | `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
 | `backup` | `ManuscriptRestoreTest`, `ManuscriptBackupCopyTest`, `BackupLorebookTest`, `BackupAiProtocolLinkTest`, `BackupImagesTest`, `DatabaseBackupScheduleTest` | Book backups, restore and copy, lorebook and provider linking, the images of parts in backups (the archive made on export, own resources for restored and cloned books), scheduled database backups. |
 | `export` | `ExporterTest`, `ExporterImagesTest` | The story exporters (TXT, Markdown, HTML, DOCX, PDF, EPUB): text and Unicode, linked contents and chapter navigation, splitting of long stories, embedded images. |
 | `security` | `ApiKeyEncryptionTest` | API keys stored encrypted with the installation key; the app migration encrypting plain ones. |
 | `utils` | `ClientAddressResolverTest` | The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
+| `loc` | `LocalizationTest`, `BundleCompletenessTest` | The language of the session selects the bundle, texts a bundle lacks come from the default language, a language can't be registered twice, the default one can't be removed, `UserSetting.language` is saved (Spring context). Every key of the Japanese bundle is translated and its `%s`/`%d` placeholders match the English text. |
 | `ui` | `ResourcesPartTest`, `BranchSearchTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The search of the branch view (`ManuscriptTreePart` with a stand-in for the book window): the result line, "Show in story" switching the active branch and ignoring ids of other books. They build Vaadin components without a UI session. |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest` | Purging soft-deleted data, owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application. |
@@ -305,7 +306,8 @@ stream, and the test can stop the generation or inspect the state before releasi
 
 !!!warning Retries
 The `openai-java` client retries 408, 409, 429 and 5xx responses. A queued error response is consumed once per
-attempt, so enqueue it several times (or use `fallback`) when a test expects the error to reach Marginalia.
+attempt, so enqueue it several times (or use `fallback`) when a test expects the error to reach Marginalia. The server
+closes the connection after every response, so a retry never reuses a stale pooled connection.
 !!!
 
 ### Inspecting requests
@@ -330,7 +332,7 @@ Tests of failure paths make the code log errors on purpose. To keep them out of 
 real failures) and to assert on them, capture the logger with `test/ExpectedLog`:
 
 ```java
-try (ExpectedLog log = ExpectedLog.capture(ExtensionServiceImpl.class)) {
+try (ExpectedLog log = ExpectedLog.capture(ExtensionServiceImpl.class)) {   // or capture("extension.my-plugin")
     ...
     assertThat(log.errors()).anyMatch(m -> m.contains("broken"));
 }

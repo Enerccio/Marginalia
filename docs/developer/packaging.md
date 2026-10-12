@@ -6,7 +6,7 @@ For everyday builds see [Building from source](building.md).
 
 ```mermaid
 flowchart LR
-    src["marginalia/ sources"] --> war["marginalia-1.0.0.war"]
+    src["marginalia/ sources"] --> war["marginalia-1.1.0.war"]
     war --> docker["Docker image<br/>Jetty 12 + WAR"]
     war --> desktop["Desktop distribution<br/>jlink runtime + Jetty + WAR + launcher"]
     desktop --> portable["portable archive<br/>marginalia-&lt;v&gt;-&lt;os&gt;-&lt;arch&gt;"]
@@ -24,7 +24,7 @@ flowchart LR
 
 ## The WAR
 
-`mvn package` in `marginalia/` produces `target/marginalia-1.0.0.war` (see
+`mvn package` in `marginalia/` produces `target/marginalia-1.1.0.war` (see
 [Building the application](building.md#building-the-application)). The WAR always runs in Vaadin production mode:
 `build-frontend` writes the production `flow-build-info.json` into it, and a development one left in
 `src/main/resources` is never packaged (see [Development and production mode](building.md#development-and-production-mode)).
@@ -47,7 +47,7 @@ The build also needs the Git history: `git-commit-id-plugin` writes the commit i
 The `Dockerfile` in the repository root has two stages:
 
 1. **builder** (`maven:3.9-eclipse-temurin-25`)
-   - copies `marginalia/pom.xml` and runs `mvn dependency:go-offline`, so the dependency layer is cached while only
+   - copies the parent `pom.xml` and `marginalia/pom.xml` and runs `mvn dependency:go-offline`, so the dependency layer is cached while only
      the sources change;
    - copies `marginalia/src` and `.git` (for `git-commit-id-plugin`);
    - runs `mvn clean package -DskipTests`.
@@ -66,7 +66,9 @@ The `Dockerfile` in the repository root has two stages:
      (`--user`, compose `user:`), it changes nothing and the folder must already be writable for that user.
 
 Tests are skipped in the image build - they run in CI. `.dockerignore` keeps `marginalia/target/`, `.idea/`, the
-server's `data/` folder and the plugin folders out of the build context.
+server's `data/` folder, `marginalia/node_modules/` and the plugin `target/` and `build/` folders out of the build context
+(the plugin sources are in it, because the [plugin image](#building-the-plugins-in-docker) is built from the same
+context).
 
 `docker-compose.yml` builds the image and sets the runtime configuration:
 
@@ -123,10 +125,10 @@ Outputs in `target/desktop/`:
 
 | Path | |
 |---|---|
-| `marginalia-1.0.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
+| `marginalia-1.1.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
 | `package/` | The app image: `Marginalia.app` (macOS), `Marginalia/Marginalia.exe` (Windows), `Marginalia/bin/Marginalia` (Linux). |
-| `marginalia-1.0.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
-| `marginalia-1.0.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
+| `marginalia-1.1.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
+| `marginalia-1.1.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
 
 `<os>` is `linux`, `macos` or `windows`, `<arch>` is Java's `os.arch` (`amd64`, `aarch64`...). Archives are made with
 `tar` so the executable bits of the launchers survive.
@@ -177,15 +179,39 @@ Each plugin in `marginalia/plugins/` is a Maven project with `bundle` packaging 
 one exact version of the application:
 
 ```sh
+mvn -N install                            # the parent POM in the repository root
 cd marginalia && mvn install -DskipTests
-cd plugins/reviewer && mvn package        # target/reviewer-1.0.0.jar
+cd plugins/reviewer && mvn package        # target/reviewer-1.1.0.jar
 ```
 
-`server.yml` builds all five plugins against the freshly installed application and attaches the JARs to the release
+`server.yml` builds all the plugins against the freshly installed application and attaches the JARs to the release
 of a `v*` tag; the Docker image doesn't contain them (server users put them into `<data folder>/extensions` or install
 them in Admin → Extensions). When you change application classes that a plugin
 uses (decorated `@Extendable` methods, UI classes, services), rebuild the plugin and test it against the new
 application. See [Plugin development](plugins/index.md).
+
+### Building the plugins in Docker
+
+`marginalia/plugins/Dockerfile` is a separate build environment for the plugins, used by servers that build from
+source (and by anyone without a local JDK/Maven). Its `builder` stage (Maven + JDK 25, like the main `Dockerfile`)
+installs the application into the image's local Maven repository (with `-Dvaadin.skip=true`: the plugins need only the
+classes JAR, so the frontend is not built, see [Building](building.md)) and builds every plugin against it; the final
+stage is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`, replacing the
+`*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`) mounts
+`marginalia/plugins/build` as `/output`:
+
+```sh
+docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
+```
+
+The JARs are not copied while the image is built, because a bind mount exists only when a container runs.
+
+`rebuild.sh` (Linux, macOS) and `rebuild.bat` (Windows) in the repository root update a Docker server: when the
+upstream branch has new commits they stop the container, `git pull`, build the plugins as above, copy the JARs into
+`data/extensions` (overwriting the installed ones; extensions load on start) and run `docker compose up -d --build`.
+`--force` skips the check for new commits. The two scripts must be kept in step; `.gitattributes` keeps the shell
+script on LF and the batch file on CRLF.
 
 ## Continuous integration
 
@@ -243,8 +269,9 @@ the first time it is pushed; make it public in the package settings on GitHub so
 
 ## Making a release
 
-1. **Version.** Set the new version in `marginalia/pom.xml` (`<version>`) and in the plugin POMs (the plugin
-   version and the version of the `marginalia` dependency). The archive names and the app version shown by the OS
+1. **Version.** Set the new version in the parent `pom.xml` in the repository root and in the `<parent>` of the
+   application and the plugin POMs - `mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false` in the root
+   does all of it (the plugins' `marginalia` dependency follows `${project.version}`). The archive names and the app version shown by the OS
    come from the POM, not from the tag, so the two must match: for a `v*` tag the `test` job first checks that the
    tag is `v` + the POM version and fails otherwise, so no archives are built or attached. `jpackage` on macOS
    requires a version of the form `x.y.z` with `x` ≥ 1.

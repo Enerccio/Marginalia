@@ -167,6 +167,13 @@ newest backwards - skipping the part being regenerated, stopping at the stop par
 `baseTokens + reserved` and counting each part as its `tokenCount + 100`. A part is added only if the running total with it stays within `limit − 256`; the first part that
 doesn't fit ends the loop. The chosen texts, oldest first, become `MANUSCRIPT_CHRONICLE`.
 
+**Token breakdown.** When the budget is computed, the step creates a `PromptTokenBreakdown` (`domain.components`) and
+puts it into the `TOKEN_BREAKDOWN` property. It holds the raw counts of each section - context, response and prompt
+limit, jailbreak, system template (the system prompt without lore and summaries), lore, summaries, story, lore in the
+user prompt, the user prompt and `reserved` - and what was cut: the parts that didn't fit (`cutMessages`,
+`cutTokens`), without the parts a summary replaces. The counts are measured separately, so they need not add up exactly
+to the payload.
+
 **System prompt.** The master template is rendered with `MasterTemplateData` (`backgroundLore`, `summaries`,
 `narrativePov`, `narrativeTense`, `style` + the template context) into `systemPrompt`. The estimate above renders it
 with a *fork* of the template context, so macros that change variables don't run twice.
@@ -192,6 +199,10 @@ Earlier parts are sent as the model's own previous answers, each preceded by a s
 user message carries the instructions. Only the text of the parts is sent: the images attached to a part are not part of
 it and the model never sees them.
 
+An `LLMChatMessage` can carry `LLMAttachment`s (images, audio, files) for models that accept them, and the OpenAI
+compatible provider sends those of a user message as content parts. This step adds none; a listener of
+`AFTER_PREPARE_PAYLOAD` can put them on a user message.
+
 The payload is stored in the part (`builtPrompt`) and can be inspected in the story editor with *View prompt*:
 
 ![The prompt of a part in the View prompt dialog](../images/dev-view-prompt.png)
@@ -209,8 +220,11 @@ Prepares the part that receives the answer:
 | `SWIPE` | A new part, sibling of the swiped one. |
 | `REGENERATE` | The existing part, cleared. A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |
 
-The part gets the `TurnInput`, the model and protocol names, the payload as JSON (`builtPrompt`, shown by *View
-prompt*), the activated lore and the request time. The template variables of the generation are stored: local ones in
+The part gets the `TurnInput`, the model and protocol names, the payload as JSON (`builtPrompt`, shown by *Show
+Prompt*), the activated lore and the request time. The token breakdown gets the tokens of every message of the final
+payload (as listeners left it, counted with the provider's tokenizer) and is stored as the part's `tokenBreakdown`
+(shown by *Token Usage*, see [UI](ui.md)). Parts generated before it existed have none, `getTokenBreakdown()` is `null`
+for them. The template variables of the generation are stored: local ones in
 the part's `attributes`, global ones in the book's. The part becomes the book's active leaf, both are saved
 and `listener.onNodeCreated(part)` lets the UI show it. The state stays `NOT_SUCCESSFUL` - until text arrives, the
 part is only a placeholder that cleanup removes or restores.

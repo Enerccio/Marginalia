@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977263947">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136847239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844977263947" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845136847239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977263947" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845136847239" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -418,6 +418,12 @@ reserved   = PrePromptData.reservedTokens            (set by extensions, 0 by de
 newest backwards - skipping the part being regenerated, stopping at the stop part - starting from
 <code translate="no" v-pre>baseTokens + reserved</code> and counting each part as its <code translate="no" v-pre>tokenCount + 100</code>. A part is added only if the running total with it stays within <code translate="no" v-pre>limit − 256</code>; the first part that
 doesn&#x27;t fit ends the loop. The chosen texts, oldest first, become <code translate="no" v-pre>MANUSCRIPT_CHRONICLE</code>.</p>
+<p><strong>Token breakdown.</strong> When the budget is computed, the step creates a <code translate="no" v-pre>PromptTokenBreakdown</code> (<code translate="no" v-pre>domain.components</code>) and
+puts it into the <code translate="no" v-pre>TOKEN_BREAKDOWN</code> property. It holds the raw counts of each section - context, response and prompt
+limit, jailbreak, system template (the system prompt without lore and summaries), lore, summaries, story, lore in the
+user prompt, the user prompt and <code translate="no" v-pre>reserved</code> - and what was cut: the parts that didn&#x27;t fit (<code translate="no" v-pre>cutMessages</code>,
+<code translate="no" v-pre>cutTokens</code>), without the parts a summary replaces. The counts are measured separately, so they need not add up exactly
+to the payload.</p>
 <p><strong>System prompt.</strong> The master template is rendered with <code translate="no" v-pre>MasterTemplateData</code> (<code translate="no" v-pre>backgroundLore</code>, <code translate="no" v-pre>summaries</code>,
 <code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code> + the template context) into <code translate="no" v-pre>systemPrompt</code>. The estimate above renders it
 with a <em>fork</em> of the template context, so macros that change variables don&#x27;t run twice.</p>
@@ -437,6 +443,9 @@ user       lore before user prompt + &quot;\n\n&quot; + rendered user prompt</co
 <p>Earlier parts are sent as the model&#x27;s own previous answers, each preceded by a short placeholder user turn. The final
 user message carries the instructions. Only the text of the parts is sent: the images attached to a part are not part of
 it and the model never sees them.</p>
+<p>An <code translate="no" v-pre>LLMChatMessage</code> can carry <code translate="no" v-pre>LLMAttachment</code>s (images, audio, files) for models that accept them, and the OpenAI
+compatible provider sends those of a user message as content parts. This step adds none; a listener of
+<code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> can put them on a user message.</p>
 <p>The payload is stored in the part (<code translate="no" v-pre>builtPrompt</code>) and can be inspected in the story editor with <em>View prompt</em>:</p>
 <figure class="content-center">
     <img src="../../images/dev-view-prompt.png" alt="The prompt of a part in the View prompt dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="850" height="650" />
@@ -476,8 +485,11 @@ sent).</p>
 </table>
 </div>
 </retype-table>
-<p>The part gets the <code translate="no" v-pre>TurnInput</code>, the model and protocol names, the payload as JSON (<code translate="no" v-pre>builtPrompt</code>, shown by <em>View
-prompt</em>), the activated lore and the request time. The template variables of the generation are stored: local ones in
+<p>The part gets the <code translate="no" v-pre>TurnInput</code>, the model and protocol names, the payload as JSON (<code translate="no" v-pre>builtPrompt</code>, shown by <em>Show
+Prompt</em>), the activated lore and the request time. The token breakdown gets the tokens of every message of the final
+payload (as listeners left it, counted with the provider&#x27;s tokenizer) and is stored as the part&#x27;s <code translate="no" v-pre>tokenBreakdown</code>
+(shown by <em>Token Usage</em>, see <a href="../ui/">UI</a>). Parts generated before it existed have none, <code translate="no" v-pre>getTokenBreakdown()</code> is <code translate="no" v-pre>null</code>
+for them. The template variables of the generation are stored: local ones in
 the part&#x27;s <code translate="no" v-pre>attributes</code>, global ones in the book&#x27;s. The part becomes the book&#x27;s active leaf, both are saved
 and <code translate="no" v-pre>listener.onNodeCreated(part)</code> lets the UI show it. The state stays <code translate="no" v-pre>NOT_SUCCESSFUL</code> - until text arrives, the
 part is only a placeholder that cleanup removes or restores.</p>

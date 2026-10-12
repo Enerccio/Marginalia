@@ -1,12 +1,12 @@
 package com.github.enerccio.marginalia.extensions.chaptermarking;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -75,8 +75,7 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                             String formattedText = String.format("%d. %s", orderId != null ? orderId : 0, chapterTitle);
                             sidebarBtn.setText(formattedText);
 
-                            sidebarBtn.getStyle().set("color", "var(--lumo-primary-color)");
-                            sidebarBtn.getStyle().set("font-weight", "600");
+                            sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);
                             ComponentUtil.setData(sidebarBtn, MSG_SET, true);
                         }
                         ComponentUtil.setData(sidebarBtn, MSG_UUID, msg.getUuid());
@@ -84,10 +83,16 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                 }
             };
 
-            // Register decorator for createSidebarButton method in ManuscriptStoryPart
+            // Register decorator for createSidebarButton method in ManuscriptStoryPart (and its phone twin)
             extensionService.registerDecorator(
                     sidebarDecorator,
                     "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart",
+                    "createSidebarButton"
+            );
+            // the story of the phone dialog has the same outline
+            extensionService.registerDecorator(
+                    sidebarDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart",
                     "createSidebarButton"
             );
 
@@ -101,7 +106,8 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
                     ChatMessage chatMessage = context.getReflectiveFieldValue(instrumented, "message", ChatMessage.class);
                     if (chatMessage != null) {
-                        ManuscriptStoryPart parentPart = context.getReflectiveFieldValue(instrumented, "this$0", ManuscriptStoryPart.class);
+                        // the story part of the desktop or of the phone dialog
+                        Object parentPart = context.getReflectiveFieldValue(instrumented, "this$0", Object.class);
                         if (parentPart != null) {
                             VerticalLayout sidebarList = context.getReflectiveFieldValue(parentPart, "sidebarList", VerticalLayout.class);
                             if (sidebarList != null) {
@@ -113,8 +119,7 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                                         String chapterTitle = extractChapterTitle(chatMessage.getResponse());
                                         if (chapterTitle == null) {
                                             if ((Boolean) ComponentUtil.getData(sidebarBtn, MSG_SET)) {
-                                                sidebarBtn.getStyle().remove("color");
-                                                sidebarBtn.getStyle().remove("font-weight");
+                                                sidebarBtn.removeClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);
                                                 sidebarBtn.setText((String) ComponentUtil.getData(sidebarBtn, MSG_OLD_TEXT));
                                             }
                                             ComponentUtil.setData(sidebarBtn, MSG_SET, false);
@@ -123,8 +128,7 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
                                             String formattedText = String.format("%d. %s", orderId != null ? orderId : 0, chapterTitle);
                                             sidebarBtn.setText(formattedText);
 
-                                            sidebarBtn.getStyle().set("color", "var(--lumo-primary-color)");
-                                            sidebarBtn.getStyle().set("font-weight", "600");
+                                            sidebarBtn.addClassNames(CssStyles.TEXT_PRIMARY, CssStyles.TEXT_SEMIBOLD);
                                             ComponentUtil.setData(sidebarBtn, MSG_SET, true);
                                         }
                                     }
@@ -138,6 +142,11 @@ public class ChapterMarkingExtension implements MarginaliaExtension {
             extensionService.registerDecorator(
                     sidebarEditDecorator,
                     "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart$ChatMessageCard",
+                    "autosaveAndSwapToMarkdown"
+            );
+            extensionService.registerDecorator(
+                    sidebarEditDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart$ChatMessageCard",
                     "autosaveAndSwapToMarkdown"
             );
         } catch (Exception e) {

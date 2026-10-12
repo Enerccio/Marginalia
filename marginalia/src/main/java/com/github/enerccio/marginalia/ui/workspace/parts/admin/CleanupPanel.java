@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.parts.admin;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.CleanupService;
 import com.github.enerccio.marginalia.domain.service.CleanupService.BlockedEntity;
 import com.github.enerccio.marginalia.domain.service.CleanupService.CleanupPlan;
@@ -49,7 +50,7 @@ public class CleanupPanel {
         layout.setSizeFull();
 
         Span description = new Span(loc.getValue(L.MSG_CLEANUP_DESCRIPTION));
-        description.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        description.addClassName(CssStyles.TEXT_SECONDARY);
 
         HorizontalLayout toolbar = new HorizontalLayout();
         toolbar.setWidthFull();
@@ -82,7 +83,7 @@ public class CleanupPanel {
                 .setWidth("140px");
 
         Span blockedTitle = new Span(loc.getValue(L.LABEL_BLOCKED_ENTITIES));
-        blockedTitle.getStyle().set("font-weight", "bold");
+        blockedTitle.addClassName(CssStyles.TEXT_BOLD);
 
         blockedGrid = new Grid<>();
         blockedGrid.setSizeFull();

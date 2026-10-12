@@ -3,6 +3,10 @@
 A chat with the model next to your story: ask about the plot, check continuity, brainstorm names or the next chapter -
 without adding anything to the book.
 
+!!!
+Side Query is not available in the [phone layout](../phone.md#extensions).
+!!!
+
 ![Side Query next to the story](../../images/plugin-sidequery.png)
 
 ## The Side Query tab

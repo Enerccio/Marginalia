@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.domain.templates.macros.Macros;
@@ -69,8 +70,7 @@ public final class TemplateHints {
 
         if (clazz != null) {
             Span header = new Span(loc.getValue(L.LABEL_AVAILABLE_VARIABLES));
-            header.getStyle().set("font-weight", "bold");
-            header.getStyle().set("font-size", "var(--lumo-font-size-m)");
+            header.addClassNames(CssStyles.TEXT_BOLD, CssStyles.TEXT_M);
             layout.add(header);
 
             Set<String> declared = new HashSet<>();
@@ -137,13 +137,10 @@ public final class TemplateHints {
         itemLayout.setSpacing(false);
 
         Span varSpan = new Span(signature);
-        varSpan.getStyle().set("font-family", "monospace");
-        varSpan.getStyle().set("font-weight", "bold");
-        varSpan.getStyle().set("color", "var(--lumo-primary-color)");
+        varSpan.addClassNames(CssStyles.TEXT_MONOSPACE, CssStyles.TEXT_BOLD, CssStyles.TEXT_PRIMARY);
 
         Span descSpan = new Span(description);
-        descSpan.getStyle().set("font-size", "var(--lumo-font-size-s)");
-        descSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        descSpan.addClassNames(CssStyles.TEXT_S, CssStyles.TEXT_SECONDARY);
 
         itemLayout.add(varSpan, descSpan);
         return itemLayout;

@@ -14,7 +14,7 @@ flowchart TB
         Main["Main  /"]
         Viewer["Viewer  /view, /view/&lt;uuid&gt;"]
     end
-    Main -->|after login| WS["Workspace<br/>HTabSheet with left-hand tabs"]
+    Main -->|after login| WS["DesktopWorkspace<br/>HTabSheet with left-hand tabs"]
     WS --> MP["ManuscriptPart - Books"]
     WS --> LP["LorebookPart - Lorebooks"]
     WS --> UP["UserPart - Settings"]
@@ -45,11 +45,13 @@ flowchart TB
 | Package | Contains |
 |---|---|
 | `ui.main` | Servlet, app shell, routes, login (`LoginCheckRoute`). |
-| `ui.workspace` | `Workspace` and the `WorkspaceComponent` interface. |
+| `ui.workspace` | The `Workspace` interface, its `DesktopWorkspace` implementation and the `WorkspaceComponent` interface. |
+| `ui.workspace.phone`, `.parts` | `PhoneWorkspace` and the phone specific tabs (`PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`). |
+| `ui.dialogs.phone`, `.manuscript` | `PhoneManuscriptDialog` and its tabs (`PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart`, `PhoneManuscriptStoryPart`, `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`), the book dialog for phones. |
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
-| `ui.components` | Larger reusable components: `LorebookView`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
+| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
 | `ui.widgets` | Small reusable widgets, among them `TrashGrid` (see [Trash](#trash)). |
 
 ## The shell, routes and login
@@ -67,14 +69,15 @@ flowchart TB
 `LoginCheckRoute` runs in the route's constructor (`showLogin()`):
 
 1. On an empty installation it opens `UserDialog` in *first time* mode (create the administrator) and reloads.
-2. Otherwise it tries the *Save login* cookies (`authenticateFromCookie`, rotating the secret on success).
+2. Otherwise it tries a user that is already logged in this session (`authenticatedSessionUser`, overridden by `Main`: the page was reloaded, e.g. by the language selector) and then the *Save login* cookies (`authenticateFromCookie`, rotating the secret on success).
 3. Otherwise it shows a `LoginOverlay` (`PermissiveLoginOverlay` - allows empty passwords to reach the server-side
    check) with the *Save login* checkbox.
    The check passes the client address (`LoginCheckRoute.clientAddress()`) to `UserService.authenticate`, which
    throttles failed logins per address (see [Login throttling](services.md#login-throttling)).
 4. After a successful login it calls `VaadinService.reinitializeSession` (new session id) and the subclass's
    `proceedWithLogin(login)`, which fills the session-scoped `user` bean, registers the login with
-   `SessionManager.userLoggedIn` (see [Sessions](architecture.md#sessions)) and builds the content.
+   `SessionManager.userLoggedIn` (see [Sessions](architecture.md#sessions)), sets the language of the session from
+   the user's settings ([Localization](architecture.md#localization)) and builds the content.
 
 Logout deletes the cookies, closes the Vaadin session, invalidates the HTTP session and redirects to the context
 root. Cookie names include the context path and the route class (`root_Main_llllm_rememberMe_login`...), so the workspace
@@ -126,8 +129,11 @@ but follow the same pattern: construct with the entity, call `create()`, then `o
 
 ### The workspace
 
-`Workspace` builds an `HTabSheet` (tabs on the left, a footer with *Admin*, *Change Password*, *Logout*) and creates
-all tab components up front. Each tab is a `WorkspaceComponent`:
+`Workspace` is the interface of the top-level layout shown after login (`create`, `refresh`, `setNavigationLocked`,
+`isNavigationLocked`, `getOnLogout`, `setOnLogout`). `Main`, the parts, `ApplicationPoint` and `SessionInformation`
+only depend on this interface. `DesktopWorkspace` is the implementation (`@Configurable`, `@Extendable`): it builds an
+`HTabSheet` (tabs on the left, a footer with *Admin*, the language selector, *Change Password*, *Logout*) and creates all tab components up
+front. Each tab is a `WorkspaceComponent`:
 
 | Method | Called |
 |---|---|
@@ -140,8 +146,44 @@ all tab components up front. Each tab is a `WorkspaceComponent`:
 leave the active tab. `UserPart` locks it while the settings have unsaved changes: it listens to every `HasValue`
 in its layout (extension settings panels included) and unlocks on *Save*, *Discard Changes* or `refresh()`.
 
-The *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
-`DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension). Note that the admin UI being hidden is not a permission
+`Main.proceedWithLogin` picks `PhoneWorkspace` instead when the body of the page is narrower than 768 px
+(`ExtendedClientDetails.getBodyClientWidth()`). The choice is made once per login: resizing or rotating the device
+does not switch the workspace until the page is reloaded, and a tablet or a phone in landscape gets the desktop one. `PhoneWorkspace` replaces
+the left-hand tab sheet with an `AppLayout`: the parts are listed in a drawer (opened with the toggle in the top bar)
+whose footer holds the language selector, *Change Password* and *Logout*, and the active part fills the screen. **There is no *Admin* button
+and no `AdminPart`** on a phone: the administration (users, database backups, cleanup, extension install) is only
+reachable in the desktop layout. The services still check `AdminGuard.requireAdmin()` themselves. The user manual
+describes this for users in [Using Marginalia on a phone](../user/phone.md). Only the book list, the lorebooks, the settings, the protocols, the models and the trash differ. `PhoneManuscriptPart` renders the book list
+like the `Viewer` (stacked filters, sort buttons, one column) with the controls of `ManuscriptPart`; both share the
+*Add Book* flow in `NewBookAction`. `PhoneLorebookPart` hosts `PhoneLorebookView`, a reduced `LorebookView`: lorebooks can
+only be selected (no add, delete, import or export, no new entries) and only the enabled flags and the content of an
+entry are editable, every other setting of the lorebook and of an expanded entry is shown as text. `PhoneTrashPart`
+hosts `PhoneTrashGrid` (see [Trash](#trash)). `PhoneProtocolPart` and `PhoneAIPart` replace the type, name and
+action columns of their desktop lists with a text column (*Type:* and *Name:* on two lines) and a buttons column.
+`PhoneSettingsPart` extends `UserPart` (so the extension settings panels that decorate `UserPart.refresh`/`save` keep
+working) and only overrides `createHeader()`: the title, the unsaved changes hint and the *Discard*/*Save* buttons are
+stacked, and *Import backup as new book* is left out. The other parts are the desktop ones.
+
+Opening a book on a phone shows the `PhoneManuscriptDialog` (package `ui.dialogs.phone`) instead of `ManuscriptDialog`;
+`NewBookAction(onClose, true)` opens it after *Add Book*. It is a separate class, not a subclass, so extensions know
+which dialog they decorate (decorators of `ManuscriptDialog` and the desktop parts do not run on a phone). It fills the
+screen (the `phone-dialog` class), the exit button is an icon in the header and the tabs are one scrolling `Tabs` row
+above the content of the selected tab. Every tab is a `PhoneManuscriptDialogPart` of `ui.dialogs.phone.manuscript`
+(the desktop `ManuscriptDialogPart` without the tab sheet argument): `PhoneManuscriptInfoPart` and
+`PhoneManuscriptPromptPart` (one column of fields), `PhoneManuscriptLorebookPart` (the lorebook of the book and
+`PhoneLorebookView(true)`, which hides its own lorebook selection like the pinned `LorebookView`),
+`PhoneManuscriptTreePart` (stacked search bar), `PhoneManuscriptBackupPart` (one row per backup) and
+`PhoneManuscriptStoryPart`. The story is a single column in an `AppLayout`: the outline is its drawer (slid in by the
+toggle in the navbar, which also holds the summaries/settings menu bar), the new turn button is at the bottom. Its
+`ChatMessageCard` is only the text of the part under a small header line with two icons: the menu (with *Show Prompt*)
+and a popover with the metadata of the inference (ids, model, protocol, tokens, words) and the turn details (the
+right-hand column of the desktop card). Its summaries item opens `PhoneSummariesDialog`, the `SummariesDialog` with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
+`AppLayout` are kept inside the dialog by the `phone-story-layout` class.
+
+On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
+`DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension and, per
+extension, the buttons *Stop* / *Start* (`OsgiService.stopExtension` / `startExtension`, state *Stopped*), *Log*
+(`ExtensionLogDialog`: the end of the extension's log with refresh and clear) and *Unload*). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call `AdminGuard.requireAdmin()` themselves (see
 [Services](services.md#administration)).
 
@@ -164,6 +206,10 @@ The dialog holds the book (`getManuscript()`, `refreshManuscript()` reloads it, 
 `ChatMessageCard` per part (Markdown view, edit mode, menu with Edit / Regenerate / Swipe / Branch / View prompt /
 Summary / Delete), the *New Turn Instructions* popover, starting generations and applying the result, the automatic
 book backups, and the menu bar of the bottom bar (see [The story menu bar](#the-story-menu-bar)).
+
+`renderStoryContent()` redraws only the cards and the outline list: the left tab sheet is created once in `create()`
+(so the selected tab and the tabs of extensions survive), and the reasonings that were open are reopened on the new
+cards. `PhoneManuscriptStoryPart` does the same.
 
 ### The story menu bar
 
@@ -215,11 +261,13 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | Widget | Used for |
 |---|---|
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
+| `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
 | `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, "160px")` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
+| `ChartJs` | A [Chart.js](https://www.chartjs.org/) chart: `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) as JSON and draws it responsively into the element (height 320px, the `chart-js` style). Used by `TokenUsageDialog` (doughnut of the prompt sections, bar chart of the payload messages), opened from *Token Usage* in the part menu of the desktop and phone story editors. |
 | `TrashGrid` | Deleted objects with a restore button, see [Trash](#trash). |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |
 
@@ -235,16 +283,22 @@ blockers the widget shows them in a dialog (nothing was restored), otherwise it 
 from `TrashService.getExtendedContent` in a read-only text area. `TrashPart` (the *Trash* tab, `allUsers` for
 administrators) and `CleanupPanel` (a `Details` section, created when first opened) both use it.
 
+`PhoneTrashGrid` (used by `PhoneTrashPart`) subclasses it through the `createToolbar()` and `addColumns()` hooks: the
+filters are stacked over the whole width, the description is behind an info button (a `Popover`) instead of above the
+table (`createDescription()`), and the table has only the check box column and one content column that
+shows name, type, owner (`allUsers`), delete time and the *Extended Content* link below each other.
+
 Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`, `ListSelectDialog`,
-`ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`.
+`ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`. `ExtensionLogDialog.show(bundle, name)` is the
+read-only, monospace view of an extension's log.
 
 ## Conventions
 
 ### Text
 
-Never hard-code user-visible text. Add a key to `loc/L.java` and the English text to `LocalizationEN`, and use
+Never hard-code user-visible text. Add a key to `loc/L.java` and the text to `LocalizationBundleEN` (and `LocalizationBundleJP`), and use
 `loc.getValue(L.KEY)` (`Localization` is injected into every UI class). Date formats come from the same bean
-(`loc.getDateFormat()`...). The name of a kind of entity (book, lorebook...) is `loc.localizeDomainObject(entityClass)`; it falls back to the closest known superclass, then to the simple class name, so a new entity type needs a mapping in `LocalizationBase.loadMaps()`.
+(`loc.getDateFormat()`...). The name of a kind of entity (book, lorebook...) is `loc.localizeDomainObject(entityClass)`; it falls back to the closest known superclass, then to the simple class name, so a new entity type needs a mapping in `LocalizationImpl.loadMaps()`. The texts are in the language of the user's session, so never keep a text in a field that outlives the page or the request - look it up when you show it ([Localization](architecture.md#localization)).
 
 ### Errors
 
@@ -283,11 +337,18 @@ The story editor is the main example: `startGeneration` freezes the book window,
 
 ### Browser-side code
 
-Prefer Java components. When the browser has to do something (scroll positions, element sizes), use
-`element.executeJs(...)` and read the result with `.then(...)` - see `UIUtils.getPositionAndSizeOfElement` and the
-scroll handling in `ManuscriptStoryPart`.
+Prefer Java components. When the browser has to do something (scroll positions, element sizes), the script is a
+static method of `ui.JavascriptLibrary` - UI classes don't call `executeJs` themselves. The element is passed
+explicitly (`$0`, not `this`), and a script that returns a value returns the `PendingJavaScriptResult`, read with
+`.then(...)`; see `UIUtils.getPositionAndSizeOfElement`, the scroll handling in `ManuscriptStoryPart` and
+`JavascriptLibrary.scrollTextAreaToBottom` (the extension log is shown scrolled to its newest line).
+Extensions keep their own scripts.
 
-The only JavaScript module is `src/main/frontend/treant-connector.js`, loaded by `TreantTree` (`@JsModule`) together
+There are two JavaScript modules. `src/main/frontend/chart-connector.js` is loaded by `ChartJs` (`@JsModule`, with the
+npm package `chart.js`); it registers Chart.js and draws the configuration it gets from
+`JavascriptLibrary.renderChart`, taking the text and grid colors from the Lumo variables of the page.
+
+`src/main/frontend/treant-connector.js` is loaded by `TreantTree` (`@JsModule`) together
 with the npm packages `treant-js` and `raphael` (`@NpmPackage`) and treant's CSS (`@CssImport`). It draws the story
 tree; `TreantTree` sends the tree as JSON and receives clicks back: `node-click` (a card was clicked, with the
 `data-node-id` of the card) and `node-goto` (an element with `data-goto-id` inside a card was clicked; the card itself
@@ -311,10 +372,19 @@ the part (and flashes it) instead of restoring the saved scroll position.
 ### Styles
 
 Global styles are in `src/main/frontend/styles/shared-styles.css` (imported by `AppShellConfig`): spacing helpers,
-the loading indicator, the story text (`.chat-message`, and `.manuscript-styles .chat-message-markdown` for the book
-style of the reader and editor) and the story tree (`.Treant`). Class names used from Java are constants in
-`SharedStyles`; column widths and offsets in `UIConstants`. Use Lumo's CSS custom properties (`--lumo-space-m`,
+the loading indicator, the story text (`.chat-message`), the story tree (`.Treant`) and the utility classes
+(`.text-secondary`, `.hint-text`, `.min-width-0`...). The book style of the reader and editor
+(`.manuscript-styles .chat-message-markdown`) is in `reading-mode-styles.css`, imported separately by `AppShellConfig`. Components are
+styled by adding these classes (`addClassName(CssStyles.TEXT_SECONDARY)`), not with `getStyle().set(...)`; keep that
+only for values computed at runtime (the combo box overlay width). A new class goes
+into the stylesheet and into `CssStyles` together. All `vaadin-markdown` elements wrap long lines through one rule
+there, so a `Markdown` needs no extra call. Class names used from Java are constants in
+`CssStyles`; column widths and offsets in `UIConstants`. Use Lumo's CSS custom properties (`--lumo-space-m`,
 `--lumo-contrast-10pct`...) instead of fixed colors, so the dark theme stays consistent.
+
+Styles of plugins are not in the stylesheet. `Main` and `Viewer` (the `ApplicationEntryPoint`s) own a `CssRegistry` that
+injects the CSS returned by loaded extensions (`ExtensionHasCss.getCss`) as `<style>` elements and removes it when the
+extension is unloaded ([Styles of a plugin](plugins/ui-extensions.md#styles-of-a-plugin)).
 
 ## Extension points
 
@@ -324,10 +394,10 @@ runs before and after that method and can read its arguments and local variables
 
 | Area | Classes |
 |---|---|
-| Workspace | `Workspace`, `ManuscriptPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
+| Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog` |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `ExportDialog`, `LorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `TrashGrid` |
-| Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `Workspace` in `proceedWithLogin`), `Viewer` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
+| Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |
 
 New screens, dialogs and components with their own logic get `@Extendable` too (a nested class needs its own
 annotation). Left out on purpose: classes with only static methods (`TemplateHints`, `SummaryRemoval`, `UIUtils`; static
@@ -341,6 +411,8 @@ The bundled plugins hook into these methods:
 |---|---|---|
 | Author's Note | `ManuscriptStoryPart` | `renderStoryContent` |
 | Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
+| Instruction Exporter | `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `createCogsMenuItem` |
+| Lore Generator | `LorebookView`, `LorebookPart`, `UserPart` | `create` (adds a column to the `grid` field); `refresh` (the same for a workspace tab that was built before the extension was loaded); `refresh`, `save` |
 | Lorebook VCS | `LorebookView` | `create`, `createEntryDetailLayout` |
 | Reviewer | `ManuscriptStoryPart$ChatMessageCard`, `UserPart` | `createMenuItems`, `refreshSummaryMenuItems`; `refresh`, `save` |
 | Side Query | `ManuscriptStoryPart`, `UserPart` | `renderStoryContent`; `refresh`, `save` |

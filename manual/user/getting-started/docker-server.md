@@ -36,7 +36,7 @@ services:
     image: ghcr.io/enerccio/marginalia:latest
 ```
 
-`latest` is the newest release, `edge` the development version, and `1.0.0` (or `1.0`) pins a release. The rest of
+`latest` is the newest release, `edge` the development version, and `1.1.0` (or `1.1`) pins a release. The rest of
 the file stays the same.
 
 ## Configuration
@@ -146,6 +146,32 @@ With the [prebuilt image](#prebuilt-image) use `docker compose pull` and `docker
 The database is upgraded automatically when the new version starts. Marginalia saves a
 [copy of the database](../administration/database-backups.md#copy-before-an-upgrade) before it changes its structure,
 but make a [database backup](../administration/database-backups.md) of your own first as well.
+
+### Automatic updates
+
+`rebuild.sh` (Linux, macOS) and `rebuild.bat` (Windows) in the repository root do the update for you; run them from
+the root, for example from a cron job or a scheduled task. They fetch the remote branch and do nothing when there is
+nothing new (`--force` rebuilds and restarts anyway, for example after changing `docker-compose.yml`). Otherwise they
+stop the container, `git pull`, rebuild the [bundled plugins](#plugins) and copy their JARs into `data/extensions`
+(replacing the installed ones), and start the container again with `docker compose up -d --build`. If any step fails,
+the script stops with a message.
+
+## Plugins
+
+The Docker image doesn't contain the [extensions](../extensions/index.md), and they have to be built from the same
+source as the application. You don't need Java or Maven for that: `marginalia/plugins/docker-compose.yml` builds all
+of them in a container, which builds the application first and then every plugin, and copies the JARs into
+`marginalia/plugins/build`:
+
+```sh
+docker compose -f marginalia/plugins/docker-compose.yml build
+docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
+```
+
+The first build takes several minutes (it downloads the dependencies of the application). Then copy the JARs into
+`data/extensions` and restart Marginalia, or load them in *Admin → Extensions* (see
+[Extensions](../administration/extensions.md)). `rebuild.sh` / `rebuild.bat` do the copying for you, so on a server
+that uses them the plugins are always updated together with the application.
 
 ## Health
 

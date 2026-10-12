@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
@@ -110,13 +111,12 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
         });
 
         searchStatus = new Span();
-        searchStatus.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        searchStatus.addClassName(CssStyles.TEXT_SECONDARY);
 
         HorizontalLayout bar = new HorizontalLayout(searchBox, searchButton, searchStatus);
         bar.setAlignItems(FlexComponent.Alignment.CENTER);
         bar.setWidthFull();
-        bar.getStyle().set("padding", "var(--lumo-space-s) var(--lumo-space-m)");
-        bar.getStyle().set("flex-wrap", "wrap");
+        bar.addClassName(CssStyles.TREE_TOOLBAR);
         return bar;
     }
 
@@ -447,22 +447,22 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
     private String buildSyntheticRootHtml() {
         return """
                <div class="tree-node-card">
-                   <strong>Root</strong>
+                   <strong>%s</strong>
                </div>
-               """;
+               """.formatted(HtmlUtils.htmlEscape(loc.getValue(L.LABEL_ROOT)));
     }
 
     private String buildBlockNodeHtml(String blockId, int messageCount, int startIdx, int endIdx) {
-        String title = HtmlUtils.htmlEscape("""
-            Collapsed block (%d messages, [%d–%d]). Click to expand.
-            """.formatted(messageCount, startIdx, endIdx).trim());
+        String title = HtmlUtils.htmlEscape(
+                loc.getValue(L.MSG_TREE_BLOCK_TITLE).formatted(messageCount, startIdx, endIdx));
 
         return """
                <div class="tree-node-card tree-node-block" data-node-id="%s" title="%s">
-                   <div class="tree-block-count"><strong>%d messages</strong></div>
-                   <div class="tree-block-subtitle">[%d–%d] • Click to expand</div>
+                   <div class="tree-block-count"><strong>%s</strong></div>
+                   <div class="tree-block-subtitle">[%d–%d] • %s</div>
                </div>
-               """.formatted(blockId, title, messageCount, startIdx, endIdx);
+               """.formatted(blockId, title, HtmlUtils.htmlEscape(loc.getValue(L.MSG_TREE_BLOCK_MESSAGES).formatted(messageCount)),
+                startIdx, endIdx, HtmlUtils.htmlEscape(loc.getValue(L.LABEL_CLICK_TO_EXPAND)));
     }
 
     private String buildNodeHtml(ChatMessage msg) {
@@ -473,16 +473,16 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
 
         List<String> tooltipLines = new ArrayList<>();
         if (StringUtils.isNotBlank(dateStr)) {
-            tooltipLines.add("Date: " + dateStr);
+            tooltipLines.add(loc.getValue(L.LABEL_DATE) + ": " + dateStr);
         }
         if (StringUtils.isNotBlank(scene)) {
-            tooltipLines.add("Scene: " + scene);
+            tooltipLines.add(loc.getValue(L.LABEL_SCENE) + ": " + scene);
         }
         if (StringUtils.isNotBlank(presentChars)) {
-            tooltipLines.add("Present: " + presentChars);
+            tooltipLines.add(loc.getValue(L.LABEL_PRESENT) + ": " + presentChars);
         }
         if (StringUtils.isNotBlank(instructions)) {
-            tooltipLines.add("Instructions: " + instructions);
+            tooltipLines.add(loc.getValue(L.LABEL_INSTRUCTIONS) + ": " + instructions);
         }
 
         String cardTooltip = HtmlUtils.htmlEscape(String.join("\n", tooltipLines));
@@ -495,20 +495,20 @@ public class ManuscriptTreePart implements ManuscriptDialogPart {
 
         String sceneHtml = StringUtils.isNotBlank(scene)
                 ? """
-                  <div class="tree-node-field"><strong>Scene:</strong> %s</div>
-                  """.formatted(HtmlUtils.htmlEscape(scene))
+                  <div class="tree-node-field"><strong>%s:</strong> %s</div>
+                  """.formatted(HtmlUtils.htmlEscape(loc.getValue(L.LABEL_SCENE)), HtmlUtils.htmlEscape(scene))
                 : "";
 
         String presentHtml = StringUtils.isNotBlank(presentChars)
                 ? """
-                  <div class="tree-node-field"><strong>Present:</strong> %s</div>
-                  """.formatted(HtmlUtils.htmlEscape(presentChars))
+                  <div class="tree-node-field"><strong>%s:</strong> %s</div>
+                  """.formatted(HtmlUtils.htmlEscape(loc.getValue(L.LABEL_PRESENT)), HtmlUtils.htmlEscape(presentChars))
                 : "";
 
         String instructionsHtml = StringUtils.isNotBlank(instructions)
                 ? """
-                  <div class="tree-node-instructions" title="%s"><strong>Instructions:</strong> %s</div>
-                  """.formatted(HtmlUtils.htmlEscape(instructions), HtmlUtils.htmlEscape(instructions))
+                  <div class="tree-node-instructions" title="%s"><strong>%s:</strong> %s</div>
+                  """.formatted(HtmlUtils.htmlEscape(instructions), HtmlUtils.htmlEscape(loc.getValue(L.LABEL_INSTRUCTIONS)), HtmlUtils.htmlEscape(instructions))
                 : "";
 
         String hitHtml = "";

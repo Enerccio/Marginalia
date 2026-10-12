@@ -1,7 +1,8 @@
 package com.github.enerccio.marginalia.ui.workspace.parts.admin;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.domain.service.CronSchedule;
+import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.components.CronSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService.BackupSchedule;
 import com.github.enerccio.marginalia.domain.service.DatabaseBackupService.DatabaseBackup;
@@ -92,9 +93,7 @@ public class DatabaseBackupPanel {
         pendingRestoreLayout = new HorizontalLayout();
         pendingRestoreLayout.setWidthFull();
         pendingRestoreLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        pendingRestoreLayout.getStyle().set("background-color", "var(--lumo-warning-color-10pct)");
-        pendingRestoreLayout.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
-        pendingRestoreLayout.getStyle().set("padding", "var(--lumo-space-s)");
+        pendingRestoreLayout.addClassName(CssStyles.NOTICE_WARNING);
         Span pendingSpan = new Span(loc.getValue(L.MSG_DATABASE_RESTORE_PENDING));
         Button cancelRestoreButton = new Button(loc.getValue(L.LABEL_CANCEL_RESTORE), Solid.TIMES.create(), e -> {
             try {
@@ -173,7 +172,7 @@ public class DatabaseBackupPanel {
         fields.setWrap(true);
 
         schedulePreview = new Span();
-        schedulePreview.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        schedulePreview.addClassName(CssStyles.TEXT_SECONDARY);
         scheduleStatus = new Span();
 
         VerticalLayout content = new VerticalLayout(fields, schedulePreview, scheduleStatus);

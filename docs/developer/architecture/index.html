@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.844977263947">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136847239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.844977263947" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845136847239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.844977263947" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.844977263947" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845136847239" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845136847239" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -307,7 +307,7 @@ annotation config, <code translate="no" v-pre>@Configurable</code> (<code transl
 files:</p>
 <retype-table copy-text="| File | Defines |
    |---|---|
-   | `container-config.xml` | `localization`, `configuration`, `applicationPoint`, `sessionManager`, the session-scoped `user` and `sessionPoint`, `ApplicationInitializer` |
+   | `container-config.xml` | `localization` (with its language bundles), `configuration`, `applicationPoint`, `sessionManager`, the session-scoped `user` and `sessionPoint`, `ApplicationInitializer` |
    | `datasources-config.xml` | SQLite data source (commons-dbcp), Flyway, the `EntityManagerFactory`, the `common` transaction manager |
    | `services-config.xml` | Every repository and service, the generation steps, OSGi, extensions, backups, cleanup, the instrumentation initializer |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -321,7 +321,7 @@ files:</p>
 <tbody>
 <tr>
 <td><code translate="no" v-pre>container-config.xml</code></td>
-<td><code translate="no" v-pre>localization</code>, <code translate="no" v-pre>configuration</code>, <code translate="no" v-pre>applicationPoint</code>, <code translate="no" v-pre>sessionManager</code>, the session-scoped <code translate="no" v-pre>user</code> and <code translate="no" v-pre>sessionPoint</code>, <code translate="no" v-pre>ApplicationInitializer</code></td>
+<td><code translate="no" v-pre>localization</code> (with its language bundles), <code translate="no" v-pre>configuration</code>, <code translate="no" v-pre>applicationPoint</code>, <code translate="no" v-pre>sessionManager</code>, the session-scoped <code translate="no" v-pre>user</code> and <code translate="no" v-pre>sessionPoint</code>, <code translate="no" v-pre>ApplicationInitializer</code></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>datasources-config.xml</code></td>
@@ -370,6 +370,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree) and small widgets. |
+| `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
 | `domain.service.impl.inference` | Services | The OpenAI-compatible client and the tokenizer strategies. |
@@ -411,6 +412,11 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <td><code translate="no" v-pre>ui.components</code>, <code translate="no" v-pre>ui.widgets</code></td>
 <td>UI</td>
 <td>Reusable components (lorebook editor, story tree) and small widgets.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>domain.components</code></td>
+<td>Services</td>
+<td>Plain data and helpers shared by services and the UI (<code translate="no" v-pre>TurnInput</code>, <code translate="no" v-pre>TokenLimits</code>, <code translate="no" v-pre>PromptTokenBreakdown</code>, <code translate="no" v-pre>SummaryNode</code>, <code translate="no" v-pre>CronSchedule</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.service</code> (+ <code translate="no" v-pre>impl</code>)</td>
@@ -538,7 +544,6 @@ request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">
 <p><strong>Configuration</strong> comes from <code translate="no" v-pre>src/main/webapp/config/configuration.properties</code>:</p>
 <retype-table copy-text="| Key | Default | |
 |---|---|---|
-| `localization` | `com.github.enerccio.marginalia.loc.LocalizationEN` | Class of the `Localization` bean - the language of the UI. |
 | `allowPersistentLogin` | `true` | Whether *Save login* is offered. |
 | `persistentLoginTTL` | `2592000` | Lifetime of saved logins in seconds (30 days). |
 | `trustedProxies` | empty | Reverse proxies (addresses or CIDR ranges, comma separated) whose `X-Forwarded-For` header is believed when finding the client address for [login throttling](services.md#login-throttling). Empty: the header is ignored. Can also be given as `-DtrustedProxies=...`. |">
@@ -552,11 +557,6 @@ request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code translate="no" v-pre>localization</code></td>
-<td><code translate="no" v-pre>com.github.enerccio.marginalia.loc.LocalizationEN</code></td>
-<td>Class of the <code translate="no" v-pre>Localization</code> bean - the language of the UI.</td>
-</tr>
 <tr>
 <td><code translate="no" v-pre>allowPersistentLogin</code></td>
 <td><code translate="no" v-pre>true</code></td>
@@ -578,7 +578,7 @@ request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">
 </retype-table>
 <h2 id="user-interface">User interface</h2>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart TB
-    Main[&quot;Main (route /)&lt;br/&gt;LoginCheckRoute&quot;] --&gt; WS[&quot;Workspace&quot;]
+    Main[&quot;Main (route /)&lt;br/&gt;LoginCheckRoute&quot;] --&gt; WS[&quot;DesktopWorkspace&quot;]
     Viewer[&quot;Viewer (route /view)&lt;br/&gt;read-only published books&quot;]
     WS --&gt; MP[&quot;ManuscriptPart&lt;br/&gt;Books&quot;]
     WS --&gt; LP[&quot;LorebookPart&quot;]
@@ -598,10 +598,11 @@ request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">
 <ul>
 <li>
 <p><code translate="no" v-pre>Main</code> shows the login (or the <em>create administrator</em> dialog on an empty installation), restores a saved login
-from cookies, and after login replaces its content with the <code translate="no" v-pre>Workspace</code>.</p>
+from cookies, and after login replaces its content with the <code translate="no" v-pre>DesktopWorkspace</code> (the implementation of the <code translate="no" v-pre>Workspace</code>
+interface).</p>
 </li>
 <li>
-<p><code translate="no" v-pre>Workspace</code> holds the left-hand tabs. Each tab is a <code translate="no" v-pre>WorkspaceComponent</code> (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>onTabSwitched</code>,
+<p><code translate="no" v-pre>DesktopWorkspace</code> holds the left-hand tabs. Each tab is a <code translate="no" v-pre>WorkspaceComponent</code> (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>onTabSwitched</code>,
 <code translate="no" v-pre>onTabClosed</code>).</p>
 </li>
 <li>
@@ -875,6 +876,16 @@ the data is part of backups. They can also listen to generation events and take 
 with a callback that removes them; the callbacks of components still attached run when the extension is unloaded,
 each inside <code translate="no" v-pre>ui.access(...)</code> of the component&#x27;s UI.</p>
 </li>
+<li>
+<p><strong>Languages.</strong> An extension that implements <code translate="no" v-pre>ExtensionHasLocalization</code> adds languages to the UI: <code translate="no" v-pre>OsgiServiceImpl</code>
+registers its <code translate="no" v-pre>LocalizationBundle</code>s in <code translate="no" v-pre>Localization</code> after the extension loads and removes them on unload
+(<doc-anchor-trigger to="#localization">Localization</doc-anchor-trigger>).</p>
+</li>
+<li>
+<p><strong>Styles.</strong> An extension that implements <code translate="no" v-pre>ExtensionHasCss</code> gets its CSS put into every open page: <code translate="no" v-pre>CssRegistry</code>
+(owned by <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code>) reads the loaded extensions when its page is attached and listens to the
+loaded/unloaded events of <code translate="no" v-pre>OsgiService</code> afterwards (<a href="../plugins/ui-extensions/#styles-of-a-plugin">Styles of a plugin</a>).</p>
+</li>
 </ul>
 <p>Because hooks are attached by class and method <em>name</em> and read local variables by name, extensions are tied to one
 version of the application. See <a href="../plugins/">Plugin development</a>.</p>
@@ -936,10 +947,46 @@ version of the application. See <a href="../plugins/">Plugin development</a>.</p
 </div>
 </retype-table>
 <h2 id="localization">Localization</h2>
-<p>All UI texts are looked up through the <code translate="no" v-pre>Localization</code> bean by an <code translate="no" v-pre>L</code> key (<code translate="no" v-pre>loc.getValue(L.LABEL_SAVE)</code>).
-<code translate="no" v-pre>LocalizationEN</code> holds the English texts and is selected by the <code translate="no" v-pre>localization</code> property; another language is a new
-<code translate="no" v-pre>Localization</code> implementation and a changed property. Texts of template variables and macros (the hints shown next
-to prompt fields) are localized the same way.</p>
+<p>All UI texts are looked up through the <code translate="no" v-pre>Localization</code> bean by an <code translate="no" v-pre>L</code> key (<code translate="no" v-pre>loc.getValue(L.LABEL_SAVE)</code>). The bean
+(<code translate="no" v-pre>LocalizationImpl</code>) holds one <code translate="no" v-pre>LocalizationBundle</code> per <code translate="no" v-pre>Language</code>: the texts of every key, the <code translate="no" v-pre>Locale</code> and the date
+formats of that language, and the name shown in the language selector. The application ships <code translate="no" v-pre>LocalizationBundleEN</code>
+(the default language, which has to be complete - the application doesn&#x27;t start otherwise) and <code translate="no" v-pre>LocalizationBundleJP</code>;
+they are listed in the <code translate="no" v-pre>localization</code> bean in <code translate="no" v-pre>container-config.xml</code>. Texts of template variables and macros (the
+hints shown next to prompt fields) are localized the same way.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    SP[&quot;SessionPoint&lt;br/&gt;(session scoped)&lt;br/&gt;language&quot;] --&gt;|current language| Loc[&quot;LocalizationImpl&lt;br/&gt;getValue(L)&quot;]
+    Loc --&gt; B1[&quot;LocalizationBundleEN&quot;]
+    Loc --&gt; B2[&quot;LocalizationBundleJP&quot;]
+    Loc --&gt; B3[&quot;bundles of extensions&quot;]
+    US[&quot;UserSetting.language&quot;] --&gt;|&quot;Main, when the workspace opens&quot;| SP
+    LS[&quot;LanguageSelector&quot;] --&gt;|saves, then reloads the user's pages| US</pre></div>
+<ul>
+<li>
+<p><strong>Which language.</strong> <code translate="no" v-pre>getValue</code> and the formats use the language in the session&#x27;s <code translate="no" v-pre>SessionPoint</code>. Without a
+request (startup, scheduled backups) or with a language that has no bundle (any more) the default language is
+used, and a text a bundle doesn&#x27;t have is taken from the default language, so a bundle that lags behind the keys
+keeps working. Worker threads get the session through <code translate="no" v-pre>ThreadCopyRequestAttributes</code> like the <code translate="no" v-pre>user</code> bean.</p>
+</li>
+<li>
+<p><strong>Choosing.</strong> The language of a user is <code translate="no" v-pre>UserSetting.language</code> (a language code, <code translate="no" v-pre>null</code> for the default).
+<code translate="no" v-pre>Main.proceedWithLogin</code> sets <code translate="no" v-pre>SessionPoint.language</code> from it before the workspace is created, so the login page
+itself is always in the default language. The <code translate="no" v-pre>LanguageSelector</code> at the bottom of the workspace (desktop sidebar,
+phone drawer) offers <code translate="no" v-pre>Localization.getAvailableLanguages()</code>; a change saves the setting, sets the session and
+reloads every UI of every session of the user (<code translate="no" v-pre>SessionManager.runForUsers</code>), where the workspace opens again with
+the new language. <code translate="no" v-pre>Viewer</code> doesn&#x27;t choose anything, it uses what is in its <code translate="no" v-pre>SessionPoint</code>.</p>
+</li>
+<li>
+<p><strong>Extensions.</strong> An extension that implements <code translate="no" v-pre>ExtensionHasLocalization</code> returns bundles of its own;
+<code translate="no" v-pre>OsgiServiceImpl</code> registers them after <code translate="no" v-pre>onExtensionLoad</code> and removes them when the extension is unloaded (see
+<a href="../plugins/example/#walkthrough-chinese-localization">Example plugin</a>). A language that already has a bundle is
+refused, so an extension can&#x27;t replace English.</p>
+</li>
+<li>
+<p><strong>Adding a language to the application.</strong> Copy <code translate="no" v-pre>LocalizationBundleEN</code>, translate, add the class as a bean to the
+<code translate="no" v-pre>bundles</code> list of <code translate="no" v-pre>localization</code>. <code translate="no" v-pre>BundleCompletenessTest</code> checks that a bundle has every key and the same
+<code translate="no" v-pre>%s</code>/<code translate="no" v-pre>%d</code> placeholders as the English text.</p>
+</li>
+</ul>
 
                 
                 <!-- Required only on API pages -->

@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.List;
 import java.util.function.Consumer;
 
-@Configurable
+@Configurable(preConstruction = true)
 public class AdvancedOptionsDialog extends Dialog {
     private static final Gson gson = new GsonBuilder().create();
 
