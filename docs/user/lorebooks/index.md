@@ -43,6 +43,7 @@ Entries without tags and without a filter are always active: use them for what t
 - Lorebook entries can use [templates and macros](../templates/index.md) - SillyTavern world info keeps working.
 - [SillyTavern world info](import-export.md#importing-sillytavern-world-info) can be imported.
 - [Book backups](../books/backups.md) contain the book's lorebook with its sub lorebooks.
+- The [Lore Generator](../extensions/lore-generator.md) extension writes the content of an entry with the model, from the lore you already have.
 - The [Lorebook VCS](../extensions/lorebook-vcs.md) extension keeps a revision history of entries.
 
 ## In this section

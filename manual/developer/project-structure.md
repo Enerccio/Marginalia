@@ -102,7 +102,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `ui.dialogs.phone`, `ui.dialogs.phone.manuscript` | `PhoneManuscriptDialog` (the book dialog for phones: full screen, one scrolling tab row), `PhoneSummariesDialog` (`SummariesDialog` with a wide content column) and its tabs `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart` (with `PhoneLorebookView`), `PhoneManuscriptStoryPart` (one column, outline in the drawer of an `AppLayout`, message cards with a header line of icons), `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`. |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`, plus `NewBookAction` (the *Add Book* flow shared by both book lists). |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
-| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
+| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its reduced phone version), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
 | `ui.widgets` | Small widgets: `ChartJs` (a Chart.js chart drawn from a JSON configuration, see [UI](ui.md)), `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TrashGrid` (restoring deleted objects, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |
@@ -162,7 +162,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
 | `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing and restoring it (one bean, `CleanupServiceImpl`, shares the reference model). |
-| `OsgiService`, `ExtensionService` | Loading extensions; `@Extendable` decorators. |
+| `OsgiService`, `ExtensionService` | Loading, stopping and starting extensions (the `.STOPPED` flag), the logger of an extension (`createLogger`, implemented by the package-private `ExtensionLogger`) and its log file; `@Extendable` decorators. |
 
 Also here: `CancellationToken`, `GenerationListener` (UI
 callbacks of a generation) and `search/` (`Sorter`, `ManuscriptFilterValues` for the book lists; `FulltextQuery`, `FulltextHit` and `LikePatterns` for the full-text search and `LIKE` patterns).
@@ -171,7 +171,7 @@ callbacks of a generation) and `search/` (`Sorter`, `ManuscriptFilterValues` for
 |---|---|
 | `service.impl.generation` | Engine interfaces and data: `GenerationStep`, `GenerationStepBase`, `GenerationStepType`, `GenerationController`, `Events`, `GenerationEvent`, `GenerationRequest` / `GenerationRequestType`, `GenerationProperties`. |
 | `service.impl.generation.impl` | The eight steps, `PrepareForGenerationStep` ... `CleanupStep`. |
-| `service.impl.generation.dto` | `LLMChatMessage`, `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
+| `service.impl.generation.dto` | `LLMChatMessage` (role, text and optional `LLMAttachment`s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3), `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
 | `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to `InferenceException`). |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |
 
@@ -305,9 +305,10 @@ plugins/<name>/
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
+| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog and a settings form. |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Reviewer | `extensions.reviewer` | Model, service, dialogs and a settings form. |
-| Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form. |
+| Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |
 
 `plugins/Dockerfile` and `plugins/docker-compose.yml` build all of them in a container (JARs end up in `plugins/build/`,

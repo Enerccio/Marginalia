@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845129897521">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845135671937">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845129897521" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845135671937" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845129897521" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845135671937" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -266,7 +266,7 @@ fake is the model server.</p>
 | `crud` | `*CrudTest`, `OwnedCrudContract`, `ExtendableCrudContract` | Create, update, soft and hard delete, owner isolation and extended attributes of every entity. |
 | `db` | `FlywayMigrationTest`, `FulltextMigrationTest`, `DatabaseRestoreCheckTest`, `PreMigrationBackupTest` | Migrations on an empty, a V1 and a pre-Flyway database, followed by Hibernate schema validation (`FlywayMigrationTest` also checks that V9 keeps `manuscripts.description` in `extendedContent`); `FulltextMigrationTest` runs the app migration that fills `_fulltext` of existing rows on the Spring context; the check of a database before a restore and the fall back to the previous database when a restore fails on start (no Spring context); `PreMigrationBackupTest` checks the copy `Configuration.resolveDb` saves before an existing database is migrated (an older version, no history table, nothing for a current or new database, only the newest three kept). |
 | `domain` | `ExtendableEntityListenerTest`, `FulltextQueryTest`, `ChatMessageSearchTest`, `TokenLimitsTest`, `CronScheduleTest`, `SillyTavernEntryConverterTest`, `TemplateHelpersTest`, `OsgiServiceImplTest` | Smaller units: extended attribute serialization, token limits, cron parsing, SillyTavern conversion; `FulltextQueryTest` and `ChatMessageSearchTest` cover the full-text query (words, phrases, `*`, escaping) and the search over all branches with the choice of the branch that shows a part (Spring context). `OsgiServiceImplTest` loads, replaces and unloads extensions on a real OSGi framework with test bundles built on the fly (`TestExtensionActivator`), including the verification reports that allow or refuse starting them; it has no Spring context; it also checks that an extension's localization bundles are registered while it is loaded, removed on unload, and that an extension can't replace a language that already has a bundle; at startup only the newest version of an extension in the folder is loaded and the older JARs are moved to `old-versions`; stopping and starting extensions (the `.STOPPED` flag survives a restart, an upload starts a stopped extension) and the extension logger (SLF4J formatting, tail reading, rotation, removal with the extension). |
-| `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `TokenBreakdownTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, the stored token breakdown of a prompt (sections, reserved and cut story, payload messages, `null` for parts without it), a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain. |
+| `generation` | `GenerationRequestTest`, `LorebookActivationTest`, `BuiltPromptHistoryTest`, `ReservedTokensTest`, `TokenBreakdownTest`, `FailedGenerationTest`, `ImageAttachmentGenerationTest`, `InferenceAttachmentsTest`, `MetaSummaryTest` | Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, the stored token breakdown of a prompt (sections, reserved and cut story, payload messages, `null` for parts without it), a failed request leaving the story unchanged, images staying with a part and never reaching the model, the attachments of an `LLMChatMessage` (image as a data URL or URL, WAV audio, a file; a plain string content without attachments; audio of an unsupported format rejected before any request) as the content parts of the request, meta summaries and the summary chain. |
 | `templates` | `TemplateServiceTest`, `MacroRenderingTest`, `MacroLorebookFixtureTest`, `DefaultTemplatesTest` | Handlebars rendering and SillyTavern macros; the built-in templates. |
 | `lorebook` | `LorebookImportExportTest` | Marginalia and SillyTavern lorebook import and export. |
 | `backup` | `ManuscriptRestoreTest`, `ManuscriptBackupCopyTest`, `BackupLorebookTest`, `BackupAiProtocolLinkTest`, `BackupImagesTest`, `DatabaseBackupScheduleTest` | Book backups, restore and copy, lorebook and provider linking, the images of parts in backups (the archive made on export, own resources for restored and cloned books), scheduled database backups. |
@@ -314,8 +314,8 @@ fake is the model server.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>generation</code></td>
-<td><code translate="no" v-pre>GenerationRequestTest</code>, <code translate="no" v-pre>LorebookActivationTest</code>, <code translate="no" v-pre>BuiltPromptHistoryTest</code>, <code translate="no" v-pre>ReservedTokensTest</code>, <code translate="no" v-pre>TokenBreakdownTest</code>, <code translate="no" v-pre>FailedGenerationTest</code>, <code translate="no" v-pre>ImageAttachmentGenerationTest</code>, <code translate="no" v-pre>MetaSummaryTest</code></td>
-<td>Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, the stored token breakdown of a prompt (sections, reserved and cut story, payload messages, <code translate="no" v-pre>null</code> for parts without it), a failed request leaving the story unchanged, images staying with a part and never reaching the model, meta summaries and the summary chain.</td>
+<td><code translate="no" v-pre>GenerationRequestTest</code>, <code translate="no" v-pre>LorebookActivationTest</code>, <code translate="no" v-pre>BuiltPromptHistoryTest</code>, <code translate="no" v-pre>ReservedTokensTest</code>, <code translate="no" v-pre>TokenBreakdownTest</code>, <code translate="no" v-pre>FailedGenerationTest</code>, <code translate="no" v-pre>ImageAttachmentGenerationTest</code>, <code translate="no" v-pre>InferenceAttachmentsTest</code>, <code translate="no" v-pre>MetaSummaryTest</code></td>
+<td>Full generations: what is sent to the model, which lore is activated and where it goes, the story history in the prompt (new part, swipe, regenerate), tokens reserved by extensions, the stored token breakdown of a prompt (sections, reserved and cut story, payload messages, <code translate="no" v-pre>null</code> for parts without it), a failed request leaving the story unchanged, images staying with a part and never reaching the model, the attachments of an <code translate="no" v-pre>LLMChatMessage</code> (image as a data URL or URL, WAV audio, a file; a plain string content without attachments; audio of an unsupported format rejected before any request) as the content parts of the request, meta summaries and the summary chain.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>templates</code></td>
@@ -730,7 +730,8 @@ stream, and the test can stop the generation or inspect the state before releasi
         <div class="pr-5 ml-3 w-full">
             <h5>Retries</h5>
 <p>The <code translate="no" v-pre>openai-java</code> client retries 408, 409, 429 and 5xx responses. A queued error response is consumed once per
-attempt, so enqueue it several times (or use <code translate="no" v-pre>fallback</code>) when a test expects the error to reach Marginalia.</p>
+attempt, so enqueue it several times (or use <code translate="no" v-pre>fallback</code>) when a test expects the error to reach Marginalia. The server
+closes the connection after every response, so a retry never reuses a stale pooled connection.</p>
         </div>
     </div>
 </div>
@@ -787,7 +788,7 @@ that pulls the whole stream and waits for the end.</p>
 <p>Tests of failure paths make the code log errors on purpose. To keep them out of the test output (where they look like
 real failures) and to assert on them, capture the logger with <code translate="no" v-pre>test/ExpectedLog</code>:</p>
 <div id="expected-errors-in-the-log-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">try (ExpectedLog log = ExpectedLog.capture(ExtensionServiceImpl.class)) {
+<pre translate="no" class="language-java"><code v-pre class="language-java">try (ExpectedLog log = ExpectedLog.capture(ExtensionServiceImpl.class)) {   // or capture(&quot;extension.my-plugin&quot;)
     ...
     assertThat(log.errors()).anyMatch(m -&gt; m.contains(&quot;broken&quot;));
 }</code></pre>

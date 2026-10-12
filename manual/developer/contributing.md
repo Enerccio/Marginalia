@@ -97,7 +97,9 @@ There is no formatter configuration in the repository; match the code around you
 - Javadoc on classes and on public methods whose purpose isn't obvious from the name. Write *why* and the contract
   (what `null` means, which thread, which transaction), not a restatement of the signature.
 - Logging through SLF4J (`private static final Logger log = LoggerFactory.getLogger(X.class)`), with `{}`
-  placeholders. Story content, prompts and lore are logged at `DEBUG` only; API keys and passwords never.
+  placeholders. Story content, prompts and lore are logged at `DEBUG` only; API keys and passwords never. Plugins
+  don't use `LoggerFactory`: they take the logger from `OsgiService.createLogger(bundle)` so their lines reach the
+  extension log ([Logging](plugins/overview.md#logging)).
 - Return `null` for "not found" where the existing service API does (`find`, `findForUser`), and keep that consistent
   within a class.
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845129897521">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845135671937">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845129897521" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845135671937" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -342,7 +342,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 | `ui.dialogs.phone`, `ui.dialogs.phone.manuscript` | `PhoneManuscriptDialog` (the book dialog for phones: full screen, one scrolling tab row), `PhoneSummariesDialog` (`SummariesDialog` with a wide content column) and its tabs `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart` (with `PhoneLorebookView`), `PhoneManuscriptStoryPart` (one column, outline in the drawer of an `AppLayout`, message cards with a header line of icons), `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`. |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`, plus `NewBookAction` (the *Add Book* flow shared by both book lists). |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
-| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
+| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its reduced phone version), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
 | `ui.widgets` | Small widgets: `ChartJs` (a Chart.js chart drawn from a JSON configuration, see [UI](ui.md)), `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `TrashGrid` (restoring deleted objects, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
@@ -381,7 +381,7 @@ POM yet). See <a href="../building/">Building from source</a>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs</code></td>
-<td>Entity dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>UserDialog</code>), <code translate="no" v-pre>ManuscriptDialog</code> (the book window), <code translate="no" v-pre>LorebookImportDialog</code> (resolving lorebooks during restores), <code translate="no" v-pre>PromptDialog</code> (shows the prompt a part was generated from) and generic dialogs: <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ErrorDialog</code>, <code translate="no" v-pre>ProgressBarDialog</code>. <code translate="no" v-pre>ExportDialog</code> exports the story of a book. Threading helpers <code translate="no" v-pre>ThreadAccessDialog</code> and <code translate="no" v-pre>UIPushGuard</code>.</td>
+<td>Entity dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>UserDialog</code>), <code translate="no" v-pre>ManuscriptDialog</code> (the book window), <code translate="no" v-pre>LorebookImportDialog</code> (resolving lorebooks during restores), <code translate="no" v-pre>PromptDialog</code> (shows the prompt a part was generated from), <code translate="no" v-pre>ExtensionLogDialog</code> (the log of an extension, opened from the Admin page) and generic dialogs: <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ErrorDialog</code>, <code translate="no" v-pre>ProgressBarDialog</code>. <code translate="no" v-pre>ExportDialog</code> exports the story of a book. Threading helpers <code translate="no" v-pre>ThreadAccessDialog</code> and <code translate="no" v-pre>UIPushGuard</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.manuscript</code></td>
@@ -534,7 +534,7 @@ no state besides their fields.</p>
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
 | `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing and restoring it (one bean, `CleanupServiceImpl`, shares the reference model). |
-| `OsgiService`, `ExtensionService` | Loading extensions; `@Extendable` decorators. |">
+| `OsgiService`, `ExtensionService` | Loading, stopping and starting extensions (the `.STOPPED` flag), the logger of an extension (`createLogger`, implemented by the package-private `ExtensionLogger`) and its log file; `@Extendable` decorators. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -590,7 +590,7 @@ no state besides their fields.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>OsgiService</code>, <code translate="no" v-pre>ExtensionService</code></td>
-<td>Loading extensions; <code translate="no" v-pre>@Extendable</code> decorators.</td>
+<td>Loading, stopping and starting extensions (the <code translate="no" v-pre>.STOPPED</code> flag), the logger of an extension (<code translate="no" v-pre>createLogger</code>, implemented by the package-private <code translate="no" v-pre>ExtensionLogger</code>) and its log file; <code translate="no" v-pre>@Extendable</code> decorators.</td>
 </tr>
 </tbody>
 </table>
@@ -602,7 +602,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 |---|---|
 | `service.impl.generation` | Engine interfaces and data: `GenerationStep`, `GenerationStepBase`, `GenerationStepType`, `GenerationController`, `Events`, `GenerationEvent`, `GenerationRequest` / `GenerationRequestType`, `GenerationProperties`. |
 | `service.impl.generation.impl` | The eight steps, `PrepareForGenerationStep` ... `CleanupStep`. |
-| `service.impl.generation.dto` | `LLMChatMessage`, `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
+| `service.impl.generation.dto` | `LLMChatMessage` (role, text and optional `LLMAttachment`s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3), `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
 | `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to `InferenceException`). |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -624,7 +624,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.impl.generation.dto</code></td>
-<td><code translate="no" v-pre>LLMChatMessage</code>, <code translate="no" v-pre>LLMRole</code>, <code translate="no" v-pre>PrePromptData</code> (the prompts collected for one generation).</td>
+<td><code translate="no" v-pre>LLMChatMessage</code> (role, text and optional <code translate="no" v-pre>LLMAttachment</code>s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3), <code translate="no" v-pre>LLMRole</code>, <code translate="no" v-pre>PrePromptData</code> (the prompts collected for one generation).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.impl.inference</code></td>
@@ -1019,9 +1019,10 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
+| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog and a settings form. |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Reviewer | `extensions.reviewer` | Model, service, dialogs and a settings form. |
-| Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form. |
+| Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1049,6 +1050,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Activator and extension only.</td>
 </tr>
 <tr>
+<td>Lore Generator</td>
+<td><code translate="no" v-pre>extensions.loregenerator</code></td>
+<td>Model (the prompts), service (lore selection, prompts), a dialog and a settings form.</td>
+</tr>
+<tr>
 <td>Lorebook VCS</td>
 <td><code translate="no" v-pre>extensions.lorebookvcs</code></td>
 <td>Model, service, two UI panels.</td>
@@ -1061,7 +1067,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <tr>
 <td>Side Query</td>
 <td><code translate="no" v-pre>extensions.sidequery</code></td>
-<td>Model, service, a chat panel and a settings form.</td>
+<td>Model, service, a chat panel and a settings form; <code translate="no" v-pre>SideQueryLog</code> holds its logger for classes the extension class does not create.</td>
 </tr>
 <tr>
 <td>Chinese localization</td>

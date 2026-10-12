@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845129897521">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845135671937">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845129897521" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845135671937" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845129897521" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845135671937" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -290,6 +290,18 @@ lorebookView.addComponentAtIndex(Math.max(index, 0), panel);</code></pre>
 when the user picks another lorebook, so a panel bound to the lorebook it was created with ends up acting on the
 wrong one. Look the current value up when it&#x27;s needed (<code translate="no" v-pre>lorebookView.getCurrentLorebook()</code>), or hook the
 method that switches it.</p>
+<h3 id="columns-in-an-existing-grid">Columns in an existing grid</h3>
+<p>A grid the view keeps in a field can get more columns. Lore Generator adds a button to every row of the lorebook
+entries after <code translate="no" v-pre>LorebookView.create()</code> has built the grid, and keeps the column to remove it on unload:</p>
+<div id="columns-in-an-existing-grid-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">Grid&lt;LorebookEntry&gt; grid = context.getReflectiveFieldValue(instrumented, &quot;grid&quot;, Grid.class);
+Grid.Column&lt;LorebookEntry&gt; column = grid.addComponentColumn(entry -&gt; new Button(icon, e -&gt; openDialog(entry)));
+ComponentUtil.setData(lorebookView, COLUMN_KEY, column);          // onExtensionUnload: grid.removeColumn(column)</code></pre>
+</doc-codeblock></div>
+<p>The row&#x27;s item is the entity itself; read the context that is not part of it (the selected lorebook) from the view
+when the button is clicked, as above. A dialog the button opens is an ordinary component of the plugin: it can call the
+model with <code translate="no" v-pre>InferenceService.stream</code> (put <code translate="no" v-pre>LLMAttachment</code>s on the user message to send images or files, see
+<a href="../../services/">Services</a>) and must update the UI through <code translate="no" v-pre>ui.access(...)</code> and <code translate="no" v-pre>UIPushGuard</code>.</p>
 <h3 id="changing-what-the-application-built">Changing what the application built</h3>
 <p>The decorator can change any component the method built. Chapter Marker relabels the sidebar button of a part:</p>
 <div id="changing-what-the-application-built-code-1" class="codeblock-wrapper"><doc-codeblock>
@@ -478,7 +490,7 @@ like Author&#x27;s Note does (<a href="../generation-events/">Generation events<
 <h2 id="unloading">Unloading</h2>
 <p>When a plugin is unloaded, components it added to open screens stay there - with listeners pointing into a bundle
 that is gone - unless the plugin removes them. There are two ways.</p>
-<p><strong>Track and remove</strong> - what Reviewer, Side Query and Lorebook VCS do. Keep the extended components in weak sets (so that closed
+<p><strong>Track and remove</strong> - what Reviewer, Side Query, Lore Generator and Lorebook VCS do. Keep the extended components in weak sets (so that closed
 screens can be garbage collected) and undo the changes in <code translate="no" v-pre>onExtensionUnload</code>:</p>
 <div id="unloading-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">private final Set&lt;ContextMenu&gt; menus = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap&lt;&gt;()));
@@ -528,7 +540,7 @@ detached when the extension is unloaded runs its callback when it is attached ag
 <p><code translate="no" v-pre>onExtensionUnload</code> runs on the request thread of the administrator who clicked <em>Unload</em>, but the components belong
 to every user&#x27;s open screens. Change them inside <code translate="no" v-pre>component.getUI().ifPresent(ui -&gt; ui.access(...))</code>, as above, or
 with <code translate="no" v-pre>UIUtils.accessComponent(component, () -&gt; ...)</code>, which does the same and runs the change directly when the
-component isn&#x27;t attached. The bundled Reviewer, Side Query and Lorebook VCS do it this way.</p>
+component isn&#x27;t attached. The bundled Reviewer, Side Query, Lore Generator and Lorebook VCS do it this way.</p>
         </div>
     </div>
 </div>

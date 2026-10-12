@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845129897521">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845135671937">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845129897521" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845135671937" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845129897521" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845135671937" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -393,8 +393,9 @@ stores them.</p>
 | `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu (Reviewer). |
 | `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Update menu items when the menu opens (Reviewer). |
 | `ManuscriptStoryPart$ChatMessageCard` | `autosaveAndSwapToMarkdown()` | fields `message`, `this$0` (the outer `ManuscriptStoryPart`) | React to an edited part (Chapter Marker). |
-| `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query). |
-| `LorebookView` | `create()` | local `lorebookHeaderLayout` | Add a panel above the lorebook header (Lorebook VCS). |
+| `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query, Lore Generator). |
+| `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
+| `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
 | `LorebookView` | `createEntryDetailLayout(entry)` | argument `entry`; local `detailsLayout` | Add a panel to each entry's details (Lorebook VCS). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -453,13 +454,19 @@ stores them.</p>
 <td><code translate="no" v-pre>UserPart</code></td>
 <td><code translate="no" v-pre>refresh()</code> / <code translate="no" v-pre>save()</code></td>
 <td>fields <code translate="no" v-pre>extensionSettings</code>, <code translate="no" v-pre>userSetting</code></td>
-<td>Add a settings panel; save its values (Reviewer, Side Query).</td>
+<td>Add a settings panel; save its values (Reviewer, Side Query, Lore Generator).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookView</code></td>
 <td><code translate="no" v-pre>create()</code></td>
-<td>local <code translate="no" v-pre>lorebookHeaderLayout</code></td>
-<td>Add a panel above the lorebook header (Lorebook VCS).</td>
+<td>local <code translate="no" v-pre>lorebookHeaderLayout</code>; field <code translate="no" v-pre>grid</code></td>
+<td>Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LorebookPart</code></td>
+<td><code translate="no" v-pre>refresh()</code></td>
+<td>field <code translate="no" v-pre>lorebookView</code></td>
+<td>Reach the view of the workspace tab, which was built when the page opened (Lore Generator).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookView</code></td>
@@ -479,7 +486,7 @@ stores them.</p>
 (<code translate="no" v-pre>createSidebarButton</code>, <code translate="no" v-pre>renderStoryContent</code>, <code translate="no" v-pre>populateMenuBar</code>, <code translate="no" v-pre>createCogsMenuItem</code>, <code translate="no" v-pre>createMenuItems</code>,
 <code translate="no" v-pre>refreshSummaryMenuItems</code>, <code translate="no" v-pre>autosaveAndSwapToMarkdown</code>; fields <code translate="no" v-pre>sidebarList</code>, <code translate="no" v-pre>leftBar</code>, <code translate="no" v-pre>currentManuscript</code>,
 <code translate="no" v-pre>hamburgerMenu</code>, <code translate="no" v-pre>message</code>, <code translate="no" v-pre>this$0</code>), so a plugin supports the phone by registering the same decorator a second time
-under the other class name. The Reviewer, Chapter Marker and Author&#x27;s Note do; Side Query and Lorebook VCS don&#x27;t.
+under the other class name. The Reviewer, Chapter Marker and Author&#x27;s Note do; Side Query, Lore Generator and Lorebook VCS don&#x27;t.
 Two differences: the card has no right-hand column (the metadata is in a popover), and <code translate="no" v-pre>leftBar</code> is the tab sheet in
 the drawer of the story; on both, <code translate="no" v-pre>leftBar</code> is created once and not rebuilt by <code translate="no" v-pre>renderStoryContent()</code> (check for your
 tab first, as Author&#x27;s Note does). Reach the outer part through <code translate="no" v-pre>this$0</code> as an <code translate="no" v-pre>Object</code>, since its type depends on the dialog.</p>

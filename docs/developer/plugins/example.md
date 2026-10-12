@@ -99,7 +99,6 @@ import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.notification.Notification;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -110,7 +109,8 @@ import java.util.WeakHashMap;
 
 @Configurable
 public class BookmarksExtension implements MarginaliaExtension {
-    private static final Logger log = LoggerFactory.getLogger(BookmarksExtension.class);
+    /** The logger of the extension, its lines go to Admin → Extensions → Log. */
+    private Logger log;
 
     private static final String KEY = "com.example.marginalia.bookmarks";
     private static final String MENU_ITEM_KEY = KEY + ".menuItem";
@@ -126,6 +126,7 @@ public class BookmarksExtension implements MarginaliaExtension {
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService osgiService, ExtensionService extensionService) {
+        log = osgiService.createLogger(bundle);
         ExtensionDecorator menuDecorator = new ExtensionDecorator() {
             @Override
             public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
@@ -267,7 +268,9 @@ Load `target/bookmarks-1.0.1.jar` in *Admin → Extensions* and open a book (boo
 closed and opened again). Open a part's menu, choose *Toggle bookmark* - the part's sidebar entry gets the ★.
 
 If nothing appears, look in the log for `Mod 'com.example.marginalia.bookmarks.BookmarksExtension$...' skipped on
-...` (a name that doesn't exist) or `Unhandled exception in extension ...`.
+...` (a name that doesn't exist) or `Unhandled exception in extension ...`. The lines of the extension itself (here
+`log.error("Cannot toggle bookmark", e)`) are in *Admin → Extensions → Log* of the extension, see
+[Logging](overview.md#logging).
 
 ### Where to go from here
 
@@ -329,7 +332,8 @@ What to take from it:
 
 The other bundled plugins build on the same pieces: Reviewer and Side Query add menu items, tabs, settings panels and
 call the model ([Extending the UI](ui-extensions.md)); Lorebook VCS stores larger data in a lorebook's attributes
-([Extended attributes](extended-attributes.md)); Author's Note, below, changes the prompt of every generation.
+([Extended attributes](extended-attributes.md)); Lore Generator adds a button to every row of the lorebook grid and streams
+a generation from the model into a dialog; Author's Note, below, changes the prompt of every generation.
 
 ## Walkthrough: Author's Note
 

@@ -173,8 +173,9 @@ Methods the bundled plugins use, as examples:
 | `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu (Reviewer). |
 | `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Update menu items when the menu opens (Reviewer). |
 | `ManuscriptStoryPart$ChatMessageCard` | `autosaveAndSwapToMarkdown()` | fields `message`, `this$0` (the outer `ManuscriptStoryPart`) | React to an edited part (Chapter Marker). |
-| `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query). |
-| `LorebookView` | `create()` | local `lorebookHeaderLayout` | Add a panel above the lorebook header (Lorebook VCS). |
+| `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query, Lore Generator). |
+| `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
+| `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
 | `LorebookView` | `createEntryDetailLayout(entry)` | argument `entry`; local `detailsLayout` | Add a panel to each entry's details (Lorebook VCS). |
 
 Inner classes reach their outer instance through the synthetic field `this$0`.
@@ -187,7 +188,7 @@ On a phone the book opens in `PhoneManuscriptDialog`, whose tabs are separate cl
 (`createSidebarButton`, `renderStoryContent`, `populateMenuBar`, `createCogsMenuItem`, `createMenuItems`,
 `refreshSummaryMenuItems`, `autosaveAndSwapToMarkdown`; fields `sidebarList`, `leftBar`, `currentManuscript`,
 `hamburgerMenu`, `message`, `this$0`), so a plugin supports the phone by registering the same decorator a second time
-under the other class name. The Reviewer, Chapter Marker and Author's Note do; Side Query and Lorebook VCS don't.
+under the other class name. The Reviewer, Chapter Marker and Author's Note do; Side Query, Lore Generator and Lorebook VCS don't.
 Two differences: the card has no right-hand column (the metadata is in a popover), and `leftBar` is the tab sheet in
 the drawer of the story; on both, `leftBar` is created once and not rebuilt by `renderStoryContent()` (check for your
 tab first, as Author's Note does). Reach the outer part through `this$0` as an `Object`, since its type depends on the dialog.

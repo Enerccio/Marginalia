@@ -79,7 +79,7 @@ unlock them.
 | **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |
 
 *Default Model* and *Default Protocol* are used only when a book is created; changing them doesn't change existing
-books. The backup strategy applies to all books without a *Per manuscript override*, from their next generated part.
+books. The [Lore Generator](extensions/lore-generator.md) extension has no book and generates with them. The backup strategy applies to all books without a *Per manuscript override*, from their next generated part.
 
 ### Templates
 

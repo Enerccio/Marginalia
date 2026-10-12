@@ -181,7 +181,9 @@ right-hand column of the desktop card). Its summaries item opens `PhoneSummaries
 `AppLayout` are kept inside the dialog by the `phone-story-layout` class.
 
 On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
-`DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension). Note that the admin UI being hidden is not a permission
+`DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension and, per
+extension, the buttons *Stop* / *Start* (`OsgiService.stopExtension` / `startExtension`, state *Stopped*), *Log*
+(`ExtensionLogDialog`: the end of the extension's log with refresh and clear) and *Unload*). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call `AdminGuard.requireAdmin()` themselves (see
 [Services](services.md#administration)).
 
@@ -287,7 +289,8 @@ table (`createDescription()`), and the table has only the check box column and o
 shows name, type, owner (`allUsers`), delete time and the *Extended Content* link below each other.
 
 Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`, `ListSelectDialog`,
-`ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`.
+`ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`. `ExtensionLogDialog.show(bundle, name)` is the
+read-only, monospace view of an extension's log.
 
 ## Conventions
 
@@ -334,9 +337,12 @@ The story editor is the main example: `startGeneration` freezes the book window,
 
 ### Browser-side code
 
-Prefer Java components. When the browser has to do something (scroll positions, element sizes), use
-`element.executeJs(...)` and read the result with `.then(...)` - see `UIUtils.getPositionAndSizeOfElement` and the
-scroll handling in `ManuscriptStoryPart`.
+Prefer Java components. When the browser has to do something (scroll positions, element sizes), the script is a
+static method of `ui.JavascriptLibrary` - UI classes don't call `executeJs` themselves. The element is passed
+explicitly (`$0`, not `this`), and a script that returns a value returns the `PendingJavaScriptResult`, read with
+`.then(...)`; see `UIUtils.getPositionAndSizeOfElement`, the scroll handling in `ManuscriptStoryPart` and
+`JavascriptLibrary.scrollTextAreaToBottom` (the extension log is shown scrolled to its newest line).
+Extensions keep their own scripts.
 
 There are two JavaScript modules. `src/main/frontend/chart-connector.js` is loaded by `ChartJs` (`@JsModule`, with the
 npm package `chart.js`); it registers Chart.js and draws the configuration it gets from
@@ -406,6 +412,7 @@ The bundled plugins hook into these methods:
 | Author's Note | `ManuscriptStoryPart` | `renderStoryContent` |
 | Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
 | Instruction Exporter | `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `createCogsMenuItem` |
+| Lore Generator | `LorebookView`, `LorebookPart`, `UserPart` | `create` (adds a column to the `grid` field); `refresh` (the same for a workspace tab that was built before the extension was loaded); `refresh`, `save` |
 | Lorebook VCS | `LorebookView` | `create`, `createEntryDetailLayout` |
 | Reviewer | `ManuscriptStoryPart$ChatMessageCard`, `UserPart` | `createMenuItems`, `refreshSummaryMenuItems`; `refresh`, `save` |
 | Side Query | `ManuscriptStoryPart`, `UserPart` | `renderStoryContent`; `refresh`, `save` |

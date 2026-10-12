@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845129897521">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845135671937">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845129897521" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845135671937" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845129897521" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845129897521" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845135671937" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845135671937" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -267,7 +267,6 @@ import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.notification.Notification;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -278,7 +277,8 @@ import java.util.WeakHashMap;
 
 @Configurable
 public class BookmarksExtension implements MarginaliaExtension {
-    private static final Logger log = LoggerFactory.getLogger(BookmarksExtension.class);
+    /** The logger of the extension, its lines go to Admin → Extensions → Log. */
+    private Logger log;
 
     private static final String KEY = &quot;com.example.marginalia.bookmarks&quot;;
     private static final String MENU_ITEM_KEY = KEY + &quot;.menuItem&quot;;
@@ -294,6 +294,7 @@ public class BookmarksExtension implements MarginaliaExtension {
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService osgiService, ExtensionService extensionService) {
+        log = osgiService.createLogger(bundle);
         ExtensionDecorator menuDecorator = new ExtensionDecorator() {
             @Override
             public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
@@ -456,7 +457,9 @@ mvn package                     # target/bookmarks-1.0.1.jar</code></pre>
 </doc-codeblock></div>
 <p>Load <code translate="no" v-pre>target/bookmarks-1.0.1.jar</code> in <em>Admin → Extensions</em> and open a book (books that were already open need to be
 closed and opened again). Open a part&#x27;s menu, choose <em>Toggle bookmark</em> - the part&#x27;s sidebar entry gets the ★.</p>
-<p>If nothing appears, look in the log for <code translate="no" v-pre>Mod 'com.example.marginalia.bookmarks.BookmarksExtension$...' skipped on ...</code> (a name that doesn&#x27;t exist) or <code translate="no" v-pre>Unhandled exception in extension ...</code>.</p>
+<p>If nothing appears, look in the log for <code translate="no" v-pre>Mod 'com.example.marginalia.bookmarks.BookmarksExtension$...' skipped on ...</code> (a name that doesn&#x27;t exist) or <code translate="no" v-pre>Unhandled exception in extension ...</code>. The lines of the extension itself (here
+<code translate="no" v-pre>log.error(&quot;Cannot toggle bookmark&quot;, e)</code>) are in <em>Admin → Extensions → Log</em> of the extension, see
+<a href="../overview/#logging">Logging</a>.</p>
 <h3 id="where-to-go-from-here">Where to go from here</h3>
 <ul>
 <li>
@@ -511,7 +514,8 @@ acceptable here: they&#x27;re just text.</p>
 </ul>
 <p>The other bundled plugins build on the same pieces: Reviewer and Side Query add menu items, tabs, settings panels and
 call the model (<a href="../ui-extensions/">Extending the UI</a>); Lorebook VCS stores larger data in a lorebook&#x27;s attributes
-(<a href="../extended-attributes/">Extended attributes</a>); Author&#x27;s Note, below, changes the prompt of every generation.</p>
+(<a href="../extended-attributes/">Extended attributes</a>); Lore Generator adds a button to every row of the lorebook grid and streams
+a generation from the model into a dialog; Author&#x27;s Note, below, changes the prompt of every generation.</p>
 <h2 id="walkthrough-authors-note">Walkthrough: Author&#x27;s Note</h2>
 <p><code translate="no" v-pre>marginalia/plugins/authorsnote</code> sends a per-book note to the model with every generation: an <em>Author&#x27;s Note</em> tab next
 to the story outline edits it, a generation listener inserts it into the prompt. It shows the one thing decorators

@@ -53,7 +53,7 @@ to let the extension start on the next start.
 ([Logging](../../developer/plugins/overview.md#logging)). It shows the last part of the file, **Refresh** reads it again
 and **Clear** deletes it. The file is `extensions/<name>.jar.log` (for example `sidequery.jar.log`); when it grows over
 2 MB it is moved to `.log.old` and a new one is started. It is deleted when the extension is unloaded. Extensions that
-don't log anything have an empty log. Problems of Marginalia itself are not here, they are in the application log.
+don't log anything have an empty log. What the extension logs also goes to the application log (named `extension.<name>`, at the level of the line), so it is in the log of the server too; problems of Marginalia itself are only there.
 
 ## Removing
 

@@ -118,6 +118,7 @@ Marginalia:
 | [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
 | [Reviewer](extensions/reviewer.md) | Works. Its items are in the menu of a part, its settings in *Settings → Extension Settings*. |
 | [Side Query](extensions/side-query.md) | **Not available.** The side chat is only added to the desktop story editor. |
+| [Lore Generator](extensions/lore-generator.md) | **Not available.** The generator button is only added to the desktop lorebook editor. |
 | [Lorebook VCS](extensions/lorebook-vcs.md) | **Not available.** The revision history is only added to the desktop lorebook editor. |
 
 Extensions from other sources may behave differently or add nothing at all on the phone; they appear where their
