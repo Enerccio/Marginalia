@@ -309,6 +309,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_START, "開始");
         setValue(L.LABEL_LOG, "ログ");
         setValue(L.LABEL_CLEAR, "クリア");
+        setValue(L.LABEL_SHARED, "共有");
+        setValue(L.LABEL_SHARED_WITH_ALL_USERS, "全ユーザーと共有");
+        setValue(L.LABEL_USERS_CAN_CREATE_AIS, "ユーザーが独自のモデルを作成できる");
+        setValue(L.LABEL_TOKENS_SENT, "送信トークン数");
+        setValue(L.LABEL_TOKENS_GENERATED, "生成トークン数");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

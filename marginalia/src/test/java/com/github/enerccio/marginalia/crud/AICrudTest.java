@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AICrudTest extends ExtendableCrudContract<AI> {
 
@@ -110,5 +111,23 @@ class AICrudTest extends ExtendableCrudContract<AI> {
         assertThat(llm.lastCompletionRequest().getBody().get("reasoning_effort").getAsString()).isEqualTo("high");
         assertThat(llm.lastCompletionRequest().getModel()).isEqualTo("model-a");
         assertThat(llm.lastCompletionRequest().getApiKey()).isEqualTo("sk-test");
+    }
+
+    /**
+     * Unlike other entities an AI can't be saved by anybody but its owner (an AI shared by an administrator is
+     * readable by everybody), so the owner stays by refusing the save.
+     */
+    @Override
+    @Test
+    void savingKeepsExistingOwner() throws Exception {
+        AI saved = create();
+        login();
+
+        AI loaded = reload(saved);
+        modify(loaded);
+
+        assertThatThrownBy(() -> service().save(loaded)).isInstanceOf(SecurityException.class);
+        assertThat(reload(saved).getOwner().getId()).isEqualTo(owner.getId());
+        assertThat(reload(saved).getName()).isEqualTo(saved.getName());
     }
 }

@@ -176,13 +176,13 @@ public class MockLLMServer implements AutoCloseable {
         String id = "chatcmpl-mock-" + completionIds.incrementAndGet();
         String model = request.getModel() != null ? request.getModel() : "mock-model";
         if (request.isStream()) {
-            streamCompletion(exchange, response, id, model);
+            streamCompletion(exchange, request, response, id, model);
         } else {
             sendJson(exchange, 200, completionBody(response, id, model));
         }
     }
 
-    private void streamCompletion(HttpExchange exchange, MockLLMResponse response, String id, String model) throws IOException {
+    private void streamCompletion(HttpExchange exchange, MockLLMRequest request, MockLLMResponse response, String id, String model) throws IOException {
         exchange.getResponseHeaders().set("Content-Type", "text/event-stream");
         exchange.getResponseHeaders().set("Cache-Control", "no-cache");
         exchange.sendResponseHeaders(200, 0);
@@ -220,6 +220,17 @@ public class MockLLMServer implements AutoCloseable {
         }
 
         writeEvent(out, chunkBody(id, model, new JsonObject(), response.getFinishReason()));
+        if (response.getPromptTokens() != null && request.includesUsage()) {
+            // the usage chunk has no choices
+            JsonObject usageChunk = chunkBody(id, model, new JsonObject(), null);
+            usageChunk.add("choices", new JsonArray());
+            JsonObject usage = new JsonObject();
+            usage.addProperty("prompt_tokens", response.getPromptTokens());
+            usage.addProperty("completion_tokens", response.getCompletionTokens());
+            usage.addProperty("total_tokens", response.getPromptTokens() + response.getCompletionTokens());
+            usageChunk.add("usage", usage);
+            writeEvent(out, usageChunk);
+        }
         out.write("data: [DONE]\n\n".getBytes(StandardCharsets.UTF_8));
         out.flush();
     }

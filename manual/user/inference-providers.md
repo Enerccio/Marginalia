@@ -101,8 +101,8 @@ parts of the story that don't fit are left out. With a context of 32 000 tokens 
 the prompt gets 30 000 tokens.
 
 Take **Max Context Size** from the documentation of the service, and set it a little lower: token counts are not
-always exact, and a request that exceeds the real limit fails. A [protocol](protocols.md) can override both limits
-for some books.
+always exact, and a request that exceeds the real limit fails. A [protocol](protocols.md) can lower both limits
+for some books, but not raise them.
 
 ## Error messages
 
@@ -157,6 +157,35 @@ and tries these methods in order:
 
 The first method that works is used from then on. The local estimate is close for most models but not exact, which
 is another reason to keep **Max Context Size** a little below the real limit.
+
+## Shared providers
+
+On an installation with several users, an administrator can **share** a provider: check **Shared with all users** in
+the provider's dialog (the checkbox is only there for administrators). Every user then finds it in the **Model** list
+of their books and in their **Inference Providers** tab, marked *Shared* **Yes**. They can use it, but they can't open
+it, see its address or API key, change it or delete it; only its owner can. Books, backups and restores that refer to
+a shared provider keep working for everybody who can see it.
+
+Sharing a provider lets the other users spend the owner's quota with the service. To stop users from adding providers
+of their own, so that they can only use the shared ones, see
+[Users and providers](administration/users.md#users-and-providers).
+
+## Usage
+
+The **Inference Providers** tab shows, per provider, the **Tokens sent** (the prompt, "prefill") and **Tokens generated** (the
+response, reasoning included) you have used with it, added up over all your books, summaries and extensions. A shared
+provider has a count of its own for each user, so you see only your part.
+
+The numbers are what the service reports. A service that doesn't report them (or a request you stop in the middle)
+is counted with the local estimate described in [Token counting](#token-counting), so those numbers are approximate.
+A request that fails before any text arrived isn't counted. The counts are only informational for now: nothing is
+limited by them.
+
+!!!
+Marginalia asks the service to report the token counts (`stream_options` with `include_usage`). To change that for a
+provider, put your own `stream_options` into its **Additional Parameters**, for example
+`{"stream_options": {"include_usage": false}}`: it replaces what Marginalia sends, and the local estimate is used.
+!!!
 
 ## Using a provider in a book
 

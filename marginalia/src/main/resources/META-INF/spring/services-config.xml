@@ -47,6 +47,14 @@
         <property name="repository" ref="aiRepository" />
     </bean>
 
+    <bean id="usageRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaUsageRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.UsageServiceImpl">
+        <property name="repository" ref="usageRepository" />
+    </bean>
+
     <bean id="protocolRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaProtocolRepository">
         <property name="entityManager" ref="em"/>
     </bean>

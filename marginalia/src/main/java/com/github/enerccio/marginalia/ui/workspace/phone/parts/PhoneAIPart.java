@@ -3,7 +3,9 @@ package com.github.enerccio.marginalia.ui.workspace.phone.parts;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.service.AIService;
+import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -23,8 +25,11 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.text.NumberFormat;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The model list for phones. Instead of the type, name and action columns of the desktop list it has a text column
@@ -40,8 +45,13 @@ public class PhoneAIPart implements WorkspaceComponent {
     @Autowired
     private AIService aiService;
 
+    @Autowired
+    private UsageService usageService;
+
     private final Workspace workspace;
     private Grid<AI> grid;
+    private Button addModelButton;
+    private final Map<Long, Usage> usages = new HashMap<>();
 
     public PhoneAIPart(Workspace workspace) {
         this.workspace = workspace;
@@ -72,6 +82,7 @@ public class PhoneAIPart implements WorkspaceComponent {
         });
         addModelButton.setThemeName("primary");
         addModelButton.setWidthFull();
+        this.addModelButton = addModelButton;
 
         grid = new Grid<>();
         grid.setSizeFull();
@@ -100,6 +111,11 @@ public class PhoneAIPart implements WorkspaceComponent {
 
         textLayout.add(createLine(loc.getValue(L.LABEL_TYPE), loc.getValue(loc.getAIType(ai.getAiType()))));
         textLayout.add(createLine(loc.getValue(L.LABEL_NAME), ai.getName()));
+        if (ai.isShared()) {
+            textLayout.add(createLine(loc.getValue(L.LABEL_SHARED), loc.getValue(L.LABEL_YES)));
+        }
+        textLayout.add(createLine(loc.getValue(L.LABEL_TOKENS_SENT), formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getPrefillTokens())));
+        textLayout.add(createLine(loc.getValue(L.LABEL_TOKENS_GENERATED), formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getGeneratedTokens())));
         return textLayout;
     }
 
@@ -139,6 +155,11 @@ public class PhoneAIPart implements WorkspaceComponent {
                 }));
         deleteButton.setThemeName("error tertiary");
 
+        // AIs shared by somebody else can be used, not seen or changed
+        boolean own = aiService.isOwnedByCurrentUser(ai);
+        editButton.setVisible(own);
+        deleteButton.setVisible(own);
+
         HorizontalLayout actions = new HorizontalLayout(editButton, deleteButton);
         actions.setSpacing(false);
         actions.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -164,6 +185,9 @@ public class PhoneAIPart implements WorkspaceComponent {
         try {
             List<AI> connections = aiService.findAllForUser();
             connections.sort(Comparator.comparing(AI::getName));
+            usages.clear();
+            usageService.findAllForUser().forEach(usage -> usages.put(usage.getAi().getId(), usage));
+            addModelButton.setVisible(aiService.canCreate());
             grid.setItems(connections);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -182,5 +206,9 @@ public class PhoneAIPart implements WorkspaceComponent {
     @Override
     public void onTabClosed() throws Exception {
 
+    }
+
+    private static String formatTokens(long tokens) {
+        return NumberFormat.getIntegerInstance().format(tokens);
     }
 }

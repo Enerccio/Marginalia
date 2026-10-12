@@ -27,6 +27,8 @@ public class MockLLMResponse {
     private String reasoningField = "reasoning_content";
     private long chunkDelayMillis;
     private Integer disconnectAfter;
+    private Long promptTokens;
+    private Long completionTokens;
     private CountDownLatch gate;
     private long gateTimeoutMillis = TimeUnit.SECONDS.toMillis(30);
 
@@ -109,6 +111,24 @@ public class MockLLMResponse {
     public MockLLMResponse reasoningField(String field) {
         this.reasoningField = field;
         return this;
+    }
+
+    /**
+     * Token counts the mock reports in the last chunk of a stream, like a provider that was asked for
+     * {@code stream_options.include_usage}. Without it the stream carries no counts.
+     */
+    public MockLLMResponse usage(long promptTokens, long completionTokens) {
+        this.promptTokens = promptTokens;
+        this.completionTokens = completionTokens;
+        return this;
+    }
+
+    public Long getPromptTokens() {
+        return promptTokens;
+    }
+
+    public Long getCompletionTokens() {
+        return completionTokens;
     }
 
     public MockLLMResponse finishReason(String finishReason) {

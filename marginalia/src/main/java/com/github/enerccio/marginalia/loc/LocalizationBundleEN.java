@@ -309,6 +309,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_START, "Start");
         setValue(L.LABEL_LOG, "Log");
         setValue(L.LABEL_CLEAR, "Clear");
+        setValue(L.LABEL_SHARED, "Shared");
+        setValue(L.LABEL_SHARED_WITH_ALL_USERS, "Shared with all users");
+        setValue(L.LABEL_USERS_CAN_CREATE_AIS, "Users can create their own models");
+        setValue(L.LABEL_TOKENS_SENT, "Tokens sent");
+        setValue(L.LABEL_TOKENS_GENERATED, "Tokens generated");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

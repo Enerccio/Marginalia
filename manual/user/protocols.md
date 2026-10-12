@@ -37,20 +37,23 @@ model uses its own default. Enable only what you want to change.
 
 ## Limits
 
-The limits of the [inference provider](inference-providers.md#general-settings) always apply. A protocol can override
-them, each one separately:
+The limits of the [inference provider](inference-providers.md#general-settings) always apply. A protocol can lower
+them, each one separately, but never raise them above the provider's:
 
 | | Protocol value set | Protocol value empty |
 |---|---|---|
-| Context | **Max Context Tokens** | provider's **Max Context Size** |
-| Response | **Max Reply Tokens** | provider's **Max Response Tokens** |
+| Context | **Max Context Tokens**, or the provider's **Max Context Size** if that is smaller | provider's **Max Context Size** |
+| Response | **Max Reply Tokens**, or the provider's **Max Response Tokens** if that is smaller | provider's **Max Response Tokens** |
+
+A protocol with **Max Context Tokens** 128 000 used with a provider of 32 000 gets 32 000: the provider is what the
+service (or the administrator who shares it) allows.
 
 Marginalia keeps room for the response free and fills the rest of the context with the prompt: templates, lorebook
 entries, summaries and as much of the story as fits. With a context of 32 000 tokens and responses of up to 2 000
 tokens, the prompt gets 30 000 tokens. The response limit is also sent to the API (`max_completion_tokens`).
 
 Use the protocol limits to keep prompts shorter than the model allows, for example to make long books cheaper and
-faster with a large-context cloud model, or to allow longer responses for some books. The protocol limits are also
+faster with a large-context cloud model, or to keep responses shorter for some books. The protocol limits are also
 used for [summaries](books/summaries.md) of books with this protocol.
 
 Leave both empty unless you need them: the provider's values then apply, and when you change the provider of a

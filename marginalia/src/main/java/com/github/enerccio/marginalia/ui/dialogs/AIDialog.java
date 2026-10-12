@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
@@ -56,12 +57,16 @@ public class AIDialog extends Dialog {
     @Autowired
     private TokenizerService tokenizerService;
 
+    @Autowired
+    private User currentUser;
+
     private AI ai;
     private Runnable onSave;
 
     // Header fields (above tabs)
     private TextField nameField;
     private ComboBox<AIType> typeCombo;
+    private Checkbox sharedCheckbox;
 
     // General fields (in tab 1)
     private IntegerField maxContextField;
@@ -118,6 +123,9 @@ public class AIDialog extends Dialog {
         FormLayout baseFormLayout = new FormLayout();
         baseFormLayout.setWidthFull();
         baseFormLayout.add(nameField, typeCombo);
+        if (sharedCheckbox.isVisible()) {
+            baseFormLayout.add(sharedCheckbox, 2);
+        }
 
         mainLayout.add(baseFormLayout);
 
@@ -187,6 +195,10 @@ public class AIDialog extends Dialog {
         typeCombo.setItemLabelGenerator(type -> loc.getValue(loc.getAIType(type)));
         typeCombo.setRequired(true);
         typeCombo.setWidthFull();
+
+        // only administrators share, the service refuses it for anybody else
+        sharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARED_WITH_ALL_USERS));
+        sharedCheckbox.setVisible(currentUser.isAdmin());
 
         maxContextField = new IntegerField(loc.getValue(L.LABEL_MAX_CONTEXT));
         maxContextField.setRequired(true);
@@ -300,6 +312,7 @@ public class AIDialog extends Dialog {
 
         nameField.setValue(StringUtils.defaultString(ai.getName()));
         typeCombo.setValue(ai.getAiType());
+        sharedCheckbox.setValue(ai.isShared());
         // older providers may have no limits stored - offer the defaults, saving requires a value
         maxContextField.setValue(ai.getMaxContext() != null && ai.getMaxContext() > 0 ? ai.getMaxContext() : DEFAULT_MAX_CONTEXT);
         maxResponseField.setValue(ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0 ? ai.getMaxCompletionTokens() : DEFAULT_MAX_RESPONSE);
@@ -517,6 +530,7 @@ public class AIDialog extends Dialog {
 
             ai.setName(name.trim());
             ai.setAiType(type);
+            ai.setShared(sharedCheckbox.isVisible() && sharedCheckbox.getValue());
             ai.setMaxContext(maxContext);
             ai.setMaxCompletionTokens(maxResponse);
             ai.setJailbreak(jailbreakField.getValue());
