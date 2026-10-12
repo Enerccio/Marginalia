@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845164395994">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845164772827">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845164395994" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845164772827" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845164395994" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845164772827" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845164395994" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845164395994" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845164772827" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845164772827" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -710,7 +710,7 @@ table (<code translate="no" v-pre>createDescription()</code>), and the table has
 shows name, type, owner (<code translate="no" v-pre>allUsers</code>), delete time and the <em>Extended Content</em> link below each other.</p>
 <p>Generic dialogs: <code translate="no" v-pre>ConfirmDialog.show(message, onYes)</code>, <code translate="no" v-pre>TextInputDialog.Builder</code>, <code translate="no" v-pre>ListSelectDialog</code>,
 <code translate="no" v-pre>ErrorDialog</code> (message and expandable stack trace), <code translate="no" v-pre>ProgressBarDialog</code>. <code translate="no" v-pre>ExtensionLogDialog.show(bundle, name)</code> is the
-read-only, monospace view of an extension&#x27;s log.</p>
+read-only, monospace view of an extension&#x27;s log. <code translate="no" v-pre>UsageDialog.show()</code> is the read-only table of every user&#x27;s <code translate="no" v-pre>Usage</code> (administrators).</p>
 <h2 id="conventions">Conventions</h2>
 <h3 id="text">Text</h3>
 <p>Never hard-code user-visible text. Add a key to <code translate="no" v-pre>loc/L.java</code> and the text to <code translate="no" v-pre>LocalizationBundleEN</code> (and <code translate="no" v-pre>LocalizationBundleJP</code>), and use
@@ -724,7 +724,7 @@ the field; <code translate="no" v-pre>UIUtils.showValidationErrors(loc, e)</code
 model API (<code translate="no" v-pre>InferenceException</code>: wrong key, wrong URL, timeout...) go through <code translate="no" v-pre>UIUtils.inferenceError(loc, e)</code>, which
 shows the localized cause (<code translate="no" v-pre>InferenceErrors</code>) as a notification and falls back to <code translate="no" v-pre>internalServerError</code> for anything
 else. <code translate="no" v-pre>AIDialog</code> has the <em>Test Connection</em> button (<code translate="no" v-pre>InferenceService.testConnection()</code> with the values of the form) and, for administrators only, the <em>Shared with all users</em> checkbox.
-<code translate="no" v-pre>AIPart</code> / <code translate="no" v-pre>PhoneAIPart</code> list the user&#x27;s AIs and the shared ones with the user&#x27;s own <code translate="no" v-pre>Usage</code> (tokens sent / generated); the edit and delete buttons are only shown for AIs the user owns (<code translate="no" v-pre>AIService.isOwnedByCurrentUser</code>) and the add button only when <code translate="no" v-pre>AIService.canCreate()</code>. The service refuses the same things itself.</p>
+<code translate="no" v-pre>AIPart</code> / <code translate="no" v-pre>PhoneAIPart</code> list the user&#x27;s AIs and the shared ones with the user&#x27;s own <code translate="no" v-pre>Usage</code> (tokens sent / generated); the edit and delete buttons are only shown for AIs the user owns (<code translate="no" v-pre>AIService.isOwnedByCurrentUser</code>) and the add button only when <code translate="no" v-pre>AIService.canCreate()</code>. The service refuses the same things itself. <code translate="no" v-pre>AIPart</code> also has a <em>Usage per user</em> button, visible to administrators only, that opens <code translate="no" v-pre>UsageDialog</code> (<code translate="no" v-pre>UsageService.findAllUsages()</code>: user, model, tokens sent / generated, requests, last used); the service checks the administrator itself.</p>
 <h3 id="saving">Saving</h3>
 <p>Most forms save automatically: value change listeners call an <code translate="no" v-pre>autosave()</code> method of the part (guarded so that
 loading values into the fields doesn&#x27;t trigger a save). The story editor saves an edited part when the edit is
@@ -803,7 +803,7 @@ runs before and after that method and can read its arguments and local variables
 |---|---|
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), the shared story helpers (`StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog`; the phone twins of the tabs (`PhoneManuscriptStoryPart` and its `ChatMessageCard`, `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart`, `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`), see [the phone twins](plugins/extendable.md#the-phone-twins) |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `UsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -824,7 +824,7 @@ runs before and after that method and can read its arguments and local variables
 </tr>
 <tr>
 <td>Dialogs and components</td>
-<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>TokenUsageDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code>, <code translate="no" v-pre>PhoneSummariesDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>ChartJs</code>, <code translate="no" v-pre>TrashGrid</code>, <code translate="no" v-pre>PhoneTrashGrid</code></td>
+<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>TokenUsageDialog</code>, <code translate="no" v-pre>UsageDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code>, <code translate="no" v-pre>PhoneSummariesDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>ChartJs</code>, <code translate="no" v-pre>TrashGrid</code>, <code translate="no" v-pre>PhoneTrashGrid</code></td>
 </tr>
 <tr>
 <td>Routes</td>

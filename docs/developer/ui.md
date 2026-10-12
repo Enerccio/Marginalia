@@ -306,7 +306,7 @@ shows name, type, owner (`allUsers`), delete time and the *Extended Content* lin
 
 Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`, `ListSelectDialog`,
 `ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`. `ExtensionLogDialog.show(bundle, name)` is the
-read-only, monospace view of an extension's log.
+read-only, monospace view of an extension's log. `UsageDialog.show()` is the read-only table of every user's `Usage` (administrators).
 
 ## Conventions
 
@@ -325,7 +325,7 @@ the field; `UIUtils.showValidationErrors(loc, e)` formats a binder's `Validation
 model API (`InferenceException`: wrong key, wrong URL, timeout...) go through `UIUtils.inferenceError(loc, e)`, which
 shows the localized cause (`InferenceErrors`) as a notification and falls back to `internalServerError` for anything
 else. `AIDialog` has the *Test Connection* button (`InferenceService.testConnection()` with the values of the form) and, for administrators only, the *Shared with all users* checkbox.
-`AIPart` / `PhoneAIPart` list the user's AIs and the shared ones with the user's own `Usage` (tokens sent / generated); the edit and delete buttons are only shown for AIs the user owns (`AIService.isOwnedByCurrentUser`) and the add button only when `AIService.canCreate()`. The service refuses the same things itself.
+`AIPart` / `PhoneAIPart` list the user's AIs and the shared ones with the user's own `Usage` (tokens sent / generated); the edit and delete buttons are only shown for AIs the user owns (`AIService.isOwnedByCurrentUser`) and the add button only when `AIService.canCreate()`. The service refuses the same things itself. `AIPart` also has a *Usage per user* button, visible to administrators only, that opens `UsageDialog` (`UsageService.findAllUsages()`: user, model, tokens sent / generated, requests, last used); the service checks the administrator itself.
 
 ### Saving
 
@@ -413,7 +413,7 @@ runs before and after that method and can read its arguments and local variables
 |---|---|
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), the shared story helpers (`StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog`; the phone twins of the tabs (`PhoneManuscriptStoryPart` and its `ChatMessageCard`, `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart`, `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`), see [the phone twins](plugins/extendable.md#the-phone-twins) |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `UsageDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
 | Routes | `LoginCheckRoute` (login, saved logins), `Main` (creates the `DesktopWorkspace` or `PhoneWorkspace` in `proceedWithLogin`), `Viewer` |
 
 New screens, dialogs and components with their own logic get `@Extendable` too (a nested class needs its own
