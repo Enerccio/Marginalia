@@ -176,6 +176,9 @@ The **Inference Providers** tab shows, per provider, the **Tokens sent** (the pr
 response, reasoning included) you have used with it, added up over all your books, summaries and extensions. A shared
 provider has a count of its own for each user, so you see only your part.
 
+Administrators also get a **Usage per user** button on the tab, which opens a table with what every user has used of every
+provider (tokens sent, tokens generated, requests and the time of the last one).
+
 The numbers are what the service reports. A service that doesn't report them (or a request you stop in the middle)
 is counted with the local estimate described in [Token counting](#token-counting), so those numbers are approximate.
 A request that fails before any text arrived isn't counted. The counts are only informational for now: nothing is

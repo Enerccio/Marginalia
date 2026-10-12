@@ -35,6 +35,13 @@ public class JpaUsageRepository extends JpaOwnedRepository<Usage> implements Usa
     }
 
     @Override
+    public List<Usage> findAllUsages() {
+        return getEntityManager()
+                .createQuery("SELECT u FROM Usage u WHERE u.deleted = false", Usage.class)
+                .getResultList();
+    }
+
+    @Override
     public int add(AI ai, User user, long prefillTokens, long generatedTokens) {
         Date now = new Date();
         return getEntityManager()

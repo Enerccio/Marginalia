@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.APILocals;
@@ -15,6 +16,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.AIDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.UsageDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -47,6 +49,9 @@ public class AIPart implements WorkspaceComponent {
     @Autowired
     private UsageService usageService;
 
+    @Autowired
+    private User currentUser;
+
     private final Workspace workspace;
     private Grid<AI> grid;
     private Button addModelButton;
@@ -67,7 +72,8 @@ public class AIPart implements WorkspaceComponent {
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "titleSpan", type = Span.class),
-                    @APILocals(name = "addModelButton", type = Button.class)})
+                    @APILocals(name = "addModelButton", type = Button.class),
+                    @APILocals(name = "usagePerUserButton", type = Button.class)})
     @Override
     public Component create() throws Exception {
         mainLayout = new VerticalLayout();
@@ -91,7 +97,12 @@ public class AIPart implements WorkspaceComponent {
         addModelButton.setThemeName("primary");
         this.addModelButton = addModelButton;
 
-        headerLayout.add(titleSpan, addModelButton);
+        // usage of everybody, only for administrators
+        Button usagePerUserButton = new Button(loc.getValue(L.LABEL_USAGE_PER_USER), Solid.CHART_BAR.create(),
+                event -> UsageDialog.show());
+        usagePerUserButton.setVisible(currentUser.isAdmin());
+
+        headerLayout.add(titleSpan, usagePerUserButton, addModelButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
@@ -112,11 +123,12 @@ public class AIPart implements WorkspaceComponent {
 
         grid.addColumn(ai -> formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getPrefillTokens()))
                 .setHeader(loc.getValue(L.LABEL_TOKENS_SENT))
-                .setFlexGrow(0);
+                .setFlexGrow(0)
+                .setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
 
         grid.addColumn(ai -> formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getGeneratedTokens()))
                 .setHeader(loc.getValue(L.LABEL_TOKENS_GENERATED))
-                .setFlexGrow(0);
+                .setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
 
         grid.addComponentColumn(ai -> {
             HorizontalLayout actions = new HorizontalLayout();
