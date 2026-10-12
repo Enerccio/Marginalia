@@ -22,7 +22,7 @@ The two choices at the top of the dialog decide which lore goes into the request
 
 | Choice | |
 |---|---|
-| **Current Lorebook** (default) / **All Lore** | Only the entries of the lorebook the entry is in, together with its [sub lorebooks](../lorebooks/lorebooks.md); or the entries of all your lorebooks. |
+| **Current Lorebook** (default) / **All Lore** | Only the entries of the lorebook the entry is in, ignoring its [sub lorebooks](../lorebooks/lorebooks.md); or the entries of that lorebook together with all its sub lorebooks. |
 | **Only up to position (n)** (default) / **All entries** | *n* is the order of the entry. Only the entries that come before it are shown (a lower order, or the same order and created earlier), so the model builds on what already exists and doesn't get lore that was written after the entry. *All entries* shows everything. |
 
 The entry you are generating is never included, with or without content. Whether other entries or lorebooks are

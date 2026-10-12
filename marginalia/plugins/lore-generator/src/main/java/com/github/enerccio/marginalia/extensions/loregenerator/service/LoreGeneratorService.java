@@ -33,7 +33,9 @@ public class LoreGeneratorService {
 
     /** The lore the generated entry is written against. */
     public enum LoreScope {
+        /** The lorebook and all its subbooks, transitively. */
         ALL_LORE,
+        /** Only the lorebook itself, its subbooks are ignored. */
         CURRENT_LOREBOOK
     }
 
@@ -198,7 +200,7 @@ public class LoreGeneratorService {
      * The entries of the lore in the order of the generation (order, ties broken by the creation).
      */
     List<LorebookEntry> collectEntries(Lorebook current, LorebookEntry target, LoreScope scope, EntryLimit limit) throws Exception {
-        List<Lorebook> lorebooks = scope == LoreScope.ALL_LORE ? lorebookService.findAllForUser() : withSubbooks(current);
+        List<Lorebook> lorebooks = scope == LoreScope.ALL_LORE ? withSubbooks(current) : List.of(current);
 
         Comparator<LorebookEntry> position = Comparator
                 .comparingInt(LorebookEntry::getOrder)

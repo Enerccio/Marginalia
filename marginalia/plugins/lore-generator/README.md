@@ -4,7 +4,7 @@ Generates the content of a lore entry from the existing lore. Works in the loreb
 
 Every row of the lorebook has a wand button that opens the Lore Generator dialog for that entry (a warning is shown when the entry already has content).
 
-- **Lore**: *Current Lorebook* (with its subbooks) or *All Lore* (all lorebooks of the user).
+- **Lore**: *Current Lorebook* (only the lorebook itself, its subbooks are ignored) or *All Lore* (the lorebook together with its subbooks).
 - **Entries**: *Only up to position (n)* (n is the order of the entry; entries with a higher order are left out, ties are broken by creation) or *All entries*. The entry being generated is never included.
   Enabled flags, tags, filtering and insertion modes are ignored, only the content of the entries is used.
 - **Generation prompt**: prompts are stored in the user settings; Save, Save as and Delete manage them. Deleting the last one recreates `DEFAULT`.

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845135847368">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845136240256">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845135847368" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845136240256" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845135847368" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845136240256" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845135847368" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845136240256" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -194,7 +194,7 @@ the entry replaces the content.</p>
 <p>The two choices at the top of the dialog decide which lore goes into the request:</p>
 <retype-table copy-text="| Choice | |
 |---|---|
-| **Current Lorebook** (default) / **All Lore** | Only the entries of the lorebook the entry is in, together with its [sub lorebooks](../lorebooks/lorebooks.md); or the entries of all your lorebooks. |
+| **Current Lorebook** (default) / **All Lore** | Only the entries of the lorebook the entry is in, ignoring its [sub lorebooks](../lorebooks/lorebooks.md); or the entries of that lorebook together with all its sub lorebooks. |
 | **Only up to position (n)** (default) / **All entries** | *n* is the order of the entry. Only the entries that come before it are shown (a lower order, or the same order and created earlier), so the model builds on what already exists and doesn't get lore that was written after the entry. *All entries* shows everything. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -207,7 +207,7 @@ the entry replaces the content.</p>
 <tbody>
 <tr>
 <td><strong>Current Lorebook</strong> (default) / <strong>All Lore</strong></td>
-<td>Only the entries of the lorebook the entry is in, together with its <a href="../../lorebooks/lorebooks/">sub lorebooks</a>; or the entries of all your lorebooks.</td>
+<td>Only the entries of the lorebook the entry is in, ignoring its <a href="../../lorebooks/lorebooks/">sub lorebooks</a>; or the entries of that lorebook together with all its sub lorebooks.</td>
 </tr>
 <tr>
 <td><strong>Only up to position (n)</strong> (default) / <strong>All entries</strong></td>
