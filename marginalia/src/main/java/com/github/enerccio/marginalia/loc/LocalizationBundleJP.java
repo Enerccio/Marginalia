@@ -314,6 +314,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_USERS_CAN_CREATE_AIS, "ユーザーが独自のモデルを作成できる");
         setValue(L.LABEL_TOKENS_SENT, "送信トークン数");
         setValue(L.LABEL_TOKENS_GENERATED, "生成トークン数");
+        setValue(L.LABEL_USAGE_PER_USER, "ユーザー別の使用量");
+        setValue(L.LABEL_REQUESTS, "リクエスト数");
+        setValue(L.LABEL_LAST_USED, "最終使用");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

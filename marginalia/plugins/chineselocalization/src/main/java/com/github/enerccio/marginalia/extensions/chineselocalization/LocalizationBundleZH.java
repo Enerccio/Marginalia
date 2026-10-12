@@ -322,6 +322,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_USERS_CAN_CREATE_AIS, "允许用户创建自己的模型");
         setValue(L.LABEL_TOKENS_SENT, "已发送令牌");
         setValue(L.LABEL_TOKENS_GENERATED, "已生成令牌");
+        setValue(L.LABEL_USAGE_PER_USER, "按用户统计的用量");
+        setValue(L.LABEL_REQUESTS, "请求数");
+        setValue(L.LABEL_LAST_USED, "最后使用");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

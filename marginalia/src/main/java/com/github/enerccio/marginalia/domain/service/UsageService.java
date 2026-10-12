@@ -38,4 +38,11 @@ public interface UsageService extends OwnedService<Usage, UsageRepository> {
      */
     List<Usage> findAllForAI(AI ai) throws Exception;
 
+    /**
+     * Usages of all AIs by all users, for the administrator's overview.
+     *
+     * @throws SecurityException for anybody but an administrator
+     */
+    List<Usage> findAllUsages() throws Exception;
+
 }

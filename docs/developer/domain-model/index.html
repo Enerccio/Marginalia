@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845161645289">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845164395994">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845161645289" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845164395994" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845161645289" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845164395994" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845161645289" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845161645289" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845164395994" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845164395994" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1066,7 +1066,8 @@ uses it. Counting only; nothing is limited by it yet.</p>
 <p>All are real columns: they are added up in SQL (<code translate="no" v-pre>UsageRepository.add</code>, <code translate="no" v-pre>UPDATE ... SET x = x + :n</code>), not read and saved, so parallel
 requests don&#x27;t lose counts. <code translate="no" v-pre>UsageService.record(ai, prefill, generated)</code> is the way to count: it adds to the row of the
 current user, creating it on first use (under a lock held until the commit, so two first uses can&#x27;t both insert), and
-never throws. <code translate="no" v-pre>findAllForAI(ai)</code> lists every user&#x27;s usage for the owner of the AI or an administrator. See
+never throws. <code translate="no" v-pre>findAllForAI(ai)</code> lists every user&#x27;s usage for the owner of the AI or an administrator; <code translate="no" v-pre>findAllUsages()</code> lists all of them, administrators only (the
+<strong>Usage per user</strong> dialog of the Models tab). See
 <a href="../generation-pipeline/#usage-counting">Inference</a>.</p>
 <h3 id="protocol--chatcompletionprotocol"><code translate="no" v-pre>Protocol</code> / <code translate="no" v-pre>ChatCompletionProtocol</code></h3>
 <retype-table copy-text="| Field | Stored | |

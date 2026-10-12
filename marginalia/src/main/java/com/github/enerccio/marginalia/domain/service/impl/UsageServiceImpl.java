@@ -90,4 +90,11 @@ public class UsageServiceImpl extends OwnedServiceImpl<Usage, UsageRepository> i
         }
         return getRepository().findAllByAI(stored);
     }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Usage> findAllUsages() throws Exception {
+        adminGuard.requireAdmin();
+        return getRepository().findAllUsages();
+    }
 }

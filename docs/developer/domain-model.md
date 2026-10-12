@@ -384,7 +384,8 @@ uses it. Counting only; nothing is limited by it yet.
 All are real columns: they are added up in SQL (`UsageRepository.add`, `UPDATE ... SET x = x + :n`), not read and saved, so parallel
 requests don't lose counts. `UsageService.record(ai, prefill, generated)` is the way to count: it adds to the row of the
 current user, creating it on first use (under a lock held until the commit, so two first uses can't both insert), and
-never throws. `findAllForAI(ai)` lists every user's usage for the owner of the AI or an administrator. See
+never throws. `findAllForAI(ai)` lists every user's usage for the owner of the AI or an administrator; `findAllUsages()` lists all of them, administrators only (the
+**Usage per user** dialog of the Models tab). See
 [Inference](generation-pipeline.md#usage-counting).
 
 ### `Protocol` / `ChatCompletionProtocol`

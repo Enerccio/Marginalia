@@ -19,6 +19,11 @@ public interface UsageRepository extends OwnedRepository<Usage> {
     List<Usage> findAllByAI(AI ai) throws Exception;
 
     /**
+     * @return usages of all AIs by all users
+     */
+    List<Usage> findAllUsages() throws Exception;
+
+    /**
      * Adds to the counters of the usage of the AI by the user (one request), in SQL so parallel additions don't lose
      * counts.
      *

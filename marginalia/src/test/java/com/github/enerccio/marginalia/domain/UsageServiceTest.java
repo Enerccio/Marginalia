@@ -99,6 +99,20 @@ class UsageServiceTest extends MarginaliaTestBase {
     }
 
     @Test
+    void usageOfAllUsersIsForAdministratorsOnly() throws Exception {
+        User first = login();
+        usageService.record(createAI(), 1, 1);
+        User second = loginAs(createUser());
+        usageService.record(createAI(), 2, 2);
+
+        assertThatThrownBy(() -> usageService.findAllUsages()).isInstanceOf(SecurityException.class);
+
+        loginAdmin();
+        assertThat(usageService.findAllUsages()).extracting(u -> u.getOwner().getId())
+                .contains(first.getId(), second.getId());
+    }
+
+    @Test
     void usageWithoutAiIsIgnored() throws Exception {
         login();
 
