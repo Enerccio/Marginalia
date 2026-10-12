@@ -1,7 +1,7 @@
 ---
 label: Database & migrations
 order: 950
-verified: ad3d096
+verified: 9dce3eb
 covers:
   - marginalia/src/main/resources/migration
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/migration
