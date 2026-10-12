@@ -427,7 +427,7 @@
           <!-- the Vaadin build info (flow-build-info.json) comes only from vaadin-maven-plugin: build-frontend
                writes the production one into the WAR, a development one left in src/main/resources for IDE runs
                must never get there -->
-          <packagingExcludes>**/gwt-unitCache/**,**/obsb.properties**,WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json.*</packagingExcludes>
+          <packagingExcludes>**/gwt-unitCache/**,WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json.*</packagingExcludes>
           <webResources>
             <!-- release logging (INFO, no story content) - the WAR gets it instead of the development
                  log4j.properties, which stays in target/classes for IDE runs and mvn jetty:run -->
