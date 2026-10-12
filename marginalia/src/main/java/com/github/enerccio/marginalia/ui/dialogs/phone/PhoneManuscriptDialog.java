@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.*;
+import com.github.enerccio.marginalia.ui.dialogs.story.StoryHost;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
@@ -38,7 +39,7 @@ import java.util.Map;
  */
 @Configurable
 @Extendable
-public class PhoneManuscriptDialog extends Dialog {
+public class PhoneManuscriptDialog extends Dialog implements StoryHost {
 
     @Autowired
     protected Localization loc;

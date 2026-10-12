@@ -1,4 +1,4 @@
-# Marginalia — TODO for first release
+# Marginalia — TODO
 
 Ordered from most to least important. Each item says **why** it matters and **where** to look.
 Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of core.
@@ -52,7 +52,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 ## P1 — Needed for a usable public release
 
-6. ✅ **README + user documentation** (`docs/user` is empty).
+6. ✅ **README + user documentation** (`manual/user`).
    - ✅ README (description, features, desktop/Docker/source installation, first start, data location, extensions,
      license) and plugin READMEs in `marginalia/plugins`. Upgrade notes are in the README; no
      screenshots are outstanding (`TODO.IMAGES.md`).
@@ -75,7 +75,8 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
      shipped by the Dockerfile**. Make a multi-module build, and decide whether bundled plugins ship preinstalled.
      Partly eased: `marginalia/plugins/Dockerfile` + `docker-compose.yml` build all plugins in a container (JARs in
      `marginalia/plugins/build`), and `rebuild.sh` / `rebuild.bat` pull, rebuild the plugins into `data/extensions`
-     and restart the compose stack. Still no aggregator POM and no preinstalled plugins in the image.
+     and restart the compose stack. The root `pom.xml` is the aggregator and parent POM (since 1.1.0); still no
+     preinstalled plugins in the image.
    - ✅ `target/` folders are not in `.gitignore` (root and `plugins/*/target`).
    - ✅ Versioning: everything is `1.2.0`. `AppSettings.appVersion/dbVersion` and `ApplicationInitializer` are hard-coded `1`.
      Use the Maven version + git info (git-commit-id plugin is already present) and show it in the admin page.
@@ -223,8 +224,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     layout does not switch on resize/rotation without a reload; the lorebook editor is reduced (entry content only);
     *Resources* and the provider/protocol dialogs are the desktop ones; no admin pages on a phone; an extension must
     register its decorators for the phone twins too (`PhoneManuscriptStoryPart`, see `plugins/extendable.md`).
-    The twins duplicate a lot of the desktop classes (`PhoneManuscriptStoryPart` ~1.3k lines next to
-    `ManuscriptStoryPart` ~1.3k): shared code should move out when either is touched next.
+    The story twins share their helpers in `ui.dialogs.story` (generation listener, cards registry, new turn form,
+    backup...); the other twins (tree, info, prompt, backup, lorebook parts) still duplicate the desktop classes: move
+    shared code out when either is touched next.
 29. **Theming** — light/dark toggle per user, editor font/size settings.
 30. **Import from other tools** — SillyTavern chats → book with branches, NovelAI/KoboldAI stories. 🧩
 31. **Image generation / illustrations** for scenes (would use `Resource`; attaching images by hand is done, see
@@ -236,3 +238,122 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     answer is healthy). Missing: a dedicated health endpoint and basic usage metrics (tokens per provider).
 34. **Configuration via environment variables** — today it's `configuration.properties` plus
     `-Duser.home`. Document the keys and allow env overrides (data dir, default language, cookie TTL).
+
+---
+
+## P4 — Ideas (niche, unplanned)
+
+Not committed work: things that fit the architecture and would set Marginalia apart from a generic chat front end.
+Most are 🧩 plugin-sized; the ones that need a core hook say so.
+
+### Long-form continuity
+
+35. 🧩 **Plot-thread ledger ("Chekhov's gun" tracker).** A per-book list of open promises (a locked door, a debt, an
+    unanswered letter) with the part that opened it. Threads untouched for N parts are injected into the prompt as a
+    reminder; closing one is a button or a side-query verdict ("did this part resolve thread X?"). Stored in the book's
+    `attributes`, shown next to the story tree.
+36. 🧩 **Story state panel (in-world clock, place, inventory).** `setvar` already keeps local variables per part. Add a
+    structured, editable panel over them (date/time, location, who is present, injuries, inventory) that a side query
+    updates after each part, plus a timeline view across the branch. Catches "it was night, now it is noon" and items
+    that vanish.
+37. 🧩 **Continuity checker.** After a part is accepted, a side query compares it with the activated lore and the
+    summaries and lists contradictions (eye colour, who knows what, dead characters talking). Findings are annotations
+    on the part, not edits. The `reviewer` plugin is the natural base.
+38. **Time-scoped lorebook entries.** An entry valid from part X to part Y of a branch (the character is alive until
+    chapter 12, the secret is public after the reveal), or with variants per story phase. Core: an activation
+    condition that reads the branch position. Avoids the usual "disable the entry by hand and forget".
+39. **Knowledge-aware lore ("who knows this").** Entries tagged with the characters that know them; the entry fires
+    only when the POV character is among them (the turn already has POV and present characters). Prevents the narrator
+    leaking secrets the POV character cannot know.
+40. 🧩 **Beat sheet / outline mode.** The author writes the upcoming beats as a list; each turn gets the next open beat
+    as an instruction, and a side query ticks it off when the generated part covered it (or flags drift). Beats are
+    reorderable, and the unfinished ones survive branching.
+
+### Prose quality
+
+41. **Repetition and cliché radar.** Detect repeated n-grams across the last N parts of the branch (and a user
+    blacklist: "shivers down her spine", "a mix of X and Y") and highlight them in the editor. Optionally put the
+    offenders into an "avoid" block of the next prompt, or regenerate once automatically. Per-book and per-user lists.
+42. 🧩 **Swipe feedback loop.** Record why a swipe was rejected (one-click tags: too long, out of character, purple,
+    repeats) and which one was kept. The tags build the "avoid" block of the next prompt, and the accept rate per
+    protocol/template/model (sampler values are on the protocol) answers "is this prompt actually better".
+43. 🧩 **Style fingerprint.** Compute simple metrics for the passages the author wrote or edited (sentence length,
+    dialogue ratio, adverb density, paragraph length) and compare them with the generated parts; show the drift and
+    offer to draft the book's *Style* text from the author's own writing.
+44. 🧩 **Inline rewrite.** Select a passage in a part and give an instruction (shorter, darker, show don't tell);
+    only the selection is sent (with its surrounding paragraph), the answer is a diff to accept or reject. The
+    existing flow regenerates whole parts.
+45. **Authorship provenance.** Track which spans of a part are human (typed or edited) and which are model output; show
+    the ratio per book, optionally colour the text, and offer it as an export option (some publishers and
+    contests ask for it). `ChatMessage.edited` is a single flag today.
+
+### Story tree and editing
+
+46. **Branch tools.** Diff two leaves (shared prefix collapsed, divergent tails side by side), colour/label/bookmark
+    branches, mark one path as canon, collapse abandoned swipes, and "prune dead branches" (soft-delete a subtree after
+    a preview of what the trash will contain). Fits next to the `TreantTree` tree view.
+47. **Rewrite from here.** Place the cursor inside a part, cut the rest and continue as a new turn from that point;
+    the cut tail stays as a sibling branch. A cheaper cousin of item 15 that does not need joining logic.
+48. **Side-by-side model comparison.** Fan the same turn out to 2-3 providers/protocols in parallel and show the
+    results as swipes in columns; the pick is recorded (feeds 42). Needs the generation engine to run several children
+    of one prompt without re-running the lorebook step.
+49. 🧩 **Autopilot batch.** "Write the next N parts with these instructions" unattended, with stop conditions (word
+    or token budget, a side-query judge says the scene ended, an error), written to a new branch so the main one stays
+    clean; the result is reviewed and kept or pruned. Needs terminal events for failed/cancelled generations (24a).
+
+### Lorebooks and retrieval
+
+50. **Semantic lore activation.** Keyword/tag activation misses paraphrases. Embed entries (and, optionally, older
+    story parts that fell out of context and have no summary) through an OpenAI-compatible `/embeddings` endpoint and
+    activate by similarity next to the existing modes; show the score in the activation preview (20). Storage: a blob
+    column or `sqlite-vec`; re-embed on change (hash of the content, like the meta summaries).
+51. **Lore usage report.** Per entry: how often it fired in this book, last activation, tokens it cost, and the entries
+    that never fire or always fire (dead weight). Needs the skip reasons from 24a. Turns lorebook pruning from guesswork
+    into a list.
+52. 🧩 **Lore suggestions from the story.** Scan the branch for proper nouns and recurring noun phrases with no entry and
+    propose stubs; a click hands one to the Lore Generator. Also the reverse: entries whose name never appears in the
+    book.
+53. 🧩 **Relationship graph.** Draw the lorebook as a graph (entries as nodes, mentions/links as edges, tag colours) to
+    see orphans and hubs; clicking opens the entry.
+54. 🧩 **Markdown vault mirror.** Two-way sync of a lorebook (and optionally chapters) with a folder of Markdown files with
+    front matter (name, tags, mode), so it can live in Obsidian or git. Complements `lorebookvcs`, which versions inside
+    the database.
+
+### Prompt engineering
+
+55. **Prompt dry run and diff.** Build the exact payload of the next turn without sending it, and diff it against the
+    payload of any earlier part (what changed: which entries joined, which part was cut, which summary swapped).
+    Groundwork exists (`PromptTokenBreakdown`, 24a); this is the "why did the model suddenly forget X" tool.
+56. **Cache-friendly prompt ordering.** Providers and llama.cpp reuse the longest identical prompt prefix. Lore
+    that changes every turn near the top breaks the cache. Show in *Token Usage* where the prefix first differs from
+    the previous turn's payload, and add an ordering mode that keeps the stable parts first and the volatile lore
+    last. Real money/latency win on long books.
+57. **Template playground.** Render a template against a chosen part with the context variables listed, errors with
+    line numbers, and macro autocomplete (the `DESC_MACRO_*` texts exist). Optional saved cases that run as tests
+    when the template is edited.
+58. **Per-turn sampler override.** Quick preset switch for one turn (dialogue: higher temperature; action: lower)
+    without editing the protocol, remembered as a per-book list of named presets.
+59. **Cost and budget ledger.** Price per million tokens on the provider, tokens per provider/book/month (the metrics
+    left open in 33), a soft monthly cap that warns or blocks, and the cost of the current book in its info tab.
+
+### Reading, publishing, exporting
+
+60. **Serial publishing.** Drip-publish a book to the Viewer on a schedule (one chapter a day), an Atom feed per
+    published book, and reading position per reader. Uses the cron setup of the scheduled backups.
+61. **Export targets.** AO3-ready HTML (work skin), Markdown with front matter for static site generators, a plain
+    chat-log export for SillyTavern, and an Obsidian-style vault with the lore. Item 10 covers the missing pieces of
+    the current exporters.
+62. 🧩 **Translate a branch.** Translate the active branch into another language into a new book, with the lorebook
+    names as a glossary so character and place names stay consistent. The book language is already a separate setting.
+63. **Dictation in the turn editor.** The browser's speech recognition filling the instruction box (phone and
+    desktop), the input side of item 32.
+
+### Operations and integration
+
+64. 🧩 **Notifications when a generation ends.** Slow local models take minutes: webhook (ntfy, Discord, Pushover) and, in
+    the desktop app, a tray notification when a generation finishes, fails or a batch (49) is done.
+65. 🧩 **MCP server.** Expose lore search, summaries and the active branch read-only (write behind a per-user token) to
+    other tools such as an editor agent or a coding assistant, without adding a REST API to the core.
+66. **Off-site backup target.** Scheduled database backups can only stay in the data folder. Add an upload step (S3,
+    WebDAV, or a post-backup shell hook) with optional encryption, and a restore-test button that opens the newest
+    backup in a scratch database and reports row counts.

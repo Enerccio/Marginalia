@@ -7,24 +7,23 @@ import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
-import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
-import com.github.enerccio.marginalia.ui.dialogs.*;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ExportDialog;
+import com.github.enerccio.marginalia.ui.dialogs.PromptDialog;
+import com.github.enerccio.marginalia.ui.dialogs.TokenUsageDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ImagesDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneSummariesDialog;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.github.enerccio.marginalia.ui.dialogs.story.*;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -44,13 +43,13 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The story tab of the {@link PhoneManuscriptDialog}. One column: the parts of the story fill the screen and the
@@ -66,8 +65,6 @@ import java.util.*;
 @Extendable
 public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
-    private static final String NOT_AVAILABLE = "N/A";
-
     @Autowired
     private Localization loc;
 
@@ -82,12 +79,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
     @Autowired
     private SummaryService summaryService;
-
-    @Autowired
-    private BackupService backupService;
-
-    @Autowired
-    private InferenceServices inferenceServices;
 
     private final PhoneManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
@@ -109,22 +100,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     private Button actionButton;
 
     private Popover newTurnPopover;
-    private TextArea sceneSettingField;
-    private TextField povCharacterField;
-    private TextArea presentCharactersField;
-    private TextArea instructionsField;
-
-    private String pendingSceneSetting = "";
-    private String pendingPovCharacter = "";
-    private String pendingPresentCharacters = "";
-    private String pendingInstructions = "";
-    private boolean editedByUser = false;
+    private NewTurnForm newTurnForm;
 
     private Manuscript currentManuscript;
     private boolean isFrozen = false;
 
-    private final Map<Long, ChatMessageCard> activeCardMap = new LinkedHashMap<>();
-    private ChatMessageCard streamingCard;
+    private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
+    private final StorySupport support = new StorySupport();
+    private final StoryBackup backup = new StoryBackup();
     private Long scrollToMessageId;
 
     public PhoneManuscriptStoryPart(PhoneManuscriptDialog parent) {
@@ -169,21 +152,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     }
 
     private void setupScrollListener() {
-        centerContentPanel.getElement().addEventListener("panel-scroll", event -> {
-            if (isFrozen) {
-                return;
-            }
-            double pos = event.getEventData().get("event.detail.scrollTop").asDouble();
-            if (currentManuscript != null && currentManuscript.getActiveLeaf() != null) {
-                try {
-                    ChatMessage leaf = chatMessageService.find(currentManuscript.getActiveLeaf());
-                    leaf.setScrollPosition((int) pos);
-                    chatMessageService.save(leaf);
-                } catch (Exception ignored) {}
-            }
-        }).addEventData("event.detail.scrollTop");
-
-        JavascriptLibrary.fireDebouncedScrollEvent(centerContentPanel.getElement());
+        support.trackScrollPosition(centerContentPanel, () -> currentManuscript, () -> isFrozen);
     }
 
     private HorizontalLayout buildBottomControls() {
@@ -319,81 +288,25 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         popover.setTarget(targetButton);
         popover.setPosition(PopoverPosition.TOP);
 
-        VerticalLayout content = new VerticalLayout();
-        content.setPadding(true);
-        content.setSpacing(false);
-        content.addClassName(CssStyles.PHONE_POPOVER_CONTENT);
-
-        Span title = new Span(loc.getValue(L.LABEL_NEW_TURN_INSTRUCTIONS));
-        title.addClassName(CssStyles.TEXT_BOLD);
-
-        sceneSettingField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING));
-        sceneSettingField.setWidthFull();
-        ResizableTextArea.install(loc, sceneSettingField, "100px");
-        sceneSettingField.addValueChangeListener(e -> {
-            pendingSceneSetting = e.getValue();
-            editedByUser = true;
-        });
-
-        povCharacterField = new TextField(loc.getValue(L.LABEL_POV_CHARACTER));
-        povCharacterField.setWidthFull();
-        povCharacterField.addValueChangeListener(e -> {
-            pendingPovCharacter = e.getValue();
-            editedByUser = true;
-        });
-
-        presentCharactersField = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS));
-        presentCharactersField.setWidthFull();
-        ResizableTextArea.install(loc, presentCharactersField, "80px");
-        presentCharactersField.addValueChangeListener(e -> {
-            pendingPresentCharacters = e.getValue();
-            editedByUser = true;
-        });
-
-        instructionsField = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS));
-        instructionsField.setWidthFull();
-        ResizableTextArea.install(loc, instructionsField, "120px");
-        instructionsField.addValueChangeListener(e -> {
-            pendingInstructions = e.getValue();
-            editedByUser = true;
-        });
-
-        Button generateBtn = new Button(loc.getValue(L.LABEL_GENERATE), Solid.PLAY.create(), event -> {
+        newTurnForm = new NewTurnForm(loc);
+        VerticalLayout content = newTurnForm.createContent(() -> {
             popover.close();
             if (parent != null) {
-                editedByUser = false;
+                newTurnForm.consume();
                 autosaveAndSwapAllToMarkdown();
                 startGeneration();
             }
         });
-        generateBtn.setThemeName("primary small");
-        generateBtn.setWidthFull();
-
-        content.add(title, sceneSettingField, povCharacterField, presentCharactersField, instructionsField, generateBtn);
+        content.addClassName(CssStyles.PHONE_POPOVER_CONTENT);
         popover.add(content);
 
         popover.addOpenedChangeListener(event -> {
-            if (event.isOpened() && !editedByUser) {
-                syncFieldsFromState();
+            if (event.isOpened()) {
+                newTurnForm.syncIfUntouched(currentManuscript != null ? currentManuscript.getActiveLeaf() : null);
             }
         });
 
         return popover;
-    }
-
-    private void syncFieldsFromState() {
-        ChatMessage lastMsg = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
-        if (lastMsg != null) {
-            pendingSceneSetting = StringUtils.defaultString(lastMsg.getSceneSetting());
-            pendingPovCharacter = StringUtils.defaultString(lastMsg.getPovCharacter());
-            pendingPresentCharacters = StringUtils.defaultString(lastMsg.getPresentCharacters());
-        }
-        pendingInstructions = "";
-
-        sceneSettingField.setValue(pendingSceneSetting);
-        povCharacterField.setValue(pendingPovCharacter);
-        presentCharactersField.setValue(pendingPresentCharacters);
-        instructionsField.setValue(pendingInstructions);
     }
 
     /**
@@ -401,11 +314,11 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
      * the cards that is not stored in the message - which reasonings are opened - is carried over to the new cards.
      */
     private void renderStoryContent() {
-        Set<Long> openedReasonings = collectOpenedReasonings();
+        Set<Long> openedReasonings = cards.collectOpenedReasonings();
 
         centerContentPanel.removeAll();
         sidebarList.removeAll();
-        activeCardMap.clear();
+        cards.clear();
 
         if (currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
             sidebarHeader.setText("");
@@ -431,16 +344,14 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     ChatMessageCard card = new ChatMessageCard(msg, isLast, orderId);
                     card.setFrozen(isFrozen);
                     card.setReasoningOpened(openedReasonings.contains(dbId));
-                    if (msg.getId() != null) {
-                        activeCardMap.put(msg.getId(), card);
-                    }
+                    cards.put(card);
                     centerContentPanel.add(card);
                 }
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
 
-            ChatMessageCard target = scrollToMessageId != null ? activeCardMap.get(scrollToMessageId) : null;
+            ChatMessageCard target = scrollToMessageId != null ? cards.get(scrollToMessageId) : null;
             scrollToMessageId = null;
             if (target != null) {
                 scrollToCard(target);
@@ -448,19 +359,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 restoreScrollPosition();
             }
         }
-    }
-
-    private Set<Long> collectOpenedReasonings() {
-        Set<Long> opened = new HashSet<>();
-        for (ChatMessageCard card : activeCardMap.values()) {
-            if (card.isReasoningOpened()) {
-                opened.add(card.message.getId());
-            }
-        }
-        if (streamingCard != null && streamingCard.message.getId() != null && streamingCard.isReasoningOpened()) {
-            opened.add(streamingCard.message.getId());
-        }
-        return opened;
     }
 
     /**
@@ -483,8 +381,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
         sidebarBtn.addClickListener(event -> {
             layout.setDrawerOpened(false);
-            if (dbId != null && activeCardMap.containsKey(dbId)) {
-                activeCardMap.get(dbId).scrollIntoView();
+            if (dbId != null && cards.contains(dbId)) {
+                cards.get(dbId).scrollIntoView();
             }
         });
         sidebarList.add(sidebarBtn);
@@ -522,15 +420,6 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         return outline;
     }
 
-    private void updateLastFlagsForNewCard() {
-        for (ChatMessageCard card : activeCardMap.values()) {
-            card.setLastMessage(false);
-        }
-        if (streamingCard != null) {
-            streamingCard.setLastMessage(false);
-        }
-    }
-
     private void restoreScrollPosition() {
         ChatMessage leaf = currentManuscript != null ? currentManuscript.getActiveLeaf() : null;
         Integer savedPos = (leaf != null) ? leaf.getScrollPosition() : null;
@@ -539,118 +428,15 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     }
 
     public void autosaveAndSwapAllToMarkdown() {
-        for (ChatMessageCard card : activeCardMap.values()) {
-            if (card.isEditing()) {
-                card.autosaveAndSwapToMarkdown();
-            }
-        }
-        if (streamingCard != null && streamingCard.isEditing()) {
-            streamingCard.autosaveAndSwapToMarkdown();
-        }
-    }
-
-    private void scrollToBottom() {
-        JavascriptLibrary.scrollToBottomAfterLayout(centerContentPanel.getElement());
-    }
-
-    private void scrollToBottomIfAtBottom() {
-        JavascriptLibrary.scrollToBottomIfAtBottom(centerContentPanel.getElement());
+        cards.autosaveAndSwapAllToMarkdown();
     }
 
     private void startGeneration() {
-        TurnInput input = new TurnInput(
-                pendingSceneSetting,
-                pendingPovCharacter,
-                pendingPresentCharacters,
-                pendingInstructions
-        );
-
-        startGeneration(GenerationRequest.newMessage(), input);
+        startGeneration(GenerationRequest.newMessage(), newTurnForm.toTurnInput());
     }
 
     private void checkAndApplyBackupStrategy() {
-        try {
-            Manuscript manuscript = parent.refreshManuscript();
-            if (manuscript == null) {
-                return;
-            }
-
-            BackupStrategy strategy = manuscriptService.getBackupStrategy(manuscript);
-            String strategyValStr = manuscriptService.getBackupStrategyValue(manuscript);
-
-            if (strategy == null || strategy == BackupStrategy.DISABLED) {
-                if (manuscript.getBackupStrategyCurrentValue() != null) {
-                    manuscript.setBackupStrategyCurrentValue(null);
-                    manuscriptService.save(manuscript);
-                }
-                return;
-            }
-
-            int limit = 1;
-            if (StringUtils.isNotBlank(strategyValStr)) {
-                try {
-                    limit = Math.max(1, Integer.parseInt(strategyValStr.trim()));
-                } catch (NumberFormatException ignored) {}
-            }
-
-            String prefix = strategy.name() + ":" + limit + ":";
-            String currentVal = manuscript.getBackupStrategyCurrentValue();
-
-            if (strategy == BackupStrategy.AFTER_N_MESSAGES) {
-                int count = 0;
-                if (currentVal != null && currentVal.startsWith(prefix)) {
-                    try {
-                        count = Integer.parseInt(currentVal.substring(prefix.length()));
-                    } catch (NumberFormatException ignored) {}
-                }
-
-                count++;
-
-                if (count >= limit) {
-                    try {
-                        backupService.takeBackup(manuscript);
-                    } catch (Exception e) {
-                        UIUtils.internalServerError(loc, e);
-                    }
-                    count = 0;
-                }
-
-                manuscript.setBackupStrategyCurrentValue(prefix + count);
-                parent.save();
-            } else if (strategy == BackupStrategy.AFTER_N_MINUTES) {
-                long lastBackupTime = System.currentTimeMillis();
-                boolean prefixValid = currentVal != null && currentVal.startsWith(prefix);
-
-                if (prefixValid) {
-                    try {
-                        lastBackupTime = Long.parseLong(currentVal.substring(prefix.length()));
-                    } catch (NumberFormatException ignored) {
-                        prefixValid = false;
-                    }
-                }
-
-                if (!prefixValid) {
-                    lastBackupTime = System.currentTimeMillis();
-                }
-
-                long now = System.currentTimeMillis();
-                long elapsedMinutes = (now - lastBackupTime) / (1000 * 60);
-
-                if (elapsedMinutes >= limit) {
-                    try {
-                        backupService.takeBackup(manuscript);
-                    } catch (Exception e) {
-                        UIUtils.internalServerError(loc, e);
-                    }
-                    lastBackupTime = now;
-                }
-
-                manuscript.setBackupStrategyCurrentValue(prefix + lastBackupTime);
-                parent.save();
-            }
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
-        }
+        backup.checkAndApplyBackupStrategy(parent);
     }
 
     private void startGeneration(GenerationRequest request, TurnInput turnInput) {
@@ -665,196 +451,37 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                     currentManuscript,
                     turnInput,
                     request,
-                    new GenerationListener() {
-
+                    new StoryGenerationListener<>(ui, request, cards, centerContentPanel, ChatMessageCard::new, parent,
+                            chatMessageService, loc, new StoryGenerationListener.Callbacks() {
                         @Override
-                        public void onNodeCreated(ChatMessage message) {
-                            ui.access(() -> {
-                                updateLastFlagsForNewCard();
-                                int newOrderId = activeCardMap.size() + 1;
-
-                                if (request.getRequestType() == GenerationRequestType.NEW_MESSAGE) {
-                                    ChatMessageCard card = new ChatMessageCard(message, true, newOrderId);
-                                    card.setFrozen(true);
-                                    if (message.getId() != null) {
-                                        activeCardMap.put(message.getId(), card);
-                                    }
-                                    streamingCard = card;
-                                    centerContentPanel.add(card);
-                                } else if (request.getRequestType() == GenerationRequestType.REGENERATE) {
-                                    ChatMessageCard card = getOrCreateCard(message, newOrderId);
-                                    card.updateReasoning("");
-                                    card.updateResponse("");
-                                    card.updateMetrics(message);
-                                    card.wasReasoningOpenedByGeneration = false;
-                                    streamingCard = card;
-                                } else {
-                                    List<ChatMessageCard> cards = activeCardMap.values().stream().toList();
-                                    ChatMessageCard last = cards.getLast();
-                                    activeCardMap.remove(last.message.getId());
-                                    centerContentPanel.remove(last);
-                                    ChatMessageCard card = new ChatMessageCard(message, true, newOrderId);
-                                    card.setFrozen(true);
-                                    if (message.getId() != null) {
-                                        activeCardMap.put(message.getId(), card);
-                                    }
-                                    streamingCard = card;
-                                    centerContentPanel.add(card);
-                                }
-                                scrollToBottom();
-                                UIPushGuard.push(ui);
-                            });
+                        public void generationEnded() {
+                            activeGenerationToken = null;
                         }
 
                         @Override
-                        public void onReasoningChunk(String chunk, ChatMessage message) {
-                            ui.access(() -> {
-                                ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
-                                if (card != null) {
-                                    card.updateReasoning(message.getResponseReasoning());
-                                    scrollToBottomIfAtBottom();
-                                }
-                                UIPushGuard.push(ui);
-                            });
+                        public void partGenerated() {
+                            checkAndApplyBackupStrategy();
                         }
 
                         @Override
-                        public void onResponseChunk(String chunk, ChatMessage message) {
-                            ui.access(() -> {
-                                ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
-                                if (card != null) {
-                                    card.updateResponse(message.getResponse());
-                                    scrollToBottomIfAtBottom();
-                                }
-                                UIPushGuard.push(ui);
-                            });
+                        public void turnDiscarded() {
+                            newTurnForm.keepTypedValues();
                         }
 
                         @Override
-                        public void onMetricsUpdated(ChatMessage message) {
-                            ui.access(() -> {
-                                ChatMessageCard card = getOrCreateCard(message, activeCardMap.size());
-                                if (card != null) {
-                                    card.updateMetrics(message);
-                                }
-                                UIPushGuard.push(ui);
-                            });
+                        public void reloadManuscript() throws Exception {
+                            currentManuscript = parent.refreshManuscript();
                         }
 
                         @Override
-                        public void onComplete(ChatMessage message) {
-                            ui.access(() -> {
-                                activeGenerationToken = null;
-                                streamingCard = null;
-                                parent.unfreeze();
-
-                                checkAndApplyBackupStrategy();
-
-                                JavascriptLibrary.getScrollTop(centerContentPanel.getElement())
-                                        .then(Integer.class, scrollTop -> {
-                                            if (scrollTop != null && message != null) {
-                                                message.setScrollPosition(scrollTop);
-                                                try {
-                                                    chatMessageService.save(message);
-                                                } catch (Exception ignored) {
-                                                }
-                                            }
-                                            renderStoryContent();
-                                            UIPushGuard.push(ui);
-                                        });
-                            });
+                        public void renderStory() {
+                            renderStoryContent();
                         }
-
-                        @Override
-                        public void onCancelled(ChatMessage partialMessage) {
-                            ui.access(() -> {
-                                updateLastFlagsForNewCard();
-                                if (partialMessage == null) {
-                                    // the turn was discarded: keep what the user typed instead of re-syncing (and clearing) the form
-                                    editedByUser = true;
-                                    if (streamingCard != null)
-                                        centerContentPanel.remove(streamingCard);
-                                } else {
-                                    if (streamingCard != null && !partialMessage.getId().equals(streamingCard.message.getId())) {
-                                        centerContentPanel.remove(streamingCard);
-                                        ChatMessageCard card = new ChatMessageCard(partialMessage, true, activeCardMap.size() + 1);
-                                        card.setFrozen(true);
-                                        activeCardMap.put(partialMessage.getId(), card);
-                                        streamingCard = null;
-                                        centerContentPanel.add(card);
-                                    }
-                                }
-
-                                activeGenerationToken = null;
-                                streamingCard = null;
-                                parent.unfreeze();
-
-                                JavascriptLibrary.getScrollTop(centerContentPanel.getElement())
-                                        .then(Integer.class, scrollTop -> {
-                                            if (scrollTop != null && partialMessage != null) {
-                                                partialMessage.setScrollPosition(scrollTop);
-                                                try {
-                                                    chatMessageService.save(partialMessage);
-                                                } catch (Exception ignored) {
-                                                }
-                                            }
-                                            try {
-                                                // cleanup may have removed the new part and changed the active one
-                                                currentManuscript = parent.refreshManuscript();
-                                            } catch (Exception e) {
-                                                UIUtils.internalServerError(loc, e);
-                                            }
-                                            renderStoryContent();
-                                            UIPushGuard.push(ui);
-                                        });
-                                UIPushGuard.push(ui);
-                            });
-                        }
-
-                        @Override
-                        public void onError(Throwable cause) {
-                            ui.access(() -> {
-                                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
-                                UIPushGuard.push(ui);
-                            });
-                        }
-
-                        @Override
-                        public void onSimpleError(String error) {
-                            ui.access(() -> {
-                                Notification.error(error);
-                                UIPushGuard.push(ui);
-                            });
-                        }
-
-                        @Override
-                        public void onWarning(String warning) {
-                            ui.access(() -> {
-                                Notification.warning(warning);
-                                UIPushGuard.push(ui);
-                            });
-                        }
-
-                        @Override
-                        public void askQuestion(String question, Runnable yes, Runnable no) {
-                            ui.access(() -> {
-                                ConfirmDialog.show(question, yes, no);
-                                UIPushGuard.push(ui);
-                            });
-                        }
-                    }
+                    })
             );
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
-    }
-
-    private ChatMessageCard getOrCreateCard(ChatMessage message, int fallbackOrderId) {
-        if (message == null) return streamingCard;
-        if (message.getId() != null && activeCardMap.containsKey(message.getId())) {
-            return activeCardMap.get(message.getId());
-        }
-        return streamingCard;
     }
 
     @Override
@@ -867,12 +494,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         }
         menuBar.setEnabled(!frozen);
 
-        for (ChatMessageCard card : activeCardMap.values()) {
-            card.setFrozen(frozen);
-        }
-        if (streamingCard != null) {
-            streamingCard.setFrozen(frozen);
-        }
+        cards.setFrozen(frozen);
 
         if (frozen) {
             newTurnPopover.close();
@@ -914,7 +536,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
      * the ones of the card of the desktop story.
      */
     @Extendable
-    private class ChatMessageCard extends VerticalLayout {
+    private class ChatMessageCard extends VerticalLayout implements StoryCard {
         private ChatMessage message;
         private boolean isLast;
         private final int orderId;
@@ -940,17 +562,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         private boolean editing = false;
 
         private Popover infoPopover;
-        private Span idSpan;
-        private Span modelSpan;
-        private Span protocolSpan;
-        private Span tokensSpan;
-        private Span wordsSpan;
+        private MessageMetrics metrics;
         private boolean wasReasoningOpenedByGeneration;
 
-        private TextArea detailsSceneField;
-        private TextField detailsPovField;
-        private TextArea detailsPresentField;
-        private TextArea detailsInstructionsField;
+        private TurnDetailsForm detailsForm;
 
         public ChatMessageCard(ChatMessage message, int orderId) {
             this(message, false, orderId);
@@ -1021,73 +636,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             content.setSpacing(false);
             content.addClassName(CssStyles.PHONE_POPOVER_CONTENT);
 
-            Span metaHeader = new Span(loc.getValue(L.LABEL_NODE_METADATA));
-            metaHeader.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_XS);
-
-            idSpan = new Span(String.format(loc.getValue(L.LABEL_MESSAGE_IDS), this.orderId, (message.getId() != null ? message.getId() : NOT_AVAILABLE)));
-            idSpan.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_XS);
-
-            String modelName = StringUtils.defaultIfBlank(message.getModelUsed(), NOT_AVAILABLE);
-            modelSpan = new Span(loc.getValue(L.LABEL_MODEL) + ": " + modelName);
-            modelSpan.addClassName(CssStyles.TEXT_XS);
-
-            protocolSpan = new Span(loc.getValue(L.LABEL_PROTOCOLS) + ": " + StringUtils.defaultIfBlank(message.getProtocolUsed(), NOT_AVAILABLE));
-            protocolSpan.addClassName(CssStyles.TEXT_XS);
-
-            tokensSpan = new Span(loc.getValue(L.LABEL_TOKENS) + ": " + message.getTokenCount() + " (" + message.getPromptTokens() + ")");
-            tokensSpan.addClassName(CssStyles.TEXT_XS);
-
-            wordsSpan = new Span(loc.getValue(L.LABEL_WORDS) + ": " + message.getWordCount());
-            wordsSpan.addClassName(CssStyles.TEXT_XS);
+            metrics = new MessageMetrics(loc, message, this.orderId, true);
 
             Span detailsHeader = new Span(loc.getValue(L.LABEL_TURN_DETAILS));
             detailsHeader.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.TEXT_XS);
 
-            detailsSceneField = new TextArea(loc.getValue(L.LABEL_SCENE_SETTING), StringUtils.defaultString(message.getSceneSetting()), "");
-            detailsSceneField.setReadOnly(!this.isLast);
-            detailsSceneField.setWidthFull();
-            ResizableTextArea.install(loc, detailsSceneField, "100px");
-            detailsSceneField.addValueChangeListener(e -> {
-                if (e.isFromClient() && this.isLast) {
-                    this.message.setSceneSetting(e.getValue());
-                    saveMessage();
-                }
-            });
+            detailsForm = new TurnDetailsForm(loc, message, () -> this.message, () -> this.isLast, this::saveMessage);
 
-            detailsPovField = new TextField(loc.getValue(L.LABEL_POV_CHARACTER), StringUtils.defaultString(message.getPovCharacter()), "");
-            detailsPovField.setReadOnly(!this.isLast);
-            detailsPovField.setWidthFull();
-            detailsPovField.addValueChangeListener(e -> {
-                if (e.isFromClient() && this.isLast) {
-                    this.message.setPovCharacter(e.getValue());
-                    saveMessage();
-                }
-            });
-
-            detailsPresentField = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS), StringUtils.defaultString(message.getPresentCharacters()), "");
-            detailsPresentField.setReadOnly(!this.isLast);
-            detailsPresentField.setWidthFull();
-            ResizableTextArea.install(loc, detailsPresentField, "80px");
-            detailsPresentField.addValueChangeListener(e -> {
-                if (e.isFromClient() && this.isLast) {
-                    this.message.setPresentCharacters(e.getValue());
-                    saveMessage();
-                }
-            });
-
-            detailsInstructionsField = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS), StringUtils.defaultString(message.getInstructions()), "");
-            detailsInstructionsField.setReadOnly(!this.isLast);
-            detailsInstructionsField.setWidthFull();
-            ResizableTextArea.install(loc, detailsInstructionsField, "120px");
-            detailsInstructionsField.addValueChangeListener(e -> {
-                if (e.isFromClient() && this.isLast) {
-                    this.message.setInstructions(e.getValue());
-                    saveMessage();
-                }
-            });
-
-            content.add(metaHeader, idSpan, modelSpan, protocolSpan, tokensSpan, wordsSpan, detailsHeader,
-                    detailsSceneField, detailsPovField, detailsPresentField, detailsInstructionsField);
+            content.add(metrics.getHeader());
+            content.add(metrics.getLines());
+            content.add(detailsHeader);
+            detailsForm.addTo(content);
             infoPopover.add(content);
         }
 
@@ -1128,8 +687,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
                             if (scrollTop != null && scrollTop > 0) {
                                 JavascriptLibrary.setScrollTop(centerContentPanel.getElement(), scrollTop);
-                            } else if (parentId != null && activeCardMap.containsKey(parentId)) {
-                                activeCardMap.get(parentId).scrollIntoView();
+                            } else if (parentId != null && cards.contains(parentId)) {
+                                cards.get(parentId).scrollIntoView();
                             }
                         } catch (Exception e) {
                             UIUtils.internalServerError(loc, e);
@@ -1202,23 +761,11 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         }
 
         private void regenerate() {
-            TurnInput input = new TurnInput(
-                    detailsSceneField.getValue(),
-                    detailsPovField.getValue(),
-                    detailsPresentField.getValue(),
-                    detailsInstructionsField.getValue()
-            );
-            startGeneration(GenerationRequest.regenerate(message), input);
+            startGeneration(GenerationRequest.regenerate(message), detailsForm.toTurnInput());
         }
 
         private void swipe() {
-            TurnInput input = new TurnInput(
-                    detailsSceneField.getValue(),
-                    detailsPovField.getValue(),
-                    detailsPresentField.getValue(),
-                    detailsInstructionsField.getValue()
-            );
-            startGeneration(GenerationRequest.newSwipe(message), input);
+            startGeneration(GenerationRequest.newSwipe(message), detailsForm.toTurnInput());
         }
 
         private void saveMessage() {
@@ -1237,18 +784,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             if (swipeItem != null) {
                 swipeItem.setVisible(isLast);
             }
-            if (detailsSceneField != null) {
-                detailsSceneField.setReadOnly(!isLast);
-            }
-            if (detailsPovField != null) {
-                detailsPovField.setReadOnly(!isLast);
-            }
-            if (detailsPresentField != null) {
-                detailsPresentField.setReadOnly(!isLast);
-            }
-            if (detailsInstructionsField != null) {
-                detailsInstructionsField.setReadOnly(!isLast);
-            }
+            detailsForm.setLastMessage(isLast);
         }
 
         public void setFrozen(boolean frozen) {
@@ -1280,18 +816,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             if (editing) {
                 try {
                     String newResponse = responseTextArea.getValue();
-                    message.setResponse(newResponse);
-
-                    InferenceService inferenceService = inferenceServices.forAI(currentManuscript.getAi());
-                    if (inferenceService == null) {
-                        JavaTokkitStrategy strategy = new JavaTokkitStrategy();
-                        message.setTokenCount(strategy.countTokens(null, newResponse));
-                    } else {
-                        message.setTokenCount(inferenceService.countTokens(newResponse));
-                    }
-                    message.setWordCount(chatMessageService.countWords(newResponse));
-                    message.setEdited(true);
-                    message = chatMessageService.save(message);
+                    message = support.saveEditedResponse(currentManuscript, message, newResponse);
                     responseMarkdown.setContent(StringUtils.defaultString(newResponse));
                     responseTextArea.setVisible(false);
                     responseMarkdown.setVisible(true);
@@ -1332,13 +857,21 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             }
         }
 
+        @Override
+        public ChatMessage getMessage() {
+            return message;
+        }
+
+        @Override
+        public void restartStreaming(ChatMessage msg) {
+            updateReasoning("");
+            updateResponse("");
+            updateMetrics(msg);
+            wasReasoningOpenedByGeneration = false;
+        }
+
         public void updateMetrics(ChatMessage msg) {
-            String modelName = StringUtils.defaultIfBlank(msg.getModelUsed(), NOT_AVAILABLE);
-            idSpan.setText(String.format(loc.getValue(L.LABEL_MESSAGE_IDS), this.orderId, (message.getId() != null ? message.getId() : NOT_AVAILABLE)));
-            modelSpan.setText(loc.getValue(L.LABEL_MODEL) + ": " + modelName);
-            protocolSpan.setText(loc.getValue(L.LABEL_PROTOCOLS) + ": " + StringUtils.defaultIfBlank(msg.getProtocolUsed(), NOT_AVAILABLE));
-            tokensSpan.setText(loc.getValue(L.LABEL_TOKENS) + ": " + msg.getTokenCount() + " (" + msg.getPromptTokens() + ")");
-            wordsSpan.setText(loc.getValue(L.LABEL_WORDS) + ": " + msg.getWordCount());
+            metrics.update(message, msg);
         }
 
         private void showTokenUsage() {
