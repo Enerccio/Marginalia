@@ -22,8 +22,12 @@ import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -31,6 +35,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRepository> implements SummaryService {
+
+    private static final Logger log = LoggerFactory.getLogger(SummaryServiceImpl.class);
 
     private final ExtendableEntityListener extendableListener = new ExtendableEntityListener();
 
@@ -98,7 +104,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
         newSummary = save(newSummary);
         Summary finalSummary = newSummary;
-        inferenceService.stream(payload, protocol, new InferenceAsyncCallback() {
+        InferenceAsyncCallback inferenceCallback = new InferenceAsyncCallback() {
 
             Summary summary = finalSummary;
             long lastSave = System.currentTimeMillis();
@@ -161,7 +167,32 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             public boolean isDead() {
                 return cancellationToken.isCancelled();
             }
-        });
+        };
+
+        // the summary row is inserted by this transaction: the inference runs on another thread, which saves the summary
+        // as soon as the model answers, so it must not start before the commit makes the row visible to it
+        Runnable start = () -> {
+            try {
+                inferenceService.stream(payload, protocol, inferenceCallback);
+            } catch (Exception e) {
+                log.error("Failed to start the summary inference", e);
+                try {
+                    inferenceCallback.onError(e);
+                } catch (Exception ex) {
+                    log.error("Failed to report the summary error", ex);
+                }
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    start.run();
+                }
+            });
+        } else {
+            start.run();
+        }
 
         return cancellationToken;
     }
