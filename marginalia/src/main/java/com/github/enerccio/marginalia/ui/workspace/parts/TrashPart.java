@@ -3,7 +3,10 @@ package com.github.enerccio.marginalia.ui.workspace.parts;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.TrashGrid;
@@ -40,10 +43,17 @@ public class TrashPart implements WorkspaceComponent {
         this.workspace = workspace;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     public String getName() {
         return loc.getValue(L.LABEL_TRASH);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "titleSpan", type = Span.class),
+                    @APILocals(name = "user", type = User.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -70,6 +80,8 @@ public class TrashPart implements WorkspaceComponent {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         if (trashGrid != null) {
@@ -77,11 +89,15 @@ public class TrashPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
 

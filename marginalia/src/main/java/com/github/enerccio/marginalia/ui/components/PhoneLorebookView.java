@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
@@ -89,6 +89,10 @@ public class PhoneLorebookView extends VerticalLayout {
         this.pinnedLorebook = pinnedLorebook;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "controlsLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "enabledLayout", type = HorizontalLayout.class)})
     public Component create() throws Exception {
         setSizeFull();
         setPadding(false);
@@ -150,6 +154,8 @@ public class PhoneLorebookView extends VerticalLayout {
         return this;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void setupGrid() {
         grid = new Grid<>(LorebookEntry.class, false);
         grid.setSizeFull();
@@ -159,6 +165,13 @@ public class PhoneLorebookView extends VerticalLayout {
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::createEntryDetailLayout));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "enabled", type = Checkbox.class),
+                    @APILocals(name = "nameSpan", type = Span.class),
+                    @APILocals(name = "toggleDetails", type = Button.class),
+                    @APILocals(name = "row", type = HorizontalLayout.class)})
     private Component createEntryRow(LorebookEntry entry) {
         Checkbox enabled = new Checkbox(entry.isEnabled());
         enabled.addClassName(CssStyles.FLEX_SHRINK_0);
@@ -189,6 +202,12 @@ public class PhoneLorebookView extends VerticalLayout {
         return row;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "detailsLayout", type = VerticalLayout.class),
+                    @APILocals(name = "payloadField", type = TextAreaPopoverComponent.class),
+                    @APILocals(name = "payloadTokensSpan", type = Span.class)})
     public Component createEntryDetailLayout(LorebookEntry entry) {
         VerticalLayout detailsLayout = new VerticalLayout();
         detailsLayout.setWidthFull();
@@ -236,6 +255,13 @@ public class PhoneLorebookView extends VerticalLayout {
     /**
      * A "label: value" line, empty when there is no value.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "value", type = String.class)},
+            locals = {@APILocals(name = "span", type = Span.class),
+                    @APILocals(name = "labelSpan", type = Span.class),
+                    @APILocals(name = "valueSpan", type = Span.class)})
     private Span infoSpan(L label, String value) {
         Span span = new Span();
         span.addClassNames(CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
@@ -251,6 +277,11 @@ public class PhoneLorebookView extends VerticalLayout {
         return span;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class),
+                    @APIParameter(name = "negative", type = boolean.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private String tagsOf(LorebookEntry entry, boolean negative) {
         try {
             return joinTags(tagRelationService.getTagsForObject(entry, negative));
@@ -264,21 +295,35 @@ public class PhoneLorebookView extends VerticalLayout {
         return tags.stream().map(Tag::getValue).sorted().reduce((a, b) -> a + ", " + b).orElse("");
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Span.class),
+            locals = {@APILocals(name = "span", type = Span.class)})
     private Span createTokensSpan() {
         Span span = new Span();
         span.addClassName(CssStyles.HINT_TEXT);
         return span;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "tokens", type = long.class)})
     private String formatTokens(long tokens) {
         return "~" + tokens + " " + loc.getValue(L.LABEL_TOKENS);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = long.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "cached", type = Long.class)})
     private long tokensOf(LorebookEntry entry) {
         Long cached = entry.getId() != null ? entryTokens.get(entry.getId()) : null;
         return cached != null ? cached : recountEntry(entry);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = long.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "ex", type = Exception.class)})
     private long recountEntry(LorebookEntry entry) {
         long tokens = 0;
         try {
@@ -292,6 +337,9 @@ public class PhoneLorebookView extends VerticalLayout {
         return tokens;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "entry", type = LorebookEntry.class)})
     private void updateLorebookTokens() {
         if (currentLorebook == null) {
             lorebookTokensSpan.setText("");
@@ -306,6 +354,12 @@ public class PhoneLorebookView extends VerticalLayout {
         lorebookTokensSpan.setText(formatTokens(total));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "payloadField", type = TextArea.class)},
+            locals = {@APILocals(name = "payload", type = String.class),
+                    @APILocals(name = "result", type = TemplateService.ValidationResult.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void validatePayload(TextArea payloadField) {
         String payload = payloadField.getValue();
         if (StringUtils.isBlank(payload)) {
@@ -324,10 +378,16 @@ public class PhoneLorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void refresh() throws Exception {
         loadLorebooks();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "lorebooks", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void loadLorebooks() {
         if (pinnedLorebook) {
             updateSelectedLorebook();
@@ -349,6 +409,8 @@ public class PhoneLorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void updateSelectedLorebook() {
         boolean hasLorebook = currentLorebook != null;
         lorebookEnabledCheckbox.setEnabled(hasLorebook);
@@ -368,6 +430,11 @@ public class PhoneLorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "info", type = StringBuilder.class),
+                    @APILocals(name = "tags", type = String.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void updateLorebookInfo() {
         StringBuilder info = new StringBuilder();
         try {
@@ -390,6 +457,10 @@ public class PhoneLorebookView extends VerticalLayout {
         lorebookInfoSpan.setVisible(!info.isEmpty());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "entries", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void refreshEntries() {
         if (currentLorebook == null || currentLorebook.getId() == null) {
             grid.setItems(new ArrayList<>());
@@ -409,6 +480,10 @@ public class PhoneLorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void saveEntry(LorebookEntry entry) {
         try {
             lorebookEntryService.save(entry);
@@ -417,10 +492,15 @@ public class PhoneLorebookView extends VerticalLayout {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Lorebook.class))
     public Lorebook getCurrentLorebook() {
         return currentLorebook;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "lorebook", type = Lorebook.class)})
     public void setLorebook(Lorebook lorebook) {
         this.currentLorebook = lorebook;
         updateSelectedLorebook();

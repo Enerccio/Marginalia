@@ -11,7 +11,7 @@ import com.github.enerccio.marginalia.domain.service.BackupService.ManuscriptBac
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -88,6 +88,11 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         this.parent = parent;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "strategyForm", type = VerticalLayout.class),
+                    @APILocals(name = "toolbar", type = FlexLayout.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -176,6 +181,17 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class)},
+            locals = {@APILocals(name = "date", type = Span.class),
+                    @APILocals(name = "counts", type = Span.class),
+                    @APILocals(name = "restoreBtn", type = Button.class),
+                    @APILocals(name = "cloneBtn", type = Button.class),
+                    @APILocals(name = "exportComponent", type = Component.class),
+                    @APILocals(name = "deleteBtn", type = Button.class),
+                    @APILocals(name = "actions", type = FlexLayout.class),
+                    @APILocals(name = "item", type = VerticalLayout.class)})
     private Component createItem(ManuscriptBackup backup) {
         Span date = new Span(backup.getBackupCreationDate() != null
                 ? loc.getDateHourFormat().format(backup.getBackupCreationDate())
@@ -209,6 +225,9 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         return item;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "strategy", type = BackupService.BackupStrategy.class)})
     private void updateStrategyValueFieldState(BackupStrategy strategy) {
         if (strategy == null || strategy == BackupStrategy.DISABLED) {
             backupStrategyValueField.setVisible(false);
@@ -226,6 +245,13 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "userSetting", type = UserSetting.class),
+                    @APILocals(name = "strategy", type = BackupService.BackupStrategy.class),
+                    @APILocals(name = "valStr", type = String.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void loadBackupStrategyUI() {
         loadingStrategy = true;
         try {
@@ -263,6 +289,11 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "strategy", type = BackupService.BackupStrategy.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void saveManuscriptStrategy() {
         try {
             Manuscript manuscript = parent.refreshManuscript();
@@ -278,6 +309,10 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
     /**
      * A backup without images is downloaded right away, one with images asks first whether to pack them.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class)},
+            locals = {@APILocals(name = "exportBtn", type = Button.class)})
     private Component createExport(ManuscriptBackup backup) {
         if (backup.getImageCount() == 0) {
             Button exportBtn = new Button(loc.getValue(L.LABEL_EXPORT_BACKUP), Solid.DOWNLOAD.create());
@@ -292,6 +327,11 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
     /**
      * @return an anchor around the button that downloads the JSON of the backup
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Anchor.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class),
+                    @APIParameter(name = "button", type = Button.class)},
+            locals = {@APILocals(name = "anchor", type = Anchor.class)})
     private Anchor downloadOf(ManuscriptBackup backup, Button button) {
         Anchor anchor = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
             try {
@@ -307,6 +347,14 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         return anchor;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "withImages", type = Button.class),
+                    @APILocals(name = "without", type = Button.class),
+                    @APILocals(name = "withoutImages", type = Anchor.class),
+                    @APILocals(name = "content", type = VerticalLayout.class)})
     private void askAboutImages(ManuscriptBackup backup) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_BACKUP));
@@ -333,6 +381,12 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
     /**
      * Packs the images into a file on disk, one image at a time, and offers it for download.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class)},
+            locals = {@APILocals(name = "packed", type = AtomicReference.class),
+                    @APILocals(name = "failure", type = AtomicReference.class),
+                    @APILocals(name = "packing", type = ProgressBarDialog.class)})
     private void packWithImages(ManuscriptBackup backup) {
         AtomicReference<BackupExport> packed = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
@@ -358,6 +412,14 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         packing.open();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "export", type = BackupService.BackupExport.class)},
+            locals = {@APILocals(name = "result", type = Dialog.class),
+                    @APILocals(name = "download", type = Anchor.class),
+                    @APILocals(name = "downloadButton", type = Button.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "missing", type = Span.class)})
     private void showPacked(BackupExport export) {
         Dialog result = new Dialog();
         result.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_BACKUP));
@@ -411,6 +473,10 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void takeBackup() {
         try {
             Manuscript manuscript = parent.refreshManuscript();
@@ -421,6 +487,12 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "upload", type = Upload.class),
+                    @APILocals(name = "cancelBtn", type = Button.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class)})
     private void openImportDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_BACKUP));
@@ -453,6 +525,15 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         dialog.open();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "msgSpan", type = Span.class),
+                    @APILocals(name = "fullRestoreBtn", type = Button.class),
+                    @APILocals(name = "messagesOnlyBtn", type = Button.class),
+                    @APILocals(name = "cancelBtn", type = Button.class)})
     private void openRestoreOptionsDialog(ManuscriptBackup backup) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_RESTORE_OPTION_TITLE));
@@ -491,6 +572,17 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         dialog.open();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class),
+                    @APIParameter(name = "messagesOnly", type = boolean.class),
+                    @APIParameter(name = "lorebookDecisions", type = Map.class)},
+            locals = {@APILocals(name = "current", type = Manuscript.class),
+                    @APILocals(name = "restored", type = Manuscript.class),
+                    @APILocals(name = "onClose", type = Runnable.class),
+                    @APILocals(name = "updated", type = Manuscript.class),
+                    @APILocals(name = "newDialog", type = PhoneManuscriptDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void performRestore(ManuscriptBackup backup, boolean messagesOnly, Map<String, LorebookDecision> lorebookDecisions) {
         try {
             Manuscript current = parent.refreshManuscript();
@@ -509,6 +601,10 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class)},
+            locals = {@APILocals(name = "dialog", type = TextInputDialog.class)})
     private void cloneBackup(ManuscriptBackup backup) {
         TextInputDialog dialog = new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_MANUSCRIPT_NAME), newName -> {
             if (backup.getImageCount() == 0) {
@@ -522,6 +618,12 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         dialog.open();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class),
+                    @APIParameter(name = "newName", type = String.class),
+                    @APIParameter(name = "withImages", type = boolean.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void cloneBackup(ManuscriptBackup backup, String newName, boolean withImages) {
         try {
             LorebookImportDialog.resolve(backupService.analyzeLorebooks(backup), decisions -> {
@@ -538,6 +640,9 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "backup", type = BackupService.ManuscriptBackup.class)})
     private void deleteBackup(ManuscriptBackup backup) {
         ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
             try {
@@ -549,6 +654,11 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "backups", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refreshBackups() {
         try {
             Manuscript manuscript = parent.refreshManuscript();
@@ -562,21 +672,31 @@ public class PhoneManuscriptBackupPart implements PhoneManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "frozen", type = boolean.class)})
     @Override
     public void setFrozen(boolean frozen) {
         // no need
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     @Override
     public void load(Manuscript manuscript) {
         refreshBackups();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabLeave() throws Exception {
 
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
         refreshBackups();

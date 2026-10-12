@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
@@ -135,6 +135,9 @@ public class SummaryDialog extends Dialog {
     /**
      * Runs when the dialog is closed, whatever the summary ended as.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "action", type = Runnable.class)})
     public void onClosed(Runnable action) {
         addOpenedChangeListener(e -> {
             if (!e.isOpened()) {
@@ -143,6 +146,9 @@ public class SummaryDialog extends Dialog {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "generating", type = boolean.class)})
     private void updateActionButtonState(boolean generating) {
         this.isGeneratingState = generating;
         if (generating) {
@@ -154,6 +160,10 @@ public class SummaryDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "summary", type = Summary.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void loadExistingSummary() {
         try {
             if (dialogMessage.getSummary() != null) {
@@ -173,6 +183,11 @@ public class SummaryDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ui", type = UI.class),
+                    @APILocals(name = "callback", type = SummaryService.AsyncCallback.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void startGeneration() {
         UI ui = UI.getCurrent();
         SummaryService.AsyncCallback callback = new SummaryService.AsyncCallback() {

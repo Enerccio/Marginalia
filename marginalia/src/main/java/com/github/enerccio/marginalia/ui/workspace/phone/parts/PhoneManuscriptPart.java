@@ -11,7 +11,7 @@ import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -83,10 +83,22 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         this.workspace = workspace;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     public String getName() {
         return loc.getValue(L.LABEL_BOOKS);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "addBookButton", type = Button.class),
+                    @APILocals(name = "refreshButton", type = Button.class),
+                    @APILocals(name = "headerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "filtersLayout", type = VerticalLayout.class),
+                    @APILocals(name = "nameFilter", type = TextField.class),
+                    @APILocals(name = "tagFilter", type = MultiSelectComboBox.class),
+                    @APILocals(name = "sortLayout", type = FlexLayout.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -163,6 +175,13 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "layout", type = FlexLayout.class),
+                    @APIParameter(name = "field", type = String.class),
+                    @APIParameter(name = "label", type = String.class),
+                    @APIParameter(name = "defaultOrdering", type = Sorter.Ordering.class)},
+            locals = {@APILocals(name = "button", type = Button.class)})
     private void addSortButton(FlexLayout layout, String field, String label, Ordering defaultOrdering) {
         Button button = new Button(label);
         button.addClickListener(event -> {
@@ -179,6 +198,8 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         layout.add(button);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void updateSortButtons() {
         sortButtons.forEach((field, button) -> {
             boolean active = field.equals(currentSortField);
@@ -191,6 +212,18 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "wrapper", type = PhoneManuscriptPart.ManuscriptWrapper.class)},
+            locals = {@APILocals(name = "textLayout", type = VerticalLayout.class),
+                    @APILocals(name = "nameSpan", type = Span.class),
+                    @APILocals(name = "tagsText", type = String.class),
+                    @APILocals(name = "tagsSpan", type = Span.class),
+                    @APILocals(name = "modificationSpan", type = Span.class),
+                    @APILocals(name = "editButton", type = Button.class),
+                    @APILocals(name = "deleteButton", type = Button.class),
+                    @APILocals(name = "actions", type = HorizontalLayout.class),
+                    @APILocals(name = "item", type = HorizontalLayout.class)})
     private Component createItem(ManuscriptWrapper wrapper) {
         VerticalLayout textLayout = new VerticalLayout();
         textLayout.setPadding(false);
@@ -248,11 +281,17 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         return item;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         refreshGrid();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ids", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refreshGrid() {
         if (grid == null) {
             return;
@@ -266,11 +305,15 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
 

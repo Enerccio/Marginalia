@@ -48,6 +48,10 @@ public final class VerifyFixtures {
                     context.setReflectiveFieldValue(instrumented, "title", "x", String.class);
                     context.callReflectiveMethod(instrumented, "helper", new Class<?>[]{String.class, int.class},
                             new Object[]{"a", 1}, String.class);
+                    context.hasReturn();
+                    context.getOriginalReturn(String.class);
+                    context.getCurrentReturn(CharSequence.class);
+                    context.setCurrentReturn("x");
                 }
             };
             service.registerDecorator(renderDecorator, TARGET, "render");
@@ -110,10 +114,12 @@ public final class VerifyFixtures {
                     context.hasMethodArgument("name", Integer.class);
                     context.registerMethodArgument("cnt", 1, int.class);
                     context.getLocalVariable("out", StringBuilder.class);
+                    context.getCurrentReturn(String.class);
                 }
 
                 @Override
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    context.getOriginalReturn(Integer.class);
                     context.getLocalVariable("outt", StringBuilder.class);
                     context.getLocalVariable("out", String.class);
                     context.getLocalVariable("result", String.class);
@@ -138,6 +144,7 @@ public final class VerifyFixtures {
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
                     VerifyTarget outer = context.getReflectiveFieldValue(instrumented, "this$0", VerifyTarget.class);
                     context.getReflectiveFieldValue(outer, "nothing", String.class);
+                    context.setCurrentReturn("x");
                 }
             }, CARD, "edit");
         }

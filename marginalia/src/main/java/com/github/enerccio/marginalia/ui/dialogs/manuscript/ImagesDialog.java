@@ -5,7 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
@@ -85,6 +85,10 @@ public class ImagesDialog extends Dialog {
         refresh(onChanged);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "images", type = List.class),
+                    @APIParameter(name = "onChanged", type = Consumer.class)})
     private void store(List<ImageAttachment> images, Consumer<ChatMessage> onChanged) throws Exception {
         message.setImages(images);
         message = chatMessageService.save(message);
@@ -92,6 +96,17 @@ public class ImagesDialog extends Dialog {
         onChanged.accept(message);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onChanged", type = Consumer.class)},
+            locals = {@APILocals(name = "images", type = List.class),
+                    @APILocals(name = "attachment", type = ImageAttachment.class),
+                    @APILocals(name = "resource", type = Resource.class),
+                    @APILocals(name = "caption", type = TextField.class),
+                    @APILocals(name = "remove", type = Button.class),
+                    @APILocals(name = "fields", type = VerticalLayout.class),
+                    @APILocals(name = "row", type = HorizontalLayout.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refresh(Consumer<ChatMessage> onChanged) {
         list.removeAll();
         List<ImageAttachment> images = message.getImages();

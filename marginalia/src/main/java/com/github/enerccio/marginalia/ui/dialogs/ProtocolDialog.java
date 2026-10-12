@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.ProtocolType;
 import com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -63,6 +63,13 @@ public class ProtocolDialog extends Dialog {
         this.protocol = protocol;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "formLayout", type = FormLayout.class),
+                    @APILocals(name = "footerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "saveButton", type = Button.class)})
     public void create() {
         boolean isEdit = protocol != null && protocol.getId() != null;
         setHeaderTitle(isEdit ? loc.getValue(L.LABEL_EDIT_PROTOCOL) : loc.getValue(L.LABEL_NEW_PROTOCOL));
@@ -117,6 +124,8 @@ public class ProtocolDialog extends Dialog {
         getFooter().add(footerLayout);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void createFields() {
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setRequired(true);
@@ -165,6 +174,8 @@ public class ProtocolDialog extends Dialog {
         presencePenaltyEnabledCheckbox.addValueChangeListener(event -> presencePenaltyField.setEnabled(Boolean.TRUE.equals(event.getValue())));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void populateFields() {
         if (protocol == null) {
             return;
@@ -193,6 +204,11 @@ public class ProtocolDialog extends Dialog {
         presencePenaltyField.setEnabled(Boolean.TRUE.equals(protocol.getPresencePenaltyEnabled()));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "name", type = String.class),
+                    @APILocals(name = "type", type = ProtocolType.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void save() {
         String name = nameField.getValue();
         ProtocolType type = typeCombo.getValue();
@@ -243,10 +259,15 @@ public class ProtocolDialog extends Dialog {
         return value != null && value > 0 ? value : null;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Runnable.class))
     public Runnable getOnSave() {
         return onSave;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onSave", type = Runnable.class)})
     public void setOnSave(Runnable onSave) {
         this.onSave = onSave;
     }

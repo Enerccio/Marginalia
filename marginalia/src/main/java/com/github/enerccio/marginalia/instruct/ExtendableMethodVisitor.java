@@ -23,6 +23,7 @@ public class ExtendableMethodVisitor extends MethodVisitor {
     private final String ownerName;
     private final String methodDescriptor;
     private final Type[] argumentTypes;
+    private final Type returnType;
 
     private final int serviceSlot;
     private final int contextSlot;
@@ -55,6 +56,7 @@ public class ExtendableMethodVisitor extends MethodVisitor {
         this.ownerName = ownerName;
         this.methodDescriptor = methodDescriptor;
         this.argumentTypes = Type.getArgumentTypes(methodDescriptor != null ? methodDescriptor : "()V");
+        this.returnType = Type.getReturnType(methodDescriptor != null ? methodDescriptor : "()V");
 
         this.serviceSlot = argSlots;
         this.contextSlot = argSlots + 1;
@@ -116,10 +118,14 @@ public class ExtendableMethodVisitor extends MethodVisitor {
     @Override
     public void visitInsn(int opcode) {
         instructions.add(mv -> {
-            if (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) {
+            if (opcode == Opcodes.RETURN) {
                 emitLeaveCall(mv);
+                mv.visitInsn(opcode);
+            } else if (opcode >= Opcodes.IRETURN && opcode <= Opcodes.ARETURN) {
+                emitValueReturn(mv);
+            } else {
+                mv.visitInsn(opcode);
             }
-            mv.visitInsn(opcode);
         });
     }
 
@@ -463,6 +469,49 @@ public class ExtendableMethodVisitor extends MethodVisitor {
         mv.visitLabel(skipLeave);
     }
 
+    /**
+     * Return of a value (on the stack): the decorators see it as the original return value and may replace it, what the
+     * method returns is the value they leave in the context.
+     */
+    private void emitValueReturn(MethodVisitor mv) {
+        emitBox(mv, returnType);
+
+        Label skipRegister = new Label();
+        mv.visitVarInsn(Opcodes.ALOAD, contextSlot);
+        mv.visitJumpInsn(Opcodes.IFNULL, skipRegister);
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitVarInsn(Opcodes.ALOAD, contextSlot);
+        mv.visitInsn(Opcodes.SWAP);
+        emitLoadClass(mv, returnType);
+        mv.visitMethodInsn(
+                Opcodes.INVOKEINTERFACE,
+                CONTEXT_TYPE,
+                "registerReturnValue",
+                "(Ljava/lang/Object;Ljava/lang/Class;)V",
+                true
+        );
+        mv.visitLabel(skipRegister);
+
+        emitLeaveCall(mv);
+
+        Label keepOriginal = new Label();
+        mv.visitVarInsn(Opcodes.ALOAD, contextSlot);
+        mv.visitJumpInsn(Opcodes.IFNULL, keepOriginal);
+        mv.visitInsn(Opcodes.POP);
+        mv.visitVarInsn(Opcodes.ALOAD, contextSlot);
+        mv.visitMethodInsn(
+                Opcodes.INVOKEINTERFACE,
+                CONTEXT_TYPE,
+                "resolveReturnValue",
+                "()Ljava/lang/Object;",
+                true
+        );
+        mv.visitLabel(keepOriginal);
+
+        emitUnbox(mv, returnType);
+        mv.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+    }
+
     private void emitLoadArg(MethodVisitor mv, Type type, int slot) {
         switch (type.getSort()) {
             case Type.BOOLEAN:
@@ -551,54 +600,52 @@ public class ExtendableMethodVisitor extends MethodVisitor {
     }
 
     private void emitUnboxAndStore(MethodVisitor mv, Type type, int slot) {
+        emitUnbox(mv, type);
+        mv.visitVarInsn(type.getOpcode(Opcodes.ISTORE), slot);
+    }
+
+    /**
+     * Object on the stack to a value of the type: wrappers of primitives are unboxed, references are cast.
+     */
+    private void emitUnbox(MethodVisitor mv, Type type) {
         switch (type.getSort()) {
             case Type.BOOLEAN:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Boolean");
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z", false);
-                mv.visitVarInsn(Opcodes.ISTORE, slot);
                 break;
             case Type.BYTE:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Byte");
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Byte", "byteValue", "()B", false);
-                mv.visitVarInsn(Opcodes.ISTORE, slot);
                 break;
             case Type.CHAR:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Character");
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Character", "charValue", "()C", false);
-                mv.visitVarInsn(Opcodes.ISTORE, slot);
                 break;
             case Type.SHORT:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Short");
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Short", "shortValue", "()S", false);
-                mv.visitVarInsn(Opcodes.ISTORE, slot);
                 break;
             case Type.INT:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Integer");
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I", false);
-                mv.visitVarInsn(Opcodes.ISTORE, slot);
                 break;
             case Type.LONG:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Long");
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Long", "longValue", "()J", false);
-                mv.visitVarInsn(Opcodes.LSTORE, slot);
                 break;
             case Type.FLOAT:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Float");
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Float", "floatValue", "()F", false);
-                mv.visitVarInsn(Opcodes.FSTORE, slot);
                 break;
             case Type.DOUBLE:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Double");
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D", false);
-                mv.visitVarInsn(Opcodes.DSTORE, slot);
                 break;
             case Type.ARRAY:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, type.getDescriptor());
-                mv.visitVarInsn(Opcodes.ASTORE, slot);
                 break;
             default:
                 mv.visitTypeInsn(Opcodes.CHECKCAST, type.getInternalName());
-                mv.visitVarInsn(Opcodes.ASTORE, slot);
                 break;
         }
     }

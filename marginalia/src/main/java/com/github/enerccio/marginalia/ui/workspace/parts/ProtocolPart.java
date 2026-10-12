@@ -5,7 +5,10 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -44,10 +47,17 @@ public class ProtocolPart implements WorkspaceComponent {
         this.workspace = workspace;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     public String getName() {
         return loc.getValue(L.LABEL_PROTOCOLS);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "titleSpan", type = Span.class),
+                    @APILocals(name = "addProtocolButton", type = Button.class)})
     @Override
     public Component create() throws Exception {
         mainLayout = new VerticalLayout();
@@ -119,11 +129,17 @@ public class ProtocolPart implements WorkspaceComponent {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         refreshGrid();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "protocols", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refreshGrid() {
         if (grid == null) {
             return;
@@ -137,11 +153,15 @@ public class ProtocolPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
 

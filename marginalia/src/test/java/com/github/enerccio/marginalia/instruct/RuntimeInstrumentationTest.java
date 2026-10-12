@@ -113,6 +113,17 @@ class RuntimeInstrumentationTest {
     }
 
     @Test
+    void returnValuesAreReplacedInRetransformedClasses() {
+        decorate(AgentEarlySubject.class.getName(), "greet", NOTHING,
+                (context, _) -> context.setCurrentReturn(context.getOriginalReturn(String.class).toUpperCase()));
+        decorate(AgentEarlySubject.class.getName(), "divide", NOTHING,
+                (context, _) -> context.setCurrentReturn(context.getCurrentReturn(int.class) + 100));
+
+        assertThat(new AgentEarlySubject().greet("world")).isEqualTo("HELLO WORLD");
+        assertThat(new AgentEarlySubject().divide(6, 3)).isEqualTo(102);
+    }
+
+    @Test
     void exceptionsReachDecoratorsAndCaller() {
         List<String> events = decorate(AgentEarlySubject.class.getName(), "divide", NOTHING, NOTHING);
 

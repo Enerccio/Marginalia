@@ -4,7 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
@@ -70,6 +70,10 @@ public class PhoneWorkspace implements Workspace {
     private boolean navigationLocked;
     private Runnable onLogout;
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "drawer", type = VerticalLayout.class),
+                    @APILocals(name = "first", type = Tab.class)})
     @Override
     public Component create() throws Exception {
         layout = new AppLayout();
@@ -112,6 +116,12 @@ public class PhoneWorkspace implements Workspace {
         return layout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "label", type = L.class),
+                    @APIParameter(name = "part", type = WorkspaceComponent.class)},
+            locals = {@APILocals(name = "name", type = String.class),
+                    @APILocals(name = "tab", type = Tab.class)})
     private void addTab(L label, WorkspaceComponent part) throws Exception {
         String name = loc.getValue(label);
         Tab tab = new Tab(name);
@@ -121,6 +131,12 @@ public class PhoneWorkspace implements Workspace {
         tabToTitle.put(tab, name);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "part", type = WorkspaceComponent.class),
+                    @APIParameter(name = "content", type = Component.class),
+                    @APIParameter(name = "name", type = String.class)},
+            locals = {@APILocals(name = "ex", type = Exception.class)})
     private void show(WorkspaceComponent part, Component content, String name) {
         if (activeComponent != null) {
             try {
@@ -141,6 +157,9 @@ public class PhoneWorkspace implements Workspace {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "footer", type = VerticalLayout.class)})
     private Component createFooter() {
         VerticalLayout footer = new VerticalLayout();
         footer.setSpacing(true);
@@ -174,6 +193,8 @@ public class PhoneWorkspace implements Workspace {
         return footer;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         manuscriptPart.refresh();
@@ -185,6 +206,10 @@ public class PhoneWorkspace implements Workspace {
         trashPart.refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "locked", type = boolean.class)},
+            locals = {@APILocals(name = "tab", type = Tab.class)})
     @Override
     public void setNavigationLocked(boolean locked) {
         navigationLocked = locked;
@@ -203,16 +228,23 @@ public class PhoneWorkspace implements Workspace {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class))
     @Override
     public boolean isNavigationLocked() {
         return navigationLocked;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Runnable.class))
     @Override
     public Runnable getOnLogout() {
         return onLogout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onLogout", type = Runnable.class)})
     @Override
     public void setOnLogout(Runnable onLogout) {
         this.onLogout = onLogout;

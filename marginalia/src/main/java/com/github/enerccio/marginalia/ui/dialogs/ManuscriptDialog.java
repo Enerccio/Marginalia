@@ -6,7 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
@@ -71,6 +71,10 @@ public class ManuscriptDialog extends Dialog implements StoryHost {
         this.manuscript = manuscript;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "footerLayout", type = HorizontalLayout.class)})
     public void create() throws Exception {
         ai = aiService.find(manuscript.getAi());
         setHeaderTitle(manuscript.getName());
@@ -147,6 +151,10 @@ public class ManuscriptDialog extends Dialog implements StoryHost {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "part", type = ManuscriptDialogPart.class),
+                    @APILocals(name = "e", type = Exception.class)})
     @Override
     public void open() {
         super.open();
@@ -166,6 +174,8 @@ public class ManuscriptDialog extends Dialog implements StoryHost {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void selectStoryPart() {
         if (tabs != null && storyPartComponent != null) {
             tabs.setSelectedTab(tabs.getTab(storyPartComponent));
@@ -175,11 +185,16 @@ public class ManuscriptDialog extends Dialog implements StoryHost {
     /**
      * Switches to the story tab and scrolls to the part. The part has to be on the active branch.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "messageId", type = Long.class)})
     public void showMessage(Long messageId) {
         storyPart.scrollToMessageOnNextRender(messageId);
         selectStoryPart();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void freeze() {
         if (!frozen) {
             this.frozen = true;
@@ -187,6 +202,8 @@ public class ManuscriptDialog extends Dialog implements StoryHost {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void unfreeze() {
         if (frozen) {
             this.frozen = false;
@@ -194,6 +211,9 @@ public class ManuscriptDialog extends Dialog implements StoryHost {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "part", type = ManuscriptDialogPart.class)})
     private void updateFreezeStatus() {
         exitButton.setEnabled(!frozen);
         for (int i=0; i<tabs.getTabCount(); i++)
@@ -203,26 +223,39 @@ public class ManuscriptDialog extends Dialog implements StoryHost {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     public Manuscript getManuscript() {
         return manuscript;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     public Manuscript refreshManuscript() throws Exception {
         return manuscript = manuscriptService.find(manuscript);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     public Manuscript save() throws Exception {
         return manuscript = manuscriptService.save(manuscript);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Runnable.class))
     public Runnable getOnClose() {
         return onClose;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onClose", type = Runnable.class)})
     public void setOnClose(Runnable onClose) {
         this.onClose = onClose;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = AI.class))
     public AI getAi() {
         return ai;
     }

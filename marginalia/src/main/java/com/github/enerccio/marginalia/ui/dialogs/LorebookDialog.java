@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
@@ -31,6 +31,11 @@ public class LorebookDialog extends Dialog {
         this.lorebook = lorebook;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "footerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "closeButton", type = Button.class)})
     public void create() {
         boolean isEdit = lorebook != null && lorebook.getId() != null;
         setHeaderTitle(isEdit ? loc.getValue(L.LABEL_EDIT_LOREBOOK) : loc.getValue(L.LABEL_NEW_LOREBOOK));
@@ -62,10 +67,15 @@ public class LorebookDialog extends Dialog {
         getFooter().add(footerLayout);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Runnable.class))
     public Runnable getOnClose() {
         return onClose;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onClose", type = Runnable.class)})
     public void setOnClose(Runnable onClose) {
         this.onClose = onClose;
     }

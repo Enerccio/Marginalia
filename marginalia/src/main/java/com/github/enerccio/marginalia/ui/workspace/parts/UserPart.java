@@ -9,7 +9,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.templates.*;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
@@ -104,10 +104,18 @@ public class UserPart implements WorkspaceComponent {
         this.workspace = workspace;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     public String getName() {
         return loc.getValue(L.LABEL_SETTINGS);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "headerLayout", type = Component.class),
+                    @APILocals(name = "tabSheet", type = TabSheet.class),
+                    @APILocals(name = "defaultsFormLayout", type = FormLayout.class),
+                    @APILocals(name = "templatesFormLayout", type = FormLayout.class)})
     @Override
     public Component create() throws Exception {
         mainLayout = new VerticalLayout();
@@ -169,6 +177,12 @@ public class UserPart implements WorkspaceComponent {
      * The top of the part: the title, the unsaved changes hint and the buttons. {@link #unsavedChangesSpan} and
      * {@link #discardButton} must be created here, the change tracking toggles them.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "titleSpan", type = Span.class),
+                    @APILocals(name = "importBackupAsNewButton", type = Button.class),
+                    @APILocals(name = "saveButton", type = Button.class)})
     protected Component createHeader() {
         HorizontalLayout headerLayout = new HorizontalLayout();
         headerLayout.setWidthFull();
@@ -188,12 +202,18 @@ public class UserPart implements WorkspaceComponent {
         return headerLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Span.class),
+            locals = {@APILocals(name = "titleSpan", type = Span.class)})
     protected Span createTitle() {
         Span titleSpan = new Span(loc.getValue(L.LABEL_SETTINGS));
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
         return titleSpan;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Span.class),
+            locals = {@APILocals(name = "span", type = Span.class)})
     protected Span createUnsavedChangesSpan() {
         Span span = new Span(loc.getValue(L.MSG_UNSAVED_SETTINGS));
         span.addClassName(CssStyles.TEXT_ERROR);
@@ -201,18 +221,26 @@ public class UserPart implements WorkspaceComponent {
         return span;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Button.class),
+            locals = {@APILocals(name = "button", type = Button.class)})
     protected Button createDiscardButton() {
         Button button = new Button(loc.getValue(L.LABEL_DISCARD_CHANGES), event -> discard());
         button.setEnabled(false);
         return button;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Button.class),
+            locals = {@APILocals(name = "button", type = Button.class)})
     protected Button createSaveButton() {
         Button button = new Button(loc.getValue(L.LABEL_SAVE), event -> save());
         button.setThemeName("primary");
         return button;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void createFields() {
         defaultModelCombo = new ComboBox<>(loc.getValue(L.LABEL_DEFAULT_MODEL));
         defaultModelCombo.setWidthFull();
@@ -290,6 +318,9 @@ public class UserPart implements WorkspaceComponent {
                 defaultMetaSummaryPromptField, defaultMetaSummaryPromptField.getPopover(), MetaSummaryTemplateData.class, Defaults.DEFAULT_META_SUMMARY));
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "strategy", type = BackupService.BackupStrategy.class)})
     private void updateBackupStrategyValueField(BackupStrategy strategy) {
         if (strategy == null || strategy == BackupStrategy.DISABLED) {
             backupStrategyValueField.setVisible(false);
@@ -302,10 +333,27 @@ public class UserPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "field", type = HasValue.class),
+                    @APIParameter(name = "popover", type = Popover.class),
+                    @APIParameter(name = "clazz", type = Class.class),
+                    @APIParameter(name = "defaultValue", type = String.class)})
     private Component createTemplateHintPopoverContent(HasValue<?, String> field, Popover popover, Class<? extends TemplateData> clazz, String defaultValue) {
         return TemplateHints.create(loc, field, popover, clazz, defaultValue);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "allModels", type = List.class),
+                    @APILocals(name = "defaultModelId", type = Long.class),
+                    @APILocals(name = "selectedModel", type = AI.class),
+                    @APILocals(name = "allProtocols", type = List.class),
+                    @APILocals(name = "defaultProtocolId", type = Long.class),
+                    @APILocals(name = "selectedProtocol", type = Protocol.class),
+                    @APILocals(name = "strategy", type = BackupService.BackupStrategy.class),
+                    @APILocals(name = "stratVal", type = String.class),
+                    @APILocals(name = "e", type = Exception.class)})
     @Override
     public void refresh() throws Exception {
         loading = true;
@@ -375,6 +423,8 @@ public class UserPart implements WorkspaceComponent {
      * Extension decorators fill their settings forms after refresh() returns, so the fields are tracked (and the
      * loaded values accepted as unchanged) only before the response is sent.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void finishLoading() {
         mainLayout.getElement().getNode().runWhenAttached(ui -> ui.beforeClientResponse(mainLayout, ctx -> {
             trackChanges(mainLayout);
@@ -387,6 +437,10 @@ public class UserPart implements WorkspaceComponent {
      * Listens to every field of the part, including the extension settings forms. Any change outside of refresh()
      * locks the workspace navigation until the settings are saved or discarded.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "component", type = Component.class)},
+            locals = {@APILocals(name = "field", type = HasValue.class)})
     private void trackChanges(Component component) {
         if (component instanceof HasValue<?, ?> field && ComponentUtil.getData(component, CHANGE_TRACKED_KEY) == null) {
             ComponentUtil.setData(component, CHANGE_TRACKED_KEY, Boolean.TRUE);
@@ -399,6 +453,9 @@ public class UserPart implements WorkspaceComponent {
         component.getChildren().forEach(this::trackChanges);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "changed", type = boolean.class)})
     private void setChanged(boolean changed) {
         if (this.changed == changed) {
             return;
@@ -409,6 +466,9 @@ public class UserPart implements WorkspaceComponent {
         workspace.setNavigationLocked(changed);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void discard() {
         try {
             refresh();
@@ -417,6 +477,19 @@ public class UserPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "strategy", type = BackupService.BackupStrategy.class),
+                    @APILocals(name = "masterTemplate", type = String.class),
+                    @APILocals(name = "userPrompt", type = String.class),
+                    @APILocals(name = "summaryPrompt", type = String.class),
+                    @APILocals(name = "metaSummaryPrompt", type = String.class),
+                    @APILocals(name = "defaultPov", type = String.class),
+                    @APILocals(name = "defaultTense", type = String.class),
+                    @APILocals(name = "defaultStyle", type = String.class),
+                    @APILocals(name = "selectedModel", type = AI.class),
+                    @APILocals(name = "selectedProtocol", type = Protocol.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void save() {
         if (userSetting == null) {
             return;
@@ -473,6 +546,14 @@ public class UserPart implements WorkspaceComponent {
     /**
      * @return false if the template is invalid and must not be saved; unknown names are only shown as a warning
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "field", type = TextAreaPopoverComponent.class),
+                    @APIParameter(name = "templateName", type = String.class),
+                    @APIParameter(name = "dataClass", type = Class.class)},
+            locals = {@APILocals(name = "template", type = String.class),
+                    @APILocals(name = "result", type = TemplateService.ValidationResult.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private boolean validateTemplate(TextAreaPopoverComponent field, String templateName, Class<? extends TemplateData> dataClass) {
         String template = field.getValue();
         if (StringUtils.isBlank(template)) {
@@ -493,6 +574,14 @@ public class UserPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "nameField", type = TextField.class),
+                    @APILocals(name = "uploaded", type = AtomicReference.class),
+                    @APILocals(name = "upload", type = Upload.class),
+                    @APILocals(name = "cancelBtn", type = Button.class)})
     private void openImportBackupAsNewDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW));
@@ -559,11 +648,15 @@ public class UserPart implements WorkspaceComponent {
         dialog.open();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
 

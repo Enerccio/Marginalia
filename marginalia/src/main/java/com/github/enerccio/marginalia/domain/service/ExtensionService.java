@@ -44,6 +44,44 @@ public interface ExtensionService {
         boolean hasMethodArgument(String name);
         boolean hasMethodArgument(String name, Class<?> isOfType);
         <T> T callReflectiveMethod(Object object, String methodName, Class<?>[] argumentTypes, Object[] arguments, Class<T> returnType);
+
+        /**
+         * Called by the instrumented method when it returns a value, before the decorators run: {@code value} is what
+         * the body returned (primitives boxed), {@code type} the declared return type ({@code int.class} for
+         * {@code int}). Not called by {@code void} methods and when the method throws.
+         */
+        void registerReturnValue(Object value, Class<?> type);
+
+        /**
+         * Called by the instrumented method after the decorators ran: the value to return, the one the last decorator
+         * left with {@link #setCurrentReturn(Object)}, the original one if none did.
+         */
+        Object resolveReturnValue();
+
+        /**
+         * Whether the method returned a value: false in {@code onMethodEnter}, for a {@code void} method and when the
+         * method throws.
+         */
+        boolean hasReturn();
+
+        /**
+         * What the body of the method returned, whatever the decorators did. The type is checked against the declared
+         * return type of the method like the type of an argument (primitives: {@code int.class}).
+         */
+        <T> T getOriginalReturn(Class<T> type);
+
+        /**
+         * What the method returns as of now: the original value, or the value set by the decorator that ran before
+         * (decorators on the same method are chained in the order they were registered).
+         */
+        <T> T getCurrentReturn(Class<T> type);
+
+        /**
+         * Replaces the value the method returns (the decorators that follow see it as the current return value). The
+         * value has to fit the declared return type, a primitive one cannot be {@code null}; otherwise the call is
+         * refused and the current return value stays.
+         */
+        void setCurrentReturn(Object value);
     }
 
     interface MethodArgumentRefresher {

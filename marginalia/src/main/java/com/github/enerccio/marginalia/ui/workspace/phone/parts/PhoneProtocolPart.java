@@ -4,7 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -47,10 +47,16 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         this.workspace = workspace;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     public String getName() {
         return loc.getValue(L.LABEL_PROTOCOLS);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "addProtocolButton", type = Button.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -81,6 +87,10 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "protocol", type = Protocol.class)},
+            locals = {@APILocals(name = "textLayout", type = VerticalLayout.class)})
     private Component createText(Protocol protocol) {
         VerticalLayout textLayout = new VerticalLayout();
         textLayout.setPadding(false);
@@ -93,12 +103,23 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         return textLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Span.class),
+            parameters = {@APIParameter(name = "label", type = String.class),
+                    @APIParameter(name = "value", type = String.class)},
+            locals = {@APILocals(name = "line", type = Span.class)})
     private Span createLine(String label, String value) {
         Span line = new Span(label + ": " + value);
         line.addClassNames(CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
         return line;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "protocol", type = Protocol.class)},
+            locals = {@APILocals(name = "editButton", type = Button.class),
+                    @APILocals(name = "deleteButton", type = Button.class),
+                    @APILocals(name = "actions", type = HorizontalLayout.class)})
     private Component createActions(Protocol protocol) {
         Button editButton = new Button(Solid.PEN.create(), event -> {
             ProtocolDialog dialog = new ProtocolDialog(protocol);
@@ -125,11 +146,17 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         return actions;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         refreshGrid();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "protocols", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refreshGrid() {
         if (grid == null) {
             return;
@@ -143,11 +170,15 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
 

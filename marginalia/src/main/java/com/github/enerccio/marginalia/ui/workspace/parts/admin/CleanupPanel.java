@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.service.CleanupService.BlockedEntit
 import com.github.enerccio.marginalia.domain.service.CleanupService.CleanupPlan;
 import com.github.enerccio.marginalia.domain.service.CleanupService.EntityStats;
 import com.github.enerccio.marginalia.domain.service.CleanupService.ReferenceDescriptor;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -45,6 +45,15 @@ public class CleanupPanel {
     private Button runButton;
     private TrashGrid trashGrid;
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "description", type = Span.class),
+                    @APILocals(name = "toolbar", type = HorizontalLayout.class),
+                    @APILocals(name = "analyzeButton", type = Button.class),
+                    @APILocals(name = "blockedTitle", type = Span.class),
+                    @APILocals(name = "modelDetails", type = Details.class),
+                    @APILocals(name = "trashDetails", type = Details.class)})
     public Component create() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
@@ -147,6 +156,9 @@ public class CleanupPanel {
         return layout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void analyze() {
         try {
             showPlan(cleanupService.analyze());
@@ -155,6 +167,10 @@ public class CleanupPanel {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "plan", type = CleanupService.CleanupPlan.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void runCleanup() {
         try {
             CleanupPlan plan = cleanupService.analyze();
@@ -180,6 +196,10 @@ public class CleanupPanel {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "plan", type = CleanupService.CleanupPlan.class)},
+            locals = {@APILocals(name = "stats", type = List.class)})
     private void showPlan(CleanupPlan plan) {
         List<EntityStats> stats = new ArrayList<>(plan.getStats().values());
         stats.sort(Comparator.comparing(s -> s.getType().getSimpleName()));
@@ -188,6 +208,10 @@ public class CleanupPanel {
         runButton.setEnabled(!plan.getPurge().isEmpty());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "descriptors", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refreshModel() {
         try {
             List<ReferenceDescriptor> descriptors = new ArrayList<>(cleanupService.getReferenceModel());
@@ -198,6 +222,8 @@ public class CleanupPanel {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void refresh() {
         // analysis is expensive, it runs only on demand
     }

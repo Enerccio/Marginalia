@@ -1,7 +1,10 @@
 package com.github.enerccio.marginalia.ui.workspace.phone.parts;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.parts.UserPart;
 import com.vaadin.flow.component.Component;
@@ -24,6 +27,12 @@ public class PhoneSettingsPart extends UserPart {
         super(workspace);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "saveButton", type = Button.class),
+                    @APILocals(name = "buttons", type = HorizontalLayout.class),
+                    @APILocals(name = "titleSpan", type = Span.class),
+                    @APILocals(name = "headerLayout", type = VerticalLayout.class)})
     @Override
     protected Component createHeader() {
         unsavedChangesSpan = createUnsavedChangesSpan();

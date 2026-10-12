@@ -7,7 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.templates.*;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
@@ -53,6 +53,11 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         this.parent = parent;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "container", type = VTabSheet.class)},
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "formLayout", type = FormLayout.class)})
     @Override
     public Component create(VTabSheet container) throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -89,6 +94,8 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void createFields() {
         masterTemplateField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_MASTER_TEMPLATE));
         masterTemplateField.setWidthFull();
@@ -152,14 +159,30 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "field", type = HasValue.class),
+                    @APIParameter(name = "popover", type = Popover.class),
+                    @APIParameter(name = "clazz", type = Class.class),
+                    @APIParameter(name = "defaultValue", type = String.class)})
     private Component createTemplateHintPopoverContent(HasValue<?, String> field, Popover popover, Class<? extends TemplateData> clazz, String defaultValue) {
         return TemplateHints.create(loc, field, popover, clazz, defaultValue);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     private Manuscript refreshModel() throws Exception {
         return parent.refreshManuscript();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "masterTemplate", type = String.class),
+                    @APILocals(name = "userPrompt", type = String.class),
+                    @APILocals(name = "summaryPrompt", type = String.class),
+                    @APILocals(name = "metaSummaryPrompt", type = String.class),
+                    @APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void autosave() {
         if (loading) {
             return;
@@ -200,6 +223,14 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
     /**
      * @return false if the template is invalid and must not be saved; unknown names are only shown as a warning
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "field", type = TextAreaPopoverComponent.class),
+                    @APIParameter(name = "templateName", type = String.class),
+                    @APIParameter(name = "dataClass", type = Class.class)},
+            locals = {@APILocals(name = "template", type = String.class),
+                    @APILocals(name = "result", type = TemplateService.ValidationResult.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private boolean validateTemplate(TextAreaPopoverComponent field, String templateName, Class<? extends TemplateData> dataClass) {
         String template = field.getValue();
         if (StringUtils.isBlank(template)) {
@@ -220,11 +251,26 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "frozen", type = boolean.class)})
     @Override
     public void setFrozen(boolean frozen) {
         // ignored, since tab will be unselectable
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "userSetting", type = UserSetting.class),
+                    @APILocals(name = "defaultMasterTemplate", type = String.class),
+                    @APILocals(name = "defaultPov", type = String.class),
+                    @APILocals(name = "defaultTense", type = String.class),
+                    @APILocals(name = "defaultStyle", type = String.class),
+                    @APILocals(name = "defaultUserPrompt", type = String.class),
+                    @APILocals(name = "defaultSummaryPrompt", type = String.class),
+                    @APILocals(name = "defaultMetaSummaryPrompt", type = String.class),
+                    @APILocals(name = "e", type = Exception.class)})
     @Override
     public void load(Manuscript manuscript) {
         if (manuscript == null) {
@@ -291,11 +337,15 @@ public class ManuscriptPromptPart implements ManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabLeave() throws Exception {
 
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
 

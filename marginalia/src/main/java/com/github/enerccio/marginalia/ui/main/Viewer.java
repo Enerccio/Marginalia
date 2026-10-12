@@ -12,7 +12,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
@@ -94,21 +94,32 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         showLogin();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     @Override
     protected String getAppTitle() {
         return loc.getValue(L.LABEL_VIEWER_TITLE);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class))
     @Override
     protected String getAppDescription() {
         return loc.getValue(L.LABEL_VIEWER_DESC);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "userName", type = String.class),
+                    @APIParameter(name = "password", type = String.class)})
     @Override
     protected boolean authenticate(String userName, String password) throws Exception {
         return userService.authenticate(userName, password, clientAddress());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "attachEvent", type = AttachEvent.class)})
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -119,6 +130,9 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         cssRegistry.attach(attachEvent.getUI());
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "detachEvent", type = DetachEvent.class)})
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
@@ -127,6 +141,12 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "username", type = String.class)},
+            locals = {@APILocals(name = "u", type = User.class),
+                    @APILocals(name = "referenceCopy", type = User.class),
+                    @APILocals(name = "e", type = Exception.class)})
     @Override
     protected void proceedWithLogin(String username) {
         try {
@@ -149,6 +169,10 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "event", type = BeforeEvent.class),
+                    @APIParameter(name = "parameter", type = String.class)})
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         this.manuscriptParam = parameter;
@@ -157,6 +181,8 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void renderContent() {
         removeAll();
 
@@ -167,6 +193,15 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "headerLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "titleSpan", type = Span.class),
+                    @APILocals(name = "filtersLayout", type = VerticalLayout.class),
+                    @APILocals(name = "sortButtonsLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "sortDateBtn", type = Button.class),
+                    @APILocals(name = "sortNameBtn", type = Button.class)})
     private void renderGridView() {
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
@@ -312,6 +347,11 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         add(mainLayout);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "sorters", type = List.class),
+                    @APILocals(name = "ids", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refreshGrid() {
         if (grid == null) {
             return;
@@ -331,6 +371,21 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "param", type = String.class)},
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "notFoundLayout", type = VerticalLayout.class),
+                    @APILocals(name = "errorSpan", type = Span.class),
+                    @APILocals(name = "backButton", type = Button.class),
+                    @APILocals(name = "container", type = VerticalLayout.class),
+                    @APILocals(name = "scrollPanel", type = ScrollPanel.class),
+                    @APILocals(name = "contentWrapper", type = VerticalLayout.class),
+                    @APILocals(name = "branch", type = List.class),
+                    @APILocals(name = "emptyLabel", type = Span.class),
+                    @APILocals(name = "msg", type = ChatMessage.class),
+                    @APILocals(name = "markdown", type = Markdown.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void renderManuscriptReadingView(String param) {
         Manuscript manuscript = findManuscript(param);
 
@@ -413,6 +468,10 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
      * Only uuid is accepted, manuscripts that are not published are visible only to their owner. Anything else
      * looks the same as nonexistent manuscript.
      */
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class),
+            parameters = {@APIParameter(name = "param", type = String.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private Manuscript findManuscript(String param) {
         try {
             return manuscriptService.findViewable(param);

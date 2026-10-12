@@ -4,7 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
@@ -42,6 +42,12 @@ public class NewTurnForm {
     /**
      * @param onGenerate runs when the generate button is clicked
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = VerticalLayout.class),
+            parameters = {@APIParameter(name = "onGenerate", type = Runnable.class)},
+            locals = {@APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "title", type = Span.class),
+                    @APILocals(name = "generateBtn", type = Button.class)})
     public VerticalLayout createContent(Runnable onGenerate) {
         VerticalLayout content = new VerticalLayout();
         content.setPadding(true);
@@ -92,12 +98,18 @@ public class NewTurnForm {
     /**
      * Fills the fields from the last part of the branch, unless the user typed something that is not generated yet.
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "lastMsg", type = ChatMessage.class)})
     public void syncIfUntouched(ChatMessage lastMsg) {
         if (!editedByUser) {
             syncFieldsFromState(lastMsg);
         }
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "lastMsg", type = ChatMessage.class)})
     private void syncFieldsFromState(ChatMessage lastMsg) {
         if (lastMsg != null) {
             pendingSceneSetting = StringUtils.defaultString(lastMsg.getSceneSetting());
@@ -115,11 +127,15 @@ public class NewTurnForm {
     /**
      * The typed values go into a turn, the next opening of the popover shows the last part again.
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = TurnInput.class))
     public TurnInput consume() {
         editedByUser = false;
         return toTurnInput();
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = TurnInput.class))
     public TurnInput toTurnInput() {
         return new TurnInput(pendingSceneSetting, pendingPovCharacter, pendingPresentCharacters, pendingInstructions);
     }
@@ -127,6 +143,8 @@ public class NewTurnForm {
     /**
      * Keeps what the user typed on the next opening of the popover, e.g. after the turn was discarded.
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class))
     public void keepTypedValues() {
         editedByUser = true;
     }

@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.vaadin.flow.component.Component;
 
 import java.util.*;
@@ -16,10 +16,16 @@ public class StoryCards<C extends Component & StoryCard> {
     private final Map<Long, C> active = new LinkedHashMap<>();
     private C streaming;
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class))
     public void clear() {
         active.clear();
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "card", type = Component.class)},
+            locals = {@APILocals(name = "id", type = Long.class)})
     public void put(C card) {
         Long id = card.getMessage().getId();
         if (id != null) {
@@ -27,35 +33,56 @@ public class StoryCards<C extends Component & StoryCard> {
         }
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "messageId", type = Long.class)})
     public C get(Long messageId) {
         return active.get(messageId);
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "messageId", type = Long.class)})
     public boolean contains(Long messageId) {
         return active.containsKey(messageId);
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = int.class))
     public int size() {
         return active.size();
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Collection.class))
     public Collection<C> values() {
         return active.values();
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "cards", type = List.class)})
     public C last() {
         List<C> cards = active.values().stream().toList();
         return cards.getLast();
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "card", type = Component.class)})
     public void remove(C card) {
         active.remove(card.getMessage().getId());
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Component.class))
     public C getStreaming() {
         return streaming;
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "card", type = Component.class)})
     public void setStreaming(C card) {
         this.streaming = card;
     }
@@ -63,6 +90,9 @@ public class StoryCards<C extends Component & StoryCard> {
     /**
      * The card of the message, the streaming card for a message that has none (yet).
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "message", type = ChatMessage.class)})
     public C getOrStreaming(ChatMessage message) {
         if (message == null) return streaming;
         if (message.getId() != null && active.containsKey(message.getId())) {
@@ -74,6 +104,10 @@ public class StoryCards<C extends Component & StoryCard> {
     /**
      * Ids of the parts whose reasoning is opened, to carry that over to the cards of a redraw.
      */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Set.class),
+            locals = {@APILocals(name = "opened", type = Set.class),
+                    @APILocals(name = "card", type = Component.class)})
     public Set<Long> collectOpenedReasonings() {
         Set<Long> opened = new HashSet<>();
         for (C card : active.values()) {
@@ -87,6 +121,9 @@ public class StoryCards<C extends Component & StoryCard> {
         return opened;
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "card", type = Component.class)})
     public void markNoneLast() {
         for (C card : active.values()) {
             card.setLastMessage(false);
@@ -96,6 +133,9 @@ public class StoryCards<C extends Component & StoryCard> {
         }
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "card", type = Component.class)})
     public void autosaveAndSwapAllToMarkdown() {
         for (C card : active.values()) {
             if (card.isEditing()) {
@@ -107,6 +147,10 @@ public class StoryCards<C extends Component & StoryCard> {
         }
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "frozen", type = boolean.class)},
+            locals = {@APILocals(name = "card", type = Component.class)})
     public void setFrozen(boolean frozen) {
         for (C card : active.values()) {
             card.setFrozen(frozen);

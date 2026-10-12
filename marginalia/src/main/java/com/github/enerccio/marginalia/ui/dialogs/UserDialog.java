@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -60,6 +60,12 @@ public class UserDialog extends Dialog {
         this.openedFromUser = openedFromUser;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "formLayout", type = FormLayout.class),
+                    @APILocals(name = "saveButton", type = Button.class),
+                    @APILocals(name = "buttons", type = HorizontalLayout.class),
+                    @APILocals(name = "cancelButton", type = Button.class)})
     public void create() {
         setCloseOnEsc(!firstTime);
         setCloseOnOutsideClick(!firstTime);
@@ -148,6 +154,15 @@ public class UserDialog extends Dialog {
         getFooter().add(buttons);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "login", type = String.class),
+                    @APILocals(name = "fullName", type = String.class),
+                    @APILocals(name = "password", type = String.class),
+                    @APILocals(name = "passwordRepeat", type = String.class),
+                    @APILocals(name = "currentPasswordValue", type = String.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "continueWithSave", type = Runnable.class)})
     private void save() {
         String login = loginField.getValue();
         String fullName = fullNameField.getValue();
@@ -235,26 +250,41 @@ public class UserDialog extends Dialog {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class))
     public boolean isFirstTime() {
         return firstTime;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "firstTime", type = boolean.class)})
     public void setFirstTime(boolean firstTime) {
         this.firstTime = firstTime;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class))
     public boolean isSelfEdit() {
         return selfEdit;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "selfEdit", type = boolean.class)})
     public void setSelfEdit(boolean selfEdit) {
         this.selfEdit = selfEdit;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Runnable.class))
     public Runnable getOnSave() {
         return onSave;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onSave", type = Runnable.class)})
     public void setOnSave(Runnable onSave) {
         this.onSave = onSave;
     }

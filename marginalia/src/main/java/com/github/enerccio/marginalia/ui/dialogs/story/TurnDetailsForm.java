@@ -2,7 +2,10 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.traits.APIParameter;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
@@ -79,10 +82,16 @@ public class TurnDetailsForm {
         });
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "container", type = HasComponents.class)})
     public void addTo(HasComponents container) {
         container.add(sceneField, povField, presentField, instructionsField);
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "isLast", type = boolean.class)})
     public void setLastMessage(boolean isLast) {
         sceneField.setReadOnly(!isLast);
         povField.setReadOnly(!isLast);
@@ -90,6 +99,8 @@ public class TurnDetailsForm {
         instructionsField.setReadOnly(!isLast);
     }
 
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = TurnInput.class))
     public TurnInput toTurnInput() {
         return new TurnInput(sceneField.getValue(), povField.getValue(), presentField.getValue(), instructionsField.getValue());
     }

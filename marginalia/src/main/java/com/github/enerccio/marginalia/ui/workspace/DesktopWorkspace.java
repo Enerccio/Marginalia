@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.ui.workspace;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
@@ -76,6 +76,29 @@ public class DesktopWorkspace implements Workspace {
 
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "vl", type = VerticalLayout.class),
+                    @APILocals(name = "manuscriptTabHeader", type = HorizontalLayout.class),
+                    @APILocals(name = "manuscriptNameSpan", type = Span.class),
+                    @APILocals(name = "manuscriptTab", type = Tab.class),
+                    @APILocals(name = "lorebookTabHeader", type = HorizontalLayout.class),
+                    @APILocals(name = "lorebookNameSpan", type = Span.class),
+                    @APILocals(name = "lorebookTab", type = Tab.class),
+                    @APILocals(name = "userTabHeader", type = HorizontalLayout.class),
+                    @APILocals(name = "userNameSpan", type = Span.class),
+                    @APILocals(name = "userTab", type = Tab.class),
+                    @APILocals(name = "protocolTabHeader", type = HorizontalLayout.class),
+                    @APILocals(name = "protocolNameSpan", type = Span.class),
+                    @APILocals(name = "protocolTab", type = Tab.class),
+                    @APILocals(name = "aiTabHeader", type = HorizontalLayout.class),
+                    @APILocals(name = "connNameSpan", type = Span.class),
+                    @APILocals(name = "aiTab", type = Tab.class),
+                    @APILocals(name = "resourcesTabHeader", type = HorizontalLayout.class),
+                    @APILocals(name = "resourcesTab", type = Tab.class),
+                    @APILocals(name = "trashTabHeader", type = HorizontalLayout.class),
+                    @APILocals(name = "trashTab", type = Tab.class),
+                    @APILocals(name = "user", type = User.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout vl = new VerticalLayout();
@@ -185,6 +208,11 @@ public class DesktopWorkspace implements Workspace {
         return vl;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "user", type = User.class)},
+            locals = {@APILocals(name = "footer", type = VerticalLayout.class),
+                    @APILocals(name = "changePasswordButton", type = Button.class)})
     private Component createFooter(User user) {
         VerticalLayout footer = new VerticalLayout();
         footer.setPadding(false);
@@ -223,6 +251,8 @@ public class DesktopWorkspace implements Workspace {
         return footer;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class))
     private Component createAdminFooter() {
         adminButton = new Button(loc.getValue(L.LABEL_ADMIN), Solid.USER_TIE.create());
         adminButton.setWidthFull();
@@ -245,6 +275,11 @@ public class DesktopWorkspace implements Workspace {
         return adminButton;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "locked", type = boolean.class)},
+            locals = {@APILocals(name = "selectedTab", type = Tab.class),
+                    @APILocals(name = "tab", type = Tab.class)})
     @Override
     public void setNavigationLocked(boolean locked) {
         navigationLocked = locked;
@@ -263,21 +298,30 @@ public class DesktopWorkspace implements Workspace {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class))
     @Override
     public boolean isNavigationLocked() {
         return navigationLocked;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Runnable.class))
     @Override
     public Runnable getOnLogout() {
         return onLogout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onLogout", type = Runnable.class)})
     @Override
     public void setOnLogout(Runnable onLogout) {
         this.onLogout = onLogout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         manuscriptPart.refresh();

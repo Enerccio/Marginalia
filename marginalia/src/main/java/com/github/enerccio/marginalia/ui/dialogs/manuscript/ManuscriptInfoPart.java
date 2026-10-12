@@ -8,7 +8,7 @@ import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
@@ -76,6 +76,12 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         this.parent = parent;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "container", type = VTabSheet.class)},
+            locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
+                    @APILocals(name = "formLayout", type = FormLayout.class),
+                    @APILocals(name = "syntheticFormLayout", type = FormLayout.class)})
     @Override
     public Component create(VTabSheet container) throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -102,6 +108,8 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         return mainLayout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void createFields() {
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setWidthFull();
@@ -203,10 +211,16 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         branchTokenCountField.setReadOnly(true);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Manuscript.class))
     private Manuscript refreshModel() throws Exception {
         return parent.refreshManuscript();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void autosave() {
         if (loading) {
             return;
@@ -233,6 +247,9 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     private void updateSyntheticFields(Manuscript manuscript) throws Exception {
         if (manuscript == null || manuscript.getId() == null) {
             totalWordCountField.setValue(0);
@@ -253,11 +270,20 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         branchTokenCountField.setValue((int) branchTokens);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "frozen", type = boolean.class)})
     @Override
     public void setFrozen(boolean frozen) {
 
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "models", type = List.class),
+                    @APILocals(name = "protocols", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     @Override
     public void load(Manuscript manuscript) {
         if (manuscript == null) {
@@ -287,11 +313,15 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabLeave() throws Exception {
 
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
         updateSyntheticFields(parent.getManuscript());

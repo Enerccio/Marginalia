@@ -4,7 +4,7 @@ import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -94,6 +94,8 @@ public class TagMultiComboBox extends MultiSelectComboBox<Tag> {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     private void setupSearchDataProvider() {
         setItems(query -> {
             try {
@@ -106,22 +108,36 @@ public class TagMultiComboBox extends MultiSelectComboBox<Tag> {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = boolean.class))
     public boolean isNegative() {
         return negative;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "negative", type = boolean.class)})
     public void setNegative(boolean negative) {
         this.negative = negative;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     public void refreshData() {
         getDataProvider().refreshAll();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entity", type = BaseEntity.class)})
     public void setForEntity(BaseEntity entity) {
         setForEntity(entity, negative);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entity", type = BaseEntity.class),
+                    @APIParameter(name = "negative", type = boolean.class)})
     public void setForEntity(BaseEntity entity, boolean negative) {
         if (entity == null || entity.getId() == null) {
             setForEntity(null, null, negative);
@@ -130,10 +146,21 @@ public class TagMultiComboBox extends MultiSelectComboBox<Tag> {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "objectId", type = Long.class),
+                    @APIParameter(name = "clazz", type = Class.class)})
     public void setForEntity(Long objectId, Class<?> clazz) {
         setForEntity(objectId, clazz, negative);
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "objectId", type = Long.class),
+                    @APIParameter(name = "clazz", type = Class.class),
+                    @APIParameter(name = "negative", type = boolean.class)},
+            locals = {@APILocals(name = "entityTags", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     public void setForEntity(Long objectId, Class<?> clazz, boolean negative) {
         this.targetObjectId = objectId;
         this.targetClass = clazz;
@@ -159,6 +186,14 @@ public class TagMultiComboBox extends MultiSelectComboBox<Tag> {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "oldTags", type = Set.class),
+                    @APIParameter(name = "newTags", type = Set.class)},
+            locals = {@APILocals(name = "oldSet", type = Set.class),
+                    @APILocals(name = "newSet", type = Set.class),
+                    @APILocals(name = "tag", type = Tag.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void syncRelations(Set<Tag> oldTags, Set<Tag> newTags) {
         if (targetObjectId == null || targetClass == null) {
             return;

@@ -8,7 +8,7 @@ import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -72,6 +72,16 @@ public class AdminPart implements WorkspaceComponent {
         this.workspace = workspace;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "tabSheet", type = TabSheet.class),
+                    @APILocals(name = "usersTab", type = Tab.class),
+                    @APILocals(name = "usersContent", type = Component.class),
+                    @APILocals(name = "databaseTab", type = Tab.class),
+                    @APILocals(name = "cleanupTab", type = Tab.class),
+                    @APILocals(name = "extensionsTab", type = Tab.class),
+                    @APILocals(name = "extensionsContent", type = Component.class),
+                    @APILocals(name = "container", type = Div.class)})
     @Override
     public Component create() throws Exception {
         TabSheet tabSheet = new TabSheet();
@@ -96,6 +106,11 @@ public class AdminPart implements WorkspaceComponent {
         return container;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "toolbar", type = HorizontalLayout.class),
+                    @APILocals(name = "addUserButton", type = Button.class)})
     private Component createUsersTab() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
@@ -148,6 +163,10 @@ public class AdminPart implements WorkspaceComponent {
         return layout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "user", type = User.class)},
+            locals = {@APILocals(name = "dialog", type = UserDialog.class)})
     private void openUserDialog(User user) {
         UserDialog dialog = new UserDialog(user, false);
         dialog.setOnSave(this::refreshUsersGrid);
@@ -155,6 +174,10 @@ public class AdminPart implements WorkspaceComponent {
         dialog.open();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "user", type = User.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void deleteUser(User user) {
         try {
             if (user.getId().equals(currentUser.getId())) {
@@ -179,6 +202,10 @@ public class AdminPart implements WorkspaceComponent {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "users", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void refreshUsersGrid() {
         if (usersGrid == null) {
             return;
@@ -192,6 +219,13 @@ public class AdminPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "toolbar", type = HorizontalLayout.class),
+                    @APILocals(name = "handler", type = InMemoryUploadHandler.class),
+                    @APILocals(name = "upload", type = Upload.class),
+                    @APILocals(name = "refreshButton", type = Button.class)})
     private Component createExtensionsTab() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
@@ -305,6 +339,12 @@ public class AdminPart implements WorkspaceComponent {
         return layout;
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "report", type = String.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "text", type = TextArea.class),
+                    @APILocals(name = "close", type = Button.class)})
     private void showReport(String report) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_VERIFICATION_REPORT));
@@ -328,6 +368,12 @@ public class AdminPart implements WorkspaceComponent {
         return (name != null && !name.isBlank()) ? name : bundle.getSymbolicName();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "bundle", type = Bundle.class),
+                    @APIParameter(name = "stopped", type = boolean.class)},
+            locals = {@APILocals(name = "e", type = ExtensionVerificationException.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void toggleExtension(Bundle bundle, boolean stopped) {
         try {
             if (stopped) {
@@ -353,6 +399,9 @@ public class AdminPart implements WorkspaceComponent {
         refreshGrid();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "bundle", type = Bundle.class)})
     private void unloadExtension(Bundle bundle) {
         ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_UNLOAD_EXTENSION), extensionName(bundle)), () -> {
             try {
@@ -370,6 +419,9 @@ public class AdminPart implements WorkspaceComponent {
         });
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "bundles", type = List.class)})
     private void refreshGrid() {
         if (extensionsGrid != null && osgiService != null) {
             List<Bundle> bundles = osgiService.getBundles();
@@ -377,6 +429,9 @@ public class AdminPart implements WorkspaceComponent {
         }
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "state", type = int.class)})
     private String formatBundleState(int state) {
         return switch (state) {
             case Bundle.UNINSTALLED -> loc.getValue(L.ENUM_BUNDLE_STATE_UNINSTALLED);
@@ -389,6 +444,8 @@ public class AdminPart implements WorkspaceComponent {
         };
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void refresh() throws Exception {
         refreshGrid();
@@ -397,11 +454,15 @@ public class AdminPart implements WorkspaceComponent {
         cleanupPanel.refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
     }
 
+    @PublicAPI(from = "1.1.0",
+            returns = @APIReturn(type = void.class))
     @Override
     public void onTabClosed() throws Exception {
 

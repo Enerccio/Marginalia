@@ -173,7 +173,7 @@ final class ContextInterpreter extends Interpreter<ContextValue> implements Opco
         }
         MethodInsnNode call = (MethodInsnNode) insn;
         Type returnType = Type.getReturnType(call.desc);
-        if (call.owner.equals(CONTEXT_TYPE) && values.size() > 2) {
+        if (call.owner.equals(CONTEXT_TYPE) && values.size() > 1) {
             ContextValue result = contextResult(call.name, values);
             if (result != null) {
                 return result;
@@ -187,15 +187,20 @@ final class ContextInterpreter extends Interpreter<ContextValue> implements Opco
      */
     private static ContextValue contextResult(String method, List<? extends ContextValue> values) {
         switch (method) {
+            case "getOriginalReturn", "getCurrentReturn":
+                if (values.get(1) instanceof Cls cls && (cls.type().getSort() == Type.OBJECT || cls.type().getSort() == Type.ARRAY)) {
+                    return new Typed(cls.type());
+                }
+                return null;
             case "getMethodArgument", "getLocalVariable":
-                if (values.get(2) instanceof Cls cls && (cls.type().getSort() == Type.OBJECT || cls.type().getSort() == Type.ARRAY)) {
+                if (values.size() > 2 && values.get(2) instanceof Cls cls && (cls.type().getSort() == Type.OBJECT || cls.type().getSort() == Type.ARRAY)) {
                     return new Typed(cls.type());
                 }
                 return null;
             case "getReflectiveFieldValue":
-                return values.get(2) instanceof Str name ? new FieldValue(values.get(1), name.value()) : null;
+                return values.size() > 2 && values.get(2) instanceof Str name ? new FieldValue(values.get(1), name.value()) : null;
             case "callReflectiveMethod":
-                return values.get(2) instanceof Str name && values.size() > 3
+                return values.size() > 3 && values.get(2) instanceof Str name
                         ? new MethodValue(values.get(1), name.value(), values.get(3)) : null;
             default:
                 return null;
