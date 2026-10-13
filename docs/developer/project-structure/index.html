@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845197036705">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845200360311">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845197036705" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845200360311" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845200360311" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845200360311" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -622,8 +622,8 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 |---|---|
 | `service.impl.generation` | Engine interfaces and data: `GenerationStep`, `GenerationStepBase`, `GenerationStepType`, `GenerationController`, `Events`, `GenerationEvent`, `GenerationRequest` / `GenerationRequestType`, `GenerationProperties`. |
 | `service.impl.generation.impl` | The eight steps, `PrepareForGenerationStep` ... `CleanupStep`. |
-| `service.impl.generation.dto` | `LLMChatMessage` (role, text and optional `LLMAttachment`s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3), `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
-| `service.function` | `FunctionDefinition`, `FunctionSet`, `FunctionCompiler` (JSON schema of the parameters, argument parsing, method handles), `FunctionCallException`; the annotations `@LLMFunction` / `@LLMParam` are in `domain.traits`. |
+| `service.impl.generation.dto` | `LLMChatMessage` (role, text and optional `LLMAttachment`s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3; `LLMToolCall`s of an assistant message and the `toolCallId` of a `TOOL` result), `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
+| `service.function` | `FunctionDefinition`, `FunctionSet`, `FunctionCompiler` (JSON schema of the parameters, validation of the asynchronous method shape, argument parsing, method handles), `FunctionContinuation` (how a function answers), `FunctionCallException`; the annotations `@LLMFunction` / `@LLMParam` are in `domain.traits`. |
 | `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to `InferenceException`). |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -645,11 +645,11 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.impl.generation.dto</code></td>
-<td><code translate="no" v-pre>LLMChatMessage</code> (role, text and optional <code translate="no" v-pre>LLMAttachment</code>s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3), <code translate="no" v-pre>LLMRole</code>, <code translate="no" v-pre>PrePromptData</code> (the prompts collected for one generation).</td>
+<td><code translate="no" v-pre>LLMChatMessage</code> (role, text and optional <code translate="no" v-pre>LLMAttachment</code>s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3; <code translate="no" v-pre>LLMToolCall</code>s of an assistant message and the <code translate="no" v-pre>toolCallId</code> of a <code translate="no" v-pre>TOOL</code> result), <code translate="no" v-pre>LLMRole</code>, <code translate="no" v-pre>PrePromptData</code> (the prompts collected for one generation).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.function</code></td>
-<td><code translate="no" v-pre>FunctionDefinition</code>, <code translate="no" v-pre>FunctionSet</code>, <code translate="no" v-pre>FunctionCompiler</code> (JSON schema of the parameters, argument parsing, method handles), <code translate="no" v-pre>FunctionCallException</code>; the annotations <code translate="no" v-pre>@LLMFunction</code> / <code translate="no" v-pre>@LLMParam</code> are in <code translate="no" v-pre>domain.traits</code>.</td>
+<td><code translate="no" v-pre>FunctionDefinition</code>, <code translate="no" v-pre>FunctionSet</code>, <code translate="no" v-pre>FunctionCompiler</code> (JSON schema of the parameters, validation of the asynchronous method shape, argument parsing, method handles), <code translate="no" v-pre>FunctionContinuation</code> (how a function answers), <code translate="no" v-pre>FunctionCallException</code>; the annotations <code translate="no" v-pre>@LLMFunction</code> / <code translate="no" v-pre>@LLMParam</code> are in <code translate="no" v-pre>domain.traits</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.impl.inference</code></td>

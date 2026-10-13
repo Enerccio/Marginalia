@@ -212,7 +212,10 @@ it and the model never sees them.
 
 An `LLMChatMessage` can carry `LLMAttachment`s (images, audio, files) for models that accept them, and the OpenAI
 compatible provider sends those of a user message as content parts. This step adds none; a listener of
-`AFTER_PREPARE_PAYLOAD` can put them on a user message.
+`AFTER_PREPARE_PAYLOAD` can put them on a user message. A message can also carry function calls (`toolCalls`, an
+assistant message) or be the result of one (`LLMRole.TOOL` with `toolCallId`); the pipeline builds none of them, they
+are added by `OpenAICompatibleInferenceService` when the model calls a function, see
+[Function calls](services.md#function-calls).
 
 The payload is stored in the part (`builtPrompt`) and can be inspected in the story editor with *View prompt*:
 

@@ -246,7 +246,7 @@ options. [Testing](testing.md) describes the test base and how to write tests.
 
 ## Building the plugins
 
-The eight bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
+The nine bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
 JAR of the application, so install the parent POM and the application first:
 
 ```sh

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845197036705">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845200360311">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845197036705" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845200360311" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845200360311" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845197036705" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845200360311" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845200360311" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -445,7 +445,10 @@ user message carries the instructions. Only the text of the parts is sent: the i
 it and the model never sees them.</p>
 <p>An <code translate="no" v-pre>LLMChatMessage</code> can carry <code translate="no" v-pre>LLMAttachment</code>s (images, audio, files) for models that accept them, and the OpenAI
 compatible provider sends those of a user message as content parts. This step adds none; a listener of
-<code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> can put them on a user message.</p>
+<code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> can put them on a user message. A message can also carry function calls (<code translate="no" v-pre>toolCalls</code>, an
+assistant message) or be the result of one (<code translate="no" v-pre>LLMRole.TOOL</code> with <code translate="no" v-pre>toolCallId</code>); the pipeline builds none of them, they
+are added by <code translate="no" v-pre>OpenAICompatibleInferenceService</code> when the model calls a function, see
+<a href="../services/#function-calls">Function calls</a>.</p>
 <p>The payload is stored in the part (<code translate="no" v-pre>builtPrompt</code>) and can be inspected in the story editor with <em>View prompt</em>:</p>
 <figure class="content-center">
     <img src="../../images/dev-view-prompt.png" alt="The prompt of a part in the View prompt dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="850" height="650" />
