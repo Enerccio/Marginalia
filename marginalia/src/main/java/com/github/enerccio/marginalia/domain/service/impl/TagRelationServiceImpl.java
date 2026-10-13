@@ -74,6 +74,17 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
     }
 
     @Override
+    @CommonTx
+    public void deleteForObject(BaseEntity object, boolean hard) throws Exception {
+        if (object == null || object.getId() == null) {
+            return;
+        }
+        for (TagRelation relation : getRepository().findAllByObject(object.getId(), object.getClass().getName())) {
+            delete(relation, hard);
+        }
+    }
+
+    @Override
     @CommonTxReadOnly
     public List<Tag> getTagsForObject(BaseEntity object) throws Exception {
         return getTagsForObject(object, false);

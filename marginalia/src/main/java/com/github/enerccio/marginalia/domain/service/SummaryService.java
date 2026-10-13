@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.repository.SummaryRepository;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface SummaryService extends ExtendableService<Summary, SummaryRepository> {
@@ -27,6 +28,16 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
      * The meta summary takes over uuid of the replaced summary, so meta summaries pointing to it still find it.
      */
     Summary attachMetaSummary(Summary metaSummary, ChatMessage message) throws Exception;
+
+    /**
+     * Soft deletes the summaries of all messages of the manuscript, for the delete of the manuscript.
+     */
+    void softDeleteForManuscript(Manuscript manuscript) throws Exception;
+
+    /**
+     * Soft deletes the summaries of the messages with the ids, for the delete of the messages.
+     */
+    void softDeleteForMessages(Collection<Long> messageIds) throws Exception;
 
     /**
      * Removes the summary of the message.

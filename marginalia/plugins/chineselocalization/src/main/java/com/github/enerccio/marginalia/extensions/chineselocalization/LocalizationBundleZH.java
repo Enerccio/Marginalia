@@ -341,6 +341,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_USED, "已使用");
         setValue(L.LABEL_LIMIT_HARD, "硬性");
         setValue(L.LABEL_LIMIT_GENERATED_HARD, "硬性上限：若预留的回复会超出上限则拒绝请求");
+        setValue(L.LABEL_DELETE_PERMANENTLY, "永久删除");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -509,6 +510,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_EXTENSION_STARTED, "扩展已启动。");
         setValue(L.MSG_EXTENSION_STOPPED, "扩展已停止。");
         setValue(L.MSG_EXTENSION_LOG_EMPTY, "该扩展尚未写入任何日志。");
+        setValue(L.MSG_DELETE_PERMANENTLY_HINT, "将所选的故事段落和世界书条目从数据库中彻底删除。其他对象只能恢复，由清理来移除。");
+        setValue(L.MSG_CONFIRM_DELETE_PERMANENTLY, "永久删除所选的 %s 个对象吗？此操作无法撤销。已删除段落下方的段落会移到其父段落下。");
+        setValue(L.MSG_DELETED_PERMANENTLY, "已永久删除 %s 个对象。");
+        setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED, "没有删除任何内容。这些对象无法移除：");
+        setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED_ITEM, "%s“%s”：%s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

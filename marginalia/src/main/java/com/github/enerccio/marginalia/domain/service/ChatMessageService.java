@@ -51,6 +51,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     boolean hasAnyMessages(Manuscript manuscript) throws Exception;
 
+    /**
+     * Soft deletes all messages of the manuscript and their summaries, for the delete of the manuscript. One update
+     * for all of them (a book has thousands of messages), the messages are not loaded.
+     */
+    void softDeleteForManuscript(Manuscript manuscript) throws Exception;
+
     Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception;
 
     int countWords(String text);

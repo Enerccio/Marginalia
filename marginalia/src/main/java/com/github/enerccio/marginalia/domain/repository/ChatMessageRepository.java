@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.repository;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ChatMessageRepository extends ExtendableRepository<ChatMessage> {
@@ -31,6 +32,27 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
      *                     match, see {@link com.github.enerccio.marginalia.domain.service.search.FulltextQuery#likePatterns()}
      */
     List<Object[]> findFulltexts(Manuscript manuscript, List<List<String>> likePatterns) throws Exception;
+
+    /**
+     * Ids of the messages below the message (its children, their children...) that are not deleted, the message itself
+     * is not among them.
+     */
+    List<Long> findDescendantIds(ChatMessage message) throws Exception;
+
+    /**
+     * Soft deletes all messages of the manuscript with one update. The messages are not loaded and no listener runs,
+     * so their extended content stays as it is.
+     *
+     * @return number of the deleted messages
+     */
+    int softDeleteByManuscript(Manuscript manuscript) throws Exception;
+
+    /**
+     * Soft deletes the messages with one update per chunk of ids, see {@link #softDeleteByManuscript}.
+     *
+     * @return number of the deleted messages
+     */
+    int softDeleteByIds(Collection<Long> ids) throws Exception;
 
     int getTotalWordCount(Long manuscriptId) throws Exception;
 

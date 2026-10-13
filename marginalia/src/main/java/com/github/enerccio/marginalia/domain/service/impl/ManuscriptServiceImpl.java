@@ -55,6 +55,19 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Autowired
     private LorebookService lorebookService;
 
+    /**
+     * A soft deleted manuscript takes its messages (with their summaries) and its tags with it.
+     */
+    @Override
+    @CommonTx
+    public Manuscript delete(Manuscript manuscript, boolean hard) throws Exception {
+        if (!hard && manuscript != null && manuscript.getId() != null) {
+            chatMessageService.softDeleteForManuscript(manuscript);
+            tagRelationService.deleteForObject(manuscript, false);
+        }
+        return super.delete(manuscript, hard);
+    }
+
     @Override
     @CommonTxReadOnly
     public List<Long> searchManuscripts(Sorter... sorters) throws Exception {

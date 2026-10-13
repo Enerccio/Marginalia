@@ -6,10 +6,7 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.CleanupService.EntityKey;
 import com.github.enerccio.marginalia.domain.service.TrashService;
-import com.github.enerccio.marginalia.domain.service.TrashService.Blocker;
-import com.github.enerccio.marginalia.domain.service.TrashService.RestoreResult;
-import com.github.enerccio.marginalia.domain.service.TrashService.TrashFilter;
-import com.github.enerccio.marginalia.domain.service.TrashService.TrashItem;
+import com.github.enerccio.marginalia.domain.service.TrashService.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -32,10 +29,7 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -66,6 +60,8 @@ public class TrashGrid extends VerticalLayout {
     protected ComboBox<User> userFilter;
     protected ComboBox<Class<?>> typeFilter;
     protected Button restoreButton;
+    protected Button deleteButton;
+    private Set<Class<?>> deletableTypes = Set.of();
 
     /**
      * @param allUsers show the owner filter and column, for administrators
@@ -94,7 +90,13 @@ public class TrashGrid extends VerticalLayout {
         grid.setEmptyStateText(loc.getValue(L.MSG_TRASH_EMPTY));
         // selection survives loading other pages of the lazy table, items are identified by what they are
         grid.setItems(new CallbackDataProvider<TrashItem, Void>(this::fetch, query -> count(), TrashItem::key));
-        grid.addSelectionListener(e -> restoreButton.setEnabled(!e.getAllSelectedItems().isEmpty()));
+        deletableTypes = Set.copyOf(trashService.getPermanentlyDeletableTypes());
+        grid.addSelectionListener(e -> {
+            Set<TrashItem> selected = e.getAllSelectedItems();
+            restoreButton.setEnabled(!selected.isEmpty());
+            // only small objects can be deleted for good, a selection with anything else can only be restored
+            deleteButton.setEnabled(!selected.isEmpty() && selected.stream().allMatch(item -> deletableTypes.contains(item.key().type())));
+        });
 
         addColumns();
 
@@ -129,7 +131,7 @@ public class TrashGrid extends VerticalLayout {
 
     /**
      * Filters and buttons above the table, creates {@link #userFilter} (for administrators), {@link #typeFilter} and
-     * {@link #restoreButton}.
+     * {@link #restoreButton} and {@link #deleteButton}.
      */
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
@@ -162,10 +164,26 @@ public class TrashGrid extends VerticalLayout {
         restoreButton.setThemeName("primary");
         restoreButton.setEnabled(false);
 
+        deleteButton = createDeleteButton();
+
         Div spacer = new Div();
-        toolbar.add(spacer, refreshButton, restoreButton);
+        toolbar.add(spacer, refreshButton, deleteButton, restoreButton);
         toolbar.setFlexGrow(1, spacer);
         return toolbar;
+    }
+
+    /**
+     * Button that deletes the selected objects for good, enabled while only deletable objects are selected.
+     */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = Button.class),
+            locals = {@APILocals(name = "button", type = Button.class)})
+    protected Button createDeleteButton() {
+        Button button = new Button(loc.getValue(L.LABEL_DELETE_PERMANENTLY), Solid.TRASH.create(), e -> deleteSelected());
+        button.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        button.setTooltipText(loc.getValue(L.MSG_DELETE_PERMANENTLY_HINT));
+        button.setEnabled(false);
+        return button;
     }
 
     /**
@@ -321,6 +339,64 @@ public class TrashGrid extends VerticalLayout {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "keys", type = List.class)})
+    protected void deleteSelected() {
+        List<EntityKey> keys = grid.getSelectedItems().stream().map(TrashItem::key).toList();
+        if (keys.isEmpty()) {
+            return;
+        }
+        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_PERMANENTLY), keys.size()), () -> deletePermanently(keys));
+    }
+
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "keys", type = List.class)},
+            locals = {@APILocals(name = "result", type = TrashService.DeleteResult.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void deletePermanently(List<EntityKey> keys) {
+        try {
+            DeleteResult result = trashService.deletePermanently(keys);
+            if (result.isBlocked()) {
+                showDeleteBlocked(result);
+                return;
+            }
+            Notification.success(String.format(loc.getValue(L.MSG_DELETED_PERMANENTLY), result.getDeleted().size()));
+            refreshGrid();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "result", type = TrashService.DeleteResult.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "content", type = VerticalLayout.class),
+                    @APILocals(name = "blocked", type = Map.Entry.class),
+                    @APILocals(name = "key", type = com.github.enerccio.marginalia.domain.service.CleanupService.EntityKey.class),
+                    @APILocals(name = "reason", type = String.class)})
+    private void showDeleteBlocked(DeleteResult result) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(loc.getValue(L.LABEL_DELETE_PERMANENTLY));
+        dialog.setWidth("600px");
+
+        VerticalLayout content = new VerticalLayout();
+        content.setPadding(false);
+        content.add(new Span(loc.getValue(L.MSG_DELETE_PERMANENTLY_BLOCKED)));
+        for (Map.Entry<EntityKey, List<String>> blocked : result.getBlocked().entrySet()) {
+            EntityKey key = blocked.getKey();
+            for (String reason : blocked.getValue()) {
+                content.add(new Span(String.format(loc.getValue(L.MSG_DELETE_PERMANENTLY_BLOCKED_ITEM),
+                        loc.localizeDomainObject(key.type()), result.getBlockedLabels().get(key), reason)));
+            }
+        }
+        dialog.add(content);
+        dialog.getFooter().add(new Button(loc.getValue(L.LABEL_CLOSE), e -> dialog.close()));
+        dialog.open();
     }
 
     @PublicAPI(from = "1.1.0",

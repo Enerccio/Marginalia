@@ -68,6 +68,35 @@ public interface TrashService {
         }
     }
 
+    class DeleteResult {
+        private final Set<EntityKey> deleted = new LinkedHashSet<>();
+        private final Map<EntityKey, List<String>> blocked = new LinkedHashMap<>();
+        private final Map<EntityKey, String> blockedLabels = new HashMap<>();
+
+        /**
+         * Everything that was removed (the requested objects and what belongs to them), empty when anything is
+         * blocked (the delete is all or nothing).
+         */
+        public Set<EntityKey> getDeleted() {
+            return deleted;
+        }
+
+        /**
+         * Requested objects that can't be removed, with the reasons.
+         */
+        public Map<EntityKey, List<String>> getBlocked() {
+            return blocked;
+        }
+
+        public Map<EntityKey, String> getBlockedLabels() {
+            return blockedLabels;
+        }
+
+        public boolean isBlocked() {
+            return !blocked.isEmpty();
+        }
+    }
+
     /**
      * Types of deleted objects that can be listed and restored.
      */
@@ -89,9 +118,30 @@ public interface TrashService {
 
     /**
      * Restores the objects, or nothing when some of them depend on a deleted object that is not among them
-     * ({@link RestoreResult#getBlocked()}). Objects that are no longer deleted are skipped.
+     * ({@link RestoreResult#getBlocked()}). Objects that are no longer deleted are skipped. The deleted objects the
+     * restored ones own are restored with them (messages of a manuscript, entries of a lorebook...), as the soft
+     * delete deleted them together.
      *
      * @throws SecurityException when any object belongs to someone else (and the caller is not an administrator)
      */
     RestoreResult restore(Collection<EntityKey> keys) throws Exception;
+
+    /**
+     * Types of deleted objects that {@link #deletePermanently} removes: only the small ones (story parts, lorebook
+     * entries), so a user can clean up the trash without removing a whole book.
+     */
+    List<Class<?>> getPermanentlyDeletableTypes();
+
+    /**
+     * Removes the deleted objects from the database for good, without waiting for the cleanup. Only objects of
+     * {@link #getPermanentlyDeletableTypes()} are accepted, and only their summaries and tag links go with them.
+     * Like the delete of a story part does, the parts below a removed part (deleted or not) are moved to its parent
+     * (the nearest part that stays), and the active part of a book on the removed part moves to the parent too.
+     * Objects that are no longer deleted are skipped. Nothing is removed when anything is blocked
+     * ({@link DeleteResult#getBlocked()}), e.g. by an extension that still needs the object.
+     *
+     * @throws IllegalArgumentException when an object is of another type
+     * @throws SecurityException        when any object belongs to someone else (and the caller is not an administrator)
+     */
+    DeleteResult deletePermanently(Collection<EntityKey> keys) throws Exception;
 }

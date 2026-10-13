@@ -61,6 +61,19 @@ a migrated database.
 - Vaadin is built with `optimizeBundle=false`.
 - Lore Generator: the dialog is split into smaller classes (`NameToolsDialog`, `SavePromptAsDialog`,
   `AttachmentPanel`, `GenerationPane`).
+- Deleting takes what belongs to the deleted object with it: a book its story parts, their summaries and its tags, a
+  story part its summary and the parts below it, a lorebook its entries and their tags, an inference provider its usage
+  numbers. The Trash restores them together with the object, and the cleanup keeps the contents
+  of a deleted object it can't remove yet, so a restorable lorebook doesn't lose its entries. Services: `delete(x,
+  false)` of `ManuscriptService`, `ChatMessageService`, `LorebookService`, `LorebookEntryService` and `AIService`
+  cascades; new `TagRelationService.deleteForObject`, `ChatMessageService.softDeleteForManuscript`,
+  `SummaryService.softDeleteForManuscript` / `softDeleteForMessages`. The messages and summaries of a book are soft
+  deleted with one bulk update, so extensions get no save event for them.
+- Trash: **Delete Permanently** removes deleted story parts and lorebook entries (with their summaries and tags) from
+  the database right away, for users and administrators; other objects still wait for the cleanup, so nobody removes a
+  whole book by accident. The parts below a removed part move to its parent. New `TrashService.deletePermanently` /
+  `getPermanentlyDeletableTypes`; `TrashGrid` and `PhoneTrashGrid` get `createDeleteButton`, `deleteSelected` and the
+  field `deleteButton` (`@PublicAPI` from 1.2.0).
 
 ### Fixed
 

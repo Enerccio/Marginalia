@@ -36,6 +36,22 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     @Autowired
     private TagService tagService;
 
+    /**
+     * A soft deleted lorebook takes its entries (with their tags) and its tags with it. Books that include it as a
+     * subbook only lose the link when it is purged.
+     */
+    @Override
+    @CommonTx
+    public Lorebook delete(Lorebook lorebook, boolean hard) throws Exception {
+        if (!hard && lorebook != null && lorebook.getId() != null) {
+            for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(lorebook)) {
+                lorebookEntryService.delete(entry, false);
+            }
+            tagRelationService.deleteForObject(lorebook, false);
+        }
+        return super.delete(lorebook, hard);
+    }
+
     @Override
     @CommonTxReadOnly
     public List<Lorebook> getSubbooks(Lorebook lorebook) throws Exception {

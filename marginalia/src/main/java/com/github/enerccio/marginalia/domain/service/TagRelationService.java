@@ -22,6 +22,11 @@ public interface TagRelationService extends ExtendableService<TagRelation, TagRe
 
     void deleteForTag(Tag tag, boolean hard) throws Exception;
 
+    /**
+     * Deletes all relations of the object (positive and negative) to tags, for the delete of the tagged object.
+     */
+    void deleteForObject(BaseEntity object, boolean hard) throws Exception;
+
     List<Tag> getTagsForObject(BaseEntity object) throws Exception;
 
     List<Tag> getTagsForObject(BaseEntity object, boolean negative) throws Exception;

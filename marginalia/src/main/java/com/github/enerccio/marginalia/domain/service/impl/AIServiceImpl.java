@@ -1,11 +1,13 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
 import com.github.enerccio.marginalia.domain.repository.AIRepository;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,9 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private UsageService usageService;
 
     @Override
     @CommonTxReadOnly
@@ -59,6 +64,11 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
     @CommonTx
     public AI delete(AI ai, boolean hard) throws Exception {
         checkOwner(ai);
+        if (!hard && ai.getId() != null) {
+            for (Usage usage : usageService.findAllForAI(ai)) {
+                usageService.delete(usage, false);
+            }
+        }
         return super.delete(ai, hard);
     }
 

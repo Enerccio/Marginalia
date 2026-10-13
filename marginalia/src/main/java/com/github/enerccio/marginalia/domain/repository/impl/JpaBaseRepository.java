@@ -5,16 +5,28 @@ import com.github.enerccio.marginalia.domain.repository.BaseRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @SuppressWarnings("SqlSourceToSinkFlow")
 public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRepository<T> {
 
     protected EntityManager entityManager;
 
+    /**
+     * Size of the lists of ids put into one {@code IN} clause, SQLite limits the number of bound parameters.
+     */
+    protected static final int CHUNK_SIZE = 500;
+
     protected abstract Class<T> getEntityClass();
+
+    protected static <E> List<List<E>> chunks(Collection<E> items) {
+        List<E> all = items instanceof List<E> list ? list : new ArrayList<>(items);
+        List<List<E>> chunks = new ArrayList<>();
+        for (int i = 0; i < all.size(); i += CHUNK_SIZE) {
+            chunks.add(all.subList(i, Math.min(all.size(), i + CHUNK_SIZE)));
+        }
+        return chunks;
+    }
 
     protected String getEntityType() {
         return getEntityClass().getSimpleName();

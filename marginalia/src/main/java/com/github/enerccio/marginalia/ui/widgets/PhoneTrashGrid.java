@@ -85,6 +85,7 @@ public class PhoneTrashGrid extends TrashGrid {
         restoreButton = new Button(loc.getValue(L.LABEL_RESTORE_SELECTED), Solid.UNDO.create(), e -> restoreSelected());
         restoreButton.setThemeName("primary");
         restoreButton.setEnabled(false);
+        deleteButton = createDeleteButton();
 
         Button infoButton = new Button(Solid.INFO_CIRCLE.create());
         infoButton.setThemeName("tertiary");
@@ -95,7 +96,7 @@ public class PhoneTrashGrid extends TrashGrid {
         description.addClassName(CssStyles.WHITE_SPACE_NORMAL);
         info.add(description);
 
-        HorizontalLayout buttons = new HorizontalLayout(refreshButton, restoreButton, infoButton);
+        HorizontalLayout buttons = new HorizontalLayout(refreshButton, deleteButton, restoreButton, infoButton);
         buttons.setWidthFull();
         buttons.setPadding(false);
         toolbar.add(buttons);
