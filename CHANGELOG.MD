@@ -37,6 +37,14 @@ a migrated database.
   calls; extensions use it through `InferenceService.stream(payload, protocol, functions, callback)`.
 - `InferenceServices.addToolRoleResolver` / `removeToolRoleResolver`: an extension can change the role the results of
   function calls are sent with.
+- New widget `GraphView` (`ui.widgets`, `@PublicAPI` from 1.2.0): a graph drawn with Cytoscape.js (npm package
+  `cytoscape`, `graph-connector.js`, `JavascriptLibrary.renderGraph`) - nodes with colors and images, labelled edges
+  with arrows, nodes arranged in rings around a center node, re-centered by a double click. Plugins can use it.
+- Plugin: **Character Tracker** — a *Characters* tab in the story sidebar: the characters of the book (name, tagline,
+  note, icon scaled to at most 200 x 200 pixels, color) with relationships between them (directed or unidirectional,
+  with a name and a tagline), a relationship map (double-click a character to arrange the map around it), and an import of lorebook entries (of the book's
+  lorebook and its sub lorebooks) as characters. Stored in the attributes of the book. No
+  changes to the application.
 - Plugin: **Gemma 4 Tools Fix** — sends the results of function calls to Gemma 4 models with the role
   `tool_responses` instead of `tool`.
 - Plugin: **Name generator** — the model can call `list_name_categories` and `generate_names` to get names from Markov

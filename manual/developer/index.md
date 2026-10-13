@@ -88,6 +88,7 @@ the details.
 | [Generation pipeline](generation-pipeline.md) | How a story part is generated, step by step. |
 | [Templating & macros](templating.md) | Prompt templates, template data, the macro translator. |
 | [User interface](ui.md) | Routes, workspace, dialogs, push and background threads. |
+| [Custom components](custom-components.md) | The components that draw with a JavaScript library (story tree, charts, graphs), how they work and how to add one. |
 | [Plugin development](plugins/index.md) | Writing extensions: bundles, `@Extendable` hooks, extended attributes, UI extensions. |
 | [Testing](testing.md) | Running tests, test bases, the fake LLM server, CRUD contracts, writing tests. |
 | [Packaging & releases](packaging.md) | WAR, Docker image, desktop app, CI, making a release. |

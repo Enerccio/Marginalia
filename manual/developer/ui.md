@@ -299,6 +299,7 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
 | `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, "160px")` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
+| `GraphView` | A [Cytoscape.js](https://js.cytoscape.org/) graph with rings around a center node and re-centering by double click, see [Custom components](custom-components.md#graphview). |
 | `ChartJs` | A [Chart.js](https://www.chartjs.org/) chart: `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) as JSON and draws it responsively into the element (height 320px, the `chart-js` style). Used by `TokenUsageDialog` (doughnut of the prompt sections, bar chart of the payload messages), opened from *Token Usage* in the part menu of the desktop and phone story editors. |
 | `TrashGrid` | Deleted objects with a restore button and a button that deletes parts and entries for good, see [Trash](#trash). |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |
@@ -380,7 +381,7 @@ explicitly (`$0`, not `this`), and a script that returns a value returns the `Pe
 `JavascriptLibrary.scrollTextAreaToBottom` (the extension log is shown scrolled to its newest line).
 Extensions keep their own scripts.
 
-There are two JavaScript modules. `src/main/frontend/chart-connector.js` is loaded by `ChartJs` (`@JsModule`, with the
+There are three JavaScript modules, all documented in [Custom components](custom-components.md). `src/main/frontend/chart-connector.js` is loaded by `ChartJs` (`@JsModule`, with the
 npm package `chart.js`); it registers Chart.js and draws the configuration it gets from
 `JavascriptLibrary.renderChart`, taking the text and grid colors from the Lumo variables of the page.
 
@@ -388,7 +389,7 @@ npm package `chart.js`); it registers Chart.js and draws the configuration it ge
 with the npm packages `treant-js` and `raphael` (`@NpmPackage`) and treant's CSS (`@CssImport`). It draws the story
 tree; `TreantTree` sends the tree as JSON and receives clicks back: `node-click` (a card was clicked, with the
 `data-node-id` of the card) and `node-goto` (an element with `data-goto-id` inside a card was clicked; the card itself
-is not clicked then).
+is not clicked then). `src/main/frontend/graph-connector.js` is loaded by `GraphView` (npm package `cytoscape`).
 
 ### Searching the story tree
 

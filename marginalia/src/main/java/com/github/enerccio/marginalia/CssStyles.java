@@ -81,6 +81,9 @@ public final class CssStyles {
     public static final String SUMMARY_CONTENT = "summary-content";
     public static final String SUMMARY_ACTIONS = "summary-actions";
 
+    // --- graph ---
+    public static final String GRAPH_VIEW = "graph-view";
+
     // --- Chart.js chart ---
     public static final String CHART_JS = "chart-js";
     public static final String TOKEN_USAGE_SUMMARY = "token-usage-summary";
