@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
+import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -77,6 +78,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private MenuItem summariesMenuItem;
     private MenuItem cogsMenuItem;
     private MenuItem changeStyles;
+    private MenuItem highlightGenerated;
     private Button actionButton;
 
     private Popover newTurnPopover;
@@ -84,6 +86,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
     private Manuscript currentManuscript;
     private boolean isFrozen = false;
+    // diff view, not stored: the response of the cards is shown with the generated text highlighted
+    private boolean showGeneratedDiff = false;
 
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
     private final StorySupport support = new StorySupport();
@@ -228,6 +232,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private MenuItem createCogsMenuItem(MenuBar bar) {
         MenuItem cogs = bar.addItem(Solid.COGS.create());
         changeStyles = createChangeStylesMenuItem(cogs);
+        highlightGenerated = createHighlightGeneratedMenuItem(cogs);
         createExportMenuItem(cogs);
         return cogs;
     }
@@ -246,6 +251,33 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 UIUtils.internalServerError(loc, e);
             }
         });
+    }
+
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)},
+            locals = {@APILocals(name = "item", type = MenuItem.class)})
+    private MenuItem createHighlightGeneratedMenuItem(MenuItem cogs) {
+        MenuItem item = cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.HIGHLIGHTER.create(), loc.getValue(L.LABEL_HIGHLIGHT_GENERATED_TEXT)),
+                event -> setShowGeneratedDiff(event.getSource().isChecked()));
+        item.setCheckable(true);
+        item.setChecked(showGeneratedDiff);
+        return item;
+    }
+
+    /**
+     * Switches the diff view: the response of every card is drawn again, with the text that is still the LLM's
+     * highlighted or without the highlight.
+     */
+    @PublicAPI(from = "1.2.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "show", type = boolean.class)},
+            locals = {@APILocals(name = "card", type = ManuscriptStoryPart.ChatMessageCard.class)})
+    private void setShowGeneratedDiff(boolean show) {
+        showGeneratedDiff = show;
+        for (ChatMessageCard card : cards.values()) {
+            card.renderResponse();
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -674,9 +706,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
             responseMarkdown = new Markdown();
             responseMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
-            if (StringUtils.isNotBlank(message.getResponse())) {
-                responseMarkdown.setContent(message.getResponse());
-            }
+            renderResponse();
 
             responseTextArea = new TextArea();
             responseTextArea.setWidthFull();
@@ -923,7 +953,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
                 try {
                     String newResponse = responseTextArea.getValue();
                     message = support.saveEditedResponse(currentManuscript, message, newResponse);
-                    responseMarkdown.setContent(StringUtils.defaultString(newResponse));
+                    renderResponse();
                     responseTextArea.setVisible(false);
                     responseMarkdown.setVisible(true);
                     editing = false;
@@ -963,12 +993,25 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
             reasoningMarkdown.setContent(StringUtils.defaultString(reasoningText));
         }
 
+        /**
+         * Draws the response of the message, with the text that is still the LLM's highlighted in the diff view.
+         */
+        @PublicAPI(from = "1.2.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "response", type = String.class)})
+        public void renderResponse() {
+            String response = StringUtils.defaultString(message.getResponse());
+            responseMarkdown.setContent(showGeneratedDiff
+                    ? GeneratedTextHighlighter.highlight(response, message.getOriginalResponse(), CssStyles.GENERATED_TEXT)
+                    : response);
+        }
+
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 parameters = {@APIParameter(name = "responseText", type = String.class)})
         public void updateResponse(String responseText) {
             message.setResponse(responseText);
-            responseMarkdown.setContent(StringUtils.defaultString(responseText));
+            renderResponse();
             if (!editing) {
                 responseTextArea.setValue(StringUtils.defaultString(responseText));
             }

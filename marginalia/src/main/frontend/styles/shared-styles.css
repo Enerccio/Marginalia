@@ -470,6 +470,13 @@ vaadin-markdown span {
     background-color: var(--lumo-contrast-5pct);
 }
 
+/* Text of a part that is still the one the LLM wrote (the highlight of the story's diff view) */
+.generated-text {
+    background-color: var(--lumo-primary-color-10pct);
+    color: inherit;
+    border-radius: var(--lumo-border-radius-s);
+}
+
 .summary-content {
     position: relative;
     box-sizing: border-box;

@@ -55,6 +55,7 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         message.setPovCharacter("Alice");
         message.setPresentCharacters("Alice, Bob");
         message.setResponse("It was a dark night.");
+        message.setOriginalResponse("It was a very dark night.");
         message.setResponseReasoning("thinking");
         message.setTokenCount(7);
         message.setWordCount(5);
@@ -80,6 +81,7 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         assertThat(loaded.getPovCharacter()).isEqualTo("Alice");
         assertThat(loaded.getPresentCharacters()).isEqualTo("Alice, Bob");
         assertThat(loaded.getResponse()).isEqualTo("It was a dark night.");
+        assertThat(loaded.getOriginalResponse()).isEqualTo("It was a very dark night.");
         assertThat(loaded.getResponseReasoning()).isEqualTo("thinking");
         assertThat(loaded.getTokenCount()).isEqualTo(7);
         assertThat(loaded.getWordCount()).isEqualTo(5);

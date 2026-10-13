@@ -166,6 +166,8 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         ui.access(() -> {
             C card = cards.getOrStreaming(message);
             if (card != null) {
+                // the card may hold another instance of the part, its diff view needs the text as generated so far
+                card.getMessage().setOriginalResponse(message.getOriginalResponse());
                 card.updateResponse(message.getResponse());
                 scrollToBottomIfAtBottom();
             }

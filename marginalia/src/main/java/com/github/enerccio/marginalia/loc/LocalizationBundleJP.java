@@ -334,6 +334,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_LIMIT_HARD, "厳格");
         setValue(L.LABEL_LIMIT_GENERATED_HARD, "厳格な上限：予約された応答が上限を超える場合はリクエストを拒否する");
         setValue(L.LABEL_DELETE_PERMANENTLY, "完全に削除");
+        setValue(L.LABEL_HIGHLIGHT_GENERATED_TEXT, "生成されたテキストをハイライト");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

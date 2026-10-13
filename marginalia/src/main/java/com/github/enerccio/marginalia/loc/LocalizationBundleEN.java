@@ -334,6 +334,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_LIMIT_HARD, "hard");
         setValue(L.LABEL_LIMIT_GENERATED_HARD, "Hard limit: refuse a request whose reserved response would go over");
         setValue(L.LABEL_DELETE_PERMANENTLY, "Delete Permanently");
+        setValue(L.LABEL_HIGHLIGHT_GENERATED_TEXT, "Highlight Generated Text");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

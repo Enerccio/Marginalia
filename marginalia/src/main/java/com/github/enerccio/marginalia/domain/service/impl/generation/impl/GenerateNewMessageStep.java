@@ -49,6 +49,7 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             initialNode.setInstructions(input.instructions());
             initialNode.setResponseReasoning("");
             initialNode.setResponse("");
+            initialNode.setOriginalResponse("");
             initialNode.setTokenCount(0);
             initialNode.setReasoningEnd(null);
             initialNode.setTokenReasoningCount(null);

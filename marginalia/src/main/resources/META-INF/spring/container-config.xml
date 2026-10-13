@@ -31,12 +31,13 @@
     </bean>
 
     <bean name="applicationInitializer" class="com.github.enerccio.marginalia.bound.ApplicationInitializer">
-        <property name="appVersion" value="3" />
+        <property name="appVersion" value="4" />
         <property name="dbVersion" value="1" />
         <property name="migrations">
             <list>
                 <bean class="com.github.enerccio.marginalia.bound.migration.EncryptApiKeysMigration" />
                 <bean class="com.github.enerccio.marginalia.bound.migration.FulltextMigration" />
+                <bean class="com.github.enerccio.marginalia.bound.migration.OriginalResponseMigration" />
             </list>
         </property>
     </bean>
