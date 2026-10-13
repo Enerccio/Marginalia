@@ -343,6 +343,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_LIMIT_GENERATED_HARD, "硬性上限：若预留的回复会超出上限则拒绝请求");
         setValue(L.LABEL_DELETE_PERMANENTLY, "永久删除");
         setValue(L.LABEL_HIGHLIGHT_GENERATED_TEXT, "高亮生成的文本");
+        setValue(L.LABEL_SHA256, "SHA-256");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -516,6 +517,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_DELETED_PERMANENTLY, "已永久删除 %s 个对象。");
         setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED, "没有删除任何内容。这些对象无法移除：");
         setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED_ITEM, "%s“%s”：%s");
+        setValue(L.MSG_COPIED_TO_CLIPBOARD, "已复制到剪贴板");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

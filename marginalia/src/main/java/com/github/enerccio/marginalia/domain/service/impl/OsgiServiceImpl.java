@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.loc.LocalizationBundle;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.shared.Registration;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +33,7 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URL;
@@ -81,6 +83,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private final Map<MarginaliaExtension, List<LocalizationBundle>> localizationBundles = new ConcurrentHashMap<>();
     private final Set<WeakReference<ExtensionObserver>> observers = new HashSet<>();
     private final List<WeakReference<ExtensionListener>> extensionListeners = new CopyOnWriteArrayList<>();
+    private final Map<String, String> sha256Cache = new ConcurrentHashMap<>();
     private volatile Long applicationTimestamp;
 
     @Override
@@ -369,6 +372,23 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 onStart();
             }
         }
+    }
+
+    @Override
+    public String getSha256(Bundle b) throws IOException {
+        File jar = locationFile(b);
+        String key = jar.getPath() + '|' + jar.lastModified() + '|' + jar.length();
+        String cached = sha256Cache.get(key);
+        if (cached != null) {
+            return cached;
+        }
+        String hash;
+        try (InputStream in = Files.newInputStream(jar.toPath())) {
+            hash = DigestUtils.sha256Hex(in);
+        }
+        sha256Cache.keySet().removeIf(k -> k.startsWith(jar.getPath() + '|'));
+        sha256Cache.put(key, hash);
+        return hash;
     }
 
     @Override
