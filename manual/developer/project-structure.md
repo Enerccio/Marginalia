@@ -311,8 +311,9 @@ plugins/<name>/
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
 | Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
-| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog and a settings form. |
+| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `NameToolsDialog`, `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `NameGeneratorBridge` (the Name generator by reflection). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
+| Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameTables` (the chains and the sampling). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
 | Reviewer | `extensions.reviewer` | Model, service, dialogs and a settings form. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |

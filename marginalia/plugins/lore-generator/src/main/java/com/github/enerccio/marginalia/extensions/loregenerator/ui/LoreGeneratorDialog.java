@@ -8,7 +8,9 @@ import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
+import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService;
@@ -19,15 +21,12 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -36,9 +35,6 @@ import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -57,25 +53,6 @@ public class LoreGeneratorDialog extends Dialog {
 
     /** The whole text is one fenced code block, which the default compaction prompt asks for. */
     private static final Pattern FENCED = Pattern.compile("\\A\\s*```[^\\n]*\\n(.*?)\\n?```\\s*\\z", Pattern.DOTALL);
-
-    /**
-     * Pasting files (a screenshot, a file copied in the file manager) into the prompt does not put anything in the text
-     * area: the files go through the upload, like the ones chosen with its button. Pasted text is left alone.
-     * {@code $0} is the text area, {@code $1} the upload.
-     */
-    private static final String PASTE_FILES_SCRIPT = """
-            if ($0.__loreGeneratorPaste) {
-              $0.removeEventListener('paste', $0.__loreGeneratorPaste, true);
-            }
-            $0.__loreGeneratorPaste = (event) => {
-              const files = event.clipboardData ? Array.from(event.clipboardData.files) : [];
-              if (files.length > 0) {
-                event.preventDefault();
-                $1.uploadFiles(files);
-              }
-            };
-            $0.addEventListener('paste', $0.__loreGeneratorPaste, true);
-            """;
 
     @Autowired
     private Localization loc;
@@ -98,22 +75,21 @@ public class LoreGeneratorDialog extends Dialog {
     private Button saveButton;
     private Button saveAsButton;
     private Button deleteButton;
+    private Button nameToolsButton;
     private TextArea promptArea;
-    private Upload upload;
-    private VerticalLayout attachmentList;
+    private AttachmentPanel attachmentPanel;
     private TabSheet tabs;
     private Tab generationTab;
     private Tab compactionTab;
-    private Pane generationPane;
-    private Pane compactionPane;
+    private GenerationPane generationPane;
+    private GenerationPane compactionPane;
     private Button exitButton;
     private Button copyButton;
 
     private LoreGeneratorData data;
+    /** Categories of the name generator the model gets: the ones of the entry's last generation, else the user's. */
+    private List<String> nameCategories;
     private CancellationToken running;
-
-    /** Sent with the generation, in the order they were added. */
-    private final List<LLMAttachment> attachments = new ArrayList<>();
 
     public LoreGeneratorDialog(LoreGeneratorService service, Lorebook lorebook, LorebookEntry entry, Runnable onEntryChanged) {
         this.service = service;
@@ -134,8 +110,13 @@ public class LoreGeneratorDialog extends Dialog {
         });
 
         loadData();
+        nameCategories = data.getNameCategories();
         buildUI();
-        selectPrompt(data.getGenerationPrompts().keySet().iterator().next());
+        String last = data.getLastGenerationPrompt();
+        selectPrompt(last != null && data.getGenerationPrompts().containsKey(last)
+                ? last : data.getGenerationPrompts().keySet().iterator().next());
+        restoreEntryGeneration();
+        refreshNameToolsLabel();
         updateControls();
     }
 
@@ -184,6 +165,7 @@ public class LoreGeneratorDialog extends Dialog {
         promptCombo.addValueChangeListener(e -> {
             if (e.isFromClient() && e.getValue() != null) {
                 selectPrompt(e.getValue());
+                rememberPrompt(e.getValue());
             }
         });
         saveButton = new Button("Save", e -> savePrompt(promptCombo.getValue()));
@@ -191,8 +173,14 @@ public class LoreGeneratorDialog extends Dialog {
         deleteButton = new Button("Delete", e -> deletePrompt());
         deleteButton.setThemeName("error");
 
+        // only when the Name Generator extension is loaded
+        nameToolsButton = new Button("Name tools", Solid.SIGNATURE.create(), e -> openNameToolsDialog());
+        nameToolsButton.setTooltipText("Let the model get names from the Name Generator extension");
+        nameToolsButton.setVisible(service.nameCategories() != null);
+        refreshNameToolsLabel();
+
         // one line: what lore is used, and the prompt
-        HorizontalLayout header = new HorizontalLayout(scopeGroup, limitGroup, promptCombo, saveButton, saveAsButton, deleteButton);
+        HorizontalLayout header = new HorizontalLayout(scopeGroup, limitGroup, promptCombo, saveButton, saveAsButton, deleteButton, nameToolsButton);
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setSpacing(true);
@@ -203,8 +191,8 @@ public class LoreGeneratorDialog extends Dialog {
         promptArea.setWidthFull();
         promptArea.setMinHeight("120px");
 
-        generationPane = new Pane("Run Generation", this::runGeneration);
-        compactionPane = new Pane("Run Compaction", this::runCompaction);
+        generationPane = new GenerationPane("Run Generation", this::runGeneration, this::stop);
+        compactionPane = new GenerationPane("Run Compaction", this::runCompaction, this::stop);
 
         tabs = new TabSheet();
         tabs.setSizeFull();
@@ -212,29 +200,9 @@ public class LoreGeneratorDialog extends Dialog {
         generationTab = tabs.add("Generation", generationPane);
         compactionTab = tabs.add("Compaction", compactionPane);
 
-        InMemoryUploadHandler uploadHandler = new InMemoryUploadHandler((metadata, bytes) -> {
-            attachments.add(LLMAttachment.of(LLMAttachment.Kind.fromMimeType(metadata.contentType()),
-                    metadata.contentType(), metadata.fileName(), bytes));
-            upload.clearFileList();
-            refreshAttachments();
-        });
-        upload = new Upload(uploadHandler);
-        upload.setMaxFileSize(20 * 1024 * 1024);
-        upload.setDropAllowed(true);
-        // the script needs the elements of the page, which exist once the text area is attached
-        promptArea.addAttachListener(e ->
-                promptArea.getElement().executeJs(PASTE_FILES_SCRIPT, promptArea.getElement(), upload.getElement()));
-        attachmentList = new VerticalLayout();
-        attachmentList.setPadding(false);
-        attachmentList.setSpacing(false);
-        // many attachments scroll in their own box instead of pushing the prompt and the buttons away
-        attachmentList.addClassName(CssStyles.OVERFLOW_AUTO);
-        attachmentList.setMaxHeight("140px");
-        attachmentList.setMinHeight("0");
-        Span attachmentsLabel = new Span("Attachments (images and files sent with the generation)");
-        attachmentsLabel.addClassName(CssStyles.HINT_TEXT);
+        attachmentPanel = new AttachmentPanel(promptArea);
 
-        VerticalLayout left = new VerticalLayout(promptArea, attachmentsLabel, upload, attachmentList);
+        VerticalLayout left = new VerticalLayout(promptArea, attachmentPanel);
         left.setPadding(false);
         left.setFlexGrow(1, promptArea);
         // size from the space left, not from the text: a long prompt scrolls inside the text area
@@ -274,6 +242,7 @@ public class LoreGeneratorDialog extends Dialog {
             // read again, the settings may have been changed in the meantime (compaction prompt, other prompts)
             data = service.getData();
             data.getGenerationPrompts().put(name, promptArea.getValue());
+            data.setLastGenerationPrompt(name);
             service.saveData(data);
             selectPromptKeepingText(name);
             Notification.success("Prompt saved");
@@ -288,29 +257,13 @@ public class LoreGeneratorDialog extends Dialog {
     }
 
     private void openSaveAsDialog() {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Save prompt as");
-        TextField name = new TextField("Name");
-        name.setWidthFull();
-        dialog.add(name);
-        Button save = new Button("Save", e -> {
-            String newName = StringUtils.trimToNull(name.getValue());
-            if (newName == null) {
-                name.setInvalid(true);
-                name.setErrorMessage("Name can't be empty");
-                return;
-            }
-            dialog.close();
+        new SavePromptAsDialog(newName -> {
             if (data.getGenerationPrompts().containsKey(newName)) {
                 ConfirmDialog.show("Prompt '" + newName + "' already exists, overwrite it?", () -> savePrompt(newName));
             } else {
                 savePrompt(newName);
             }
-        });
-        save.setThemeName("primary");
-        dialog.getFooter().add(new Button("Cancel", e -> dialog.close()), save);
-        dialog.open();
-        name.focus();
+        }).open();
     }
 
     private void deletePrompt() {
@@ -325,11 +278,102 @@ public class LoreGeneratorDialog extends Dialog {
                 // getData adds the default prompt back when the last one is gone
                 service.saveData(data);
                 data = service.getData();
-                selectPrompt(data.getGenerationPrompts().keySet().iterator().next());
+                String next = data.getGenerationPrompts().keySet().iterator().next();
+                selectPrompt(next);
+                rememberPrompt(next);
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
         });
+    }
+
+    /**
+     * The options the last generation copied to this entry was made with take priority over the last used prompt and the
+     * saved name categories of the user.
+     */
+    private void restoreEntryGeneration() {
+        LoreEntryGeneration saved = service.getEntryGeneration(entry);
+        if (saved == null) {
+            return;
+        }
+        if (saved.getPromptName() != null && data.getGenerationPrompts().containsKey(saved.getPromptName())) {
+            promptCombo.setValue(saved.getPromptName());
+        }
+        if (saved.getPrompt() != null) {
+            // what was sent, also when the saved prompt of that name was edited since
+            promptArea.setValue(saved.getPrompt());
+        }
+        scopeGroup.setValue(enumOr(LoreScope.class, saved.getScope(), scopeGroup.getValue()));
+        limitGroup.setValue(enumOr(EntryLimit.class, saved.getLimit(), limitGroup.getValue()));
+        if (saved.getNameCategories() != null) {
+            nameCategories = saved.getNameCategories();
+        }
+    }
+
+    private static <E extends Enum<E>> E enumOr(Class<E> type, String name, E fallback) {
+        try {
+            return name == null ? fallback : Enum.valueOf(type, name);
+        } catch (IllegalArgumentException e) {
+            return fallback;
+        }
+    }
+
+    /** The options of the dialog as they are now, for the attributes of the entry. */
+    private LoreEntryGeneration currentGeneration() {
+        LoreEntryGeneration generation = new LoreEntryGeneration();
+        generation.setPromptName(promptCombo.getValue());
+        generation.setPrompt(promptArea.getValue());
+        generation.setScope(scopeGroup.getValue().name());
+        generation.setLimit(limitGroup.getValue().name());
+        // only the categories that were really offered to the model
+        List<String> available = service.nameCategories();
+        if (nameCategories != null && available != null) {
+            generation.setNameCategories(nameCategories.stream().filter(available::contains).toList());
+        }
+        return generation;
+    }
+
+    /** Saves the prompt as the one to select when the dialog opens next time. */
+    private void rememberPrompt(String name) {
+        try {
+            data = service.getData();
+            data.setLastGenerationPrompt(name);
+            service.saveData(data);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    // --- name tools ---
+
+    private void refreshNameToolsLabel() {
+        List<String> available = service.nameCategories();
+        int selected = 0;
+        if (available != null && nameCategories != null) {
+            selected = (int) nameCategories.stream().filter(available::contains).count();
+        }
+        nameToolsButton.setText(selected > 0 ? "Name tools (" + selected + ")" : "Name tools");
+    }
+
+    /** The categories of the name generator to check, with the ones saved before checked. */
+    private void openNameToolsDialog() {
+        List<String> available = service.nameCategories();
+        if (available == null) {
+            Notification.warning("The Name Generator extension is not loaded");
+            nameToolsButton.setVisible(false);
+            return;
+        }
+        new NameToolsDialog(available, nameCategories, checked -> {
+            try {
+                data = service.getData();
+                nameCategories = checked;
+                data.setNameCategories(nameCategories);
+                service.saveData(data);
+                refreshNameToolsLabel();
+            } catch (Exception ex) {
+                UIUtils.internalServerError(loc, ex);
+            }
+        }).open();
     }
 
     // --- inference ---
@@ -343,8 +387,11 @@ public class LoreGeneratorDialog extends Dialog {
         compactionPane.clear();
         generationPane.clear();
         try {
-            String prompt = service.buildGenerationPrompt(lorebook, entry, scopeGroup.getValue(), limitGroup.getValue(), promptArea.getValue());
-            start(generationPane, prompt, attachments);
+            // the hint about the tools is added only when the model gets them
+            FunctionSet nameFunctions = service.nameFunctions(nameCategories);
+            String prompt = service.buildGenerationPrompt(lorebook, entry, scopeGroup.getValue(), limitGroup.getValue(),
+                    promptArea.getValue(), nameFunctions != null);
+            start(generationPane, prompt, attachmentPanel.getAttachments(), nameFunctions);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
             updateControls();
@@ -356,14 +403,14 @@ public class LoreGeneratorDialog extends Dialog {
         try {
             String prompt = service.buildCompactionPrompt(lorebook, entry, scopeGroup.getValue(), limitGroup.getValue(), generationPane.content());
             // the compaction works on the generated text only
-            start(compactionPane, prompt, List.of());
+            start(compactionPane, prompt, List.of(), null);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
             updateControls();
         }
     }
 
-    private void start(Pane pane, String prompt, List<LLMAttachment> sent) throws Exception {
+    private void start(GenerationPane pane, String prompt, List<LLMAttachment> sent, FunctionSet functions) throws Exception {
         ModelSelection model = service.resolveModel();
         if (model == null) {
             Notification.warning("No default model is set, choose one in the settings");
@@ -373,17 +420,17 @@ public class LoreGeneratorDialog extends Dialog {
         InferenceService inference = inferenceServices.forAI(model.ai());
         UI ui = UI.getCurrent();
 
-        pane.running = true;
+        pane.setRunning(true);
         updateControls();
         try {
-            running = inference.stream(service.toPayload(prompt, new ArrayList<>(sent)), model.protocol(), callback(ui, pane));
+            running = inference.stream(service.toPayload(prompt, new ArrayList<>(sent)), model.protocol(), functions, callback(ui, pane));
         } catch (Exception e) {
             // nothing runs, do not leave the controls frozen
-            pane.running = false;
+            pane.setRunning(false);
             running = null;
             updateControls();
-            if (e instanceof IllegalArgumentException) {
-                // an attachment the provider can't take
+            if (e instanceof IllegalArgumentException || e instanceof UnsupportedOperationException) {
+                // an attachment the provider can't take, or a provider that can't call functions
                 Notification.warning(e.getMessage());
                 return;
             }
@@ -391,7 +438,7 @@ public class LoreGeneratorDialog extends Dialog {
         }
     }
 
-    private InferenceService.InferenceAsyncCallback callback(UI ui, Pane pane) {
+    private InferenceService.InferenceAsyncCallback callback(UI ui, GenerationPane pane) {
         return new InferenceService.InferenceAsyncCallback() {
             @Override
             public void onChunk(InferenceService.InferenceAsyncController controller, InferenceService.ChunkType chunkType, String text) {
@@ -424,9 +471,9 @@ public class LoreGeneratorDialog extends Dialog {
         };
     }
 
-    private void finish(UI ui, Pane pane, Throwable error) {
+    private void finish(UI ui, GenerationPane pane, Throwable error) {
         ui.access(() -> {
-            pane.running = false;
+            pane.setRunning(false);
             running = null;
             if (error != null) {
                 UIUtils.inferenceError(loc, error);
@@ -445,7 +492,7 @@ public class LoreGeneratorDialog extends Dialog {
 
     /** Freezes the controls while an inference runs and enables the ones that have something to work with. */
     private void updateControls() {
-        boolean busy = generationPane.running || compactionPane.running;
+        boolean busy = generationPane.isRunning() || compactionPane.isRunning();
 
         scopeGroup.setEnabled(!busy);
         limitGroup.setEnabled(!busy);
@@ -453,39 +500,18 @@ public class LoreGeneratorDialog extends Dialog {
         saveButton.setEnabled(!busy);
         saveAsButton.setEnabled(!busy);
         deleteButton.setEnabled(!busy);
+        nameToolsButton.setEnabled(!busy);
         promptArea.setEnabled(!busy);
         exitButton.setEnabled(!busy);
-        upload.setVisible(!busy);
-        refreshAttachments();
+        attachmentPanel.setBusy(busy);
 
-        generationTab.setEnabled(!busy || generationPane.running);
-        compactionTab.setEnabled(!busy && generationPane.hasContent() || compactionPane.running);
+        generationTab.setEnabled(!busy || generationPane.isRunning());
+        compactionTab.setEnabled(!busy && generationPane.hasContent() || compactionPane.isRunning());
         generationPane.setBusy(busy);
         compactionPane.setBusy(busy);
         copyButton.setEnabled(!busy && compactionPane.hasContent());
         if (!compactionTab.isEnabled() && tabs.getSelectedTab() == compactionTab) {
             tabs.setSelectedTab(generationTab);
-        }
-    }
-
-    private void refreshAttachments() {
-        boolean busy = generationPane != null && (generationPane.running || compactionPane.running);
-        attachmentList.removeAll();
-        for (LLMAttachment attachment : attachments) {
-            Span label = new Span(StringUtils.defaultIfBlank(attachment.getName(), "attachment")
-                    + " (" + StringUtils.defaultIfBlank(attachment.getMimeType(), "unknown type")
-                    + ", " + (attachment.getData() != null ? attachment.getData().length / 1024 + " kB" : "link") + ")");
-            Button delete = new Button(Solid.TRASH.create(), e -> {
-                attachments.remove(attachment);
-                refreshAttachments();
-            });
-            delete.setThemeName("error tertiary");
-            delete.setTooltipText("Delete attachment");
-            // the attachments of a running generation are in the request already
-            delete.setEnabled(!busy);
-            HorizontalLayout row = new HorizontalLayout(label, delete);
-            row.setAlignItems(FlexComponent.Alignment.CENTER);
-            attachmentList.add(row);
         }
     }
 
@@ -496,6 +522,8 @@ public class LoreGeneratorDialog extends Dialog {
             LorebookEntry fresh = lorebookEntryService.find(entry);
             fresh.setPayload(unfence(compactionPane.content()));
             fresh.setComment(generationPane.content());
+            // the options of this generation, the generator of the entry opens with them
+            service.putEntryGeneration(fresh, currentGeneration());
             entry = lorebookEntryService.save(fresh);
             onEntryChanged.run();
             Notification.success("Copied to the lore entry");
@@ -511,91 +539,5 @@ public class LoreGeneratorDialog extends Dialog {
     static String unfence(String text) {
         Matcher matcher = FENCED.matcher(text);
         return matcher.matches() ? matcher.group(1) : text.strip();
-    }
-
-    /**
-     * A tab: the reasoning, the content and the button that runs or stops the inference.
-     */
-    private class Pane extends VerticalLayout {
-
-        private final Markdown reasoningMarkdown = new Markdown();
-        private final Details reasoningDetails = new Details("Thinking Process");
-        private final Markdown contentMarkdown = new Markdown();
-        private final Button runButton;
-        private final String runLabel;
-        private final StringBuilder reasoning = new StringBuilder();
-        private final StringBuilder content = new StringBuilder();
-
-        boolean running;
-
-        Pane(String runLabel, Runnable run) {
-            this.runLabel = runLabel;
-            setSizeFull();
-            setPadding(false);
-
-            addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
-
-            // the reasoning has a box of its own, a long one does not push the content out of sight
-            ScrollPanel reasoningScroll = new ScrollPanel(reasoningMarkdown);
-            reasoningScroll.setHeight("25vh");
-            reasoningDetails.add(reasoningScroll);
-            reasoningDetails.setWidthFull();
-            reasoningDetails.setVisible(false);
-            contentMarkdown.setWidthFull();
-
-            ScrollPanel scroll = new ScrollPanel(contentMarkdown);
-            scroll.setSizeFull();
-            scroll.addClassName(CssStyles.MIN_HEIGHT_0);
-
-            runButton = new Button(runLabel, e -> {
-                if (this.running) {
-                    stop();
-                } else {
-                    run.run();
-                }
-            });
-            runButton.setThemeName("primary");
-
-            add(reasoningDetails, scroll, runButton);
-            setFlexGrow(1, scroll);
-            // at the right edge of the dialog, the same place wherever the splitter is
-            setAlignSelf(FlexComponent.Alignment.END, runButton);
-        }
-
-        String content() {
-            return content.toString();
-        }
-
-        boolean hasContent() {
-            return StringUtils.isNotBlank(content);
-        }
-
-        void clear() {
-            reasoning.setLength(0);
-            content.setLength(0);
-            reasoningMarkdown.setContent("");
-            contentMarkdown.setContent("");
-            reasoningDetails.setVisible(false);
-        }
-
-        void append(InferenceService.ChunkType type, String text) {
-            if (type == InferenceService.ChunkType.REASONING) {
-                reasoning.append(text);
-                reasoningMarkdown.setContent(reasoning.toString());
-                reasoningDetails.setVisible(true);
-            } else {
-                content.append(text);
-                contentMarkdown.setContent(content.toString());
-            }
-        }
-
-        /**
-         * @param busy an inference runs (in this tab or in the other one): only the running tab can be used, to stop it
-         */
-        void setBusy(boolean busy) {
-            runButton.setText(running ? "Stop" : runLabel);
-            runButton.setThemeName(running ? "error primary" : "primary");
-            runButton.setEnabled(!busy || running);
-        }
     }
 }

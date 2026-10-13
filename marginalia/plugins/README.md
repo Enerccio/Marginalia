@@ -11,6 +11,7 @@ a restart.
 | [Instruction Exporter](instructionexporter/README.md) | "Export instructions" in the story settings menu: copies the instructions, scene settings and characters of the active branch to the clipboard. |
 | [Lore Generator](lore-generator/README.md) | Writes the content of a lorebook entry with the model from the existing lore (generation, compaction, attachments), from a button in the lorebook editor. |
 | [Lorebook VCS](lorebookvcs/README.md) | Revision history for lorebook entries: snapshots, browsing and restoring old versions, export/import. |
+| [Name generator](name-generator/README.md) | Functions for the model to list name categories (about 1200: names of the world, places, deities, drugs...) and generate names from Markov chains; used by the Lore Generator. |
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
 | [Side Query](sidequery/README.md) | A chat panel next to the story for asking the model questions about the book, its lore and recent parts. |
 | [Chinese localization](chineselocalization/README.md) | Simplified Chinese as a language of the user interface; the example for adding a language. |
@@ -37,7 +38,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or authorsnote, gemma4toolsfix, instructionexporter, lore-generator, lorebookvcs, reviewer, sidequery, chineselocalization
+cd plugins/chaptermarker          # or authorsnote, gemma4toolsfix, instructionexporter, lore-generator, lorebookvcs, name-generator, reviewer, sidequery, chineselocalization
 mvn package                       # target/chaptermarker-1.2.0.jar
 ```
 

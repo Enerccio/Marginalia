@@ -7,6 +7,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Plugin: **Name generator** — the model can call `list_name_categories` and `generate_names` to get names from Markov
+  chains instead of inventing them. About 1200 categories, trained at build time from the Onomastikon, fantasygen,
+  Corpora and markov-namegen-lib (the build clones them, only the probabilities are committed). The length of the chain
+  and the usual lengths of the names are set per category in `src/build/chains.json`, written by the tuning step
+  (`mvn exec:exec@tune-chains`).
+- Lore Generator: **Name tools** gives the model the functions of the Name generator for the categories you check, in a
+  lazy table with a filter (the checked categories stay in it). The checked categories are remembered per entry with
+  the other options of the generation. The default hint lets the model modify or remix the names it gets.
+
+### Changed
+
+- Lore Generator: the dialog is split into smaller classes (`NameToolsDialog`, `SavePromptAsDialog`,
+  `AttachmentPanel`, `GenerationPane`).
+
+### Fixed
+
+- Lore Generator: the Name generator is found by reflection and not imported, so it works when it is installed after the
+  Lore Generator, and again after it was unloaded and installed again.
+
 ## [1.1.0] - 2026-10-12
 
 No database migration: a 1.0.0 database opens unchanged.

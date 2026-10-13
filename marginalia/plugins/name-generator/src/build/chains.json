@@ -1,0 +1,5985 @@
+{
+  "defaultOrder": 2,
+  "categories": {
+    "Africa - African Islands - Madagascar - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 21
+    },
+    "Africa - African Islands - Madagascar - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Africa - African Islands - Mauritius - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Africa - Ancient Africa - Nubia - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Africa - Ancient Africa - Numidia - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Africa - Central Africa - Cameroon - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Central Africa - Chad - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Central Africa - Chad - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Central Africa - Congo - Surnames": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Africa - Central Africa - Democratic Republic of Congo - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Africa - Central Africa - Democratic Republic of Congo - Surnames": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Africa - Central Africa - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Central Africa - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Africa - Eastern Africa - Burundi - Surnames": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 12
+    },
+    "Africa - Eastern Africa - Ethiopia - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Eastern Africa - Ethiopia - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Eastern Africa - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Eastern Africa - Kenya - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Eastern Africa - Kenya - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Eastern Africa - Kenya - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Eastern Africa - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Eastern Africa - Rwanda - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Africa - Eastern Africa - Somalia - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Africa - Eastern Africa - Somalia - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Eastern Africa - Somalia - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Africa - Eastern Africa - Sudan - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Africa - Eastern Africa - Sudan - Surnames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Africa - Eastern Africa - Swahili - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Eastern Africa - Swahili - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Africa - Eastern Africa - Tanzania - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Eastern Africa - Tanzania - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Africa - Eastern Africa - Tanzania - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Eastern Africa - Uganda - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Eastern Africa - Uganda - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Eastern Africa - Uganda - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Northern Africa - Algeria - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Northern Africa - Algeria - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Northern Africa - Algeria - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Africa - Northern Africa - Egypt - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Africa - Northern Africa - Egypt - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Northern Africa - Egypt - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Northern Africa - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Africa - Northern Africa - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Northern Africa - Morocco - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Africa - Northern Africa - Morocco - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Africa - Northern Africa - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Northern Africa - Tunisia - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Southern Africa - Botswana - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Africa - Southern Africa - Botswana - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Africa - Southern Africa - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Africa - Southern Africa - Lesotho - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Africa - Southern Africa - Lesotho - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Southern Africa - Lesotho - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Southern Africa - Malawi - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Africa - Southern Africa - Malawi - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Africa - Southern Africa - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Africa - Southern Africa - Mozambique - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Southern Africa - Namibia - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Southern Africa - South Africa - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Southern Africa - South Africa - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Africa - Southern Africa - South Africa - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Southern Africa - Swaziland - Male": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 11
+    },
+    "Africa - Southern Africa - Zambia": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Southern Africa - Zimbabwe - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Africa - Southern Africa - Zimbabwe - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Africa - Southern Africa - Zimbabwe - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Western Africa - Benin - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Africa - Western Africa - Benin - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 12
+    },
+    "Africa - Western Africa - Benin - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Western Africa - Day Names": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Africa - Western Africa - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Africa - Western Africa - Gambia - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 7
+    },
+    "Africa - Western Africa - Gambia - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Africa - Western Africa - Ghana - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Africa - Western Africa - Ghana - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Africa - Western Africa - Ghana - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Western Africa - Guinea - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Western Africa - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Africa - Western Africa - Mauritania - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Africa - Western Africa - Nigeria - Female": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Africa - Western Africa - Nigeria - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Africa - Western Africa - Nigeria - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Western Africa - Senegal - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Africa - Western Africa - Senegal - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Africa - Western Africa - Sierra Leone - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 6
+    },
+    "Africa - Western Africa - Sierra Leone - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Africa - Western Africa - Surnames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "America - Central and Southern - Amazonian - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "America - Central and Southern - Amazonian - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "America - Central and Southern - Aztec - Female": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 16
+    },
+    "America - Central and Southern - Aztec - Goddesses": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 15
+    },
+    "America - Central and Southern - Aztec - Gods": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 15
+    },
+    "America - Central and Southern - Aztec - Male": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 17
+    },
+    "America - Central and Southern - Aztec - Tehalpohualli (Count Of Days)": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 11
+    },
+    "America - Central and Southern - Inca - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "America - Central and Southern - Inca - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "America - Central and Southern - Maya - Days": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "America - Central and Southern - Maya - Female": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 11
+    },
+    "America - Central and Southern - Maya - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "America - Northern - Algonquin - Male": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 14
+    },
+    "America - Northern - Apache - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "America - Northern - Apache - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "America - Northern - Cherokee - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "America - Northern - Inuit - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "America - Northern - Inuit - Surnames": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 9
+    },
+    "America - Northern - Iroquois - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "America - Northern - Iroquois - Male": {
+      "order": 1,
+      "minLength": 8,
+      "maxLength": 17
+    },
+    "America - Northern - Native - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "America - Northern - Native - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "America - Northern - Native - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 26
+    },
+    "America - Northern - Sioux - Female": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 18
+    },
+    "America - Northern - Sioux - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 17
+    },
+    "American Cities": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "American Companies": {
+      "order": 3,
+      "minLength": 8,
+      "maxLength": 25
+    },
+    "American Desserts": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 16
+    },
+    "American Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "American States": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "American Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Ancient Greek Cities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Ancient World - Eastern - Ancient Civilizations - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Ancient World - Eastern - Assyria - Female": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 13
+    },
+    "Ancient World - Eastern - Assyria - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Ancient World - Eastern - Babylon - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 12
+    },
+    "Ancient World - Eastern - Babylon - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Ancient World - Eastern - Hittites - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Ancient World - Eastern - Hittites - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Ancient World - Eastern - Palestine - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Ancient World - Eastern - Persia - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Ancient World - Eastern - Persia - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Ancient World - Eastern - Persia - Rigveda/Vedic deities": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Ancient World - Eastern - Phoenicia - Barcid Dynasty": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Ancient World - Eastern - Phoenicia - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Ancient World - Eastern - Phoenicia - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Ancient World - Eastern - Sumeria - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Ancient World - Eastern - Sumeria - Goddesses": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Ancient World - Eastern - Sumeria - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Ancient World - Egypt - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Ancient World - Egypt - Male": {
+      "order": 3,
+      "minLength": 3,
+      "maxLength": 14
+    },
+    "Ancient World - Greece - Anatolia - Male": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 13
+    },
+    "Ancient World - Greece - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Ancient World - Greece - Hellenic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Ancient World - Greece - Male": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Ancient World - Rome - Cognomina - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Ancient World - Rome - Cognomina - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Ancient World - Rome - Government - Days": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Ancient World - Rome - Legions": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Ancient World - Rome - Nomina - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Ancient World - Rome - Nomina - Nomen (Family Name)": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Ancient World - Rome - Nomina - Patricians": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Ancient World - Rome - Praenomina": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "Ancient World - Rome - Roman Names": {
+      "order": 3,
+      "minLength": 11,
+      "maxLength": 18
+    },
+    "Ancient World - Rome - Tribes": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "Animal Sounds": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Animals": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 11
+    },
+    "Animals - Ant Anatomy": {
+      "order": 3,
+      "minLength": 7,
+      "maxLength": 30
+    },
+    "Animals - Cats": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 20
+    },
+    "Animals - Cephalopod Anatomy": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 27
+    },
+    "Animals - Collateral Adjectives": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Animals - Common": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Animals - Dinosaurs": {
+      "order": 3,
+      "minLength": 8,
+      "maxLength": 16
+    },
+    "Animals - Dog Names": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Animals - Dogs En De": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 27
+    },
+    "Animals - Donkeys": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 23
+    },
+    "Animals - Horses": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 22
+    },
+    "Animals - Mainly Ducks": {
+      "order": 3,
+      "minLength": 8,
+      "maxLength": 24
+    },
+    "Animals - Ponies": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 21
+    },
+    "Animals - Rabbits": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 18
+    },
+    "Archetypes - Character": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Archetypes - Event": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Archetypes - Setting": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Architecture - Passages": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Architecture - Rooms": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Art - Isms": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 20
+    },
+    "Art Types": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 17
+    },
+    "Atomic and Subatomic Particles": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Banks": {
+      "order": 4,
+      "minLength": 8,
+      "maxLength": 19
+    },
+    "Birds Common Names": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 16
+    },
+    "Board Games": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Boat Types": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Body Parts": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Books - Academic Subjects": {
+      "order": 4,
+      "minLength": 9,
+      "maxLength": 30
+    },
+    "Books - Bestsellers": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 29
+    },
+    "Breads": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Breakfast Cereals": {
+      "order": 3,
+      "minLength": 7,
+      "maxLength": 19
+    },
+    "British Desserts": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 15
+    },
+    "Brythonic Deities": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Building Types": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Cakes": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 17
+    },
+    "Capitol Cities": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Car Brands": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Car Parts": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 16
+    },
+    "Celtic - Brittany - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Brittany - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Celtic - Ireland - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Celtic - Ireland - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Celtic - Ireland - Bynames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Celtic - Ireland - Celtic Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Celtic - Ireland - Celtic Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Celtic - Ireland - G Mac": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Celtic - Ireland - Germanic - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Celtic - Ireland - Germanic - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Celtic - Ireland - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Ireland - Greek - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "Celtic - Ireland - Latin - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Ireland - Latin - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Celtic - Ireland - M Z": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Celtic - Ireland - Religious - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Celtic - Ireland - Surnames A-F": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Celtic - Old Celtic - Cornwall - Female": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Celtic - Old Celtic - Cornwall - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Celtic - Old Celtic - Cornwall - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Celtic - Old Celtic - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Celtic - Old Celtic - Isle Of Man - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Celtic - Old Celtic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Celtic - Scotland - Alphabet": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Celtic - Scotland - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Scotland - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Scotland - Celtic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Celtic - Scotland - Celtic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Celtic - Scotland - Germanic - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Celtic - Scotland - Germanic - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Celtic - Scotland - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Scotland - Greek - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Celtic - Scotland - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Scotland - Latin - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Celtic - Scotland - Norse - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Celtic - Scotland - Religious": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 14
+    },
+    "Celtic - Scotland - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Celtic - Scotland - Surnames - Clans": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Celtic - Wales - Biblical - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Celtic - Wales - Biblical - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Celtic - Wales - Celtic Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Wales - Celtic Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Wales - Germanic - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Celtic - Wales - Greek - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Wales - Greek - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Celtic - Wales - Latin - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Celtic - Wales - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Wales - Surnames - Modern Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Celtic - Wales - Surnames - Top Ten C19th Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Chinese Cities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Cities Worldwide": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Clothing": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Cocktails": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Colors - Crayola": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 17
+    },
+    "Colors - Dulux": {
+      "order": 4,
+      "minLength": 5,
+      "maxLength": 19
+    },
+    "Colors - Fictional": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Colors - Paints": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Colors - Web Colors": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Colors - Wikipedia": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 20
+    },
+    "Colors - Xkcd": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "Colours": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Constellations Modern": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Cooking Utensils": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Corporations - Cars": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 12
+    },
+    "Corporations - Charities": {
+      "order": 3,
+      "minLength": 10,
+      "maxLength": 30
+    },
+    "Corporations - Djia": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 19
+    },
+    "Corporations - Fortune500": {
+      "order": 3,
+      "minLength": 8,
+      "maxLength": 30
+    },
+    "Corporations - Industries": {
+      "order": 4,
+      "minLength": 7,
+      "maxLength": 29
+    },
+    "Corporations - Nasdaq": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 25
+    },
+    "Corporations - Newspapers": {
+      "order": 3,
+      "minLength": 10,
+      "maxLength": 26
+    },
+    "Countries": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Cryptocurrencies": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 12
+    },
+    "Currencies": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 11
+    },
+    "Dance Styles": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Data Structures": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 20
+    },
+    "Dinosaurs": {
+      "order": 3,
+      "minLength": 8,
+      "maxLength": 16
+    },
+    "Diseases": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Divination - Tarot Interpretations": {
+      "order": 1,
+      "minLength": 8,
+      "maxLength": 15
+    },
+    "Dog Names": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Dragons": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Drinking Glasses": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 14
+    },
+    "Drinks": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Dutch Cities": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Dutch Forenames": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Eating Utensils": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Egyptian Deities": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Emotions": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "England Colonies - Commonwealth": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "England Colonies - English Counties - New": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "England Colonies - English Counties - Traditional": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "England Colonies - Mayflower": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England Colonies - Pitcairn Island - Born On Norfolk Island": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "England Colonies - Pitcairn Island - First Generation": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "England Colonies - Pitcairn Island - Mutineers": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 18
+    },
+    "England Colonies - Pitcairn Island - Polynesians": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "England Colonies - Pitcairn Island - Second Generation": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "England Colonies - Pitcairn Island - Third Generation": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 16
+    },
+    "England Colonies - United States": {
+      "order": 2,
+      "minLength": 10,
+      "maxLength": 17
+    },
+    "England Colonies - West Indies - Names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Colonies - West Indies - Names - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England Colonies - West Indies - Names - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England Medieval - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Medieval - Biblical - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "England Medieval - Biblical - Monks": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "England Medieval - Celtic - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England Medieval - Celtic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Medieval - Early Modern - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England Medieval - Early Modern - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England Medieval - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Medieval - Greek - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Medieval - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Medieval - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England Medieval - Names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England Medieval - Names - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England Medieval - Norman - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Medieval - Norman - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Medieval - Norse - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England Medieval - Norse - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England Medieval - Puritans - Slogans": {
+      "order": 2,
+      "minLength": 8,
+      "maxLength": 21
+    },
+    "England Medieval - Puritans - Virtues": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "England Medieval - Rarities - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Medieval - Rarities - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England Medieval - Saxon - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England Medieval - Saxon - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England Medieval - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "England Medieval - Surnames - Noble Families": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England Saxon - Dithematic Names - Female": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "England Saxon - Dithematic Names - Male": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "England Saxon - Dithematic Names - Name Elements": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 6
+    },
+    "England Saxon - Monothematic Names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 6
+    },
+    "England Saxon - Monothematic Names - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 6
+    },
+    "England Surnames - Bynames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England Surnames - Localities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Surnames - Matronymics": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Surnames - Old English": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England Surnames - Patronymics": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England Surnames - Top 50": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England Surnames - Tradenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - African - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - African Americans - African - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "England-First Names - African Americans - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Female - Da-/De": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 11
+    },
+    "England-First Names - African Americans - Female - Ja-": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - African Americans - Female - Ka-": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 8
+    },
+    "England-First Names - African Americans - Female - Ke-/Ki-": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - African Americans - Female - La-/Le": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Female - Na-/Ni-": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Female - Ra-": {
+      "order": 1,
+      "minLength": 7,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Female - Sha-": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Female - Ta-/Te-": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Female - Tra-/Tre-": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - African Americans - Female - Van-/Von-": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Linknames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Linknames - Shan-/Shaun-/Shon-": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "England-First Names - African Americans - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - African Americans - Male - Da-/De": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Male - Dal-/Del-": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England-First Names - African Americans - Male - Ja-/Jam-": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - African Americans - Male - Ka-/Ke-": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - African Americans - Male - La-/Le": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Male - Mont-": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England-First Names - African Americans - Male - Sha-": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Male - Shan-": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Male - Ta-/Te-": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England-First Names - African Americans - Male - Tra-/Tre-": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "England-First Names - African Americans - Male - Ty-": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - African Americans - Various - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - African Americans - Various - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Female - Irish": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Female - Mythology": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Female - Norse": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Female - Old English": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Female - Old German/Norman French": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Female - Roman Family Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Female - Scottish": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Female - Various": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Female - Welsh": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - English Central Stock and Variants - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - English Central Stock and Variants - Male - Irish": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Male - Mythology and History": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - English Central Stock and Variants - Male - Norse": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Male - Old English": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Male - Old German/Norman French": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Male - Roman Family Names": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England-First Names - English Central Stock and Variants - Male - Saints and Christian leaders": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - English Central Stock and Variants - Male - Scottish": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Male - Various": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Male - Welsh": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - New Testament Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - New Testament Male - Apostles": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - New Testament Male - Evangelists": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - New Testament Male - Magi/Wise Men/Three Kings": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "England-First Names - English Central Stock and Variants - New Testament Male - New Testament - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "England-First Names - English Central Stock and Variants - Old Testament Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Old Testament Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Patriarchs": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "England-First Names - English Central Stock and Variants - Patriarchs - Sons of Jacob": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Patriarchs - Sons of Joseph": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Prophets + Angels": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - English Central Stock and Variants - Prophets + Angels - Archangels": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - English Central Stock and Variants - Rare names - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - English Central Stock and Variants - Rare names - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - Foreign Origin - French - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Foreign Origin - French - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "England-First Names - Foreign Origin - German - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Foreign Origin - German - Modern German": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Foreign Origin - Hindu - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Foreign Origin - Hindu - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Foreign Origin - Italian - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Foreign Origin - Italian - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "England-First Names - Foreign Origin - Norse": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Foreign Origin - Slavic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Foreign Origin - Slavic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - Foreign Origin - Spanish - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Foreign Origin - Spanish - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Foreign Origin - Various - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Foreign Origin - Various - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "England-First Names - Linknames - Biblical": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England-First Names - Linknames - Celtic": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Linknames - Coinages": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - Linknames - Germanic": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Linknames - Greek": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England-First Names - Linknames - Latin": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Literary Names - Arthurian - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Literary Names - Arthurian - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - Literary Names - Chaucer - Chaucerian Names Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "England-First Names - Literary Names - Chaucer - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "England-First Names - Literary Names - Literary Coinages - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Literary Names - Literary Coinages - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "England-First Names - Literary Names - Mitchell": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Literary Names - Shakespeare - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Literary Names - Shakespeare - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England-First Names - Literary Names - Shakespeare - Mechanicals and Servants": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - Literary Names - Tolkien - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "England-First Names - Literary Names - Tolkien - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - Literary Names - Tolkien - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - Modern Coinages - Blended Names - Female": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England-First Names - Modern Coinages - Blended Names - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "England-First Names - Modern Coinages - Borrowed Words - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Modern Coinages - Borrowed Words - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Modern Coinages - Combined Names": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 11
+    },
+    "England-First Names - Modern Coinages - Placenames - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Modern Coinages - Placenames - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Modern Coinages - Unisex Names - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "England-First Names - Surname Adaptations - English - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - Surname Adaptations - English A - C": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Surname Adaptations - English D - J": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Surname Adaptations - English K - R": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Surname Adaptations - English S - Z": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Surname Adaptations - Foreign - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - Surname Adaptations - Foreign - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - Surname Adaptations - Irish - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Surname Adaptations - Irish - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Surname Adaptations - Scottish - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Surname Adaptations - Scottish - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Surname Adaptations - Welsh - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 7
+    },
+    "England-First Names - Surname Adaptations - Welsh - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Themed Names - Colours - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "England-First Names - Themed Names - Creatures - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Themed Names - Creatures - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "England-First Names - Themed Names - Dates - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Themed Names - Dates - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Themed Names - Film TV - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Themed Names - Film TV - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "England-First Names - Themed Names - Flowers - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "England-First Names - Themed Names - Flowers - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "England-First Names - Themed Names - Jewels - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "England-First Names - Themed Names - Letters": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "England-First Names - Themed Names - Letters - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "England-First Names - Themed Names - Twins": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 11
+    },
+    "England-First Names - Themed Names - Virtues - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "England-First Names - Themed Names - Virtues - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "English Towns": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Ethnic Groups Contemporary": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Europe Eastern - Albania - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Albania - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Albania - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Bulgaria - First names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Bulgaria - First names - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Bulgaria - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Europe Eastern - Czech Slovak - Biblical - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Eastern - Czech Slovak - Biblical - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Eastern - Czech Slovak - Czech": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Eastern - Czech Slovak - Czechoslovakia": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Eastern - Czech Slovak - Czechoslovakia - Carpatho-Rusyn": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Eastern - Czech Slovak - Czechoslovakia - Galatia": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Czech Slovak - Germanic - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Europe Eastern - Czech Slovak - Germanic - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Eastern - Czech Slovak - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Czech Slovak - Greek - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "Europe Eastern - Czech Slovak - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Eastern - Czech Slovak - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Europe Eastern - Czech Slovak - Slavic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Europe Eastern - Czech Slovak - Slavic - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Europe Eastern - Czech Slovak - Slovak": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Eastern - Former Yugoslavia - Bosnia Hercegovina - Names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Eastern - Former Yugoslavia - Bosnia Hercegovina - Names - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Europe Eastern - Former Yugoslavia - Bosnia Hercegovina - Names - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Eastern - Former Yugoslavia - Croatia - First names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Former Yugoslavia - Croatia - First names - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Former Yugoslavia - Croatia - Surnames": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Europe Eastern - Former Yugoslavia - First names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Former Yugoslavia - First names - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Former Yugoslavia - Macedonia - First Names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Former Yugoslavia - Macedonia - First Names - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Former Yugoslavia - Macedonia - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Eastern - Former Yugoslavia - Montenegro - Names - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Former Yugoslavia - Montenegro - Names - Surnames": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "Europe Eastern - Former Yugoslavia - Serbia - First Names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Eastern - Former Yugoslavia - Serbia - First Names - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Former Yugoslavia - Serbia - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Eastern - Former Yugoslavia - Slovenia - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Former Yugoslavia - Slovenia - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Former Yugoslavia - Slovenia - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Eastern - Former Yugoslavia - Surnames": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Europe Eastern - Greece - Biblical - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 17
+    },
+    "Europe Eastern - Greece - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Europe Eastern - Greece - Germanic - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Greece - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 17
+    },
+    "Europe Eastern - Greece - Greek - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 19
+    },
+    "Europe Eastern - Greece - Latin - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 17
+    },
+    "Europe Eastern - Greece - Latin - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 16
+    },
+    "Europe Eastern - Greece - Surnames": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 13
+    },
+    "Europe Eastern - Hungary - Biblical - Female": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 14
+    },
+    "Europe Eastern - Hungary - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Europe Eastern - Hungary - Germanic - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Europe Eastern - Hungary - Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Europe Eastern - Hungary - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Europe Eastern - Hungary - Greek - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Europe Eastern - Hungary - Hungarian - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 12
+    },
+    "Europe Eastern - Hungary - Hungarian - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Eastern - Hungary - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 18
+    },
+    "Europe Eastern - Hungary - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Europe Eastern - Hungary - Slavic - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Eastern - Hungary - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Poland - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Europe Eastern - Poland - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Europe Eastern - Poland - Germanic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "Europe Eastern - Poland - Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Poland - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Eastern - Poland - Greek - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Eastern - Poland - Latin - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Europe Eastern - Poland - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Europe Eastern - Poland - Slavonic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Europe Eastern - Poland - Slavonic - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 19
+    },
+    "Europe Eastern - Poland - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Europe Eastern - Poland - Various - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Romania - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Romania - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Eastern - Romania - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Medieval - Byzantium - Byzantine Emperors": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Medieval - Byzantium - Greek and Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Medieval - Byzantium - Greek and Biblical - Male": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 12
+    },
+    "Europe Medieval - Byzantium - Latin - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Medieval - Byzantium - Latin - Male": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 12
+    },
+    "Europe Medieval - France - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Medieval - France - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Medieval - Franks - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Europe Medieval - Franks - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Medieval - Germany - Female": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Medieval - Germany - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Medieval - Goths - Female": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 12
+    },
+    "Europe Medieval - Goths - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Medieval - Huns": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Europe Medieval - Italy - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Europe Medieval - Italy - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Medieval - Lombards - Female": {
+      "order": 1,
+      "minLength": 7,
+      "maxLength": 10
+    },
+    "Europe Medieval - Lombards - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Europe Medieval - Romany - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Medieval - Romany - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Medieval - Romany - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Medieval - Song of Roland": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Europe Medieval - Tribes": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Denmark - Biblical - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Denmark - Biblical - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Denmark - Germanic - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Denmark - Germanic - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Denmark - Greek - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Denmark - Latin - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Europe Scandinavia - Denmark - Norse - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Europe Scandinavia - Denmark - Norse - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Europe Scandinavia - Denmark - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Faroe Islands - Foreign - Biblical Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Faroe Islands - Foreign - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Faroe Islands - Foreign - Latin/Greek Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Europe Scandinavia - Faroe Islands - Norse - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Faroe Islands - Norse - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Faroe Islands - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Finland - Biblical - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Finland - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Finland - Compounds - Female": {
+      "order": 2,
+      "minLength": 8,
+      "maxLength": 12
+    },
+    "Europe Scandinavia - Finland - Compounds - Male": {
+      "order": 1,
+      "minLength": 8,
+      "maxLength": 12
+    },
+    "Europe Scandinavia - Finland - Finnish - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Finland - Finnish - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 6
+    },
+    "Europe Scandinavia - Finland - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Scandinavia - Finland - Various - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Finland - Various - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Scandinavia - Iceland - Biblical - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Iceland - Biblical - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Iceland - Germanic - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Iceland - Germanic - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Iceland - Greek - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Iceland - Latin - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Europe Scandinavia - Iceland - Latin - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Iceland - Norse - Female": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Iceland - Norse - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Iceland - Surnames": {
+      "order": 1,
+      "minLength": 8,
+      "maxLength": 15
+    },
+    "Europe Scandinavia - Iceland - Various - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Scandinavia - Norway - Biblical - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Norway - Biblical - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Norway - Germanic - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Norway - Germanic - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Norway - Greek - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Norway - Greek - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Norway - Latin - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Norway - Latin - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Norway - Norse - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Norway - Norse - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Norway - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Norway - Various - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Scandinavia - Old Norse - Bynames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Old Norse - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Old Norse - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Sweden - Biblical - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Sweden - Biblical - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Sweden - Germanic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Sweden - Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Sweden - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Sweden - Greek - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Sweden - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Scandinavia - Sweden - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Sweden - Norse": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Scandinavia - Sweden - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Scandinavia - Sweden - Various - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Scandinavia - Sweden - Various - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Europe Western - Austria - First names - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Europe Western - Austria - First names - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Western - Austria - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Europe Western - Basque - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Basque - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Basque - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Western - Belgium - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 19
+    },
+    "Europe Western - Belgium - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 18
+    },
+    "Europe Western - Belgium - Celtic - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Europe Western - Belgium - Flemish/Germanic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 18
+    },
+    "Europe Western - Belgium - Flemish/Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "Europe Western - Belgium - Greek - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 18
+    },
+    "Europe Western - Belgium - Greek - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "Europe Western - Belgium - Latin - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 20
+    },
+    "Europe Western - Belgium - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 18
+    },
+    "Europe Western - Belgium - Names": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Europe Western - Belgium - Surnames": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Europe Western - Belgium - Walloon - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Western - France - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - France - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - France - Combined - Female": {
+      "order": 1,
+      "minLength": 8,
+      "maxLength": 14
+    },
+    "Europe Western - France - Combined - Male": {
+      "order": 1,
+      "minLength": 8,
+      "maxLength": 14
+    },
+    "Europe Western - France - Germanic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - France - Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Western - France - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - France - Greek - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - France - Langue d\u0027Oc - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Europe Western - France - Langue d\u0027Oc - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - France - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - France - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - France - Names": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Europe Western - France - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Europe Western - France - Various - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - France - Various - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Europe Western - Germany - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Germany - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Germany - Germanic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Germany - Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Germany - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Germany - Greek - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Germany - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Germany - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Germany - Low German - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Germany - Low German - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "Europe Western - Germany - Names": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Europe Western - Germany - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Western - Germany - Various - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Germany - Various - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Italy - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Italy - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Italy - Germanic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Italy - Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Italy - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Italy - Greek - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Europe Western - Italy - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Italy - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Italy - Popes": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 20
+    },
+    "Europe Western - Italy - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Western - Italy - Various - Female": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "Europe Western - Italy - Various - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Europe Western - Netherlands - Biblical - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Netherlands - Biblical - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Western - Netherlands - Friesland - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Western - Netherlands - Friesland - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Western - Netherlands - Germanic - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Netherlands - Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Netherlands - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Netherlands - Greek - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Netherlands - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Netherlands - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Netherlands - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Western - Netherlands - Various - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Western - Netherlands - Various - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Western - Portugal - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Portugal - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Portugal - Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Portugal - Greek - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Europe Western - Portugal - Greek - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Europe Western - Portugal - Latin - Female": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Europe Western - Portugal - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Portugal - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Portugal - Various - Female": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 12
+    },
+    "Europe Western - Portugal - Various - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Europe Western - Small Independent States - Malta - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Europe Western - Spain - Aragon - Aragonese Names Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Western - Spain - Aragon - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Spain - Asturias - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Europe Western - Spain - Asturias - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Western - Spain - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Europe Western - Spain - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Spain - Catalonia - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Europe Western - Spain - Catalonia - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Europe Western - Spain - Galicia - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Spain - Galicia - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Europe Western - Spain - Germanic - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Spain - Germanic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Spain - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Spain - Greek - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Europe Western - Spain - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Spain - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Spain - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Europe Western - Spain - Various - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Spain - Various - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Europe Western - Switzerland - First names - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Western - Switzerland - First names - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Europe Western - Switzerland - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Fabrics": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Fantasy Monsters Bestiary": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 17
+    },
+    "Fells in Cumbria": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 14
+    },
+    "Fighting Baseball Roster": {
+      "order": 3,
+      "minLength": 8,
+      "maxLength": 14
+    },
+    "Film Tv - Game Of Thrones Houses - Noble Houses Crownlands": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Film Tv - Game Of Thrones Houses - Noble Houses Dorne": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 17
+    },
+    "Film Tv - Game Of Thrones Houses - Noble Houses Iron Islands": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 25
+    },
+    "Film Tv - Game Of Thrones Houses - Noble Houses North": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 22
+    },
+    "Film Tv - Game Of Thrones Houses - Noble Houses Reach": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Film Tv - Game Of Thrones Houses - Noble Houses Riverlands": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "Film Tv - Game Of Thrones Houses - Noble Houses Stormlands": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Film Tv - Game Of Thrones Houses - Noble Houses Vale": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Film Tv - Game Of Thrones Houses - Noble Houses Westerlands": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "Film Tv - Look Around You Shakespeare": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 24
+    },
+    "Film Tv - Popular Movies": {
+      "order": 2,
+      "minLength": 12,
+      "maxLength": 28
+    },
+    "Film Tv - Tv Shows": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 26
+    },
+    "Fish": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Flowers Common Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Foods - Apple Cultivars": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 18
+    },
+    "Foods - Bad Beers": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 29
+    },
+    "Foods - Beer Styles": {
+      "order": 4,
+      "minLength": 10,
+      "maxLength": 30
+    },
+    "Foods - Breads And Pastries - Breads": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 13
+    },
+    "Foods - Breads And Pastries - Pastries": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 16
+    },
+    "Foods - Condiments": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 18
+    },
+    "Foods - Curds": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 25
+    },
+    "Foods - Fish": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 18
+    },
+    "Foods - Fruits": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Foods - Ham": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 23
+    },
+    "Foods - Herbs N Spices - Herbs": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 18
+    },
+    "Foods - Herbs N Spices - Mixtures": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 19
+    },
+    "Foods - Herbs N Spices - Spices": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "Foods - Hot Peppers - C. Annuum Var. Annuum": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Foods - Hot Peppers - C. Chinense": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 27
+    },
+    "Foods - Iba Cocktails": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 18
+    },
+    "Foods - Menu Items": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 22
+    },
+    "Foods - Pizza Toppings": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Foods - Poultry": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 23
+    },
+    "Foods - Sandwiches": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 20
+    },
+    "Foods - Sausages": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 19
+    },
+    "Foods - Scotch Whiskey": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Foods - Shellfish": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 24
+    },
+    "Foods - Tea": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 29
+    },
+    "Foods - Vegetables": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Foods - Verbs": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Foods - Wine Descriptions": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Former Soviet Union - Asian Republics - Kazakhstan - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Former Soviet Union - Asian Republics - Kazakhstan - Surnames": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 11
+    },
+    "Former Soviet Union - Asian Republics - Kirghizstan - Surnames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 11
+    },
+    "Former Soviet Union - Asian Republics - Uzbekistan - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Asian Republics - Uzbekistan - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Former Soviet Union - Baltic States - Estonia - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 6
+    },
+    "Former Soviet Union - Baltic States - Estonia - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Former Soviet Union - Baltic States - Estonia - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Baltic States - Latvia - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Former Soviet Union - Baltic States - Latvia - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Baltic States - Latvia - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Former Soviet Union - Baltic States - Lithuania - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Former Soviet Union - Baltic States - Lithuania - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Baltic States - Lithuania - Surnames": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Former Soviet Union - Europe and the Caucasus - Armenia - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Europe and the Caucasus - Armenia - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Europe and the Caucasus - Armenia - Surnames": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 12
+    },
+    "Former Soviet Union - Europe and the Caucasus - Azerbaijan - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Europe and the Caucasus - Azerbaijan - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Europe and the Caucasus - Azerbaijan - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Former Soviet Union - Europe and the Caucasus - Belarus": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Former Soviet Union - Europe and the Caucasus - Caucasus - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 11
+    },
+    "Former Soviet Union - Europe and the Caucasus - Georgia - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Former Soviet Union - Europe and the Caucasus - Georgia - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "Former Soviet Union - Europe and the Caucasus - Georgia - Surnames": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 15
+    },
+    "Former Soviet Union - Europe and the Caucasus - Moldavia - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Former Soviet Union - Europe and the Caucasus - Ukraine - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Europe and the Caucasus - Ukraine - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Europe and the Caucasus - Ukraine - Surnames": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Former Soviet Union - Russia - Biblical - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Russia - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Former Soviet Union - Russia - Germanic - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Russia - Germanic - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Russia - Greek - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Former Soviet Union - Russia - Greek - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Former Soviet Union - Russia - Latin - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Former Soviet Union - Russia - Latin - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Former Soviet Union - Russia - Slavic - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Former Soviet Union - Russia - Slavic - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Former Soviet Union - Russia - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Former Soviet Union - Russia - Various - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Former Soviet Union - Russia - Various - Male": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 8
+    },
+    "French Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Fruit": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Furniture": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Games - Board Games": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 20
+    },
+    "Games - Cluedo": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Games - League Of Legends Champion Names": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Games - Pokemon": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Games - Rpg - Rpg Designers": {
+      "order": 2,
+      "minLength": 9,
+      "maxLength": 18
+    },
+    "Games - Rpg - Rpg Games": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 30
+    },
+    "Games - Rpg - Rpg Settings": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 25
+    },
+    "Games - Street Fighter Ii": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Genders": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 14
+    },
+    "Geography - Anthropogenic Features": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 25
+    },
+    "Geography - Canada Provinces And Territories - Provinces": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 25
+    },
+    "Geography - Canadian Municipalities": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 15
+    },
+    "Geography - Countries": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 17
+    },
+    "Geography - English Towns Cities - Cities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 18
+    },
+    "Geography - English Towns Cities - Towns": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 18
+    },
+    "Geography - Environmental Hazards": {
+      "order": 3,
+      "minLength": 7,
+      "maxLength": 23
+    },
+    "Geography - Geographic Features": {
+      "order": 4,
+      "minLength": 5,
+      "maxLength": 28
+    },
+    "Geography - London Underground Stations": {
+      "order": 3,
+      "minLength": 7,
+      "maxLength": 19
+    },
+    "Geography - Nationalities": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 17
+    },
+    "Geography - Norwegian Cities - Cities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Geography - Nyc Neighborhood Zips": {
+      "order": 2,
+      "minLength": 9,
+      "maxLength": 26
+    },
+    "Geography - Oceans - Seas": {
+      "order": 2,
+      "minLength": 8,
+      "maxLength": 18
+    },
+    "Geography - Rivers": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Geography - Sf Neighborhoods": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 18
+    },
+    "Geography - Us Cities": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Geography - Us State Capitals": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Geography - Winds": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "German Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "German Towns": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Governments - Government Forms": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 23
+    },
+    "Governments - Mass Surveillance Project Names": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 30
+    },
+    "Governments - Nsa Projects": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Governments - Us Federal Agencies": {
+      "order": 3,
+      "minLength": 18,
+      "maxLength": 30
+    },
+    "Governments - Us Mil Operations": {
+      "order": 4,
+      "minLength": 8,
+      "maxLength": 15
+    },
+    "Graphical Methods": {
+      "order": 3,
+      "minLength": 7,
+      "maxLength": 26
+    },
+    "Greek Islands": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Herbs Common Names": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Hindu Deities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Hobbies": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 16
+    },
+    "Home Appliances": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 14
+    },
+    "Horses": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Humans - Authors": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Humans - Body Parts": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Humans - British Actors": {
+      "order": 3,
+      "minLength": 9,
+      "maxLength": 18
+    },
+    "Humans - Celebrities": {
+      "order": 4,
+      "minLength": 9,
+      "maxLength": 18
+    },
+    "Humans - Descriptions": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Humans - English Honorifics": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 26
+    },
+    "Humans - Family Relations": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Humans - Famous Duos": {
+      "order": 2,
+      "minLength": 12,
+      "maxLength": 28
+    },
+    "Humans - Famous Duos - First": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 16
+    },
+    "Humans - Famous Duos - Second": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Humans - First Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Humans - Human Universals": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 30
+    },
+    "Humans - Last Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Humans - Moods": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Humans - Neutral Names": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Humans - Norway First Names Boys": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Humans - Norway First Names Girls": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Humans - Norway Last Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Humans - Obsolete Occupations": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 17
+    },
+    "Humans - Occupations": {
+      "order": 4,
+      "minLength": 6,
+      "maxLength": 30
+    },
+    "Humans - Prefixes": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Humans - Richpeople": {
+      "order": 3,
+      "minLength": 10,
+      "maxLength": 22
+    },
+    "Humans - Scientists": {
+      "order": 3,
+      "minLength": 10,
+      "maxLength": 23
+    },
+    "Humans - Spanish First Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Humans - Spanish Last Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Humans - Suffixes": {
+      "order": 1,
+      "minLength": 2,
+      "maxLength": 6
+    },
+    "Humans - Tolkien Character Names": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 19
+    },
+    "Humans - Wrestlers": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 25
+    },
+    "Icelandic Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "India - Hindu Gods - Demons": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "India - Hindu Gods - Goddesses": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "India - Hindu Gods - Goddesses - Bhairavi": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "India - Hindu Gods - Gods - Bhisma": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 15
+    },
+    "India - Hindu Gods - Gods - Varuna": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "India - Hindu Gods - Gods - Vasudeva": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "India - Hindu Gods - Gods - Visvakarman": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 13
+    },
+    "India - Hindu Gods - Gods - Yama": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "India - Hindu Gods - Groups of Deities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "India - Hindu Gods - Hindu Triad": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "India - Hindu Gods - Hindu Triad - Sons": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "India - Hindu Gods - Minor Deities - Goddesses": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "India - Hindu Gods - Minor Deities - Gods": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "India - Hindu Gods - Planets": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "India - Hindu Gods - Religious and Mythical Leaders": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "India - Hindu Gods - Vedic Triad - Agni": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "India - Hindu Gods - Vedic Triad - Indra": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "India - Hindu Gods - Vedic Triad - Surya": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "India - Hindu Names - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "India - Hindu Names - Male \u0027a\u0027": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "India - Hindu Names - Male \u0027b\u0027": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "India - Hindu Names - Male \u0027c-k\u0027": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "India - Hindu Names - Male \u0027l-z\u0027": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "India - Hindu Names - Nature - Animals": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "India - Hindu Names - Nature - Gems": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "India - Hindu Names - Nature - Places": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 12
+    },
+    "India - Hindu Names - Nature - Plants": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "India - Hindu Names - Nature - Rivers": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 10
+    },
+    "India - Hindu Names - Nature - The Ganga": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 13
+    },
+    "India - Hindu Names - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "India - Others - Buddhism": {
+      "order": 1,
+      "minLength": 6,
+      "maxLength": 14
+    },
+    "India - Others - Sri Lanka": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "India - Sikh - First Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "India - Sikh - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Indian Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Irish Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Iron Age States": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Italian Cities": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Italian Foods": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Italian Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Japanese Cities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Japanese Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Languages": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Magic Spells": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Materials - Abridged Body Fluids": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 17
+    },
+    "Materials - Building Materials": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 18
+    },
+    "Materials - Carbon Allotropes": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 26
+    },
+    "Materials - Decorative Stones": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 30
+    },
+    "Materials - Fabrics": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Materials - Fibers": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 17
+    },
+    "Materials - Fictional Materials": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 16
+    },
+    "Materials - Gemstones": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Materials - Layperson Metals": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Materials - Metals": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Materials - Natural Materials": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Materials - Packaging": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 24
+    },
+    "Materials - Scents": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Materials - Sculpture Materials": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 16
+    },
+    "Materials - Technical Fabrics": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Meats": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Medicine - Cancer": {
+      "order": 4,
+      "minLength": 14,
+      "maxLength": 30
+    },
+    "Medicine - Drug Name Stems": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Medicine - Drugs": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 23
+    },
+    "Medicine - Hospitals": {
+      "order": 4,
+      "minLength": 16,
+      "maxLength": 30
+    },
+    "Medicine - Infectious Diseases": {
+      "order": 3,
+      "minLength": 9,
+      "maxLength": 30
+    },
+    "Medicine - Symptoms": {
+      "order": 4,
+      "minLength": 8,
+      "maxLength": 30
+    },
+    "Middle East - Arab/Muslim Names - Arab Names": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Middle East - Arab/Muslim Names - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Middle East - Arab/Muslim Names - Male - Arabic Male Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Middle East - Arab/Muslim Names - Male - Attributes of Allah": {
+      "order": 2,
+      "minLength": 8,
+      "maxLength": 13
+    },
+    "Middle East - East - Iran - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Middle East - East - Iran - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Middle East - East - Iran - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Middle East - East - Pakistan - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Middle East - East - Pakistan - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Middle East - East - Pakistan - Pathan (Khan)": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Middle East - East - Pakistan - Surnames": {
+      "order": 3,
+      "minLength": 7,
+      "maxLength": 15
+    },
+    "Middle East - East - Turkey - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Middle East - East - Turkey - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Middle East - East - Turkey - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Middle East - Jewish Names - Biblical - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Middle East - Jewish Names - Biblical - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Middle East - Jewish Names - Modern - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 7
+    },
+    "Middle East - Jewish Names - Modern - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Middle East - Jewish Names - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Middle East - Jewish Names - Various": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Middle East - Jewish Names - Yiddish - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Middle East - Jewish Names - Yiddish - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Minerals": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 14
+    },
+    "Music - A List Of Guitar Manufacturers": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 24
+    },
+    "Music - Bands That Have Opened For Tool": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 15
+    },
+    "Music - Female Classical Guitarists": {
+      "order": 1,
+      "minLength": 7,
+      "maxLength": 22
+    },
+    "Music - Genres": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 18
+    },
+    "Music - Hamilton Musical Obcrecording Actors Characters": {
+      "order": 2,
+      "minLength": 10,
+      "maxLength": 24
+    },
+    "Music - Instruments": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Music - Media Formats": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 17
+    },
+    "Music - Rock Hall Of Fame": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 24
+    },
+    "Musical Instruments": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Musical Styles": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 16
+    },
+    "Mythical Humanoids": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Mythology - Greek Gods": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Mythology - Greek Monsters": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Mythology - Greek Myths Master - Greek Titans": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Mythology - Hebrew God": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 20
+    },
+    "Mythology - Lovecraft - Deities": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Mythology - Lovecraft - Supernatural Creatures": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 26
+    },
+    "Mythology - Monsters": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Mythology - Roman Deities": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Norse Deity Forenames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Norwegian Fjords": {
+      "order": 2,
+      "minLength": 8,
+      "maxLength": 15
+    },
+    "Nuts and Seeds": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Objects": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 17
+    },
+    "Objects - Clothing": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 14
+    },
+    "Objects - Containers": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Orient - China - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Orient - China - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Orient - China - Surnames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 5
+    },
+    "Orient - Himalayan - Tibet - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Orient - Himalayan - Tibet - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Orient - Himalayan - Tibet - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Orient - Indochina - Burma - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Orient - Indochina - Cambodia - Actual Names": {
+      "order": 1,
+      "minLength": 7,
+      "maxLength": 13
+    },
+    "Orient - Indochina - Cambodia - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Orient - Indochina - Cambodia - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Orient - Indochina - Cambodia - Surnames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Orient - Indochina - Thailand - Female": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 12
+    },
+    "Orient - Indochina - Thailand - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 12
+    },
+    "Orient - Indochina - Thailand - Surnames": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Orient - Indochina - Vietnam - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Orient - Indochina - Vietnam - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Orient - Indochina - Vietnam - Middle Names": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 5
+    },
+    "Orient - Indochina - Vietnam - Name Elements": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 6
+    },
+    "Orient - Indochina - Vietnam - Surnames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Orient - Japan - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Orient - Japan - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Orient - Japan - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Orient - Japan - Surnames - Noble Families": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Orient - Korea - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Orient - Korea - Male": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Orient - Korea - Surnames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 5
+    },
+    "Orient - Mongolia - Names - First Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Orient - Mongolia - Names - Surnames": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Orient - South East Asia - Indonesia - Female": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Orient - South East Asia - Indonesia - Hindu/Pre-Hindu Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Orient - South East Asia - Indonesia - Male": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Orient - South East Asia - Indonesia - Surnames": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Orient - South East Asia - Malaysia - Female": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Orient - South East Asia - Malaysia - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Orient - South East Asia - Malaysia - Surnames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Pacific - Melanesia - Papua New Guinea - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 13
+    },
+    "Pacific - Melanesia - Papua New Guinea - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 14
+    },
+    "Pacific - Micronesia - Nauru": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Pacific - Polynesia - Australia - Surnames": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Pacific - Polynesia - Cook Islands - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 26
+    },
+    "Pacific - Polynesia - Easter Island - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 11
+    },
+    "Pacific - Polynesia - Easter Island - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Pacific - Polynesia - Fiji - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Pacific - Polynesia - Fiji - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Pacific - Polynesia - French Polynesia - Female": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Pacific - Polynesia - French Polynesia - Male": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Pacific - Polynesia - Hawai\u0027i - American": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Pacific - Polynesia - Hawai\u0027i - Biblical Origin": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Pacific - Polynesia - Hawai\u0027i - European Origin": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Pacific - Polynesia - Hawai\u0027i - Hawai\u0027ian Origin": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Pacific - Polynesia - Maori - Female": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Pacific - Polynesia - Maori - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Pacific - Polynesia - Maori - Surnames": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Pacific - Polynesia - Samoa - Male": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Pacific - Polynesia - Samoa - Surnames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Pacific - Polynesia - Tonga - Female": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 8
+    },
+    "Pacific - Polynesia - Tonga - Male": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Pacific - Polynesia - Tonga - Surnames": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 9
+    },
+    "Pacific - Polynesia - Tonga - Tongan Names": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Periodic Elements": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Personality Traits": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Pharmaceutical Antibiotics": {
+      "order": 3,
+      "minLength": 8,
+      "maxLength": 16
+    },
+    "Pharmaceuticals": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 13
+    },
+    "Philosophies": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 19
+    },
+    "Pies": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 17
+    },
+    "Pizza Varieties": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 20
+    },
+    "Places in Cumbria": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Planets \u0026 Satellites": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Plants": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 21
+    },
+    "Plants - Cannabis": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 18
+    },
+    "Plants - Flowers": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Plants - Toxic Plants": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 19
+    },
+    "Plants Common Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Pokemon": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Pokemon Modern": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Professions": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 19
+    },
+    "Programming Languages": {
+      "order": 2,
+      "minLength": 2,
+      "maxLength": 11
+    },
+    "Religion - Christian Saints": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 25
+    },
+    "Religion - Religions": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 17
+    },
+    "Religions": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Roman Deities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Roman Emperor Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Roman Emperors": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Roman Place Names": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Rooms": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Russian Cities": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Russian Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Saints - Alphabet of Saints - A": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Saints - Alphabet of Saints - B": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Saints - Alphabet of Saints - C": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Saints - Alphabet of Saints - D": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 11
+    },
+    "Saints - Alphabet of Saints - E": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Saints - Alphabet of Saints - F": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Saints - Alphabet of Saints - G": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Saints - Alphabet of Saints - H": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Saints - Alphabet of Saints - I": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 12
+    },
+    "Saints - Alphabet of Saints - J": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 16
+    },
+    "Saints - Alphabet of Saints - K": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Saints - Alphabet of Saints - L": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Saints - Alphabet of Saints - M": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Saints - Alphabet of Saints - N": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Saints - Alphabet of Saints - O": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Saints - Alphabet of Saints - P": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Saints - Alphabet of Saints - Q": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 10
+    },
+    "Saints - Alphabet of Saints - R": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Saints - Alphabet of Saints - S": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Saints - Alphabet of Saints - T": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Saints - Alphabet of Saints - U": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Saints - Alphabet of Saints - V": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Saints - Alphabet of Saints - W": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 16
+    },
+    "Saints - Alphabet of Saints - Y": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 10
+    },
+    "Saints - Alphabet of Saints - Z": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Saints - Calendar of Saints - April": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Saints - Calendar of Saints - August": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Saints - Calendar of Saints - December": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Saints - Calendar of Saints - February": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Saints - Calendar of Saints - January": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Saints - Calendar of Saints - July": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Saints - Calendar of Saints - June": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Saints - Calendar of Saints - March": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Saints - Calendar of Saints - May": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Saints - Calendar of Saints - November": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Saints - Calendar of Saints - October": {
+      "order": 3,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Saints - Calendar of Saints - September": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Saints - Patron Saints - Daily Life": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Saints - Patron Saints - Groups of Saints": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 18
+    },
+    "Saints - Patron Saints - Health": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Saints - Patron Saints - Places": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Saints - Patron Saints - Trades": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Sandwiches": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 18
+    },
+    "Satellites Natural": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Science - Elements": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Science - Meteorology": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 30
+    },
+    "Science - Minor Planets": {
+      "order": 2,
+      "minLength": 8,
+      "maxLength": 14
+    },
+    "Science - Planets": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 8
+    },
+    "Science - Toxic Chemicals - Chemicals": {
+      "order": 3,
+      "minLength": 7,
+      "maxLength": 27
+    },
+    "Science - Toxic Chemicals - Gases": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 24
+    },
+    "Science - Weather Conditions": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 30
+    },
+    "Scientific Disciplines": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 14
+    },
+    "Scottish Surnames": {
+      "order": 3,
+      "minLength": 5,
+      "maxLength": 15
+    },
+    "Snakes Common Names": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Societies And Groups - Animal Welfare - Canada": {
+      "order": 3,
+      "minLength": 12,
+      "maxLength": 30
+    },
+    "Societies And Groups - Animal Welfare - India": {
+      "order": 3,
+      "minLength": 12,
+      "maxLength": 30
+    },
+    "Societies And Groups - Animal Welfare - United Kingdom": {
+      "order": 2,
+      "minLength": 10,
+      "maxLength": 30
+    },
+    "Societies And Groups - Animal Welfare - United States Of America": {
+      "order": 4,
+      "minLength": 11,
+      "maxLength": 30
+    },
+    "Societies And Groups - Animal Welfare - Worldwide Or Serving Multiple Countries": {
+      "order": 3,
+      "minLength": 11,
+      "maxLength": 30
+    },
+    "Societies And Groups - Fraternities": {
+      "order": 3,
+      "minLength": 11,
+      "maxLength": 30
+    },
+    "Societies And Groups - Fraternities - Coeducational Fraternities": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 28
+    },
+    "Societies And Groups - Fraternities - Defunct": {
+      "order": 3,
+      "minLength": 10,
+      "maxLength": 19
+    },
+    "Societies And Groups - Fraternities - Professional - Medicine": {
+      "order": 3,
+      "minLength": 9,
+      "maxLength": 26
+    },
+    "Societies And Groups - Fraternities - Professional - Other": {
+      "order": 4,
+      "minLength": 8,
+      "maxLength": 21
+    },
+    "Societies And Groups - Fraternities - Sororities": {
+      "order": 3,
+      "minLength": 11,
+      "maxLength": 26
+    },
+    "Societies And Groups - Semi Secret": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 27
+    },
+    "Spanish Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Sports": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 13
+    },
+    "Sports - Football - Epl Teams": {
+      "order": 2,
+      "minLength": 7,
+      "maxLength": 20
+    },
+    "Sports - Football - Laliga Teams": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 19
+    },
+    "Sports - Football - Serie A": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Sports - Milb Teams": {
+      "order": 2,
+      "minLength": 12,
+      "maxLength": 25
+    },
+    "Sports - Mlb Teams": {
+      "order": 2,
+      "minLength": 13,
+      "maxLength": 21
+    },
+    "Sports - Nba Teams": {
+      "order": 1,
+      "minLength": 10,
+      "maxLength": 22
+    },
+    "Sports - Nfl Teams": {
+      "order": 2,
+      "minLength": 13,
+      "maxLength": 20
+    },
+    "Sports - Nhl Teams": {
+      "order": 1,
+      "minLength": 13,
+      "maxLength": 19
+    },
+    "Stars Proper Names": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Superlatives": {
+      "order": 2,
+      "minLength": 6,
+      "maxLength": 9
+    },
+    "Supermarkets and Discount Stores": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 14
+    },
+    "Swedish Forenames": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 7
+    },
+    "Swiss Cities": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 11
+    },
+    "Technology - Appliances": {
+      "order": 3,
+      "minLength": 6,
+      "maxLength": 22
+    },
+    "Technology - Computer Sciences": {
+      "order": 2,
+      "minLength": 3,
+      "maxLength": 11
+    },
+    "Technology - Fireworks": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Technology - Knots": {
+      "order": 3,
+      "minLength": 9,
+      "maxLength": 23
+    },
+    "Technology - Lisp": {
+      "order": 1,
+      "minLength": 3,
+      "maxLength": 16
+    },
+    "Technology - New Technologies": {
+      "order": 4,
+      "minLength": 7,
+      "maxLength": 30
+    },
+    "Technology - Photo Sharing Websites": {
+      "order": 1,
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "Technology - Programming Languages": {
+      "order": 2,
+      "minLength": 2,
+      "maxLength": 14
+    },
+    "Technology - Programming Languages Popular": {
+      "order": 1,
+      "minLength": 2,
+      "maxLength": 12
+    },
+    "Technology - Social Networking Websites": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 14
+    },
+    "Technology - Video Hosting Websites": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Theological Angels": {
+      "order": 2,
+      "minLength": 5,
+      "maxLength": 9
+    },
+    "Theological Demons": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Tolkienesque Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 9
+    },
+    "Transportation - Launch Vehicle List - Aerospace Company": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 27
+    },
+    "Units of Heroes of Might and Magic 3": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 15
+    },
+    "Unix Commands": {
+      "order": 1,
+      "minLength": 2,
+      "maxLength": 7
+    },
+    "Vegetables": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 13
+    },
+    "Weapons Old": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 12
+    },
+    "Websites": {
+      "order": 1,
+      "minLength": 4,
+      "maxLength": 10
+    },
+    "Werewolf Forenames": {
+      "order": 2,
+      "minLength": 4,
+      "maxLength": 8
+    }
+  }
+}
