@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.service.FunctionRegistry;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
@@ -11,11 +12,14 @@ import java.lang.reflect.Constructor;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class InferenceServicesImpl implements InferenceServices, InitializingBean {
 
     private List<Class<? extends InferenceService>> inferenceProviders;
     private final Map<AIType, Constructor<? extends InferenceService>> providerMap = new EnumMap<>(AIType.class);
+    private final FunctionRegistry functionRegistry = new FunctionRegistryImpl();
+    private final List<ToolRoleResolver> toolRoleResolvers = new CopyOnWriteArrayList<>();
 
     public List<Class<? extends InferenceService>> getInferenceProviders() {
         return inferenceProviders;
@@ -23,6 +27,32 @@ public class InferenceServicesImpl implements InferenceServices, InitializingBea
 
     public void setInferenceProviders(List<Class<? extends InferenceService>> services) {
         this.inferenceProviders = services;
+    }
+
+    @Override
+    public FunctionRegistry getFunctionRegistry() {
+        return functionRegistry;
+    }
+
+    @Override
+    public void addToolRoleResolver(ToolRoleResolver resolver) {
+        toolRoleResolvers.add(resolver);
+    }
+
+    @Override
+    public void removeToolRoleResolver(ToolRoleResolver resolver) {
+        toolRoleResolvers.remove(resolver);
+    }
+
+    @Override
+    public String resolveToolRole(AI ai) {
+        for (ToolRoleResolver resolver : toolRoleResolvers) {
+            String role = resolver.toolRole(ai);
+            if (role != null && !role.isBlank()) {
+                return role;
+            }
+        }
+        return DEFAULT_TOOL_ROLE;
     }
 
     @Override

@@ -74,7 +74,8 @@ public class AuthorsNoteView extends VerticalLayout {
 
         Select<LLMRole> role = new Select<>();
         role.setLabel("Role");
-        role.setItems(LLMRole.values());
+        // a note is text the model reads, not the result of a function call
+        role.setItems(LLMRole.SYSTEM, LLMRole.ASSISTANT, LLMRole.USER);
         role.setItemLabelGenerator(r -> StringUtils.capitalize(r.name().toLowerCase()));
         role.setValue(data.getRole());
         role.addValueChangeListener(e -> {
