@@ -147,6 +147,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `UsageService` | Tokens a user used with an AI, counted by `OpenAICompatibleInferenceService` (`Usage`, one per AI and user); `findAllUsages()` lists everybody's for administrators. |
 | `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
 | `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
+| `FunctionRegistry` | The Java interfaces the model can call as functions, compiled once (see [Function calls](services.md#function-calls)). |
 | `TokenizerService` | Token counting. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
@@ -161,6 +162,7 @@ callbacks of a generation) and `search/` (`Sorter`, `ManuscriptFilterValues` for
 | `service.impl.generation` | Engine interfaces and data: `GenerationStep`, `GenerationStepBase`, `GenerationStepType`, `GenerationController`, `Events`, `GenerationEvent`, `GenerationRequest` / `GenerationRequestType`, `GenerationProperties`. |
 | `service.impl.generation.impl` | The eight steps, `PrepareForGenerationStep` ... `CleanupStep`. |
 | `service.impl.generation.dto` | `LLMChatMessage` (role, text and optional `LLMAttachment`s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3), `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
+| `service.function` | `FunctionDefinition`, `FunctionSet`, `FunctionCompiler` (JSON schema of the parameters, argument parsing, method handles), `FunctionCallException`; the annotations `@LLMFunction` / `@LLMParam` are in `domain.traits`. |
 | `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to `InferenceException`). |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |
 
@@ -293,6 +295,7 @@ plugins/<name>/
 |---|---|---|
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
+| Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog and a settings form. |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |

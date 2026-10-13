@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845164793291">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845197036705">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845164793291" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845197036705" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845164793291" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845164793291" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845164793291" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845197036705" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -489,8 +489,8 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 | `AIService` | CRUD of inference providers with rules in the service: the user's AIs are their own and the shared ones (`AI.shared`); `save` / `delete` accept only the owner (`SecurityException` otherwise) and `shared = true` only from an administrator (`AdminGuard`); a new AI needs `canCreate()` (administrators, or anybody while `AppSettings.userAisAllowed`, set by `setUserCreationAllowed`, administrators only). `isOwnedByCurrentUser(ai)` is for the UI. |
 | `ProtocolService` | Plain CRUD of protocols (not shared). |
 | `UsageService` | `record(ai, prefill, generated)` adds a request to the current user's `Usage` of the AI (never throws, see [Usage](domain-model.md#usage-tokens-used-with-an-ai)); `findForUser(ai)`, `findAllForAI(ai)` (owner of the AI or administrator), `findAllUsages()` (administrator). Called by `OpenAICompatibleInferenceService`, not by the callers of `stream`. |
-| `InferenceServices` | `forAI(ai)` returns the `InferenceService` for a provider. Implementations are listed in `services-config.xml` (`inferenceProviders`), each annotated `@SupportedAI(AIType...)` with a constructor taking the `AI`; the instance is cached on the (transient) `AI.inferenceService` field. |
-| `InferenceService` | One provider: `getModels()`, `testConnection()` (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of `AIDialog`), `countTokens` / `countTokensApprox`, `stream(payload, protocol, callback)`. Failures of the provider are `InferenceException` (classified by `Type`: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; `OpenAICompatibleInferenceService.translateException`), also passed to `callback.onError`; `InferenceErrors.describe(loc, throwable)` / `messageOf` give the localized text for the UI. `OpenAICompatible` has the extended attributes `requestTimeoutSeconds` and `maxRetries`, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). A user message of the payload (`LLMChatMessage`) can carry `LLMAttachment`s (images as data or URL, WAV/MP3 audio, files), which `OpenAICompatibleInferenceService` sends as content parts after the text; an attachment it cannot send (audio in another format, audio or a file given only by URL) throws `IllegalArgumentException` from `stream`, attachments of other roles are not sent. Streaming is asynchronous; the callback gets chunks (`REASONING` / `RESPONSE`) and must call `controller.continueInference()` to receive the next one. Implemented by `OpenAICompatibleInferenceService`. |
+| `InferenceServices` | `forAI(ai)` returns the `InferenceService` for a provider. Implementations are listed in `services-config.xml` (`inferenceProviders`), each annotated `@SupportedAI(AIType...)` with a constructor taking the `AI`; the instance is cached on the (transient) `AI.inferenceService` field. `getFunctionRegistry()` is the [`FunctionRegistry`](#function-calls); `addToolRoleResolver` / `removeToolRoleResolver` let an extension change the role the results of function calls are sent with (default `tool`, a Gemma 4 API wants `tool_responses`; `resolveToolRole(ai)` asks the resolvers in the order they were added, the first non-blank answer wins) - the plugin must remove its resolver on unload. |
+| `InferenceService` | One provider: `getModels()`, `testConnection()` (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of `AIDialog`), `countTokens` / `countTokensApprox`, `stream(payload, protocol, callback)`. Failures of the provider are `InferenceException` (classified by `Type`: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; `OpenAICompatibleInferenceService.translateException`), also passed to `callback.onError`; `InferenceErrors.describe(loc, throwable)` / `messageOf` give the localized text for the UI. `OpenAICompatible` has the extended attributes `requestTimeoutSeconds` and `maxRetries`, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). A user message of the payload (`LLMChatMessage`) can carry `LLMAttachment`s (images as data or URL, WAV/MP3 audio, files), which `OpenAICompatibleInferenceService` sends as content parts after the text; an attachment it cannot send (audio in another format, audio or a file given only by URL) throws `IllegalArgumentException` from `stream`, attachments of other roles are not sent. Streaming is asynchronous; the callback gets chunks (`REASONING` / `RESPONSE`) and must call `controller.continueInference()` to receive the next one. `stream(payload, protocol, functions, callback)` also lets the model call functions, see [Function calls](#function-calls). Implemented by `OpenAICompatibleInferenceService`. |
 | `TokenizerService` | Token counting per provider: tries the `TokenizerStrategy` candidates in order and caches the first that works, per provider id, until it fails or the provider is saved (`AIDialog` calls `invalidateCache`). The local JTokkit fallback is not cached, so a provider whose server was unreachable is probed again on the next count. `countTokensApprox` always uses JTokkit locally. |
 | `TokenLimits` | Static helpers (in `domain.components`) for the context, response and prompt budget of a generation: the smaller of the protocol's and the provider's limit when both are set, the one that is set otherwise. |
 | `TemplateService` | `processTemplate(template, name, data)` renders a Handlebars template with macros; `isValidTemplate` for the UI. See [Templating &amp; macros](templating.md). |">
@@ -517,11 +517,11 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>InferenceServices</code></td>
-<td><code translate="no" v-pre>forAI(ai)</code> returns the <code translate="no" v-pre>InferenceService</code> for a provider. Implementations are listed in <code translate="no" v-pre>services-config.xml</code> (<code translate="no" v-pre>inferenceProviders</code>), each annotated <code translate="no" v-pre>@SupportedAI(AIType...)</code> with a constructor taking the <code translate="no" v-pre>AI</code>; the instance is cached on the (transient) <code translate="no" v-pre>AI.inferenceService</code> field.</td>
+<td><code translate="no" v-pre>forAI(ai)</code> returns the <code translate="no" v-pre>InferenceService</code> for a provider. Implementations are listed in <code translate="no" v-pre>services-config.xml</code> (<code translate="no" v-pre>inferenceProviders</code>), each annotated <code translate="no" v-pre>@SupportedAI(AIType...)</code> with a constructor taking the <code translate="no" v-pre>AI</code>; the instance is cached on the (transient) <code translate="no" v-pre>AI.inferenceService</code> field. <code translate="no" v-pre>getFunctionRegistry()</code> is the <doc-anchor-trigger to="#function-calls"><code translate="no" v-pre>FunctionRegistry</code></doc-anchor-trigger>; <code translate="no" v-pre>addToolRoleResolver</code> / <code translate="no" v-pre>removeToolRoleResolver</code> let an extension change the role the results of function calls are sent with (default <code translate="no" v-pre>tool</code>, a Gemma 4 API wants <code translate="no" v-pre>tool_responses</code>; <code translate="no" v-pre>resolveToolRole(ai)</code> asks the resolvers in the order they were added, the first non-blank answer wins) - the plugin must remove its resolver on unload.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>InferenceService</code></td>
-<td>One provider: <code translate="no" v-pre>getModels()</code>, <code translate="no" v-pre>testConnection()</code> (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of <code translate="no" v-pre>AIDialog</code>), <code translate="no" v-pre>countTokens</code> / <code translate="no" v-pre>countTokensApprox</code>, <code translate="no" v-pre>stream(payload, protocol, callback)</code>. Failures of the provider are <code translate="no" v-pre>InferenceException</code> (classified by <code translate="no" v-pre>Type</code>: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; <code translate="no" v-pre>OpenAICompatibleInferenceService.translateException</code>), also passed to <code translate="no" v-pre>callback.onError</code>; <code translate="no" v-pre>InferenceErrors.describe(loc, throwable)</code> / <code translate="no" v-pre>messageOf</code> give the localized text for the UI. <code translate="no" v-pre>OpenAICompatible</code> has the extended attributes <code translate="no" v-pre>requestTimeoutSeconds</code> and <code translate="no" v-pre>maxRetries</code>, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). A user message of the payload (<code translate="no" v-pre>LLMChatMessage</code>) can carry <code translate="no" v-pre>LLMAttachment</code>s (images as data or URL, WAV/MP3 audio, files), which <code translate="no" v-pre>OpenAICompatibleInferenceService</code> sends as content parts after the text; an attachment it cannot send (audio in another format, audio or a file given only by URL) throws <code translate="no" v-pre>IllegalArgumentException</code> from <code translate="no" v-pre>stream</code>, attachments of other roles are not sent. Streaming is asynchronous; the callback gets chunks (<code translate="no" v-pre>REASONING</code> / <code translate="no" v-pre>RESPONSE</code>) and must call <code translate="no" v-pre>controller.continueInference()</code> to receive the next one. Implemented by <code translate="no" v-pre>OpenAICompatibleInferenceService</code>.</td>
+<td>One provider: <code translate="no" v-pre>getModels()</code>, <code translate="no" v-pre>testConnection()</code> (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of <code translate="no" v-pre>AIDialog</code>), <code translate="no" v-pre>countTokens</code> / <code translate="no" v-pre>countTokensApprox</code>, <code translate="no" v-pre>stream(payload, protocol, callback)</code>. Failures of the provider are <code translate="no" v-pre>InferenceException</code> (classified by <code translate="no" v-pre>Type</code>: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; <code translate="no" v-pre>OpenAICompatibleInferenceService.translateException</code>), also passed to <code translate="no" v-pre>callback.onError</code>; <code translate="no" v-pre>InferenceErrors.describe(loc, throwable)</code> / <code translate="no" v-pre>messageOf</code> give the localized text for the UI. <code translate="no" v-pre>OpenAICompatible</code> has the extended attributes <code translate="no" v-pre>requestTimeoutSeconds</code> and <code translate="no" v-pre>maxRetries</code>, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). A user message of the payload (<code translate="no" v-pre>LLMChatMessage</code>) can carry <code translate="no" v-pre>LLMAttachment</code>s (images as data or URL, WAV/MP3 audio, files), which <code translate="no" v-pre>OpenAICompatibleInferenceService</code> sends as content parts after the text; an attachment it cannot send (audio in another format, audio or a file given only by URL) throws <code translate="no" v-pre>IllegalArgumentException</code> from <code translate="no" v-pre>stream</code>, attachments of other roles are not sent. Streaming is asynchronous; the callback gets chunks (<code translate="no" v-pre>REASONING</code> / <code translate="no" v-pre>RESPONSE</code>) and must call <code translate="no" v-pre>controller.continueInference()</code> to receive the next one. <code translate="no" v-pre>stream(payload, protocol, functions, callback)</code> also lets the model call functions, see <doc-anchor-trigger to="#function-calls">Function calls</doc-anchor-trigger>. Implemented by <code translate="no" v-pre>OpenAICompatibleInferenceService</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TokenizerService</code></td>
@@ -539,6 +539,75 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 </table>
 </div>
 </retype-table>
+<h3 id="function-calls">Function calls</h3>
+<p>The model can call Java methods (tool / function calling). The functions are the methods of an interface marked
+<code translate="no" v-pre>@LLMFunction(name, description)</code>; their parameters may carry <code translate="no" v-pre>@LLMParam(name, description, required)</code> (without it the
+parameter is required and named as in the source, which needs the <code translate="no" v-pre>-parameters</code> compiler option the project already
+uses). The parameter types are anything Jackson reads: primitives, strings, enums, collections, maps, records and beans
+(fields described with <code translate="no" v-pre>@JsonPropertyDescription</code>).</p>
+<p>Functions are <strong>asynchronous</strong>. Every <code translate="no" v-pre>@LLMFunction</code> method returns <code translate="no" v-pre>void</code> and takes a <code translate="no" v-pre>FunctionContinuation&lt;R&gt;</code> as its
+first parameter (hidden from the model, not in the schema); <code translate="no" v-pre>FunctionRegistry.definitionsOf</code> throws
+<code translate="no" v-pre>IllegalArgumentException</code> for a method that returns a value or does not have the continuation first (or marks it with
+<code translate="no" v-pre>@LLMParam</code>). The method is called on a worker thread, in the request scope of the caller, and may hand the work to any
+other thread; it finishes the call with <code translate="no" v-pre>done.complete(result)</code> or <code translate="no" v-pre>done.fail(message | throwable)</code>, whenever and from
+wherever. The first finish wins. <code translate="no" v-pre>done.isCancelled()</code> tells that the request is over. An exception thrown by the method
+itself is a failed call.</p>
+<div id="function-calls-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">interface Lore {
+    @LLMFunction(description = &quot;Finds lorebook entries by name&quot;)
+    void find(FunctionContinuation&lt;List&lt;String&gt;&gt; done, @LLMParam(description = &quot;Part of the name&quot;) String name);
+}
+
+FunctionSet functions = inferenceServices.getFunctionRegistry().bind(Lore.class, new LoreImpl(user));
+inferenceService.stream(payload, protocol, functions, callback);</code></pre>
+</doc-codeblock></div>
+<retype-table copy-text="| Type | What it does |
+|---|---|
+| `FunctionRegistry` (`inferenceServices.getFunctionRegistry()`) | `definitionsOf(type)` compiles the interface once - JSON schema of every method's parameters (victools `jsonschema-generator`, Jackson module, every parameter schema inlined, recursive types moved to the `$defs` of the function schema), the Jackson types the arguments are parsed into and a method handle - and caches it in a `ClassValue`, so it lives as long as the interface class (an unloaded extension releases its entries). `bind(type, implementation)` is cheap and makes a `FunctionSet`. An interface without `@LLMFunction` methods, with a name used twice, a name providers do not accept (`[a-zA-Z0-9_-]{1,64}`), a static method or an unnamed parameter is an `IllegalArgumentException`. |
+| `FunctionSet` | The functions of one request, bound to their implementations; `and(other)` combines sets of several interfaces. `call(name, argumentsJson, executor, cancelled)` returns a `CompletableFuture&lt;String&gt;`: on the executor it parses the JSON object the model wrote into the parameters (unknown properties ignored, a missing optional one is null / 0 / false, a missing required one is an error), calls the method with a `FunctionContinuation` and completes the future when the method answers, with the result rendered: `null` as `OK`, a string as it is, anything else as JSON. Every failure is the `FunctionCallException` the future completes exceptionally with. |
+| `FunctionContinuation&lt;T&gt;` | What a function answers with: `complete(T)`, `fail(String)`, `fail(Throwable)`, `isCancelled()`. |
+| `FunctionCallException` | A call that could not be carried out; `Kind` is `UNKNOWN_FUNCTION`, `INVALID_ARGUMENTS` or `FAILED` (the method threw). Its message is written for the model. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Type</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>FunctionRegistry</code> (<code translate="no" v-pre>inferenceServices.getFunctionRegistry()</code>)</td>
+<td><code translate="no" v-pre>definitionsOf(type)</code> compiles the interface once - JSON schema of every method&#x27;s parameters (victools <code translate="no" v-pre>jsonschema-generator</code>, Jackson module, every parameter schema inlined, recursive types moved to the <code translate="no" v-pre>$defs</code> of the function schema), the Jackson types the arguments are parsed into and a method handle - and caches it in a <code translate="no" v-pre>ClassValue</code>, so it lives as long as the interface class (an unloaded extension releases its entries). <code translate="no" v-pre>bind(type, implementation)</code> is cheap and makes a <code translate="no" v-pre>FunctionSet</code>. An interface without <code translate="no" v-pre>@LLMFunction</code> methods, with a name used twice, a name providers do not accept (<code translate="no" v-pre>[a-zA-Z0-9_-]{1,64}</code>), a static method or an unnamed parameter is an <code translate="no" v-pre>IllegalArgumentException</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>FunctionSet</code></td>
+<td>The functions of one request, bound to their implementations; <code translate="no" v-pre>and(other)</code> combines sets of several interfaces. <code translate="no" v-pre>call(name, argumentsJson, executor, cancelled)</code> returns a <code translate="no" v-pre>CompletableFuture&lt;String&gt;</code>: on the executor it parses the JSON object the model wrote into the parameters (unknown properties ignored, a missing optional one is null / 0 / false, a missing required one is an error), calls the method with a <code translate="no" v-pre>FunctionContinuation</code> and completes the future when the method answers, with the result rendered: <code translate="no" v-pre>null</code> as <code translate="no" v-pre>OK</code>, a string as it is, anything else as JSON. Every failure is the <code translate="no" v-pre>FunctionCallException</code> the future completes exceptionally with.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>FunctionContinuation&lt;T&gt;</code></td>
+<td>What a function answers with: <code translate="no" v-pre>complete(T)</code>, <code translate="no" v-pre>fail(String)</code>, <code translate="no" v-pre>fail(Throwable)</code>, <code translate="no" v-pre>isCancelled()</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>FunctionCallException</code></td>
+<td>A call that could not be carried out; <code translate="no" v-pre>Kind</code> is <code translate="no" v-pre>UNKNOWN_FUNCTION</code>, <code translate="no" v-pre>INVALID_ARGUMENTS</code> or <code translate="no" v-pre>FAILED</code> (the method threw). Its message is written for the model.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>OpenAICompatibleInferenceService</code> offers the functions as <code translate="no" v-pre>tools</code>, collects the calls from the stream (they arrive in
+pieces), and when the answer ends with calls it runs them as a chain of futures: one after the other, each started on a worker thread (with the request attributes of the caller), the next only after the previous one answered through its continuation, and nothing blocks while a function waits. When the last has answered the next request is sent. Cancelling the token (or a dead callback) fails the pending call and ends the request with <code translate="no" v-pre>onCancel</code>. <code translate="no" v-pre>onFunctionCall</code> is called on the thread the function answered on.
+appends an assistant message with the calls (<code translate="no" v-pre>LLMChatMessage.ofToolCalls</code>, <code translate="no" v-pre>LLMToolCall</code>) and a <code translate="no" v-pre>LLMRole.TOOL</code> message
+per result (<code translate="no" v-pre>ofToolResult</code>) to its own copy of the payload and sends the request again. The callback sees one stream of
+chunks and one completion (the text before a call and the answer after it are both <code translate="no" v-pre>RESPONSE</code> chunks), and
+<code translate="no" v-pre>InferenceAsyncCallback.onFunctionCall(call, result, failed)</code> reports each call. A failing call is not an error of the
+request: the model gets <code translate="no" v-pre>Error: &lt;message&gt;</code> as the result and can correct itself. After <code translate="no" v-pre>MAX_FUNCTION_ROUNDS</code> (10) rounds
+the request is sent with <code translate="no" v-pre>tool_choice: none</code>, so the stream ends with an answer. A cancelled token or a dead callback
+stops before the next call. Every request of the loop is counted in the <code translate="no" v-pre>Usage</code> separately. A payload that already holds
+tool calls and results (<code translate="no" v-pre>LLMChatMessage</code> with <code translate="no" v-pre>toolCalls</code> / <code translate="no" v-pre>toolCallId</code>) is sent as it is. The generation pipeline does
+not offer functions yet; they are for services and extensions that call <code translate="no" v-pre>stream</code> themselves. A service that cannot call
+functions rejects a non-empty <code translate="no" v-pre>FunctionSet</code> with <code translate="no" v-pre>UnsupportedOperationException</code> (the default of the interface).</p>
 <h3 id="users-and-settings">Users and settings</h3>
 <retype-table copy-text="| Service | Responsible for |
 |---|---|

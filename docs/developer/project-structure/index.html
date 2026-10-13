@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845164793291">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845197036705">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845164793291" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845197036705" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845164793291" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845164793291" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -541,6 +541,7 @@ no state besides their fields.</p>
 | `UsageService` | Tokens a user used with an AI, counted by `OpenAICompatibleInferenceService` (`Usage`, one per AI and user); `findAllUsages()` lists everybody's for administrators. |
 | `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
 | `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
+| `FunctionRegistry` | The Java interfaces the model can call as functions, compiled once (see [Function calls](services.md#function-calls)). |
 | `TokenizerService` | Token counting. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
@@ -588,6 +589,10 @@ no state besides their fields.</p>
 <td>Choosing and calling the model API; classified failures and their localized texts.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>FunctionRegistry</code></td>
+<td>The Java interfaces the model can call as functions, compiled once (see <a href="../services/#function-calls">Function calls</a>).</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>TokenizerService</code></td>
 <td>Token counting.</td>
 </tr>
@@ -618,6 +623,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `service.impl.generation` | Engine interfaces and data: `GenerationStep`, `GenerationStepBase`, `GenerationStepType`, `GenerationController`, `Events`, `GenerationEvent`, `GenerationRequest` / `GenerationRequestType`, `GenerationProperties`. |
 | `service.impl.generation.impl` | The eight steps, `PrepareForGenerationStep` ... `CleanupStep`. |
 | `service.impl.generation.dto` | `LLMChatMessage` (role, text and optional `LLMAttachment`s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3), `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
+| `service.function` | `FunctionDefinition`, `FunctionSet`, `FunctionCompiler` (JSON schema of the parameters, argument parsing, method handles), `FunctionCallException`; the annotations `@LLMFunction` / `@LLMParam` are in `domain.traits`. |
 | `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to `InferenceException`). |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -640,6 +646,10 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <tr>
 <td><code translate="no" v-pre>service.impl.generation.dto</code></td>
 <td><code translate="no" v-pre>LLMChatMessage</code> (role, text and optional <code translate="no" v-pre>LLMAttachment</code>s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3), <code translate="no" v-pre>LLMRole</code>, <code translate="no" v-pre>PrePromptData</code> (the prompts collected for one generation).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>service.function</code></td>
+<td><code translate="no" v-pre>FunctionDefinition</code>, <code translate="no" v-pre>FunctionSet</code>, <code translate="no" v-pre>FunctionCompiler</code> (JSON schema of the parameters, argument parsing, method handles), <code translate="no" v-pre>FunctionCallException</code>; the annotations <code translate="no" v-pre>@LLMFunction</code> / <code translate="no" v-pre>@LLMParam</code> are in <code translate="no" v-pre>domain.traits</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.impl.inference</code></td>
@@ -1033,6 +1043,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 |---|---|---|
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
+| Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog and a settings form. |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
@@ -1058,6 +1069,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Chapter Marker</td>
 <td><code translate="no" v-pre>extensions.chaptermarking</code></td>
 <td>Activator and extension only - the smallest example.</td>
+</tr>
+<tr>
+<td>Gemma 4 tools fix</td>
+<td><code translate="no" v-pre>extensions.gemma4toolsfix</code></td>
+<td>Activator and extension only; registers a <code translate="no" v-pre>ToolRoleResolver</code>.</td>
 </tr>
 <tr>
 <td>Instruction Exporter</td>

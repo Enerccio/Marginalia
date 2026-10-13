@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845164793291">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845197036705">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845164793291" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845197036705" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845164793291" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845164793291" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845197036705" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -260,11 +260,12 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
     </div>
 </div>
 <h2 id="the-bundled-plugins">The bundled plugins</h2>
-<p>The eight plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
+<p>The nine plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
 <retype-table copy-text="| Plugin | What it adds | Shows how to |
 |---|---|---|
 | [Author's Note](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. | Listen to generation events and change the payload sent to the model; add a tab to the story editor. |
 | [Chapter Marker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker) | Story parts that start with a Markdown heading are shown as chapters in the story sidebar. | Read method arguments and locals, change a component the method built. The smallest one - start here. |
+| [Gemma 4 tools fix](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/gemma4toolsfix) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. | Change how a service talks to the model without UI code: register an `InferenceServices.ToolRoleResolver` on load, remove it on unload. |
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions and scene fields of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
 | [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
@@ -290,6 +291,11 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker">Chapter Marker</a></td>
 <td>Story parts that start with a Markdown heading are shown as chapters in the story sidebar.</td>
 <td>Read method arguments and locals, change a component the method built. The smallest one - start here.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/gemma4toolsfix">Gemma 4 tools fix</a></td>
+<td>Sends the results of function calls to Gemma 4 models with the role <code translate="no" v-pre>tool_responses</code>.</td>
+<td>Change how a service talks to the model without UI code: register an <code translate="no" v-pre>InferenceServices.ToolRoleResolver</code> on load, remove it on unload.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter">Instruction Exporter</a></td>
