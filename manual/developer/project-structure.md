@@ -312,6 +312,7 @@ plugins/<name>/
 |---|---|---|
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
+| Character Tracker | `extensions.charactertracker` | Model (characters, relationships, the in-memory `CharacterBook`), service, a sidebar tab, dialogs (character, import from the lorebook, relationship map on `GraphView`) and `charactertracker.css`. |
 | Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `NameToolsDialog`, `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `NameGeneratorBridge` (the Name generator by reflection). |

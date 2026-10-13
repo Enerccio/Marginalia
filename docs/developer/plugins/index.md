@@ -57,12 +57,13 @@ ones that ask for classes, methods, arguments, locals or fields that don't exist
 
 ## The bundled plugins
 
-The ten plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
+The eleven plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
 
 | Plugin | What it adds | Shows how to |
 |---|---|---|
 | [Author's Note](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. | Listen to generation events and change the payload sent to the model; add a tab to the story editor. |
 | [Chapter Marker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker) | Story parts that start with a Markdown heading are shown as chapters in the story sidebar. | Read method arguments and locals, change a component the method built. The smallest one - start here. |
+| [Character Tracker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/character-tracker) | The characters of the book with their relationships, imported from lore entries if wanted, and a relationship map, in the story sidebar. | Add a tab to the story editor, keep a list in a book's attributes, draw a graph with the application's `GraphView` ([Custom components](../custom-components.md)), upload and scale images. |
 | [Gemma 4 tools fix](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/gemma4toolsfix) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. | Change how a service talks to the model without UI code: register an `InferenceServices.ToolRoleResolver` on load, remove it on unload. |
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions and scene fields of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
 | [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension. |

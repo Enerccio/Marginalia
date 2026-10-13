@@ -236,6 +236,10 @@ Use Lumo variables (`var(--lumo-contrast-10pct)`) in the rules and keep the clas
 loader (Side Query: `SideQueryStyles` and `sidequery.css`); prefix them with the plugin's name, the page is shared
 with the application and other plugins.
 
+A plugin can use the application's components that draw with a JavaScript library (`TreantTree`, `ChartJs`, `GraphView`,
+Character Tracker's relationship map is a `GraphView`), but it can't add a library of its own, see
+[Custom components](../custom-components.md#components-in-plugins).
+
 **What the application does.** Each entry point owns a `CssRegistry` (created in `onAttach`, released in `onDetach`).
 For every UI it
 
