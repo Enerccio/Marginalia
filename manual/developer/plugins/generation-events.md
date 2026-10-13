@@ -41,7 +41,7 @@ public class AuthorsNoteData {
     private String note = "";               // sent to the model
     private String privateNote = "";        // for the author only, never sent
     private int depth = 1;                  // number of messages after the note
-    private LLMRole role = LLMRole.SYSTEM;  // role of the inserted message
+    private LLMRole role = LLMRole.SYSTEM;  // role of the inserted message (system, assistant or user)
     ...
 }
 ```
