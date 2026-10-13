@@ -1,11 +1,12 @@
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Ten extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Eleven extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
 | [Author's Note](authors-note.md) | A note to the model, inserted into every generation of the book. |
 | [Chapter Marker](chapter-marker.md) | Chapter titles in the story outline, from Markdown headings in the parts. |
+| [Character Tracker](character-tracker.md) | The characters of the book with their relationships, and a map of them. |
 | [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with Gemma 4 models whose API wants another role for tool results. |
 | [Instruction Exporter](instruction-exporter.md) | Copies the instructions, scene settings and characters of the story to the clipboard. |
 | [Lore Generator](lore-generator.md) | Writes the content of a lorebook entry with the model, from the lore you already have. |
@@ -29,7 +30,7 @@ Extensions hook into the user interface of one Marginalia version. An extension 
 working or break parts of the application. Use the extensions that come with your version of Marginalia.
 !!!
 
-The ten extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
+The eleven extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
 ## Extensions on a phone
