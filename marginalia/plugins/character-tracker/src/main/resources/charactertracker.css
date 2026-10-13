@@ -1,0 +1,110 @@
+/* Styles of the Character Tracker plugin only. Put into the page by the application while the extension is loaded
+   (CharacterTrackerExtension.getCss). The colors of a character are set on the elements as the custom properties
+   --character-color and --character-text, they are different for every character. */
+
+/* Character in the sidebar list: text on the left, buttons on the right */
+.character-tracker-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-xs);
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--character-color);
+    color: var(--character-text);
+}
+
+.character-tracker-card vaadin-button {
+    --lumo-primary-text-color: var(--character-text);
+    --lumo-contrast-60pct: var(--character-text);
+    color: var(--character-text);
+    margin: 0;
+}
+
+.character-tracker-card-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.character-tracker-card-actions {
+    display: flex;
+    flex: none;
+}
+
+.character-tracker-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Smaller than the name, at most two lines */
+.character-tracker-tagline {
+    font-size: var(--lumo-font-size-xxs);
+    line-height: var(--lumo-line-height-xs);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+/* Expanded character: icon and note */
+.character-tracker-details {
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+}
+
+.character-tracker-icon {
+    display: block;
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: var(--lumo-border-radius-s);
+}
+
+.character-tracker-note {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: var(--lumo-font-size-s);
+}
+
+/* Color input of the character dialog */
+.character-tracker-color-input {
+    width: 4rem;
+    height: 2rem;
+    padding: 0;
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-s);
+    background: transparent;
+    cursor: pointer;
+}
+
+.character-tracker-dialog-section {
+    border-top: 1px solid var(--lumo-contrast-10pct);
+    padding-top: var(--lumo-space-m);
+}
+
+/* Content of a lorebook entry in the popover of the import dialog */
+.character-tracker-lore-preview {
+    box-sizing: border-box;
+    width: 400px;
+    max-width: 80vw;
+    max-height: 300px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: var(--lumo-font-size-s);
+}
+
+/* Relationship map */
+.character-tracker-map-hint {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.character-tracker-map-empty {
+    color: var(--lumo-secondary-text-color);
+    padding: var(--lumo-space-m);
+}
