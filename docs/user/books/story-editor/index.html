@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845238871837">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845239413745">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845238871837" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845239413745" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845238871837" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845238871837" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -475,6 +475,14 @@ is saved per book.</p>
 <p>In this style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
 book&#x27;s <strong>Language</strong> (set on the <a href="../managing-books/#the-about-tab">About tab</a>). Hyphenation is done by the browser;
 for a few rare languages it has no dictionary and the text is simply not hyphenated.</p>
+<h2 id="highlighting-generated-text">Highlighting generated text</h2>
+<p>The settings menu (⚙) also has the checkable <strong>Highlight Generated Text</strong>. While it is on, the text that is still the
+way the model wrote it is highlighted in every part, so what you added or rewrote stands out. Marginalia keeps the
+original text of each part and compares it with the current one word by word. A part you never edited is highlighted
+whole; a part you wrote yourself has nothing highlighted. The switch is not saved: it is off again when the page is
+opened anew.</p>
+<p>Parts that existed before this feature count wholly as generated, because the original text was not kept for them.
+The highlight is available in the desktop view only, not in the <a href="../../phone/">phone view</a>.</p>
 <h2 id="exporting-the-story">Exporting the story</h2>
 <p>The settings menu (⚙) also has <strong>Export story</strong>, which saves the active branch as a text, Markdown, HTML, Word, PDF or EPUB
 file. See <a href="../export/">Exporting a book</a>.</p>

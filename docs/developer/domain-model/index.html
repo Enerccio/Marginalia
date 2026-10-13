@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845238871837">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845239413745">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845238871837" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845239413745" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845238871837" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845238871837" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845238871837" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845239413745" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -713,6 +713,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 | `tokenCount`, `wordCount` | columns | Size of the text, summed for the book statistics. |
 | `edited` | column | The user edited the generated text. |
 | `response` | JSON | The text of the part. |
+| `originalResponse` | JSON | The text as the LLM produced it: filled chunk by chunk by `InferenceStep`, cleared by `GenerateNewMessageStep` (regenerate), never changed by editing; `null` for a part that was not generated. The story's *Highlight Generated Text* diffs `response` against it (`GeneratedTextHighlighter`). Existing parts got a copy of `response` from `OriginalResponseMigration`. |
 | `responseReasoning` | JSON | Reasoning of a reasoning model. |
 | `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` | JSON | The instruction panel it was generated from (`TurnInput`). |
 | `builtPrompt`, `builtPromptTokens`, `backgroundLore` | JSON | The full prompt sent to the model and the activated lore (*Show Prompt*). |
@@ -754,6 +755,11 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <td><code translate="no" v-pre>response</code></td>
 <td>JSON</td>
 <td>The text of the part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>originalResponse</code></td>
+<td>JSON</td>
+<td>The text as the LLM produced it: filled chunk by chunk by <code translate="no" v-pre>InferenceStep</code>, cleared by <code translate="no" v-pre>GenerateNewMessageStep</code> (regenerate), never changed by editing; <code translate="no" v-pre>null</code> for a part that was not generated. The story&#x27;s <em>Highlight Generated Text</em> diffs <code translate="no" v-pre>response</code> against it (<code translate="no" v-pre>GeneratedTextHighlighter</code>). Existing parts got a copy of <code translate="no" v-pre>response</code> from <code translate="no" v-pre>OriginalResponseMigration</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>responseReasoning</code></td>

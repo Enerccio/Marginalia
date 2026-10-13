@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845238871837">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845239413745">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845238871837" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845239413745" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845238871837" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845238871837" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845238871837" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845239413745" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -317,7 +317,8 @@ migration is written for one version step and ignores the others.</p>
 <retype-table copy-text="| Type | Version | Class | Change |
 |---|---|---|---|
 | APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |
-| APP | 2 → 3 | `bound/migration/FulltextMigration` | Fills `_fulltext` (added by V9) of the existing rows of every entity with `@Fulltextable` fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls `ExtendableEntityListener.updateFulltext` on the loaded entity, so `extendedContent` and `modification` stay as they are. Repeating it is harmless. See [Full-text column](domain-model.md#full-text-column). |">
+| APP | 2 → 3 | `bound/migration/FulltextMigration` | Fills `_fulltext` (added by V9) of the existing rows of every entity with `@Fulltextable` fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls `ExtendableEntityListener.updateFulltext` on the loaded entity, so `extendedContent` and `modification` stay as they are. Repeating it is harmless. See [Full-text column](domain-model.md#full-text-column). |
+| APP | 3 → 4 | `bound/migration/OriginalResponseMigration` | Copies `response` of every `ChatMessage` (deleted ones too) into the extended attribute `originalResponse` when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with `ExtendableEntityListener.serialize`, `modification` stays as it is. Repeating it is harmless. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -340,6 +341,12 @@ migration is written for one version step and ignores the others.</p>
 <td>2 → 3</td>
 <td><code translate="no" v-pre>bound/migration/FulltextMigration</code></td>
 <td>Fills <code translate="no" v-pre>_fulltext</code> (added by V9) of the existing rows of every entity with <code translate="no" v-pre>@Fulltextable</code> fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls <code translate="no" v-pre>ExtendableEntityListener.updateFulltext</code> on the loaded entity, so <code translate="no" v-pre>extendedContent</code> and <code translate="no" v-pre>modification</code> stay as they are. Repeating it is harmless. See <a href="../domain-model/#full-text-column">Full-text column</a>.</td>
+</tr>
+<tr>
+<td>APP</td>
+<td>3 → 4</td>
+<td><code translate="no" v-pre>bound/migration/OriginalResponseMigration</code></td>
+<td>Copies <code translate="no" v-pre>response</code> of every <code translate="no" v-pre>ChatMessage</code> (deleted ones too) into the extended attribute <code translate="no" v-pre>originalResponse</code> when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with <code translate="no" v-pre>ExtendableEntityListener.serialize</code>, <code translate="no" v-pre>modification</code> stays as it is. Repeating it is harmless.</td>
 </tr>
 </tbody>
 </table>

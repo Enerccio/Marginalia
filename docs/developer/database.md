@@ -86,6 +86,7 @@ migration is written for one version step and ignores the others.
 |---|---|---|---|
 | APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |
 | APP | 2 → 3 | `bound/migration/FulltextMigration` | Fills `_fulltext` (added by V9) of the existing rows of every entity with `@Fulltextable` fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls `ExtendableEntityListener.updateFulltext` on the loaded entity, so `extendedContent` and `modification` stay as they are. Repeating it is harmless. See [Full-text column](domain-model.md#full-text-column). |
+| APP | 3 → 4 | `bound/migration/OriginalResponseMigration` | Copies `response` of every `ChatMessage` (deleted ones too) into the extended attribute `originalResponse` when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with `ExtendableEntityListener.serialize`, `modification` stays as it is. Repeating it is harmless. |
 
 To add one: implement `Migration`, register the bean in the `migrations` list of `applicationInitializer` and raise
 `appVersion` (or `dbVersion`). A fresh database starts at version 1, so it goes through all migrations too.

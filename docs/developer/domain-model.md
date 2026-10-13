@@ -280,6 +280,7 @@ Siblings are ordered by `creation`. The branch from the root to a leaf is read w
 | `tokenCount`, `wordCount` | columns | Size of the text, summed for the book statistics. |
 | `edited` | column | The user edited the generated text. |
 | `response` | JSON | The text of the part. |
+| `originalResponse` | JSON | The text as the LLM produced it: filled chunk by chunk by `InferenceStep`, cleared by `GenerateNewMessageStep` (regenerate), never changed by editing; `null` for a part that was not generated. The story's *Highlight Generated Text* diffs `response` against it (`GeneratedTextHighlighter`). Existing parts got a copy of `response` from `OriginalResponseMigration`. |
 | `responseReasoning` | JSON | Reasoning of a reasoning model. |
 | `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` | JSON | The instruction panel it was generated from (`TurnInput`). |
 | `builtPrompt`, `builtPromptTokens`, `backgroundLore` | JSON | The full prompt sent to the model and the activated lore (*Show Prompt*). |
