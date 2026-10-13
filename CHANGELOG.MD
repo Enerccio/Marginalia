@@ -7,8 +7,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Two database migrations (`V10`, `V11`): a copy of the database is saved before they run, and 1.1.0 cannot open a
+migrated database.
+
 ### Added
 
+- Shared inference providers: an administrator can check **Shared with all users** in a provider's dialog. Every user
+  can then use it in their books, but not see its address or API key, change it or delete it. The rules are enforced in
+  `AIService`, not only hidden in the UI (migration `V10`). A setting **Users can create their own models** (above the
+  user list in the administration) lets administrators restrict users to the shared providers.
+- Token usage per provider: the Inference Providers tab shows the tokens sent and generated with each provider, per user
+  (a shared provider counts separately for each user); administrators get a **Usage per user** table with the tokens,
+  requests and time of the last request of every user and provider (migration `V11`). The numbers are what the service
+  reports (Marginalia asks for `stream_options.include_usage`) or a local estimate, and nothing is limited by them.
+- LLM function calling: the model can call Java methods of an interface marked `@LLMFunction`
+  (`FunctionRegistry`, `FunctionSet`, `FunctionContinuation`; asynchronous, JSON schema generated from the parameter
+  types, up to 10 rounds per request with the last one forced to answer). `OpenAICompatibleInferenceService` runs the
+  calls; extensions use it through `InferenceService.stream(payload, protocol, functions, callback)`.
+- `InferenceServices.addToolRoleResolver` / `removeToolRoleResolver`: an extension can change the role the results of
+  function calls are sent with.
+- Plugin: **Gemma 4 Tools Fix** — sends the results of function calls to Gemma 4 models with the role
+  `tool_responses` instead of `tool`.
 - Plugin: **Name generator** — the model can call `list_name_categories` and `generate_names` to get names from Markov
   chains instead of inventing them. About 1200 categories, trained at build time from the Onomastikon, fantasygen,
   Corpora and markov-namegen-lib (the build clones them, only the probabilities are committed). The length of the chain
@@ -20,6 +39,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- A protocol can lower the context and response limits of a provider, but no longer raise them above the provider's.
+- The story editors share their code: `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` use the new classes of
+  `ui.dialogs.story` (`StoryCards`, `StorySupport`, `StoryBackup`, `StoryGenerationListener`, `NewTurnForm`,
+  `TurnDetailsForm`, `MessageMetrics`) and are about 300 lines shorter each. Plugins that decorate methods of these two
+  classes should be checked against the new code.
+- The phone workspace classes and more of the desktop UI classes are annotated with `@PublicAPI(from = "1.1.0")`
+  and `PublicAPISignatureTest` checks the annotations against the compiled classes; the phone twins of the book tabs
+  are listed as extension points in the developer manual.
+- Vaadin is built with `optimizeBundle=false`.
 - Lore Generator: the dialog is split into smaller classes (`NameToolsDialog`, `SavePromptAsDialog`,
   `AttachmentPanel`, `GenerationPane`).
 
