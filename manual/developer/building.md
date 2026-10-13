@@ -267,7 +267,7 @@ mvn -N install                    # in the repository root
 cd marginalia
 mvn install -DskipTests
 
-cd plugins/chaptermarker          # or authorsnote, instructionexporter, lore-generator, lorebookvcs, reviewer, sidequery, chineselocalization
+cd plugins/chaptermarker          # or authorsnote, gemma4toolsfix, instructionexporter, lore-generator, lorebookvcs, reviewer, sidequery, chineselocalization
 mvn package                       # target/chaptermarker-1.2.0.jar
 ```
 
