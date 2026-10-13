@@ -147,6 +147,19 @@
       <version>4.35.0</version>
     </dependency>
 
+    <!-- JSON schemas of the functions the LLM can call, generated from the Java interfaces (FunctionRegistry); the
+         OpenAI client brings the same version at runtime only -->
+    <dependency>
+      <groupId>com.github.victools</groupId>
+      <artifactId>jsonschema-generator</artifactId>
+      <version>4.38.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.victools</groupId>
+      <artifactId>jsonschema-module-jackson</artifactId>
+      <version>4.38.0</version>
+    </dependency>
+
     <!-- SERVLET API -->
     <dependency>
       <groupId>jakarta.servlet</groupId>

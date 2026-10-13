@@ -219,6 +219,20 @@ public class MockLLMServer implements AutoCloseable {
             return;
         }
 
+        int callIndex = 0;
+        for (MockLLMResponse.ToolCall call : response.getToolCalls()) {
+            // first the id and the name, then the arguments in pieces, like a provider streams them
+            writeToolCallDelta(out, id, model, first, toolCallDelta(callIndex, call.id(), call.name(), ""));
+            first = false;
+            String arguments = call.arguments();
+            for (int i = 0; i < arguments.length(); i += response.getArgumentChunk()) {
+                sleep(response.getChunkDelayMillis());
+                writeToolCallDelta(out, id, model, false, toolCallDelta(callIndex, null, null,
+                        arguments.substring(i, Math.min(arguments.length(), i + response.getArgumentChunk()))));
+            }
+            callIndex++;
+        }
+
         writeEvent(out, chunkBody(id, model, new JsonObject(), response.getFinishReason()));
         if (response.getPromptTokens() != null && request.includesUsage()) {
             // the usage chunk has no choices
@@ -233,6 +247,34 @@ public class MockLLMServer implements AutoCloseable {
         }
         out.write("data: [DONE]\n\n".getBytes(StandardCharsets.UTF_8));
         out.flush();
+    }
+
+    private void writeToolCallDelta(OutputStream out, String id, String model, boolean first, JsonObject toolCall) throws IOException {
+        JsonObject delta = new JsonObject();
+        if (first) {
+            delta.addProperty("role", "assistant");
+        }
+        JsonArray toolCalls = new JsonArray();
+        toolCalls.add(toolCall);
+        delta.add("tool_calls", toolCalls);
+        writeEvent(out, chunkBody(id, model, delta, null));
+    }
+
+    private JsonObject toolCallDelta(int index, String callId, String name, String arguments) {
+        JsonObject function = new JsonObject();
+        if (name != null) {
+            function.addProperty("name", name);
+        }
+        function.addProperty("arguments", arguments);
+
+        JsonObject toolCall = new JsonObject();
+        toolCall.addProperty("index", index);
+        if (callId != null) {
+            toolCall.addProperty("id", callId);
+            toolCall.addProperty("type", "function");
+        }
+        toolCall.add("function", function);
+        return toolCall;
     }
 
     private JsonObject chunkBody(String id, String model, JsonObject delta, String finishReason) {
@@ -258,6 +300,20 @@ public class MockLLMServer implements AutoCloseable {
         message.addProperty("role", "assistant");
         message.addProperty("content", response.getContent());
         message.add("refusal", null);
+        if (!response.getToolCalls().isEmpty()) {
+            JsonArray toolCalls = new JsonArray();
+            for (MockLLMResponse.ToolCall call : response.getToolCalls()) {
+                JsonObject function = new JsonObject();
+                function.addProperty("name", call.name());
+                function.addProperty("arguments", call.arguments());
+                JsonObject toolCall = new JsonObject();
+                toolCall.addProperty("id", call.id());
+                toolCall.addProperty("type", "function");
+                toolCall.add("function", function);
+                toolCalls.add(toolCall);
+            }
+            message.add("tool_calls", toolCalls);
+        }
         String reasoning = response.getReasoning();
         if (!reasoning.isEmpty()) {
             message.addProperty(response.getReasoningField(), reasoning);

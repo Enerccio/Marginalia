@@ -7,6 +7,7 @@ a restart.
 |---|---|
 | [Author's Note](authorsnote/README.md) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
+| [Gemma 4 tools fix](gemma4toolsfix/README.md) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. |
 | [Instruction Exporter](instructionexporter/README.md) | "Export instructions" in the story settings menu: copies the instructions, scene settings and characters of the active branch to the clipboard. |
 | [Lore Generator](lore-generator/README.md) | Writes the content of a lorebook entry with the model from the existing lore (generation, compaction, attachments), from a button in the lorebook editor. |
 | [Lorebook VCS](lorebookvcs/README.md) | Revision history for lorebook entries: snapshots, browsing and restoring old versions, export/import. |
@@ -36,7 +37,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or authorsnote, instructionexporter, lore-generator, lorebookvcs, reviewer, sidequery, chineselocalization
+cd plugins/chaptermarker          # or authorsnote, gemma4toolsfix, instructionexporter, lore-generator, lorebookvcs, reviewer, sidequery, chineselocalization
 mvn package                       # target/chaptermarker-1.2.0.jar
 ```
 

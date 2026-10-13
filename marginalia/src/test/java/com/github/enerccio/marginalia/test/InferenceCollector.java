@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.test;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 
 import java.time.Duration;
 import java.util.List;
@@ -24,7 +25,10 @@ public class InferenceCollector implements InferenceAsyncCallback {
 
     public record Chunk(ChunkType type, String text) {}
 
+    public record FunctionCall(LLMToolCall call, String result, boolean failed) {}
+
     private final List<Chunk> chunks = new CopyOnWriteArrayList<>();
+    private final List<FunctionCall> functionCalls = new CopyOnWriteArrayList<>();
     private final CompletableFuture<Outcome> result = new CompletableFuture<>();
     private volatile Throwable error;
     private volatile boolean dead;
@@ -33,6 +37,16 @@ public class InferenceCollector implements InferenceAsyncCallback {
     public void onChunk(InferenceAsyncController controller, ChunkType chunkType, String text) {
         chunks.add(new Chunk(chunkType, text));
         controller.continueInference();
+    }
+
+    @Override
+    public void onFunctionCall(LLMToolCall call, String result, boolean failed) {
+        functionCalls.add(new FunctionCall(call, result, failed));
+    }
+
+    /** The functions the model called, with what they returned, in order. */
+    public List<FunctionCall> getFunctionCalls() {
+        return List.copyOf(functionCalls);
     }
 
     @Override

@@ -22,7 +22,12 @@ public class MockLLMResponse {
 
     public record Chunk(boolean reasoning, String text) {}
 
+    /** A function call of the model; the arguments are streamed in pieces of {@code argumentChunk} characters. */
+    public record ToolCall(String id, String name, String arguments) {}
+
     private final List<Chunk> chunks = new ArrayList<>();
+    private final List<ToolCall> toolCalls = new ArrayList<>();
+    private int argumentChunk = 7;
     private String finishReason = "stop";
     private String reasoningField = "reasoning_content";
     private long chunkDelayMillis;
@@ -87,6 +92,39 @@ public class MockLLMResponse {
         }
         chunks.addAll(0, prefix);
         return this;
+    }
+
+    /**
+     * Answer that calls functions (after the text chunks, if any); the finish reason is {@code tool_calls}.
+     * <pre>
+     * MockLLMResponse.toolCall("get_weather", "{\"city\":\"Prague\"}")
+     * MockLLMResponse.text("Let me look").toolCall("a", "{}").toolCall("b", "{}")
+     * </pre>
+     */
+    public static MockLLMResponse toolCall(String name, String arguments) {
+        return empty().andToolCall(name, arguments);
+    }
+
+    public MockLLMResponse andToolCall(String name, String arguments) {
+        toolCalls.add(new ToolCall("call_mock_" + (toolCalls.size() + 1), name, arguments));
+        finishReason = "tool_calls";
+        return this;
+    }
+
+    /**
+     * Size of the pieces the arguments of the calls are streamed in.
+     */
+    public MockLLMResponse argumentChunk(int size) {
+        this.argumentChunk = size;
+        return this;
+    }
+
+    public List<ToolCall> getToolCalls() {
+        return toolCalls;
+    }
+
+    public int getArgumentChunk() {
+        return argumentChunk;
     }
 
     /**

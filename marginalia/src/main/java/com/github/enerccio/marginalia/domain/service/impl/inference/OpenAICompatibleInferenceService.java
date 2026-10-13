@@ -10,9 +10,13 @@ import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.InferenceException.Type;
+import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
+import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -24,6 +28,7 @@ import com.openai.core.Timeout;
 import com.openai.core.http.StreamResponse;
 import com.openai.errors.OpenAIIoException;
 import com.openai.errors.OpenAIServiceException;
+import com.openai.models.FunctionParameters;
 import com.openai.models.chat.completions.*;
 import com.openai.models.models.Model;
 import com.openai.models.models.ModelListPage;
@@ -39,10 +44,9 @@ import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 import java.util.regex.Pattern;
 
 @SupportedAI(AIType.OPEN_AI_COMPATIBLE)
@@ -67,6 +71,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     @Autowired
     private UsageService usageService;
+
+    @Autowired
+    private InferenceServices inferenceServices;
 
     private ExecutorService inferenceService;
 
@@ -138,20 +145,88 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     @Override
     public CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, InferenceAsyncCallback callback) throws Exception {
-        OpenAIClient client = openClient();
-        CancellationToken cancellationToken = new CancellationToken();
+        return stream(payload, protocol, null, callback);
+    }
 
+    @Override
+    public CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions,
+                                    InferenceAsyncCallback callback) throws Exception {
+        Request request = new Request(openClient(), protocol, functions != null && !functions.isEmpty() ? functions : null,
+                callback, new CancellationToken(),
+                // the request ends on other threads, the user it counts for is the one who started it
+                ThreadCopyRequestAttributes.create());
+        startRound(request, new ArrayList<>(payload), 0);
+        return request.cancellationToken();
+    }
+
+    /**
+     * What stays the same through the rounds of a request: with functions the model is asked again after each call.
+     */
+    private record Request(OpenAIClient client, Protocol protocol, FunctionSet functions, InferenceAsyncCallback callback,
+                           CancellationToken cancellationToken, ThreadCopyRequestAttributes attributes) {}
+
+    /**
+     * Sends the conversation and streams the answer. Building the request fails here, in the caller's thread, for the
+     * first round; the rest of the round runs asynchronously.
+     */
+    private void startRound(Request request, List<LLMChatMessage> conversation, int round) {
+        // the last round may not call anything, the model has to answer with what it has
+        boolean functionsOffered = request.functions() != null;
+        boolean finalRound = round >= MAX_FUNCTION_ROUNDS;
+
+        ChatCompletionCreateParams.Builder paramsBuilder = buildParams(request.protocol(), conversation,
+                functionsOffered ? request.functions() : null, finalRound);
+
+        AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
+        CompletableFuture.runAsync(() -> {
+            try {
+                wrapper.run(() -> {
+                    if (request.cancellationToken().isCancelled())
+                        return;
+                    StreamResponse<ChatCompletionChunk> streamResponse = request.client().chat().completions().createStreaming(paramsBuilder.build());
+                    OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse,
+                            request.callback(), request.cancellationToken(),
+                            (reported, generated) -> recordUsage(request.attributes(), conversation, reported, generated),
+                            functionsOffered && !finalRound
+                                    ? (text, calls) -> callFunctions(request, conversation, round, text, calls) : null);
+                    controller.continueInference();
+                });
+            } catch (Throwable e) {
+                log.error("Failed to start streaming inference: {}", e.getMessage(), e);
+                try {
+                    request.callback().onError(translate(e));
+                } catch (Exception ex) {
+                    log.error("Error during callback.onError", ex);
+                }
+            }
+        });
+    }
+
+    private ChatCompletionCreateParams.Builder buildParams(Protocol protocol, List<LLMChatMessage> conversation,
+                                                           FunctionSet functions, boolean noFunctionCalls) {
         List<ChatCompletionMessageParam> messages = new ArrayList<>();
-        for (LLMChatMessage msg : payload) {
-            if (msg.getContent() == null && !(msg.getRole() == LLMRole.USER && msg.hasAttachments())) {
+        String toolRole = inferenceServices.resolveToolRole(ai);
+        for (LLMChatMessage msg : conversation) {
+            if (msg.getContent() == null && !(msg.getRole() == LLMRole.USER && msg.hasAttachments()) && !msg.hasToolCalls()) {
                 continue;
             }
             switch (msg.getRole()) {
                 case SYSTEM -> messages.add(ChatCompletionMessageParam.ofSystem(
                         ChatCompletionSystemMessageParam.builder().content(msg.getContent()).build()));
                 case USER -> messages.add(ChatCompletionMessageParam.ofUser(toUserMessage(msg)));
-                case ASSISTANT -> messages.add(ChatCompletionMessageParam.ofAssistant(
-                        ChatCompletionAssistantMessageParam.builder().content(msg.getContent()).build()));
+                case ASSISTANT -> messages.add(ChatCompletionMessageParam.ofAssistant(toAssistantMessage(msg)));
+                case TOOL -> {
+                    if (msg.getToolCallId() == null) {
+                        throw new IllegalArgumentException("Tool message has no toolCallId");
+                    }
+                    ChatCompletionToolMessageParam.Builder tool = ChatCompletionToolMessageParam.builder()
+                            .toolCallId(msg.getToolCallId()).content(msg.getContent());
+                    if (!InferenceServices.DEFAULT_TOOL_ROLE.equals(toolRole)) {
+                        // an extension knows the model wants another name for it
+                        tool.role(JsonValue.from(toolRole));
+                    }
+                    messages.add(ChatCompletionMessageParam.ofTool(tool.build()));
+                }
             }
         }
 
@@ -192,29 +267,123 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             paramsBuilder.putAdditionalBodyProperty("allowed_openai_params", JsonValue.from(List.of("reasoning_effort")));
         }
 
-        // the request ends on other threads, the user it counts for is the one who started it
-        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
-        AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
-        CompletableFuture.runAsync(() -> {
-            try {
-                wrapper.run(() -> {
-                    if (cancellationToken.isCancelled())
-                        return;
-                    StreamResponse<ChatCompletionChunk> streamResponse = client.chat().completions().createStreaming(paramsBuilder.build());
-                    OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse, callback, cancellationToken,
-                            (reported, generated) -> recordUsage(attributes, payload, reported, generated));
-                    controller.continueInference();
+        if (functions != null) {
+            // the tools stay in the final round too: the conversation contains their calls
+            for (FunctionDefinition function : functions.getDefinitions()) {
+                paramsBuilder.addTool(toTool(function));
+            }
+            if (noFunctionCalls && !overridden.contains("tool_choice")) {
+                paramsBuilder.toolChoice(ChatCompletionToolChoiceOption.Auto.NONE);
+            }
+        }
+        return paramsBuilder;
+    }
+
+    private static ChatCompletionFunctionTool toTool(FunctionDefinition function) {
+        FunctionParameters.Builder parameters = FunctionParameters.builder();
+        function.getParametersSchema().fields().forEachRemaining(
+                field -> parameters.putAdditionalProperty(field.getKey(), JsonValue.fromJsonNode(field.getValue())));
+        com.openai.models.FunctionDefinition.Builder definition = com.openai.models.FunctionDefinition.builder()
+                .name(function.getName())
+                .parameters(parameters.build());
+        if (StringUtils.isNotEmpty(function.getDescription())) {
+            definition.description(function.getDescription());
+        }
+        return ChatCompletionFunctionTool.builder().function(definition.build()).build();
+    }
+
+    private static ChatCompletionAssistantMessageParam toAssistantMessage(LLMChatMessage msg) {
+        ChatCompletionAssistantMessageParam.Builder builder = ChatCompletionAssistantMessageParam.builder();
+        if (msg.getContent() != null) {
+            builder.content(msg.getContent());
+        }
+        for (LLMToolCall call : msg.getToolCalls()) {
+            builder.addToolCall(ChatCompletionMessageFunctionToolCall.builder()
+                    .id(call.getId())
+                    .function(ChatCompletionMessageFunctionToolCall.Function.builder()
+                            .name(call.getName()).arguments(call.getArguments()).build())
+                    .build());
+        }
+        return builder.build();
+    }
+
+    /**
+     * The model ended its answer with calls: runs them as a chain, one after the other, each on a thread of its own,
+     * and asks the model again with the results when the last has answered. A call finishes whenever and from
+     * whichever thread its function says, nothing here waits for it. A call that fails is not an error of the request,
+     * the model gets the message and can correct itself.
+     */
+    private void callFunctions(Request request, List<LLMChatMessage> conversation, int round, String text,
+                               List<LLMToolCall> calls) {
+        InferenceAsyncCallback callback = request.callback();
+        List<LLMChatMessage> next = new ArrayList<>(conversation);
+        next.add(LLMChatMessage.ofToolCalls(StringUtils.isEmpty(text) ? null : text, calls));
+
+        BooleanSupplier stopped = () -> callback.isDead() || request.cancellationToken().isCancelled();
+        Executor executor = task -> CompletableFuture.runAsync(() -> {
+            try (InRequestScope _ = new InRequestScope(request.attributes())) {
+                task.run();
+            }
+        });
+
+        CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
+        for (LLMToolCall call : calls) {
+            chain = chain.thenCompose(_ -> {
+                if (stopped.getAsBoolean()) {
+                    throw new CancellationException();
+                }
+                CompletableFuture<String> answer = request.functions().call(call.getName(), call.getArguments(), executor, stopped);
+                // a call that never answers must not outlive the request
+                Runnable unregister = request.cancellationToken().onCancel(() -> answer.completeExceptionally(new CancellationException()));
+                return answer.handle((result, error) -> {
+                    unregister.run();
+                    if (error instanceof CompletionException wrapped && wrapped.getCause() != null) {
+                        error = wrapped.getCause();
+                    }
+                    if (error instanceof CancellationException) {
+                        throw (CancellationException) error;
+                    }
+                    boolean failed = error != null;
+                    String content = result;
+                    if (failed) {
+                        content = "Error: " + error.getMessage();
+                        if (error instanceof FunctionCallException e && e.getKind() != FunctionCallException.Kind.FAILED) {
+                            log.info("Call of function {} refused: {}", call.getName(), e.getMessage());
+                        } else {
+                            log.warn("Function {} called by the model failed", call.getName(), error);
+                        }
+                    }
+                    next.add(LLMChatMessage.ofToolResult(call.getId(), content));
+                    try {
+                        callback.onFunctionCall(call, content, failed);
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                    return null;
                 });
+            });
+        }
+        chain.whenComplete((_, error) -> {
+            try {
+                if (error instanceof CompletionException wrapped && wrapped.getCause() != null) {
+                    error = wrapped.getCause();
+                }
+                if (error instanceof CancellationException || (error == null && stopped.getAsBoolean())) {
+                    callback.onCancel();
+                } else if (error != null) {
+                    throw error;
+                } else {
+                    startRound(request, next, round + 1);
+                }
             } catch (Throwable e) {
-                log.error("Failed to start streaming inference: {}", e.getMessage(), e);
+                log.error("Error calling the functions of the model", e);
                 try {
                     callback.onError(translate(e));
                 } catch (Exception ex) {
-                    log.error("Error during callback.onError", ex);
+                    log.error("Error invoking callback.onError", ex);
                 }
             }
         });
-        return cancellationToken;
     }
 
     /**
@@ -347,6 +516,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 prefill = 0;
                 for (LLMChatMessage message : payload) {
                     prefill += tokenizerService.countTokensApprox(StringUtils.defaultString(message.getContent()));
+                    for (LLMToolCall call : message.getToolCalls()) {
+                        prefill += tokenizerService.countTokensApprox(call.getName() + call.getArguments());
+                    }
                 }
                 generatedTokens = tokenizerService.countTokensApprox(generated);
             }
@@ -469,10 +641,28 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     private record PendingChunk(ChunkType type, String text) {}
 
+    private static class PendingToolCall {
+        String id;
+        String name;
+        final StringBuilder arguments = new StringBuilder();
+    }
+
     /**
      * Token counts the provider reported for a request.
      */
     private record TokenUsage(long promptTokens, long completionTokens) {}
+
+    /**
+     * Runs the functions the model called at the end of a stream and starts the next request.
+     */
+    private interface FunctionCaller {
+
+        /**
+         * @param text  what the model wrote before the calls
+         * @param calls the calls, in the order the model made them
+         */
+        void call(String text, List<LLMToolCall> calls);
+    }
 
     private interface UsageRecorder {
 
@@ -496,14 +686,18 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         private final CancellationToken cancellationToken;
         private boolean completed = false;
         private final UsageRecorder usageRecorder;
+        private final FunctionCaller functionCaller;
         private final StringBuilder received = new StringBuilder();
+        private final StringBuilder responseText = new StringBuilder();
+        private final SortedMap<Long, PendingToolCall> toolCalls = new TreeMap<>();
         private TokenUsage reportedUsage;
         private boolean usageRecorded;
 
         public OpenAIInferenceAsyncController(StreamResponse<ChatCompletionChunk> streamResponse,
                                               InferenceAsyncCallback callback, CancellationToken cancellationToken,
-                                              UsageRecorder usageRecorder) {
+                                              UsageRecorder usageRecorder, FunctionCaller functionCaller) {
             this.usageRecorder = usageRecorder;
+            this.functionCaller = functionCaller;
             this.streamResponse = streamResponse;
             this.iterator = streamResponse.stream().iterator();
             this.callback = callback;
@@ -563,9 +757,14 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                                 pendingChunks.add(new PendingChunk(ChunkType.REASONING, reasoning));
                             }
 
+                            if (functionCaller != null) {
+                                delta.toolCalls().ifPresent(this::collectToolCalls);
+                            }
+
                             delta.content().ifPresent(content -> {
                                 if (!content.isEmpty()) {
                                     received.append(content);
+                                    responseText.append(content);
                                     pendingChunks.add(new PendingChunk(ChunkType.RESPONSE, content));
                                 }
                             });
@@ -581,6 +780,19 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     completed = true;
                     closeStream();
                     recordUsage();
+                    if (!toolCalls.isEmpty()) {
+                        try {
+                            functionCaller.call(responseText.toString(), pendingCalls());
+                        } catch (Throwable e) {
+                            log.error("Error calling the functions of the model", e);
+                            try {
+                                callback.onError(translate(e));
+                            } catch (Exception ex) {
+                                log.error("Error invoking callback.onError", ex);
+                            }
+                        }
+                        return;
+                    }
                     try {
                         callback.onCompletion();
                     } catch (Throwable e) {
@@ -608,6 +820,32 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     }
                 }
             }
+        }
+
+        /** The calls arrive in pieces: the first has the id and the name, then the JSON arguments follow. */
+        private void collectToolCalls(List<ChatCompletionChunk.Choice.Delta.ToolCall> deltas) {
+            for (ChatCompletionChunk.Choice.Delta.ToolCall delta : deltas) {
+                // some servers send no index, a call that has an id is then a new one
+                long index = delta._index().asKnown().orElseGet(() -> delta.id().isPresent() || toolCalls.isEmpty()
+                        ? toolCalls.size() : toolCalls.lastKey());
+                PendingToolCall call = toolCalls.computeIfAbsent(index, i -> new PendingToolCall());
+                delta.id().filter(id -> !id.isEmpty()).ifPresent(id -> call.id = id);
+                delta.function().ifPresent(function -> {
+                    // a name repeated in the later chunks is not a longer name
+                    function.name().filter(name -> !name.isEmpty() && call.name == null).ifPresent(name -> call.name = name);
+                    function.arguments().ifPresent(call.arguments::append);
+                });
+                received.append(delta.function().flatMap(function -> function.arguments()).orElse(""));
+            }
+        }
+
+        private List<LLMToolCall> pendingCalls() {
+            List<LLMToolCall> calls = new ArrayList<>();
+            for (PendingToolCall call : toolCalls.values()) {
+                String id = call.id != null ? call.id : "call_" + UUID.randomUUID().toString().replace("-", "");
+                calls.add(LLMToolCall.of(id, call.name, call.arguments.length() == 0 ? "{}" : call.arguments.toString()));
+            }
+            return calls;
         }
 
         @SuppressWarnings("unchecked")
