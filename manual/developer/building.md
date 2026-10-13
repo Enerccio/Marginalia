@@ -259,7 +259,7 @@ options. [Testing](testing.md) describes the test base and how to write tests.
 
 ## Building the plugins
 
-The ten bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
+The eleven bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
 JAR of the application, so install the parent POM and the application first:
 
 ```sh
@@ -267,7 +267,7 @@ mvn -N install                    # in the repository root
 cd marginalia
 mvn install -DskipTests
 
-cd plugins/chaptermarker          # or authorsnote, gemma4toolsfix, instructionexporter, lore-generator, lorebookvcs, name-generator, reviewer, sidequery, chineselocalization
+cd plugins/chaptermarker          # or authorsnote, character-tracker, gemma4toolsfix, instructionexporter, lore-generator, lorebookvcs, name-generator, reviewer, sidequery, chineselocalization
 mvn package                       # target/chaptermarker-1.2.0.jar
 ```
 
