@@ -189,7 +189,8 @@ right-hand column of the desktop card). Its summaries item opens `PhoneSummaries
 `AppLayout` are kept inside the dialog by the `phone-story-layout` class.
 
 On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid (with the *Users can create their own models* checkbox, `AIService.setUserCreationAllowed`) and the
-`DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the verification report of each extension and, per
+`DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the SHA-256 of each JAR behind a `#` button next to the version - tooltip, click copies it with
+`JavascriptLibrary.copyToClipboard` - the verification report of each extension and, per
 extension, the buttons *Stop* / *Start* (`OsgiService.stopExtension` / `startExtension`, state *Stopped*), *Log*
 (`ExtensionLogDialog`: the end of the extension's log with refresh and clear) and *Unload*). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call `AdminGuard.requireAdmin()` themselves (see
