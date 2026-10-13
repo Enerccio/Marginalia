@@ -138,6 +138,7 @@
                         <Import-Package>
                             !com.github.enerccio.marginalia.extensions.loregenerator.*
                         </Import-Package>
+                        <!-- the name generator is another bundle that comes and goes: used by reflection, see NameGeneratorBridge -->
                         <Export-Package>com.github.enerccio.marginalia.extensions.loregenerator.*</Export-Package>
                     </instructions>
                 </configuration>

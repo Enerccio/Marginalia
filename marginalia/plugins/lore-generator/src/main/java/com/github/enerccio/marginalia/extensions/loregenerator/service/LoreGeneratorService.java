@@ -6,11 +6,14 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
+import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
+import com.github.enerccio.marginalia.extensions.loregenerator.names.NameGeneratorBridge;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -71,10 +74,40 @@ public class LoreGeneratorService {
     @Autowired
     private TemplateService templateService;
 
+    @Autowired
+    private InferenceServices inferenceServices;
+
+    /** Set when the extension loads, to find the name generator extension. */
+    private OsgiService osgiService;
+
     private final Gson gson = new Gson();
 
     public void setLogger(Logger log) {
         this.log = log;
+    }
+
+    public void setOsgiService(OsgiService osgiService) {
+        this.osgiService = osgiService;
+    }
+
+    /**
+     * The categories of the name generator extension, null when it is not installed (it is looked up on every call,
+     * it can be loaded and unloaded while the application runs).
+     */
+    public List<String> nameCategories() {
+        return osgiService == null ? null : NameGeneratorBridge.categories(osgiService);
+    }
+
+    /**
+     * The functions that give the model names of the selected categories, null when none of them is available
+     * (nothing selected, or the extension is gone).
+     */
+    public FunctionSet nameFunctions(Collection<String> selected) {
+        if (selected == null || selected.isEmpty()) {
+            return null;
+        }
+        return osgiService == null ? null
+                : NameGeneratorBridge.functions(osgiService, inferenceServices.getFunctionRegistry(), selected);
     }
 
     /**
@@ -100,6 +133,32 @@ public class LoreGeneratorService {
             data.getGenerationPrompts().put(DEFAULT_GENERATION_PROMPT, Defaults.GENERATION_PROMPT);
         }
         return data;
+    }
+
+    /**
+     * The options the last generation copied to the entry was made with, null when there is none.
+     */
+    public LoreEntryGeneration getEntryGeneration(LorebookEntry entry) {
+        JsonObject attrs = entry.getAttributes();
+        if (attrs == null || !attrs.has(LoreGeneratorData.KEY)) {
+            return null;
+        }
+        try {
+            return gson.fromJson(attrs.get(LoreGeneratorData.KEY), LoreEntryGeneration.class);
+        } catch (RuntimeException e) {
+            if (log != null) {
+                log.warn("Unreadable generation options of lore entry '{}': {}", entry.getName(), e.getMessage());
+            }
+            return null;
+        }
+    }
+
+    /** Puts the options into the attributes of the entry, saving the entry is up to the caller. */
+    public void putEntryGeneration(LorebookEntry entry, LoreEntryGeneration generation) {
+        if (entry.getAttributes() == null) {
+            entry.setAttributes(new JsonObject());
+        }
+        entry.getAttributes().add(LoreGeneratorData.KEY, gson.toJsonTree(generation));
     }
 
     public void saveData(LoreGeneratorData data) throws Exception {
@@ -139,11 +198,16 @@ public class LoreGeneratorService {
     }
 
     /**
-     * The prompt for generating {@code target}: the lore the user selected followed by the generation prompt.
+     * The prompt for generating {@code target}: the lore the user selected followed by the generation prompt, and the
+     * hint about the name tools (the user's or {@link Defaults#NAME_TOOLS_PROMPT}) when the model has them.
      */
     public String buildGenerationPrompt(Lorebook current, LorebookEntry target, LoreScope scope, EntryLimit limit,
-                                        String generationPrompt) throws Exception {
-        return buildLoreBlock(current, target, scope, limit) + "\n\n" + generationPrompt;
+                                        String generationPrompt, boolean nameTools) throws Exception {
+        String prompt = buildLoreBlock(current, target, scope, limit) + "\n\n" + generationPrompt;
+        if (nameTools) {
+            prompt += "\n\n" + StringUtils.defaultIfBlank(getData().getNameToolsPrompt(), Defaults.NAME_TOOLS_PROMPT).strip();
+        }
+        return prompt;
     }
 
     /**

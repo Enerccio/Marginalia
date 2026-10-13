@@ -300,7 +300,14 @@ first: Marginalia's own classes, Vaadin, Spring, Hibernate, Gson, everything in 
 - Plugins use the application's classes directly - no imports, no service lookups, `instanceof` and casts work.
 - A plugin can't override or replace a library of the application, and can't use a different version of one.
 - Plugins don't see each other's classes through imports either; if two plugins need to cooperate, do it through
-  shared data (attributes) or through the application's components.
+  shared data (attributes) or through the application's components. A plugin that uses the objects of another one
+  (which may be missing, or unloaded and installed again) finds it among `OsgiService.getLoadedExtensions()` by the
+  *name* of its class and calls it by reflection, taking the types it needs from `extension.getClass().getClassLoader()`.
+  Do not import its packages (`Import-Package`, `DynamicImport-Package`) or name its classes in your code: the
+  wiring is to one revision of the other bundle, so after it is unloaded and installed again your bundle keeps the old
+  classes and does not recognize the new objects, and the JVM remembers a class reference that failed to resolve
+  (`NoClassDefFoundError`), so a reference used while the other bundle was missing keeps failing after it is installed.
+  The Lore Generator does it with the Name generator, see `NameGeneratorBridge`.
 - The plugin's own classes are loaded by the bundle's class loader, so the class names you pass to
   `registerDecorator` must be those of the **application's** classes; a plugin's own classes are never instrumented.
 

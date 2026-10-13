@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.enerccio</groupId>
+        <artifactId>marginalia-parent</artifactId>
+        <version>1.2.0</version>
+        <relativePath>../../../pom.xml</relativePath>
+    </parent>
+
+    <groupId>com.github.enerccio.marginalia.extensions</groupId>
+    <artifactId>name-generator</artifactId>
+    <packaging>bundle</packaging>
+
+    <properties>
+        <java.version>25</java.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <vaadin.version>25.2.3</vaadin.version>
+    </properties>
+
+    <dependencies>
+        <!-- Marginalia Core -->
+        <dependency>
+            <groupId>io.github.enerccio</groupId>
+            <artifactId>marginalia</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+            <classifier>classes</classifier>
+        </dependency>
+
+        <!-- OSGi Framework -->
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.framework</artifactId>
+            <version>7.0.5</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Vaadin Core -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-core</artifactId>
+            <version>${vaadin.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Gson & Commons -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <!-- Training: every JSON of src/build/resources (not in git) becomes the probability tables in
+                     src/main/resources/name-tables.json (in git); without sources the file is kept as it is -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.6.3</version>
+                <executions>
+                    <!-- Before the training: clones fantasygen (once, into target) and turns the dictionaries of its
+                         data/defaultDictionaries.json into src/build/resources/fantasygen/*.json; without network nothing
+                         is imported. Before the markov-namegen-lib import, which skips the titles already there -->
+                    <execution>
+                        <id>import-fantasygen</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/java</executable>
+                            <classpathScope>compile</classpathScope>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${project.basedir}/src/build/ImportFantasygen.java</argument>
+                                <argument>https://github.com/alxgiraud/fantasygen</argument>
+                                <argument>${project.build.directory}/fantasygen</argument>
+                                <argument>${project.basedir}/src/build/resources/fantasygen</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <!-- Before the training: clones Corpora (once, into target) and turns the lists of names of its data
+                         folder into src/build/resources/corpora/*.json; without network nothing is imported. After
+                         fantasygen and before markov-namegen-lib: the one before wins when a title is used twice -->
+                    <execution>
+                        <id>import-corpora</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/java</executable>
+                            <classpathScope>compile</classpathScope>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${project.basedir}/src/build/ImportCorpora.java</argument>
+                                <argument>https://github.com/dariusk/corpora</argument>
+                                <argument>${project.build.directory}/corpora</argument>
+                                <argument>${project.basedir}/src/build/resources</argument>
+                                <argument>${project.basedir}/src/build/resources/corpora</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <!-- Before the training: clones markov-namegen-lib (once, into target) and turns its word_lists/*.txt
+                         into src/build/resources/markov-namegen-lib/*.json; without network nothing is imported -->
+                    <execution>
+                        <id>import-markov-namegen</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/java</executable>
+                            <classpathScope>compile</classpathScope>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${project.basedir}/src/build/ImportMarkovNamegen.java</argument>
+                                <argument>https://github.com/Tw1ddle/markov-namegen-lib/</argument>
+                                <argument>${project.build.directory}/markov-namegen-lib</argument>
+                                <argument>${project.basedir}/src/build/resources</argument>
+                                <argument>${project.basedir}/src/build/resources/markov-namegen-lib</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-name-tables</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/java</executable>
+                            <classpathScope>compile</classpathScope>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${project.basedir}/src/build/GenerateTables.java</argument>
+                                <argument>${project.basedir}/src/build/resources</argument>
+                                <argument>${project.basedir}/src/main/resources/name-tables.json</argument>
+                                <argument>${project.basedir}/src/build/chains.json</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <!-- Not bound to a phase, run by hand after the sources changed: mvn exec:exec@tune-chains. Measures
+                         the chains of every category and writes the best order and the usual name lengths into
+                         src/build/chains.json (committed), which the training applies -->
+                    <execution>
+                        <id>tune-chains</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/java</executable>
+                            <classpathScope>compile</classpathScope>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${project.basedir}/src/build/TuneChains.java</argument>
+                                <argument>${project.basedir}/src/build/resources</argument>
+                                <argument>${project.basedir}/src/build/chains.json</argument>
+                                <argument>${project.build.directory}/chains-report.tsv</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <!-- Not bound to a phase, run by hand: mvn exec:exec@scrape-onomastikon. Downloads the Onomastikon
+                         (tekeli.li) into src/build/resources/onomastikon, about 800 requests -->
+                    <execution>
+                        <id>scrape-onomastikon</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/java</executable>
+                            <classpathScope>compile</classpathScope>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${project.basedir}/src/build/ScrapeOnomastikon.java</argument>
+                                <argument>${project.basedir}/src/build/resources/onomastikon</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.15.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>UTF-8</encoding>
+                    <!-- the functions are compiled from the argument names of the interface -->
+                    <parameters>true</parameters>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <version>1.16.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjrt</artifactId>
+                        <version>1.9.25.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjtools</artifactId>
+                        <version>1.9.25.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <complianceLevel>${java.version}</complianceLevel>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>UTF-8</encoding>
+                    <additionalCompilerArgs>
+                        <arg>-parameters</arg>
+                    </additionalCompilerArgs>
+                    <aspectLibraries>
+                        <aspectLibrary>
+                            <groupId>org.springframework</groupId>
+                            <artifactId>spring-aspects</artifactId>
+                        </aspectLibrary>
+                    </aspectLibraries>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>6.2.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+                        <Bundle-Name>Name generator</Bundle-Name>
+                        <Bundle-Activator>com.github.enerccio.marginalia.extensions.namegenerator.NameGeneratorActivator</Bundle-Activator>
+                        <Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
+                        <Import-Package>
+                            !com.github.enerccio.marginalia.extensions.namegenerator.*
+                        </Import-Package>
+                        <Export-Package>com.github.enerccio.marginalia.extensions.namegenerator.*</Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

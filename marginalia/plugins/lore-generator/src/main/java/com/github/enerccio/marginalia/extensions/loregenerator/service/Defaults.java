@@ -21,6 +21,11 @@ CRITICAL RULES:
 ==== END RAW SOURCE MATERIAL ====
 """;
 
+    /** Added to the generation prompt when name categories are selected; the user can override it in the settings. */
+    public static String NAME_TOOLS_PROMPT = """
+[ Name tools: you can call list_name_categories to see the categories of names, and generate_names with a category and a count (and optionally min_length and max_length) to get names of it. Call a reasonable amount, minimum is 10. When the entry needs a name for a person, place or thing, call generate_names instead of inventing one, and pick from the returned names. You may also modify or remix the returned names when none of them fits as it is: combine parts of two names, change an ending or a letter, adjust the spelling, or shorten or lengthen a name. Keep the result sounding like it belongs to the same category. ]
+""";
+
     public static String GENERATION_PROMPT = """
 [ You are an expert worldbuilder and a master of highly descriptive, atmospheric prose. Your task is to craft a detailed lore entry based strictly on the parameters provided below. Use vivid imagery and rich language while ensuring every core detail is seamlessly embedded. ]
 
