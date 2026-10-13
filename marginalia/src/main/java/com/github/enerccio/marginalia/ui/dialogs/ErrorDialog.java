@@ -1,9 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.widgets.HtmlText;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
@@ -59,7 +59,10 @@ public class ErrorDialog {
         scrollPanel.add(new Div(stackTrace));
 
         dialog.add(new Hr());
-        dialog.add(new HtmlText("<br/><center><b>" + message + "</b></center><br/>"));
+        // plain text node: the message can carry text from outside (provider replies, user input, exception messages)
+        Div messageText = new Div(message);
+        messageText.addClassNames(CssStyles.TEXT_CENTER, CssStyles.TEXT_BOLD, CssStyles.PRE_WRAP, CssStyles.PADDING_COMPACT);
+        dialog.add(messageText);
 
         if (showDetails) {
             dialog.add(new Hr());

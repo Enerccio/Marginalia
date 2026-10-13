@@ -95,6 +95,8 @@ a migrated database.
 
 - Lore Generator: the Name generator is found by reflection and not imported, so it works when it is installed after the
   Lore Generator, and again after it was unloaded and installed again.
+- The error dialog showed its message as HTML, so markup in an error message (provider replies, user input echoed in an
+  exception) was rendered. It is shown as plain text now, line breaks kept.
 
 ## [1.1.0] - 2026-10-12
 
