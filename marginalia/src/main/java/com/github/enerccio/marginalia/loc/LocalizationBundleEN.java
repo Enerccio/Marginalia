@@ -317,6 +317,22 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_USAGE_PER_USER, "Usage per user");
         setValue(L.LABEL_REQUESTS, "Requests");
         setValue(L.LABEL_LAST_USED, "Last used");
+        setValue(L.LABEL_LIMITS, "Limits");
+        setValue(L.LABEL_LIMIT, "Limit");
+        setValue(L.LABEL_ADD_LIMIT, "Add limit");
+        setValue(L.LABEL_EDIT_LIMIT, "Edit limit");
+        setValue(L.LABEL_YOUR_LIMITS, "Your limits");
+        setValue(L.LABEL_LIMIT_TYPE, "Limit type");
+        setValue(L.LABEL_RESET_PERIOD, "Reset");
+        setValue(L.LABEL_NEXT_RESET, "Next reset");
+        setValue(L.LABEL_LIMIT_TOKENS_SENT, "Limit of tokens sent");
+        setValue(L.LABEL_LIMIT_TOKENS_GENERATED, "Limit of tokens generated");
+        setValue(L.LABEL_LIMIT_TOKENS_TOTAL, "Limit of tokens in total");
+        setValue(L.LABEL_TOKENS_TOTAL, "Tokens in total");
+        setValue(L.LABEL_UNLIMITED, "Unlimited");
+        setValue(L.LABEL_USED, "Used");
+        setValue(L.LABEL_LIMIT_HARD, "hard");
+        setValue(L.LABEL_LIMIT_GENERATED_HARD, "Hard limit: refuse a request whose reserved response would go over");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -357,6 +373,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_BUNDLE_STATE_ACTIVE, "Active");
         setValue(L.ENUM_BUNDLE_STATE_UNKNOWN, "Unknown (%d)");
         setValue(L.ENUM_BUNDLE_STATE_STOPPED, "Stopped");
+        setValue(L.ENUM_LIMIT_UNLIMITED, "Unlimited");
+        setValue(L.ENUM_LIMIT_TOKEN_LIMIT, "Token limit");
+        setValue(L.ENUM_LIMIT_NOT_AVAILABLE, "Not available");
+        setValue(L.ENUM_RESET_DAILY, "Daily");
+        setValue(L.ENUM_RESET_WEEKLY, "Weekly (from Monday)");
+        setValue(L.ENUM_RESET_MONTHLY, "Monthly");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -392,6 +414,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_EXTENSION_INCOMPATIBLE, "Extension %s does not fit this version of Marginalia and was not loaded.");
         setValue(L.ERROR_EXTENSION_START_FAILED, "Failed to start extension: %s");
         setValue(L.ERROR_EXTENSION_STOP_FAILED, "Failed to stop extension: %s");
+        setValue(L.ERROR_INFERENCE_NOT_AVAILABLE, "This model is not available to you.");
+        setValue(L.ERROR_INFERENCE_LIMIT_REACHED, "Your token limit for this model is used up, or this request would go over it. The Models tab shows your limits and when they reset.");
+        setValue(L.ERROR_LIMIT_NEGATIVE, "Limits can not be negative.");
+        setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "The limits of tokens sent and tokens generated add up to less than the limit in total, so the total would never be reached.");
+        setValue(L.ERROR_LIMIT_USER_REQUIRED, "Choose a user.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -484,6 +511,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_PROTOCOL_REPLY_TOKENS, "Optional. Empty uses Max Response Tokens of the inference provider.");
         setValue(L.HELP_AI_REQUEST_TIMEOUT, "How long to wait for the provider to answer or to send more text. Reasoning models may need minutes before the first text.");
         setValue(L.HELP_AI_MAX_RETRIES, "Retries of a request that failed with a rate limit (429), a server error (5xx) or a connection error. The wait between them grows.");
+        setValue(L.HELP_LIMIT_EMPTY_UNLIMITED, "Leave a limit empty for no limit. Whichever limit is reached first stops the user until the next reset.");
+        setValue(L.HELP_LIMITS_OTHERS_UNLIMITED, "Users without a limit here are not limited.");
+        setValue(L.HELP_LIMIT_GENERATED_HARD, "A hard limit of the generated tokens refuses a request when the response it reserves (the maximum response size) would not fit into what is left; without it the last response can go over the limit.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

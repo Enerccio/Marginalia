@@ -29,6 +29,18 @@ class AISharingTest extends MarginaliaTestBase {
     }
 
     @Test
+    void administratorIsReadFromTheDatabaseNotFromTheSession() throws Exception {
+        loginAdmin();
+        // the UI's session user never has the flag filled in
+        currentUser.setAdmin(false);
+        assertThat(aiService.isAdministrator()).isTrue();
+
+        loginAs(createUser());
+        currentUser.setAdmin(true);
+        assertThat(aiService.isAdministrator()).isFalse();
+    }
+
+    @Test
     void sharedAiIsVisibleToOtherUsersAndPrivateOneIsNot() throws Exception {
         User admin = loginAdmin();
         AI shared = shareNewAI();

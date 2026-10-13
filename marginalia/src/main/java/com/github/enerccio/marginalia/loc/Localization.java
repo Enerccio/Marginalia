@@ -34,6 +34,8 @@ public interface Localization {
     L getAIType(AIType aiType);
     L getProtocolType(ProtocolType t);
     L getReasoningEffort(ReasoningEffort t);
+    L getLimitStrategy(LimitStrategy t);
+    L getResetStrategy(ResetStrategy t);
     L getBackupStrategy(BackupStrategy t);
     L getFilteringMode(FilteringMode t);
     L getInsertionMode(InsertionMode t);

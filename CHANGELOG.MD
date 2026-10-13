@@ -7,8 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-Two database migrations (`V10`, `V11`): a copy of the database is saved before they run, and 1.1.0 cannot open a
-migrated database.
+Three database migrations (`V10`, `V11`, `V12`): a copy of the database is saved before they run, and 1.1.0 cannot open
+a migrated database.
 
 ### Added
 
@@ -19,7 +19,18 @@ migrated database.
 - Token usage per provider: the Inference Providers tab shows the tokens sent and generated with each provider, per user
   (a shared provider counts separately for each user); administrators get a **Usage per user** table with the tokens,
   requests and time of the last request of every user and provider (migration `V11`). The numbers are what the service
-  reports (Marginalia asks for `stream_options.include_usage`) or a local estimate, and nothing is limited by them.
+  reports (Marginalia asks for `stream_options.include_usage`) or a local estimate, and, unless an administrator limits a user (see below), nothing is limited by them.
+- Limits of shared providers: the administrator who owns a shared provider sets, per user, a limit - unlimited, a token
+  limit (tokens sent, generated and in total, each optional, reset daily, weekly or monthly) or not available - in the
+  new **Limits** dialog of the Inference Providers tab. A request of a user who is over the limit or has the provider
+  not available fails before anything is sent (a prompt that would go over the sent or total limit is refused, only the generated tokens can go over, unless the administrator makes that limit **hard**: then a request whose reserved
+  response (the maximum response size) would not fit is refused too;
+  `InferenceException` types `NOT_AVAILABLE` and `LIMIT_REACHED`, so
+  generations, summaries and extensions all stop). Users see their own limit and what they used with the **info**
+  button of a shared provider. The limits are stored in the provider (extended attribute `AI.limits`, a JSON object
+  keyed by the uuid of the user, `AILimits`); the tokens used in the current period are two new columns of the `Usage`
+  (migration `V12`), reset lazily when the user's last use is from an earlier period. New `AILimitService`; plugins
+  that decorate `PhoneAIPart.createActions` see the new `infoButton` and `limitsButton`.
 - LLM function calling: the model can call Java methods of an interface marked `@LLMFunction`
   (`FunctionRegistry`, `FunctionSet`, `FunctionContinuation`; asynchronous, JSON schema generated from the parameter
   types, up to 10 rounds per request with the last one forced to answer). `OpenAICompatibleInferenceService` runs the

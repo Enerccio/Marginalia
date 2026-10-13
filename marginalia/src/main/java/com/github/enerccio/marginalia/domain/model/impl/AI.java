@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
 
 @Entity
@@ -48,6 +49,15 @@ public class AI extends ExtendableEntity {
      */
     @Column(nullable = false)
     private boolean shared = false;
+
+    /**
+     * Limits of the users of a shared AI: a JSON object with the settings of each user under their uuid, see
+     * {@code AILimits}. Not a column, nothing searches by it; what a user used is in their {@link Usage} (counters
+     * that change with every request must not be saved with the AI).
+     */
+    @Transient
+    @ExtendedAttribute
+    private String limits;
 
     public AIType getAiType() {
         return aiType;
@@ -128,5 +138,13 @@ public class AI extends ExtendableEntity {
 
     public void setShared(boolean shared) {
         this.shared = shared;
+    }
+
+    public String getLimits() {
+        return limits;
+    }
+
+    public void setLimits(String limits) {
+        this.limits = limits;
     }
 }

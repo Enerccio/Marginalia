@@ -277,6 +277,10 @@ arrived with `countTokensApprox`. It is recorded once, when the stream completes
 after some text arrived; a request that fails before any text is not counted. The stream threads have no request, so the service takes
 the `ThreadCopyRequestAttributes` of the thread that called `stream` and records inside it (`currentUser` resolves).
 
+Before a request is built, `stream` asks `AILimitService.check(ai, promptTokens, reservedTokens)` (with our estimate of the payload and the response size the request reserves): a user with the AI not available or over their token limit gets an
+`InferenceException` (`NOT_AVAILABLE`, `LIMIT_REACHED`) in the caller's thread and nothing is sent, so the steps, summaries and
+extensions handle it like any provider failure. The limits are described in the [domain model](domain-model.md#limits-of-the-users-of-a-shared-ai).
+
 ### 8. `CLEANUP` - `CleanupStep`
 
 Always the last step. Depending on the state:

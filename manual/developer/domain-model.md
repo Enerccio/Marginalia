@@ -386,7 +386,7 @@ Both use joined inheritance: a base table with the common fields and one table p
 ### `Usage` (tokens used with an AI)
 
 One row per AI and user (`owner`), unique on `(ai_id, userId)`: a personal AI has one, a shared AI one for everybody who
-uses it. Counting only; nothing is limited by it yet.
+uses it. Counts what the user used, and since the last reset for the user's limit on the AI (below).
 
 | Field | Stored | |
 |---|---|---|
@@ -394,6 +394,7 @@ uses it. Counting only; nothing is limited by it yet.
 | `prefillTokens` | column | Tokens sent to the model (the prompt). |
 | `generatedTokens` | column | Tokens the model generated, reasoning included. |
 | `requests`, `lastUsed` | columns | Number of requests added up, time of the last one. |
+| `periodPrefillTokens`, `periodGeneratedTokens` | columns | Tokens sent / generated since the last reset of the user's token limit. Counted only while the user has a `TOKEN_LIMIT` (otherwise set to 0); stale when `lastUsed` is before the start of the current period. |
 
 All are real columns: they are added up in SQL (`UsageRepository.add`, `UPDATE ... SET x = x + :n`), not read and saved, so parallel
 requests don't lose counts. `UsageService.record(ai, prefill, generated)` is the way to count: it adds to the row of the
@@ -401,6 +402,28 @@ current user, creating it on first use (under a lock held until the commit, so t
 never throws. `findAllForAI(ai)` lists every user's usage for the owner of the AI or an administrator; `findAllUsages()` lists all of them, administrators only (the
 **Usage per user** dialog of the Models tab). See
 [Inference](generation-pipeline.md#usage-counting).
+
+#### Limits of the users of a shared AI
+
+`AI.limits` is an `@ExtendedAttribute` string holding a JSON object: the `AILimit` of each user under the user's uuid
+(`strategy` `LimitStrategy` UNLIMITED / TOKEN_LIMIT / NOT_AVAILABLE, `resetStrategy` `ResetStrategy` DAILY / WEEKLY / MONTHLY,
+and `prefillTokens`, `generatedTokens`, `totalTokens`, each null for unlimited). `AILimits` reads and writes it; a user
+without an entry is not limited. These are only the *settings* and they are set by the owner (an administrator). What a user
+*used* is not in this JSON on purpose: it changes with every request, from the thread of any user, and `AIService.save` is
+for the owner and would lose parallel updates, so it is in the two `period*` columns of the user's `Usage`, added up in SQL
+like the other counters.
+
+The reset is lazy. `ResetStrategy.periodStart(now)` is the start of the calendar day / week (from Monday) / month in the
+server's time zone. `UsageService.add` (under `record`) of a user with a `TOKEN_LIMIT` first runs
+`UsageRepository.resetPeriod` (zeroes the period counters when `lastUsed` is before the period start) and then adds; for a
+user without one it zeroes them. `AILimitService.getStatus` does not write: it reports 0 used when `lastUsed` is before the
+period start. `LimitStatus.block(promptTokens)` is the first reached of the sent, generated and total limits, or NOT_AVAILABLE. The
+prompt is known before the request, so a request is refused when the sent (or total) counter is at its limit or the
+estimated prompt (`approximatePromptTokens`, our count) would take it over; the generated counter is only compared with its
+limit, so the last response can go over - unless `AILimit.hardGeneratedLimit` is set: then the generated counter plus the
+response the request reserves (`TokenLimits.responseTokens(ai, protocol)`, the `max_completion_tokens` it sends; 0 when
+there is none) has to fit into the generated limit. The hard flag does not apply to the total limit. `AILimit.validate()` rejects negative numbers and, when all three are
+set, sent plus generated below the total (the total could never be reached).
 
 ### `Protocol` / `ChatCompletionProtocol`
 

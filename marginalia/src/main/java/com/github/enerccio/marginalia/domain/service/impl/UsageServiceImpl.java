@@ -1,9 +1,12 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
+import com.github.enerccio.marginalia.domain.components.AILimit;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.repository.UsageRepository;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
+import com.github.enerccio.marginalia.domain.service.AILimitService;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
@@ -36,6 +39,10 @@ public class UsageServiceImpl extends OwnedServiceImpl<Usage, UsageRepository> i
     private AIService aiService;
 
     @Autowired
+    @Lazy
+    private AILimitService limitService;
+
+    @Autowired
     private AdminGuard adminGuard;
 
     @Override
@@ -56,15 +63,27 @@ public class UsageServiceImpl extends OwnedServiceImpl<Usage, UsageRepository> i
     @Override
     @CommonTx
     public void add(AI ai, long prefillTokens, long generatedTokens) throws Exception {
-        if (getRepository().add(ai, currentUser, prefillTokens, generatedTokens) > 0) {
+        AI stored = aiService.find(ai.getId());
+        // the tokens since the last reset are counted only for a user with a token limit, and start from zero in a new period
+        AILimit limit = limitService.getLimit(stored);
+        boolean limited = limit.getStrategy() == LimitStrategy.TOKEN_LIMIT;
+        Date now = new Date();
+        if (limited) {
+            getRepository().resetPeriod(ai, currentUser, limit.getResetStrategy().periodStart(now));
+        }
+        if (getRepository().add(ai, currentUser, prefillTokens, generatedTokens, limited) > 0) {
             return;
         }
         Usage usage = new Usage();
-        usage.setAi(aiService.find(ai.getId()));
+        usage.setAi(stored);
         usage.setPrefillTokens(prefillTokens);
         usage.setGeneratedTokens(generatedTokens);
+        if (limited) {
+            usage.setPeriodPrefillTokens(prefillTokens);
+            usage.setPeriodGeneratedTokens(generatedTokens);
+        }
         usage.setRequests(1);
-        usage.setLastUsed(new Date());
+        usage.setLastUsed(now);
         save(usage);
     }
 

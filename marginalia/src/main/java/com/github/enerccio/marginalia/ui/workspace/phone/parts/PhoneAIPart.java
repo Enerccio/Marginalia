@@ -10,6 +10,8 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.AIDialog;
+import com.github.enerccio.marginalia.ui.dialogs.AILimitInfoDialog;
+import com.github.enerccio.marginalia.ui.dialogs.AILimitsDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
@@ -52,6 +54,7 @@ public class PhoneAIPart implements WorkspaceComponent {
     private Grid<AI> grid;
     private Button addModelButton;
     private final Map<Long, Usage> usages = new HashMap<>();
+    private boolean administrator;
 
     public PhoneAIPart(Workspace workspace) {
         this.workspace = workspace;
@@ -130,11 +133,13 @@ public class PhoneAIPart implements WorkspaceComponent {
         return line;
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.2.0",
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "ai", type = AI.class)},
             locals = {@APILocals(name = "editButton", type = Button.class),
                     @APILocals(name = "deleteButton", type = Button.class),
+                    @APILocals(name = "infoButton", type = Button.class),
+                    @APILocals(name = "limitsButton", type = Button.class),
                     @APILocals(name = "actions", type = HorizontalLayout.class)})
     private Component createActions(AI ai) {
         Button editButton = new Button(Solid.PEN.create(), event -> {
@@ -155,12 +160,22 @@ public class PhoneAIPart implements WorkspaceComponent {
                 }));
         deleteButton.setThemeName("error tertiary");
 
+        // what the user used of a shared AI and what they are limited to
+        Button infoButton = new Button(Solid.INFO_CIRCLE.create(), event -> AILimitInfoDialog.show(ai));
+        infoButton.setTooltipText(loc.getValue(L.LABEL_YOUR_LIMITS));
+        infoButton.setVisible(ai.isShared());
+
+        // the limits of the users of a shared AI
+        Button limitsButton = new Button(Solid.USER_LOCK.create(), event -> AILimitsDialog.show(ai));
+        limitsButton.setTooltipText(loc.getValue(L.LABEL_LIMITS));
+
         // AIs shared by somebody else can be used, not seen or changed
         boolean own = aiService.isOwnedByCurrentUser(ai);
         editButton.setVisible(own);
         deleteButton.setVisible(own);
+        limitsButton.setVisible(own && ai.isShared() && administrator);
 
-        HorizontalLayout actions = new HorizontalLayout(editButton, deleteButton);
+        HorizontalLayout actions = new HorizontalLayout(infoButton, limitsButton, editButton, deleteButton);
         actions.setSpacing(false);
         actions.setAlignItems(FlexComponent.Alignment.CENTER);
         actions.addClassName(CssStyles.FLEX_SHRINK_0);
@@ -185,6 +200,7 @@ public class PhoneAIPart implements WorkspaceComponent {
         try {
             List<AI> connections = aiService.findAllForUser();
             connections.sort(Comparator.comparing(AI::getName));
+            administrator = aiService.isAdministrator();
             usages.clear();
             usageService.findAllForUser().forEach(usage -> usages.put(usage.getAi().getId(), usage));
             addModelButton.setVisible(aiService.canCreate());
