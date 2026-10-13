@@ -47,8 +47,8 @@ marginalia/
 └── plugins/                      bundled extensions
 ```
 
-There is one Maven module; `plugins/` are separate projects that are built on their own (there is no aggregator
-POM yet). See [Building from source](building.md).
+The root `pom.xml` is the parent POM and lists the application and every plugin as modules, so `mvn package` there builds
+all of them; each plugin is also a Maven project that is built on its own. See [Building from source](building.md).
 
 ## Java packages
 

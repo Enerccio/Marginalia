@@ -198,7 +198,10 @@ installs the application into the image's local Maven repository (with `-Dvaadin
 classes JAR, so the frontend is not built, see [Building](building.md)) and builds every plugin against it; the final
 stage is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`, replacing the
 `*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`) mounts
-`marginalia/plugins/build` as `/output`:
+`marginalia/plugins/build` as `/output`. The plugins are built one after the other and none of them needs another one
+installed first (the Lore Generator finds the Name generator at run time, not at build time). The Name generator's
+build clones the sources of its names from GitHub (the Maven image has `git`); without network it keeps the tables
+committed in the repository, see its [README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-generator/README.md):
 
 ```sh
 docker compose -f marginalia/plugins/docker-compose.yml build
