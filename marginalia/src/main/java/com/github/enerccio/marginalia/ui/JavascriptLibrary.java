@@ -13,6 +13,15 @@ public final class JavascriptLibrary {
     private JavascriptLibrary() {
     }
 
+    // --- clipboard ---
+
+    /**
+     * Copies the text to the clipboard of the browser.
+     */
+    public static void copyToClipboard(Page page, String text) {
+        page.executeJs("navigator.clipboard.writeText($0);", text);
+    }
+
     // --- tree ---
 
     /**

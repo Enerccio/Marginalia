@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ExtensionLogDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
@@ -27,6 +28,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 
@@ -304,7 +307,26 @@ public class AdminPart implements WorkspaceComponent {
                 .setHeader(loc.getValue(L.LABEL_BUNDLE_NAME))
                 .setFlexGrow(1);
 
-        extensionsGrid.addColumn(bundle -> bundle.getVersion().toString())
+        extensionsGrid.addComponentColumn(bundle -> {
+                    HorizontalLayout version = new HorizontalLayout(new Span(bundle.getVersion().toString()));
+                    version.setAlignItems(HorizontalLayout.Alignment.CENTER);
+                    version.setSpacing(false);
+                    version.addClassName(CssStyles.GAP_S);
+                    try {
+                        String sha256 = osgiService.getSha256(bundle);
+                        Button hashButton = new Button("#");
+                        hashButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
+                        UIUtils.addTooltip(hashButton, loc.getValue(L.LABEL_SHA256) + ": " + sha256);
+                        hashButton.addClickListener(e -> {
+                            JavascriptLibrary.copyToClipboard(e.getSource().getUI().orElseThrow().getPage(), sha256);
+                            Notification.show(loc.getValue(L.MSG_COPIED_TO_CLIPBOARD));
+                        });
+                        version.add(hashButton);
+                    } catch (IOException e) {
+                        log.warn("Failed to compute SHA-256 of extension {}", extensionName(bundle), e);
+                    }
+                    return version;
+                })
                 .setHeader(loc.getValue(L.LABEL_BUNDLE_VERSION))
                 .setFlexGrow(0)
                 .setWidth("150px");

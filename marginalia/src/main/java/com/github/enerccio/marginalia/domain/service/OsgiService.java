@@ -8,6 +8,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface OsgiService {
@@ -72,6 +73,12 @@ public interface OsgiService {
      * application restarts, until it is started again.
      */
     boolean isStopped(Bundle b);
+
+    /**
+     * The SHA-256 of the JAR of the extension as lowercase hex, so the administrator can compare it with the hash
+     * published by the author of the extension. Cached until the JAR changes.
+     */
+    String getSha256(Bundle b) throws IOException;
 
     /**
      * Unloads the extension ({@code onExtensionUnload}), stops its bundle and creates the {@code .STOPPED} flag.

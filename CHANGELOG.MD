@@ -12,6 +12,8 @@ a migrated database.
 
 ### Added
 
+- Admin → Extensions: a **#** button next to the version of each extension shows the SHA-256 hash of its JAR on hover
+  and copies it to the clipboard on click (`OsgiService.getSha256`).
 - Shared inference providers: an administrator can check **Shared with all users** in a provider's dialog. Every user
   can then use it in their books, but not see its address or API key, change it or delete it. The rules are enforced in
   `AIService`, not only hidden in the UI (migration `V10`). A setting **Users can create their own models** (above the
