@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845221092569">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845222360520">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845221092569" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845222360520" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845221092569" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845222360520" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845221092569" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845222360520" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -342,7 +342,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `ui.dialogs.phone`, `ui.dialogs.phone.manuscript` | `PhoneManuscriptDialog` (the book dialog for phones: full screen, one scrolling tab row), `PhoneSummariesDialog` (`SummariesDialog` with a wide content column) and its tabs `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart` (with `PhoneLorebookView`), `PhoneManuscriptStoryPart` (one column, outline in the drawer of an `AppLayout`, message cards with a header line of icons), `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`. |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`, plus `NewBookAction` (the *Add Book* flow shared by both book lists). |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`. |
-| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page), `UsageDialog` (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
+| `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), the limits of a shared AI (`AILimitsDialog`, `AILimitEditDialog`; `AILimitInfoDialog` is the user's own view), `UsageDialog` (every user's usage), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page), `UsageDialog` (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
 | `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryCard` / `StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its reduced phone version), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). |
@@ -382,7 +382,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs</code></td>
-<td>Entity dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>UserDialog</code>), <code translate="no" v-pre>ManuscriptDialog</code> (the book window), <code translate="no" v-pre>LorebookImportDialog</code> (resolving lorebooks during restores), <code translate="no" v-pre>PromptDialog</code> (shows the prompt a part was generated from), <code translate="no" v-pre>ExtensionLogDialog</code> (the log of an extension, opened from the Admin page), <code translate="no" v-pre>UsageDialog</code> (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ErrorDialog</code>, <code translate="no" v-pre>ProgressBarDialog</code>. <code translate="no" v-pre>ExportDialog</code> exports the story of a book. Threading helpers <code translate="no" v-pre>ThreadAccessDialog</code> and <code translate="no" v-pre>UIPushGuard</code>.</td>
+<td>Entity dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>UserDialog</code>), the limits of a shared AI (<code translate="no" v-pre>AILimitsDialog</code>, <code translate="no" v-pre>AILimitEditDialog</code>; <code translate="no" v-pre>AILimitInfoDialog</code> is the user&#x27;s own view), <code translate="no" v-pre>UsageDialog</code> (every user&#x27;s usage), <code translate="no" v-pre>ManuscriptDialog</code> (the book window), <code translate="no" v-pre>LorebookImportDialog</code> (resolving lorebooks during restores), <code translate="no" v-pre>PromptDialog</code> (shows the prompt a part was generated from), <code translate="no" v-pre>ExtensionLogDialog</code> (the log of an extension, opened from the Admin page), <code translate="no" v-pre>UsageDialog</code> (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: <code translate="no" v-pre>ConfirmDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>ErrorDialog</code>, <code translate="no" v-pre>ProgressBarDialog</code>. <code translate="no" v-pre>ExportDialog</code> exports the story of a book. Threading helpers <code translate="no" v-pre>ThreadAccessDialog</code> and <code translate="no" v-pre>UIPushGuard</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.story</code></td>
@@ -417,7 +417,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `impl/Protocol`, `impl/ChatCompletionProtocol` | Protocols (generation settings). |
 | `impl/Tag`, `impl/TagRelation` | Tags and their assignment to objects (by class and id, optionally as a negative tag). |
 | `impl/Resource` | Uploaded files stored by hash, used for the image attachments of a part (`ChatMessage.getImages()`); `clazz` + `objectId` loosely note what uses it. Listed in the Resources tab (`ResourcesPart`). |
-| `impl/Usage` | What a user used of an AI (prefill and generated tokens, requests); an `OwnedEntity`, one per AI and user, so a shared AI has one for everybody who uses it. |
+| `impl/Usage` | What a user used of an AI (prefill and generated tokens, requests, and the tokens since the last reset of their limit); an `OwnedEntity`, one per AI and user, so a shared AI has one for everybody who uses it. |
 | `impl/settings/AppSettings`, `impl/settings/UserSetting` | Installation-wide settings (versions, database backup schedule) and per-user settings. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -470,7 +470,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 </tr>
 <tr>
 <td><code translate="no" v-pre>impl/Usage</code></td>
-<td>What a user used of an AI (prefill and generated tokens, requests); an <code translate="no" v-pre>OwnedEntity</code>, one per AI and user, so a shared AI has one for everybody who uses it.</td>
+<td>What a user used of an AI (prefill and generated tokens, requests, and the tokens since the last reset of their limit); an <code translate="no" v-pre>OwnedEntity</code>, one per AI and user, so a shared AI has one for everybody who uses it.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>impl/settings/AppSettings</code>, <code translate="no" v-pre>impl/settings/UserSetting</code></td>
@@ -493,6 +493,7 @@ no state besides their fields.</p>
 |---|---|
 | `TurnInput` | The four fields of the instruction panel (scene, POV character, present characters, instructions). |
 | `TokenLimits` | Static helpers for the context, response and prompt budget of a generation (the smaller of protocol and provider limit). |
+| `AILimit`, `AILimits`, `LimitStatus` | The limit of one user on a shared AI (strategy, reset, token limits, hard limit of the generated tokens), the JSON in `AI.limits` that holds them by user uuid, and where a user stands (limit, tokens used in the period, next reset; `block(...)` says what stops a request). See [Limits](domain-model.md#limits-of-the-users-of-a-shared-ai). |
 | `PromptTokenBreakdown` | Raw token counts of one built prompt: the budget, every section, what was cut and the tokens of each payload message. Filled by the generation steps, stored with the part (`ChatMessage.getTokenBreakdown()`), shown by `TokenUsageDialog`. |
 | `SummaryNode` | A summary and the summaries it merges, for the summaries overview. |
 | `CronSchedule` | Cron expression parsing and next-run computation, used by the database backup schedule. |">
@@ -512,6 +513,10 @@ no state besides their fields.</p>
 <tr>
 <td><code translate="no" v-pre>TokenLimits</code></td>
 <td>Static helpers for the context, response and prompt budget of a generation (the smaller of protocol and provider limit).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AILimit</code>, <code translate="no" v-pre>AILimits</code>, <code translate="no" v-pre>LimitStatus</code></td>
+<td>The limit of one user on a shared AI (strategy, reset, token limits, hard limit of the generated tokens), the JSON in <code translate="no" v-pre>AI.limits</code> that holds them by user uuid, and where a user stands (limit, tokens used in the period, next reset; <code translate="no" v-pre>block(...)</code> says what stops a request). See <a href="../domain-model/#limits-of-the-users-of-a-shared-ai">Limits</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>PromptTokenBreakdown</code></td>
@@ -538,6 +543,7 @@ no state besides their fields.</p>
 | `LorebookService`, `LorebookEntryService` | Lorebooks, entries, import and export (incl. SillyTavern through `SillyTavernEntryConverter`). |
 | `AIService`, `ProtocolService` | Inference providers and protocols. |
 | `TagService`, `TagRelationService`, `SettingService`, `ResourceService` | Tags, settings, files. |
+| `AILimitService` | The per-user limits of a shared AI: the owning administrator sets them, `check` refuses a request of a user who is over their limit (called by `OpenAICompatibleInferenceService.stream`), `getStatus` is for the user's own view. |
 | `UsageService` | Tokens a user used with an AI, counted by `OpenAICompatibleInferenceService` (`Usage`, one per AI and user); `findAllUsages()` lists everybody's for administrators. |
 | `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
 | `InferenceServices`, `InferenceService`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; classified failures and their localized texts. |
@@ -575,6 +581,10 @@ no state besides their fields.</p>
 <tr>
 <td><code translate="no" v-pre>TagService</code>, <code translate="no" v-pre>TagRelationService</code>, <code translate="no" v-pre>SettingService</code>, <code translate="no" v-pre>ResourceService</code></td>
 <td>Tags, settings, files.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AILimitService</code></td>
+<td>The per-user limits of a shared AI: the owning administrator sets them, <code translate="no" v-pre>check</code> refuses a request of a user who is over their limit (called by <code translate="no" v-pre>OpenAICompatibleInferenceService.stream</code>), <code translate="no" v-pre>getStatus</code> is for the user&#x27;s own view.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UsageService</code></td>
@@ -757,7 +767,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <retype-table copy-text="| Package | |
 |---|---|
 | `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes) with `@PublicAPI`, `@APIReturn`, `@APIParameter`, `@APILocals` (the signature of each of their methods that plugins see), `@ExtendedAttribute` (fields stored in `attributes`), `@Fulltextable` (fields whose text goes into `_fulltext`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). |
-| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `FilteringMode`, `InsertionMode`, `SummaryType`. |
+| `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `SummaryType`. |
 | `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back, and collects the `@Fulltextable` fields into `_fulltext`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -774,7 +784,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.collections</code></td>
-<td>Enums: <code translate="no" v-pre>AIType</code>, <code translate="no" v-pre>ProtocolType</code>, <code translate="no" v-pre>ReasoningEffort</code>, <code translate="no" v-pre>FilteringMode</code>, <code translate="no" v-pre>InsertionMode</code>, <code translate="no" v-pre>SummaryType</code>.</td>
+<td>Enums: <code translate="no" v-pre>AIType</code>, <code translate="no" v-pre>ProtocolType</code>, <code translate="no" v-pre>ReasoningEffort</code>, <code translate="no" v-pre>LimitStrategy</code>, <code translate="no" v-pre>ResetStrategy</code>, <code translate="no" v-pre>FilteringMode</code>, <code translate="no" v-pre>InsertionMode</code>, <code translate="no" v-pre>SummaryType</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.listener</code></td>
@@ -837,7 +847,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `.../spring/container-config.xml` | Localization, configuration, `applicationPoint`, `sessionManager`, session beans, application initializer. |
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
-| `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V11__usages`. |
+| `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V12__usage_limit_period`. |
 | `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
 | `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
@@ -871,7 +881,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql</code></td>
-<td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V11__usages</code>.</td>
+<td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V12__usage_limit_period</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/log4j.properties</code></td>

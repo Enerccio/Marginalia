@@ -105,6 +105,7 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V9 | `V9__fulltext.sql` | `_fulltext` clob on every table of an extendable entity (`ais`, `entries`, `lorebooks`, `manuscripts`, `messages`, `protocols`, `settings`, `summaries`, `t2e`, `tags`), because the column is mapped in `ExtendableEntity`. Copies `manuscripts.description` into `extendedContent` where the JSON has no value (the extended attribute wins when both exist), then drops the column. The column is filled by `FulltextMigration` (app version 3). |
 | V10 | `V10__ai_shared.sql` | `ais.shared` (`not null default false`), the flag of an AI that an administrator shares with all users, and its index `(shared, is_deleted)`. See [`AI`](domain-model.md#ai--openaicompatible-inference-provider). |
 | V11 | `V11__usages.sql` | The `usages` table (tokens a user used with an AI, one row per AI and user, unique `(ai_id, userId)`), its `usages_SEQ` id table and the index of the owner lookup. See [`Usage`](domain-model.md#usage-tokens-used-with-an-ai). |
+| V12 | `V12__usage_limit_period.sql` | `usages.periodPrefillTokens` and `usages.periodGeneratedTokens` (`bigint not null default 0`): the tokens a user used since the last reset of their token limit on a shared AI. The limits themselves are not columns, they are the extended attribute `AI.limits`. See [Limits of the users of a shared AI](domain-model.md#limits-of-the-users-of-a-shared-ai). |
 
 ### Rules
 

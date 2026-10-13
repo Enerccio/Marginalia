@@ -24,7 +24,7 @@ All data entities extend `ExtendableEntity` ([Domain model](../domain-model.md))
 | `ChatMessage` (story part) | Data about one part - Reviewer keeps the reviews of the part here. |
 | `Summary` | Data about a summary. |
 | `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. |
-| `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. |
+| `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
 | `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. |
 | `AppSettings` | Settings for the whole installation (administrators). |
 
