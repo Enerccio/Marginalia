@@ -15,7 +15,7 @@ successfully.* confirms it. The extension appears in the list:
 |---|---|
 | **ID** | The internal number of the extension in this run. |
 | **Extension Name** | Its name. |
-| **Version** | Its version. |
+| **Version** | Its version. The **#** button next to it shows the SHA-256 hash of the extension's JAR when you hover it; click it to copy the hash, e.g. to compare it with the one published by the author. |
 | **State** | *Active* when it is running; *Stopped* when you stopped it (see [Stopping and starting](#stopping-and-starting)); *Installed* or *Resolved* when it failed to start (see [When an extension fails](#when-an-extension-fails)). |
 | **Verification** | *Valid* or *Invalid*; click it to read the report of the check Marginalia made before starting the extension. |
 | **Actions** | **Stop** / **Start**, **Log** and **Unload**. |
