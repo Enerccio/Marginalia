@@ -166,6 +166,12 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 21. **Character / persona management.** POV and present characters are free text per turn. A character card
     entity (name, description, avatar via the `Resource` entity (`ResourceService.uploadImage`), linked lorebook entries) with
     pick-lists in the turn editor. SillyTavern character card import. 🧩 possible extension.
+    - ✅ Characters per book (name, tagline, note, icon scaled to 200 x 200, colour), relationships between them and a
+      relationship map, in the story sidebar; characters can be created from lorebook entries. The **Character
+      Tracker** plugin (`marginalia/plugins/character-tracker`) keeps them in the book's attributes, not in an entity.
+    - Link characters to lorebook entries (the import only copies the names).
+    - Pick-lists of the characters for the POV and present characters of a turn.
+    - SillyTavern character card import.
 
 22. **Sharing between users.** Everything is private. Read-only sharing of lorebooks/protocols, or an
     admin-managed "global" library, plus public read-only links for the Viewer (after fixing item 1).
