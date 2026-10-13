@@ -6,6 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Marginalia: a self-hosted tool for co-writing long fiction with OpenAI-compatible LLMs (branching story tree, lorebooks, summaries, Handlebars/SillyTavern-macro prompts). One Java 25 web app (Vaadin Flow UI, Spring XML without Spring Boot, Hibernate + SQLite + Flyway), packaged as a single WAR. Runs in Docker (Jetty) or as a desktop app (`marginalia/src/desktop`, `DesktopLauncher`, JDK-only, never in the WAR). The developer docs in `manual/developer/*.md` are detailed and authoritative (architecture, building, testing, generation pipeline, plugins).
 
+## Environment
+- Always check what kind of shell you have available before issuing commands. 
+
 ## Commands
 
 All from `marginalia/` (the Maven project; needs JDK 25 + Maven 3.9, build from a git clone — the build reads git info):
