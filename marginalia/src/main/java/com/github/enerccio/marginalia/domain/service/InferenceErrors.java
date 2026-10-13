@@ -61,6 +61,8 @@ public final class InferenceErrors {
             case TIMEOUT -> L.ERROR_INFERENCE_TIMEOUT;
             case CONNECTION -> L.ERROR_INFERENCE_CONNECTION;
             case BAD_REQUEST -> L.ERROR_INFERENCE_BAD_REQUEST;
+            case NOT_AVAILABLE -> L.ERROR_INFERENCE_NOT_AVAILABLE;
+            case LIMIT_REACHED -> L.ERROR_INFERENCE_LIMIT_REACHED;
             case UNKNOWN -> L.ERROR_INFERENCE_UNKNOWN;
         };
     }

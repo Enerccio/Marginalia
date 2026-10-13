@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.loc.L;
@@ -60,17 +61,17 @@ public class UsageDialog extends Dialog {
                 .setFlexGrow(1);
         grid.addColumn(usage -> format(usage.getPrefillTokens()))
                 .setHeader(loc.getValue(L.LABEL_TOKENS_SENT))
-                .setFlexGrow(0);
+                .setFlexGrow(0).setWidth(UIConstants.NUMBER_COLUMN_SIZE);
         grid.addColumn(usage -> format(usage.getGeneratedTokens()))
                 .setHeader(loc.getValue(L.LABEL_TOKENS_GENERATED))
-                .setFlexGrow(0);
+                .setFlexGrow(0).setWidth(UIConstants.NUMBER_COLUMN_SIZE);
         grid.addColumn(usage -> format(usage.getRequests()))
                 .setHeader(loc.getValue(L.LABEL_REQUESTS))
-                .setFlexGrow(0);
+                .setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
         grid.addColumn(usage -> usage.getLastUsed() == null ? ""
                         : DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(usage.getLastUsed()))
                 .setHeader(loc.getValue(L.LABEL_LAST_USED))
-                .setFlexGrow(0);
+                .setFlexGrow(0).setWidth(UIConstants.DATE_COLUMN_SIZE);
     }
 
     private void load() {

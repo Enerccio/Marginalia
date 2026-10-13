@@ -27,6 +27,10 @@ public class InferenceException extends RuntimeException {
         CONNECTION,
         /** The provider rejected the request for another reason. */
         BAD_REQUEST,
+        /** An administrator made the shared AI unavailable for the user; nothing was sent to the provider. */
+        NOT_AVAILABLE,
+        /** The user used up the token limit an administrator set for them; nothing was sent to the provider. */
+        LIMIT_REACHED,
         UNKNOWN
     }
 

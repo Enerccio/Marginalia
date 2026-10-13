@@ -73,6 +73,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     private UsageService usageService;
 
     @Autowired
+    private AILimitService limitService;
+
+    @Autowired
     private InferenceServices inferenceServices;
 
     private ExecutorService inferenceService;
@@ -151,6 +154,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     @Override
     public CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions,
                                     InferenceAsyncCallback callback) throws Exception {
+        // the limits an administrator set for the user, before anything is sent: the prompt is known, so it must fit
+        limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
         Request request = new Request(openClient(), protocol, functions != null && !functions.isEmpty() ? functions : null,
                 callback, new CancellationToken(),
                 // the request ends on other threads, the user it counts for is the one who started it
@@ -513,19 +518,27 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 prefill = reported.promptTokens();
                 generatedTokens = reported.completionTokens();
             } else {
-                prefill = 0;
-                for (LLMChatMessage message : payload) {
-                    prefill += tokenizerService.countTokensApprox(StringUtils.defaultString(message.getContent()));
-                    for (LLMToolCall call : message.getToolCalls()) {
-                        prefill += tokenizerService.countTokensApprox(call.getName() + call.getArguments());
-                    }
-                }
+                prefill = approximatePromptTokens(payload);
                 generatedTokens = tokenizerService.countTokensApprox(generated);
             }
             usageService.record(ai, prefill, generatedTokens);
         } catch (Exception e) {
             log.warn("Failed to count the usage of AI {}", ai.getId(), e);
         }
+    }
+
+    /**
+     * Our count of the tokens of the payload, the provider's own differs a little.
+     */
+    private long approximatePromptTokens(List<LLMChatMessage> payload) throws Exception {
+        long tokens = 0;
+        for (LLMChatMessage message : payload) {
+            tokens += tokenizerService.countTokensApprox(StringUtils.defaultString(message.getContent()));
+            for (LLMToolCall call : message.getToolCalls()) {
+                tokens += tokenizerService.countTokensApprox(call.getName() + call.getArguments());
+            }
+        }
+        return tokens;
     }
 
     private static Throwable translate(Throwable e) {

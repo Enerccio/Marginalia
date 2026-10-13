@@ -198,7 +198,7 @@ public class AIDialog extends Dialog {
 
         // only administrators share, the service refuses it for anybody else
         sharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARED_WITH_ALL_USERS));
-        sharedCheckbox.setVisible(currentUser.isAdmin());
+        sharedCheckbox.setVisible(aiService.isAdministrator());
 
         maxContextField = new IntegerField(loc.getValue(L.LABEL_MAX_CONTEXT));
         maxContextField.setRequired(true);

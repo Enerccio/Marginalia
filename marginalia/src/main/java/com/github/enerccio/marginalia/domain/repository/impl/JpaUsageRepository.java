@@ -42,15 +42,29 @@ public class JpaUsageRepository extends JpaOwnedRepository<Usage> implements Usa
     }
 
     @Override
-    public int add(AI ai, User user, long prefillTokens, long generatedTokens) {
+    public int add(AI ai, User user, long prefillTokens, long generatedTokens, boolean limited) {
         Date now = new Date();
+        String period = limited
+                ? "u.periodPrefillTokens = u.periodPrefillTokens + :prefill, u.periodGeneratedTokens = u.periodGeneratedTokens + :generated, "
+                : "u.periodPrefillTokens = 0, u.periodGeneratedTokens = 0, ";
         return getEntityManager()
                 .createQuery("UPDATE Usage u SET u.prefillTokens = u.prefillTokens + :prefill, u.generatedTokens = u.generatedTokens + :generated, "
-                        + "u.requests = u.requests + 1, u.lastUsed = :now, u.modification = :now "
+                        + period + "u.requests = u.requests + 1, u.lastUsed = :now, u.modification = :now "
                         + "WHERE u.ai.id = :ai AND u.owner.id = :owner AND u.deleted = false")
                 .setParameter("prefill", prefillTokens)
                 .setParameter("generated", generatedTokens)
                 .setParameter("now", now)
+                .setParameter("ai", ai.getId())
+                .setParameter("owner", user.getId())
+                .executeUpdate();
+    }
+
+    @Override
+    public int resetPeriod(AI ai, User user, Date periodStart) {
+        return getEntityManager()
+                .createQuery("UPDATE Usage u SET u.periodPrefillTokens = 0, u.periodGeneratedTokens = 0 "
+                        + "WHERE u.ai.id = :ai AND u.owner.id = :owner AND u.deleted = false AND u.lastUsed < :start")
+                .setParameter("start", periodStart)
                 .setParameter("ai", ai.getId())
                 .setParameter("owner", user.getId())
                 .executeUpdate();

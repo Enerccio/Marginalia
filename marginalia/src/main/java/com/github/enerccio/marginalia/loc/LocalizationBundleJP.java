@@ -317,6 +317,22 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_USAGE_PER_USER, "ユーザー別の使用量");
         setValue(L.LABEL_REQUESTS, "リクエスト数");
         setValue(L.LABEL_LAST_USED, "最終使用");
+        setValue(L.LABEL_LIMITS, "制限");
+        setValue(L.LABEL_LIMIT, "上限");
+        setValue(L.LABEL_ADD_LIMIT, "制限を追加");
+        setValue(L.LABEL_EDIT_LIMIT, "制限を編集");
+        setValue(L.LABEL_YOUR_LIMITS, "あなたの制限");
+        setValue(L.LABEL_LIMIT_TYPE, "制限の種類");
+        setValue(L.LABEL_RESET_PERIOD, "リセット");
+        setValue(L.LABEL_NEXT_RESET, "次回のリセット");
+        setValue(L.LABEL_LIMIT_TOKENS_SENT, "送信トークンの上限");
+        setValue(L.LABEL_LIMIT_TOKENS_GENERATED, "生成トークンの上限");
+        setValue(L.LABEL_LIMIT_TOKENS_TOTAL, "合計トークンの上限");
+        setValue(L.LABEL_TOKENS_TOTAL, "合計トークン");
+        setValue(L.LABEL_UNLIMITED, "無制限");
+        setValue(L.LABEL_USED, "使用済み");
+        setValue(L.LABEL_LIMIT_HARD, "厳格");
+        setValue(L.LABEL_LIMIT_GENERATED_HARD, "厳格な上限：予約された応答が上限を超える場合はリクエストを拒否する");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -357,6 +373,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_BUNDLE_STATE_ACTIVE, "稼働中");
         setValue(L.ENUM_BUNDLE_STATE_UNKNOWN, "不明（%d）");
         setValue(L.ENUM_BUNDLE_STATE_STOPPED, "停止中");
+        setValue(L.ENUM_LIMIT_UNLIMITED, "無制限");
+        setValue(L.ENUM_LIMIT_TOKEN_LIMIT, "トークン制限");
+        setValue(L.ENUM_LIMIT_NOT_AVAILABLE, "利用不可");
+        setValue(L.ENUM_RESET_DAILY, "毎日");
+        setValue(L.ENUM_RESET_WEEKLY, "毎週（月曜日から）");
+        setValue(L.ENUM_RESET_MONTHLY, "毎月");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -392,6 +414,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_EXTENSION_INCOMPATIBLE, "拡張機能 %s はこのバージョンの Marginalia に対応していないため、読み込まれませんでした。");
         setValue(L.ERROR_EXTENSION_START_FAILED, "拡張機能を開始できませんでした: %s");
         setValue(L.ERROR_EXTENSION_STOP_FAILED, "拡張機能を停止できませんでした: %s");
+        setValue(L.ERROR_INFERENCE_NOT_AVAILABLE, "このモデルはご利用いただけません。");
+        setValue(L.ERROR_INFERENCE_LIMIT_REACHED, "このモデルのトークン制限を使い切ったか、このリクエストで制限を超えてしまいます。制限とリセットの時期は「モデル」タブで確認できます。");
+        setValue(L.ERROR_LIMIT_NEGATIVE, "上限に負の値は指定できません。");
+        setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "送信トークンと生成トークンの上限の合計が合計の上限に満たないため、合計の上限には到達しません。");
+        setValue(L.ERROR_LIMIT_USER_REQUIRED, "ユーザーを選択してください。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -484,6 +511,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_PROTOCOL_REPLY_TOKENS, "任意。空欄の場合は、推論プロバイダーの最大応答トークン数を使用します。");
         setValue(L.HELP_AI_REQUEST_TIMEOUT, "プロバイダーが応答する、または続きのテキストを送るまでの待ち時間。推論モデルは最初のテキストが出るまで数分かかることがあります。");
         setValue(L.HELP_AI_MAX_RETRIES, "レート制限（429）、サーバーエラー（5xx）、接続エラーで失敗したリクエストの再試行回数。再試行の間隔は次第に長くなります。");
+        setValue(L.HELP_LIMIT_EMPTY_UNLIMITED, "上限を空欄にすると無制限になります。最初に到達した上限で、次のリセットまでユーザーは利用できなくなります。");
+        setValue(L.HELP_LIMITS_OTHERS_UNLIMITED, "ここに制限がないユーザーは制限されません。");
+        setValue(L.HELP_LIMIT_GENERATED_HARD, "生成トークンの厳格な上限では、リクエストが予約する応答（最大応答サイズ）が残りに収まらない場合、そのリクエストを拒否します。厳格でない場合は、最後の応答が上限を超えることがあります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

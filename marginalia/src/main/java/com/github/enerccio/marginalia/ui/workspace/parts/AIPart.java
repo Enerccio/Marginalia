@@ -14,9 +14,7 @@ import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.dialogs.AIDialog;
-import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.UsageDialog;
+import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -56,6 +54,7 @@ public class AIPart implements WorkspaceComponent {
     private Grid<AI> grid;
     private Button addModelButton;
     private final Map<Long, Usage> usages = new HashMap<>();
+    private boolean administrator;
     private VerticalLayout mainLayout;
 
     public AIPart(Workspace workspace) {
@@ -100,7 +99,7 @@ public class AIPart implements WorkspaceComponent {
         // usage of everybody, only for administrators
         Button usagePerUserButton = new Button(loc.getValue(L.LABEL_USAGE_PER_USER), Solid.CHART_BAR.create(),
                 event -> UsageDialog.show());
-        usagePerUserButton.setVisible(currentUser.isAdmin());
+        usagePerUserButton.setVisible(aiService.isAdministrator());
 
         headerLayout.add(titleSpan, usagePerUserButton, addModelButton);
         headerLayout.setFlexGrow(1, titleSpan);
@@ -119,16 +118,18 @@ public class AIPart implements WorkspaceComponent {
 
         grid.addColumn(ai -> loc.getValue(ai.isShared() ? L.LABEL_YES : L.LABEL_NO))
                 .setHeader(loc.getValue(L.LABEL_SHARED))
-                .setFlexGrow(0);
+                .setFlexGrow(0)
+                .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
 
         grid.addColumn(ai -> formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getPrefillTokens()))
                 .setHeader(loc.getValue(L.LABEL_TOKENS_SENT))
                 .setFlexGrow(0)
-                .setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
+                .setWidth(UIConstants.NUMBER_COLUMN_SIZE);
 
         grid.addColumn(ai -> formatTokens(usages.get(ai.getId()) == null ? 0 : usages.get(ai.getId()).getGeneratedTokens()))
                 .setHeader(loc.getValue(L.LABEL_TOKENS_GENERATED))
-                .setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
+                .setFlexGrow(0)
+                .setWidth(UIConstants.NUMBER_COLUMN_SIZE);
 
         grid.addComponentColumn(ai -> {
             HorizontalLayout actions = new HorizontalLayout();
@@ -152,14 +153,24 @@ public class AIPart implements WorkspaceComponent {
                     }));
             deleteButton.setThemeName("error tertiary");
 
+            // what the user used of a shared AI and what they are limited to
+            Button infoButton = new Button(Solid.INFO_CIRCLE.create(), event -> AILimitInfoDialog.show(ai));
+            infoButton.setTooltipText(loc.getValue(L.LABEL_YOUR_LIMITS));
+            infoButton.setVisible(ai.isShared());
+
+            // the limits of the users of a shared AI
+            Button limitsButton = new Button(Solid.USER_LOCK.create(), event -> AILimitsDialog.show(ai));
+            limitsButton.setTooltipText(loc.getValue(L.LABEL_LIMITS));
+
             // AIs shared by somebody else can be used, not seen or changed
             boolean own = aiService.isOwnedByCurrentUser(ai);
             editButton.setVisible(own);
             deleteButton.setVisible(own);
+            limitsButton.setVisible(own && ai.isShared() && administrator);
 
-            actions.add(editButton, deleteButton);
+            actions.add(infoButton, limitsButton, editButton, deleteButton);
             return actions;
-        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_GIANT);
 
         mainLayout.add(headerLayout, grid);
         mainLayout.setFlexGrow(1, grid);
@@ -187,6 +198,7 @@ public class AIPart implements WorkspaceComponent {
         try {
             List<AI> connections = aiService.findAllForUser();
             connections.sort(Comparator.comparing(AI::getName));
+            administrator = aiService.isAdministrator();
             usages.clear();
             usageService.findAllForUser().forEach(usage -> usages.put(usage.getAi().getId(), usage));
             addModelButton.setVisible(aiService.canCreate());

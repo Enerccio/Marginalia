@@ -33,6 +33,8 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<AIType, L> aiTypes = new HashMap<>();
     private final Map<ProtocolType, L> protocolTypes = new HashMap<>();
     private final Map<ReasoningEffort, L> reasoningEfforts = new HashMap<>();
+    private final Map<LimitStrategy, L> limitStrategies = new HashMap<>();
+    private final Map<ResetStrategy, L> resetStrategies = new HashMap<>();
     private final Map<BackupStrategy, L> backupStrategies = new HashMap<>();
     private final Map<FilteringMode, L> filteringModes = new HashMap<>();
     private final Map<InsertionMode, L> insertionModes = new HashMap<>();
@@ -80,6 +82,14 @@ public class LocalizationImpl implements Localization, InitializingBean {
         reasoningEfforts.put(ReasoningEffort.LOW, L.ENUM_REASONING_LOW);
         reasoningEfforts.put(ReasoningEffort.MEDIUM, L.ENUM_REASONING_MEDIUM);
         reasoningEfforts.put(ReasoningEffort.HIGH, L.ENUM_REASONING_HIGH);
+
+        limitStrategies.put(LimitStrategy.UNLIMITED, L.ENUM_LIMIT_UNLIMITED);
+        limitStrategies.put(LimitStrategy.TOKEN_LIMIT, L.ENUM_LIMIT_TOKEN_LIMIT);
+        limitStrategies.put(LimitStrategy.NOT_AVAILABLE, L.ENUM_LIMIT_NOT_AVAILABLE);
+
+        resetStrategies.put(ResetStrategy.DAILY, L.ENUM_RESET_DAILY);
+        resetStrategies.put(ResetStrategy.WEEKLY, L.ENUM_RESET_WEEKLY);
+        resetStrategies.put(ResetStrategy.MONTHLY, L.ENUM_RESET_MONTHLY);
 
         backupStrategies.put(BackupStrategy.DISABLED, L.ENUM_BACKUP_STRATEGY_NONE);
         backupStrategies.put(BackupStrategy.AFTER_N_MESSAGES, L.ENUM_BACKUP_STRATEGY_AFTER_N_MESSAGES);
@@ -276,6 +286,16 @@ public class LocalizationImpl implements Localization, InitializingBean {
     public L getReasoningEffort(ReasoningEffort type) {
         return reasoningEfforts.get(type);
     }
+    @Override
+    public L getLimitStrategy(LimitStrategy type) {
+        return limitStrategies.get(type);
+    }
+
+    @Override
+    public L getResetStrategy(ResetStrategy type) {
+        return resetStrategies.get(type);
+    }
+
     @Override
     public L getBackupStrategy(BackupStrategy type) {
         return backupStrategies.get(type);

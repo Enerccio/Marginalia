@@ -81,6 +81,16 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
     }
 
     @Override
+    @CommonTxReadOnly
+    public boolean isAdministrator() {
+        try {
+            return adminGuard.isAdmin();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to read the current user", e);
+        }
+    }
+
+    @Override
     public boolean isOwnedByCurrentUser(AI ai) {
         return ai.getOwner() == null || Objects.equals(ai.getOwner().getId(), currentUser.getId());
     }
