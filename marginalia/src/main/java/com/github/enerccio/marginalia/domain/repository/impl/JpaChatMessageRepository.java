@@ -107,6 +107,53 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     }
 
     @Override
+    public List<Long> findDescendantIds(ChatMessage message) throws Exception {
+        List<Long> descendants = new ArrayList<>();
+        if (message == null || message.getId() == null) {
+            return descendants;
+        }
+        List<Long> level = List.of(message.getId());
+        while (!level.isEmpty()) {
+            List<Long> next = new ArrayList<>();
+            for (List<Long> chunk : chunks(level)) {
+                next.addAll(entityManager.createQuery(
+                                "SELECT m.id FROM ChatMessage m WHERE m.parent.id IN :ids AND m.deleted = false", Long.class)
+                        .setParameter("ids", chunk)
+                        .getResultList());
+            }
+            descendants.addAll(next);
+            level = next;
+        }
+        return descendants;
+    }
+
+    @Override
+    public int softDeleteByManuscript(Manuscript manuscript) throws Exception {
+        if (manuscript == null || manuscript.getId() == null) {
+            return 0;
+        }
+        return entityManager.createQuery(
+                        "UPDATE ChatMessage m SET m.deleted = true, m.modification = :now WHERE m.parentScript.id = :manuscript AND m.deleted = false")
+                .setParameter("now", new Date())
+                .setParameter("manuscript", manuscript.getId())
+                .executeUpdate();
+    }
+
+    @Override
+    public int softDeleteByIds(Collection<Long> ids) throws Exception {
+        int deleted = 0;
+        Date now = new Date();
+        for (List<Long> chunk : chunks(ids)) {
+            deleted += entityManager.createQuery(
+                            "UPDATE ChatMessage m SET m.deleted = true, m.modification = :now WHERE m.id IN :ids AND m.deleted = false")
+                    .setParameter("now", now)
+                    .setParameter("ids", chunk)
+                    .executeUpdate();
+        }
+        return deleted;
+    }
+
+    @Override
     public boolean hasAnyMessages(Manuscript manuscript) throws Exception {
         return !getAllMessageIds(manuscript).isEmpty();
     }

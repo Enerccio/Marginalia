@@ -23,6 +23,15 @@ public class JpaTagRelationRepository extends JpaExtendableRepository<TagRelatio
     }
 
     @Override
+    public List<TagRelation> findAllByObject(Long objectId, String clazz) throws Exception {
+        return getEntityManager().createQuery(
+                        "SELECT tr FROM TagRelation tr WHERE tr.objectId = :objectId AND tr.clazz = :clazz AND tr.deleted = false", TagRelation.class)
+                .setParameter("objectId", objectId)
+                .setParameter("clazz", clazz)
+                .getResultList();
+    }
+
+    @Override
     public List<Tag> findTagsForObject(Long objectId, String clazz) throws Exception {
         return findTagsForObject(objectId, clazz, false);
     }

@@ -226,6 +226,28 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         return total;
     }
 
+    /**
+     * A soft deleted message takes its summary and everything below it (its children and their children) with it.
+     */
+    @Override
+    @CommonTx
+    public ChatMessage delete(ChatMessage message, boolean hard) throws Exception {
+        if (!hard && message != null && message.getId() != null) {
+            List<Long> deleted = getRepository().findDescendantIds(message);
+            getRepository().softDeleteByIds(deleted);
+            deleted.add(message.getId());
+            summaryService.softDeleteForMessages(deleted);
+        }
+        return super.delete(message, hard);
+    }
+
+    @Override
+    @CommonTx
+    public void softDeleteForManuscript(Manuscript manuscript) throws Exception {
+        summaryService.softDeleteForManuscript(manuscript);
+        getRepository().softDeleteByManuscript(manuscript);
+    }
+
     @Override
     @CommonTx
     public Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception {

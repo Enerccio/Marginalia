@@ -10,6 +10,11 @@ public interface TagRelationRepository extends ExtendableRepository<TagRelation>
 
     List<TagRelation> findAllByTag(Tag tag) throws Exception;
 
+    /**
+     * Relations of the object that are not deleted, positive and negative.
+     */
+    List<TagRelation> findAllByObject(Long objectId, String clazz) throws Exception;
+
     List<Tag> findTagsForObject(Long objectId, String clazz) throws Exception;
 
     List<Tag> findTagsForObject(Long objectId, String clazz, boolean negative) throws Exception;

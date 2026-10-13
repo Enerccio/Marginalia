@@ -333,6 +333,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_USED, "使用済み");
         setValue(L.LABEL_LIMIT_HARD, "厳格");
         setValue(L.LABEL_LIMIT_GENERATED_HARD, "厳格な上限：予約された応答が上限を超える場合はリクエストを拒否する");
+        setValue(L.LABEL_DELETE_PERMANENTLY, "完全に削除");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -501,6 +502,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_EXTENSION_STARTED, "拡張機能を開始しました。");
         setValue(L.MSG_EXTENSION_STOPPED, "拡張機能を停止しました。");
         setValue(L.MSG_EXTENSION_LOG_EMPTY, "この拡張機能はまだログに何も書き込んでいません。");
+        setValue(L.MSG_DELETE_PERMANENTLY_HINT, "選択したストーリーパートとロアブックのエントリをデータベースから完全に削除します。他のオブジェクトは復元のみ可能で、クリーンアップで削除されます。");
+        setValue(L.MSG_CONFIRM_DELETE_PERMANENTLY, "選択した %s 個のオブジェクトを完全に削除しますか？この操作は元に戻せません。削除したパートの下にあるパートは、その親に移動します。");
+        setValue(L.MSG_DELETED_PERMANENTLY, "%s 個のオブジェクトを完全に削除しました。");
+        setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED, "何も削除されませんでした。これらのオブジェクトは削除できません：");
+        setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED_ITEM, "%s「%s」：%s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

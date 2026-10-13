@@ -4,6 +4,10 @@ import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Summary;
+import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.CleanupService;
@@ -21,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -37,6 +42,9 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
     private static final Logger log = LoggerFactory.getLogger(CleanupServiceImpl.class);
 
     private static final int CHUNK_SIZE = 500;
+    private static final List<Class<?>> PERMANENTLY_DELETABLE = List.of(ChatMessage.class, LorebookEntry.class);
+    // what goes with a permanently deleted object
+    private static final Set<Class<?>> OWNED_ON_DELETE = Set.of(Summary.class, TagRelation.class);
     private static final int REMOVE_BATCH_SIZE = 200;
     private static final int MAX_REASONS = 5;
     private static final String[] LABEL_METHODS = {"getName", "getLogin", "getValue"};
@@ -79,18 +87,22 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
         CleanupPlan plan = computePlan(m);
         Set<EntityKey> purge = Collections.unmodifiableSet(plan.getPurge());
         if (!purge.isEmpty()) {
-            clearWeakReferences(m, purge);
-            for (CleanupContributor contributor : contributors) {
-                contributor.beforePurge(purge);
-            }
-            entityManager.flush();
-            entityManager.clear();
-            detachReferences(m, purge);
-            remove(purge);
+            executePurge(m, purge);
         }
         plan.setExecuted(true);
         log.info("Cleanup purged {} entities, {} soft deleted entities blocked", purge.size(), plan.getBlocked().size());
         return plan;
+    }
+
+    private void executePurge(Model m, Set<EntityKey> purge) throws Exception {
+        clearWeakReferences(m, purge);
+        for (CleanupContributor contributor : contributors) {
+            contributor.beforePurge(purge);
+        }
+        entityManager.flush();
+        entityManager.clear();
+        detachReferences(m, purge);
+        remove(purge);
     }
 
     @Override
@@ -255,6 +267,10 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
         }
 
         Set<EntityKey> blockedRoots = new HashSet<>();
+        // soft deleted objects owned by a blocked one (a soft delete takes the owned objects with it): they stay while
+        // their owner stays, so the owner can still be restored whole
+        Set<EntityKey> heldBack = new HashSet<>();
+        Set<EntityKey> expanded = new HashSet<>();
         Set<EntityKey> excluded = new HashSet<>();
         Map<EntityKey, List<String>> reasons = new LinkedHashMap<>();
         Closure closure;
@@ -262,6 +278,7 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
         while (true) {
             Set<EntityKey> roots = new LinkedHashSet<>(softDeleted);
             roots.removeAll(blockedRoots);
+            roots.removeAll(heldBack);
             closure = closure(m, roots, excluded);
 
             boolean changed = false;
@@ -281,6 +298,7 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
                     changed |= excluded.add(node);
                 }
             }
+            changed |= holdBackOwned(m, softDeleted, blockedRoots, heldBack, expanded);
             if (!changed) {
                 break;
             }
@@ -304,6 +322,43 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
             plan.getBlocked().put(key, blockedEntity);
         }
         return plan;
+    }
+
+    /**
+     * Adds to {@code heldBack} the soft deleted objects owned (OWNED_BY, directly or through other held objects) by a
+     * blocked root.
+     *
+     * @param expanded objects already searched for owned objects
+     * @return whether anything was added
+     */
+    private boolean holdBackOwned(Model m, Set<EntityKey> softDeleted, Set<EntityKey> blockedRoots, Set<EntityKey> heldBack,
+                                  Set<EntityKey> expanded) throws Exception {
+        Set<EntityKey> frontier = new LinkedHashSet<>(blockedRoots);
+        frontier.addAll(heldBack);
+        frontier.removeAll(expanded);
+        boolean changed = false;
+        while (!frontier.isEmpty()) {
+            expanded.addAll(frontier);
+            Set<EntityKey> next = new LinkedHashSet<>();
+            Map<Class<?>, List<Long>> grouped = group(frontier);
+            for (ReferenceDescriptor descriptor : m.references) {
+                if (descriptor.getPolicy() != Policy.OWNED_BY) {
+                    continue;
+                }
+                for (Map.Entry<Class<?>, List<Long>> group : grouped.entrySet()) {
+                    for (Edge edge : edgesByTarget(m, descriptor, group.getKey(), group.getValue())) {
+                        EntityKey owned = edge.referrer();
+                        if (softDeleted.contains(owned) && !blockedRoots.contains(owned) && heldBack.add(owned)) {
+                            next.add(owned);
+                            changed = true;
+                        }
+                    }
+                }
+            }
+            next.removeAll(expanded);
+            frontier = next;
+        }
+        return changed;
     }
 
     private Closure closure(Model m, Set<EntityKey> roots, Set<EntityKey> excluded) throws Exception {
@@ -679,6 +734,8 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
         if (selection.isEmpty()) {
             return result;
         }
+        // the soft delete took the owned objects with it, so the restore brings them back
+        selection.addAll(deletedOwned(m, selection));
 
         Map<EntityKey, List<Blocker>> blocked = findDeletedParents(m, selection);
         if (!blocked.isEmpty()) {
@@ -705,6 +762,110 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
         result.getRestored().addAll(selection);
         log.info("Restored {} soft deleted entities", selection.size());
         return result;
+    }
+
+    @Override
+    public List<Class<?>> getPermanentlyDeletableTypes() {
+        return PERMANENTLY_DELETABLE;
+    }
+
+    @Override
+    @CommonTx
+    public DeleteResult deletePermanently(Collection<EntityKey> keys) throws Exception {
+        Model m = getModel();
+        for (EntityKey key : keys) {
+            if (!PERMANENTLY_DELETABLE.contains(key.type())) {
+                throw new IllegalArgumentException("Can't be deleted permanently: " + key.type().getName());
+            }
+        }
+        Set<EntityKey> selection = deletedAccessible(m, keys);
+        DeleteResult result = new DeleteResult();
+        if (selection.isEmpty()) {
+            return result;
+        }
+
+        moveChildrenOfMessages(selection);
+
+        Closure closure = closure(m, selection, Set.of());
+        Map<EntityKey, List<String>> reasons = new LinkedHashMap<>();
+        Set<EntityKey> purge = new LinkedHashSet<>(closure.members);
+        // what else would go with the selection: only summaries and tag links belong to a part or an entry
+        for (EntityKey member : closure.members) {
+            if (!selection.contains(member) && !OWNED_ON_DELETE.contains(member.type())) {
+                for (EntityKey root : closure.origins.getOrDefault(member, selection)) {
+                    reasons.computeIfAbsent(root, k -> new ArrayList<>()).add(member + " belongs to it");
+                }
+            }
+        }
+        for (Map.Entry<EntityKey, List<String>> blocked : findBlocked(m, closure.members).entrySet()) {
+            if (closure.mandatory.contains(blocked.getKey())) {
+                for (EntityKey root : closure.origins.getOrDefault(blocked.getKey(), Set.of(blocked.getKey()))) {
+                    List<String> rootReasons = reasons.computeIfAbsent(root, k -> new ArrayList<>());
+                    for (String reason : blocked.getValue()) {
+                        if (rootReasons.size() < MAX_REASONS) {
+                            rootReasons.add(blocked.getKey().equals(root) ? reason : blocked.getKey() + ": " + reason);
+                        }
+                    }
+                }
+            } else {
+                // a summary that something else uses stays
+                purge.remove(blocked.getKey());
+            }
+        }
+
+        if (!reasons.isEmpty()) {
+            // the parts were already moved: undo it
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            for (Map.Entry<EntityKey, List<String>> blocked : reasons.entrySet()) {
+                if (selection.contains(blocked.getKey())) {
+                    result.getBlocked().put(blocked.getKey(), blocked.getValue());
+                    result.getBlockedLabels().put(blocked.getKey(), label(blocked.getKey()));
+                }
+            }
+            return result;
+        }
+
+        executePurge(m, purge);
+        result.getDeleted().addAll(purge);
+        log.info("Permanently deleted {} entities from the trash", purge.size());
+        return result;
+    }
+
+    /**
+     * Moves the children of the messages to the nearest ancestor that is not among the messages (deleted children
+     * too, a restored one finds its parent) and the active leaf of the books on them to it, like the delete of a
+     * message in the editor does.
+     */
+    private void moveChildrenOfMessages(Set<EntityKey> selection) {
+        List<Long> ids = selection.stream().filter(key -> key.type() == ChatMessage.class).map(EntityKey::id).toList();
+        if (ids.isEmpty()) {
+            return;
+        }
+        Map<Long, Long> parentOf = new HashMap<>();
+        for (List<Long> chunk : chunks(ids)) {
+            for (Object[] row : entityManager.createQuery("SELECT m.id, m.parent.id FROM ChatMessage m WHERE m.id IN :ids", Object[].class)
+                    .setParameter("ids", chunk).getResultList()) {
+                parentOf.put(((Number) row[0]).longValue(), row[1] != null ? ((Number) row[1]).longValue() : null);
+            }
+        }
+        Set<Long> removed = new HashSet<>(ids);
+        for (Long id : ids) {
+            Long target = parentOf.get(id);
+            while (target != null && removed.contains(target)) {
+                target = parentOf.get(target);
+            }
+            ChatMessage newParent = target != null ? entityManager.getReference(ChatMessage.class, target) : null;
+            entityManager.createQuery("UPDATE ChatMessage m SET m.parent = :parent WHERE m.parent.id = :id")
+                    .setParameter("parent", newParent)
+                    .setParameter("id", id)
+                    .executeUpdate();
+            entityManager.createQuery("UPDATE Manuscript b SET b.activeLeaf = :parent WHERE b.activeLeaf.id = :id")
+                    .setParameter("parent", newParent)
+                    .setParameter("id", id)
+                    .executeUpdate();
+        }
+        entityManager.flush();
+        entityManager.clear();
     }
 
     /**
@@ -774,6 +935,42 @@ public class CleanupServiceImpl implements CleanupService, TrashService {
             }
         }
         return deleted;
+    }
+
+    /**
+     * Deleted objects the selection owns, directly or through each other: the objects that are OWNED_BY a selected
+     * object (messages of a manuscript) and the objects a selected one OWNS (summary of a message). Soft delete
+     * of an object deletes these too.
+     */
+    private Set<EntityKey> deletedOwned(Model m, Set<EntityKey> selection) throws Exception {
+        Set<EntityKey> owned = new LinkedHashSet<>();
+        Set<EntityKey> frontier = new LinkedHashSet<>(selection);
+        while (!frontier.isEmpty()) {
+            Set<EntityKey> candidates = new LinkedHashSet<>();
+            Map<Class<?>, List<Long>> grouped = group(frontier);
+            for (ReferenceDescriptor descriptor : m.references) {
+                if (descriptor.getPolicy() == Policy.OWNED_BY) {
+                    for (Map.Entry<Class<?>, List<Long>> group : grouped.entrySet()) {
+                        for (Edge edge : edgesByTarget(m, descriptor, group.getKey(), group.getValue())) {
+                            candidates.add(edge.referrer());
+                        }
+                    }
+                } else if (descriptor.getPolicy() == Policy.OWNS) {
+                    List<Long> ids = grouped.get(descriptor.getReferrerType());
+                    if (ids != null) {
+                        for (Edge edge : edgesByReferrer(m, descriptor, ids)) {
+                            candidates.add(edge.target());
+                        }
+                    }
+                }
+            }
+            candidates.removeAll(selection);
+            candidates.removeAll(owned);
+            candidates = new LinkedHashSet<>(deletedAmong(m, candidates));
+            owned.addAll(candidates);
+            frontier = candidates;
+        }
+        return owned;
     }
 
     /**

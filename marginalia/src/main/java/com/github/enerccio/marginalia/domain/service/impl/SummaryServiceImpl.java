@@ -235,6 +235,18 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
     @Override
     @CommonTx
+    public void softDeleteForManuscript(Manuscript manuscript) throws Exception {
+        getRepository().softDeleteByManuscript(manuscript);
+    }
+
+    @Override
+    @CommonTx
+    public void softDeleteForMessages(Collection<Long> messageIds) throws Exception {
+        getRepository().softDeleteByMessageIds(messageIds);
+    }
+
+    @Override
+    @CommonTx
     public ChatMessage removeSummary(ChatMessage message, boolean unwind) throws Exception {
         message = chatMessageService.find(message);
         if (message == null || message.getSummary() == null) {

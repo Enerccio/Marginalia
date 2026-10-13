@@ -4,12 +4,30 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.repository.LorebookEntryRepository;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
+import com.github.enerccio.marginalia.domain.service.TagRelationService;
+import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.List;
 
 public class LorebookEntryServiceImpl extends ExtendableServiceImpl<LorebookEntry, LorebookEntryRepository> implements LorebookEntryService {
+
+    @Autowired
+    private TagRelationService tagRelationService;
+
+    /**
+     * A soft deleted entry takes its tags with it.
+     */
+    @Override
+    @CommonTx
+    public LorebookEntry delete(LorebookEntry entry, boolean hard) throws Exception {
+        if (!hard && entry != null && entry.getId() != null) {
+            tagRelationService.deleteForObject(entry, false);
+        }
+        return super.delete(entry, hard);
+    }
 
     @Override
     @CommonTxReadOnly

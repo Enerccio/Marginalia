@@ -333,6 +333,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_USED, "Used");
         setValue(L.LABEL_LIMIT_HARD, "hard");
         setValue(L.LABEL_LIMIT_GENERATED_HARD, "Hard limit: refuse a request whose reserved response would go over");
+        setValue(L.LABEL_DELETE_PERMANENTLY, "Delete Permanently");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -501,6 +502,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_EXTENSION_STARTED, "Extension started.");
         setValue(L.MSG_EXTENSION_STOPPED, "Extension stopped.");
         setValue(L.MSG_EXTENSION_LOG_EMPTY, "The extension has not written anything to its log.");
+        setValue(L.MSG_DELETE_PERMANENTLY_HINT, "Removes the selected story parts and lorebook entries from the database for good. Other objects can only be restored; the cleanup removes them.");
+        setValue(L.MSG_CONFIRM_DELETE_PERMANENTLY, "Permanently delete %s selected objects? This cannot be undone. Story parts below a deleted part move to its parent.");
+        setValue(L.MSG_DELETED_PERMANENTLY, "%s objects were deleted permanently.");
+        setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED, "Nothing was deleted. These objects can't be removed:");
+        setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED_ITEM, "%s \"%s\": %s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
