@@ -162,6 +162,17 @@ In this style paragraphs are justified and long words are hyphenated automatical
 book's **Language** (set on the [About tab](managing-books.md#the-about-tab)). Hyphenation is done by the browser;
 for a few rare languages it has no dictionary and the text is simply not hyphenated.
 
+## Highlighting generated text
+
+The settings menu (⚙) also has the checkable **Highlight Generated Text**. While it is on, the text that is still the
+way the model wrote it is highlighted in every part, so what you added or rewrote stands out. Marginalia keeps the
+original text of each part and compares it with the current one word by word. A part you never edited is highlighted
+whole; a part you wrote yourself has nothing highlighted. The switch is not saved: it is off again when the page is
+opened anew.
+
+Parts that existed before this feature count wholly as generated, because the original text was not kept for them.
+The highlight is available in the desktop view only, not in the [phone view](../phone.md).
+
 ## Exporting the story
 
 The settings menu (⚙) also has **Export story**, which saves the active branch as a text, Markdown, HTML, Word, PDF or EPUB

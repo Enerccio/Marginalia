@@ -47,6 +47,14 @@ a migrated database.
 - Lore Generator: **Name tools** gives the model the functions of the Name generator for the categories you check, in a
   lazy table with a filter (the checked categories stay in it). The checked categories are remembered per entry with
   the other options of the generation. The default hint lets the model modify or remix the names it gets.
+- Highlight of generated text: the settings menu (⚙) of the story has the checkable **Highlight Generated Text**. While
+  it is on, the text of every part that is still the one the LLM wrote is highlighted, what the author added or
+  rewrote is not (a word-by-word diff of the part against its new extended attribute `ChatMessage.originalResponse`,
+  which generation fills and editing leaves alone). The switch is not saved. Existing parts get their current text as
+  the original by the app migration 3 → 4 (`OriginalResponseMigration`, deleted parts too; no SQL migration), so what
+  was edited before cannot be told apart. Only the desktop story tab has it. Plugins: `ChatMessage.originalResponse`,
+  new `@Extendable` methods `ManuscriptStoryPart.createHighlightGeneratedMenuItem`, `setShowGeneratedDiff` and
+  `ChatMessageCard.renderResponse` (`@PublicAPI` from 1.2.0).
 
 ### Changed
 

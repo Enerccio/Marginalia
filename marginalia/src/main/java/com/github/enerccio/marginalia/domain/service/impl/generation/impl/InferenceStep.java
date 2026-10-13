@@ -89,6 +89,7 @@ public class InferenceStep extends GenerationStepBase {
                             long deltaTokenIncrease = inferenceService.countTokensApprox(t);
                             String existingResponse = StringUtils.defaultString(chatMessage.getResponse());
                             chatMessage.setResponse(existingResponse + t);
+                            chatMessage.setOriginalResponse(StringUtils.defaultString(chatMessage.getOriginalResponse()) + t);
                             chatMessage.setTokenCount(chatMessage.getTokenCount() + deltaTokenIncrease);
                             chatMessage.setWordCount(countWords(chatMessage.getResponse()));
                             chatMessage = saveIfNecessary(chatMessage, lastChunkReceived);

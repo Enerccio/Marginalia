@@ -342,6 +342,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_LIMIT_HARD, "硬性");
         setValue(L.LABEL_LIMIT_GENERATED_HARD, "硬性上限：若预留的回复会超出上限则拒绝请求");
         setValue(L.LABEL_DELETE_PERMANENTLY, "永久删除");
+        setValue(L.LABEL_HIGHLIGHT_GENERATED_TEXT, "高亮生成的文本");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

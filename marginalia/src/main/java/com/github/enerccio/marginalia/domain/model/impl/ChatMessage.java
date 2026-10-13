@@ -62,6 +62,12 @@ public class ChatMessage extends ExtendableEntity {
     @Transient
     private String response;
 
+    // the text as the LLM produced it, response is diffed against it to tell generated text from the author's edits;
+    // null for parts that were not generated
+    @ExtendedAttribute
+    @Transient
+    private String originalResponse;
+
     // approx since model is used and can be changed
     private long tokenCount;
 
@@ -153,6 +159,7 @@ public class ChatMessage extends ExtendableEntity {
         this.reasoningEnd = source.reasoningEnd;
         this.request = source.request;
         this.response = source.response;
+        this.originalResponse = source.originalResponse;
         this.responseReasoning = source.responseReasoning;
         this.sceneSetting = source.sceneSetting;
         this.scrollPosition = source.scrollPosition;
@@ -226,6 +233,14 @@ public class ChatMessage extends ExtendableEntity {
 
     public void setResponseReasoning(String responseReasoning) {
         this.responseReasoning = responseReasoning;
+    }
+
+    public String getOriginalResponse() {
+        return originalResponse;
+    }
+
+    public void setOriginalResponse(String originalResponse) {
+        this.originalResponse = originalResponse;
     }
 
     public String getResponse() {
