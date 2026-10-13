@@ -292,7 +292,7 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
 | `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, "160px")` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. |
 | `ChartJs` | A [Chart.js](https://www.chartjs.org/) chart: `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) as JSON and draws it responsively into the element (height 320px, the `chart-js` style). Used by `TokenUsageDialog` (doughnut of the prompt sections, bar chart of the payload messages), opened from *Token Usage* in the part menu of the desktop and phone story editors. |
-| `TrashGrid` | Deleted objects with a restore button, see [Trash](#trash). |
+| `TrashGrid` | Deleted objects with a restore button and a button that deletes parts and entries for good, see [Trash](#trash). |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |
 
 ### Trash
@@ -303,11 +303,14 @@ survives paging), a filter by type (names from `Localization.localizeDomainObjec
 filter by owner and an owner column. `allUsers` only decides what the widget shows; the service decides what the
 current user may see and restore. *Restore Selected* confirms and calls `TrashService.restore`; when it returns
 blockers the widget shows them in a dialog (nothing was restored), otherwise it refreshes and runs the listeners from
-`addRestoreListener` (`TrashPart` uses it to refresh the whole workspace). The *Extended Content* link opens the JSON
+`addRestoreListener` (`TrashPart` uses it to refresh the whole workspace). *Delete Permanently* (`createDeleteButton`,
+the field `deleteButton`) is enabled while the selection has only types of `TrashService.getPermanentlyDeletableTypes()`
+(story parts, lorebook entries), confirms and calls `TrashService.deletePermanently`, shows the reasons in a dialog when
+it is blocked and refreshes the table otherwise (nothing to refresh elsewhere, nothing came back). The *Extended Content* link opens the JSON
 from `TrashService.getExtendedContent` in a read-only text area. `TrashPart` (the *Trash* tab, `allUsers` for
 administrators) and `CleanupPanel` (a `Details` section, created when first opened) both use it.
 
-`PhoneTrashGrid` (used by `PhoneTrashPart`) subclasses it through the `createToolbar()` and `addColumns()` hooks: the
+`PhoneTrashGrid` (used by `PhoneTrashPart`) subclasses it through the `createToolbar()` (it adds the same `createDeleteButton()`) and `addColumns()` hooks: the
 filters are stacked over the whole width, the description is behind an info button (a `Popover`) instead of above the
 table (`createDescription()`), and the table has only the check box column and one content column that
 shows name, type, owner (`allUsers`), delete time and the *Extended Content* link below each other.
