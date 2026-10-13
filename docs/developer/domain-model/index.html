@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845222405279">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845238526634">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845222405279" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845238526634" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845222405279" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845238526634" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845222405279" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845222405279" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845238526634" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845238526634" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -366,6 +366,60 @@ deleted rows, so to the application the entity is gone, but the row stays and ot
 administrator&#x27;s <em>Cleanup</em> page later purges deleted rows that nothing needs any more (see <doc-anchor-trigger to="#cleanup-references">Cleanup references</doc-anchor-trigger>).
 <code translate="no" v-pre>delete(entity, true)</code> removes the row right away; it is used where nothing can reference the row, e.g. replaced
 messages during a backup restore.</p>
+<p><strong>A soft delete takes the dependent rows with it.</strong> The services whose entities own other rows override <code translate="no" v-pre>delete</code> and,
+when it is not a hard delete, soft delete those rows first (the <code translate="no" v-pre>OWNED_BY</code> / <code translate="no" v-pre>OWNS</code> rows of the
+<doc-anchor-trigger to="#cleanup-references">cleanup references</doc-anchor-trigger>), so the trash and the cleanup see the whole group deleted:</p>
+<retype-table copy-text="| Deleted | Also deleted |
+|---|---|
+| `Manuscript` | all its `ChatMessage`s and their `Summary`s (`ChatMessageService.softDeleteForManuscript`), its `TagRelation`s |
+| `ChatMessage` | its `Summary` and all messages below it (children, their children...) |
+| `Lorebook` | its `LorebookEntry`s (through `LorebookEntryService.delete`, so with their tag relations), its `TagRelation`s |
+| `LorebookEntry` | its `TagRelation`s (positive and negative) |
+| `AI` | its `Usage`s |
+| `Tag` | its `TagRelation`s |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Deleted</th>
+<th>Also deleted</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>Manuscript</code></td>
+<td>all its <code translate="no" v-pre>ChatMessage</code>s and their <code translate="no" v-pre>Summary</code>s (<code translate="no" v-pre>ChatMessageService.softDeleteForManuscript</code>), its <code translate="no" v-pre>TagRelation</code>s</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ChatMessage</code></td>
+<td>its <code translate="no" v-pre>Summary</code> and all messages below it (children, their children...)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Lorebook</code></td>
+<td>its <code translate="no" v-pre>LorebookEntry</code>s (through <code translate="no" v-pre>LorebookEntryService.delete</code>, so with their tag relations), its <code translate="no" v-pre>TagRelation</code>s</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LorebookEntry</code></td>
+<td>its <code translate="no" v-pre>TagRelation</code>s (positive and negative)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AI</code></td>
+<td>its <code translate="no" v-pre>Usage</code>s</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Tag</code></td>
+<td>its <code translate="no" v-pre>TagRelation</code>s</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A book has thousands of messages, so the messages and summaries are soft deleted with one bulk <code translate="no" v-pre>UPDATE</code> per kind
+(<code translate="no" v-pre>softDeleteByManuscript</code>, <code translate="no" v-pre>softDeleteByIds</code>; <code translate="no" v-pre>deleted = true, modification = now</code>): the rows are not loaded, no entity
+listener or event runs and <code translate="no" v-pre>extendedContent</code> stays as it is. The rest goes through the services&#x27; <code translate="no" v-pre>delete</code>. Objects that
+only <em>reference</em> the deleted one (a book using a deleted provider or lorebook, a lorebook that includes the deleted one
+as a subbook) are not deleted. A hard delete does not cascade. Code that adds an entity owned by another one has to add
+it to the cascade, or the owned rows stay live while their owner is in the trash.</p>
 <h3 id="ownedentity---ownership"><code translate="no" v-pre>OwnedEntity</code> - ownership</h3>
 <p><code translate="no" v-pre>owner</code> (column <code translate="no" v-pre>userId</code>) is the user the entity belongs to; <code translate="no" v-pre>null</code> for installation-wide rows (<code translate="no" v-pre>AppSettings</code>).
 <code translate="no" v-pre>OwnedServiceImpl.save</code> fills it with the current user when a new entity has no owner. Lookups that start from
@@ -1359,10 +1413,27 @@ listener runs and extended attributes stay untouched. Before it restores, it loo
 </div>
 </retype-table>
 <p>When a parent is deleted and not part of the same selection, nothing is restored and the result lists the blockers.
-A deleted owner counts as a parent, so the objects of a deleted user can&#x27;t be restored. A restored <code translate="no" v-pre>ChatMessage</code> does
-not get its children back: they were moved to its parent when it was deleted (<code translate="no" v-pre>deleteNodeAndMigrateChildren</code>).</p>
+A deleted owner counts as a parent, so the objects of a deleted user can&#x27;t be restored.</p>
+<p>The restore is the reverse of the <doc-anchor-trigger to="#baseentity---identity-and-soft-delete">soft delete cascade</doc-anchor-trigger>: the selection is first
+extended with the deleted rows it owns (<code translate="no" v-pre>OWNED_BY</code> rows pointing at a selected row, rows a selected row <code translate="no" v-pre>OWNS</code>,
+repeatedly), so restoring a book brings back its parts, summaries and tags, and <code translate="no" v-pre>RestoreResult.getRestored()</code> counts
+them too. It can&#x27;t tell a row that was deleted together with its owner from one deleted on its own earlier, so the latter
+comes back as well. A restored <code translate="no" v-pre>ChatMessage</code> deleted by <code translate="no" v-pre>deleteNodeAndMigrateChildren</code> does not get its children back:
+they were moved to its parent when it was deleted.</p>
+<p><code translate="no" v-pre>TrashService.deletePermanently</code> removes deleted rows for good, for the <em>Delete Permanently</em> button of <code translate="no" v-pre>TrashGrid</code>. It is
+limited to <code translate="no" v-pre>getPermanentlyDeletableTypes()</code> (<code translate="no" v-pre>ChatMessage</code>, <code translate="no" v-pre>LorebookEntry</code>; anything else raises
+<code translate="no" v-pre>IllegalArgumentException</code>) so a user can&#x27;t purge a whole book, and checks ownership like <code translate="no" v-pre>restore</code>. It runs the purge of
+the cleanup (<code translate="no" v-pre>executePurge</code>) on the selection: the rows that go with it are only <code translate="no" v-pre>Summary</code> and <code translate="no" v-pre>TagRelation</code> rows, a
+summary something else uses stays, and a block by a <code translate="no" v-pre>CleanupContributor</code> (or any other row that would have to go) makes
+the whole call return <code translate="no" v-pre>DeleteResult.getBlocked()</code> and roll back. Before that, <code translate="no" v-pre>moveChildrenOfMessages</code> moves the children
+of the selected messages - deleted ones too, which the editor&#x27;s <code translate="no" v-pre>deleteNodeAndMigrateChildren</code> never sees - and the
+<code translate="no" v-pre>activeLeaf</code> of books to the nearest ancestor that is not selected, with bulk updates, so removing a chain of parts keeps
+the parts below it connected.</p>
 <p>So a deleted provider that a book still uses shows up as <em>blocked</em> on the Cleanup page until the book is switched to
 another provider, while a deleted book takes its parts, their summaries and its tag relations with it.</p>
+<p>Because the soft delete deletes the owned rows too, they are purge roots of their own. A root whose owner (<code translate="no" v-pre>OWNED_BY</code>,
+directly or through other rows) is blocked is <em>held back</em>: it stays, is not listed as blocked itself and is not
+counted as purgeable, so a blocked lorebook that is still restorable keeps its entries.</p>
 <h2 id="backups-and-copies">Backups and copies</h2>
 <p>Book backups (<code translate="no" v-pre>BackupService</code>) serialize a book as JSON: its columns, its <code translate="no" v-pre>extendedContent</code> as is, its tags, all
 parts (with <code translate="no" v-pre>extendedContent</code> and summaries) and references to its provider, protocol and lorebook by uuid and name.

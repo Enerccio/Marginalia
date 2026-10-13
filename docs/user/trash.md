@@ -30,6 +30,14 @@ are back in their lists, exactly as they were deleted, and the other tabs are re
 
 ### Objects that belong to other objects
 
+Deleting an object deletes what belongs to it, and restoring it brings that back: a book takes its story parts,
+their summaries and its tags with it, a lorebook its entries, a story part its summary and the parts below it,
+an inference provider its usage numbers. You don't need to tick them: restore the book, and its story comes with it.
+They show up in the table as separate rows (a book with a long story fills the table with its parts); restoring one of
+them alone only works when the object it belongs to is not deleted. Something you had deleted on its own earlier (an
+entry, a story part) comes back with its lorebook or book too, as Marginalia can't tell it from what was deleted
+together with it.
+
 Some objects can't live without another object:
 
 - an entry needs its lorebook,
@@ -53,6 +61,20 @@ A story part that was deleted from the middle of a story had its following parts
 brings the part back under its parent as a new branch, **without** the parts that followed it: they stay where they
 were moved to. Restore a whole book instead of single parts when you want the story as it was.
 !!!
+
+## Deleting for good
+
+Waiting for the cleanup is not always what you want: a story part or a lorebook entry you know you never need again can
+be removed right away. Tick it and click **Delete Permanently**; Marginalia asks first, and **this can't be undone**.
+
+- Only **story parts** and **lorebook entries** can be deleted permanently (with their summaries and tags). The button
+  is disabled while anything else is ticked: books, lorebooks and the rest wait for the administrator's
+  [cleanup](administration/cleanup.md), so you can't remove a whole book by accident.
+- Story parts that are below a removed part are not removed with it, whether they are deleted or not: they move to its
+  parent, as when you delete a part in the editor. If the part was the position a book was open at, the book opens
+  at the parent instead.
+- Marginalia deletes nothing when something can't be removed (for example an extension still needs the object) and tells
+  you which one.
 
 ### Extended content
 

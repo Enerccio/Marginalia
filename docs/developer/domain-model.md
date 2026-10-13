@@ -113,6 +113,26 @@ administrator's *Cleanup* page later purges deleted rows that nothing needs any 
 `delete(entity, true)` removes the row right away; it is used where nothing can reference the row, e.g. replaced
 messages during a backup restore.
 
+**A soft delete takes the dependent rows with it.** The services whose entities own other rows override `delete` and,
+when it is not a hard delete, soft delete those rows first (the `OWNED_BY` / `OWNS` rows of the
+[cleanup references](#cleanup-references)), so the trash and the cleanup see the whole group deleted:
+
+| Deleted | Also deleted |
+|---|---|
+| `Manuscript` | all its `ChatMessage`s and their `Summary`s (`ChatMessageService.softDeleteForManuscript`), its `TagRelation`s |
+| `ChatMessage` | its `Summary` and all messages below it (children, their children...) |
+| `Lorebook` | its `LorebookEntry`s (through `LorebookEntryService.delete`, so with their tag relations), its `TagRelation`s |
+| `LorebookEntry` | its `TagRelation`s (positive and negative) |
+| `AI` | its `Usage`s |
+| `Tag` | its `TagRelation`s |
+
+A book has thousands of messages, so the messages and summaries are soft deleted with one bulk `UPDATE` per kind
+(`softDeleteByManuscript`, `softDeleteByIds`; `deleted = true, modification = now`): the rows are not loaded, no entity
+listener or event runs and `extendedContent` stays as it is. The rest goes through the services' `delete`. Objects that
+only *reference* the deleted one (a book using a deleted provider or lorebook, a lorebook that includes the deleted one
+as a subbook) are not deleted. A hard delete does not cascade. Code that adds an entity owned by another one has to add
+it to the cascade, or the owned rows stay live while their owner is in the trash.
+
 ### `OwnedEntity` - ownership
 
 `owner` (column `userId`) is the user the entity belongs to; `null` for installation-wide rows (`AppSettings`).
@@ -507,11 +527,31 @@ listener runs and extended attributes stay untouched. Before it restores, it loo
 | `WEAK` | none, purge clears it anyway |
 
 When a parent is deleted and not part of the same selection, nothing is restored and the result lists the blockers.
-A deleted owner counts as a parent, so the objects of a deleted user can't be restored. A restored `ChatMessage` does
-not get its children back: they were moved to its parent when it was deleted (`deleteNodeAndMigrateChildren`).
+A deleted owner counts as a parent, so the objects of a deleted user can't be restored.
+
+The restore is the reverse of the [soft delete cascade](#baseentity---identity-and-soft-delete): the selection is first
+extended with the deleted rows it owns (`OWNED_BY` rows pointing at a selected row, rows a selected row `OWNS`,
+repeatedly), so restoring a book brings back its parts, summaries and tags, and `RestoreResult.getRestored()` counts
+them too. It can't tell a row that was deleted together with its owner from one deleted on its own earlier, so the latter
+comes back as well. A restored `ChatMessage` deleted by `deleteNodeAndMigrateChildren` does not get its children back:
+they were moved to its parent when it was deleted.
+
+`TrashService.deletePermanently` removes deleted rows for good, for the *Delete Permanently* button of `TrashGrid`. It is
+limited to `getPermanentlyDeletableTypes()` (`ChatMessage`, `LorebookEntry`; anything else raises
+`IllegalArgumentException`) so a user can't purge a whole book, and checks ownership like `restore`. It runs the purge of
+the cleanup (`executePurge`) on the selection: the rows that go with it are only `Summary` and `TagRelation` rows, a
+summary something else uses stays, and a block by a `CleanupContributor` (or any other row that would have to go) makes
+the whole call return `DeleteResult.getBlocked()` and roll back. Before that, `moveChildrenOfMessages` moves the children
+of the selected messages - deleted ones too, which the editor's `deleteNodeAndMigrateChildren` never sees - and the
+`activeLeaf` of books to the nearest ancestor that is not selected, with bulk updates, so removing a chain of parts keeps
+the parts below it connected.
 
 So a deleted provider that a book still uses shows up as *blocked* on the Cleanup page until the book is switched to
 another provider, while a deleted book takes its parts, their summaries and its tag relations with it.
+
+Because the soft delete deletes the owned rows too, they are purge roots of their own. A root whose owner (`OWNED_BY`,
+directly or through other rows) is blocked is *held back*: it stays, is not listed as blocked itself and is not
+counted as purgeable, so a blocked lorebook that is still restorable keeps its entries.
 
 ## Backups and copies
 

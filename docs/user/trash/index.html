@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845222405279">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845238526634">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845222405279" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845238526634" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845222405279" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845238526634" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845222405279" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845238526634" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -232,6 +232,13 @@ them from the database for good. Whatever the cleanup has removed can no longer 
 <p>Tick the objects you want back and click <strong>Restore Selected</strong>. Marginalia asks before it restores them. The objects
 are back in their lists, exactly as they were deleted, and the other tabs are refreshed.</p>
 <h3 id="objects-that-belong-to-other-objects">Objects that belong to other objects</h3>
+<p>Deleting an object deletes what belongs to it, and restoring it brings that back: a book takes its story parts,
+their summaries and its tags with it, a lorebook its entries, a story part its summary and the parts below it,
+an inference provider its usage numbers. You don&#x27;t need to tick them: restore the book, and its story comes with it.
+They show up in the table as separate rows (a book with a long story fills the table with its parts); restoring one of
+them alone only works when the object it belongs to is not deleted. Something you had deleted on its own earlier (an
+entry, a story part) comes back with its lorebook or book too, as Marginalia can&#x27;t tell it from what was deleted
+together with it.</p>
 <p>Some objects can&#x27;t live without another object:</p>
 <ul>
 <li>an entry needs its lorebook,</li>
@@ -271,6 +278,25 @@ were moved to. Restore a whole book instead of single parts when you want the st
         </div>
     </div>
 </div>
+<h2 id="deleting-for-good">Deleting for good</h2>
+<p>Waiting for the cleanup is not always what you want: a story part or a lorebook entry you know you never need again can
+be removed right away. Tick it and click <strong>Delete Permanently</strong>; Marginalia asks first, and <strong>this can&#x27;t be undone</strong>.</p>
+<ul>
+<li>
+<p>Only <strong>story parts</strong> and <strong>lorebook entries</strong> can be deleted permanently (with their summaries and tags). The button
+is disabled while anything else is ticked: books, lorebooks and the rest wait for the administrator&#x27;s
+<a href="../administration/cleanup/">cleanup</a>, so you can&#x27;t remove a whole book by accident.</p>
+</li>
+<li>
+<p>Story parts that are below a removed part are not removed with it, whether they are deleted or not: they move to its
+parent, as when you delete a part in the editor. If the part was the position a book was open at, the book opens
+at the parent instead.</p>
+</li>
+<li>
+<p>Marginalia deletes nothing when something can&#x27;t be removed (for example an extension still needs the object) and tells
+you which one.</p>
+</li>
+</ul>
 <h3 id="extended-content">Extended content</h3>
 <p>Marginalia keeps much of an object&#x27;s data (the text of a story part, the settings of a lorebook entry, notes that
 <a href="../extensions/">extensions</a> saved) as JSON next to it. <strong>Extended Content</strong> in a row shows it, so you can
