@@ -164,6 +164,43 @@ Sharing a provider lets the other users spend the owner's quota with the service
 of their own, so that they can only use the shared ones, see
 [Users and providers](administration/users.md#users-and-providers).
 
+## Limits of shared providers
+
+An administrator can limit what each user may do with a shared provider. In the **Inference Providers** tab, the
+administrator who owns a shared provider has a **Limits** button (a user with a lock) in its row, which opens a table with
+the limits that were set. **Add limit** creates a new one: pick the user and a limit type.
+
+| Limit type | Meaning |
+|---|---|
+| Unlimited | No limit (the same as having none). |
+| Token limit | The user can use up to the given number of tokens per period. |
+| Not available | The user can not use the provider; anything that would send a request to it fails. |
+
+A **token limit** has a **reset** (daily, weekly from Monday, or monthly; calendar periods in the time zone of the
+server) and three limits that can each be left empty for no limit: the tokens **sent**, the tokens **generated**, and
+both together (**in total**). Whichever is reached first stops the user until the next reset. If all three are set, the
+sent plus the generated limit must not be below the total (the total could then never be reached), otherwise the dialog
+refuses to save. For example a total of 100,000 with 100,000 sent and 20,000 generated is fine, a total of 100,000 with
+20,000 sent and 10,000 generated is not.
+
+Nothing is reset on a timer: the tokens used start from zero when the user uses the provider (or looks at their limits)
+for the first time in a new period. The size of a request is known before it is sent, so a request whose prompt would
+take the user over the **sent** or **in total** limit is refused (the prompt is measured with Marginalia's own estimate,
+which can differ a little from the service's count). The tokens **generated** are not known in advance: they are counted
+when the request ends, so the user is stopped only once the limit is reached and the last response can go over it. Users
+without a limit in the table are not limited.
+
+To keep the generated tokens from going over, check **Hard limit** (only available with a limit of the generated tokens).
+A request reserves room for the largest response it allows (the **Max Response Size** of the provider, or the lower one of
+the protocol), and with a hard limit it is refused when that reserve does not fit into what is left of the generated
+limit. So a hard limit lower than the response size of the provider refuses every request; the table and the user's
+info show *hard* next to such a limit. The hard limit only covers the generated tokens, the **in total** limit can still be
+gone over by the last response.
+
+Every user sees the shared providers in their tab as read-only rows. The **info** button (the circle with an *i*) of a
+shared provider shows their own limit: what they used in this period, the limits and when they reset. When a limit is
+reached, the story editor, summaries and extensions show an error instead of sending the request.
+
 ## Usage
 
 The **Inference Providers** tab shows, per provider, the **Tokens sent** (the prompt, "prefill") and **Tokens generated** (the
@@ -175,8 +212,8 @@ provider (tokens sent, tokens generated, requests and the time of the last one).
 
 The numbers are what the service reports. A service that doesn't report them (or a request you stop in the middle)
 is counted with the local estimate described in [Token counting](#token-counting), so those numbers are approximate.
-A request that fails before any text arrived isn't counted. The counts are only informational for now: nothing is
-limited by them.
+A request that fails before any text arrived isn't counted. Unless an administrator has set a
+[limit](#limits-of-shared-providers) for you on a shared provider, the counts are only informational.
 
 !!!
 Marginalia asks the service to report the token counts (`stream_options` with `include_usage`). To change that for a

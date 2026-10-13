@@ -325,6 +325,22 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_USAGE_PER_USER, "按用户统计的用量");
         setValue(L.LABEL_REQUESTS, "请求数");
         setValue(L.LABEL_LAST_USED, "最后使用");
+        setValue(L.LABEL_LIMITS, "限制");
+        setValue(L.LABEL_LIMIT, "上限");
+        setValue(L.LABEL_ADD_LIMIT, "添加限制");
+        setValue(L.LABEL_EDIT_LIMIT, "编辑限制");
+        setValue(L.LABEL_YOUR_LIMITS, "你的限制");
+        setValue(L.LABEL_LIMIT_TYPE, "限制类型");
+        setValue(L.LABEL_RESET_PERIOD, "重置周期");
+        setValue(L.LABEL_NEXT_RESET, "下次重置");
+        setValue(L.LABEL_LIMIT_TOKENS_SENT, "发送令牌上限");
+        setValue(L.LABEL_LIMIT_TOKENS_GENERATED, "生成令牌上限");
+        setValue(L.LABEL_LIMIT_TOKENS_TOTAL, "令牌总上限");
+        setValue(L.LABEL_TOKENS_TOTAL, "令牌总计");
+        setValue(L.LABEL_UNLIMITED, "无限制");
+        setValue(L.LABEL_USED, "已使用");
+        setValue(L.LABEL_LIMIT_HARD, "硬性");
+        setValue(L.LABEL_LIMIT_GENERATED_HARD, "硬性上限：若预留的回复会超出上限则拒绝请求");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -365,6 +381,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_BUNDLE_STATE_ACTIVE, "运行中");
         setValue(L.ENUM_BUNDLE_STATE_UNKNOWN, "未知（%d）");
         setValue(L.ENUM_BUNDLE_STATE_STOPPED, "已停止");
+        setValue(L.ENUM_LIMIT_UNLIMITED, "无限制");
+        setValue(L.ENUM_LIMIT_TOKEN_LIMIT, "令牌限制");
+        setValue(L.ENUM_LIMIT_NOT_AVAILABLE, "不可用");
+        setValue(L.ENUM_RESET_DAILY, "每天");
+        setValue(L.ENUM_RESET_WEEKLY, "每周（从周一开始）");
+        setValue(L.ENUM_RESET_MONTHLY, "每月");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -400,6 +422,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_EXTENSION_INCOMPATIBLE, "扩展 %s 与此版本的 Marginalia 不兼容，未被加载。");
         setValue(L.ERROR_EXTENSION_START_FAILED, "启动扩展失败：%s");
         setValue(L.ERROR_EXTENSION_STOP_FAILED, "停止扩展失败：%s");
+        setValue(L.ERROR_INFERENCE_NOT_AVAILABLE, "此模型对你不可用。");
+        setValue(L.ERROR_INFERENCE_LIMIT_REACHED, "你已用完此模型的令牌限制，或此请求会超出限制。可在“模型”标签页查看限制和重置时间。");
+        setValue(L.ERROR_LIMIT_NEGATIVE, "上限不能为负数。");
+        setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "发送令牌与生成令牌的上限之和小于总上限，总上限永远不会达到。");
+        setValue(L.ERROR_LIMIT_USER_REQUIRED, "请选择用户。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -492,6 +519,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_PROTOCOL_REPLY_TOKENS, "可选。留空则使用推理提供方的最大响应 Token 数。");
         setValue(L.HELP_AI_REQUEST_TIMEOUT, "等待提供方作出响应或继续发送文本的时间。推理模型在输出第一段文本之前可能需要几分钟。");
         setValue(L.HELP_AI_MAX_RETRIES, "因速率限制（429）、服务器错误（5xx）或连接错误而失败的请求的重试次数。每次重试之间的等待时间会逐渐变长。");
+        setValue(L.HELP_LIMIT_EMPTY_UNLIMITED, "留空表示不限制。最先达到的上限会让用户在下次重置前无法使用。");
+        setValue(L.HELP_LIMITS_OTHERS_UNLIMITED, "此处没有限制的用户不受限制。");
+        setValue(L.HELP_LIMIT_GENERATED_HARD, "生成令牌的硬性上限会在请求预留的回复（最大回复大小）超出剩余额度时拒绝该请求；否则最后一次回复可能超出上限。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

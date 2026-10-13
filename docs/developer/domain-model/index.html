@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845216742697">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845221092569">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845216742697" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845221092569" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845216742697" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845221092569" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845216742697" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845216742697" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845221092569" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845221092569" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1022,13 +1022,14 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 </retype-table>
 <h3 id="usage-tokens-used-with-an-ai"><code translate="no" v-pre>Usage</code> (tokens used with an AI)</h3>
 <p>One row per AI and user (<code translate="no" v-pre>owner</code>), unique on <code translate="no" v-pre>(ai_id, userId)</code>: a personal AI has one, a shared AI one for everybody who
-uses it. Counting only; nothing is limited by it yet.</p>
+uses it. Counts what the user used, and since the last reset for the user&#x27;s limit on the AI (below).</p>
 <retype-table copy-text="| Field | Stored | |
 |---|---|---|
 | `ai` | column `ai_id` | `@ManyToOne`, `OWNED_BY` the AI for cleanup. |
 | `prefillTokens` | column | Tokens sent to the model (the prompt). |
 | `generatedTokens` | column | Tokens the model generated, reasoning included. |
-| `requests`, `lastUsed` | columns | Number of requests added up, time of the last one. |">
+| `requests`, `lastUsed` | columns | Number of requests added up, time of the last one. |
+| `periodPrefillTokens`, `periodGeneratedTokens` | columns | Tokens sent / generated since the last reset of the user's token limit. Counted only while the user has a `TOKEN_LIMIT` (otherwise set to 0); stale when `lastUsed` is before the start of the current period. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -1059,6 +1060,11 @@ uses it. Counting only; nothing is limited by it yet.</p>
 <td>columns</td>
 <td>Number of requests added up, time of the last one.</td>
 </tr>
+<tr>
+<td><code translate="no" v-pre>periodPrefillTokens</code>, <code translate="no" v-pre>periodGeneratedTokens</code></td>
+<td>columns</td>
+<td>Tokens sent / generated since the last reset of the user&#x27;s token limit. Counted only while the user has a <code translate="no" v-pre>TOKEN_LIMIT</code> (otherwise set to 0); stale when <code translate="no" v-pre>lastUsed</code> is before the start of the current period.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1069,6 +1075,25 @@ current user, creating it on first use (under a lock held until the commit, so t
 never throws. <code translate="no" v-pre>findAllForAI(ai)</code> lists every user&#x27;s usage for the owner of the AI or an administrator; <code translate="no" v-pre>findAllUsages()</code> lists all of them, administrators only (the
 <strong>Usage per user</strong> dialog of the Models tab). See
 <a href="../generation-pipeline/#usage-counting">Inference</a>.</p>
+<h4 id="limits-of-the-users-of-a-shared-ai">Limits of the users of a shared AI</h4>
+<p><code translate="no" v-pre>AI.limits</code> is an <code translate="no" v-pre>@ExtendedAttribute</code> string holding a JSON object: the <code translate="no" v-pre>AILimit</code> of each user under the user&#x27;s uuid
+(<code translate="no" v-pre>strategy</code> <code translate="no" v-pre>LimitStrategy</code> UNLIMITED / TOKEN_LIMIT / NOT_AVAILABLE, <code translate="no" v-pre>resetStrategy</code> <code translate="no" v-pre>ResetStrategy</code> DAILY / WEEKLY / MONTHLY,
+and <code translate="no" v-pre>prefillTokens</code>, <code translate="no" v-pre>generatedTokens</code>, <code translate="no" v-pre>totalTokens</code>, each null for unlimited). <code translate="no" v-pre>AILimits</code> reads and writes it; a user
+without an entry is not limited. These are only the <em>settings</em> and they are set by the owner (an administrator). What a user
+<em>used</em> is not in this JSON on purpose: it changes with every request, from the thread of any user, and <code translate="no" v-pre>AIService.save</code> is
+for the owner and would lose parallel updates, so it is in the two <code translate="no" v-pre>period*</code> columns of the user&#x27;s <code translate="no" v-pre>Usage</code>, added up in SQL
+like the other counters.</p>
+<p>The reset is lazy. <code translate="no" v-pre>ResetStrategy.periodStart(now)</code> is the start of the calendar day / week (from Monday) / month in the
+server&#x27;s time zone. <code translate="no" v-pre>UsageService.add</code> (under <code translate="no" v-pre>record</code>) of a user with a <code translate="no" v-pre>TOKEN_LIMIT</code> first runs
+<code translate="no" v-pre>UsageRepository.resetPeriod</code> (zeroes the period counters when <code translate="no" v-pre>lastUsed</code> is before the period start) and then adds; for a
+user without one it zeroes them. <code translate="no" v-pre>AILimitService.getStatus</code> does not write: it reports 0 used when <code translate="no" v-pre>lastUsed</code> is before the
+period start. <code translate="no" v-pre>LimitStatus.block(promptTokens)</code> is the first reached of the sent, generated and total limits, or NOT_AVAILABLE. The
+prompt is known before the request, so a request is refused when the sent (or total) counter is at its limit or the
+estimated prompt (<code translate="no" v-pre>approximatePromptTokens</code>, our count) would take it over; the generated counter is only compared with its
+limit, so the last response can go over - unless <code translate="no" v-pre>AILimit.hardGeneratedLimit</code> is set: then the generated counter plus the
+response the request reserves (<code translate="no" v-pre>TokenLimits.responseTokens(ai, protocol)</code>, the <code translate="no" v-pre>max_completion_tokens</code> it sends; 0 when
+there is none) has to fit into the generated limit. The hard flag does not apply to the total limit. <code translate="no" v-pre>AILimit.validate()</code> rejects negative numbers and, when all three are
+set, sent plus generated below the total (the total could never be reached).</p>
 <h3 id="protocol--chatcompletionprotocol"><code translate="no" v-pre>Protocol</code> / <code translate="no" v-pre>ChatCompletionProtocol</code></h3>
 <retype-table copy-text="| Field | Stored | |
 |---|---|---|

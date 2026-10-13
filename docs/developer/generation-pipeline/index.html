@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845216742697">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845221092569">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845216742697" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845221092569" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845216742697" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845221092569" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845216742697" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845216742697" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845221092569" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845221092569" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -534,6 +534,9 @@ tokens. Without a report (the provider doesn&#x27;t send it, or the request was 
 arrived with <code translate="no" v-pre>countTokensApprox</code>. It is recorded once, when the stream completes, is stopped (<code translate="no" v-pre>terminateInference</code>, cancellation) or fails
 after some text arrived; a request that fails before any text is not counted. The stream threads have no request, so the service takes
 the <code translate="no" v-pre>ThreadCopyRequestAttributes</code> of the thread that called <code translate="no" v-pre>stream</code> and records inside it (<code translate="no" v-pre>currentUser</code> resolves).</p>
+<p>Before a request is built, <code translate="no" v-pre>stream</code> asks <code translate="no" v-pre>AILimitService.check(ai, promptTokens, reservedTokens)</code> (with our estimate of the payload and the response size the request reserves): a user with the AI not available or over their token limit gets an
+<code translate="no" v-pre>InferenceException</code> (<code translate="no" v-pre>NOT_AVAILABLE</code>, <code translate="no" v-pre>LIMIT_REACHED</code>) in the caller&#x27;s thread and nothing is sent, so the steps, summaries and
+extensions handle it like any provider failure. The limits are described in the <a href="../domain-model/#limits-of-the-users-of-a-shared-ai">domain model</a>.</p>
 <h3 id="8-cleanup---cleanupstep">8. <code translate="no" v-pre>CLEANUP</code> - <code translate="no" v-pre>CleanupStep</code></h3>
 <p>Always the last step. Depending on the state:</p>
 <retype-table copy-text="| State | What happens |

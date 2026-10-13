@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845216742697">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845221092569">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845216742697" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845221092569" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845216742697" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845221092569" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845216742697" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845216742697" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845221092569" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845221092569" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -486,9 +486,10 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 <h3 id="models">Models</h3>
 <retype-table copy-text="| Service | Responsible for |
 |---|---|
-| `AIService` | CRUD of inference providers with rules in the service: the user's AIs are their own and the shared ones (`AI.shared`); `save` / `delete` accept only the owner (`SecurityException` otherwise) and `shared = true` only from an administrator (`AdminGuard`); a new AI needs `canCreate()` (administrators, or anybody while `AppSettings.userAisAllowed`, set by `setUserCreationAllowed`, administrators only). `isOwnedByCurrentUser(ai)` is for the UI. |
+| `AIService` | CRUD of inference providers with rules in the service: the user's AIs are their own and the shared ones (`AI.shared`); `save` / `delete` accept only the owner (`SecurityException` otherwise) and `shared = true` only from an administrator (`AdminGuard`); a new AI needs `canCreate()` (administrators, or anybody while `AppSettings.userAisAllowed`, set by `setUserCreationAllowed`, administrators only). `isOwnedByCurrentUser(ai)` and `isAdministrator()` are for the UI; the latter reads the flag from the database, because the session's `User` bean is filled with id, login and name only, so `currentUser.isAdmin()` is always false in UI code. |
 | `ProtocolService` | Plain CRUD of protocols (not shared). |
 | `UsageService` | `record(ai, prefill, generated)` adds a request to the current user's `Usage` of the AI (never throws, see [Usage](domain-model.md#usage-tokens-used-with-an-ai)); `findForUser(ai)`, `findAllForAI(ai)` (owner of the AI or administrator), `findAllUsages()` (administrator). Called by `OpenAICompatibleInferenceService`, not by the callers of `stream`. |
+| `AILimitService` | Limits of the users of a shared AI, see [Limits](domain-model.md#limits-of-the-users-of-a-shared-ai). `findLimits`, `setLimit` (shared AIs only, validated by `AILimit.validate()`), `removeLimit`: the administrator who owns the AI only. `getLimit(ai)` / `getStatus(ai)` (`LimitStatus`: limit, tokens used in the period, next reset) are for the current user; the session's `User` has no uuid, so the service loads it. `check(ai, promptTokens, reservedTokens)` (the prompt must fit into the sent and total limits; the generated tokens only count once reached, or with a hard limit together with the reserved response) throws `InferenceException` `NOT_AVAILABLE` or `LIMIT_REACHED`; `OpenAICompatibleInferenceService.stream` calls it first, so every request is covered. |
 | `InferenceServices` | `forAI(ai)` returns the `InferenceService` for a provider. Implementations are listed in `services-config.xml` (`inferenceProviders`), each annotated `@SupportedAI(AIType...)` with a constructor taking the `AI`; the instance is cached on the (transient) `AI.inferenceService` field. `getFunctionRegistry()` is the [`FunctionRegistry`](#function-calls); `addToolRoleResolver` / `removeToolRoleResolver` let an extension change the role the results of function calls are sent with (default `tool`, a Gemma 4 API wants `tool_responses`; `resolveToolRole(ai)` asks the resolvers in the order they were added, the first non-blank answer wins) - the plugin must remove its resolver on unload. |
 | `InferenceService` | One provider: `getModels()`, `testConnection()` (model list plus a one-token completion, used by the &quot;Test Connection&quot; button of `AIDialog`), `countTokens` / `countTokensApprox`, `stream(payload, protocol, callback)`. Failures of the provider are `InferenceException` (classified by `Type`: authentication, model/URL not found, context overflow, rate limit, server, timeout, connection...; `OpenAICompatibleInferenceService.translateException`), also passed to `callback.onError`; `InferenceErrors.describe(loc, throwable)` / `messageOf` give the localized text for the UI. `OpenAICompatible` has the extended attributes `requestTimeoutSeconds` and `maxRetries`, applied to the client (read timeout, retries with backoff for 408/409/429/5xx and connection errors). A user message of the payload (`LLMChatMessage`) can carry `LLMAttachment`s (images as data or URL, WAV/MP3 audio, files), which `OpenAICompatibleInferenceService` sends as content parts after the text; an attachment it cannot send (audio in another format, audio or a file given only by URL) throws `IllegalArgumentException` from `stream`, attachments of other roles are not sent. Streaming is asynchronous; the callback gets chunks (`REASONING` / `RESPONSE`) and must call `controller.continueInference()` to receive the next one. `stream(payload, protocol, functions, callback)` also lets the model call functions, see [Function calls](#function-calls). Implemented by `OpenAICompatibleInferenceService`. |
 | `TokenizerService` | Token counting per provider: tries the `TokenizerStrategy` candidates in order and caches the first that works, per provider id, until it fails or the provider is saved (`AIDialog` calls `invalidateCache`). The local JTokkit fallback is not cached, so a provider whose server was unreachable is probed again on the next count. `countTokensApprox` always uses JTokkit locally. |
@@ -505,7 +506,7 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 <tbody>
 <tr>
 <td><code translate="no" v-pre>AIService</code></td>
-<td>CRUD of inference providers with rules in the service: the user&#x27;s AIs are their own and the shared ones (<code translate="no" v-pre>AI.shared</code>); <code translate="no" v-pre>save</code> / <code translate="no" v-pre>delete</code> accept only the owner (<code translate="no" v-pre>SecurityException</code> otherwise) and <code translate="no" v-pre>shared = true</code> only from an administrator (<code translate="no" v-pre>AdminGuard</code>); a new AI needs <code translate="no" v-pre>canCreate()</code> (administrators, or anybody while <code translate="no" v-pre>AppSettings.userAisAllowed</code>, set by <code translate="no" v-pre>setUserCreationAllowed</code>, administrators only). <code translate="no" v-pre>isOwnedByCurrentUser(ai)</code> is for the UI.</td>
+<td>CRUD of inference providers with rules in the service: the user&#x27;s AIs are their own and the shared ones (<code translate="no" v-pre>AI.shared</code>); <code translate="no" v-pre>save</code> / <code translate="no" v-pre>delete</code> accept only the owner (<code translate="no" v-pre>SecurityException</code> otherwise) and <code translate="no" v-pre>shared = true</code> only from an administrator (<code translate="no" v-pre>AdminGuard</code>); a new AI needs <code translate="no" v-pre>canCreate()</code> (administrators, or anybody while <code translate="no" v-pre>AppSettings.userAisAllowed</code>, set by <code translate="no" v-pre>setUserCreationAllowed</code>, administrators only). <code translate="no" v-pre>isOwnedByCurrentUser(ai)</code> and <code translate="no" v-pre>isAdministrator()</code> are for the UI; the latter reads the flag from the database, because the session&#x27;s <code translate="no" v-pre>User</code> bean is filled with id, login and name only, so <code translate="no" v-pre>currentUser.isAdmin()</code> is always false in UI code.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ProtocolService</code></td>
@@ -514,6 +515,10 @@ with <code translate="no" v-pre>java.util.zip</code>.</p>
 <tr>
 <td><code translate="no" v-pre>UsageService</code></td>
 <td><code translate="no" v-pre>record(ai, prefill, generated)</code> adds a request to the current user&#x27;s <code translate="no" v-pre>Usage</code> of the AI (never throws, see <a href="../domain-model/#usage-tokens-used-with-an-ai">Usage</a>); <code translate="no" v-pre>findForUser(ai)</code>, <code translate="no" v-pre>findAllForAI(ai)</code> (owner of the AI or administrator), <code translate="no" v-pre>findAllUsages()</code> (administrator). Called by <code translate="no" v-pre>OpenAICompatibleInferenceService</code>, not by the callers of <code translate="no" v-pre>stream</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AILimitService</code></td>
+<td>Limits of the users of a shared AI, see <a href="../domain-model/#limits-of-the-users-of-a-shared-ai">Limits</a>. <code translate="no" v-pre>findLimits</code>, <code translate="no" v-pre>setLimit</code> (shared AIs only, validated by <code translate="no" v-pre>AILimit.validate()</code>), <code translate="no" v-pre>removeLimit</code>: the administrator who owns the AI only. <code translate="no" v-pre>getLimit(ai)</code> / <code translate="no" v-pre>getStatus(ai)</code> (<code translate="no" v-pre>LimitStatus</code>: limit, tokens used in the period, next reset) are for the current user; the session&#x27;s <code translate="no" v-pre>User</code> has no uuid, so the service loads it. <code translate="no" v-pre>check(ai, promptTokens, reservedTokens)</code> (the prompt must fit into the sent and total limits; the generated tokens only count once reached, or with a hard limit together with the reserved response) throws <code translate="no" v-pre>InferenceException</code> <code translate="no" v-pre>NOT_AVAILABLE</code> or <code translate="no" v-pre>LIMIT_REACHED</code>; <code translate="no" v-pre>OpenAICompatibleInferenceService.stream</code> calls it first, so every request is covered.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>InferenceServices</code></td>
