@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845200360311">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845216104350">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845200360311" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845216104350" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845200360311" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845216104350" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845200360311" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845200360311" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845216104350" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845216104350" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -491,7 +491,14 @@ first: Marginalia&#x27;s own classes, Vaadin, Spring, Hibernate, Gson, everythin
 </li>
 <li>
 <p>Plugins don&#x27;t see each other&#x27;s classes through imports either; if two plugins need to cooperate, do it through
-shared data (attributes) or through the application&#x27;s components.</p>
+shared data (attributes) or through the application&#x27;s components. A plugin that uses the objects of another one
+(which may be missing, or unloaded and installed again) finds it among <code translate="no" v-pre>OsgiService.getLoadedExtensions()</code> by the
+<em>name</em> of its class and calls it by reflection, taking the types it needs from <code translate="no" v-pre>extension.getClass().getClassLoader()</code>.
+Do not import its packages (<code translate="no" v-pre>Import-Package</code>, <code translate="no" v-pre>DynamicImport-Package</code>) or name its classes in your code: the
+wiring is to one revision of the other bundle, so after it is unloaded and installed again your bundle keeps the old
+classes and does not recognize the new objects, and the JVM remembers a class reference that failed to resolve
+(<code translate="no" v-pre>NoClassDefFoundError</code>), so a reference used while the other bundle was missing keeps failing after it is installed.
+The Lore Generator does it with the Name generator, see <code translate="no" v-pre>NameGeneratorBridge</code>.</p>
 </li>
 <li>
 <p>The plugin&#x27;s own classes are loaded by the bundle&#x27;s class loader, so the class names you pass to

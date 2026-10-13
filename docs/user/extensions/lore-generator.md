@@ -42,7 +42,8 @@ generation without saving. The two halves of the dialog are separated by a split
 | **Delete** | Deletes the selected prompt. When the last one is deleted, the built-in `DEFAULT` prompt comes back. |
 
 The built-in prompt has placeholders in brackets (the subject, the details to include, the length, the structure):
-fill them in before you run it. Prompts belong to your account.
+fill them in before you run it. Prompts belong to your account, and the one you used last is selected again the next time
+the dialog opens.
 
 ## Generation and compaction
 
@@ -58,6 +59,31 @@ prompt is set in *Settings → Extension Settings → Lore Generator*; when it i
 strips the prose and keeps the facts). Running the generation again discards the compaction.
 
 While the model is working, all controls are frozen except **Stop**; you can't close the dialog either.
+
+### Remembered per entry
+
+When you **Copy to Lore Entry**, the options of that generation are stored with the entry: the prompt text, which saved
+prompt it came from, the lore and entries choices and the checked name categories. Opening the generator for that entry
+again restores them, taking priority over the prompt you used last and your saved name categories. An entry that was
+never generated into opens with the usual defaults. The options belong to the entry, so they travel with backups and
+exports of the lorebook.
+
+### Name tools
+
+When the Name generator extension is loaded, the top row has a **Name tools** button. It opens a table of the name
+categories with a checkbox each. The list is long, so it loads as you scroll and has a filter field above it: type a part
+of a name to show only the matching categories. The checked categories always stay in the table, whatever the filter
+says. The checkbox in the header checks or unchecks all the categories shown at that moment, and a line below the
+table counts how many are checked. The checked categories are saved with your account, so they stay checked the next
+time. While at least one is checked, the model can list them and ask for names of them during the generation (not the
+compaction), instead of inventing names (see [Name generator](name-generator.md)).
+
+A short hint telling the model about the tools is added to the end of the generation prompt. The built-in one asks the
+model to call the tools instead of inventing names, to pick from what it gets, and allows it to modify or remix the names
+when none fits as it is (combine parts of two, change an ending, adjust the spelling). You can replace it with your own in
+*Settings → Extension Settings → Lore Generator* (*Name tools hint*, empty means the built-in one; a hint you saved before
+keeps working as it is). The button shows how many categories are checked. Without the Name generator there is no
+button; the extension can be unloaded and installed again while Marginalia runs, the button comes back.
 
 ### Attachments
 

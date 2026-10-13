@@ -49,7 +49,7 @@
 
 ### Extensions
 
-- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Nine extensions come with Marginalia:
+- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Ten extensions come with Marginalia:
 - [Author's Note](https://enerccio.github.io/Marginalia/user/extensions/authors-note.md): A note to the model that is sent with every generation of the book: the tone you want right now, what the current chapter is about, a reminder the model keeps forgetting.
 - [Chinese localization](https://enerccio.github.io/Marginalia/user/extensions/chinese-localization.md): Adds Simplified Chinese (中文（简体）) to the languages of the user interface.
 - [Chapter Marker](https://enerccio.github.io/Marginalia/user/extensions/chapter-marker.md): Turns the Outline of the story editor into a table of contents.
@@ -57,6 +57,7 @@
 - [Gemma 4 tools fix](https://enerccio.github.io/Marginalia/user/extensions/gemma-4-tools-fix.md): Makes function calling work with Gemma 4 models whose API expects another role for the results of the calls.
 - [Lorebook VCS](https://enerccio.github.io/Marginalia/user/extensions/lorebook-vcs.md): Revision history for lorebook entries: keep earlier versions of your lore and switch between them - for example the state of the world before and after a war, or a character at different points of the story.
 - [Lore Generator](https://enerccio.github.io/Marginalia/user/extensions/lore-generator.md): Lets the model write the content of a lorebook entry for you. It reads the lore you already have, so the new entry fits the world, and compacts the result into the short, dense form lore entries work best in.
+- [Name generator](https://enerccio.github.io/Marginalia/user/extensions/name-generator.md): Gives the model a way to ask for names instead of inventing them. The names come from lists of real names - given names and surnames of many countries,
 - [Reviewer](https://enerccio.github.io/Marginalia/user/extensions/reviewer.md): Lets the model review what you've written: reader reactions, an editor's critique, a continuity check - whatever you prompt it for. Reviews are kept with the part, next to the story, and never become part of the book.
 - [Side Query](https://enerccio.github.io/Marginalia/user/extensions/side-query.md): A chat with the model next to your story: ask about the plot, check continuity, brainstorm names or the next chapter - without adding anything to the book.
 - [Account & settings](https://enerccio.github.io/Marginalia/user/account.md): Everything you create in Marginalia belongs to your account: books, lorebooks, tags, inference providers, protocols and settings. Other users don't see them (except books you publish), and you don't see theirs.
