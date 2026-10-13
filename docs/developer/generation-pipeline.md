@@ -221,7 +221,7 @@ Prepares the part that receives the answer:
 |---|---|
 | `NEW_MESSAGE` | A new part, child of the active leaf (or the first part of the book). |
 | `SWIPE` | A new part, sibling of the swiped one. |
-| `REGENERATE` | The existing part, cleared. A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |
+| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |
 
 The part gets the `TurnInput`, the model and protocol names, the payload as JSON (`builtPrompt`, shown by *Show
 Prompt*), the activated lore and the request time. The token breakdown gets the tokens of every message of the final
@@ -241,8 +241,8 @@ Counts the prompt tokens (when the prompt plus the response limit still exceeds 
 
 - **reasoning** chunks are appended to `responseReasoning` (`REASONING_CHUNK_RECEIVED`, the text in
   `REASONING_CHUNK`),
-- **response** chunks are appended to `response`, with approximate token and word counts (`CHUNK_RECEIVED`, the text
-  in `CHUNK`),
+- **response** chunks are appended to `response` and to `originalResponse` (the text as generated, which later edits
+  leave alone), with approximate token and word counts (`CHUNK_RECEIVED`, the text in `CHUNK`),
 - the first chunk sets the time to first token, the first response chunk the end of reasoning,
 - the part and the book are saved and the UI gets `onReasoningChunk` / `onResponseChunk` and `onMetricsUpdated`,
 - once the response has some non-blank text, the state becomes `PARTIAL_SUCCESS` (reasoning alone doesn't count).

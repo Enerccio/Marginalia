@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845239413745">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845239775170">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845239413745" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845239775170" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845239775170" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845239413745" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845239775170" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845239775170" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -462,7 +462,7 @@ sent).</p>
 |---|---|
 | `NEW_MESSAGE` | A new part, child of the active leaf (or the first part of the book). |
 | `SWIPE` | A new part, sibling of the swiped one. |
-| `REGENERATE` | The existing part, cleared. A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |">
+| `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -482,7 +482,7 @@ sent).</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>REGENERATE</code></td>
-<td>The existing part, cleared. A full copy of it as it was (<code translate="no" v-pre>ChatMessage.copyOf</code>, attributes deep copied) is kept in the <code translate="no" v-pre>ORIGINAL_MESSAGE</code> property first.</td>
+<td>The existing part, cleared (<code translate="no" v-pre>response</code> and <code translate="no" v-pre>originalResponse</code> both). A full copy of it as it was (<code translate="no" v-pre>ChatMessage.copyOf</code>, attributes deep copied) is kept in the <code translate="no" v-pre>ORIGINAL_MESSAGE</code> property first.</td>
 </tr>
 </tbody>
 </table>
@@ -506,8 +506,8 @@ part is only a placeholder that cleanup removes or restores.</p>
 <code translate="no" v-pre>REASONING_CHUNK</code>),</p>
 </li>
 <li>
-<p><strong>response</strong> chunks are appended to <code translate="no" v-pre>response</code>, with approximate token and word counts (<code translate="no" v-pre>CHUNK_RECEIVED</code>, the text
-in <code translate="no" v-pre>CHUNK</code>),</p>
+<p><strong>response</strong> chunks are appended to <code translate="no" v-pre>response</code> and to <code translate="no" v-pre>originalResponse</code> (the text as generated, which later edits
+leave alone), with approximate token and word counts (<code translate="no" v-pre>CHUNK_RECEIVED</code>, the text in <code translate="no" v-pre>CHUNK</code>),</p>
 </li>
 <li>
 <p>the first chunk sets the time to first token, the first response chunk the end of reasoning,</p>

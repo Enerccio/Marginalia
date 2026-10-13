@@ -244,8 +244,16 @@ to it (see [Extending the UI](plugins/ui-extensions.md#the-story-menu-bar)):
 |---|---|
 | `createMenuBar()` | The bar: calls the three methods below. Stored in the field `menuBar`. |
 | `createSummariesMenuItem(bar)` | The **Summaries** item (field `summariesMenuItem`), which opens `SummariesDialog`. Its tooltip shows the tokens of the summaries in use (`refreshSummariesMenuItem()`, run when the story is loaded, after a summary is deleted and when a summary dialog is closed). |
-| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createExportMenuItem(cogs)`. |
+| `createCogsMenuItem(bar)` | The settings item (field `cogsMenuItem`, local `cogs`) and its sub menu: `createChangeStylesMenuItem(cogs)`, `createHighlightGeneratedMenuItem(cogs)`, `createExportMenuItem(cogs)`. |
 | `populateMenuBar(bar)` | Empty, runs last: the hook for new items of the bar. |
+
+The checkable **Highlight Generated Text** item is the diff view: `setShowGeneratedDiff(show)` stores the flag (a field
+of the tab, not saved) and calls `ChatMessageCard.renderResponse()` of every card, which sets the content of the
+response `Markdown` - with the flag on, the text from `GeneratedTextHighlighter.highlight(response, originalResponse,
+CssStyles.GENERATED_TEXT)`, which diffs both texts word by word and wraps the shared words in `<mark>`. The card calls
+`renderResponse()` whenever its response changes (construction, streaming, end of an edit), and
+`StoryGenerationListener.onResponseChunk` copies `originalResponse` into the card's own `ChatMessage` while streaming.
+The phone tab has no diff view.
 
 ### The summaries overview
 

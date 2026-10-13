@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845239413745">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845239775170">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845239413745" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845239775170" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845239775170" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845239413745" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845239775170" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -280,7 +280,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <h3 id="bound---startup-and-sessions"><code translate="no" v-pre>bound</code> - startup and sessions</h3>
 <retype-table copy-text="| File | |
 |---|---|
-| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (none are registered yet). |
+| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `OriginalResponseMigration`, see [Database &amp; migrations](database.md)). |
 | `Migration.java` | Interface of data migrations in Java (schema migrations are Flyway SQL). |
 | `SessionManager.java` | The `sessionManager` bean: registry of all HTTP sessions, binds the logged-in user to them, runs code in other users' sessions (`runForUsers`) and closes dead UIs and sessions on its watcher thread. See [Sessions](architecture.md#sessions). |
 | `SessionTrackingListener.java` | `HttpSessionListener` registered by `WebappApplicationInitializer`; forwards session creation and destruction to `SessionManager`. |
@@ -299,7 +299,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <tbody>
 <tr>
 <td><code translate="no" v-pre>ApplicationInitializer.java</code></td>
-<td>Runs registered <code translate="no" v-pre>Migration</code>s when the stored <code translate="no" v-pre>AppSettings</code> versions are behind (none are registered yet).</td>
+<td>Runs registered <code translate="no" v-pre>Migration</code>s when the stored <code translate="no" v-pre>AppSettings</code> versions are behind (<code translate="no" v-pre>bound/migration</code>: <code translate="no" v-pre>EncryptApiKeysMigration</code>, <code translate="no" v-pre>FulltextMigration</code>, <code translate="no" v-pre>OriginalResponseMigration</code>, see <a href="../database/">Database &amp; migrations</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Migration.java</code></td>
@@ -801,7 +801,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `instruct` | `RuntimeInstrumentationInitializer` (installs the ByteBuddy agent), `ExtendableMethodVisitor` (the bytecode rewrite), `ExtensionServiceHolder` (static access to `ExtensionService` from instrumented code); `instruct.verify`: `ExtensionVerifier` (checks an extension's decorators against the application before it is started, `ExtensionService.verifyExtension`), `ContextInterpreter` and `ContextValue` (its bytecode data-flow analysis), `ExtensionVerification` (the result). |
 | `loc` | `L` (all text keys), `Localization` (the service interface) / `LocalizationImpl` (picks the bundle of the session's language), `Language`, `LocalizationBundle` (texts and formats of one language) / `LocalizationBundleBase` / `LocalizationBundleEN` / `LocalizationBundleJP`, `NaturalOrderComparator`. |
 | `concurrent` | `AsyncRunnableWrapper` (keeps the submitting stack trace for errors on worker threads), `ThrowingRunnable`. |
-| `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, `clientAddress`), `ClientAddressResolver` (the client address of a request: `X-Forwarded-For` only from the `trustedProxies`, see [Login throttling](services.md#login-throttling)), `ReflectUtils` (cached reflection), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
+| `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, `clientAddress`), `ClientAddressResolver` (the client address of a request: `X-Forwarded-For` only from the `trustedProxies`, see [Login throttling](services.md#login-throttling)), `ReflectUtils` (cached reflection), `GeneratedTextHighlighter` (word diff of a part against its original text, `&lt;mark&gt;` around the shared words), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
 | `com.github.enerccio.tools` | `Pair`, `Pointer` (small holders used across the code) and `GenerateFlywayDiff` (development tool, see [Database schema changes](building.md#database-schema-changes)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -830,7 +830,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>utils</code></td>
-<td><code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, <code translate="no" v-pre>clientAddress</code>), <code translate="no" v-pre>ClientAddressResolver</code> (the client address of a request: <code translate="no" v-pre>X-Forwarded-For</code> only from the <code translate="no" v-pre>trustedProxies</code>, see <a href="../services/#login-throttling">Login throttling</a>), <code translate="no" v-pre>ReflectUtils</code> (cached reflection), <code translate="no" v-pre>ThreadUtils</code> (<code translate="no" v-pre>executeInThread</code> - runs a task on a fresh thread without the caller&#x27;s thread locals and waits for it).</td>
+<td><code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, <code translate="no" v-pre>clientAddress</code>), <code translate="no" v-pre>ClientAddressResolver</code> (the client address of a request: <code translate="no" v-pre>X-Forwarded-For</code> only from the <code translate="no" v-pre>trustedProxies</code>, see <a href="../services/#login-throttling">Login throttling</a>), <code translate="no" v-pre>ReflectUtils</code> (cached reflection), <code translate="no" v-pre>GeneratedTextHighlighter</code> (word diff of a part against its original text, <code translate="no" v-pre>&lt;mark&gt;</code> around the shared words), <code translate="no" v-pre>ThreadUtils</code> (<code translate="no" v-pre>executeInThread</code> - runs a task on a fresh thread without the caller&#x27;s thread locals and waits for it).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>com.github.enerccio.tools</code></td>
