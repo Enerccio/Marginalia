@@ -67,6 +67,8 @@ were moved to. Restore a whole book instead of single parts when you want the st
 Waiting for the cleanup is not always what you want: a story part or a lorebook entry you know you never need again can
 be removed right away. Tick it and click **Delete Permanently**; Marginalia asks first, and **this can't be undone**.
 
+![Deleting a story part for good](../images/trash-delete-permanently.png)
+
 - Only **story parts** and **lorebook entries** can be deleted permanently (with their summaries and tags). The button
   is disabled while anything else is ticked: books, lorebooks and the rest wait for the administrator's
   [cleanup](administration/cleanup.md), so you can't remove a whole book by accident.

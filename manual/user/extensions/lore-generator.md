@@ -21,6 +21,8 @@ the entry replaces the content.
 The generator uses your **Default Model** and **Default Protocol** from *Settings*, see
 [Account & settings](../account.md). Without a default model it only shows a warning.
 
+![The lore generator](../../images/plugin-loregenerator.png)
+
 ## What the model sees
 
 The two choices at the top of the dialog decide which lore goes into the request:
@@ -63,6 +65,8 @@ compaction prompt, with the generated text in it, and the model condenses it int
 prompt is set in *Settings → Extension Settings → Lore Generator*; when it is empty, the built-in one is used (it
 strips the prose and keeps the facts). Running the generation again discards the compaction.
 
+![The compaction of a generated entry](../../images/plugin-loregenerator-compaction.png)
+
 While the model is working, all controls are frozen except **Stop**; you can't close the dialog either.
 
 ### Remembered per entry
@@ -82,6 +86,8 @@ says. The checkbox in the header checks or unchecks all the categories shown at 
 table counts how many are checked. The checked categories are saved with your account, so they stay checked the next
 time. While at least one is checked, the model can list them and ask for names of them during the generation (not the
 compaction), instead of inventing names (see [Name generator](name-generator.md)).
+
+![Name tools with a filtered table of categories](../../images/plugin-loregenerator-names.png)
 
 A short hint telling the model about the tools is added to the end of the generation prompt. The built-in one asks the
 model to call the tools instead of inventing names, to pick from what it gets, and allows it to modify or remix the names

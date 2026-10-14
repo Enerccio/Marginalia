@@ -5,7 +5,7 @@
 - [Marginalia](https://enerccio.github.io/Marginalia/index.md): Marginalia
 - [User guide](https://enerccio.github.io/Marginalia/user/index.md): This part of the manual is for people who write with Marginalia and for those who run it for others. It explains every screen and setting, from installing Marginalia and connecting a model to branching a story, building a lorebook and backing up the database.
 - [Developer guide](https://enerccio.github.io/Marginalia/developer/index.md): This part of the manual is for people who want to change Marginalia itself, write an extension for it, or just understand how it works inside. If you only want to install and use Marginalia, see the User guide.
-- [Credits](https://enerccio.github.io/Marginalia/credits.md): The screenshots in this manual that show a picture of a part (for example in the story editor, the Images dialog, the Resources tab and the backup dialogs)
+- [Credits](https://enerccio.github.io/Marginalia/credits.md): The screenshots in this manual that show a picture of a part (for example in the story editor, the Images dialog, the Resources tab, the backup dialogs,
 
 ## User guide
 

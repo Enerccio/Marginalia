@@ -21,7 +21,7 @@ To write from a phone, run the server version and open it in the phone's browser
 
 Marginalia has no model of its own. It needs an **OpenAI-compatible API** to write text: a cloud service (OpenAI,
 OpenRouter...) or a model running on your own computer (llama.cpp, LM Studio, Ollama, vLLM...). Have the API address
-and an API key (if the service needs one) ready.
+and an API key ready (a local server that doesn't need one still gets any placeholder text, see [Adding a provider](../inference-providers.md#adding-a-provider)).
 
 ## Steps
 

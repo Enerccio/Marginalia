@@ -22,6 +22,8 @@ smaller letters (two lines at most). The buttons of a character:
 
 Characters are saved with the book as soon as you change them, so they are included in its backups.
 
+![The Characters tab](../../images/plugin-charactertracker-tab.png)
+
 ## The character dialog
 
 **Add new character** and the pen open the same dialog:
@@ -35,6 +37,8 @@ Characters are saved with the book as soon as you change them, so they are inclu
 | **Color** | Background of the character in the list and in the map. |
 
 The fields are applied with **Save**.
+
+![A character with its relationships](../../images/plugin-charactertracker-dialog.png)
 
 ### Relationships
 
@@ -57,12 +61,16 @@ without importing.
 
 Entries are not compared with the characters you already have: importing the same entry twice creates two characters.
 
+![Importing characters from the lorebook](../../images/plugin-charactertracker-import.png)
+
 ## The relationship map
 
 **Relationship map** shows all relationships of the book as a graph. Every character that has a relationship is a
 circle with its icon (or a box without one) on its color, with its name and tagline; every relationship is an arrow
 between two characters with its name and tagline. An arrow points at the target; a unidirectional relationship has an
 arrow at both ends. Characters without relationships are not in the map.
+
+![The relationship map](../../images/plugin-charactertracker-map.png)
 
 The characters are arranged in rings around one character - at first the one with the most relationships: the
 characters it is related to are on the first ring, theirs on the second and so on. **Double-click a character** to

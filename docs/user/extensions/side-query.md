@@ -83,6 +83,8 @@ Some useful ones:
 Side Query settings are in **Settings → Extension Settings → SideQuery Settings**, organized in **profiles** like the
 [Reviewer](reviewer.md#profiles) ones. The selected profile is the one used:
 
+![The SideQuery settings](../../images/plugin-sidequery-settings.png)
+
 | Field | |
 |---|---|
 | **Profile**, **New**, **Rename**, **Delete** | Choose and manage profiles. *_Default* can't be renamed or deleted. |

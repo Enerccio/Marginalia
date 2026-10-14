@@ -55,6 +55,8 @@ and **Clear** deletes it. The file is `extensions/<name>.jar.log` (for example `
 2 MB it is moved to `.log.old` and a new one is started. It is deleted when the extension is unloaded. Extensions that
 don't log anything have an empty log. What the extension logs also goes to the application log (named `extension.<name>`, at the level of the line), so it is in the log of the server too; problems of Marginalia itself are only there.
 
+![The log of an extension](../../images/extension-log.png)
+
 ## Removing
 
 **Unload** asks for confirmation, then stops the extension immediately and deletes its JAR (and its log) from the
@@ -79,6 +81,8 @@ and is not kept; an extension in the `extensions` folder stays in the list, not 
 extension that worked before can be refused afterwards: get the version of the extension that was built for the new
 version of Marginalia and load it. Next to each extension's JAR you'll find a small `.valid` or `.invalid` file with the
 report; it is removed with the extension and can be left alone.
+
+![The verification report of an extension that does not fit, and a stopped extension (Start button)](../../images/extension-verification.png)
 
 An extension in the `extensions` folder that fails to start (for example one built for another version) doesn't stop
 the others from loading. It is listed with the state *Installed* or *Resolved* instead of *Active* and can be removed

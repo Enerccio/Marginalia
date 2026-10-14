@@ -22,6 +22,10 @@ The story view gets a *Side Query* tab in its left sidebar (next to the outline)
 
 Open several tabs for separate conversations; tabs can be renamed.
 
+### Screenshots
+
+![The SideQuery settings](../../../manual/images/plugin-sidequery-settings.png)
+
 ## Settings
 
 Side query profiles are configured on the *Settings* page:

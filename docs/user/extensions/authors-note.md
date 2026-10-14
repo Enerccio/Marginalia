@@ -9,6 +9,8 @@ change it.
 The left sidebar of the [story editor](../books/story-editor.md) gets an **Author's Note** tab next to *Outline*.
 Changes are saved to the book as you type and used by the next generation.
 
+![The Author's Note tab](../../images/plugin-authorsnote.png)
+
 | Field | |
 |---|---|
 | **Insert into prompt** | Turns the note on or off without deleting it. |

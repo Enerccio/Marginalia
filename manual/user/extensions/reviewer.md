@@ -54,9 +54,13 @@ The **pre-prompt** of the profile, if set, comes first as a system message.
 With *Use standard prompt info* off, the dialog shows the size of the request (*Total tokens*). **Generate** opens the
 review dialog with these options; further reviews generated in that dialog use them too.
 
+![Advanced review options](../../images/plugin-reviewer-advanced.png)
+
 ## Profiles
 
 Reviewer settings are in **Settings → Extension Settings → Reviewer Settings**. They are organized in **profiles**:
+
+![The Reviewer settings](../../images/plugin-reviewer-settings.png)
 
 | Field | |
 |---|---|

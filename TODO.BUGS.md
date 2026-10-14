@@ -1033,3 +1033,79 @@ Docker.
 
 **Expected:** the image uses the same `ee11-*` modules as the desktop app (`ee11-deploy, ee11-webapp,
 ee11-websocket-jakarta, ee11-jsp`); update *Building from source → Local Jetty* together with it.
+
+---
+
+## BUG-61 - New inference provider: the API key is lost when you go back to General Settings (medium)
+
+**Where:** `ui/dialogs/AIDialog.java` (`save()`, the two tabs of the dialog). Found while retaking the screenshots with
+a script; the cause was not investigated.
+
+When a new provider is created and the *Per Type Settings* tab is filled (URL, **Api Key**, Model) and the user then
+switches back to the *General Settings* tab before clicking **OK**, the provider is saved **without an API key**
+(`ais_openaicompat.apiKey` is `NULL`). The dialog shows no error; the key field of the saved provider looks like any
+other, and the first request fails with `At least one credential source must be specified: credential (apiKey)...`.
+When the dialog is saved without switching tabs after the key was typed, the key is stored.
+
+**Steps:**
+1. *Inference Providers* → **Add Inference Provider**, enter a *Name*.
+2. *Per Type Settings*: enter the URL, an Api Key and a Model.
+3. Click *General Settings*, change *Max Context Size*, click **OK**.
+4. Open the provider (pen): *Api Key* shows the *Reset Api Key* state, but generate a part: the request fails because no
+   key was stored (check the column, or **Test Connection** on the edited provider after *Reset Api Key*).
+
+**Expected:** the key typed in the dialog is saved whatever the order the tabs are visited in.
+
+---
+
+## BUG-62 - An empty Api Key is refused by the OpenAI client, local servers need a placeholder (low)
+
+**Where:** `domain/service/impl/inference/OpenAICompatibleInferenceService.java` (`openClient`, `getModels`).
+
+The manual said that a local server (llama.cpp, Ollama...) doesn't need a key and the field can stay empty. With an
+empty key the OpenAI Java client refuses to build a request: **Refresh** fails with *Failed to download model list* and
+*This request requires apiKey or workloadIdentity*, and generating fails with *At least one credential source must be
+specified*, before anything is sent to the server.
+
+**Workaround (documented):** enter any text as the key. *Inference providers* and the *Quick start* now say so.
+
+**Expected:** an empty key works, e.g. the service sends a placeholder such as `none` when the field is empty, so the
+workaround isn't needed.
+
+---
+
+## BUG-63 - Every login of a regular user ends with an "Application Error" dialog (medium)
+
+**Where:** `ui/workspace/DesktopWorkspace.refresh()` → `AdminPart.refresh()` → `admin/DatabaseBackupPanel.refresh()` →
+`DatabaseBackupServiceImpl.getBackups()` (needs the administrator), called from `Main.proceedWithLogin()`. Found while
+retaking the screenshots with a regular user.
+
+After the login of a user who is **not** an administrator, the workspace refreshes all its parts, including the admin
+part and its *Database Backups* panel, although the user has no *Admin* button. `getBackups()` refuses with
+`java.lang.SecurityException: Only administrators can do this`, which is shown as an *Application Error* dialog (with the
+stack trace) over the freshly opened workspace. Further admin-only calls of the same refresh (`getSchedule()`...) fail
+the same way, so several dialogs come one after another. The workspace works after **Exit** is clicked, but the dialog comes back
+on every login.
+
+**Steps:** *Admin → Users → Add User* (no *Administrator*), log out, log in as the new user → the dialog appears.
+
+**Expected:** no admin part is refreshed (or the panel is not asked for backups) for a regular user, so nothing is
+shown.
+
+---
+
+## BUG-64 - Refresh in the *Edit Inference Provider* dialog empties the Model field (low)
+
+**Where:** `ui/dialogs/AIDialog.java`, `fetchModels()` (`modelCombo.setItems(models)`). Found while retaking the screenshots.
+
+When an existing provider is edited and **Refresh** is clicked on the *Per Type Settings* tab, the model list is loaded
+(the combo box then has all models), but the **Model** field becomes empty and is marked as invalid (red). The code
+adds the current model to the loaded list before `setItems`, so the value should stay; in the browser the selection is
+gone (the combo box value is `""` after the request, whatever the delay). The user has to pick the model again; the
+old value is lost if the dialog is saved without noticing.
+
+**Steps:**
+1. *Inference Providers* → pen of a provider → *Per Type Settings*: the Model shows the saved model.
+2. Click **Refresh** (the server answers with the list): Model is empty.
+
+**Expected:** the saved model stays selected; the list only becomes available.

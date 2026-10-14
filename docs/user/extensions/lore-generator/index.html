@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845293878443">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845311669315">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/extensions/lore-generator/">
     <meta property="og:title" content="Lore Generator">
     <meta property="og:description" content="Lets the model write the content of a lorebook entry for you. It reads the lore you already have, so the new entry fits the world, and compacts the result into the short, dense form lore entries work best in.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/plugin-loregenerator.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Lore Generator">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/extensions/lore-generator/">
     <meta name="twitter:title" content="Lore Generator">
     <meta name="twitter:description" content="Lets the model write the content of a lorebook entry for you. It reads the lore you already have, so the new entry fits the world, and compacts the result into the short, dense form lore entries work best in.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/plugin-loregenerator.png">
+    <meta name="twitter:image:alt" content="Lore Generator">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/extensions/lore-generator.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845293878443" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845311669315" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845293878443" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845311669315" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845293878443" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845311669315" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -190,6 +196,10 @@ the generator for that entry. If the entry already has content, the dialog says 
 the entry replaces the content.</p>
 <p>The generator uses your <strong>Default Model</strong> and <strong>Default Protocol</strong> from <em>Settings</em>, see
 <a href="../../account/">Account &amp; settings</a>. Without a default model it only shows a warning.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-loregenerator.png" alt="The lore generator" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1888" height="900" />
+    <figcaption class="caption">The lore generator</figcaption>
+</figure>
 <h2 id="what-the-model-sees">What the model sees</h2>
 <p>The two choices at the top of the dialog decide which lore goes into the request:</p>
 <retype-table copy-text="| Choice | |
@@ -266,6 +276,10 @@ written, with the model&#x27;s reasoning (when it gives any) in a <em>Thinking P
 compaction prompt, with the generated text in it, and the model condenses it into a compact entry. The compaction
 prompt is set in <em>Settings → Extension Settings → Lore Generator</em>; when it is empty, the built-in one is used (it
 strips the prose and keeps the facts). Running the generation again discards the compaction.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-loregenerator-compaction.png" alt="The compaction of a generated entry" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1888" height="900" />
+    <figcaption class="caption">The compaction of a generated entry</figcaption>
+</figure>
 <p>While the model is working, all controls are frozen except <strong>Stop</strong>; you can&#x27;t close the dialog either.</p>
 <h3 id="remembered-per-entry">Remembered per entry</h3>
 <p>When you <strong>Copy to Lore Entry</strong>, the options of that generation are stored with the entry: the prompt text, which saved
@@ -281,6 +295,10 @@ says. The checkbox in the header checks or unchecks all the categories shown at 
 table counts how many are checked. The checked categories are saved with your account, so they stay checked the next
 time. While at least one is checked, the model can list them and ask for names of them during the generation (not the
 compaction), instead of inventing names (see <a href="../name-generator/">Name generator</a>).</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-loregenerator-names.png" alt="Name tools with a filtered table of categories" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="745" />
+    <figcaption class="caption">Name tools with a filtered table of categories</figcaption>
+</figure>
 <p>A short hint telling the model about the tools is added to the end of the generation prompt. The built-in one asks the
 model to call the tools instead of inventing names, to pick from what it gets, and allows it to modify or remix the names
 when none fits as it is (combine parts of two, change an ending, adjust the spelling). You can replace it with your own in

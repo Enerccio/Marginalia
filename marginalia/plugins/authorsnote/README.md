@@ -3,6 +3,8 @@
 A note to the model, sent with every generation of the book - the tone you want now, what the current chapter is
 about, a reminder the model keeps forgetting.
 
+![The Author's Note tab](../../../manual/images/plugin-authorsnote.png)
+
 ## Usage
 
 The story view gets an *Author's Note* tab in its left sidebar (next to the outline):

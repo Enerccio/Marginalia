@@ -75,6 +75,8 @@ Every part has a menu (☰) in its top right corner:
 *Regenerate* and *Swipe* use the turn details of the last part (see [below](#turn-details)). To change what should
 happen, edit them first.
 
+![Token Usage of a part](../../images/token-usage.png)
+
 ## Part metadata
 
 Next to each part:
@@ -167,6 +169,8 @@ opened anew.
 
 Parts that existed before this feature count wholly as generated, because the original text was not kept for them.
 The highlight is available in the desktop view only, not in the [phone view](../phone.md).
+
+![Highlighted generated text and the settings menu](../../images/highlight-generated.png)
 
 ## Exporting the story
 

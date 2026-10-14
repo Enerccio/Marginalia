@@ -42,6 +42,10 @@ can add more by loading an [extension](extensions/index.md), for example
 [Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English.
 Dates are written the way that language does. Your books and their texts are not translated, only the interface.
 
+![The Language selector](../images/language-selector.png)
+
+![The workspace in Japanese](../images/ui-japanese.png)
+
 ### Logging in
 
 **Save login** on the login screen keeps you logged in on this device for 30 days (it needs HTTPS on a server, see
@@ -112,6 +116,8 @@ A table of all your tags (the ones you give to books, lorebooks and lorebook ent
 tag is related to. Click a column header to sort by it. Unlike the other tabs, it acts at once: it is not part of the
 unsaved changes and has nothing to save.
 
+![The Tags tab](../images/settings-tags.png)
+
 | Button | |
 |---|---|
 | **Rename** (pencil) | Asks for the new name of the tag; every object keeps the tag under the new name. |
@@ -122,8 +128,12 @@ same, so you are asked whether to **merge** them. Merge moves everything tagged 
 tag and deletes the renamed one; an object that has both ends up with the existing tag once. Cancel and nothing
 changes, the tag keeps its old name.
 
+![Asking whether to merge two tags](../images/tag-merge.png)
+
 ### Extension Settings
 
 Settings of the installed [extensions](extensions/index.md), one section per extension (for example *Reviewer Settings*
 and *SideQuery Settings*). They are saved with the same **Save** button. The tab is empty when no extension with
 settings is installed.
+
+![The Extension Settings tab with the Lore Generator settings](../images/settings-extensions.png)

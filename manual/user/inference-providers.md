@@ -66,7 +66,7 @@ The tab is taller than the dialog and scrolls. The lower fields:
 | Field | |
 |---|---|
 | **OpenAI URL (ends with /v1)** | The base address of the API, see [the table above](#supported-apis). Without `/chat/completions`. |
-| **Api Key** | The key of the service. Local servers usually don't need one; leave it empty. |
+| **Api Key** | The key of the service. A local server usually doesn't check it, but the field can't be empty: the OpenAI client library Marginalia uses refuses to send a request without a key. Enter any text (for example `none`) when the server doesn't need a key. |
 | **Model** | The model to use. Click **Refresh** to load the list of models from the API, or type the model ID yourself (e.g. `anthropic/claude-sonnet-4.5` on OpenRouter). |
 | **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message. |
 | **Retries** | How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a `Retry-After` header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice. |
@@ -109,6 +109,8 @@ for some books, but not raise them.
 When the API refuses a request, Marginalia says what to fix instead of showing an internal error, followed by what the
 API itself said:
 
+![An error of the provider shown to the user](../images/error-dialog.png)
+
 | Message | Cause |
 |---|---|
 | *The provider rejected the API key.* | Wrong, expired or missing **Api Key**. |
@@ -127,6 +129,8 @@ API itself said:
 Marginalia fills the context only up to **Max Context Size** minus **Max Response Tokens**. If the finished prompt is
 still bigger than that (for example because an extension added text, or the token count was off), a warning shows the
 estimated sizes before the request is sent. The request is sent anyway; the API may reject it or cut the prompt.
+
+![The warning about a prompt that may not fit](../images/context-warning.png)
 
 ## Reasoning models
 
@@ -166,6 +170,8 @@ of their books and in their **Inference Providers** tab, marked *Shared* **Yes**
 it, see its address or API key, change it or delete it; only its owner can. Books, backups and restores that refer to
 a shared provider keep working for everybody who can see it.
 
+![A shared provider in the Inference Providers tab of a regular user](../images/provider-shared-user.png)
+
 Sharing a provider lets the other users spend the owner's quota with the service. To stop users from adding providers
 of their own, so that they can only use the shared ones, see
 [Users and providers](administration/users.md#users-and-providers).
@@ -175,6 +181,8 @@ of their own, so that they can only use the shared ones, see
 An administrator can limit what each user may do with a shared provider. In the **Inference Providers** tab, the
 administrator who owns a shared provider has a **Limits** button (a user with a lock) in its row, which opens a table with
 the limits that were set. **Add limit** creates a new one: pick the user and a limit type.
+
+![The limits of a shared provider](../images/provider-limits.png)
 
 | Limit type | Meaning |
 |---|---|
@@ -188,6 +196,8 @@ both together (**in total**). Whichever is reached first stops the user until th
 sent plus the generated limit must not be below the total (the total could then never be reached), otherwise the dialog
 refuses to save. For example a total of 100,000 with 100,000 sent and 20,000 generated is fine, a total of 100,000 with
 20,000 sent and 10,000 generated is not.
+
+![Adding a limit](../images/provider-limit-edit.png)
 
 Nothing is reset on a timer: the tokens used start from zero when the user uses the provider (or looks at their limits)
 for the first time in a new period. The size of a request is known before it is sent, so a request whose prompt would
@@ -207,6 +217,8 @@ Every user sees the shared providers in their tab as read-only rows. The **info*
 shared provider shows their own limit: what they used in this period, the limits and when they reset. When a limit is
 reached, the story editor, summaries and extensions show an error instead of sending the request.
 
+![The limits a user sees, with what was used in this period](../images/provider-limit-info.png)
+
 ## Usage
 
 The **Inference Providers** tab shows, per provider, the **Tokens sent** (the prompt, "prefill") and **Tokens generated** (the
@@ -215,6 +227,8 @@ provider has a count of its own for each user, so you see only your part.
 
 Administrators also get a **Usage per user** button on the tab, which opens a table with what every user has used of every
 provider (tokens sent, tokens generated, requests and the time of the last one).
+
+![Usage per user](../images/provider-usage.png)
 
 The numbers are what the service reports. A service that doesn't report them (or a request you stop in the middle)
 is counted with the local estimate described in [Token counting](#token-counting), so those numbers are approximate.

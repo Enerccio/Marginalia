@@ -63,6 +63,8 @@ story that contains a Markdown heading (a line starting with `#`, e.g. `# Chapte
 [Chapter Marker](../extensions/chapter-marker.md) plugin uses in the story sidebar. The first heading of a part is its title, parts
 without a heading belong to the chapter before them. A story without any heading has no table of contents.
 
+![The title page and the table of contents of an exported PDF](../../images/export-result.png)
+
 In PDF, Word and EPUB every chapter starts on a new page. The title page and the table of contents are pages of their
 own as well.
 

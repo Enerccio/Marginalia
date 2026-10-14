@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845293878443">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845311669315">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,7 +24,7 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/account/">
     <meta property="og:title" content="Account & settings">
     <meta property="og:description" content="Everything you create in Marginalia belongs to your account: books, lorebooks, tags, inference providers, protocols and settings. Other users don't see them (except books you publish), and you don't see theirs.">
-    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/settings-defaults.png">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/language-selector.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Account & settings">
@@ -36,7 +36,7 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/account/">
     <meta name="twitter:title" content="Account & settings">
     <meta name="twitter:description" content="Everything you create in Marginalia belongs to your account: books, lorebooks, tags, inference providers, protocols and settings. Other users don't see them (except books you publish), and you don't see theirs.">
-    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/settings-defaults.png">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/language-selector.png">
     <meta name="twitter:image:alt" content="Account & settings">
 
     <!-- Alternate Markdown -->
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845293878443" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845311669315" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845293878443" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845311669315" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845293878443" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845311669315" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -232,6 +232,14 @@ too), and it is used again the next time you log in. The login screen itself is 
 can add more by loading an <a href="../extensions/">extension</a>, for example
 <a href="../extensions/chinese-localization/">Chinese localization</a>. Texts a language doesn&#x27;t translate are shown in English.
 Dates are written the way that language does. Your books and their texts are not translated, only the interface.</p>
+<figure class="content-center">
+    <img src="../../images/language-selector.png" alt="The Language selector" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="292" height="332" />
+    <figcaption class="caption">The Language selector</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/ui-japanese.png" alt="The workspace in Japanese" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The workspace in Japanese</figcaption>
+</figure>
 <h3 id="logging-in">Logging in</h3>
 <p><strong>Save login</strong> on the login screen keeps you logged in on this device for 30 days (it needs HTTPS on a server, see
 <a href="../getting-started/docker-server/#https-and-reverse-proxy">Server (Docker)</a>). <strong>Logout</strong> ends it.</p>
@@ -374,6 +382,10 @@ sets its own value on its <em>Prompts</em> tab keeps it. So:</p>
 <p>A table of all your tags (the ones you give to books, lorebooks and lorebook entries) with the number of objects each
 tag is related to. Click a column header to sort by it. Unlike the other tabs, it acts at once: it is not part of the
 unsaved changes and has nothing to save.</p>
+<figure class="content-center">
+    <img src="../../images/settings-tags.png" alt="The Tags tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1612" height="900" />
+    <figcaption class="caption">The Tags tab</figcaption>
+</figure>
 <retype-table copy-text="| Button | |
 |---|---|
 | **Rename** (pencil) | Asks for the new name of the tag; every object keeps the tag under the new name. |
@@ -403,10 +415,18 @@ unsaved changes and has nothing to save.</p>
 same, so you are asked whether to <strong>merge</strong> them. Merge moves everything tagged with the renamed tag to the existing
 tag and deletes the renamed one; an object that has both ends up with the existing tag once. Cancel and nothing
 changes, the tag keeps its old name.</p>
+<figure class="content-center">
+    <img src="../../images/tag-merge.png" alt="Asking whether to merge two tags" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="811" height="195" />
+    <figcaption class="caption">Asking whether to merge two tags</figcaption>
+</figure>
 <h3 id="extension-settings">Extension Settings</h3>
 <p>Settings of the installed <a href="../extensions/">extensions</a>, one section per extension (for example <em>Reviewer Settings</em>
 and <em>SideQuery Settings</em>). They are saved with the same <strong>Save</strong> button. The tab is empty when no extension with
 settings is installed.</p>
+<figure class="content-center">
+    <img src="../../images/settings-extensions.png" alt="The Extension Settings tab with the Lore Generator settings" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The Extension Settings tab with the Lore Generator settings</figcaption>
+</figure>
 
                 
                 <!-- Required only on API pages -->

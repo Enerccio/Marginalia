@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845293878443">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845311669315">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845293878443" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845311669315" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845293878443" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845311669315" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845293878443" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845311669315" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -174,7 +174,7 @@
 <p>Lets the model review what you&#x27;ve written: reader reactions, an editor&#x27;s critique, a continuity check - whatever you
 prompt it for. Reviews are kept with the part, next to the story, and never become part of the book.</p>
 <figure class="content-center">
-    <img src="../../../images/plugin-reviewer.png" alt="A review of a story part" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <img src="../../../images/plugin-reviewer.png" alt="A review of a story part" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1536" height="745" />
     <figcaption class="caption">A review of a story part</figcaption>
 </figure>
 <h2 id="reviewing-a-part">Reviewing a part</h2>
@@ -279,8 +279,16 @@ reviews the part with the full context of the story.</p>
 </retype-table>
 <p>With <em>Use standard prompt info</em> off, the dialog shows the size of the request (<em>Total tokens</em>). <strong>Generate</strong> opens the
 review dialog with these options; further reviews generated in that dialog use them too.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-reviewer-advanced.png" alt="Advanced review options" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="606" />
+    <figcaption class="caption">Advanced review options</figcaption>
+</figure>
 <h2 id="profiles">Profiles</h2>
 <p>Reviewer settings are in <strong>Settings → Extension Settings → Reviewer Settings</strong>. They are organized in <strong>profiles</strong>:</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-reviewer-settings.png" alt="The Reviewer settings" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The Reviewer settings</figcaption>
+</figure>
 <retype-table copy-text="| Field | |
 |---|---|
 | **Profile** | The profile to edit - and the one used for all reviews. |

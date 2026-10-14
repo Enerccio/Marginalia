@@ -9,6 +9,8 @@ It goes over the parts of the active branch, from the first part to the current 
 each part was generated from and copies them as one text. Every filled field is written as its name followed by a
 colon and its contents on the next line; the parts are separated by a blank line, in the order of the story:
 
+![Export instructions in the settings menu](../../images/plugin-instructionexporter.png)
+
 ```
 Scene Setting:
 A harbour town at dawn

@@ -63,6 +63,10 @@ The same reduced editor is used in the *Lorebook* tab of a book.
 - **Trash** shows each deleted object as a card (name, type, when it was deleted). The explanation of the trash is
   behind the *i* button. Restoring works as described in [Trash](trash.md).
 
+![The inference providers on a phone, with the info button of a shared provider](../images/phone-providers.png)
+
+![The trash on a phone](../images/phone-trash.png)
+
 ## The book window
 
 Opening a book shows it **full screen**. The close button is the **✕** in the top corner, and the tabs - *About*,
