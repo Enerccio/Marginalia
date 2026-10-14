@@ -136,7 +136,8 @@ Two things follow from this:
   of `ChatMessage`, `Manuscript`, `Protocol` and the settings are stored like this. It works for `String`, the
   numeric types, `boolean`, `Date` and enums, stored as strings (dates as ISO-8601 instants in UTC).
   `@ExtendedAttribute(inject = true, injectPrefix = ...)` on a `JsonObject` field spreads its keys with that prefix,
-  which is how `attributes` itself is declared. This is for application code: a plugin can't add fields to an entity
+  which is how `attributes` itself is declared; a field of any other type (POJO with nested objects and lists, a list)
+  is converted with Gson, an object spread the same way, a list or scalar stored under the plain prefix. This is for application code: a plugin can't add fields to an entity
   class, it uses `attributes`.
 
 ## Where the data goes
