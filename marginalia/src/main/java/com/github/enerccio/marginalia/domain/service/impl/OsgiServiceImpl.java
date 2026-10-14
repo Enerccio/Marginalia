@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
+import com.github.enerccio.marginalia.domain.service.IPCService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasLocalization;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
@@ -63,6 +64,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
 
     @Autowired
     private Configuration configuration;
+
+    @Autowired
+    private IPCService ipcService;
 
     @Autowired
     private ExtensionService extensionService;
@@ -663,6 +667,10 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         try {
             extension.onExtensionUnload(b, this, extensionService);
         } finally {
+            // the providers of the bundle go with it, whatever the extension did in onExtensionUnload
+            if (b.getSymbolicName() != null) {
+                ipcService.unregisterAll(b.getSymbolicName());
+            }
             getContext().ungetService(sr);
             if (reported) {
                 fireExtensionEvent(listener -> listener.extensionUnloaded(b, extension));

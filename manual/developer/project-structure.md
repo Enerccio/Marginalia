@@ -172,6 +172,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
 | `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing, restoring and (parts, entries) permanently deleting it (one bean, `CleanupServiceImpl`, shares the reference model). |
+| `IPCService` | Providers of text about a book or a story part that extensions register for each other (in memory, removed with the bundle). |
 | `OsgiService`, `ExtensionService` | Loading, stopping and starting extensions (the `.STOPPED` flag), the logger of an extension (`createLogger`, implemented by the package-private `ExtensionLogger`) and its log file; `@Extendable` decorators. |
 
 Also here: `CancellationToken`, `GenerationListener` (UI
