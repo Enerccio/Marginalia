@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
+import com.github.enerccio.marginalia.domain.service.IPCService;
 import com.github.enerccio.marginalia.domain.service.ExtensionVerificationException;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
@@ -47,6 +48,7 @@ class OsgiServiceImplTest {
     File home;
 
     private File extensions;
+    private IPCService ipc;
     private OsgiServiceImpl service;
     private LocalizationImpl localization;
     private ExpectedLog log;
@@ -70,6 +72,8 @@ class OsgiServiceImplTest {
         };
         ReflectionTestUtils.setField(service, "configuration", configuration);
         ReflectionTestUtils.setField(service, "extensionService", new ExtensionServiceImpl());
+        ipc = new IPCServiceImpl();
+        ReflectionTestUtils.setField(service, "ipcService", ipc);
         localization = new LocalizationImpl();
         localization.setBundles(List.of(new LocalizationBundleEN()));
         ReflectionTestUtils.setField(service, "localization", localization);
@@ -592,6 +596,21 @@ class OsgiServiceImplTest {
         assertThat(bundleNamed("test.a").getState()).isNotEqualTo(Bundle.ACTIVE);
         assertThat(bundleNamed("test.b").getState()).isEqualTo(Bundle.ACTIVE);
         assertThat(TestExtensionActivator.LOADED).containsEntry("test.a:1.0.0", 1).containsEntry("test.b:1.0.0", 2);
+    }
+
+    @Test
+    void providersOfAnExtensionAreRemovedWhenItIsUnloaded() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        writeJar("b.jar", bundle("test.b", "1.0.0"));
+        service.start();
+        ipc.registerManuscriptProvider("test.a", "k", "A", (m, bundle, id) -> "a");
+        ipc.registerChatMessageProvider("test.a", "k", "A", (m, bundle, id) -> "a");
+        ipc.registerManuscriptProvider("test.b", "k", "B", (m, bundle, id) -> "b");
+
+        service.stopExtension(bundleNamed("test.a"));
+
+        assertThat(ipc.getManuscriptProviders().keySet()).containsExactly("test.b");
+        assertThat(ipc.getChatMessageProviders()).isEmpty();
     }
 
     @Test

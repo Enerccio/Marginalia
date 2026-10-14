@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `IPCService`: extensions (and the application) offer text about a book or a story part to each other without
+  importing each other: `registerManuscriptProvider` / `registerChatMessageProvider(bundleIdentifier, providerKey,
+  providerName, callback)` with `ManuscriptPluginData` / `ChatMessagePluginData.getDataFor(entity, callerBundle,
+  callerIdentifier)`, `getManuscriptProviders` / `getChatMessageProviders` (bundle → key → name, in registration order)
+  and `getManuscriptData` / `getChatMessageData`. The providers of a bundle are removed when its extension unloads.
+
 ### Changed
 
 ### Fixed

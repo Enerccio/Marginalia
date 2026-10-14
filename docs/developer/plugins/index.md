@@ -40,6 +40,7 @@ gets three general mechanisms and the whole application to use them on:
 | **Bundles** | Loading, unloading, the `MarginaliaExtension` lifecycle, access to every Spring service through `@Configurable`. | [Plugin basics](overview.md) |
 | **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields, and the possibility to replace the return value. | [@Extendable hooks](extendable.md) |
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
+| **Sharing data** | Offer text about a book or a story part to other extensions, or ask them for it, without importing their classes. | [Sharing data between extensions](ipc.md) |
 | **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |
 
 [Extending the UI](ui-extensions.md) puts the first three together: adding components, settings panels, threads and
@@ -83,3 +84,4 @@ Users install them as described in [Managing extensions](../../user/administrati
 4. [Extended attributes](extended-attributes.md) - storing data.
 5. [Extending the UI](ui-extensions.md) - patterns for menus, tabs and settings, threads and unloading.
 6. [Generation events](generation-events.md) - changing the prompt and the answer during generation.
+7. [Sharing data between extensions](ipc.md) - `IPCService`.

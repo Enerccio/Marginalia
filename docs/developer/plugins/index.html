@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845326419915">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845330949529">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845326419915" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845330949529" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845326419915" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845330949529" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845326419915" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845330949529" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -199,6 +199,7 @@ gets three general mechanisms and the whole application to use them on:</p>
 | **Bundles** | Loading, unloading, the `MarginaliaExtension` lifecycle, access to every Spring service through `@Configurable`. | [Plugin basics](overview.md) |
 | **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields, and the possibility to replace the return value. | [@Extendable hooks](extendable.md) |
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
+| **Sharing data** | Offer text about a book or a story part to other extensions, or ask them for it, without importing their classes. | [Sharing data between extensions](ipc.md) |
 | **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -224,6 +225,11 @@ gets three general mechanisms and the whole application to use them on:</p>
 <td><strong>Extended attributes</strong></td>
 <td>A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change.</td>
 <td><a href="extended-attributes/">Extended attributes</a></td>
+</tr>
+<tr>
+<td><strong>Sharing data</strong></td>
+<td>Offer text about a book or a story part to other extensions, or ask them for it, without importing their classes.</td>
+<td><a href="ipc/">Sharing data between extensions</a></td>
 </tr>
 <tr>
 <td><strong>Generation events</strong></td>
@@ -352,6 +358,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <li><a href="extended-attributes/">Extended attributes</a> - storing data.</li>
 <li><a href="ui-extensions/">Extending the UI</a> - patterns for menus, tabs and settings, threads and unloading.</li>
 <li><a href="generation-events/">Generation events</a> - changing the prompt and the answer during generation.</li>
+<li><a href="ipc/">Sharing data between extensions</a> - <code translate="no" v-pre>IPCService</code>.</li>
 </ol>
 
                 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845326419915">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845330949529">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845326419915" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845330949529" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845326419915" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845330949529" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845326419915" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845326419915" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845330949529" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845330949529" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -684,6 +684,7 @@ service method calls <code translate="no" v-pre>adminGuard.requireAdmin()</code>
 | `DatabaseBackupService` | Database backups with `VACUUM INTO`, upload, staged restore, the cron schedule (`CronSchedule`, Spring `ThreadPoolTaskScheduler`) and its rotation. See [Database backups and restores](database.md#database-backups-and-restores). |
 | `CleanupService` | `analyze()` builds the plan of what can be purged (from the Hibernate metamodel and `@CleanupReference`s), `purge()` executes it. Extensions with their own references register a `CleanupContributor` (`collectReferences` to block purges, `beforePurge` to clean up). See [Cleanup references](domain-model.md#cleanup-references). |
 | `TrashService` | The trash: lists soft-deleted objects (`find`/`count` with a `TrashFilter` of owner and type), shows their extended content as JSON and restores them. Implemented by `CleanupServiceImpl` (same bean as `CleanupService`) because it needs the cleanup reference model. Not administrator-only: a user is limited to their own objects, an administrator (`AdminGuard.isAdmin()`) sees and restores everything, and objects of others raise `SecurityException`. `deletePermanently` removes deleted story parts and lorebook entries for good (children of a removed part move to its parent). `restore` also restores the deleted objects the selection owns (messages of a book...) and is all or nothing: an object that depends on a deleted object outside the selection (`STRONG` and `OWNED_BY` references it holds, and the `OWNS` reference of the object that owns it) blocks the whole restore, see `RestoreResult.getBlocked()`. See [Trash](domain-model.md#trash). |
+| `IPCService` | Data that extensions offer to each other as text: providers about a book (`ManuscriptPluginData`) or a story part (`ChatMessagePluginData`) are registered under a bundle identifier and a key (`registerManuscriptProvider` / `registerChatMessageProvider`), listed in registration order (`getManuscriptProviders` / `getChatMessageProviders`: bundle → key → name) and asked with `getManuscriptData` / `getChatMessageData` (`null` when the provider is gone). `OsgiServiceImpl` removes the providers of a bundle's symbolic name when the extension is unloaded. See [Sharing data between extensions](plugins/ipc.md). |
 | `OsgiService`, `ExtensionService` | Loading extensions and the `@Extendable` decorators (which read arguments and locals and can replace the return value of the decorated method), see [Plugin development](plugins/index.md). `OsgiService` also stops and starts extensions without uninstalling them (`stopExtension` / `startExtension` / `isStopped`, the `&lt;jar name&gt;.STOPPED` flag next to the JAR), gives the SHA-256 of an extension's JAR (`getSha256`, cached until the file changes) and gives each extension its own logger: `createLogger(bundle)` returns an SLF4J logger (implemented by `ExtensionLogger`) that appends to `&lt;jar name&gt;.log` in the extensions folder (moved to `.log.old` over 2 MB) and chains each line to the application log (logger `extension.&lt;name&gt;`); `readLog` / `clearLog` serve the Admin page. See [Logging](plugins/overview.md#logging). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -705,6 +706,10 @@ service method calls <code translate="no" v-pre>adminGuard.requireAdmin()</code>
 <tr>
 <td><code translate="no" v-pre>TrashService</code></td>
 <td>The trash: lists soft-deleted objects (<code translate="no" v-pre>find</code>/<code translate="no" v-pre>count</code> with a <code translate="no" v-pre>TrashFilter</code> of owner and type), shows their extended content as JSON and restores them. Implemented by <code translate="no" v-pre>CleanupServiceImpl</code> (same bean as <code translate="no" v-pre>CleanupService</code>) because it needs the cleanup reference model. Not administrator-only: a user is limited to their own objects, an administrator (<code translate="no" v-pre>AdminGuard.isAdmin()</code>) sees and restores everything, and objects of others raise <code translate="no" v-pre>SecurityException</code>. <code translate="no" v-pre>deletePermanently</code> removes deleted story parts and lorebook entries for good (children of a removed part move to its parent). <code translate="no" v-pre>restore</code> also restores the deleted objects the selection owns (messages of a book...) and is all or nothing: an object that depends on a deleted object outside the selection (<code translate="no" v-pre>STRONG</code> and <code translate="no" v-pre>OWNED_BY</code> references it holds, and the <code translate="no" v-pre>OWNS</code> reference of the object that owns it) blocks the whole restore, see <code translate="no" v-pre>RestoreResult.getBlocked()</code>. See <a href="../domain-model/#trash">Trash</a>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>IPCService</code></td>
+<td>Data that extensions offer to each other as text: providers about a book (<code translate="no" v-pre>ManuscriptPluginData</code>) or a story part (<code translate="no" v-pre>ChatMessagePluginData</code>) are registered under a bundle identifier and a key (<code translate="no" v-pre>registerManuscriptProvider</code> / <code translate="no" v-pre>registerChatMessageProvider</code>), listed in registration order (<code translate="no" v-pre>getManuscriptProviders</code> / <code translate="no" v-pre>getChatMessageProviders</code>: bundle → key → name) and asked with <code translate="no" v-pre>getManuscriptData</code> / <code translate="no" v-pre>getChatMessageData</code> (<code translate="no" v-pre>null</code> when the provider is gone). <code translate="no" v-pre>OsgiServiceImpl</code> removes the providers of a bundle&#x27;s symbolic name when the extension is unloaded. See <a href="../plugins/ipc/">Sharing data between extensions</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>OsgiService</code>, <code translate="no" v-pre>ExtensionService</code></td>
