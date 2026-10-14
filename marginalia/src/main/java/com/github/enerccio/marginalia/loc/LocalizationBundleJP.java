@@ -336,6 +336,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_DELETE_PERMANENTLY, "完全に削除");
         setValue(L.LABEL_HIGHLIGHT_GENERATED_TEXT, "生成されたテキストをハイライト");
         setValue(L.LABEL_SHA256, "SHA-256");
+        setValue(L.LABEL_RENAME, "名前を変更");
+        setValue(L.LABEL_MERGE, "統合");
+        setValue(L.LABEL_OBJECTS, "オブジェクト");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -510,6 +513,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED, "何も削除されませんでした。これらのオブジェクトは削除できません：");
         setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED_ITEM, "%s「%s」：%s");
         setValue(L.MSG_COPIED_TO_CLIPBOARD, "クリップボードにコピーしました");
+        setValue(L.MSG_RENAME_TAG, "タグの名前を変更");
+        setValue(L.MSG_CONFIRM_DELETE_TAG, "タグ「%s」を削除しますか？ %s 個のオブジェクトから外されます。");
+        setValue(L.MSG_CONFIRM_MERGE_TAG, "タグ「%s」はすでに存在します。「%s」をそれに統合しますか？\nタグ「%s」は削除され、そのオブジェクトには代わりにタグ「%s」が付きます。");
+        setValue(L.MSG_TAG_RENAME_NOT_FOUND, "タグはもう存在しません");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

@@ -344,6 +344,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_DELETE_PERMANENTLY, "永久删除");
         setValue(L.LABEL_HIGHLIGHT_GENERATED_TEXT, "高亮生成的文本");
         setValue(L.LABEL_SHA256, "SHA-256");
+        setValue(L.LABEL_RENAME, "重命名");
+        setValue(L.LABEL_MERGE, "合并");
+        setValue(L.LABEL_OBJECTS, "对象");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -518,6 +521,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED, "没有删除任何内容。这些对象无法移除：");
         setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED_ITEM, "%s“%s”：%s");
         setValue(L.MSG_COPIED_TO_CLIPBOARD, "已复制到剪贴板");
+        setValue(L.MSG_RENAME_TAG, "重命名标签");
+        setValue(L.MSG_CONFIRM_DELETE_TAG, "删除标签“%s”？它将从 %s 个对象中移除。");
+        setValue(L.MSG_CONFIRM_MERGE_TAG, "标签“%s”已存在。将“%s”合并到其中吗？\n标签“%s”将被删除，其对象将改为使用标签“%s”。");
+        setValue(L.MSG_TAG_RENAME_NOT_FOUND, "该标签已不存在");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
