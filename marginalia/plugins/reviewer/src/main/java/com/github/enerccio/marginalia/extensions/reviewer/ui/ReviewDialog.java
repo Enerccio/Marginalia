@@ -10,10 +10,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
-import com.github.enerccio.marginalia.extensions.reviewer.model.AdvancedOptions;
-import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewData;
-import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewItem;
-import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
+import com.github.enerccio.marginalia.extensions.reviewer.model.*;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
@@ -220,14 +217,15 @@ public class ReviewDialog extends Dialog {
 
         try {
             ReviewerSettings settings = reviewerService.getSettings();
-            AI targetAi = reviewerService.resolveAI(settings, manuscript);
-            Protocol targetProtocol = reviewerService.resolveProtocol(settings, manuscript);
+            ReviewerSetting setting = reviewerService.resolveSetting(settings, manuscript);
+            AI targetAi = reviewerService.resolveAI(setting, manuscript);
+            Protocol targetProtocol = reviewerService.resolveProtocol(setting, manuscript);
             InferenceService service = inferenceServices.forAI(targetAi);
 
             AdvancedOptions opts = pendingAdvancedOptions != null ? pendingAdvancedOptions : new AdvancedOptions();
 
             List<LLMChatMessage> payload = reviewerService.buildChatCompletePrompts(service,
-                    message, settings, opts);
+                    message, setting, opts);
 
             ReviewItem currentItem = reviewData.getReviews().get(reviewData.getCurrent());
             currentItem.getMetadata().setAdvancedInfo(opts);

@@ -70,6 +70,12 @@ a migrated database.
   was edited before cannot be told apart. Only the desktop story tab has it. Plugins: `ChatMessage.originalResponse`,
   new `@Extendable` methods `ManuscriptStoryPart.createHighlightGeneratedMenuItem`, `setShowGeneratedDiff` and
   `ChatMessageCard.renderResponse` (`@PublicAPI` from 1.2.0).
+- Reviewer plugin: a book can have its own reviewer profile. The info tab of the book (desktop and phone) has a
+  **Reviewer Profile** combo box under the protocol; the chosen profile takes priority over the one selected in the
+  settings (cleared: the selected one is used). The choice is stored in the book's attributes by the uuid of the profile,
+  which profiles now have (profiles saved before get one the first time they are loaded), so renaming a profile keeps it.
+  **Advanced Options** has a **Prompt from Profile** combo box that fills the prompt override with the review prompt of
+  the chosen profile (only the prompt, not its model, protocol or pre-prompt).
 
 ### Changed
 

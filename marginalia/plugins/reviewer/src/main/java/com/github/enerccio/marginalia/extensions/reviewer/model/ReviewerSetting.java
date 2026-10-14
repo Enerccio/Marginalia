@@ -1,6 +1,11 @@
 package com.github.enerccio.marginalia.extensions.reviewer.model;
 
+import java.util.UUID;
+
 public class ReviewerSetting {
+
+    // stable id of the profile, books refer to it (the name can be changed); settings saved before it was added get one on load
+    private String uuid = UUID.randomUUID().toString();
 
     private String reviewPrompt = "Ignore previous instructions, instead you are a reddit simulator. " +
             "Take the text before as a story work in progress and generate a reddit thread " +
@@ -11,6 +16,9 @@ public class ReviewerSetting {
     private String reviewPromptPre = "";
     private Long selectedAiId = null;
     private Long selectedProtocolId = null;
+
+    public String getUuid() { return uuid; }
+    public void setUuid(String uuid) { this.uuid = uuid; }
 
     public String getReviewPrompt() { return reviewPrompt; }
     public void setReviewPrompt(String reviewPrompt) { this.reviewPrompt = reviewPrompt; }
