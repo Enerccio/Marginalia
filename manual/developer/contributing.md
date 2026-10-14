@@ -1,7 +1,7 @@
 ---
 label: Contributing
 order: 870
-verified: f3f0d7c7
+verified: bb9a99d1
 covers:
   - CONTRIBUTING.md
   - CLAUDE.md
