@@ -405,7 +405,7 @@ public class AIDialog extends Dialog {
         return copy;
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.2.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "copy", type = OpenAICompatible.class),
                     @APILocals(name = "models", type = List.class),

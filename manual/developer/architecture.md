@@ -438,6 +438,10 @@ sequenceDiagram
 - **Languages.** An extension that implements `ExtensionHasLocalization` adds languages to the UI: `OsgiServiceImpl`
   registers its `LocalizationBundle`s in `Localization` after the extension loads and removes them on unload
   ([Localization](#localization)).
+- **Other extensions.** Extensions don't import each other. `IPCService` lets them register providers of text about a
+  book or a story part under their bundle's symbolic name (removed when the extension is unloaded) and ask for it; to
+  use one particular extension (the name generator) the others find it among `OsgiService.getLoadedExtensions()` and
+  call it by reflection ([Sharing data between extensions](plugins/ipc.md)).
 - **Styles.** An extension that implements `ExtensionHasCss` gets its CSS put into every open page: `CssRegistry`
   (owned by `Main` and `Viewer`) reads the loaded extensions when its page is attached and listens to the
   loaded/unloaded events of `OsgiService` afterwards ([Styles of a plugin](plugins/ui-extensions.md#styles-of-a-plugin)).
