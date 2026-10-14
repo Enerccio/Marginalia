@@ -29,7 +29,7 @@ screenshots/
 ## Requirements
 
 * the WAR built from the **same commit** as the plugins: `mvn package -DskipTests` in the repository root builds the
-  application and all plugins (`marginalia/target/marginalia-1.2.0.war`, `marginalia/plugins/*/target/*-1.2.0.jar`);
+  application and all plugins (`marginalia/target/marginalia-1.3.0.war`, `marginalia/plugins/*/target/*-1.3.0.jar`);
 * Node.js 20+ (`npm install` in this folder, once), Google Chrome in `/Applications`, JDK 25 + Maven, `lsof`, `curl`;
 * for `export-result.png`: `pdftoppm` (`brew install poppler`) and ImageMagick (`magick`);
 * for the annotated UI maps: Pillow (`bin/shoot-all.sh` installs it into `.run/pil`).

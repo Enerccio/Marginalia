@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+### Fixed
+
+### Known issues
+
 ## [1.2.0] - 2026-10-14
 
 Four database migrations (`V10` to `V13`): a copy of the database is saved before they run, and 1.1.0 cannot open

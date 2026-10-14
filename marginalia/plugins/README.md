@@ -40,7 +40,7 @@ cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
 cd plugins/chaptermarker          # or authorsnote, character-tracker, gemma4toolsfix, instructionexporter, lore-generator, lorebookvcs, name-generator, reviewer, sidequery, chineselocalization
-mvn package                       # target/chaptermarker-1.2.0.jar
+mvn package                       # target/chaptermarker-1.3.0.jar
 ```
 
 `mvn package` in the repository root builds the application and all plugins in one go. Requirements are the same as for
