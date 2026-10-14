@@ -111,13 +111,20 @@ public class ExtendableEntityListener {
 
                     root.addProperty(field, strValue);
                 } else {
-                    JsonObject injected = (JsonObject) f.get(entity);
-                    if (injected == null) {
+                    Object value = f.get(entity);
+                    if (value == null) {
                         continue;
                     }
 
-                    for (String key : injected.keySet()) {
-                        root.add(extAttrAnnot.injectPrefix() + "_" + key, injected.get(key));
+                    JsonElement injected = value instanceof JsonElement element ? element : gson.toJsonTree(value, f.getGenericType());
+                    if (injected.isJsonObject()) {
+                        JsonObject object = injected.getAsJsonObject();
+                        for (String key : object.keySet()) {
+                            root.add(extAttrAnnot.injectPrefix() + "_" + key, object.get(key));
+                        }
+                    } else if (!injected.isJsonNull()) {
+                        // not an object (list, string, ...): cannot be flattened, stored as a single value
+                        root.add(extAttrAnnot.injectPrefix(), injected);
                     }
                 }
             }
@@ -179,7 +186,20 @@ public class ExtendableEntityListener {
                         object.add(key.substring(prefix.length()), element);
                     }
                 }
-                f.set(entity, object);
+                if (JsonObject.class.equals(f.getType())) {
+                    f.set(entity, object);
+                    continue;
+                }
+
+                JsonElement source = object.size() > 0 ? object : root.get(extAttrAnnot.injectPrefix());
+                if (source == null || source.isJsonNull()) {
+                    continue; // keep the default value of the field
+                }
+                try {
+                    f.set(entity, gson.fromJson(source, f.getGenericType()));
+                } catch (Exception e) {
+                    log.error("Error deserialize injected field {} of entity ({}), id: {}, error {}({})", field, entity.getClass().getSimpleName(), entity.getId(), e.getClass(), e.getMessage());
+                }
             }
         }
 
