@@ -331,7 +331,10 @@ public class DesktopWorkspace implements Workspace {
         aiPart.refresh();
         resourcesPart.refresh();
         trashPart.refresh();
-        adminPart.refresh();
+        // the admin part (backups, cleanup) refuses anybody but administrators; only they get the button
+        if (adminButton != null) {
+            adminPart.refresh();
+        }
     }
 
 }

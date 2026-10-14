@@ -112,6 +112,11 @@ a migrated database.
 
 ### Fixed
 
+- Inference providers: the API key typed into a new provider is no longer lost when you visit *General Settings* before
+  **OK** (the dialog read the enabled state of a field in a hidden tab). **Refresh** keeps the selected model. An empty
+  API key works for local servers: a placeholder (`none`) is sent instead of failing in the client library.
+- Regular users no longer get an *Application Error* dialog after every login (the admin part is refreshed only for
+  administrators).
 - Admin → Cleanup: purging an AI that has usage rows no longer fails (`usages.ai_id` is nullable, migration `V13`).
 - Lore Generator: the Name generator is found by reflection and not imported, so it works when it is installed after the
   Lore Generator, and again after it was unloaded and installed again.

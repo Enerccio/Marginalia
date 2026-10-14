@@ -9,7 +9,7 @@ From a fresh installation to the first generated part of a story. It assumes Mar
 2. Enter a **Name**, for example `OpenRouter - Claude`.
 3. In **General Settings**, set **Max Context Size** to the context size of the model, for example `32000`, and
    **Max Response Tokens** to the longest part you want, for example `2000`.
-4. In **Per Type Settings**, enter the **OpenAI URL** (it ends with `/v1`) and the **Api Key** (any text, e.g. `none`, for a local server that has no key), click **Refresh** and
+4. In **Per Type Settings**, enter the **OpenAI URL** (it ends with `/v1`) and the **Api Key** (leave it empty for a local server that has no key), click **Refresh** and
    pick the **Model**.
 5. Click **OK**.
 

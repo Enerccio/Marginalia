@@ -1036,7 +1036,7 @@ ee11-websocket-jakarta, ee11-jsp`); update *Building from source → Local Jetty
 
 ---
 
-## BUG-61 - New inference provider: the API key is lost when you go back to General Settings (medium)
+~~## BUG-61 - New inference provider: the API key is lost when you go back to General Settings (medium)~~
 
 **Where:** `ui/dialogs/AIDialog.java` (`save()`, the two tabs of the dialog). Found while retaking the screenshots with
 a script; the cause was not investigated.
@@ -1058,7 +1058,7 @@ When the dialog is saved without switching tabs after the key was typed, the key
 
 ---
 
-## BUG-62 - An empty Api Key is refused by the OpenAI client, local servers need a placeholder (low)
+~~## BUG-62 - An empty Api Key is refused by the OpenAI client, local servers need a placeholder (low)~~
 
 **Where:** `domain/service/impl/inference/OpenAICompatibleInferenceService.java` (`openClient`, `getModels`).
 
@@ -1074,7 +1074,7 @@ workaround isn't needed.
 
 ---
 
-## BUG-63 - Every login of a regular user ends with an "Application Error" dialog (medium)
+~~## BUG-63 - Every login of a regular user ends with an "Application Error" dialog (medium)~~
 
 **Where:** `ui/workspace/DesktopWorkspace.refresh()` → `AdminPart.refresh()` → `admin/DatabaseBackupPanel.refresh()` →
 `DatabaseBackupServiceImpl.getBackups()` (needs the administrator), called from `Main.proceedWithLogin()`. Found while
@@ -1094,7 +1094,7 @@ shown.
 
 ---
 
-## BUG-64 - Refresh in the *Edit Inference Provider* dialog empties the Model field (low)
+~~## BUG-64 - Refresh in the *Edit Inference Provider* dialog empties the Model field (low)~~
 
 **Where:** `ui/dialogs/AIDialog.java`, `fetchModels()` (`modelCombo.setItems(models)`). Found while retaking the screenshots.
 

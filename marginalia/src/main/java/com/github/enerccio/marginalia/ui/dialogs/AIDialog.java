@@ -81,6 +81,8 @@ public class AIDialog extends Dialog {
     private TextField urlField;
     private PasswordField apiKeyField;
     private Button resetApiKeyButton;
+    // not apiKeyField.isEnabled(): the tab sheet disables the content of the tab that isn't shown
+    private boolean apiKeyEditable = true;
     private ComboBox<String> modelCombo;
     private Button refreshModelsButton;
     private TextArea additionalParametersField;
@@ -160,6 +162,7 @@ public class AIDialog extends Dialog {
             typeCombo.setValue(AIType.OPEN_AI_COMPATIBLE);
             maxContextField.setValue(DEFAULT_MAX_CONTEXT);
             maxResponseField.setValue(DEFAULT_MAX_RESPONSE);
+            apiKeyEditable = true;
             apiKeyField.setEnabled(true);
             resetApiKeyButton.setVisible(false);
             needsJailbreakCheckbox.setValue(false);
@@ -235,6 +238,7 @@ public class AIDialog extends Dialog {
         apiKeyField.setWidthFull();
 
         resetApiKeyButton = new Button(loc.getValue(L.LABEL_RESET), event -> {
+            apiKeyEditable = true;
             apiKeyField.setEnabled(true);
             apiKeyField.focus();
             resetApiKeyButton.setEnabled(false);
@@ -328,6 +332,7 @@ public class AIDialog extends Dialog {
             urlField.setValue(StringUtils.defaultString(compatible.getUri()));
 
             apiKeyField.setValue("");
+            apiKeyEditable = false;
             apiKeyField.setEnabled(false);
             resetApiKeyButton.setVisible(true);
             resetApiKeyButton.setEnabled(true);
@@ -368,7 +373,7 @@ public class AIDialog extends Dialog {
         OpenAICompatible compatible = (ai instanceof OpenAICompatible c) ? c : null;
 
         String apiKeyToUse;
-        if (apiKeyField.isEnabled()) {
+        if (apiKeyEditable) {
             apiKeyToUse = apiKeyField.getValue();
         } else if (compatible != null) {
             apiKeyToUse = compatible.getApiKey();
@@ -404,6 +409,7 @@ public class AIDialog extends Dialog {
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "copy", type = OpenAICompatible.class),
                     @APILocals(name = "models", type = List.class),
+                    @APILocals(name = "selected", type = String.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void fetchModels() {
         if (typeCombo.getValue() != AIType.OPEN_AI_COMPATIBLE) {
@@ -421,7 +427,12 @@ public class AIDialog extends Dialog {
                 models.add(0, modelCombo.getValue());
             }
 
+            // setItems clears the selection
+            String selected = modelCombo.getValue();
             modelCombo.setItems(models);
+            if (selected != null) {
+                modelCombo.setValue(selected);
+            }
         } catch (Exception e) {
             if (InferenceErrors.find(e) != null) {
                 Notification.error(InferenceErrors.describe(loc, e), Notification.DURATION_LONGER);
@@ -541,7 +552,7 @@ public class AIDialog extends Dialog {
             if (type == AIType.OPEN_AI_COMPATIBLE && ai instanceof OpenAICompatible compatible) {
                 compatible.setUri(urlField.getValue().trim());
 
-                if (apiKeyField.isEnabled()) {
+                if (apiKeyEditable) {
                     compatible.setApiKey(apiKeyField.getValue());
                 }
 

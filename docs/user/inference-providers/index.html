@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845313022308">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845325522303">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845313022308" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845325522303" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845313022308" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845325522303" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845313022308" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845325522303" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -313,7 +313,7 @@ button and deleted with the trash button.</p>
 <retype-table copy-text="| Field | |
 |---|---|
 | **OpenAI URL (ends with /v1)** | The base address of the API, see [the table above](#supported-apis). Without `/chat/completions`. |
-| **Api Key** | The key of the service. A local server usually doesn't check it, but the field can't be empty: the OpenAI client library Marginalia uses refuses to send a request without a key. Enter any text (for example `none`) when the server doesn't need a key. |
+| **Api Key** | The key of the service. A local server usually doesn't check it: leave the field empty and Marginalia sends the placeholder `none`. |
 | **Model** | The model to use. Click **Refresh** to load the list of models from the API, or type the model ID yourself (e.g. `anthropic/claude-sonnet-4.5` on OpenRouter). |
 | **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message. |
 | **Retries** | How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a `Retry-After` header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice. |
@@ -333,7 +333,7 @@ button and deleted with the trash button.</p>
 </tr>
 <tr>
 <td><strong>Api Key</strong></td>
-<td>The key of the service. A local server usually doesn&#x27;t check it, but the field can&#x27;t be empty: the OpenAI client library Marginalia uses refuses to send a request without a key. Enter any text (for example <code translate="no" v-pre>none</code>) when the server doesn&#x27;t need a key.</td>
+<td>The key of the service. A local server usually doesn&#x27;t check it: leave the field empty and Marginalia sends the placeholder <code translate="no" v-pre>none</code>.</td>
 </tr>
 <tr>
 <td><strong>Model</strong></td>

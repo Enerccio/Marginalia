@@ -60,6 +60,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     public static final int DEFAULT_TIMEOUT_SECONDS = 300;
     public static final int DEFAULT_MAX_RETRIES = 2;
+    private static final String NO_API_KEY_PLACEHOLDER = "none";
 
     private static final Pattern CONTEXT_OVERFLOW = Pattern.compile(
             "context[ _-]?(length|window|size)|maximum context|too many tokens|token limit|prompt is too long"
@@ -589,6 +590,15 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         return overridden;
     }
 
+    /**
+     * The OpenAI client refuses to build a request without a key, but local servers (llama.cpp, Ollama...) don't
+     * check it, so an empty key is replaced by a placeholder.
+     */
+    public static String apiKeyOrPlaceholder(OpenAICompatible ai) {
+        String key = ai.getApiKey();
+        return key == null || key.isBlank() ? NO_API_KEY_PLACEHOLDER : key;
+    }
+
     private OpenAIClient openClient() {
         int timeoutSeconds = ai.getRequestTimeoutSeconds() != null && ai.getRequestTimeoutSeconds() > 0
                 ? ai.getRequestTimeoutSeconds() : DEFAULT_TIMEOUT_SECONDS;
@@ -607,7 +617,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         // the client retries 408, 409, 429, 5xx and connection errors with growing waits (and honors Retry-After)
         return OpenAIOkHttpClient.builder()
                 .baseUrl(ai.getUri())
-                .apiKey(ai.getApiKey())
+                .apiKey(apiKeyOrPlaceholder(ai))
                 .timeout(timeouts)
                 .maxRetries(retries)
                 .build();
