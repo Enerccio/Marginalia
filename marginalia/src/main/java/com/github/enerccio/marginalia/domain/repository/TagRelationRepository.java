@@ -4,11 +4,20 @@ import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
 
+import com.github.enerccio.marginalia.domain.security.model.User;
+
 import java.util.List;
+import java.util.Map;
 
 public interface TagRelationRepository extends ExtendableRepository<TagRelation> {
 
     List<TagRelation> findAllByTag(Tag tag) throws Exception;
+
+    /**
+     * Number of relations that are not deleted (positive and negative) of each non-deleted tag of the user, keyed by
+     * tag id. Tags without a relation are not in the map.
+     */
+    Map<Long, Long> countByTag(User user) throws Exception;
 
     /**
      * Relations of the object that are not deleted, positive and negative.

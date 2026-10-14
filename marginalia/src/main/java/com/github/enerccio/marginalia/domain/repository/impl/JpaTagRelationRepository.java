@@ -5,7 +5,11 @@ import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
 import com.github.enerccio.marginalia.domain.repository.TagRelationRepository;
 
+import com.github.enerccio.marginalia.domain.security.model.User;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class JpaTagRelationRepository extends JpaExtendableRepository<TagRelation> implements TagRelationRepository {
 
@@ -20,6 +24,22 @@ public class JpaTagRelationRepository extends JpaExtendableRepository<TagRelatio
                         "SELECT tr FROM TagRelation tr WHERE tr.tag.id = :tagId", TagRelation.class)
                 .setParameter("tagId", tag.getId())
                 .getResultList();
+    }
+
+    @Override
+    public Map<Long, Long> countByTag(User user) throws Exception {
+        Map<Long, Long> counts = new HashMap<>();
+        if (user == null || user.getId() == null) {
+            return counts;
+        }
+        List<Object[]> rows = getEntityManager().createQuery(
+                        "SELECT tr.tag.id, COUNT(tr) FROM TagRelation tr WHERE tr.deleted = false AND tr.tag.deleted = false AND tr.tag.owner.id = :userId GROUP BY tr.tag.id", Object[].class)
+                .setParameter("userId", user.getId())
+                .getResultList();
+        for (Object[] row : rows) {
+            counts.put((Long) row[0], (Long) row[1]);
+        }
+        return counts;
     }
 
     @Override

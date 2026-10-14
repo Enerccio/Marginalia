@@ -25,7 +25,7 @@ public class TextInputDialog extends Dialog {
 	private TextField inputMessage;
 
 	private TextInputDialog(String message, MessageAction yes, boolean showCancel,
-                            String inputMessageLabel, boolean messageRequired) {
+                            String inputMessageLabel, boolean messageRequired, String initialValue) {
 		setCloseOnEsc(true);
 		setCloseOnOutsideClick(true);
 		setModality(ModalityMode.STRICT);
@@ -59,6 +59,8 @@ public class TextInputDialog extends Dialog {
 
 		inputMessage = new TextField(inputMessageLabel);
 		inputMessage.setWidthFull();
+		if (initialValue != null)
+			inputMessage.setValue(initialValue);
 		vl.add(inputMessage);
 
 		vl.add(msg, inputMessage, hl);
@@ -81,6 +83,7 @@ public class TextInputDialog extends Dialog {
 		private boolean showCancel;
 		private String inputMessageLabel;
 		private boolean messageRequired = false;
+		private String initialValue;
 
 		public Builder(String message, MessageAction yes) {
 			this.message = message;
@@ -105,8 +108,14 @@ public class TextInputDialog extends Dialog {
 			return this;
 		}
 
+		public Builder initialValue(String initialValue) {
+			this.initialValue = initialValue;
+
+			return this;
+		}
+
 		public TextInputDialog build() {
-			return new TextInputDialog(message, yes, showCancel, inputMessageLabel, messageRequired);
+			return new TextInputDialog(message, yes, showCancel, inputMessageLabel, messageRequired, initialValue);
 		}
 	}
 

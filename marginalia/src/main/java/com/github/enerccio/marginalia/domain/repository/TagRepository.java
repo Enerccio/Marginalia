@@ -15,4 +15,9 @@ public interface TagRepository extends ExtendableRepository<Tag> {
      * Non-deleted tag of the user with exactly this value (case-insensitive), the oldest one if there are several.
      */
     Tag findByValue(String value, User user) throws Exception;
+
+    /**
+     * Non-deleted tag of the user with exactly this value (case-insensitive) other than the tag with the given id.
+     */
+    Tag findOtherByValue(String value, Long excludeId, User user) throws Exception;
 }

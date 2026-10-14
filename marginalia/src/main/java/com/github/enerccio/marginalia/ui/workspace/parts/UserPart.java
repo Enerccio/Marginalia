@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
@@ -92,7 +93,10 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultSummaryPromptField;
     private TextAreaPopoverComponent defaultMetaSummaryPromptField;
 
-    // Tab 3 Extensions
+    // Tab 3 Tags, not a setting: acts at once, outside of the save and discard of the part
+    private TagsView tagsView;
+
+    // Tab 4 Extensions
     private Accordion extensionSettings;
 
     private UserSetting userSetting;
@@ -160,6 +164,9 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.setColspan(defaultMetaSummaryPromptField, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_TEMPLATES), templatesFormLayout);
+
+        tagsView = new TagsView();
+        tabSheet.add(loc.getValue(L.LABEL_TAGS), tagsView);
 
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();
@@ -411,6 +418,7 @@ public class UserPart implements WorkspaceComponent {
             validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class);
             validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class);
             validateTemplate(defaultMetaSummaryPromptField, "defaultMetaSummaryPrompt", MetaSummaryTemplateData.class);
+            tagsView.refresh();
 
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

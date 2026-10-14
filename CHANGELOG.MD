@@ -12,6 +12,11 @@ a migrated database.
 
 ### Added
 
+- Settings → **Tags**: a table of all your tags with the number of objects related to each. A tag can be renamed or
+  deleted (its relations are deleted with it). Renaming a tag to the name of another tag asks whether to merge them:
+  yes moves the relations to the existing tag and deletes the renamed one, no leaves the tag unchanged
+  (`TagService.findUsageForUser/findRenameConflict/rename/merge`, `TagRelationService.moveRelations/countRelationsByTag`;
+  `TextInputDialog.Builder.initialValue`).
 - Admin → Extensions: a **#** button next to the version of each extension shows the SHA-256 hash of its JAR on hover
   and copies it to the clipboard on click (`OsgiService.getSha256`).
 - Shared inference providers: an administrator can check **Shared with all users** in a provider's dialog. Every user

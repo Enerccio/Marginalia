@@ -336,6 +336,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_DELETE_PERMANENTLY, "Delete Permanently");
         setValue(L.LABEL_HIGHLIGHT_GENERATED_TEXT, "Highlight Generated Text");
         setValue(L.LABEL_SHA256, "SHA-256");
+        setValue(L.LABEL_RENAME, "Rename");
+        setValue(L.LABEL_MERGE, "Merge");
+        setValue(L.LABEL_OBJECTS, "Objects");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -510,6 +513,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED, "Nothing was deleted. These objects can't be removed:");
         setValue(L.MSG_DELETE_PERMANENTLY_BLOCKED_ITEM, "%s \"%s\": %s");
         setValue(L.MSG_COPIED_TO_CLIPBOARD, "Copied to clipboard");
+        setValue(L.MSG_RENAME_TAG, "Rename tag");
+        setValue(L.MSG_CONFIRM_DELETE_TAG, "Delete the tag \"%s\"? It is removed from %s objects.");
+        setValue(L.MSG_CONFIRM_MERGE_TAG, "The tag \"%s\" already exists. Merge \"%s\" into it?\nThe tag \"%s\" is deleted and its objects get the tag \"%s\" instead.");
+        setValue(L.MSG_TAG_RENAME_NOT_FOUND, "The tag no longer exists");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, TagRelationRepository> implements TagRelationService {
 
@@ -71,6 +72,32 @@ public class TagRelationServiceImpl extends ExtendableServiceImpl<TagRelation, T
         for (TagRelation relation : relations) {
             delete(relation, hard);
         }
+    }
+
+    @Override
+    @CommonTx
+    public void moveRelations(Tag from, Tag to) throws Exception {
+        if (from == null || to == null || from.getId() == null || to.getId() == null || from.getId().equals(to.getId())) {
+            return;
+        }
+        for (TagRelation relation : getRepository().findAllByTag(from)) {
+            if (relation.isDeleted()) {
+                continue;
+            }
+            TagRelation existing = getRepository().findByTagAndObject(to.getId(), relation.getObjectId(), relation.getClazz(), relation.isNegative());
+            if (existing != null) {
+                delete(relation, false);
+            } else {
+                relation.setTag(to);
+                save(relation);
+            }
+        }
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Map<Long, Long> countRelationsByTag() throws Exception {
+        return getRepository().countByTag(currentUser);
     }
 
     @Override
