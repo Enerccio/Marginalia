@@ -325,6 +325,10 @@ CancellationToken token = service.stream(payload, protocol, new InferenceService
 - `protocol` supplies sampling parameters and the response limit; it may be `null`.
 - Fit the prompt into the model's context yourself: `TokenLimits.promptTokens(ai, protocol)` is the room left for the
   prompt, `service.countTokens(text)` (or the cheaper `countTokensApprox`) counts.
+- `infer(...)` is the same call without streaming: the callback gets the whole text once (`InferenceResultCallback`). With
+  a JSON schema, or a class annotated with `@LLMSchema` / `@LLMField`, the provider is asked to follow it and the
+  answer is checked (`SchemaCheck`) or read into an object (`TypedInferenceCallback`); `stream` can pass a schema too,
+  but checks nothing. Both can offer functions to the model.
 - The stream stops when the token is cancelled or `isDead()` returns `true`, both checked between chunks; the
   callback then gets `onCancel()`.
 

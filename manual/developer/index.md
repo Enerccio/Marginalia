@@ -28,7 +28,7 @@ the desktop app.
 | User interface | Vaadin Flow 25 (server-side Java components, Lumo theme, server push over WebSocket) |
 | Application framework | Spring 7 (XML configuration, no Spring Boot), AspectJ compile-time weaving for `@Configurable` and `@Transactional` |
 | Persistence | Hibernate 7 (JPA), SQLite (`sqlite-jdbc`, WAL mode), Flyway migrations |
-| LLM access | [openai-java](https://github.com/openai/openai-java) against any OpenAI-compatible API, JTokkit and server tokenizers for token counts |
+| LLM access | [openai-java](https://github.com/openai/openai-java) against any OpenAI-compatible API, JTokkit and server tokenizers for token counts, victools and networknt json-schema-validator for structured answers |
 | Templates | Handlebars.java with SillyTavern-compatible macros |
 | Extensions | Apache Felix (OSGi), ByteBuddy agent for bytecode instrumentation of `@Extendable` classes |
 | Server | Any Jakarta EE 11 servlet container (Servlet 6.1) - Jetty 12 in Docker and in the desktop app |
