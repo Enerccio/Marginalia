@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845243603871">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845247194058">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845243603871" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845247194058" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845243603871" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845247194058" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845243603871" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845243603871" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845247194058" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845247194058" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -640,6 +640,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 |---|---|
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
+| `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
@@ -665,6 +666,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>LanguageSelector</code></td>
 <td>The language combo box of the workspace footers: saves the choice in <code translate="no" v-pre>UserSetting.language</code>, sets <code translate="no" v-pre>SessionPoint.language</code> and reloads every page of the user (<a href="../architecture/#localization">Localization</a>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>TagsView</code> (<code translate="no" v-pre>ui.components</code>)</td>
+<td>The Tags tab of <code translate="no" v-pre>UserPart</code>: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TagMultiComboBox</code></td>

@@ -106,6 +106,22 @@ sets its own value on its *Prompts* tab keeps it. So:
 - set what is special to one book on its *Prompts* tab;
 - clear a book's field to bring it back to the default from *Settings*.
 
+### Tags
+
+A table of all your tags (the ones you give to books, lorebooks and lorebook entries) with the number of objects each
+tag is related to. Click a column header to sort by it. Unlike the other tabs, it acts at once: it is not part of the
+unsaved changes and has nothing to save.
+
+| Button | |
+|---|---|
+| **Rename** (pencil) | Asks for the new name of the tag; every object keeps the tag under the new name. |
+| **Delete** (trash can) | Asks for confirmation, then deletes the tag and removes it from all objects that have it. |
+
+If the new name is the name of another tag (names are compared ignoring case), renaming would make the two tags the
+same, so you are asked whether to **merge** them. Merge moves everything tagged with the renamed tag to the existing
+tag and deletes the renamed one; an object that has both ends up with the existing tag once. Cancel and nothing
+changes, the tag keeps its old name.
+
 ### Extension Settings
 
 Settings of the installed [extensions](extensions/index.md), one section per extension (for example *Reviewer Settings*
