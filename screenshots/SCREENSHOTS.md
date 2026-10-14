@@ -123,8 +123,9 @@ A flow may also take pictures on the way (names in the last column).
 | `19-lorebookvcs` | `plugin-lorebookvcs` | a second revision of the entry of Draconia | `plugin-lorebookvcs` |
 | `20-loregenerator` | `plugin-loregenerator` | a new lore entry made with Lore Generator (generation, compaction, name tools) | `plugin-loregenerator*` |
 | `21-chaptermarker` | `plugin-chaptermarker` | chapter headings in parts 1 and 4 (**the state of the plugin pictures**) | `plugin-chaptermarker` |
+| `22-arcoutline` | `plugin-arcoutline` | installs the Arc Outline JAR (unless it is there), two arcs with chapters by hand, a third arc and its chapters made with the fake model (`arcOutline` in `dataset/plugins.mjs`) | `plugin-arcoutline-tab`, `plugin-arcoutline-generate-arc`, `plugin-arcoutline-generate-chapters`, `plugin-arcoutline-generated` |
 
-`99-final` (made by hand after `21-chaptermarker`, see [The final database](#the-final-database)) is the state at the end.
+`99-final` (made by hand after `21-chaptermarker`, so without the Arc Outline of `22-arcoutline`; see [The final database](#the-final-database)) is the state at the end of the older chain.
 The core pictures are taken on `13-db-backup`, **before** the plugin data (the chapter headings, the Author's Note, the
 characters... would show in the outline, the prompt and the token numbers of the core pictures).
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845330949529">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332231476">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845330949529" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845332231476" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845330949529" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845330949529" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845330949529" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845332231476" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -218,7 +218,7 @@ all providers of <code translate="no" v-pre>bundle.getSymbolicName()</code>. A p
 <p>Registering a key again replaces the provider and keeps its place in the order.</p>
 </li>
 <li>
-<p>The key is part of what other extensions store (a caller that lets the user choose sources remembers the key), so don&#x27;t rename it.</p>
+<p>The key is part of what other extensions store (Side Query remembers the sources the user checked), so don&#x27;t rename it.</p>
 </li>
 </ul>
 <h2 id="asking-for-data">Asking for data</h2>
@@ -237,6 +237,20 @@ the session and transaction are yours).</p>
 <p>The callback gets the <strong>caller&#x27;s bundle and identifier</strong>, so a provider can decide what to give to whom. Nothing is
 checked by the service itself: a provider gives the data of the book it is handed, so it must only be handed books the
 caller may read.</p>
+<h2 id="in-the-bundled-extensions">In the bundled extensions</h2>
+<ul>
+<li>
+<p><strong>Arc Outline</strong> offers its outline as two sources about a book, so the user chooses how much the caller gets:
+<code translate="no" v-pre>arc-outline</code> / <code translate="no" v-pre>outline</code> (the arcs with their states, descriptions and chapters) and <code translate="no" v-pre>arc-outline</code> /
+<code translate="no" v-pre>outline-with-notes</code> (the same with the note of every arc and chapter).</p>
+</li>
+<li>
+<p><strong>Side Query</strong> lists all providers: the button with the plug icon above a tab opens a popover with a checkbox for each.
+Checked book sources are added to the system message after the lorebook; checked story part sources are asked for
+each story part in the <em>Chat Logs</em> range and put after the text of the part. The checked sources are stored in the
+options of the tab, a source that is gone is skipped until it comes back.</p>
+</li>
+</ul>
 
                 
                 <!-- Required only on API pages -->

@@ -112,6 +112,7 @@ Marginalia:
 
 | Extension | On the phone |
 |---|---|
+| [Arc Outline](extensions/arc-outline.md) | Works. The Arcs tab is in the outline drawer. |
 | [Author's Note](extensions/authors-note.md) | Works. The note is in the outline drawer of the story. |
 | [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
 | [Character Tracker](extensions/character-tracker.md) | Works. The Characters tab is in the outline drawer. |

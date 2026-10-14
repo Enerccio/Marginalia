@@ -18,8 +18,10 @@ With the extension installed, every row of the lorebook editor gets a wand butto
 the generator for that entry. If the entry already has content, the dialog says so at the top: copying the result to
 the entry replaces the content.
 
-The generator uses your **Default Model** and **Default Protocol** from *Settings*, see
-[Account & settings](../account.md). Without a default model it only shows a warning.
+The generator starts with your **Default Model** and **Default Protocol** from *Settings*, see
+[Account & settings](../account.md). The **Model** and **Protocols** lists under the header of the dialog let you use
+another model or protocol for this generation (the choice is not saved); the protocol is optional. Without a model it
+only shows a warning.
 
 ![The lore generator](../../images/plugin-loregenerator.png)
 

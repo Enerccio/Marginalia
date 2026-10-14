@@ -29,7 +29,7 @@ ipcService.registerManuscriptProvider(
   all providers of `bundle.getSymbolicName()`. A provider registered under another identifier must be removed with
   `unregisterAll(identifier)` in `onExtensionUnload`.
 - Registering a key again replaces the provider and keeps its place in the order.
-- The key is part of what other extensions store (a caller that lets the user choose sources remembers the key), so don't rename it.
+- The key is part of what other extensions store (Side Query remembers the sources the user checked), so don't rename it.
 
 ## Asking for data
 
@@ -50,3 +50,13 @@ the session and transaction are yours).
 The callback gets the **caller's bundle and identifier**, so a provider can decide what to give to whom. Nothing is
 checked by the service itself: a provider gives the data of the book it is handed, so it must only be handed books the
 caller may read.
+
+## In the bundled extensions
+
+- **Arc Outline** offers its outline as two sources about a book, so the user chooses how much the caller gets:
+  `arc-outline` / `outline` (the arcs with their states, descriptions and chapters) and `arc-outline` /
+  `outline-with-notes` (the same with the note of every arc and chapter).
+- **Side Query** lists all providers: the button with the plug icon above a tab opens a popover with a checkbox for each.
+  Checked book sources are added to the system message after the lorebook; checked story part sources are asked for
+  each story part in the *Chat Logs* range and put after the text of the part. The checked sources are stored in the
+  options of the tab, a source that is gone is skipped until it comes back.

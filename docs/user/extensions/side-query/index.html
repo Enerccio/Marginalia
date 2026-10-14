@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845330949529">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332231476">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845330949529" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845332231476" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845330949529" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845330949529" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -243,6 +243,7 @@ to drop a wrong answer without deleting it.</p>
 |---|---|
 | **Lorebook** | The lore of the book (see below). |
 | **Chat Logs** *from* … *to* | The story parts of the active branch in that range, numbered from 1 as in the outline: `1` to `6` are the parts `#1` to `#6`. |
+| **Plug button** | Opens a list of the data other extensions offer, with a checkbox for each (see below). |
 | **Tokens** | The approximate size of the request. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -260,6 +261,10 @@ to drop a wrong answer without deleting it.</p>
 <tr>
 <td><strong>Chat Logs</strong> <em>from</em> … <em>to</em></td>
 <td>The story parts of the active branch in that range, numbered from 1 as in the outline: <code translate="no" v-pre>1</code> to <code translate="no" v-pre>6</code> are the parts <code translate="no" v-pre>#1</code> to <code translate="no" v-pre>#6</code>.</td>
+</tr>
+<tr>
+<td><strong>Plug button</strong></td>
+<td>Opens a list of the data other extensions offer, with a checkbox for each (see below).</td>
 </tr>
 <tr>
 <td><strong>Tokens</strong></td>
@@ -289,11 +294,22 @@ entries are not stored.</p>
         </div>
     </div>
 </div>
+<h3 id="data-of-other-extensions">Data of other extensions</h3>
+<p>The plug button opens a popover with the <strong>additional sources</strong> that other extensions offer, for example the
+<a href="../arc-outline/">Arc Outline</a> offers your outline. Every source has a checkbox; the list has up to two parts:</p>
+<ul>
+<li><strong>About the book</strong>: a checked source is added to the request after the lorebook, under its name.</li>
+<li><strong>About story parts</strong>: a checked source is asked for every story part in the <em>Chat Logs</em> range and what it returns is
+added after the text of that part. It has an effect only while <em>Chat Logs</em> is on.</li>
+</ul>
+<p>The choice is kept with the tab. If an extension is not installed (or stopped) its sources are not in the list and not
+sent, and they come back when the extension does. With none offered the popover says so.</p>
 <p>The request is built like this:</p>
 <ol>
 <li>
-<p>one system message: the profile&#x27;s <em>Initial System Query</em>, the lorebook entries (<em>Lorebook Context</em>) and the story
-parts (<em>Chat History Context</em>, labelled with their outline numbers <em>Message #1</em>, <em>#2</em>...);</p>
+<p>one system message: the profile&#x27;s <em>Initial System Query</em>, the lorebook entries (<em>Lorebook Context</em>), the checked
+sources about the book and the story parts (<em>Chat History Context</em>, labelled with their outline numbers
+<em>Message #1</em>, <em>#2</em>..., each followed by the checked sources about story parts);</p>
 </li>
 <li>
 <p>the messages of the conversation that are included, as a chat. The profile&#x27;s <em>Instructions Before User Input</em> are

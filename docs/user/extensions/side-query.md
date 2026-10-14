@@ -42,6 +42,7 @@ The options above the conversation choose what is sent with your questions:
 |---|---|
 | **Lorebook** | The lore of the book (see below). |
 | **Chat Logs** *from* … *to* | The story parts of the active branch in that range, numbered from 1 as in the outline: `1` to `6` are the parts `#1` to `#6`. |
+| **Plug button** | Opens a list of the data other extensions offer, with a checkbox for each (see below). |
 | **Tokens** | The approximate size of the request. |
 
 !!!
@@ -51,10 +52,23 @@ filters are not applied - there is no story prompt to match, so every applicable
 entries are not stored.
 !!!
 
+### Data of other extensions
+
+The plug button opens a popover with the **additional sources** that other extensions offer, for example the
+[Arc Outline](arc-outline.md) offers your outline. Every source has a checkbox; the list has up to two parts:
+
+- **About the book**: a checked source is added to the request after the lorebook, under its name.
+- **About story parts**: a checked source is asked for every story part in the *Chat Logs* range and what it returns is
+  added after the text of that part. It has an effect only while *Chat Logs* is on.
+
+The choice is kept with the tab. If an extension is not installed (or stopped) its sources are not in the list and not
+sent, and they come back when the extension does. With none offered the popover says so.
+
 The request is built like this:
 
-1. one system message: the profile's *Initial System Query*, the lorebook entries (*Lorebook Context*) and the story
-   parts (*Chat History Context*, labelled with their outline numbers *Message #1*, *#2*...);
+1. one system message: the profile's *Initial System Query*, the lorebook entries (*Lorebook Context*), the checked
+   sources about the book and the story parts (*Chat History Context*, labelled with their outline numbers
+   *Message #1*, *#2*..., each followed by the checked sources about story parts);
 2. the messages of the conversation that are included, as a chat. The profile's *Instructions Before User Input* are
    put at the start of your last question, before its text.
 

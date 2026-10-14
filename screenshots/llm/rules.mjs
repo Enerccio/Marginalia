@@ -2,7 +2,7 @@
 // ctx: { text, system, last, messages, model, stream, wantsJson, hasTools, mode, body }
 // A rule answers with `reply` (string, or function(ctx) returning a string or {reply, reasoning, status, message}),
 // optionally `reasoning` and `delayMs`.
-import {loreCompaction, loreGeneration, review, sideQuery} from '../dataset/plugins.mjs';
+import {arcOutline, loreCompaction, loreGeneration, review, sideQuery} from '../dataset/plugins.mjs';
 import {ginnyTurn, ginnyTurn2, metaSummary, summaryReasoning, turns} from '../dataset/story.mjs';
 
 const storyRules = Object.entries(turns).filter(([id]) => id !== 't2b').map(([id, t]) => ({
@@ -56,7 +56,21 @@ const loreRule = {
   reply: () => ({ reply: loreGeneration, reasoning: 'An inn needs a keeper, a smell and a reason to matter to the story.' }),
 };
 
+// Arc Outline: the prompt for an arc and the prompt for the chapters of an arc are told apart by their first sentence.
+const arcRule = {
+  name: 'arc-outline-arc',
+  when: ctx => ctx.system.includes('design ONE new story arc'),
+  reply: () => ({ reply: JSON.stringify(arcOutline.generateArc.answer), reasoning: arcOutline.generateArc.reasoning }),
+};
+const arcChaptersRule = {
+  name: 'arc-outline-chapters',
+  when: ctx => ctx.system.includes('divide ONE story arc'),
+  reply: () => ({ reply: JSON.stringify(arcOutline.generateChapters.answer), reasoning: arcOutline.generateChapters.reasoning }),
+};
+
 export default [
+  arcRule,
+  arcChaptersRule,
   loreCompactionRule,
   loreRule,
   reviewRule,
