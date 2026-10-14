@@ -113,7 +113,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     all users' (filter by user) and restore any. Filter by type (`Localization.localizeDomainObject`), a link shows the
     extended content as JSON. Restore is refused while a deleted parent (owner, book, lorebook, strong reference) is not
     restored with it. The same widget is in *Admin → Cleanup*. Not done: a restored story part does not get its
-    former children back (they were moved to its parent when it was deleted).
+    former children back (they were moved to its parent when it was deleted). Since 1.2.0 deleting an object takes what
+    belongs to it along (book -> parts, summaries, tags; lorebook -> entries...) and the Trash restores them together,
+    and **Delete Permanently** removes deleted story parts and lorebook entries right away (`TrashService.deletePermanently`).
 
 13. ✅ ~~**Deleted users' data policy.** Cleanup never purges a deleted user while they own data (`owner` is STRONG).
     Decide: admin action "delete user and all their data" (mark owned data deleted, then cleanup), or
@@ -173,8 +175,11 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - Pick-lists of the characters for the POV and present characters of a turn.
     - SillyTavern character card import.
 
-22. **Sharing between users.** Everything is private. Read-only sharing of lorebooks/protocols, or an
-    admin-managed "global" library, plus public read-only links for the Viewer (after fixing item 1).
+22. **Sharing between users.** Everything is private except inference providers: ✅ since 1.2.0 an administrator can
+    share a provider with all users (read-only for them, the key stays hidden), with per-user token limits and usage
+    numbers (`AIService`, `AILimitService`, `UsageService`, migrations `V10`-`V12`). Still open: read-only sharing of
+    lorebooks/protocols, or an admin-managed "global" library, plus public read-only links for the Viewer (after fixing
+    item 1).
 
 23. ✅ **Localization.** Per-user UI language: `Localization` (`LocalizationImpl`) holds one `LocalizationBundle`
     per `Language` and reads the language of the session from `SessionPoint`; it is set from `UserSetting.language`
@@ -241,7 +246,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     resources and of replaced content stay in the data folder: a garbage collection for them is still to be done. 🧩
 32. **Text-to-speech read-aloud** in the Viewer. 🧩
 33. **Health and metrics endpoint.** ✅ The Dockerfile has a `HEALTHCHECK` (bash opens a socket to port 8080, a 2xx/3xx
-    answer is healthy). Missing: a dedicated health endpoint and basic usage metrics (tokens per provider).
+    answer is healthy). ✅ Tokens per provider and user are counted since 1.2.0 (`Usage`, Inference Providers tab and
+    *Usage per user* in the administration). Missing: a dedicated health endpoint and other metrics (tokens per
+    book, requests per time).
 34. **Configuration via environment variables** — today it's `configuration.properties` plus
     `-Duser.home`. Document the keys and allow env overrides (data dir, default language, cookie TTL).
 
@@ -289,7 +296,9 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 44. 🧩 **Inline rewrite.** Select a passage in a part and give an instruction (shorter, darker, show don't tell);
     only the selection is sent (with its surrounding paragraph), the answer is a diff to accept or reject. The
     existing flow regenerates whole parts.
-45. **Authorship provenance.** Track which spans of a part are human (typed or edited) and which are model output; show
+45. **Authorship provenance.** ✅ Partly (1.2.0): `ChatMessage.originalResponse` keeps what the model wrote and *Highlight
+    Generated Text* shows a word diff of a part against it (desktop story tab only). Open: the ratio per book, the
+    phone and exports. Goal: track which spans of a part are human (typed or edited) and which are model output; show
     the ratio per book, optionally colour the text, and offer it as an export option (some publishers and
     contests ask for it). `ChatMessage.edited` is a single flag today.
 
@@ -339,8 +348,10 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     when the template is edited.
 58. **Per-turn sampler override.** Quick preset switch for one turn (dialogue: higher temperature; action: lower)
     without editing the protocol, remembered as a per-book list of named presets.
-59. **Cost and budget ledger.** Price per million tokens on the provider, tokens per provider/book/month (the metrics
-    left open in 33), a soft monthly cap that warns or blocks, and the cost of the current book in its info tab.
+59. **Cost and budget ledger.** Partly done in 1.2.0: tokens per provider and user, and per-user limits (unlimited / token
+    limit / not available, daily, weekly or monthly reset) on shared providers. Open: price per million tokens on the
+    provider, tokens per book/month, a soft cap for the own providers that warns or blocks, and the cost of the current
+    book in its info tab.
 
 ### Reading, publishing, exporting
 
