@@ -18,8 +18,9 @@ import java.util.Date;
 @Table(name = "usages")
 public class Usage extends OwnedEntity {
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "ai_id", nullable = false)
+    // nullable: the cleanup nulls the reference before it purges the AI
+    @ManyToOne
+    @JoinColumn(name = "ai_id")
     @CleanupReference(Policy.OWNED_BY)
     private AI ai;
 

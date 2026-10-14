@@ -40,6 +40,9 @@ class CleanupServiceTest extends MarginaliaTestBase {
     private CleanupService cleanupService;
 
     @Autowired
+    private com.github.enerccio.marginalia.domain.service.UsageService usageService;
+
+    @Autowired
     private ManuscriptService manuscriptService;
 
     @Autowired
@@ -244,6 +247,18 @@ class CleanupServiceTest extends MarginaliaTestBase {
     // ------------------------------------------------------------------------------------------------------------
     // basics
     // ------------------------------------------------------------------------------------------------------------
+
+    @Test
+    void aiWithUsageIsPurged() throws Exception {
+        AI ai = ai("used");
+        usageService.record(ai, 10, 5);
+        softDelete(ai);
+
+        CleanupPlan plan = cleanupService.purge();
+
+        assertThat(plan.getPurge()).contains(key(ai));
+        assertThat(aiService.find(ai.getId())).isNull();
+    }
 
     @Test
     void unreferencedSoftDeletedEntityIsPurged() throws Exception {

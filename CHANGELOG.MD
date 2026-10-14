@@ -7,11 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-Three database migrations (`V10`, `V11`, `V12`): a copy of the database is saved before they run, and 1.1.0 cannot open
+Four database migrations (`V10` to `V13`): a copy of the database is saved before they run, and 1.1.0 cannot open
 a migrated database.
 
 ### Added
 
+- `InferenceService.infer`: asks the model for the whole answer at once (no streaming, still asynchronous). With a JSON
+  schema the provider is asked to follow it and the callback learns whether the answer is valid (`SchemaCheck`); with a
+  Java class the answer is read into an object. The schema of a class is built from its fields and can be refined
+  with the new annotations `@LLMSchema` and `@LLMField` (`StructuredOutputs`). The model can call functions during `infer` too. New dependency `json-schema-validator`.
 - Settings → **Tags**: a table of all your tags with the number of objects related to each. A tag can be renamed or
   deleted (its relations are deleted with it). Renaming a tag to the name of another tag asks whether to merge them:
   yes moves the relations to the existing tag and deletes the renamed one, no leaves the tag unchanged
@@ -106,6 +110,7 @@ a migrated database.
 
 ### Fixed
 
+- Admin → Cleanup: purging an AI that has usage rows no longer fails (`usages.ai_id` is nullable, migration `V13`).
 - Lore Generator: the Name generator is found by reflection and not imported, so it works when it is installed after the
   Lore Generator, and again after it was unloaded and installed again.
 - The error dialog showed its message as HTML, so markup in an error message (provider replies, user input echoed in an
