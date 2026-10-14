@@ -3,7 +3,7 @@ label: Developer guide
 icon: code
 expanded: true
 order: 800
-verified: 7654dce5
+verified: 2701b409
 covers:
   - marginalia/pom.xml
   - Dockerfile
