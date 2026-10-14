@@ -181,7 +181,7 @@ kinds of fields end up there:
 `ExtendableEntityListener` converts between the fields and the document:
 
 - **Load** (`@PostLoad`): the JSON is parsed and the fields are set. Supported field types are `String`, numbers,
-  `Boolean`, `Date` (ISO-8601 instant in UTC, e.g. `2026-10-09T08:15:30.123Z`; values in the old `yyyy.MM.dd'Z'HH:mm:ss.SSS` format, written in the server's time zone, are still read), enums (by name) and `JsonObject` for `inject = true`.
+  `Boolean`, `Date` (ISO-8601 instant in UTC, e.g. `2026-10-09T08:15:30.123Z`; values in the old `yyyy.MM.dd'Z'HH:mm:ss.SSS` format, written in the server's time zone, are still read), enums (by name) and any type for `inject = true`: a `JsonObject` has its keys stored flat as `<injectPrefix>_<key>`, any other type is converted with Gson (object-shaped results are flattened the same way, lists and scalars are stored under the plain `injectPrefix` key).
 - **Types**: the values are written with `toString()`, so a field can't be a collection. A list is kept as a JSON string
   in a `String` field with typed accessors, like `ChatMessage.imageAttachments` (`getImages()` / `setImages(...)`, a JSON
   array of `ImageAttachment(resource uuid, caption)`).

@@ -3,8 +3,10 @@ package com.github.enerccio.marginalia.domain;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
+import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.github.enerccio.marginalia.test.ExpectedLog;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
@@ -16,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -325,5 +327,87 @@ class ExtendableEntityListenerTest {
 
         assertThat(fulltext(manuscript)).isEqualTo("A book");
         assertThat(stored(manuscript).get("future").getAsString()).isEqualTo("kept");
+    }
+
+    public static class Address {
+        String city;
+        List<String> lines = new ArrayList<>();
+    }
+
+    public static class Person {
+        String name;
+        int age;
+        Address home;
+        List<Address> pastAddresses = new ArrayList<>();
+        Map<String, List<Integer>> scores = new LinkedHashMap<>();
+    }
+
+    public static class PojoEntity extends ExtendableEntity {
+        @ExtendedAttribute(inject = true, injectPrefix = "person")
+        private Person person;
+
+        @ExtendedAttribute(inject = true, injectPrefix = "tags")
+        private List<Address> tags;
+
+        @ExtendedAttribute(inject = true, injectPrefix = "missing")
+        private Person missing = new Person();
+    }
+
+    private static Address address(String city, String... lines) {
+        Address a = new Address();
+        a.city = city;
+        a.lines.addAll(List.of(lines));
+        return a;
+    }
+
+    @Test
+    void injectedPojoWithNestedObjectsAndListsRoundTrips() throws Exception {
+        Person person = new Person();
+        person.name = "Ann";
+        person.age = 33;
+        person.home = address("Oslo", "Street 1", "Flat 2");
+        person.pastAddresses.add(address("Bergen"));
+        person.pastAddresses.add(address("Tromso", "Pier 9"));
+        person.scores.put("math", List.of(1, 2, 3));
+
+        PojoEntity entity = new PojoEntity();
+        entity.person = person;
+        entity.tags = List.of(address("A", "x"), address("B"));
+
+        listener.serialize(entity);
+
+        // object is flattened by top-level property, nested parts stay structured
+        JsonObject root = stored(entity);
+        assertThat(root.get("person_name").getAsString()).isEqualTo("Ann");
+        assertThat(root.get("person_age").getAsInt()).isEqualTo(33);
+        assertThat(root.get("person_home").getAsJsonObject().get("lines").getAsJsonArray()).hasSize(2);
+        assertThat(root.get("person_pastAddresses").getAsJsonArray()).hasSize(2);
+        assertThat(root.get("person_scores").getAsJsonObject().get("math").getAsJsonArray()).hasSize(3);
+        // a list cannot be flattened: stored under the plain prefix
+        assertThat(root.get("tags").getAsJsonArray()).hasSize(2);
+        assertThat(root.has("missing_age")).isTrue();
+
+        PojoEntity loaded = new PojoEntity();
+        loaded.setExtendedContent(entity.getExtendedContent());
+        listener.deserialize(loaded);
+
+        assertThat(loaded.person).usingRecursiveComparison().isEqualTo(person);
+        assertThat(loaded.person.home.lines).containsExactly("Street 1", "Flat 2");
+        assertThat(loaded.person.pastAddresses).extracting(a -> a.city).containsExactly("Bergen", "Tromso");
+        assertThat(loaded.person.scores.get("math")).containsExactly(1, 2, 3);
+        assertThat(loaded.tags).usingRecursiveComparison().isEqualTo(entity.tags);
+    }
+
+    @Test
+    void injectedPojoMissingFromContentKeepsDefault() throws Exception {
+        PojoEntity entity = new PojoEntity();
+        Person kept = entity.missing;
+        setStored(entity, "{\"unrelated\": 1}");
+
+        listener.deserialize(entity);
+
+        assertThat(entity.person).isNull();
+        assertThat(entity.tags).isNull();
+        assertThat(entity.missing).isSameAs(kept);
     }
 }

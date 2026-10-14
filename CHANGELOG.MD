@@ -107,6 +107,8 @@ a migrated database.
   whole book by accident. The parts below a removed part move to its parent. New `TrashService.deletePermanently` /
   `getPermanentlyDeletableTypes`; `TrashGrid` and `PhoneTrashGrid` get `createDeleteButton`, `deleteSelected` and the
   field `deleteButton` (`@PublicAPI` from 1.2.0).
+- `@ExtendedAttribute(inject = true)` now works for any Java type, not only `JsonObject`: other types are converted
+  to and from JSON with Gson (objects are stored flat as `<injectPrefix>_<key>`, lists and scalars under `injectPrefix`).
 
 ### Fixed
 
