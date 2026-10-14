@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.inference;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.concurrent.AsyncRunnableWrapper;
@@ -17,6 +18,8 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAtta
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
+import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -164,11 +167,98 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         return request.cancellationToken();
     }
 
+    @Override
+    public CancellationToken infer(List<LLMChatMessage> payload, Protocol protocol, JsonNode schema,
+                                   FunctionSet functions, InferenceResultCallback callback) throws Exception {
+        limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        Request request = new Request(openClient(), protocol, functions != null && !functions.isEmpty() ? functions : null,
+                null, new CancellationToken(), ThreadCopyRequestAttributes.create());
+        Outcome outcome = new Outcome(callback::isDead, callback::onFunctionCall, callback::onCancel, callback::onError);
+        inferRound(request, outcome, callback, schema, new ArrayList<>(payload), 0);
+        return request.cancellationToken();
+    }
+
+    /**
+     * One request of {@link #infer}. Building it fails here, in the caller's thread, for the first round; the rest runs
+     * asynchronously.
+     */
+    private void inferRound(Request request, Outcome outcome, InferenceResultCallback callback, JsonNode schema,
+                            List<LLMChatMessage> conversation, int round) {
+        boolean functionsOffered = request.functions() != null;
+        boolean finalRound = round >= MAX_FUNCTION_ROUNDS;
+        ChatCompletionCreateParams params = buildParams(request.protocol(), conversation,
+                functionsOffered ? request.functions() : null, finalRound, false, schema).build();
+
+        AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
+        CompletableFuture.runAsync(() -> {
+            try {
+                wrapper.run(() -> {
+                    if (outcome.dead().getAsBoolean() || request.cancellationToken().isCancelled()) {
+                        callback.onCancel();
+                        return;
+                    }
+                    ChatCompletion completion = request.client().chat().completions().create(params);
+                    ChatCompletionMessage message = completion.choices().stream().findFirst()
+                            .map(ChatCompletion.Choice::message).orElse(null);
+                    String text = message == null ? "" : message.content().orElse("");
+                    TokenUsage reported = completion.usage()
+                            .map(usage -> new TokenUsage(usage.promptTokens(), usage.completionTokens())).orElse(null);
+                    recordUsage(request.attributes(), conversation, reported, text);
+
+                    List<LLMToolCall> calls = new ArrayList<>();
+                    if (functionsOffered && !finalRound && message != null) {
+                        message.toolCalls().orElse(List.of()).forEach(toolCall -> toolCall.function().ifPresent(
+                                function -> calls.add(LLMToolCall.of(
+                                        StringUtils.defaultIfEmpty(function.id(), "call_" + UUID.randomUUID().toString().replace("-", "")),
+                                        function.function().name(),
+                                        StringUtils.defaultIfEmpty(function.function().arguments(), "{}")))));
+                    }
+                    // the request can not be taken back once sent, but a canceled one gets no result
+                    if (outcome.dead().getAsBoolean() || request.cancellationToken().isCancelled()) {
+                        callback.onCancel();
+                    } else if (!calls.isEmpty()) {
+                        callFunctions(request, outcome, conversation, text, calls,
+                                next -> inferRound(request, outcome, callback, schema, next, round + 1));
+                    } else {
+                        callback.onResult(text, schema == null ? SchemaCheck.notChecked() : StructuredOutputs.validate(schema, text));
+                    }
+                });
+            } catch (Throwable e) {
+                log.error("Failed to infer: {}", e.getMessage(), e);
+                try {
+                    callback.onError(translate(e));
+                } catch (Exception ex) {
+                    log.error("Error during callback.onError", ex);
+                }
+            }
+        });
+    }
+
     /**
      * What stays the same through the rounds of a request: with functions the model is asked again after each call.
      */
     private record Request(OpenAIClient client, Protocol protocol, FunctionSet functions, InferenceAsyncCallback callback,
-                           CancellationToken cancellationToken, ThreadCopyRequestAttributes attributes) {}
+                           CancellationToken cancellationToken, ThreadCopyRequestAttributes attributes) {
+
+        /** The part of the callback the function calls need, the same for a stream and for infer. */
+        Outcome outcome() {
+            return new Outcome(callback::isDead, callback::onFunctionCall, callback::onCancel, callback::onError);
+        }
+    }
+
+    private interface FunctionObserver {
+        void onFunctionCall(LLMToolCall call, String result, boolean failed) throws Exception;
+    }
+
+    private interface Failure<T> {
+        void accept(T value) throws Exception;
+    }
+
+    private interface Signal {
+        void run() throws Exception;
+    }
+
+    private record Outcome(BooleanSupplier dead, FunctionObserver observer, Signal cancel, Failure<Throwable> error) {}
 
     /**
      * Sends the conversation and streams the answer. Building the request fails here, in the caller's thread, for the
@@ -180,7 +270,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         boolean finalRound = round >= MAX_FUNCTION_ROUNDS;
 
         ChatCompletionCreateParams.Builder paramsBuilder = buildParams(request.protocol(), conversation,
-                functionsOffered ? request.functions() : null, finalRound);
+                functionsOffered ? request.functions() : null, finalRound, true, null);
 
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
         CompletableFuture.runAsync(() -> {
@@ -193,7 +283,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                             request.callback(), request.cancellationToken(),
                             (reported, generated) -> recordUsage(request.attributes(), conversation, reported, generated),
                             functionsOffered && !finalRound
-                                    ? (text, calls) -> callFunctions(request, conversation, round, text, calls) : null);
+                                    ? (text, calls) -> callFunctions(request, request.outcome(), conversation, text, calls,
+                                    next -> startRound(request, next, round + 1)) : null);
                     controller.continueInference();
                 });
             } catch (Throwable e) {
@@ -208,7 +299,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     }
 
     private ChatCompletionCreateParams.Builder buildParams(Protocol protocol, List<LLMChatMessage> conversation,
-                                                           FunctionSet functions, boolean noFunctionCalls) {
+                                                           FunctionSet functions, boolean noFunctionCalls,
+                                                           boolean streaming, JsonNode schema) {
         List<ChatCompletionMessageParam> messages = new ArrayList<>();
         String toolRole = inferenceServices.resolveToolRole(ai);
         for (LLMChatMessage msg : conversation) {
@@ -242,7 +334,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         Set<String> overridden = applyAdditionalParameters(paramsBuilder);
 
         // the last chunk then carries the token counts of the request (an additional parameter stream_options replaces it)
-        if (!overridden.contains("stream_options")) {
+        if (streaming && !overridden.contains("stream_options")) {
             paramsBuilder.streamOptions(ChatCompletionStreamOptions.builder().includeUsage(true).build());
         }
 
@@ -270,6 +362,17 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             String effortValue = ai.getReasoningEffort().toString().toLowerCase();
             paramsBuilder.putAdditionalBodyProperty("reasoning_effort", JsonValue.from(effortValue));
             paramsBuilder.putAdditionalBodyProperty("allowed_openai_params", JsonValue.from(List.of("reasoning_effort")));
+        }
+
+        if (schema != null && !overridden.contains("response_format")) {
+            com.openai.models.ResponseFormatJsonSchema.JsonSchema.Schema.Builder body =
+                    com.openai.models.ResponseFormatJsonSchema.JsonSchema.Schema.builder();
+            schema.fields().forEachRemaining(field -> body.putAdditionalProperty(field.getKey(), JsonValue.fromJsonNode(field.getValue())));
+            // not strict: strict mode only takes a part of JSON schema, the answer is checked here anyway
+            paramsBuilder.responseFormat(com.openai.models.ResponseFormatJsonSchema.builder()
+                    .jsonSchema(com.openai.models.ResponseFormatJsonSchema.JsonSchema.builder()
+                            .name("response").schema(body.build()).strict(false).build())
+                    .build());
         }
 
         if (functions != null) {
@@ -318,13 +421,12 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * whichever thread its function says, nothing here waits for it. A call that fails is not an error of the request,
      * the model gets the message and can correct itself.
      */
-    private void callFunctions(Request request, List<LLMChatMessage> conversation, int round, String text,
-                               List<LLMToolCall> calls) {
-        InferenceAsyncCallback callback = request.callback();
+    private void callFunctions(Request request, Outcome callback, List<LLMChatMessage> conversation, String text,
+                               List<LLMToolCall> calls, java.util.function.Consumer<List<LLMChatMessage>> nextRound) {
         List<LLMChatMessage> next = new ArrayList<>(conversation);
         next.add(LLMChatMessage.ofToolCalls(StringUtils.isEmpty(text) ? null : text, calls));
 
-        BooleanSupplier stopped = () -> callback.isDead() || request.cancellationToken().isCancelled();
+        BooleanSupplier stopped = () -> callback.dead().getAsBoolean() || request.cancellationToken().isCancelled();
         Executor executor = task -> CompletableFuture.runAsync(() -> {
             try (InRequestScope _ = new InRequestScope(request.attributes())) {
                 task.run();
@@ -360,7 +462,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     }
                     next.add(LLMChatMessage.ofToolResult(call.getId(), content));
                     try {
-                        callback.onFunctionCall(call, content, failed);
+                        callback.observer().onFunctionCall(call, content, failed);
                     } catch (Exception e) {
                         throw new CompletionException(e);
                     }
@@ -374,16 +476,16 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     error = wrapped.getCause();
                 }
                 if (error instanceof CancellationException || (error == null && stopped.getAsBoolean())) {
-                    callback.onCancel();
+                    callback.cancel().run();
                 } else if (error != null) {
                     throw error;
                 } else {
-                    startRound(request, next, round + 1);
+                    nextRound.accept(next);
                 }
             } catch (Throwable e) {
                 log.error("Error calling the functions of the model", e);
                 try {
-                    callback.onError(translate(e));
+                    callback.error().accept(translate(e));
                 } catch (Exception ex) {
                     log.error("Error invoking callback.onError", ex);
                 }
