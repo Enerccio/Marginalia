@@ -306,8 +306,8 @@ retype start                       # live preview at http://localhost:5000
 retype build                       # writes docs/
 ```
 
-Commit `docs/` together with the changed sources. Images go into `manual/images/`; the screenshots still to be made
-are listed in `TODO.IMAGES.md`.
+Commit `docs/` together with the changed sources. Images go into `manual/images/`; most are taken by the scripts in
+`screenshots/` (see [Contributing](contributing.md#documentation)), the few that cannot be are listed in `TODO.IMAGES.md`.
 
 ## Troubleshooting
 
