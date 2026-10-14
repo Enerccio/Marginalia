@@ -9,10 +9,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
-import com.github.enerccio.marginalia.extensions.reviewer.model.AdvancedOptions;
-import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewData;
-import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSetting;
-import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
+import com.github.enerccio.marginalia.extensions.reviewer.model.*;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.Gson;
@@ -25,6 +22,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Configurable
 public class ReviewerService {
@@ -50,16 +48,40 @@ public class ReviewerService {
     @Autowired
     private ChatMessageService chatMessageService;
 
+    private static final String MANUSCRIPT_PROFILE_KEY = ReviewerSettings.KEY + ".profile";
+
     private final Gson gson = new Gson();
 
     public ReviewerSettings getSettings() throws Exception {
         UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
         JsonObject attrs = userSetting.getAttributes();
-        ReviewerSettings settings = createDefault();
-        if (attrs != null && attrs.has(ReviewerSettings.KEY)) {
-            settings = gson.fromJson(attrs.get(ReviewerSettings.KEY), ReviewerSettings.class);
+        if (attrs == null || !attrs.has(ReviewerSettings.KEY)) {
+            // books refer to the profiles by uuid, so even the default one has to be stored
+            ReviewerSettings settings = createDefault();
+            saveSettings(settings, userSetting);
+            settingService.save(userSetting);
+            return settings;
+        }
+        JsonElement stored = attrs.get(ReviewerSettings.KEY);
+        ReviewerSettings settings = gson.fromJson(stored, ReviewerSettings.class);
+        if (hasProfileWithoutUuid(stored)) {
+            // saved before the profiles had a uuid: the ones generated on load are kept
+            saveSettings(settings, userSetting);
+            settingService.save(userSetting);
         }
         return settings;
+    }
+
+    private static boolean hasProfileWithoutUuid(JsonElement stored) {
+        if (!stored.isJsonObject() || !stored.getAsJsonObject().has("settings")) {
+            return false;
+        }
+        for (Map.Entry<String, JsonElement> profile : stored.getAsJsonObject().getAsJsonObject("settings").entrySet()) {
+            if (!profile.getValue().isJsonObject() || !profile.getValue().getAsJsonObject().has("uuid")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public ReviewerSettings createDefault() {
@@ -87,8 +109,55 @@ public class ReviewerService {
         attrs.add(ReviewerSettings.KEY, gson.toJsonTree(settings));
     }
 
+    /**
+     * The profile for the book: the one chosen on the book if it still exists, the globally selected one otherwise.
+     */
+    public ReviewerSetting resolveSetting(ReviewerSettings settings, Manuscript manuscript) {
+        String uuid = getManuscriptProfile(manuscript);
+        if (uuid != null) {
+            for (ReviewerSetting setting : settings.getSettings().values()) {
+                if (uuid.equals(setting.getUuid())) {
+                    return setting;
+                }
+            }
+        }
+        return settings.getSettings().get(settings.getDefaultSetting());
+    }
+
+    public String getManuscriptProfile(Manuscript manuscript) {
+        JsonObject attrs = manuscript.getAttributes();
+        if (attrs != null && attrs.has(MANUSCRIPT_PROFILE_KEY) && !attrs.get(MANUSCRIPT_PROFILE_KEY).isJsonNull()) {
+            return attrs.get(MANUSCRIPT_PROFILE_KEY).getAsString();
+        }
+        return null;
+    }
+
+    /**
+     * @param profileUuid uuid of the profile, {@code null} for the globally selected one
+     */
+    public Manuscript saveManuscriptProfile(Manuscript manuscript, String profileUuid) throws Exception {
+        manuscript = manuscriptService.find(manuscript);
+        JsonObject attrs = manuscript.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            manuscript.setAttributes(attrs);
+        }
+        if (profileUuid == null) {
+            attrs.remove(MANUSCRIPT_PROFILE_KEY);
+        } else {
+            attrs.addProperty(MANUSCRIPT_PROFILE_KEY, profileUuid);
+        }
+        return manuscriptService.save(manuscript);
+    }
+
+    public List<ReviewerProfile> getProfiles(ReviewerSettings settings) {
+        List<ReviewerProfile> profiles = new ArrayList<>();
+        settings.getSettings().forEach((name, setting) -> profiles.add(new ReviewerProfile(setting.getUuid(), name)));
+        return profiles;
+    }
+
     public AI resolveAI(ReviewerSettings settings, Manuscript manuscript) throws Exception {
-        return resolveAI(settings.getSettings().get(settings.getDefaultSetting()), manuscript);
+        return resolveAI(resolveSetting(settings, manuscript), manuscript);
     }
 
     public AI resolveAI(ReviewerSetting setting, Manuscript manuscript) throws Exception {
@@ -106,7 +175,7 @@ public class ReviewerService {
     }
 
     public Protocol resolveProtocol(ReviewerSettings settings, Manuscript manuscript) throws Exception {
-        return resolveProtocol(settings.getSettings().get(settings.getDefaultSetting()), manuscript);
+        return resolveProtocol(resolveSetting(settings, manuscript), manuscript);
     }
 
     public Protocol resolveProtocol(ReviewerSetting setting, Manuscript manuscript) throws Exception {
@@ -150,14 +219,6 @@ public class ReviewerService {
             message = chatMessageService.save(message);
         }
         return message;
-    }
-
-    public List<LLMChatMessage> buildChatCompletePrompts(
-            InferenceService inferenceService,
-            ChatMessage targetMessage,
-            ReviewerSettings settings,
-            AdvancedOptions advancedOptions) throws Exception {
-        return buildChatCompletePrompts(inferenceService, targetMessage, settings.getSettings().get(settings.getDefaultSetting()),advancedOptions);
     }
 
     public List<LLMChatMessage> buildChatCompletePrompts(
@@ -259,7 +320,7 @@ public class ReviewerService {
     }
 
     public Integer getTokenLimit(ReviewerSettings settings, Manuscript manuscript) throws Exception {
-        return getTokenLimit(settings.getSettings().get(settings.getDefaultSetting()), manuscript);
+        return getTokenLimit(resolveSetting(settings, manuscript), manuscript);
     }
 
     public Integer getTokenLimit(ReviewerSetting setting, Manuscript manuscript) throws Exception {

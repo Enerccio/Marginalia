@@ -8,16 +8,20 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSetting;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
 import com.github.enerccio.marginalia.extensions.reviewer.ui.AdvancedOptionsDialog;
+import com.github.enerccio.marginalia.extensions.reviewer.ui.ManuscriptProfileSelect;
 import com.github.enerccio.marginalia.extensions.reviewer.ui.ReviewDialog;
 import com.github.enerccio.marginalia.extensions.reviewer.ui.ReviewerSettingsForm;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -50,8 +54,11 @@ public class ReviewerExtension implements MarginaliaExtension {
     private ExtensionDecorator cardDecoratorRefresh;
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
+    private ExtensionDecorator infoPartCreateDecorator;
+    private ExtensionDecorator infoPartLoadDecorator;
 
     private final Set<ContextMenu> activeMenus = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private final Set<ManuscriptProfileSelect> activeProfileSelects = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
@@ -94,11 +101,11 @@ public class ReviewerExtension implements MarginaliaExtension {
                                 ChatMessage freshMessage = reviewerService.refreshMessage(message);
                                 Manuscript manuscript = manuscriptService.find(freshMessage.getParentScript());
                                 ReviewerSettings settings = reviewerService.getSettings();
-                                AI targetAi = reviewerService.resolveAI(settings, manuscript);
+                                ReviewerSetting setting = reviewerService.resolveSetting(settings, manuscript);
+                                AI targetAi = reviewerService.resolveAI(setting, manuscript);
                                 InferenceService service = inferenceServices.forAI(targetAi);
                                 AdvancedOptionsDialog dialog = new AdvancedOptionsDialog(
-                                        reviewerService, service, manuscript,
-                                        settings.getSettings().get(settings.getDefaultSetting()),
+                                        reviewerService, service, manuscript, setting,
                                         freshMessage, null, opts -> {
                                     ReviewDialog rDialog = new ReviewDialog(reviewerService, freshMessage, manuscript, opts);
                                     rDialog.open();
@@ -239,10 +246,70 @@ public class ReviewerExtension implements MarginaliaExtension {
                     "com.github.enerccio.marginalia.ui.workspace.parts.UserPart",
                     "save"
             );
+
+            // the profile of the reviewer for the book, next to the model and the protocol of the info tab
+            infoPartCreateDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+
+                }
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    ComboBox<?> protocolCombo = context.getReflectiveFieldValue(instrumented, "protocolCombo", ComboBox.class);
+                    if (protocolCombo == null || findProfileSelect(protocolCombo) != null) {
+                        return;
+                    }
+                    protocolCombo.getParent().ifPresent(layout -> {
+                        ManuscriptProfileSelect select = new ManuscriptProfileSelect(reviewerService);
+                        int index = layout.getElement().indexOfChild(protocolCombo.getElement());
+                        layout.getElement().insertChild(index + 1, select.getElement());
+                        activeProfileSelects.add(select);
+                    });
+                }
+            };
+
+            infoPartLoadDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+
+                }
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    ComboBox<?> protocolCombo = context.getReflectiveFieldValue(instrumented, "protocolCombo", ComboBox.class);
+                    Manuscript manuscript = context.getMethodArgument("manuscript", Manuscript.class);
+                    if (protocolCombo == null || manuscript == null) {
+                        return;
+                    }
+                    ManuscriptProfileSelect select = findProfileSelect(protocolCombo);
+                    if (select != null) {
+                        select.load(manuscript);
+                    }
+                }
+            };
+
+            extensionService.registerDecorator(infoPartCreateDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptInfoPart", "create");
+            extensionService.registerDecorator(infoPartLoadDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptInfoPart", "load");
+            // the phone dialog has its own info tab with the same fields
+            extensionService.registerDecorator(infoPartCreateDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptInfoPart", "create");
+            extensionService.registerDecorator(infoPartLoadDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptInfoPart", "load");
         } catch (Exception e) {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
             throw new IllegalStateException("Failed to load the Reviewer extension", e);
         }
+    }
+
+    private static ManuscriptProfileSelect findProfileSelect(Component sibling) {
+        return sibling.getParent().stream()
+                .flatMap(Component::getChildren)
+                .filter(ManuscriptProfileSelect.class::isInstance)
+                .map(ManuscriptProfileSelect.class::cast)
+                .findFirst().orElse(null);
     }
 
     @Override
@@ -259,6 +326,12 @@ public class ReviewerExtension implements MarginaliaExtension {
         if (userPartSaveDecorator != null) {
             extensionService.unregisterDecorator(userPartSaveDecorator);
         }
+        if (infoPartCreateDecorator != null) {
+            extensionService.unregisterDecorator(infoPartCreateDecorator);
+        }
+        if (infoPartLoadDecorator != null) {
+            extensionService.unregisterDecorator(infoPartLoadDecorator);
+        }
 
         // the components belong to the UIs of all users - change each one in its own session
         synchronized (activeMenus) {
@@ -273,6 +346,13 @@ public class ReviewerExtension implements MarginaliaExtension {
                 });
             }
             activeMenus.clear();
+        }
+
+        synchronized (activeProfileSelects) {
+            for (ManuscriptProfileSelect select : activeProfileSelects) {
+                UIUtils.accessComponent(select, select::removeFromParent);
+            }
+            activeProfileSelects.clear();
         }
 
         synchronized (activeAccordions) {

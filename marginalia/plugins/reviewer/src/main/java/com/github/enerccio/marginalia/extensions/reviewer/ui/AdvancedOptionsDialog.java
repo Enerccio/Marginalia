@@ -5,7 +5,9 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.extensions.reviewer.model.AdvancedOptions;
+import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerProfile;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSetting;
+import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
@@ -14,6 +16,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
@@ -21,6 +24,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -66,6 +70,13 @@ public class AdvancedOptionsDialog extends Dialog {
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
 
+        ReviewerSettings settings = reviewerService.getSettings();
+        ComboBox<ReviewerProfile> promptProfileCombo = new ComboBox<>("Prompt from Profile");
+        promptProfileCombo.setWidthFull();
+        promptProfileCombo.setAllowCustomValue(false);
+        promptProfileCombo.setItemLabelGenerator(ReviewerProfile::name);
+        promptProfileCombo.setItems(reviewerService.getProfiles(settings));
+
         promptArea = new TextArea("Prompt Override");
         promptArea.setWidthFull();
         ResizableTextArea.install(loc, promptArea, "160px");
@@ -73,6 +84,17 @@ public class AdvancedOptionsDialog extends Dialog {
         promptArea.addValueChangeListener(event -> {
             if (event.isFromClient()) {
                 refreshCount();
+            }
+        });
+
+        // only the prompt of the profile is taken, its model and protocol are not
+        promptProfileCombo.addValueChangeListener(e -> {
+            if (e.isFromClient() && e.getValue() != null) {
+                ReviewerSetting profile = settings.getSettings().get(e.getValue().name());
+                if (profile != null) {
+                    promptArea.setValue(StringUtils.defaultString(profile.getReviewPrompt()));
+                    refreshCount();
+                }
             }
         });
 
@@ -108,7 +130,7 @@ public class AdvancedOptionsDialog extends Dialog {
 
         optionsRow.add(lorebookBox, tokenLimitField);
 
-        layout.add(promptArea, usePromptInfo, counter, optionsRow);
+        layout.add(promptProfileCombo, promptArea, usePromptInfo, counter, optionsRow);
         add(layout);
 
         toggleFields(!usePromptInfo.getValue());
