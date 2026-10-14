@@ -397,7 +397,7 @@ uses it. Counts what the user used, and since the last reset for the user's limi
 
 | Field | Stored | |
 |---|---|---|
-| `ai` | column `ai_id` | `@ManyToOne`, `OWNED_BY` the AI for cleanup. |
+| `ai` | column `ai_id` | `@ManyToOne`, `OWNED_BY` the AI for cleanup. Nullable (migration V13): the cleanup nulls the reference before it purges the AI. |
 | `prefillTokens` | column | Tokens sent to the model (the prompt). |
 | `generatedTokens` | column | Tokens the model generated, reasoning included. |
 | `requests`, `lastUsed` | columns | Number of requests added up, time of the last one. |

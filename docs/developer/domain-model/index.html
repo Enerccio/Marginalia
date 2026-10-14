@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845272413860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845290612838">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845272413860" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845290612838" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845272413860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845290612838" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845272413860" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845272413860" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845290612838" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845290612838" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1085,7 +1085,7 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 uses it. Counts what the user used, and since the last reset for the user&#x27;s limit on the AI (below).</p>
 <retype-table copy-text="| Field | Stored | |
 |---|---|---|
-| `ai` | column `ai_id` | `@ManyToOne`, `OWNED_BY` the AI for cleanup. |
+| `ai` | column `ai_id` | `@ManyToOne`, `OWNED_BY` the AI for cleanup. Nullable (migration V13): the cleanup nulls the reference before it purges the AI. |
 | `prefillTokens` | column | Tokens sent to the model (the prompt). |
 | `generatedTokens` | column | Tokens the model generated, reasoning included. |
 | `requests`, `lastUsed` | columns | Number of requests added up, time of the last one. |
@@ -1103,7 +1103,7 @@ uses it. Counts what the user used, and since the last reset for the user&#x27;s
 <tr>
 <td><code translate="no" v-pre>ai</code></td>
 <td>column <code translate="no" v-pre>ai_id</code></td>
-<td><code translate="no" v-pre>@ManyToOne</code>, <code translate="no" v-pre>OWNED_BY</code> the AI for cleanup.</td>
+<td><code translate="no" v-pre>@ManyToOne</code>, <code translate="no" v-pre>OWNED_BY</code> the AI for cleanup. Nullable (migration V13): the cleanup nulls the reference before it purges the AI.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>prefillTokens</code></td>

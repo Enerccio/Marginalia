@@ -166,6 +166,7 @@ callbacks of a generation) and `search/` (`Sorter`, `ManuscriptFilterValues` for
 | `service.impl.generation.dto` | `LLMChatMessage` (role, text and optional `LLMAttachment`s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3; `LLMToolCall`s of an assistant message and the `toolCallId` of a `TOOL` result), `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
 | `service.function` | `FunctionDefinition`, `FunctionSet`, `FunctionCompiler` (JSON schema of the parameters, validation of the asynchronous method shape, argument parsing, method handles), `FunctionContinuation` (how a function answers), `FunctionCallException`; the annotations `@LLMFunction` / `@LLMParam` are in `domain.traits`. |
 | `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to `InferenceException`). |
+| `service.structured` | `StructuredOutputs` (JSON schema of a class from `@LLMSchema` / `@LLMField`, validation and parsing of a model's answer), `SchemaCheck`, `StructuredOutputException`; used by `InferenceService.infer`. |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |
 
 See [Services](services.md) and [Generation pipeline](generation-pipeline.md).
@@ -228,7 +229,7 @@ See [Story export](services.md#story-export).
 | `.../spring/container-config.xml` | Localization, configuration, `applicationPoint`, `sessionManager`, session beans, application initializer. |
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
-| `src/main/resources/migration/V<n>__<name>.sql` | Flyway migrations - currently `V1__initial` to `V12__usage_limit_period`. |
+| `src/main/resources/migration/V<n>__<name>.sql` | Flyway migrations - currently `V1__initial` to `V13__usage_ai_nullable`. |
 | `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
 | `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging & releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
