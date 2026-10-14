@@ -2,6 +2,8 @@
 
 Gives the model functions to get names instead of inventing them, from Markov chains trained on lists of names.
 
+![Name tools of the Lore Generator, the categories of this extension](../../../manual/images/plugin-loregenerator-names.png)
+
 ## Functions
 
 | Function | Arguments | Answer |

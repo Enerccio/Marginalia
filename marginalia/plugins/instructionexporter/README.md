@@ -2,6 +2,8 @@
 
 Copies the instructions of the story - with the scene setting, POV character and present characters - to the clipboard.
 
+![Export instructions in the settings menu](../../../manual/images/plugin-instructionexporter.png)
+
 Adds **Export instructions** to the settings (⚙) menu of the story editor. It goes over the parts of the active branch,
 from the first one to the current leaf and copies the fields each part was generated from as one text:
 

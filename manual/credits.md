@@ -9,7 +9,7 @@ order: 10
 ## Pictures in the screenshots
 
 The screenshots in this manual that show a picture of a part (for example in the story editor, the Images dialog, the
-Resources tab and the backup dialogs) use this photograph:
+Resources tab, the backup dialogs, the Character Tracker and the plugins that show the story) use this photograph:
 
 | | |
 |---|---|

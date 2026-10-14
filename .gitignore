@@ -21,3 +21,13 @@ retype.manifest
 /target/
 /marginalia/plugins/build
 /tmp/
+
+# screenshot environment (screenshots/SCREENSHOTS.md): data, run state, tooling, step backups, work-in-progress images
+/screenshots/.data/
+/screenshots/.run/
+/screenshots/node_modules/
+/screenshots/out/
+/screenshots/steps/*.tar.gz
+/screenshots/final/
+/screenshots/dataset/build/
+/screenshots/assets/*.jpg

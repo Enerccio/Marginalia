@@ -2,6 +2,8 @@
 
 Adds Simplified Chinese (中文（简体）) to the languages of the Marginalia user interface.
 
+![The story editor in Chinese](../../../manual/images/plugin-chineselocalization.png)
+
 ## Usage
 
 Load the JAR in *Admin → Extensions*. *中文（简体）* then appears in the *Language* selector at the bottom of the

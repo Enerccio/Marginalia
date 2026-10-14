@@ -21,6 +21,12 @@ Every story part gets a **Review** item in its menu:
   - *Token Limit* - how many tokens of the story (parts up to the reviewed one) are sent along.
 - **Delete Review** removes the reviews of the part.
 
+### Screenshots
+
+![Advanced review options](../../../manual/images/plugin-reviewer-advanced.png)
+
+![The Reviewer settings](../../../manual/images/plugin-reviewer-settings.png)
+
 ## Settings
 
 Reviewer profiles are configured on the *Settings* page. A profile has:

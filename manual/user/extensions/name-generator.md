@@ -13,6 +13,8 @@ The extension has no screen of its own and nothing to configure. Other extension
 the moment that is the [Lore Generator](lore-generator.md#name-tools), where you choose which categories the model
 may use.
 
+![Choosing the categories of names in the Lore Generator](../../images/plugin-loregenerator-names.png)
+
 ## What the model can do
 
 | Function | What it does |

@@ -2,6 +2,8 @@
 
 Generates the content of a lore entry from the existing lore. Works in the lorebook editor of the desktop UI (not on the phone).
 
+![The lore generator](../../../manual/images/plugin-loregenerator.png)
+
 Every row of the lorebook has a wand button that opens the Lore Generator dialog for that entry (a warning is shown when the entry already has content).
 
 - **Lore**: *Current Lorebook* (only the lorebook itself, its subbooks are ignored) or *All Lore* (the lorebook together with its subbooks).
@@ -16,3 +18,11 @@ Every row of the lorebook has a wand button that opens the Lore Generator dialog
 - **Copy to Lore Entry**: the compaction result becomes the content of the entry (a top-level code block around it is removed), the generation result goes to its note. Both are replaced.
 
 The model and the protocol are the default ones from the user settings.
+
+### Screenshots
+
+![The compaction of a generated entry](../../../manual/images/plugin-loregenerator-compaction.png)
+
+![Name tools](../../../manual/images/plugin-loregenerator-names.png)
+
+![The Lore Generator settings](../../../manual/images/plugin-loregenerator-settings.png)

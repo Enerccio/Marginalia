@@ -18,3 +18,7 @@ Nothing to configure. Install the plugin (see [Marginalia plugins](../README.md)
 part, or ask the model for it in the instructions, e.g. *"Start a new chapter titled ..."*.
 
 The headings are part of the story text, so they are also visible in published books and exports.
+
+### Screenshots
+
+![The table of contents of an exported PDF](../../../manual/images/export-result.png)

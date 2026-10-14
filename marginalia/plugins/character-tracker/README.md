@@ -3,6 +3,8 @@
 A list of the characters of the book, with the relationships between them and a map of those relationships, in the
 story sidebar.
 
+![The Characters tab](../../../manual/images/plugin-charactertracker-tab.png)
+
 ## Usage
 
 The story view gets a *Characters* tab in its left sidebar (next to the outline). It has:
@@ -33,6 +35,14 @@ icon, name and tagline on its color, and an arrow for every relationship, with i
 ends when it is unidirectional). The characters are arranged in rings around the character with the most
 relationships. **Double-click a character** to arrange the map around it. Drag to move characters, scroll to zoom.
 Characters without relationships are not in the map.
+
+### Screenshots
+
+![A character with its relationships](../../../manual/images/plugin-charactertracker-dialog.png)
+
+![The relationship map](../../../manual/images/plugin-charactertracker-map.png)
+
+![Importing characters from the lorebook](../../../manual/images/plugin-charactertracker-import.png)
 
 ## How it works
 

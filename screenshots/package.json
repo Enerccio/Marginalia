@@ -1,0 +1,9 @@
+{
+  "name": "marginalia-screenshots",
+  "private": true,
+  "type": "module",
+  "description": "Tooling that retakes the manual screenshots, see SCREENSHOTS.md",
+  "dependencies": {
+    "playwright-core": "^1.50.0"
+  }
+}

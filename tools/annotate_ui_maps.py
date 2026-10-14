@@ -54,7 +54,7 @@ SPECS = {
     },
     'workspace': {
         'frames': [((6, 12, 288, 922), ORANGE, 8), ((298, 24, 1900, 910), TEAL, 8)],
-        'labels': [(22, 704, 'Workspace', ORANGE, 31), (318, 858, 'ManuscriptPart', TEAL, 31)],
+        'labels': [(22, 590, 'Workspace', ORANGE, 31), (318, 858, 'ManuscriptPart', TEAL, 31)],
     },
 }
 
