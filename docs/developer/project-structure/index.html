@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845290657126">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845290828208">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845290657126" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845290828208" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845290657126" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845290828208" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845290657126" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845290828208" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -771,7 +771,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <h3 id="domaintraits-domaincollections-domainlistener"><code translate="no" v-pre>domain.traits</code>, <code translate="no" v-pre>domain.collections</code>, <code translate="no" v-pre>domain.listener</code></h3>
 <retype-table copy-text="| Package | |
 |---|---|
-| `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes) with `@PublicAPI`, `@APIReturn`, `@APIParameter`, `@APILocals` (the signature of each of their methods that plugins see), `@ExtendedAttribute` (fields stored in `attributes`), `@Fulltextable` (fields whose text goes into `_fulltext`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). |
+| `domain.traits` | Annotations: `@CommonTx`, `@CommonTxReadOnly`, `@NoTx` (transactions), `@Extendable` (instrumented UI classes) with `@PublicAPI`, `@APIReturn`, `@APIParameter`, `@APILocals` (the signature of each of their methods that plugins see), `@LLMSchema` / `@LLMField` (describe a class the model answers with, see `StructuredOutputs`), `@ExtendedAttribute` (fields stored in `attributes`), `@Fulltextable` (fields whose text goes into `_fulltext`), `@CleanupReference(s)` (how references behave during cleanup), `@LocalizedTemplateDescription` (texts of template hints), `@SupportedAI` (provider type of an inference service). |
 | `domain.collections` | Enums: `AIType`, `ProtocolType`, `ReasoningEffort`, `LimitStrategy`, `ResetStrategy`, `FilteringMode`, `InsertionMode`, `SummaryType`. |
 | `domain.listener` | `ExtendableEntityListener` - serializes `attributes` and `@ExtendedAttribute` fields to `extendedContent` and back, and collects the `@Fulltextable` fields into `_fulltext`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -785,7 +785,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <tbody>
 <tr>
 <td><code translate="no" v-pre>domain.traits</code></td>
-<td>Annotations: <code translate="no" v-pre>@CommonTx</code>, <code translate="no" v-pre>@CommonTxReadOnly</code>, <code translate="no" v-pre>@NoTx</code> (transactions), <code translate="no" v-pre>@Extendable</code> (instrumented UI classes) with <code translate="no" v-pre>@PublicAPI</code>, <code translate="no" v-pre>@APIReturn</code>, <code translate="no" v-pre>@APIParameter</code>, <code translate="no" v-pre>@APILocals</code> (the signature of each of their methods that plugins see), <code translate="no" v-pre>@ExtendedAttribute</code> (fields stored in <code translate="no" v-pre>attributes</code>), <code translate="no" v-pre>@Fulltextable</code> (fields whose text goes into <code translate="no" v-pre>_fulltext</code>), <code translate="no" v-pre>@CleanupReference(s)</code> (how references behave during cleanup), <code translate="no" v-pre>@LocalizedTemplateDescription</code> (texts of template hints), <code translate="no" v-pre>@SupportedAI</code> (provider type of an inference service).</td>
+<td>Annotations: <code translate="no" v-pre>@CommonTx</code>, <code translate="no" v-pre>@CommonTxReadOnly</code>, <code translate="no" v-pre>@NoTx</code> (transactions), <code translate="no" v-pre>@Extendable</code> (instrumented UI classes) with <code translate="no" v-pre>@PublicAPI</code>, <code translate="no" v-pre>@APIReturn</code>, <code translate="no" v-pre>@APIParameter</code>, <code translate="no" v-pre>@APILocals</code> (the signature of each of their methods that plugins see), <code translate="no" v-pre>@LLMSchema</code> / <code translate="no" v-pre>@LLMField</code> (describe a class the model answers with, see <code translate="no" v-pre>StructuredOutputs</code>), <code translate="no" v-pre>@ExtendedAttribute</code> (fields stored in <code translate="no" v-pre>attributes</code>), <code translate="no" v-pre>@Fulltextable</code> (fields whose text goes into <code translate="no" v-pre>_fulltext</code>), <code translate="no" v-pre>@CleanupReference(s)</code> (how references behave during cleanup), <code translate="no" v-pre>@LocalizedTemplateDescription</code> (texts of template hints), <code translate="no" v-pre>@SupportedAI</code> (provider type of an inference service).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.collections</code></td>
@@ -1069,7 +1069,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `NameToolsDialog`, `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `NameGeneratorBridge` (the Name generator by reflection). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameTables` (the chains and the sampling). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
-| Reviewer | `extensions.reviewer` | Model, service, dialogs and a settings form. |
+| Reviewer | `extensions.reviewer` | Model (`ReviewerProfile` with a stable uuid), service, dialogs, a settings form and `ManuscriptProfileSelect`, the profile picker of a book's info tab. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -1125,7 +1125,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <tr>
 <td>Reviewer</td>
 <td><code translate="no" v-pre>extensions.reviewer</code></td>
-<td>Model, service, dialogs and a settings form.</td>
+<td>Model (<code translate="no" v-pre>ReviewerProfile</code> with a stable uuid), service, dialogs, a settings form and <code translate="no" v-pre>ManuscriptProfileSelect</code>, the profile picker of a book&#x27;s info tab.</td>
 </tr>
 <tr>
 <td>Side Query</td>
