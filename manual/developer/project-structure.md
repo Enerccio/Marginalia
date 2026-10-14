@@ -26,6 +26,8 @@ Marginalia/
 ├── manual/                  sources of this manual (Retype, Markdown)
 │   └── images/              screenshots used by the manual and the READMEs
 ├── docs/                    generated manual, served by GitHub Pages - don't edit by hand
+├── screenshots/             scripted environment that takes the pictures of the manual (see its SCREENSHOTS.md)
+├── tools/                   check_dev_docs.py (stale developer pages), annotate_ui_maps.py (labels of the UI map figures)
 ├── .github/workflows/
 │   ├── desktop.yml          CI: tests, desktop builds for 5 platforms, release upload
 │   └── server.yml           CI: WAR, plugin JARs, Docker image (ghcr.io), release upload
@@ -35,8 +37,10 @@ Marginalia/
 ├── rebuild.sh, rebuild.bat  update a Docker server: pull, build the plugins, copy them to data/extensions, restart
 ├── retype.yml               manual configuration (input manual/, output docs/)
 ├── README.md, LICENSE
+├── CHANGELOG.MD             user- and plugin-visible changes, per release
 ├── TODO.md                  release plan
-└── TODO.IMAGES.md           screenshots still to be made
+├── TODO.BUGS.md             known bugs
+└── TODO.IMAGES.md           screenshots not taken by the scripts
 ```
 
 | Path | Notes |
