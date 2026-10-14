@@ -36,7 +36,7 @@ itself. The important parts:
     <dependency>
         <groupId>io.github.enerccio</groupId>
         <artifactId>marginalia</artifactId>
-        <version>1.2.0</version>
+        <version>1.3.0</version>
         <classifier>classes</classifier>
         <scope>provided</scope>
     </dependency>
