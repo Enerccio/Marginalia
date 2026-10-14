@@ -5,6 +5,7 @@ a restart.
 
 | Plugin | What it adds |
 |---|---|
+| [Arc Outline](arc-outline/README.md) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore. |
 | [Author's Note](authorsnote/README.md) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
 | [Character Tracker](character-tracker/README.md) | The characters of the book with their relationships, and a map of the relationships, in the story sidebar. |
@@ -39,7 +40,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or authorsnote, character-tracker, gemma4toolsfix, instructionexporter, lore-generator, lorebookvcs, name-generator, reviewer, sidequery, chineselocalization
+cd plugins/chaptermarker          # or arc-outline, authorsnote, character-tracker, gemma4toolsfix, instructionexporter, lore-generator, lorebookvcs, name-generator, reviewer, sidequery, chineselocalization
 mvn package                       # target/chaptermarker-1.3.0.jar
 ```
 

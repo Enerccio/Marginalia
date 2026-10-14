@@ -20,6 +20,7 @@ import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGener
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
@@ -69,6 +70,7 @@ public class LoreGeneratorDialog extends Dialog {
 
     private LorebookEntry entry;
 
+    private ModelProtocolPicker modelPicker;
     private RadioButtonGroup<LoreScope> scopeGroup;
     private RadioButtonGroup<EntryLimit> limitGroup;
     private ComboBox<String> promptCombo;
@@ -217,7 +219,18 @@ public class LoreGeneratorDialog extends Dialog {
         panels.setSplitterPosition(50);
         panels.addClassName(CssStyles.MIN_HEIGHT_0);
 
-        main.add(header, panels);
+        // starts with the default model of the user, can be changed for this generation
+        modelPicker = new ModelProtocolPicker();
+        try {
+            ModelSelection initial = service.resolveModel();
+            if (initial != null) {
+                modelPicker.setSelection(initial.ai(), initial.protocol());
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+
+        main.add(header, modelPicker, panels);
         main.setFlexGrow(1, panels);
         // only the texts scroll (prompt, reasoning, content), the controls stay where they are
         main.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
@@ -411,19 +424,18 @@ public class LoreGeneratorDialog extends Dialog {
     }
 
     private void start(GenerationPane pane, String prompt, List<LLMAttachment> sent, FunctionSet functions) throws Exception {
-        ModelSelection model = service.resolveModel();
-        if (model == null) {
-            Notification.warning("No default model is set, choose one in the settings");
+        if (modelPicker.getAi() == null) {
+            Notification.warning("Choose a model");
             updateControls();
             return;
         }
-        InferenceService inference = inferenceServices.forAI(model.ai());
+        InferenceService inference = inferenceServices.forAI(modelPicker.getAi());
         UI ui = UI.getCurrent();
 
         pane.setRunning(true);
         updateControls();
         try {
-            running = inference.stream(service.toPayload(prompt, new ArrayList<>(sent)), model.protocol(), functions, callback(ui, pane));
+            running = inference.stream(service.toPayload(prompt, new ArrayList<>(sent)), modelPicker.getProtocol(), functions, callback(ui, pane));
         } catch (Exception e) {
             // nothing runs, do not leave the controls frozen
             pane.setRunning(false);
@@ -494,6 +506,7 @@ public class LoreGeneratorDialog extends Dialog {
     private void updateControls() {
         boolean busy = generationPane.isRunning() || compactionPane.isRunning();
 
+        modelPicker.setEnabled(!busy);
         scopeGroup.setEnabled(!busy);
         limitGroup.setEnabled(!busy);
         promptCombo.setEnabled(!busy);

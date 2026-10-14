@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.osgi.framework.Bundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -59,6 +60,48 @@ public class SideQueryService {
 
     @Autowired
     private InferenceServices inferenceServices;
+
+    @Autowired
+    private IPCService ipcService;
+
+    /** Identifies this extension to the providers of data. */
+    public static final String CALLER_IDENTIFIER = "com.github.enerccio.marginalia.extensions.sidequery.SideQueryExtension";
+
+    /** A source of data another extension offers, see {@link IPCService}. */
+    public record Source(String bundle, String key, String name) {
+
+        /** The id the options keep. */
+        public String id() {
+            return SideQueryOptions.sourceId(bundle, key);
+        }
+    }
+
+    /** The bundle of this extension, set when it loads. */
+    private Bundle bundle;
+
+    public void setBundle(Bundle bundle) {
+        this.bundle = bundle;
+    }
+
+    /**
+     * The providers of data about the book that are available now, in the order they registered.
+     */
+    public List<Source> listManuscriptSources() {
+        return flatten(ipcService.getManuscriptProviders());
+    }
+
+    /**
+     * The providers of data about story parts that are available now, in the order they registered.
+     */
+    public List<Source> listMessageSources() {
+        return flatten(ipcService.getChatMessageProviders());
+    }
+
+    private static List<Source> flatten(Map<String, Map<String, String>> providers) {
+        List<Source> sources = new ArrayList<>();
+        providers.forEach((bundle, byKey) -> byKey.forEach((key, name) -> sources.add(new Source(bundle, key, name))));
+        return sources;
+    }
 
     private static final String TAB_NAME_PROMPT = "Give the following conversation a short title of at most five "
             + "words. Reply with the title only, without quotes or punctuation at the end.";
@@ -202,7 +245,14 @@ public class SideQueryService {
             }
         }
 
+        String sources = buildManuscriptSources(current, opts);
+        if (StringUtils.isNotBlank(sources)) {
+            systemBuilder.append(sources).append("\n\n");
+        }
+
         if (opts.isIncludeMessages() && !branch.isEmpty()) {
+            List<Source> messageSources = listMessageSources().stream()
+                    .filter(source -> opts.getMessageSources().contains(source.id())).toList();
             // parts are numbered from 1, like in the outline
             int from = Math.max(1, opts.getPartsFrom());
             int to = Math.min(branch.size(), opts.getPartsTo());
@@ -214,6 +264,14 @@ public class SideQueryService {
                     if (StringUtils.isNotBlank(msg.getResponse())) {
                         logBuilder.append("Message #").append(i).append(":\n")
                                 .append(msg.getResponse()).append("\n\n");
+                        // what the extensions the user chose know about the part, next to its text
+                        for (Source source : messageSources) {
+                            String data = messageData(source, msg);
+                            if (StringUtils.isNotBlank(data)) {
+                                logBuilder.append("[").append(source.name()).append("]:\n")
+                                        .append(data.trim()).append("\n\n");
+                            }
+                        }
                     }
                 }
                 systemBuilder.append(logBuilder.toString().trim()).append("\n\n");
@@ -248,6 +306,37 @@ public class SideQueryService {
         }
 
         return payload;
+    }
+
+    /**
+     * The data about the book from the sources the user checked, each under the name of the source. A source that is
+     * gone, has nothing or fails is left out (a failure is logged).
+     */
+    private String buildManuscriptSources(Manuscript manuscript, SideQueryOptions opts) {
+        StringBuilder text = new StringBuilder();
+        for (Source source : listManuscriptSources()) {
+            if (!opts.getManuscriptSources().contains(source.id())) {
+                continue;
+            }
+            try {
+                String data = ipcService.getManuscriptData(source.bundle(), source.key(), manuscript, bundle, CALLER_IDENTIFIER);
+                if (StringUtils.isNotBlank(data)) {
+                    text.append(source.name()).append(":\n").append(data.trim()).append("\n\n");
+                }
+            } catch (Exception e) {
+                SideQueryLog.get().warn("Source '{}' of {} failed: {}", source.name(), source.bundle(), e.getMessage(), e);
+            }
+        }
+        return text.toString().trim();
+    }
+
+    private String messageData(Source source, ChatMessage message) {
+        try {
+            return ipcService.getChatMessageData(source.bundle(), source.key(), message, bundle, CALLER_IDENTIFIER);
+        } catch (Exception e) {
+            SideQueryLog.get().warn("Source '{}' of {} failed: {}", source.name(), source.bundle(), e.getMessage(), e);
+            return null;
+        }
     }
 
     /**

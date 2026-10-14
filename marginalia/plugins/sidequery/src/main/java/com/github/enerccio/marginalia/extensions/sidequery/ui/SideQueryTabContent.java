@@ -27,6 +27,8 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
@@ -65,6 +67,7 @@ public class SideQueryTabContent extends VerticalLayout {
     private Span tokenCountSpan;
 
     private Checkbox lorebookBox;
+    private Button sourcesBtn;
     private Checkbox messagesBox;
     private IntegerField messagesFromField;
     private IntegerField messagesToField;
@@ -159,7 +162,9 @@ public class SideQueryTabContent extends VerticalLayout {
         tokenCountSpan = new Span("Tokens: 0");
         tokenCountSpan.addClassNames(CssStyles.MARGIN_LEFT_AUTO, CssStyles.TEXT_S);
 
-        optionsBar.add(lorebookBox, messagesBox, messagesFromField, new Span("to"), messagesToField, tokenCountSpan);
+        sourcesBtn = createSourcesButton(opts);
+
+        optionsBar.add(lorebookBox, messagesBox, messagesFromField, new Span("to"), messagesToField, sourcesBtn, tokenCountSpan);
 
         messagesListLayout = new VerticalLayout();
         messagesListLayout.setWidthFull();
@@ -537,6 +542,74 @@ public class SideQueryTabContent extends VerticalLayout {
             namingTab = false;
             SideQueryLog.get().warn("Failed to name side query tab: {}", e.getMessage());
         }
+    }
+
+    /**
+     * The button that opens the list of the data other extensions offer (see {@code IPCService}), with a checkbox for
+     * each. The list is read every time the popover opens: extensions come and go.
+     */
+    private Button createSourcesButton(SideQueryOptions opts) {
+        Button button = new Button(Solid.PLUG.create());
+        button.setThemeName("tertiary icon small");
+        button.setAriaLabel("Additional sources");
+        button.setTooltipText("Additional sources: data of other extensions");
+
+        VerticalLayout content = new VerticalLayout();
+        content.setPadding(true);
+        content.setSpacing(false);
+        content.getThemeList().add("spacing-xs");
+
+        Popover popover = new Popover(content);
+        popover.setTarget(button);
+        popover.setPosition(PopoverPosition.BOTTOM_START);
+        popover.addOpenedChangeListener(e -> {
+            if (e.isOpened()) {
+                fillSources(content, opts);
+            }
+        });
+        return button;
+    }
+
+    private void fillSources(VerticalLayout content, SideQueryOptions opts) {
+        content.removeAll();
+        List<SideQueryService.Source> manuscriptSources = sideQueryService.listManuscriptSources();
+        List<SideQueryService.Source> messageSources = sideQueryService.listMessageSources();
+
+        if (manuscriptSources.isEmpty() && messageSources.isEmpty()) {
+            content.add(new Span("No other extension offers data."));
+            return;
+        }
+        if (!manuscriptSources.isEmpty()) {
+            content.add(sourcesHeading("About the book"));
+            manuscriptSources.forEach(source -> content.add(sourceCheckbox(source, opts.getManuscriptSources())));
+        }
+        if (!messageSources.isEmpty()) {
+            content.add(sourcesHeading("About story parts (added to each included part, needs Chat Logs)"));
+            messageSources.forEach(source -> content.add(sourceCheckbox(source, opts.getMessageSources())));
+        }
+    }
+
+    private Span sourcesHeading(String text) {
+        Span heading = new Span(text);
+        heading.addClassNames(CssStyles.TEXT_BOLD, CssStyles.TEXT_S);
+        return heading;
+    }
+
+    private Checkbox sourceCheckbox(SideQueryService.Source source, List<String> checked) {
+        Checkbox box = new Checkbox(source.name(), checked.contains(source.id()));
+        box.setTooltipText(source.bundle());
+        box.addValueChangeListener(e -> {
+            if (e.getValue()) {
+                if (!checked.contains(source.id())) {
+                    checked.add(source.id());
+                }
+            } else {
+                checked.remove(source.id());
+            }
+            triggerSave();
+            updateTokenCount();
+        });
+        return box;
     }
 
     private void setGeneratingState(boolean generating) {

@@ -1,0 +1,157 @@
+/* Styles of the Arc Outline plugin only. Put into the page by the application while the extension is loaded
+   (ArcOutlineExtension.getCss). The state of an arc or a chapter (planned, current, finished) sets the custom property
+   --arc-outline-state-color, which the left border of the card uses. */
+
+.arc-outline-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: var(--lumo-space-xs);
+    min-height: 0;
+    overflow: auto;
+    padding: 0 var(--lumo-space-s) var(--lumo-space-s) var(--lumo-space-s);
+}
+
+.arc-outline-empty {
+    color: var(--lumo-secondary-text-color);
+    padding: var(--lumo-space-m);
+}
+
+/* Arc or chapter in the list: the head (state, text, collapse) above the buttons */
+.arc-outline-card {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-left: 4px solid var(--arc-outline-state-color);
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--lumo-contrast-5pct);
+}
+
+/* A chapter is indented under its arc */
+.arc-outline-chapter {
+    width: calc(100% - var(--lumo-space-l));
+    margin-left: var(--lumo-space-l);
+}
+
+.arc-outline-arc {
+    margin-top: var(--lumo-space-xs);
+}
+
+.arc-outline-planned {
+    --arc-outline-state-color: var(--lumo-contrast-30pct);
+}
+
+.arc-outline-current {
+    --arc-outline-state-color: var(--lumo-primary-color);
+    background-color: var(--lumo-primary-color-10pct);
+}
+
+.arc-outline-finished {
+    --arc-outline-state-color: var(--lumo-success-color);
+}
+
+.arc-outline-finished .arc-outline-title {
+    color: var(--lumo-secondary-text-color);
+}
+
+.arc-outline-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-xs);
+}
+
+.arc-outline-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    align-self: center;
+}
+
+.arc-outline-title {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.arc-outline-arc .arc-outline-title {
+    font-size: var(--lumo-font-size-l);
+}
+
+/* Smaller than the title, at most three lines */
+.arc-outline-description {
+    font-size: var(--lumo-font-size-xs);
+    line-height: var(--lumo-line-height-xs);
+    color: var(--lumo-secondary-text-color);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+/* The preview of a generated arc shows the whole description */
+.arc-outline-expanded .arc-outline-description {
+    display: block;
+    line-clamp: none;
+    -webkit-line-clamp: none;
+    overflow: visible;
+    font-size: var(--lumo-font-size-s);
+}
+
+/* The note of a generated node in the preview: set apart from the description */
+.arc-outline-note {
+    margin-top: var(--lumo-space-xs);
+    padding-top: var(--lumo-space-xs);
+    border-top: 1px dashed var(--lumo-contrast-20pct);
+}
+
+.arc-outline-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.arc-outline-card vaadin-button {
+    margin: 0;
+}
+
+/* Popover with what the model wrote when it generated an arc */
+.arc-outline-generation {
+    box-sizing: border-box;
+    width: 420px;
+    max-width: 80vw;
+    max-height: 60vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+}
+
+.arc-outline-generation-heading {
+    font-weight: 600;
+    font-size: var(--lumo-font-size-s);
+}
+
+.arc-outline-generation-text {
+    font-size: var(--lumo-font-size-s);
+    overflow-wrap: anywhere;
+}
+
+/* The JSON of the answer as it was written */
+.arc-outline-generation-json {
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: var(--lumo-font-size-xs);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Reasoning of the model in the generator dialog */
+.arc-outline-reasoning {
+    flex: none;
+    max-height: 25vh;
+    overflow: auto;
+}

@@ -167,6 +167,13 @@
       <version>1.5.6</version>
     </dependency>
 
+    <!-- reads the unfinished JSON of a streamed answer (PartialJson); a Kotlin library, brings kotlin-stdlib -->
+    <dependency>
+      <groupId>io.github.funnysaltyfish</groupId>
+      <artifactId>partial-json-parser-jvm</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+
     <!-- SERVLET API -->
     <dependency>
       <groupId>jakarta.servlet</groupId>
