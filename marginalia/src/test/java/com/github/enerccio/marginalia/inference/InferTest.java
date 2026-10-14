@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.inference;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceResultCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.TypedInferenceCallback;
@@ -90,6 +91,21 @@ class InferTest extends MarginaliaTestBase {
         assertThat(result.text()).isEqualTo("Once upon a time");
         assertThat(result.check().checked()).isFalse();
         assertThat(llm.lastCompletionRequest().isStream()).isFalse();
+    }
+
+    @Test
+    void emptyApiKeyIsReplacedByPlaceholder() throws Exception {
+        login();
+        llm.enqueue(MockLLMResponse.text("ok"));
+        var ai = createAI();
+        ai.setApiKey("");
+        ai = (OpenAICompatible) aiService.save(ai);
+
+        Collect collect = new Collect();
+        inferenceServices.forAI(ai).infer(PAYLOAD, collect);
+
+        assertThat(collect.await().error()).isNull();
+        assertThat(llm.lastCompletionRequest().getApiKey()).isEqualTo("none");
     }
 
     @Test
