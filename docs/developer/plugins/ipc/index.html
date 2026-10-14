@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332231476">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332898302">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Sharing data between extensions</title>
     <meta name="title" content="Sharing data between extensions">
-    <meta name="description" content="Extensions are separate bundles that should not import each other's classes (one can be unloaded and installed again while another keeps running). IPCService lets them offer data to each other anyway, as text, through callbacks registered by a key.">
+    <meta name="description" content="Extensions are separate bundles that should not import each other's classes (one can be unloaded and installed again while another keeps running). There">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/plugins/ipc/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/plugins/ipc/">
     <meta property="og:title" content="Sharing data between extensions">
-    <meta property="og:description" content="Extensions are separate bundles that should not import each other's classes (one can be unloaded and installed again while another keeps running). IPCService lets them offer data to each other anyway, as text, through callbacks registered by a key.">
+    <meta property="og:description" content="Extensions are separate bundles that should not import each other's classes (one can be unloaded and installed again while another keeps running). There">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -31,19 +31,19 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/plugins/ipc/">
     <meta name="twitter:title" content="Sharing data between extensions">
-    <meta name="twitter:description" content="Extensions are separate bundles that should not import each other's classes (one can be unloaded and installed again while another keeps running). IPCService lets them offer data to each other anyway, as text, through callbacks registered by a key.">
+    <meta name="twitter:description" content="Extensions are separate bundles that should not import each other's classes (one can be unloaded and installed again while another keeps running). There">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/plugins/ipc.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845332231476" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845332898302" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845332898302" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845332231476" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845332898302" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845332898302" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -167,8 +167,35 @@
                 <!-- Page content  -->
 <h1 id="sharing-data-between-extensions">Sharing data between extensions</h1>
 <p>Extensions are separate bundles that should not import each other&#x27;s classes (one can be unloaded and installed again
-while another keeps running). <code translate="no" v-pre>IPCService</code> lets them offer data to each other anyway, as <strong>text</strong>, through callbacks
-registered by a key. The application can use it too.</p>
+while another keeps running). There are two ways to work together anyway:</p>
+<retype-table copy-text="| You want | Use |
+|---|---|
+| to offer **text about a book or a story part** to whoever wants it (and to use what others offer), without knowing who they are | [`IPCService`](#ipcservice-text-for-whoever-asks) |
+| to use **one particular extension** and what it can do (functions the model can call, objects, lists), if it is installed | [a direct call](#calling-another-extension-directly) |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>You want</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>to offer <strong>text about a book or a story part</strong> to whoever wants it (and to use what others offer), without knowing who they are</td>
+<td><doc-anchor-trigger to="#ipcservice-text-for-whoever-asks"><code translate="no" v-pre>IPCService</code></doc-anchor-trigger></td>
+</tr>
+<tr>
+<td>to use <strong>one particular extension</strong> and what it can do (functions the model can call, objects, lists), if it is installed</td>
+<td><doc-anchor-trigger to="#calling-another-extension-directly">a direct call</doc-anchor-trigger></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="ipcservice-text-for-whoever-asks">IPCService: text for whoever asks</h2>
+<p><code translate="no" v-pre>IPCService</code> lets extensions offer data to each other as <strong>text</strong>, through callbacks registered by a key. The
+application can use it too.</p>
 <p>There are two kinds of providers:</p>
 <retype-table copy-text="| Kind | Callback | Asked with |
 |---|---|---|
@@ -199,7 +226,7 @@ registered by a key. The application can use it too.</p>
 </div>
 </retype-table>
 <p>A callback returns the text, or <code translate="no" v-pre>null</code> / blank when it has nothing. It may throw: the exception reaches the caller.</p>
-<h2 id="offering-data">Offering data</h2>
+<h3 id="offering-data">Offering data</h3>
 <p>Register in <code translate="no" v-pre>onExtensionLoad</code>, with <code translate="no" v-pre>@Autowired IPCService</code> in your <code translate="no" v-pre>@Configurable</code> extension class:</p>
 <div id="offering-data-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">ipcService.registerManuscriptProvider(
@@ -221,7 +248,7 @@ all providers of <code translate="no" v-pre>bundle.getSymbolicName()</code>. A p
 <p>The key is part of what other extensions store (Side Query remembers the sources the user checked), so don&#x27;t rename it.</p>
 </li>
 </ul>
-<h2 id="asking-for-data">Asking for data</h2>
+<h3 id="asking-for-data">Asking for data</h3>
 <div id="asking-for-data-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">Map&lt;String, Map&lt;String, String&gt;&gt; providers = ipcService.getManuscriptProviders();
 // bundle identifier -&gt; (provider key -&gt; provider name), both in the order of registration; a copy
@@ -237,6 +264,127 @@ the session and transaction are yours).</p>
 <p>The callback gets the <strong>caller&#x27;s bundle and identifier</strong>, so a provider can decide what to give to whom. Nothing is
 checked by the service itself: a provider gives the data of the book it is handed, so it must only be handed books the
 caller may read.</p>
+<h2 id="calling-another-extension-directly">Calling another extension directly</h2>
+<p>When an extension needs more than text from another one, it calls the other extension&#x27;s own methods. The
+<strong>Lore Generator</strong> and the <strong>Arc Outline</strong> do this to get names from the <strong>Name Generator</strong>: they let the model call
+its functions (<code translate="no" v-pre>list_name_categories</code>, <code translate="no" v-pre>generate_names</code>), restricted to the categories the user checked.</p>
+<h3 id="do-not-import-the-other-extension">Do not import the other extension</h3>
+<p>The obvious way - depend on the other plugin in the <code translate="no" v-pre>pom.xml</code> and import its packages - is the wrong one. A bundle that
+imports the packages of another bundle is tied to the classes of that bundle: when the other extension is unloaded
+(Admin → Extensions, an update, a restart of the framework) and loaded again, the importing bundle keeps the old
+classes, and an extension installed <em>after</em> yours is not seen at all, its classes are other ones. So the bundle does
+not import them (<code translate="no" v-pre>pom.xml</code> has no dependency on the other plugin), and nothing of it appears in the <code translate="no" v-pre>Import-Package</code>
+of the manifest. The other extension is <strong>found at run time and used by reflection</strong>.</p>
+<h3 id="finding-and-calling-it">Finding and calling it</h3>
+<p><code translate="no" v-pre>OsgiService.getLoadedExtensions()</code> lists the extensions that finished loading (<code translate="no" v-pre>LoadedExtension(bundle, extension)</code>),
+so the other extension is found by the name of its class:</p>
+<div id="finding-and-calling-it-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">private static MarginaliaExtension find(OsgiService osgiService) {
+    for (OsgiService.LoadedExtension loaded : osgiService.getLoadedExtensions()) {
+        if (loaded.extension().getClass().getName()
+                .equals(&quot;com.github.enerccio.marginalia.extensions.namegenerator.NameGeneratorExtension&quot;)) {
+            return loaded.extension();
+        }
+    }
+    return null;                                   // not installed, stopped or not loaded yet
+}
+
+@SuppressWarnings(&quot;unchecked&quot;)
+public static List&lt;String&gt; categories(OsgiService osgiService) {
+    MarginaliaExtension extension = find(osgiService);
+    if (extension == null) {
+        return null;
+    }
+    try {
+        return (List&lt;String&gt;) extension.getClass().getMethod(&quot;categories&quot;).invoke(extension);
+    } catch (ReflectiveOperationException e) {
+        throw new IllegalStateException(&quot;The name generator has no categories()&quot;, e);
+    }
+}</code></pre>
+</doc-codeblock></div>
+<p>The rules the bundled code follows:</p>
+<ul>
+<li>
+<p><strong>Only types both sides know cross the border</strong>: the JDK and the application (<code translate="no" v-pre>List&lt;String&gt;</code>, <code translate="no" v-pre>FunctionSet</code>,
+<code translate="no" v-pre>Manuscript</code>...). Your bundle can&#x27;t name a class of the other one. When you need the other extension&#x27;s own interface,
+load it with <em>its</em> class loader (<code translate="no" v-pre>extension.getClass().getClassLoader().loadClass(name)</code>). The Lore Generator does that
+for <code translate="no" v-pre>NameGeneratorFunctions</code>: it wraps the real implementation in a <code translate="no" v-pre>java.lang.reflect.Proxy</code> of that interface that
+only lets the checked categories through, and hands the proxy to <code translate="no" v-pre>FunctionRegistry.bind(type, proxy)</code> to get the
+<code translate="no" v-pre>FunctionSet</code> for the model.</p>
+</li>
+<li>
+<p><strong>Look it up on every call.</strong> Keep no reference to the extension, its classes or its <code translate="no" v-pre>Method</code> objects: they would
+keep an unloaded extension alive. A missing extension is a normal answer (<code translate="no" v-pre>null</code>), not an error: the dialogs of the
+generators ask when they open and hide the <em>Name tools</em> button when there is none. A screen that stays open can follow
+the loading and unloading with <code translate="no" v-pre>OsgiService.addExtensionListener</code> (the listener is held weakly, keep a reference to it).</p>
+</li>
+<li>
+<p><strong>One class touches the other extension</strong> (<code translate="no" v-pre>NameGeneratorBridge</code>, with the class name and the method names as
+constants), so that a change on the other side breaks one place and the reflection is not spread over the code.
+Report a failed call with an exception that says what is missing; the caller decides what to show.</p>
+</li>
+<li>
+<p><strong>Selections and settings are yours</strong>: the Lore Generator keeps the category names the user checked in its own
+settings and passes them to the bridge each time; the bridge leaves out a category that the other extension no longer
+has.</p>
+</li>
+</ul>
+<h3 id="offering-something-to-be-called">Offering something to be called</h3>
+<p>An extension that wants to be called gives its <code translate="no" v-pre>MarginaliaExtension</code> class a few <code translate="no" v-pre>public</code> methods that use only JDK and
+application types (the Name Generator has <code translate="no" v-pre>categories()</code>, <code translate="no" v-pre>newFunctions()</code> and <code translate="no" v-pre>functions()</code>). There is no compiler
+between the two, so treat the class name, the method names and their signatures as a contract: keep them stable, say so
+in the README of the plugin, and when you must change them, change the callers (here: the two bridges) in the same commit.
+The offering extension does not need to know who calls it.</p>
+<h3 id="which-one">Which one?</h3>
+<retype-table copy-text="| | `IPCService` | Direct call |
+|---|---|---|
+| Caller knows | the kind of data (about a book / a story part) | the other extension and its methods |
+| Several providers | yes, listed in the order they registered | one |
+| Types | text | anything the JDK and the application have |
+| The user chooses | what to include (the *Side Query* popover) | usually nothing, the feature simply appears (the *Name tools* button) |
+| When it is missing | its entry is not in the list | the lookup returns `null` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th> </th>
+<th><code translate="no" v-pre>IPCService</code></th>
+<th>Direct call</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Caller knows</td>
+<td>the kind of data (about a book / a story part)</td>
+<td>the other extension and its methods</td>
+</tr>
+<tr>
+<td>Several providers</td>
+<td>yes, listed in the order they registered</td>
+<td>one</td>
+</tr>
+<tr>
+<td>Types</td>
+<td>text</td>
+<td>anything the JDK and the application have</td>
+</tr>
+<tr>
+<td>The user chooses</td>
+<td>what to include (the <em>Side Query</em> popover)</td>
+<td>usually nothing, the feature simply appears (the <em>Name tools</em> button)</td>
+</tr>
+<tr>
+<td>When it is missing</td>
+<td>its entry is not in the list</td>
+<td>the lookup returns <code translate="no" v-pre>null</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The two bridges in the repository are <code translate="no" v-pre>marginalia/plugins/lore-generator/.../names/NameGeneratorBridge.java</code> and the copy
+in <code translate="no" v-pre>marginalia/plugins/arc-outline/.../names/NameGeneratorBridge.java</code> (plugins are separate bundles, so the copy is not
+shared).</p>
 <h2 id="in-the-bundled-extensions">In the bundled extensions</h2>
 <ul>
 <li>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332231476">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332898302">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845332231476" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845332898302" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845332898302" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845332231476" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845332898302" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845332898302" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -880,6 +880,12 @@ each inside <code translate="no" v-pre>ui.access(...)</code> of the component&#x
 <p><strong>Languages.</strong> An extension that implements <code translate="no" v-pre>ExtensionHasLocalization</code> adds languages to the UI: <code translate="no" v-pre>OsgiServiceImpl</code>
 registers its <code translate="no" v-pre>LocalizationBundle</code>s in <code translate="no" v-pre>Localization</code> after the extension loads and removes them on unload
 (<doc-anchor-trigger to="#localization">Localization</doc-anchor-trigger>).</p>
+</li>
+<li>
+<p><strong>Other extensions.</strong> Extensions don&#x27;t import each other. <code translate="no" v-pre>IPCService</code> lets them register providers of text about a
+book or a story part under their bundle&#x27;s symbolic name (removed when the extension is unloaded) and ask for it; to
+use one particular extension (the name generator) the others find it among <code translate="no" v-pre>OsgiService.getLoadedExtensions()</code> and
+call it by reflection (<a href="../plugins/ipc/">Sharing data between extensions</a>).</p>
 </li>
 <li>
 <p><strong>Styles.</strong> An extension that implements <code translate="no" v-pre>ExtensionHasCss</code> gets its CSS put into every open page: <code translate="no" v-pre>CssRegistry</code>

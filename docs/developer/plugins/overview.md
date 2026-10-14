@@ -130,7 +130,9 @@ public interface MarginaliaExtension {
   user opens the screen the plugin extends.
 - `onExtensionUnload` undoes all of it: unregister every decorator and listener, remove the components the plugin
   added to open screens ([Unloading](ui-extensions.md#unloading)), stop background work. Nothing is removed
-  automatically - a decorator left registered keeps running, from a bundle that no longer exists.
+  automatically - a decorator left registered keeps running, from a bundle that no longer exists. The one exception:
+  the data providers registered with `IPCService` under the symbolic name of the bundle are removed by the
+  application when the extension is unloaded ([Sharing data between extensions](ipc.md)).
 
 Annotate the extension `@Configurable` and inject what you need:
 

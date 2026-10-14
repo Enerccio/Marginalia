@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332231476">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332898302">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845332231476" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845332898302" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845332898302" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845332898302" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -199,7 +199,7 @@ gets three general mechanisms and the whole application to use them on:</p>
 | **Bundles** | Loading, unloading, the `MarginaliaExtension` lifecycle, access to every Spring service through `@Configurable`. | [Plugin basics](overview.md) |
 | **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields, and the possibility to replace the return value. | [@Extendable hooks](extendable.md) |
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
-| **Sharing data** | Offer text about a book or a story part to other extensions, or ask them for it, without importing their classes. | [Sharing data between extensions](ipc.md) |
+| **Other extensions** | Offer text about a book or a story part to other extensions or ask them for it (`IPCService`), or call one particular extension (like the name generator) by reflection, without importing its classes. | [Sharing data between extensions](ipc.md) |
 | **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -227,8 +227,8 @@ gets three general mechanisms and the whole application to use them on:</p>
 <td><a href="extended-attributes/">Extended attributes</a></td>
 </tr>
 <tr>
-<td><strong>Sharing data</strong></td>
-<td>Offer text about a book or a story part to other extensions, or ask them for it, without importing their classes.</td>
+<td><strong>Other extensions</strong></td>
+<td>Offer text about a book or a story part to other extensions or ask them for it (<code translate="no" v-pre>IPCService</code>), or call one particular extension (like the name generator) by reflection, without importing its classes.</td>
 <td><a href="ipc/">Sharing data between extensions</a></td>
 </tr>
 <tr>
@@ -269,17 +269,17 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <p>The eleven plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
 <retype-table copy-text="| Plugin | What it adds | Shows how to |
 |---|---|---|
-| [Arc Outline](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/arc-outline) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore. | Add a tab to the story editor and a section to the user settings, keep a tree in a book's attributes, stream a structured (JSON schema) answer into the UI with `PartialJson`, name tools from another plugin, plugin-only CSS classes. |
+| [Arc Outline](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/arc-outline) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore. | Add a tab to the story editor and a section to the user settings, keep a tree in a book's attributes, stream a structured (JSON schema) answer into the UI with `PartialJson`, name tools from another plugin ([call it directly](ipc.md#calling-another-extension-directly)), offer data to other plugins with `IPCService`, plugin-only CSS classes. |
 | [Author's Note](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. | Listen to generation events and change the payload sent to the model; add a tab to the story editor. |
 | [Chapter Marker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker) | Story parts that start with a Markdown heading are shown as chapters in the story sidebar. | Read method arguments and locals, change a component the method built. The smallest one - start here. |
 | [Character Tracker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/character-tracker) | The characters of the book with their relationships, imported from lore entries if wanted, and a relationship map, in the story sidebar. | Add a tab to the story editor, keep a list in a book's attributes, draw a graph with the application's `GraphView` ([Custom components](../custom-components.md)), upload and scale images. |
 | [Gemma 4 tools fix](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/gemma4toolsfix) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. | Change how a service talks to the model without UI code: register an `InferenceServices.ToolRoleResolver` on load, remove it on unload. |
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions and scene fields of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
-| [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension. |
+| [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension ([a direct call](ipc.md#calling-another-extension-directly)), let the user choose the model with `ModelProtocolPicker`. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
 | [Name generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/name-generator) | `list_name_categories` and `generate_names`: names from Markov chains trained at build time on lists of names. | Write functions for the model (`@LLMFunction`), train data at build time with Java programs run by `exec-maven-plugin`, ship it as a resource. |
 | [Reviewer](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer) | AI reviews of a story part with configurable reviewer profiles (a book can pick its own profile). | Add a sub-menu to every part, add a settings panel, stream an answer from the model. |
-| [Side Query](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery) | A chat panel next to the story for questions about the book. | Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts. |
+| [Side Query](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery) | A chat panel next to the story for questions about the book. | Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts, use the data other extensions offer through `IPCService` ([Sharing data](ipc.md)). |
 | [Chinese localization](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chineselocalization) | Simplified Chinese as a language of the user interface. | Add a language with `ExtensionHasLocalization` - no UI code at all. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -294,7 +294,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/arc-outline">Arc Outline</a></td>
 <td>The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore.</td>
-<td>Add a tab to the story editor and a section to the user settings, keep a tree in a book&#x27;s attributes, stream a structured (JSON schema) answer into the UI with <code translate="no" v-pre>PartialJson</code>, name tools from another plugin, plugin-only CSS classes.</td>
+<td>Add a tab to the story editor and a section to the user settings, keep a tree in a book&#x27;s attributes, stream a structured (JSON schema) answer into the UI with <code translate="no" v-pre>PartialJson</code>, name tools from another plugin (<a href="ipc/#calling-another-extension-directly">call it directly</a>), offer data to other plugins with <code translate="no" v-pre>IPCService</code>, plugin-only CSS classes.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote">Author&#x27;s Note</a></td>
@@ -324,7 +324,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator">Lore Generator</a></td>
 <td>Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments.</td>
-<td>Add a column to a grid, open a dialog that streams from the model (with <code translate="no" v-pre>LLMAttachment</code>s), keep prompts in the user settings, give the model the functions of another extension.</td>
+<td>Add a column to a grid, open a dialog that streams from the model (with <code translate="no" v-pre>LLMAttachment</code>s), keep prompts in the user settings, give the model the functions of another extension (<a href="ipc/#calling-another-extension-directly">a direct call</a>), let the user choose the model with <code translate="no" v-pre>ModelProtocolPicker</code>.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs">Lorebook VCS</a></td>
@@ -344,7 +344,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery">Side Query</a></td>
 <td>A chat panel next to the story for questions about the book.</td>
-<td>Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts.</td>
+<td>Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts, use the data other extensions offer through <code translate="no" v-pre>IPCService</code> (<a href="ipc/">Sharing data</a>).</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chineselocalization">Chinese localization</a></td>
@@ -364,7 +364,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <li><a href="extended-attributes/">Extended attributes</a> - storing data.</li>
 <li><a href="ui-extensions/">Extending the UI</a> - patterns for menus, tabs and settings, threads and unloading.</li>
 <li><a href="generation-events/">Generation events</a> - changing the prompt and the answer during generation.</li>
-<li><a href="ipc/">Sharing data between extensions</a> - <code translate="no" v-pre>IPCService</code>.</li>
+<li><a href="ipc/">Sharing data between extensions</a> - <code translate="no" v-pre>IPCService</code> and calling another extension directly.</li>
 </ol>
 
                 

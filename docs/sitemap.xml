@@ -70,10 +70,10 @@
     <loc>https://enerccio.github.io/Marginalia/user/getting-started/quick-start/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/books/managing-books/</loc>
+    <loc>https://enerccio.github.io/Marginalia/developer/architecture/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/architecture/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/books/managing-books/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/services/</loc>
@@ -193,10 +193,10 @@
     <loc>https://enerccio.github.io/Marginalia/user/administration/cleanup/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/plugins/extendable/</loc>
+    <loc>https://enerccio.github.io/Marginalia/developer/plugins/overview/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/plugins/overview/</loc>
+    <loc>https://enerccio.github.io/Marginalia/developer/plugins/extendable/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions/</loc>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332231476">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845332898302">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845332231476" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845332898302" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845332898302" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845332231476" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845332231476" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845332898302" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845332898302" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -383,7 +383,7 @@ but follow the same pattern: construct with the entity, call <code translate="no
 <code translate="no" v-pre>isNavigationLocked</code>, <code translate="no" v-pre>getOnLogout</code>, <code translate="no" v-pre>setOnLogout</code>). <code translate="no" v-pre>Main</code>, the parts, <code translate="no" v-pre>ApplicationPoint</code> and <code translate="no" v-pre>SessionInformation</code>
 only depend on this interface. <code translate="no" v-pre>DesktopWorkspace</code> is the implementation (<code translate="no" v-pre>@Configurable</code>, <code translate="no" v-pre>@Extendable</code>): it builds an
 <code translate="no" v-pre>HTabSheet</code> (tabs on the left, a footer with <em>Admin</em>, the language selector, <em>Change Password</em>, <em>Logout</em>) and creates all tab components up
-front. Each tab is a <code translate="no" v-pre>WorkspaceComponent</code>:</p>
+front (the admin part is refreshed only when the user is an administrator and has the <em>Admin</em> button: it refuses anybody else). Each tab is a <code translate="no" v-pre>WorkspaceComponent</code>:</p>
 <retype-table copy-text="| Method | Called |
 |---|---|
 | `create()` | Once, when the workspace is built. |
@@ -642,6 +642,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
+| `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()`. Used by the generator dialogs of the Lore Generator and the Arc Outline. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |
 | `TemplateHints` | Content of the hints popover: *Insert Default Template*, the template's variables (from `@LocalizedTemplateDescription`) and the macros (from `Macros.hints()`). |
 | `ScrollPanel`, `HtmlText` | Scrollable container; text with HTML. |
@@ -674,6 +675,10 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>TagMultiComboBox</code></td>
 <td>Tag selection with lazy search (<code translate="no" v-pre>TagService.searchTagsForUser</code>) and creation of new tags.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ModelProtocolPicker</code></td>
+<td>A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: <code translate="no" v-pre>setSelection(ai, protocol)</code> / <code translate="no" v-pre>getAi()</code> / <code translate="no" v-pre>getProtocol()</code>. Used by the generator dialogs of the Lore Generator and the Arc Outline.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>TextAreaPopoverComponent</code>, <code translate="no" v-pre>TextFieldPopOverComponent</code></td>
@@ -743,7 +748,7 @@ Expected problems (validation, missing configuration) are shown with <code trans
 the field; <code translate="no" v-pre>UIUtils.showValidationErrors(loc, e)</code> formats a binder&#x27;s <code translate="no" v-pre>ValidationException</code>. Failures of a request to the
 model API (<code translate="no" v-pre>InferenceException</code>: wrong key, wrong URL, timeout...) go through <code translate="no" v-pre>UIUtils.inferenceError(loc, e)</code>, which
 shows the localized cause (<code translate="no" v-pre>InferenceErrors</code>) as a notification and falls back to <code translate="no" v-pre>internalServerError</code> for anything
-else. <code translate="no" v-pre>AIDialog</code> has the <em>Test Connection</em> button (<code translate="no" v-pre>InferenceService.testConnection()</code> with the values of the form) and, for administrators only, the <em>Shared with all users</em> checkbox.
+else. <code translate="no" v-pre>AIDialog</code> has the <em>Test Connection</em> button (<code translate="no" v-pre>InferenceService.testConnection()</code> with the values of the form) and, for administrators only, the <em>Shared with all users</em> checkbox. The API key stays editable when its tab is not the one shown (the tab sheet disables the hidden tabs, so the dialog keeps its own <code translate="no" v-pre>apiKeyEditable</code> flag), and <em>Refresh</em> of the model list keeps the model that was selected.
 <code translate="no" v-pre>AIPart</code> / <code translate="no" v-pre>PhoneAIPart</code> list the user&#x27;s AIs and the shared ones with the user&#x27;s own <code translate="no" v-pre>Usage</code> (tokens sent / generated); the edit and delete buttons are only shown for AIs the user owns (<code translate="no" v-pre>AIService.isOwnedByCurrentUser</code>) and the add button only when <code translate="no" v-pre>AIService.canCreate()</code>. The service refuses the same things itself. Rows of shared AIs have an <em>info</em> button (<code translate="no" v-pre>AILimitInfoDialog</code>), and the owning administrator a <em>Limits</em> button (<code translate="no" v-pre>AILimitsDialog</code>, <code translate="no" v-pre>AILimitService</code>). <code translate="no" v-pre>AIPart</code> also has a <em>Usage per user</em> button, visible to administrators only, that opens <code translate="no" v-pre>UsageDialog</code> (<code translate="no" v-pre>UsageService.findAllUsages()</code>: user, model, tokens sent / generated, requests, last used); the service checks the administrator itself.</p>
 <h3 id="saving">Saving</h3>
 <p>Most forms save automatically: value change listeners call an <code translate="no" v-pre>autosave()</code> method of the part (guarded so that
