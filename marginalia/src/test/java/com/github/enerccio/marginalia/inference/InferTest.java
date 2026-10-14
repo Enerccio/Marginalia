@@ -213,4 +213,20 @@ class InferTest extends MarginaliaTestBase {
         assertThat(looked).containsExactly("Anna");
         assertThat(llm.lastCompletionRequest().getBody().toString()).contains("Anna is 30");
     }
+
+    @Test
+    void streamPassesSchemaToProviderAndChecksNothing() throws Exception {
+        login();
+        llm.enqueue(MockLLMResponse.chunks("not ", "json"));
+        JsonNode schema = StructuredOutputs.schemaOf(Character.class);
+
+        com.github.enerccio.marginalia.test.InferenceCollector collector = new com.github.enerccio.marginalia.test.InferenceCollector();
+        inferenceServices.forAI(createAI()).stream(PAYLOAD, null, schema, null, collector);
+
+        assertThat(collector.await(java.time.Duration.ofSeconds(10)))
+                .isEqualTo(com.github.enerccio.marginalia.test.InferenceCollector.Outcome.COMPLETED);
+        assertThat(collector.getResponse()).isEqualTo("not json");
+        assertThat(llm.lastCompletionRequest().isStream()).isTrue();
+        assertThat(llm.lastCompletionRequest().getBody().toString()).contains("response_format").contains("minLength");
+    }
 }

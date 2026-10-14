@@ -157,12 +157,18 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     @Override
     public CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions,
                                     InferenceAsyncCallback callback) throws Exception {
+        return stream(payload, protocol, null, functions, callback);
+    }
+
+    @Override
+    public CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, JsonNode schema,
+                                    FunctionSet functions, InferenceAsyncCallback callback) throws Exception {
         // the limits an administrator set for the user, before anything is sent: the prompt is known, so it must fit
         limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
         Request request = new Request(openClient(), protocol, functions != null && !functions.isEmpty() ? functions : null,
                 callback, new CancellationToken(),
                 // the request ends on other threads, the user it counts for is the one who started it
-                ThreadCopyRequestAttributes.create());
+                ThreadCopyRequestAttributes.create(), schema);
         startRound(request, new ArrayList<>(payload), 0);
         return request.cancellationToken();
     }
@@ -172,7 +178,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                                    FunctionSet functions, InferenceResultCallback callback) throws Exception {
         limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
         Request request = new Request(openClient(), protocol, functions != null && !functions.isEmpty() ? functions : null,
-                null, new CancellationToken(), ThreadCopyRequestAttributes.create());
+                null, new CancellationToken(), ThreadCopyRequestAttributes.create(), schema);
         Outcome outcome = new Outcome(callback::isDead, callback::onFunctionCall, callback::onCancel, callback::onError);
         inferRound(request, outcome, callback, schema, new ArrayList<>(payload), 0);
         return request.cancellationToken();
@@ -238,7 +244,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * What stays the same through the rounds of a request: with functions the model is asked again after each call.
      */
     private record Request(OpenAIClient client, Protocol protocol, FunctionSet functions, InferenceAsyncCallback callback,
-                           CancellationToken cancellationToken, ThreadCopyRequestAttributes attributes) {
+                           CancellationToken cancellationToken, ThreadCopyRequestAttributes attributes, JsonNode schema) {
 
         /** The part of the callback the function calls need, the same for a stream and for infer. */
         Outcome outcome() {
@@ -270,7 +276,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         boolean finalRound = round >= MAX_FUNCTION_ROUNDS;
 
         ChatCompletionCreateParams.Builder paramsBuilder = buildParams(request.protocol(), conversation,
-                functionsOffered ? request.functions() : null, finalRound, true, null);
+                functionsOffered ? request.functions() : null, finalRound, true, request.schema());
 
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
         CompletableFuture.runAsync(() -> {

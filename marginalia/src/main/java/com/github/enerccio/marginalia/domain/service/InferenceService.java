@@ -155,6 +155,23 @@ public interface InferenceService {
         return infer(payload, null, type, callback);
     }
 
+    /**
+     * Streams a response and asks the provider to answer in the JSON schema (response format). The schema is only
+     * passed on: the chunks are delivered as they are and nothing is checked, that is up to the caller (see
+     * {@link StructuredOutputs#validate}; {@code infer} does it for you).
+     *
+     * @param schema    JSON schema for the provider, null for none
+     * @param functions as in {@link #stream(List, Protocol, FunctionSet, InferenceAsyncCallback)}
+     * @throws UnsupportedOperationException when the service can not pass a schema
+     */
+    default CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, JsonNode schema,
+                                     FunctionSet functions, InferenceAsyncCallback callback) throws Exception {
+        if (schema != null) {
+            throw new UnsupportedOperationException(getClass().getSimpleName() + " does not support a response schema");
+        }
+        return stream(payload, protocol, functions, callback);
+    }
+
     /** How many times the model may call functions in one request before it has to answer. */
     int MAX_FUNCTION_ROUNDS = 10;
 
