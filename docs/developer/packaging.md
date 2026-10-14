@@ -255,7 +255,7 @@ JDK module, a launcher that can't find `server/`, a WAR that doesn't deploy - bu
 
 ```mermaid
 flowchart LR
-    build["build<br/>WAR + 5 plugins"] --> publish
+    build["build<br/>WAR + plugins"] --> publish
     docker["docker (amd64, arm64)<br/>build, smoke test, push by digest"] --> publish["publish<br/>multi-platform manifest"]
     publish --> release["release<br/>(v* tags only)"]
 ```

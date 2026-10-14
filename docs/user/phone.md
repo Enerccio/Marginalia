@@ -116,6 +116,7 @@ Marginalia:
 | [Author's Note](extensions/authors-note.md) | Works. The note is in the outline drawer of the story. |
 | [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
 | [Character Tracker](extensions/character-tracker.md) | Works. The Characters tab is in the outline drawer. |
+| [Instruction Exporter](extensions/instruction-exporter.md) | Works. **Export instructions** is in the settings menu of the story. |
 | [Reviewer](extensions/reviewer.md) | Works. Its items are in the menu of a part, its settings in *Settings → Extension Settings*. |
 | [Side Query](extensions/side-query.md) | **Not available.** The side chat is only added to the desktop story editor. |
 | [Lore Generator](extensions/lore-generator.md) | **Not available.** The generator button is only added to the desktop lorebook editor. |
