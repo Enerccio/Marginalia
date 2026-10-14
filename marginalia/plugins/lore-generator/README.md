@@ -17,7 +17,7 @@ Every row of the lorebook has a wand button that opens the Lore Generator dialog
 - **Remembered per entry**: *Copy to Lore Entry* also stores the options of the generation in the attributes of the entry: the prompt (and the name of the saved prompt it came from), the lore and entries choices and the checked name categories. The next time the generator opens for that entry it restores them, ahead of the last used prompt and the name categories of the user settings.
 - **Copy to Lore Entry**: the compaction result becomes the content of the entry (a top-level code block around it is removed), the generation result goes to its note. Both are replaced.
 
-The model and the protocol are the default ones from the user settings.
+The model and the protocol start as the default ones from the user settings; the two lists under the header of the dialog change them for this generation (nothing is saved). They are disabled while the model runs.
 
 ### Screenshots
 

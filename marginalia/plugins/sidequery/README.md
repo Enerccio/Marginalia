@@ -17,6 +17,7 @@ The story view gets a *Side Query* tab in its left sidebar (next to the outline)
   - *Lorebook* - the book's lore: the book's lorebook and its sub lorebooks (disabled ones are skipped), enabled
     entries whose tags match the book, with macros rendered like in a generation (keyword filters are not applied),
   - *Chat Logs* - story parts of the active branch, from part N to part M (numbered from 1, as in the outline),
+- the plug button lists the data other extensions offer through `IPCService` (e.g. the outline of the Arc Outline): checked sources about the book go into the system message after the lorebook, checked sources about story parts are added after the text of each story part in the *Chat Logs* range. The choice is stored with the tab,
 - the token counter shows how big the request is,
 - frequently used questions can be saved and picked from a list.
 
