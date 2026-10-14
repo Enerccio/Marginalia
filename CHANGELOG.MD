@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-14
+
 Four database migrations (`V10` to `V13`): a copy of the database is saved before they run, and 1.1.0 cannot open
 a migrated database.
 
@@ -201,6 +203,7 @@ Initial release.
   Side Query plugins.
 - Docker image (amd64, arm64), WAR and desktop archives for five targets.
 
-[Unreleased]: https://github.com/Enerccio/Marginalia/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/Enerccio/Marginalia/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/Enerccio/Marginalia/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Enerccio/Marginalia/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Enerccio/Marginalia/releases/tag/v1.0.0
