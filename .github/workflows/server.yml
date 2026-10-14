@@ -1,4 +1,4 @@
-# Builds the server artifacts: the WAR, the five plugin JARs and the Docker image (linux/amd64 + linux/arm64).
+# Builds the server artifacts: the WAR, the plugin JARs and the Docker image (linux/amd64 + linux/arm64).
 #
 # Tests run in desktop.yml (the test job), this workflow only checks that everything builds and starts.
 #
