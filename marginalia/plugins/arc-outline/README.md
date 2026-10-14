@@ -1,6 +1,9 @@
 # Arc Outline
 
-The plan of the book in the story sidebar: arcs, each split into chapters, with the state of every one of them.
+The plan of the book in the story sidebar: arcs, each split into chapters, with the state of every one of them, and a
+model that can write arcs and chapters for you.
+
+![The Arcs tab](../../../manual/images/plugin-arcoutline-tab.png)
 
 ## Usage
 

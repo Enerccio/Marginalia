@@ -9,11 +9,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- New plugin **Arc Outline** (`marginalia/plugins/arc-outline`): an *Arcs* tab in the story sidebar with the arcs of the
+  book and their chapters. Arcs and chapters have a title, description, note and a state (planned, current, finished),
+  are reordered with buttons (a chapter moved past the end of its arc goes into the neighbouring arc) and finishing an
+  arc finishes its chapters. The wand opens a dialog that asks the model for a new arc (a name, a terse description and the details in the note) from
+  a prompt template (`{{backgroundLore}}`, `{{existingArcs}}`, `{{specification}}`, editable in *Settings → Extension
+  Settings → Arc Outline*), with the reasoning and the arc shown while they stream in; the model can get names from the
+  Name Generator like in the Lore Generator. The wand of an arc does the same for its chapters (prompt variables
+  `{{backgroundLore}}`, `{{outline}}`, `{{numberOfChapters}}`, `{{generalSpecification}}`, `{{chapterSpecification}}`),
+  with a choice of how much of the story the model sees, the number of chapters in words or as an exact number (with
+  a field for each chapter) and the new chapters shown under the arc as they stream in. Both ask for a terse description and put the details into
+  the note. Generated arcs and chapters
+  keep the reasoning and the answer of the model (`generationReasoning`, `generationResult`), shown in a popover.
+  Stored in the book's attributes, no migration.
+- `ModelProtocolPicker` (`ui.widgets`): a model and a protocol to choose from, for dialogs that run the model with a
+  choice of their own. The Lore Generator dialog has one (it starts with the default model of the user settings), so
+  has the Arc Outline generator (it starts with the model and protocol of the book).
 - `IPCService`: extensions (and the application) offer text about a book or a story part to each other without
   importing each other: `registerManuscriptProvider` / `registerChatMessageProvider(bundleIdentifier, providerKey,
   providerName, callback)` with `ManuscriptPluginData` / `ChatMessagePluginData.getDataFor(entity, callerBundle,
   callerIdentifier)`, `getManuscriptProviders` / `getChatMessageProviders` (bundle → key → name, in registration order)
   and `getManuscriptData` / `getChatMessageData`. The providers of a bundle are removed when its extension unloads.
+- Side Query: a plug button above a tab lists the sources of data other extensions offer; checked sources about the book
+  are sent with the lore, sources about story parts are added after each included part. The Arc Outline offers its
+  outline as two sources: the terse one (descriptions) and the full one (with the notes).
+- `PartialJson.parse` (`domain.service.structured`): reads the unfinished JSON of a streamed answer (a markdown block
+  around it is ignored) into a Jackson tree, to show what has arrived so far. New dependency
+  `io.github.funnysaltyfish:partial-json-parser-jvm` (brings `kotlin-stdlib`).
 
 ### Changed
 

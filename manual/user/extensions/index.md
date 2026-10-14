@@ -6,10 +6,11 @@ icon: plug
 
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Eleven extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Twelve extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
+| [Arc Outline](arc-outline.md) | The arcs of the book and their chapters, with their state, in the sidebar; the model can write an arc for you. |
 | [Author's Note](authors-note.md) | A note to the model, inserted into every generation of the book. |
 | [Chapter Marker](chapter-marker.md) | Chapter titles in the story outline, from Markdown headings in the parts. |
 | [Character Tracker](character-tracker.md) | The characters of the book with their relationships, and a map of them. |

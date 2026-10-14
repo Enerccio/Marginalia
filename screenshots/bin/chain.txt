@@ -24,3 +24,4 @@ plugin-reviewer.mjs         18-reviewer
 plugin-lorebookvcs.mjs      19-lorebookvcs
 plugin-loregenerator.mjs    20-loregenerator
 plugin-chaptermarker.mjs    21-chaptermarker
+plugin-arcoutline.mjs       22-arcoutline
