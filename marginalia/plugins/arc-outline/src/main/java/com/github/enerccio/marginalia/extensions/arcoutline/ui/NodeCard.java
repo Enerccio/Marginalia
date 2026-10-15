@@ -17,11 +17,21 @@ public class NodeCard extends Div {
      * @param kind     {@link ArcOutlineStyles#ARC} or {@link ArcOutlineStyles#CHAPTER}
      * @param leading  before the text, null for none
      * @param trailing after the text, null for none
-     * @param expanded show the whole description, not its first lines
+     * @param expanded show the whole description and the note, not the first lines of the description
      * @param actions  the buttons under the text, none for no row of buttons
      */
     public NodeCard(OutlineNode node, String kind, Component leading, Component trailing, boolean expanded,
                     Component... actions) {
+        this(node, kind, leading, trailing, expanded, expanded, actions);
+    }
+
+    /**
+     * @param showNote show the note under the description (the note is private and long: the list shows it only when
+     *                 the user asks for it, the preview of a generated node always)
+     * @see #NodeCard(OutlineNode, String, Component, Component, boolean, Component...)
+     */
+    public NodeCard(OutlineNode node, String kind, Component leading, Component trailing, boolean expanded,
+                    boolean showNote, Component... actions) {
         Div title = new Div(new Span(node.getTitle()));
         title.addClassName(ArcOutlineStyles.TITLE);
         Div body = new Div(title);
@@ -31,8 +41,7 @@ public class NodeCard extends Div {
             description.addClassName(ArcOutlineStyles.DESCRIPTION);
             body.add(description);
         }
-        // the note is private and long, only the preview of a generated node shows it
-        if (expanded && StringUtils.isNotBlank(node.getNote())) {
+        if (showNote && StringUtils.isNotBlank(node.getNote())) {
             Div note = new Div(new Span(node.getNote()));
             note.addClassNames(ArcOutlineStyles.DESCRIPTION, ArcOutlineStyles.NOTE);
             body.add(note);

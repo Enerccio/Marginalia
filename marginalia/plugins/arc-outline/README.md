@@ -21,6 +21,7 @@ one, green for finished ones (their title is dimmed). The buttons:
 |---|---|
 | state icon (calendar, play, check) | Opens a menu to change the state. |
 | chevron (arc) | Hides or shows the chapters of the arc. |
+| chevron (chapter) | Shows or hides the note of the chapter under its description, so it can be read without the dialog. Only chapters that have a note. |
 | arrows | Move the arc or chapter up or down. |
 | plus (arc) | Adds a chapter at the end of the arc. |
 | wand (arc) | Generates chapters for the arc with the model, see below. |
@@ -44,7 +45,7 @@ Query can send either with a question (plug button → *Arc outline* or *Arc out
 
 ## Generating an arc
 
-The wand next to *Add new arc* opens a dialog that asks the model for a new arc. On the left:
+The wand next to *Add new arc* opens a menu: *Generate an arc* and *Import from story* (see below). *Generate an arc* opens a dialog that asks the model for a new arc. On the left:
 
 - *Prompt* - a template filled from the settings (*Settings → Extension Settings → Arc Outline*; the default is in
   `Defaults.GENERATION_PROMPT`). Its variables are `{{backgroundLore}}` (the entries of the book's lorebook and its sub
@@ -61,6 +62,28 @@ JSON schema: the `description` is terse (it is what the outline shows) and the f
 the preview shows under the description; when it finishes, the answer is validated against the schema and only a valid one can be saved. *Save as
 arc* adds it at the end of the outline and closes the dialog; *Generate* again tries once more, with the same or an
 edited prompt and specification. The *Model* and *Protocols* lists at the top of the left side start as the model and protocol of the book (the default ones from the user settings when the book has no model) and can be changed for this generation; nothing is saved.
+
+## Importing an arc from the story
+
+*Import from story* in the menu of the wand summarizes the written story as an arc with chapters. It always reads the
+**active branch** of the book (as it is when the dialog opens); only messages that have text are counted, from 1. On the
+left, besides the model, protocol and prompt:
+
+- *From message* / *To message* - the range to send (the whole branch at first); under each field the beginning of the
+  message it points to.
+- *Number of chapters (optional)* - empty: the model divides the story where it divides naturally; a number (1 to 40) is
+  put into the JSON schema, so an answer with another number of chapters is not valid.
+- *State of the imported arc and its chapters* - *Finished* at first, as the story is written already.
+- A counter: the messages of the range and their approximate tokens, and the approximate tokens of the whole prompt
+  (template, lore, outline and story) next to what the model takes (context minus the room for the reply). It is
+  highlighted when the prompt does not fit. It follows the range, the number of chapters, the prompt and the model.
+- *Prompt* - `{{backgroundLore}}`, `{{existingArcs}}`, `{{story}}` (the messages, each under a `--- Message N ---`
+  heading) and `{{numberOfChapters}}`. It starts as the *Story import prompt* of the settings (default
+  `Defaults.IMPORT_PROMPT`). There are no name tools, the names are in the story.
+
+The answer is `{name, description, note, chapters: [{name, description, note}, ...]}`; the arc and its chapters are
+shown on the right as they stream in. *Save as arc* adds the arc with all its chapters at the end of the outline, each
+with the reasoning and JSON of the request.
 
 ## Generating chapters
 

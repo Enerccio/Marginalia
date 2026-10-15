@@ -3,7 +3,9 @@ package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
@@ -103,6 +105,21 @@ public abstract class GeneratorDialog extends Dialog {
     /** The variables of the template, listed under the prompt field. */
     protected abstract String variables();
 
+    /**
+     * Whether the model may get the name tools (the button is shown when the Name Generator extension is loaded).
+     * Not for a dialog whose names are in its input already.
+     */
+    protected boolean supportsNameTools() {
+        return true;
+    }
+
+    /**
+     * The prompt field or the model has changed. For a subclass that shows something that depends on them, like the
+     * size of the prompt.
+     */
+    protected void promptOrModelChanged() {
+    }
+
     /** The inputs under the prompt, null for none. */
     protected abstract Component createInputs();
 
@@ -147,6 +164,21 @@ public abstract class GeneratorDialog extends Dialog {
      */
     protected abstract void save(String reasoning, String answer);
 
+    /** The template in the prompt field. */
+    protected final String promptValue() {
+        return promptArea.getValue();
+    }
+
+    /** The model chosen for this generation, null when there is none. */
+    protected final AI selectedAi() {
+        return modelPicker.getAi();
+    }
+
+    /** The protocol chosen for this generation, null for none. */
+    protected final Protocol selectedProtocol() {
+        return modelPicker.getProtocol();
+    }
+
     /** The place the subclass shows the result in. */
     protected final Div resultHolder() {
         return previewHolder;
@@ -183,11 +215,13 @@ public abstract class GeneratorDialog extends Dialog {
         promptArea.setMaxHeight("40vh");
         promptArea.setHelperText("Variables: " + variables());
         promptArea.setPopoverContent(TemplateHints.create(loc, promptArea, promptArea.getPopover(), null, defaultPromptTemplate()));
+        promptArea.addValueChangeListener(_ -> promptOrModelChanged());
+        modelPicker.addSelectionListener(this::promptOrModelChanged);
 
         // only when the Name Generator extension is loaded
         nameToolsButton = new Button("Name tools", Solid.SIGNATURE.create(), _ -> openNameToolsDialog());
         nameToolsButton.setTooltipText("Let the model get names from the Name Generator extension");
-        nameToolsButton.setVisible(service.nameCategories() != null);
+        nameToolsButton.setVisible(supportsNameTools() && service.nameCategories() != null);
         refreshNameToolsLabel();
 
         generateButton = new Button("Generate", Solid.WAND_MAGIC_SPARKLES.create(), _ -> {
@@ -312,7 +346,7 @@ public abstract class GeneratorDialog extends Dialog {
         }
         try {
             // the hint about the tools is added only when the model gets them
-            FunctionSet nameFunctions = service.nameFunctions(nameCategories);
+            FunctionSet nameFunctions = supportsNameTools() ? service.nameFunctions(nameCategories) : null;
             String prompt = buildPrompt(promptArea.getValue(), nameFunctions != null);
             JsonNode schema = schema();
             // forget the last generation only when there is a new one to make

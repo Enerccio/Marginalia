@@ -22,6 +22,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   the note. Generated arcs and chapters
   keep the reasoning and the answer of the model (`generationReasoning`, `generationResult`), shown in a popover.
   Stored in the book's attributes, no migration.
+- Arc Outline: the wand next to *Add new arc* is a menu with *Generate an arc* and the new *Import from story*, which
+  asks the model to summarize a range of the messages of the active branch of the book as an arc with chapters
+  (optional exact number of chapters, state of the imported nodes, a counter with the approximate tokens of the range
+  and of the whole prompt next to what the model takes). New prompt `Defaults.IMPORT_PROMPT` with the variables
+  `{{backgroundLore}}`, `{{existingArcs}}`, `{{story}}`, `{{numberOfChapters}}`, editable in *Settings → Extension
+  Settings → Arc Outline* (*Story import prompt*). Chapters with a note have a chevron that shows the note under the
+  description in the list, without the dialog.
 - `ModelProtocolPicker` (`ui.widgets`): a model and a protocol to choose from, for dialogs that run the model with a
   choice of their own. The Lore Generator dialog has one (it starts with the default model of the user settings), so
   has the Arc Outline generator (it starts with the model and protocol of the book).

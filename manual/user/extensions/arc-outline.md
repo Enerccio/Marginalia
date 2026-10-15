@@ -29,6 +29,7 @@ buttons of a card:
 |---|---|
 | calendar / play / check | The state; opens a menu to change it. |
 | chevron (arcs) | Hides or shows the chapters of the arc. |
+| chevron (chapters with a note) | Shows or hides the note of the chapter under its description, so you can read it without opening the dialog. |
 | arrows | Move the arc or chapter up or down. |
 | plus (arcs) | Adds a chapter at the end of the arc. |
 | wand (arcs) | Asks the model to write chapters for the arc, see [below](#generating-chapters). |
@@ -60,7 +61,7 @@ are sent only when you check the second one.
 
 ## Generating an arc
 
-The wand button next to **Add new arc** asks the model to write an arc for you. The dialog has two halves.
+The wand button next to **Add new arc** opens a menu with two items: **Generate an arc** asks the model to write a new arc, **Import from story** summarizes what you have already written, see [below](#importing-an-arc-from-the-story). The dialog of **Generate an arc** has two halves.
 
 On the left:
 
@@ -84,6 +85,26 @@ so and the arc can't be saved.
 
 **Save as arc** adds the arc at the end of the outline. To try again, press **Generate** once more, with the same or a
 changed prompt or specification; the previous answer is replaced.
+
+## Importing an arc from the story
+
+**Import from story** in the menu of the wand asks the model to read a part of your story and write it down as one arc
+with its chapters, so you can bring a book you have already written into the outline. The model always reads the
+[active branch](../books/branches-and-story-tree.md) of the book, as it is when you open the dialog. The dialog is like
+the one for arcs, with these choices on the left:
+
+| | |
+|---|---|
+| From message, To message | The range of the story to send. The messages of the branch that have text are numbered from 1; at first the whole branch is chosen. Under each field you see the beginning of the message it points to. |
+| Number of chapters (optional) | Choose a number to get exactly that many chapters (an answer with another number is rejected), leave it empty to let the model divide the story where it naturally divides. |
+| State of the imported arc and its chapters | **Finished** at first, because the story is written; choose **Current** or **Planned** if you need it. |
+| Token counter | How many messages the range has and their approximate tokens, and the approximate tokens of the whole prompt (instructions, lore, outline and story) next to what the model takes. It turns into a warning when the prompt does not fit, then choose fewer messages. It follows the range, the number of chapters, the prompt and the model. |
+| Prompt | The instructions for the model, with the variables `{{backgroundLore}}`, `{{existingArcs}}`, `{{story}}` (the messages of the range) and `{{numberOfChapters}}`. It starts as the **Story import prompt** of *Settings → Extension Settings → Arc Outline*. |
+
+There are no name tools here, the names are in the story. On the right you see the reasoning, then the arc and its
+chapters as the model writes them. **Save as arc** adds the arc with its chapters at the end of the outline; every one
+of them keeps the reasoning and the answer of the model and has its own robot button. A long story is best imported in
+several steps, one arc for each range.
 
 ## Generating chapters
 

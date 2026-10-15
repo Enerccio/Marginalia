@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
@@ -46,6 +47,10 @@ public class ArcOutlineView extends VerticalLayout {
      * Uuids of the arcs whose chapters are hidden; kept here because the list is rebuilt after every change.
      */
     private final Set<String> collapsed = new HashSet<>();
+    /**
+     * Uuids of the chapters whose note is shown under the description.
+     */
+    private final Set<String> notesShown = new HashSet<>();
 
     private final Div list = new Div();
 
@@ -81,14 +86,16 @@ public class ArcOutlineView extends VerticalLayout {
         });
         addArc.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        Button generate = new Button(Solid.WAND_MAGIC_SPARKLES.create(), _ ->
-                new ArcGeneratorDialog(service, manuscript, outline, arc -> {
-                    outline.add(arc);
-                    persist();
-                }).open());
+        // the wand: a new arc from the specification, or one summarizing the written story
+        Button generate = new Button(Solid.WAND_MAGIC_SPARKLES.create());
         generate.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         generate.setAriaLabel("Generate an arc");
         generate.setTooltipText("Generate an arc");
+        ContextMenu generateMenu = new ContextMenu(generate);
+        generateMenu.setOpenOnClick(true);
+        generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.WAND_MAGIC_SPARKLES.create(), "Generate an arc"), _ ->
+                new ArcGeneratorDialog(service, manuscript, outline, this::addGenerated).open());
+        generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), "Import from story"), _ -> importFromStory());
 
         HorizontalLayout buttons = new HorizontalLayout(addArc, generate);
         buttons.setAlignItems(Alignment.CENTER);
@@ -97,6 +104,30 @@ public class ArcOutlineView extends VerticalLayout {
         list.addClassName(ArcOutlineStyles.LIST);
         add(buttons, list);
         setFlexGrow(1, list);
+    }
+
+    private void addGenerated(Arc arc) {
+        outline.add(arc);
+        persist();
+    }
+
+    /**
+     * Opens the dialog that summarizes messages of the active branch of the book as an arc.
+     */
+    private void importFromStory() {
+        List<ArcOutlineService.StoryMessage> messages;
+        try {
+            // the branch as it is now, it may have been changed since the story was opened
+            messages = service.activeBranch(manuscript);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return;
+        }
+        if (messages.isEmpty()) {
+            Notification.warning("The active branch has no text to import");
+            return;
+        }
+        new StoryImportDialog(service, manuscript, outline, messages, this::addGenerated).open();
     }
 
     private void refresh() {
@@ -188,7 +219,22 @@ public class ArcOutlineView extends VerticalLayout {
             actions.add(createGenerationInfo(chapter));
         }
         actions.addAll(List.of(up, down, edit, delete));
-        return createCard(chapter, ArcOutlineStyles.CHAPTER, null, actions.toArray(new Component[0]));
+
+        // the third level: the note of the chapter under its description, instead of the dialog of the chapter
+        boolean hasNote = StringUtils.isNotBlank(chapter.getNote());
+        boolean showNote = hasNote && notesShown.contains(chapter.getUuid());
+        Button noteToggle = null;
+        if (hasNote) {
+            noteToggle = iconButton((showNote ? Solid.CHEVRON_UP : Solid.CHEVRON_DOWN).create(),
+                    showNote ? "Hide the note" : "Show the note", _ -> {
+                        if (!notesShown.remove(chapter.getUuid())) {
+                            notesShown.add(chapter.getUuid());
+                        }
+                        refresh();
+                    });
+        }
+        return new NodeCard(chapter, ArcOutlineStyles.CHAPTER, createStateButton(chapter), noteToggle, false, showNote,
+                actions.toArray(new Component[0]));
     }
 
     private void moveChapter(Chapter chapter, boolean up) {
@@ -290,6 +336,7 @@ public class ArcOutlineView extends VerticalLayout {
     private void confirmDelete(Chapter chapter) {
         ConfirmDialog.show("Delete the chapter " + chapter.getTitle() + "?", () -> {
             outline.delete(chapter);
+            notesShown.remove(chapter.getUuid());
             persist();
         });
     }

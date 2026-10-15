@@ -13,6 +13,8 @@ public class ArcOutlineSettings {
     private String generationPrompt;
     /** The template of the prompt for generating the chapters of an arc, see {@code Defaults.CHAPTER_GENERATION_PROMPT}. */
     private String chapterGenerationPrompt;
+    /** The template of the prompt for importing an arc from the story, see {@code Defaults.IMPORT_PROMPT}. */
+    private String importPrompt;
     /** Hint about the name tools added to the prompt when name categories are selected. */
     private String nameToolsPrompt;
     /** Categories of the name generator the model may use; none selected means no tools. */
@@ -32,6 +34,14 @@ public class ArcOutlineSettings {
 
     public void setChapterGenerationPrompt(String chapterGenerationPrompt) {
         this.chapterGenerationPrompt = chapterGenerationPrompt;
+    }
+
+    public String getImportPrompt() {
+        return importPrompt;
+    }
+
+    public void setImportPrompt(String importPrompt) {
+        this.importPrompt = importPrompt;
     }
 
     public String getNameToolsPrompt() {
