@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845334138709">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845411178082">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845334138709" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845411178082" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845334138709" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845411178082" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845334138709" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845334138709" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845411178082" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845411178082" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -461,6 +461,70 @@ extension, the buttons <em>Stop</em> / <em>Start</em> (<code translate="no" v-pr
 (<code translate="no" v-pre>ExtensionLogDialog</code>: the end of the extension&#x27;s log with refresh and clear) and <em>Unload</em>). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call <code translate="no" v-pre>AdminGuard.requireAdmin()</code> themselves (see
 <a href="../services/#administration">Services</a>).</p>
+<h3 id="remembering-where-the-user-was">Remembering where the user was</h3>
+<p>The workspace is autosaved so the next login opens it where it was left. Everything that has state worth coming back
+to implements <code translate="no" v-pre>Restorable</code> (<code translate="no" v-pre>ui</code>): <code translate="no" v-pre>JsonObject storeState()</code> serializes the state the class needs into a new object and
+asks the children it has for theirs (nested under their own key), <code translate="no" v-pre>restoreState(JsonObject self)</code> reads it back and
+passes the nested objects on. <code translate="no" v-pre>RestorableState</code> has the defensive readers (<code translate="no" v-pre>string</code>, <code translate="no" v-pre>bool</code>, <code translate="no" v-pre>strings</code>, <code translate="no" v-pre>object</code>) and
+<code translate="no" v-pre>put</code>, which leaves out an empty state. <code translate="no" v-pre>Workspace</code>, <code translate="no" v-pre>WorkspaceComponent</code> (default: no state), <code translate="no" v-pre>ManuscriptDialogPart</code>
+and <code translate="no" v-pre>PhoneManuscriptDialogPart</code> (default: no state), both book dialogs, <code translate="no" v-pre>LorebookView</code>/<code translate="no" v-pre>PhoneLorebookView</code> and
+<code translate="no" v-pre>NewTurnForm</code> are <code translate="no" v-pre>Restorable</code>. What is stored:</p>
+<retype-table copy-text="| Class | State |
+|---|---|
+| `DesktopWorkspace`, `PhoneWorkspace` | `tab` (`books`, `lorebooks`, `settings`, `protocols`, `models`, `resources`, `trash`) and `parts`, the state of each part under its tab name. The admin panel is not remembered. |
+| `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
+| `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
+| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. |
+| `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book) and `entries`, the uuids of the entries whose details are open. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>DesktopWorkspace</code>, <code translate="no" v-pre>PhoneWorkspace</code></td>
+<td><code translate="no" v-pre>tab</code> (<code translate="no" v-pre>books</code>, <code translate="no" v-pre>lorebooks</code>, <code translate="no" v-pre>settings</code>, <code translate="no" v-pre>protocols</code>, <code translate="no" v-pre>models</code>, <code translate="no" v-pre>resources</code>, <code translate="no" v-pre>trash</code>) and <code translate="no" v-pre>parts</code>, the state of each part under its tab name. The admin panel is not remembered.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>PhoneManuscriptPart</code></td>
+<td><code translate="no" v-pre>filters</code> (<code translate="no" v-pre>name</code>, <code translate="no" v-pre>tags</code> as tag uuids) and <code translate="no" v-pre>dialog</code>, the state of the open book window.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ManuscriptDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code></td>
+<td><code translate="no" v-pre>manuscript</code> (uuid), <code translate="no" v-pre>tab</code> (<code translate="no" v-pre>info</code>, <code translate="no" v-pre>prompt</code>, <code translate="no" v-pre>lorebook</code>, <code translate="no" v-pre>story</code>, <code translate="no" v-pre>tree</code>, <code translate="no" v-pre>backup</code>) and <code translate="no" v-pre>parts</code>, the state of the tabs.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ManuscriptStoryPart</code>, <code translate="no" v-pre>PhoneManuscriptStoryPart</code></td>
+<td><code translate="no" v-pre>newTurn</code>, the <code translate="no" v-pre>NewTurnForm</code>: <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>present</code>, <code translate="no" v-pre>instructions</code> and <code translate="no" v-pre>edited</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code> and the lorebook tab of the book window</td>
+<td><code translate="no" v-pre>lorebook</code> (uuid, not for the view pinned to the lorebook of a book) and <code translate="no" v-pre>entries</code>, the uuids of the entries whose details are open.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Everything is stored by uuid and looked up when it is restored (<code translate="no" v-pre>findForUser</code>), so a book, lorebook, entry or tag that
+is gone is skipped: a book that does not exist is not opened, the lorebook stays the default one. The state of an older
+version is read the same way, unknown keys are ignored.</p>
+<p><code translate="no" v-pre>WorkspaceAutosave</code> (<code translate="no" v-pre>ui.workspace</code>, one per workspace) keeps the state in <code translate="no" v-pre>UserSetting.workspaceState</code>, an
+<code translate="no" v-pre>@ExtendedAttribute(inject = true)</code> <code translate="no" v-pre>JsonObject</code> (so no migration). <code translate="no" v-pre>Workspace.autosave()</code> stores the state of the
+whole workspace; the parts call it after the user did something worth coming back to - selected a tab, changed a filter,
+opened or closed a book, selected a tab of the book window (<code translate="no" v-pre>ManuscriptDialog.stateChanged()</code>), opened an entry or
+chose a lorebook (<code translate="no" v-pre>setOnStateChange</code> of the views), typed into the new turn form (<code translate="no" v-pre>NewTurnForm.setOnChange</code>). It
+writes nothing when the state did not change, and failures are only logged. <code translate="no" v-pre>Main.proceedWithLogin</code> calls
+<code translate="no" v-pre>Workspace.restoreAutosaved()</code> after <code translate="no" v-pre>create()</code> and <code translate="no" v-pre>refresh()</code>: the autosave is <strong>off until then</strong>, because building
+the workspace fires the same change events and would overwrite the stored state, and it stays off while restoring (the
+restoring fires them too). The book window is restored after <code translate="no" v-pre>open()</code>: <code translate="no" v-pre>ManuscriptPart.openManuscript</code> is the one place
+that creates and opens it, for the <em>Edit</em> button and for restoring. Code that saves a <code translate="no" v-pre>UserSetting</code> must load it right
+before, not hold on to one (<code translate="no" v-pre>UserPart.save</code> does), or it writes back an older <code translate="no" v-pre>workspaceState</code>.</p>
+<p>A new part with state overrides the two methods and calls <code translate="no" v-pre>workspace.autosave()</code> (or its owner&#x27;s callback) when
+the user changes the state; a new tab of a dialog needs a name in the <code translate="no" v-pre>partsByKey</code> map of the dialog.</p>
 <h3 id="the-book-window">The book window</h3>
 <p>Opening a book creates a <code translate="no" v-pre>ManuscriptDialog</code> - a full-screen, strictly modal dialog with a <code translate="no" v-pre>VTabSheet</code> of
 <code translate="no" v-pre>ManuscriptDialogPart</code>s:</p>

@@ -9,9 +9,12 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.Restorable;
+import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.*;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryHost;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
@@ -26,10 +29,7 @@ import com.vaadin.flow.component.tabs.TabsVariant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The book dialog for phones: the {@link com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog} laid out for a
@@ -39,7 +39,7 @@ import java.util.Map;
  */
 @Configurable
 @Extendable
-public class PhoneManuscriptDialog extends Dialog implements StoryHost {
+public class PhoneManuscriptDialog extends Dialog implements StoryHost, Restorable {
 
     @Autowired
     protected Localization loc;
@@ -56,6 +56,7 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
     private Manuscript manuscript;
     private AI ai;
     private Runnable onClose;
+    private Runnable onStateChange;
     private boolean frozen;
 
     private Button exitButton;
@@ -67,6 +68,16 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
     private final PhoneManuscriptStoryPart storyPart = new PhoneManuscriptStoryPart(this);
     private final PhoneManuscriptTreePart treePart = new PhoneManuscriptTreePart(this);
     private final PhoneManuscriptBackupPart backupPart = new PhoneManuscriptBackupPart(this);
+    // names of the tabs in the stored state, the same as in the desktop dialog
+    private final Map<String, PhoneManuscriptDialogPart> partsByKey = new LinkedHashMap<>();
+    {
+        partsByKey.put("info", infoPart);
+        partsByKey.put("prompt", promptPart);
+        partsByKey.put("lorebook", lorebookPart);
+        partsByKey.put("story", storyPart);
+        partsByKey.put("tree", treePart);
+        partsByKey.put("backup", backupPart);
+    }
     private Tab infoTab;
     private Tab storyTab;
     private Component storyPartComponent;
@@ -146,6 +157,7 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
                     UIUtils.internalServerError(loc, e);
                 }
             }
+            stateChanged();
         });
         // only the content of the selected tab is shown; selecting the already selected tab fires no event
         tabToContent.forEach((tab, component) -> component.setVisible(tab == tabs.getSelectedTab()));
@@ -276,5 +288,76 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost {
             returns = @APIReturn(type = AI.class))
     public AI getAi() {
         return ai;
+    }
+
+    /**
+     * Called after the user navigated or changed what {@link #storeState()} stores, passes it on to the workspace
+     * autosave.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onStateChange", type = Runnable.class)})
+    public void setOnStateChange(Runnable onStateChange) {
+        this.onStateChange = onStateChange;
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class))
+    public void stateChanged() {
+        if (onStateChange != null) {
+            onStateChange.run();
+        }
+    }
+
+    /**
+     * The book, the selected tab and the state of the tabs that have some.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "state", type = JsonObject.class),
+                    @APILocals(name = "parts", type = JsonObject.class),
+                    @APILocals(name = "selected", type = PhoneManuscriptDialogPart.class)})
+    @Override
+    public JsonObject storeState() {
+        JsonObject state = new JsonObject();
+        state.addProperty("manuscript", manuscript.getUuid());
+        JsonObject parts = new JsonObject();
+        PhoneManuscriptDialogPart selected = tabs == null ? null : tabToPart.get(tabs.getSelectedTab());
+        partsByKey.forEach((key, part) -> {
+            if (part == selected) {
+                state.addProperty("tab", key);
+            }
+            RestorableState.put(parts, key, part.storeState());
+        });
+        RestorableState.put(state, "parts", parts);
+        return state;
+    }
+
+    /**
+     * Restores the tabs and selects the stored one. To be called after {@link #open()}, the tabs are loaded then.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)},
+            locals = {@APILocals(name = "parts", type = JsonObject.class),
+                    @APILocals(name = "part", type = PhoneManuscriptDialogPart.class)})
+    @Override
+    public void restoreState(JsonObject self) {
+        JsonObject parts = RestorableState.object(self, "parts");
+        partsByKey.forEach((key, tabPart) -> {
+            JsonObject partState = RestorableState.object(parts, key);
+            if (partState != null) {
+                tabPart.restoreState(partState);
+            }
+        });
+
+        PhoneManuscriptDialogPart part = partsByKey.get(RestorableState.string(self, "tab"));
+        if (part != null) {
+            tabToPart.forEach((tab, candidate) -> {
+                if (candidate == part) {
+                    tabs.setSelectedTab(tab);
+                }
+            });
+        }
     }
 }

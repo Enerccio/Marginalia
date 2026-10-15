@@ -12,12 +12,10 @@ import com.github.enerccio.marginalia.domain.service.TagService;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
-import com.github.enerccio.marginalia.domain.traits.APILocals;
-import com.github.enerccio.marginalia.domain.traits.APIReturn;
-import com.github.enerccio.marginalia.domain.traits.Extendable;
-import com.github.enerccio.marginalia.domain.traits.PublicAPI;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
@@ -25,6 +23,7 @@ import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
@@ -39,13 +38,16 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Configurable
@@ -78,6 +80,9 @@ public class ManuscriptPart implements WorkspaceComponent {
 
     private final List<GridSortOrder<ManuscriptWrapper>> sorters = new ArrayList<>();
     private final ManuscriptFilterValues filterValues = new ManuscriptFilterValues();
+
+    // the book window that is open, remembered by the workspace autosave
+    private ManuscriptDialog openDialog;
 
     public ManuscriptPart(Workspace workspace) {
         this.workspace = workspace;
@@ -135,6 +140,7 @@ public class ManuscriptPart implements WorkspaceComponent {
         nameFilter.addValueChangeListener(event -> {
             filterValues.setName(event.getValue());
             refreshGrid();
+            notifyStateChanged();
         });
 
         tagsColumn = grid.addColumn(ManuscriptWrapper::getTags)
@@ -157,6 +163,7 @@ public class ManuscriptPart implements WorkspaceComponent {
         tagFilter.addValueChangeListener(event -> {
             filterValues.setTags(event.getValue().stream().map(Tag::getValue).sorted().toList());
             refreshGrid();
+            notifyStateChanged();
         });
 
         creationColumn = grid.addColumn(ManuscriptWrapper::getCreation)
@@ -175,11 +182,7 @@ public class ManuscriptPart implements WorkspaceComponent {
 
             Button editButton = new Button(Solid.PENCIL.create(), _ -> {
                 try {
-                    manuscriptService.markOpened(manuscriptWrapper.getManuscript());
-                    ManuscriptDialog dialog = new ManuscriptDialog(manuscriptWrapper.getManuscript());
-                    dialog.setOnClose(this::refreshGrid);
-                    dialog.create();
-                    dialog.open();
+                    openManuscript(manuscriptWrapper.getManuscript());
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
                 }
@@ -252,6 +255,105 @@ public class ManuscriptPart implements WorkspaceComponent {
             grid.setItems(new ManuscriptBackendProvider(ids));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Opens the book window. The window tells the workspace autosave about its navigation, and about closing.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = ManuscriptDialog.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "dialog", type = ManuscriptDialog.class)})
+    private ManuscriptDialog openManuscript(Manuscript manuscript) throws Exception {
+        manuscriptService.markOpened(manuscript);
+        ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
+        dialog.setOnClose(() -> {
+            openDialog = null;
+            refreshGrid();
+            notifyStateChanged();
+        });
+        dialog.setOnStateChange(this::notifyStateChanged);
+        dialog.create();
+        openDialog = dialog;
+        dialog.open();
+        notifyStateChanged();
+        return dialog;
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class))
+    private void notifyStateChanged() {
+        if (workspace != null) {
+            workspace.autosave();
+        }
+    }
+
+    /**
+     * The filters of the list and the open book window.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "state", type = JsonObject.class),
+                    @APILocals(name = "filters", type = JsonObject.class)})
+    @Override
+    public JsonObject storeState() {
+        JsonObject state = new JsonObject();
+        JsonObject filters = new JsonObject();
+        if (nameFilter != null && StringUtils.isNotBlank(nameFilter.getValue())) {
+            filters.addProperty("name", nameFilter.getValue());
+        }
+        if (tagFilter != null && !tagFilter.getValue().isEmpty()) {
+            filters.add("tags", RestorableState.array(tagFilter.getValue().stream().map(Tag::getUuid).sorted().toList()));
+        }
+        RestorableState.put(state, "filters", filters);
+        if (openDialog != null) {
+            RestorableState.put(state, "dialog", openDialog.storeState());
+        }
+        return state;
+    }
+
+    /**
+     * Sets the stored filters (a tag that no longer exists is skipped) and opens the stored book, unless it no longer
+     * exists.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)},
+            locals = {@APILocals(name = "filters", type = JsonObject.class),
+                    @APILocals(name = "tags", type = Set.class),
+                    @APILocals(name = "uuid", type = String.class),
+                    @APILocals(name = "tag", type = Tag.class),
+                    @APILocals(name = "dialogState", type = JsonObject.class),
+                    @APILocals(name = "manuscriptUuid", type = String.class),
+                    @APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void restoreState(JsonObject self) {
+        try {
+            JsonObject filters = RestorableState.object(self, "filters");
+            if (filters != null && nameFilter != null) {
+                nameFilter.setValue(RestorableState.string(filters, "name", ""));
+                Set<Tag> tags = new LinkedHashSet<>();
+                for (String uuid : RestorableState.strings(filters, "tags")) {
+                    Tag tag = tagService.findForUser(uuid);
+                    if (tag != null) {
+                        tags.add(tag);
+                    }
+                }
+                tagFilter.setValue(tags);
+            }
+
+            JsonObject dialogState = RestorableState.object(self, "dialog");
+            String manuscriptUuid = RestorableState.string(dialogState, "manuscript");
+            if (manuscriptUuid != null && grid != null) {
+                Manuscript manuscript = manuscriptService.findForUser(manuscriptUuid);
+                if (manuscript != null) {
+                    openManuscript(manuscript).restoreState(dialogState);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not restore the state of the book list", e);
         }
     }
 

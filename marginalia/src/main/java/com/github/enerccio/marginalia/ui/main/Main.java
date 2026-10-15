@@ -110,6 +110,7 @@ public class Main extends LoginCheckRoute {
             workspace.setOnLogout(this::logout);
             add(workspace.create());
             workspace.refresh();
+            workspace.restoreAutosaved();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

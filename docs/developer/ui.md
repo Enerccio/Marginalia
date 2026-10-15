@@ -188,6 +188,43 @@ extension, the buttons *Stop* / *Start* (`OsgiService.stopExtension` / `startExt
 check - the administrator-only services call `AdminGuard.requireAdmin()` themselves (see
 [Services](services.md#administration)).
 
+### Remembering where the user was
+
+The workspace is autosaved so the next login opens it where it was left. Everything that has state worth coming back
+to implements `Restorable` (`ui`): `JsonObject storeState()` serializes the state the class needs into a new object and
+asks the children it has for theirs (nested under their own key), `restoreState(JsonObject self)` reads it back and
+passes the nested objects on. `RestorableState` has the defensive readers (`string`, `bool`, `strings`, `object`) and
+`put`, which leaves out an empty state. `Workspace`, `WorkspaceComponent` (default: no state), `ManuscriptDialogPart`
+and `PhoneManuscriptDialogPart` (default: no state), both book dialogs, `LorebookView`/`PhoneLorebookView` and
+`NewTurnForm` are `Restorable`. What is stored:
+
+| Class | State |
+|---|---|
+| `DesktopWorkspace`, `PhoneWorkspace` | `tab` (`books`, `lorebooks`, `settings`, `protocols`, `models`, `resources`, `trash`) and `parts`, the state of each part under its tab name. The admin panel is not remembered. |
+| `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
+| `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
+| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. |
+| `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book) and `entries`, the uuids of the entries whose details are open. |
+
+Everything is stored by uuid and looked up when it is restored (`findForUser`), so a book, lorebook, entry or tag that
+is gone is skipped: a book that does not exist is not opened, the lorebook stays the default one. The state of an older
+version is read the same way, unknown keys are ignored.
+
+`WorkspaceAutosave` (`ui.workspace`, one per workspace) keeps the state in `UserSetting.workspaceState`, an
+`@ExtendedAttribute(inject = true)` `JsonObject` (so no migration). `Workspace.autosave()` stores the state of the
+whole workspace; the parts call it after the user did something worth coming back to - selected a tab, changed a filter,
+opened or closed a book, selected a tab of the book window (`ManuscriptDialog.stateChanged()`), opened an entry or
+chose a lorebook (`setOnStateChange` of the views), typed into the new turn form (`NewTurnForm.setOnChange`). It
+writes nothing when the state did not change, and failures are only logged. `Main.proceedWithLogin` calls
+`Workspace.restoreAutosaved()` after `create()` and `refresh()`: the autosave is **off until then**, because building
+the workspace fires the same change events and would overwrite the stored state, and it stays off while restoring (the
+restoring fires them too). The book window is restored after `open()`: `ManuscriptPart.openManuscript` is the one place
+that creates and opens it, for the *Edit* button and for restoring. Code that saves a `UserSetting` must load it right
+before, not hold on to one (`UserPart.save` does), or it writes back an older `workspaceState`.
+
+A new part with state overrides the two methods and calls `workspace.autosave()` (or its owner's callback) when
+the user changes the state; a new tab of a dialog needs a name in the `partsByKey` map of the dialog.
+
 ### The book window
 
 Opening a book creates a `ManuscriptDialog` - a full-screen, strictly modal dialog with a `VTabSheet` of

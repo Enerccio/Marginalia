@@ -12,12 +12,14 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
+import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -357,10 +359,16 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         popover.setTarget(targetButton);
 
         newTurnForm = new NewTurnForm(loc);
+        newTurnForm.setOnChange(() -> {
+            if (parent != null) {
+                parent.stateChanged();
+            }
+        });
         VerticalLayout content = newTurnForm.createContent(() -> {
             popover.close();
             if (parent != null) {
                 newTurnForm.consume();
+                parent.stateChanged();
                 autosaveAndSwapAllToMarkdown();
                 startGeneration();
             }
@@ -609,6 +617,31 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
         renderStoryContent();
         refreshSummariesMenuItem();
+    }
+
+    /**
+     * What the user typed into the new turn form.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "state", type = JsonObject.class)})
+    @Override
+    public JsonObject storeState() {
+        JsonObject state = new JsonObject();
+        RestorableState.put(state, "newTurn", newTurnForm == null ? null : newTurnForm.storeState());
+        return state;
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)},
+            locals = {@APILocals(name = "newTurn", type = JsonObject.class)})
+    @Override
+    public void restoreState(JsonObject self) {
+        JsonObject newTurn = RestorableState.object(self, "newTurn");
+        if (newTurn != null && newTurnForm != null) {
+            newTurnForm.restoreState(newTurn);
+        }
     }
 
     @PublicAPI(from = "1.1.0",
