@@ -9,7 +9,7 @@ covers:
   - marginalia/plugins/sidequery
   - marginalia/plugins/lore-generator/src/main/java/com/github/enerccio/marginalia/extensions/loregenerator/names
   - marginalia/plugins/name-generator/src/main/java/com/github/enerccio/marginalia/extensions/namegenerator/NameGeneratorExtension.java
-verified: 2701b409
+verified: a0219436
 ---
 
 # Sharing data between extensions
