@@ -102,8 +102,13 @@
     font-size: var(--lumo-font-size-s);
 }
 
-/* The note of a generated node in the preview: set apart from the description */
+/* The note of a node, shown in the preview of a generated node or when a chapter of the list is opened: the whole
+   text, set apart from the description */
 .arc-outline-note {
+    display: block;
+    line-clamp: none;
+    -webkit-line-clamp: none;
+    overflow: visible;
     margin-top: var(--lumo-space-xs);
     padding-top: var(--lumo-space-xs);
     border-top: 1px dashed var(--lumo-contrast-20pct);

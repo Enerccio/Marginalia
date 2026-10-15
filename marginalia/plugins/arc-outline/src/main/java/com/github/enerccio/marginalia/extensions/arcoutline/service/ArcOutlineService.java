@@ -28,6 +28,16 @@ public class ArcOutlineService {
     public record ModelSelection(AI ai, Protocol protocol) {
     }
 
+    /**
+     * A message of the active branch that has text, for the import of an arc.
+     *
+     * @param number the place among the messages with text, from 1
+     * @param text   the text of the message
+     * @param tokens the approximate number of tokens of the text
+     */
+    public record StoryMessage(int number, String text, long tokens) {
+    }
+
     /** The logger of the extension (Admin → Extensions → Log), set when the extension loads. */
     private Logger log;
 
@@ -42,6 +52,12 @@ public class ArcOutlineService {
 
     @Autowired
     private ProtocolService protocolService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
+
+    @Autowired
+    private TokenizerService tokenizerService;
 
     @Autowired
     private LorebookService lorebookService;
@@ -161,6 +177,13 @@ public class ArcOutlineService {
         return StringUtils.defaultIfBlank(settings.getChapterGenerationPrompt(), Defaults.CHAPTER_GENERATION_PROMPT);
     }
 
+    /**
+     * The prompt template the import dialog starts with: the user's or {@link Defaults#IMPORT_PROMPT}.
+     */
+    public String importPrompt(ArcOutlineSettings settings) {
+        return StringUtils.defaultIfBlank(settings.getImportPrompt(), Defaults.IMPORT_PROMPT);
+    }
+
     // --- name tools ---
 
     /**
@@ -256,6 +279,23 @@ public class ArcOutlineService {
      */
     public JsonNode chaptersSchema(Integer exactCount) {
         ObjectNode schema = StructuredOutputs.schemaOf(GeneratedChapters.class);
+        limitChapters(schema, exactCount);
+        return schema;
+    }
+
+    /**
+     * The JSON schema the model is asked to answer in when it turns a part of the story into an arc with chapters.
+     *
+     * @param exactCount the number of chapters the author wants, null when the model decides (at least one)
+     */
+    public JsonNode importSchema(Integer exactCount) {
+        ObjectNode schema = StructuredOutputs.schemaOf(GeneratedStoryArc.class);
+        limitChapters(schema, exactCount);
+        return schema;
+    }
+
+    /** Fixes the list of chapters of the schema and limits its length to {@code exactCount} when there is one. */
+    private static void limitChapters(ObjectNode schema, Integer exactCount) {
         JsonNode chapters = schema.path("properties").path("chapters");
         if (chapters instanceof ObjectNode list) {
             // the constraints of the list field are also put on its items as an allOf, which some providers can't
@@ -269,7 +309,6 @@ public class ArcOutlineService {
                 list.put("maxItems", exactCount);
             }
         }
-        return schema;
     }
 
     /**
@@ -296,6 +335,73 @@ public class ArcOutlineService {
             prompt += "\n\n" + StringUtils.defaultIfBlank(getSettings().getNameToolsPrompt(), Defaults.NAME_TOOLS_PROMPT).strip();
         }
         return prompt;
+    }
+
+    /**
+     * The prompt for importing an arc from the story, built like {@link #buildPrompt} (the name tools make no sense
+     * here, the names are in the story).
+     *
+     * @param template         the prompt template, with {{backgroundLore}}, {{existingArcs}}, {{story}} and
+     *                         {{numberOfChapters}}
+     * @param messages         the messages to summarize, in the order they are read
+     * @param numberOfChapters how many chapters the author wants, null when the model decides
+     * @throws Exception when the template is not valid
+     */
+    public String buildImportPrompt(Manuscript manuscript, ArcOutline outline, String template,
+                                    List<StoryMessage> messages, Integer numberOfChapters) throws Exception {
+        ImportGenerationTemplateData data = new ImportGenerationTemplateData();
+        data.setBackgroundLore(buildBackgroundLore(manuscript));
+        data.setExistingArcs(describeArcs(outline));
+        data.setStory(storyText(messages));
+        data.setNumberOfChapters(numberOfChapters != null ? "exactly " + numberOfChapters
+                : "as many as the story needs, divide it where it naturally divides");
+        return templateService.processTemplate(template, "arcImport", data);
+    }
+
+    /** The messages as the prompt shows them, each under a heading with its number. */
+    public static String storyText(List<StoryMessage> messages) {
+        StringBuilder text = new StringBuilder();
+        for (StoryMessage message : messages) {
+            text.append("--- Message ").append(message.number()).append(" ---\n")
+                    .append(message.text().strip()).append("\n\n");
+        }
+        return text.toString().stripTrailing();
+    }
+
+    /**
+     * The messages with text of the active branch of the book as it is stored now (the story view keeps the book it
+     * was opened with, the branch may have changed), from the first to the last.
+     *
+     * @return empty when the book has no active branch
+     */
+    public List<StoryMessage> activeBranch(Manuscript manuscript) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        ChatMessage leaf = (current != null ? current : manuscript).getActiveLeaf();
+        if (leaf == null) {
+            return List.of();
+        }
+        List<StoryMessage> messages = new ArrayList<>();
+        for (ChatMessage message : chatMessageService.getBranchFromLeaf(leaf)) {
+            String text = message.getResponse();
+            if (StringUtils.isNotBlank(text)) {
+                long tokens = message.getTokenCount() > 0 ? message.getTokenCount() : countTokens(text);
+                messages.add(new StoryMessage(messages.size() + 1, text, tokens));
+            }
+        }
+        return messages;
+    }
+
+    /** The approximate number of tokens of the text. */
+    public long countTokens(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return 0;
+        }
+        try {
+            return tokenizerService.countTokensApprox(text);
+        } catch (Exception e) {
+            // a rough estimate does for a counter
+            return text.length() / 4;
+        }
     }
 
     /** The prompt as the system message, with a short user turn some providers require. */

@@ -82,6 +82,14 @@ public class ModelProtocolPicker extends HorizontalLayout {
         return protocolCombo.getValue();
     }
 
+    /**
+     * Calls {@code listener} when the model or the protocol is changed, by the user or by {@link #setSelection}.
+     */
+    public void addSelectionListener(Runnable listener) {
+        aiCombo.addValueChangeListener(_ -> listener.run());
+        protocolCombo.addValueChangeListener(_ -> listener.run());
+    }
+
     @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
