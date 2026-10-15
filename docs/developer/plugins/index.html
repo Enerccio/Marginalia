@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413184884">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413381194">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845413184884" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845413381194" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845413381194" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845413381194" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -269,7 +269,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <p>The twelve plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
 <retype-table copy-text="| Plugin | What it adds | Shows how to |
 |---|---|---|
-| [Arc Outline](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/arc-outline) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore. | Add a tab to the story editor and a section to the user settings, keep a tree in a book's attributes, stream a structured (JSON schema) answer into the UI with `PartialJson`, name tools from another plugin ([call it directly](ipc.md#calling-another-extension-directly)), offer data to other plugins with `IPCService`, plugin-only CSS classes. |
+| [Arc Outline](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/arc-outline) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar (a chapter can show its note under the description); the model can write an arc from the lore, the chapters of an arc, or an arc with chapters from a range of the active branch of the story. | Add a tab to the story editor and a section to the user settings, keep a tree in a book's attributes, stream a structured (JSON schema) answer into the UI with `PartialJson`, read the messages of the active branch (`ChatMessageService.getBranchFromLeaf`) and show how many tokens a prompt has (`TokenizerService.countTokensApprox`, `TokenLimits`), name tools from another plugin ([call it directly](ipc.md#calling-another-extension-directly)), offer data to other plugins with `IPCService`, plugin-only CSS classes. |
 | [Author's Note](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. | Listen to generation events and change the payload sent to the model; add a tab to the story editor. |
 | [Chapter Marker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker) | Story parts that start with a Markdown heading are shown as chapters in the story sidebar. | Read method arguments and locals, change a component the method built. The smallest one - start here. |
 | [Character Tracker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/character-tracker) | The characters of the book with their relationships, imported from lore entries if wanted, and a relationship map, in the story sidebar. | Add a tab to the story editor, keep a list in a book's attributes, draw a graph with the application's `GraphView` ([Custom components](../custom-components.md)), upload and scale images. |
@@ -293,8 +293,8 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <tbody>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/arc-outline">Arc Outline</a></td>
-<td>The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore.</td>
-<td>Add a tab to the story editor and a section to the user settings, keep a tree in a book&#x27;s attributes, stream a structured (JSON schema) answer into the UI with <code translate="no" v-pre>PartialJson</code>, name tools from another plugin (<a href="ipc/#calling-another-extension-directly">call it directly</a>), offer data to other plugins with <code translate="no" v-pre>IPCService</code>, plugin-only CSS classes.</td>
+<td>The arcs of the book and their chapters, each planned, current or finished, in the story sidebar (a chapter can show its note under the description); the model can write an arc from the lore, the chapters of an arc, or an arc with chapters from a range of the active branch of the story.</td>
+<td>Add a tab to the story editor and a section to the user settings, keep a tree in a book&#x27;s attributes, stream a structured (JSON schema) answer into the UI with <code translate="no" v-pre>PartialJson</code>, read the messages of the active branch (<code translate="no" v-pre>ChatMessageService.getBranchFromLeaf</code>) and show how many tokens a prompt has (<code translate="no" v-pre>TokenizerService.countTokensApprox</code>, <code translate="no" v-pre>TokenLimits</code>), name tools from another plugin (<a href="ipc/#calling-another-extension-directly">call it directly</a>), offer data to other plugins with <code translate="no" v-pre>IPCService</code>, plugin-only CSS classes.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote">Author&#x27;s Note</a></td>

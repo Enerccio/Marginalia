@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413184884">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413381194">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845413184884" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845413381194" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845413381194" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845413184884" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845413381194" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845413381194" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1214,7 +1214,7 @@ values are extended attributes.</p>
 <retype-table copy-text="| Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), `userAisAllowed` (users who are not administrators can create AIs, default and `null` = yes; `AIService.setUserCreationAllowed`, checked in `AIServiceImpl.save` for new AIs only, existing ones stay editable). |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)). |">
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -1233,7 +1233,7 @@ values are extended attributes.</p>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>
 <td>each user</td>
-<td>Default model and protocol (ids, <code translate="no" v-pre>@CleanupReference(WEAK)</code>), default prompts (<code translate="no" v-pre>masterTemplate</code>, <code translate="no" v-pre>defaultPov</code>, <code translate="no" v-pre>defaultTense</code>, <code translate="no" v-pre>defaultStyle</code>, <code translate="no" v-pre>defaultUserPrompt</code>, <code translate="no" v-pre>defaultSummaryPrompt</code>, <code translate="no" v-pre>defaultMetaSummaryPrompt</code>), default book backup strategy, the code of the language of the UI (<code translate="no" v-pre>language</code>, see <a href="../architecture/#localization">Localization</a>).</td>
+<td>Default model and protocol (ids, <code translate="no" v-pre>@CleanupReference(WEAK)</code>), default prompts (<code translate="no" v-pre>masterTemplate</code>, <code translate="no" v-pre>defaultPov</code>, <code translate="no" v-pre>defaultTense</code>, <code translate="no" v-pre>defaultStyle</code>, <code translate="no" v-pre>defaultUserPrompt</code>, <code translate="no" v-pre>defaultSummaryPrompt</code>, <code translate="no" v-pre>defaultMetaSummaryPrompt</code>), default book backup strategy, the code of the language of the UI (<code translate="no" v-pre>language</code>, see <a href="../architecture/#localization">Localization</a>), where the user left the workspace (<code translate="no" v-pre>workspaceState</code>, a JSON object written by the workspace autosave, see <a href="../ui/#remembering-where-the-user-was">User interface</a>).</td>
 </tr>
 </tbody>
 </table>

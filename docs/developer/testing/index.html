@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413184884">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413381194">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845413184884" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845413381194" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845413381194" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845413184884" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845413381194" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845413381194" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -277,7 +277,7 @@ fake is the model server.</p>
 | `security` | `ApiKeyEncryptionTest` | API keys stored encrypted with the installation key; the app migration encrypting plain ones. |
 | `utils` | `ClientAddressResolverTest`, `GeneratedTextHighlighterTest` | `GeneratedTextHighlighterTest`: the diff view's highlight (shared words marked, the author's text not, one mark per line, markdown line prefixes outside it, a huge rewrite). The client address: the header is ignored without trusted proxies and from any other peer, chains of proxies, CIDR ranges, no host name lookups (no Spring context). |
 | `loc` | `LocalizationTest`, `BundleCompletenessTest` | The language of the session selects the bundle, texts a bundle lacks come from the default language, a language can't be registered twice, the default one can't be removed, `UserSetting.language` is saved (Spring context). Every key of the Japanese bundle is translated and its `%s`/`%d` placeholders match the English text. |
-| `ui` | `ResourcesPartTest`, `BranchSearchTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The search of the branch view (`ManuscriptTreePart` with a stand-in for the book window): the result line, &quot;Show in story&quot; switching the active branch and ignoring ids of other books. They build Vaadin components without a UI session. |
+| `ui` | `ResourcesPartTest`, `BranchSearchTest`, `WorkspaceStateTest` | The Resources tab grid: lazy paging, only the user's files, deleting the selection. The search of the branch view (`ManuscriptTreePart` with a stand-in for the book window): the result line, &quot;Show in story&quot; switching the active branch and ignoring ids of other books. `WorkspaceStateTest`: the autosave of the workspace - what each `Restorable` stores and restores (tab, filters, open book, lorebook entries, the new turn form), what is skipped when it is gone, and the state kept in `UserSetting.workspaceState`. They build Vaadin components without a UI session. |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest`, `SoftDeleteCascadeTest`, `PermanentDeleteTest` | Purging soft-deleted data (also an AI with usage rows), owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content; `SoftDeleteCascadeTest`: a soft delete takes the owned objects with it and a restore brings them back (the purge tests there log in as administrator); `PermanentDeleteTest`: deleting parts and entries for good, children moved to the parent, active leaf, blocked deletes roll back. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -372,8 +372,8 @@ fake is the model server.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui</code></td>
-<td><code translate="no" v-pre>ResourcesPartTest</code>, <code translate="no" v-pre>BranchSearchTest</code></td>
-<td>The Resources tab grid: lazy paging, only the user&#x27;s files, deleting the selection. The search of the branch view (<code translate="no" v-pre>ManuscriptTreePart</code> with a stand-in for the book window): the result line, &quot;Show in story&quot; switching the active branch and ignoring ids of other books. They build Vaadin components without a UI session.</td>
+<td><code translate="no" v-pre>ResourcesPartTest</code>, <code translate="no" v-pre>BranchSearchTest</code>, <code translate="no" v-pre>WorkspaceStateTest</code></td>
+<td>The Resources tab grid: lazy paging, only the user&#x27;s files, deleting the selection. The search of the branch view (<code translate="no" v-pre>ManuscriptTreePart</code> with a stand-in for the book window): the result line, &quot;Show in story&quot; switching the active branch and ignoring ids of other books. <code translate="no" v-pre>WorkspaceStateTest</code>: the autosave of the workspace - what each <code translate="no" v-pre>Restorable</code> stores and restores (tab, filters, open book, lorebook entries, the new turn form), what is skipped when it is gone, and the state kept in <code translate="no" v-pre>UserSetting.workspaceState</code>. They build Vaadin components without a UI session.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>cleanup</code></td>
@@ -389,7 +389,7 @@ fake is the model server.</p>
 </table>
 </div>
 </retype-table>
-<p>Not covered by automated tests: the Vaadin UI (apart from <code translate="no" v-pre>ResourcesPartTest</code> and <code translate="no" v-pre>BranchSearchTest</code>), the bundled plugins, and the desktop launcher
+<p>Not covered by automated tests: the Vaadin UI (apart from <code translate="no" v-pre>ResourcesPartTest</code>, <code translate="no" v-pre>BranchSearchTest</code> and <code translate="no" v-pre>WorkspaceStateTest</code>), the bundled plugins, and the desktop launcher
 (the <a href="../packaging/#continuous-integration">CI smoke test</a> only checks that the packaged app starts).</p>
 <h2 id="test-bases">Test bases</h2>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">classDiagram

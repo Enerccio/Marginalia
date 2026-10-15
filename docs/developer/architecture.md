@@ -218,9 +218,10 @@ flowchart TB
 
 - `Main` shows the login (or the *create administrator* dialog on an empty installation), restores a saved login
   from cookies, and after login replaces its content with the `DesktopWorkspace` (the implementation of the `Workspace`
-  interface).
+  interface), then restores the autosaved state of the workspace (the tab, the open book...) with
+  `restoreAutosaved()`; see [Remembering where the user was](ui.md#remembering-where-the-user-was).
 - `DesktopWorkspace` holds the left-hand tabs. Each tab is a `WorkspaceComponent` (`create`, `refresh`, `onTabSwitched`,
-  `onTabClosed`).
+  `onTabClosed`) and is `Restorable` (it stores and restores its own state).
 - Opening a book opens `ManuscriptDialog`, whose tabs are `ManuscriptDialogPart`s. The story editor
   (`ManuscriptStoryPart`) is the largest UI class: the parts sidebar, the text, the instruction panel, generation.
 - `Viewer` is a separate route for reading published books without the workspace.

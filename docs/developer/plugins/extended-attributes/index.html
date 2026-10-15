@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413184884">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413381194">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845413184884" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845413381194" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845413381194" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845413184884" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845413381194" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845413381194" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -179,7 +179,7 @@ entity, loaded with it, and travels with it into backups.</p>
 | `Summary` | Data about a summary. |
 | `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. |
 | `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
-| `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. |
+| `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`.) |
 | `AppSettings` | Settings for the whole installation (administrators). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -212,7 +212,7 @@ entity, loaded with it, and travels with it into backups.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>
-<td>Per-user plugin settings - Reviewer and Side Query keep theirs here.</td>
+<td>Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its <code translate="no" v-pre>@ExtendedAttribute</code> field <code translate="no" v-pre>workspaceState</code>.)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AppSettings</code></td>
