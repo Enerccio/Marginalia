@@ -49,14 +49,23 @@ class WorkspaceStateTest extends MarginaliaTestBase {
     @Autowired
     private TagService tagService;
 
+    /**
+     * The UI of the test. {@code UI.setCurrent} keeps only a weak reference, so without this field a garbage
+     * collection in the middle of the test (the full suite makes plenty) drops the current UI: "No currently active UI
+     * found".
+     */
+    private UI ui;
+
     @BeforeEach
     void currentUI() {
-        UI.setCurrent(new UI());
+        ui = new UI();
+        UI.setCurrent(ui);
     }
 
     @AfterEach
     void noCurrentUI() {
         UI.setCurrent(null);
+        ui = null;
     }
 
     private static JsonObject json(String text) {
