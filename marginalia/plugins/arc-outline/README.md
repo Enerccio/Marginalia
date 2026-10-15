@@ -28,6 +28,8 @@ one, green for finished ones (their title is dimmed). The buttons:
 | pen | Edits it in the dialog. |
 | trash | Deletes it (an arc with its chapters), after a confirmation. |
 
+![A chapter with its note shown](../../../manual/images/plugin-arcoutline-note.png)
+
 A chapter moved up from the first place of its arc goes to the end of the previous arc, one moved down from the last
 place to the start of the next arc, so chapters can be moved between arcs.
 
@@ -45,7 +47,9 @@ Query can send either with a question (plug button → *Arc outline* or *Arc out
 
 ## Generating an arc
 
-The wand next to *Add new arc* opens a menu: *Generate an arc* and *Import from story* (see below). *Generate an arc* opens a dialog that asks the model for a new arc. On the left:
+The wand next to *Add new arc* opens a menu: *Generate an arc* and *Import from story* (see below). ![The menu of the wand](../../../manual/images/plugin-arcoutline-menu.png)
+
+*Generate an arc* opens a dialog that asks the model for a new arc. On the left:
 
 - *Prompt* - a template filled from the settings (*Settings → Extension Settings → Arc Outline*; the default is in
   `Defaults.GENERATION_PROMPT`). Its variables are `{{backgroundLore}}` (the entries of the book's lorebook and its sub
@@ -80,6 +84,8 @@ left, besides the model, protocol and prompt:
 - *Prompt* - `{{backgroundLore}}`, `{{existingArcs}}`, `{{story}}` (the messages, each under a `--- Message N ---`
   heading) and `{{numberOfChapters}}`. It starts as the *Story import prompt* of the settings (default
   `Defaults.IMPORT_PROMPT`). There are no name tools, the names are in the story.
+
+![Importing an arc from the story](../../../manual/images/plugin-arcoutline-import.png)
 
 The answer is `{name, description, note, chapters: [{name, description, note}, ...]}`; the arc and its chapters are
 shown on the right as they stream in. *Save as arc* adds the arc with all its chapters at the end of the outline, each

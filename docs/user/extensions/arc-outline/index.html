@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845412747488">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413184884">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845412747488" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845413184884" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845412747488" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845412747488" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845413184884" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -279,6 +279,14 @@ buttons of a card:</p>
     <img src="../../../images/plugin-arcoutline-tab.png" alt="The Arcs tab: a finished, a current and a planned arc" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The Arcs tab: a finished, a current and a planned arc</figcaption>
 </figure>
+<h3 id="the-note-of-a-chapter">The note of a chapter</h3>
+<p>A chapter that has a note shows a chevron on the right. It opens the note under the description, in the list, so you can
+read the details of a chapter (the ones the model wrote for it, for example) without opening the dialog; press it again to
+hide the note. Which notes are open is not saved.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-arcoutline-note.png" alt="A chapter with its note shown" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="631" height="565" />
+    <figcaption class="caption">A chapter with its note shown</figcaption>
+</figure>
 <h3 id="moving-chapters-between-arcs">Moving chapters between arcs</h3>
 <p>A chapter moved up from the first place of its arc goes to the end of the previous arc; one moved down from the last
 place goes to the start of the next arc. Keep pressing the arrow to take a chapter as far as you need.</p>
@@ -293,7 +301,12 @@ are two versions: <strong>Arc outline</strong> is the terse one (descriptions on
 arc and chapter under its description, which is where the details of generated arcs and chapters are. Your private notes
 are sent only when you check the second one.</p>
 <h2 id="generating-an-arc">Generating an arc</h2>
-<p>The wand button next to <strong>Add new arc</strong> opens a menu with two items: <strong>Generate an arc</strong> asks the model to write a new arc, <strong>Import from story</strong> summarizes what you have already written, see <doc-anchor-trigger to="#importing-an-arc-from-the-story">below</doc-anchor-trigger>. The dialog of <strong>Generate an arc</strong> has two halves.</p>
+<p>The wand button next to <strong>Add new arc</strong> opens a menu with two items: <strong>Generate an arc</strong> asks the model to write a new arc, <strong>Import from story</strong> summarizes what you have already written, see <doc-anchor-trigger to="#importing-an-arc-from-the-story">below</doc-anchor-trigger>.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-arcoutline-menu.png" alt="The menu of the wand" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="640" height="190" />
+    <figcaption class="caption">The menu of the wand</figcaption>
+</figure>
+<p>The dialog of <strong>Generate an arc</strong> has two halves.</p>
 <p>On the left:</p>
 <retype-table copy-text="| | |
 |---|---|
@@ -393,6 +406,10 @@ the one for arcs, with these choices on the left:</p>
 </table>
 </div>
 </retype-table>
+<figure class="content-center">
+    <img src="../../../images/plugin-arcoutline-import.png" alt="Importing an arc from the story" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1728" height="838" />
+    <figcaption class="caption">Importing an arc from the story</figcaption>
+</figure>
 <p>There are no name tools here, the names are in the story. On the right you see the reasoning, then the arc and its
 chapters as the model writes them. <strong>Save as arc</strong> adds the arc with its chapters at the end of the outline; every one
 of them keeps the reasoning and the answer of the model and has its own robot button. A long story is best imported in

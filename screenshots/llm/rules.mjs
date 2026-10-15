@@ -62,6 +62,11 @@ const arcRule = {
   when: ctx => ctx.system.includes('design ONE new story arc'),
   reply: () => ({ reply: JSON.stringify(arcOutline.generateArc.answer), reasoning: arcOutline.generateArc.reasoning }),
 };
+const arcImportRule = {
+  name: 'arc-outline-import',
+  when: ctx => ctx.system.includes('summarize it as ONE story arc'),
+  reply: () => ({ reply: JSON.stringify(arcOutline.importArc.answer), reasoning: arcOutline.importArc.reasoning }),
+};
 const arcChaptersRule = {
   name: 'arc-outline-chapters',
   when: ctx => ctx.system.includes('divide ONE story arc'),
@@ -70,6 +75,7 @@ const arcChaptersRule = {
 
 export default [
   arcRule,
+  arcImportRule,
   arcChaptersRule,
   loreCompactionRule,
   loreRule,

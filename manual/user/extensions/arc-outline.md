@@ -39,6 +39,14 @@ buttons of a card:
 
 ![The Arcs tab: a finished, a current and a planned arc](../../images/plugin-arcoutline-tab.png)
 
+### The note of a chapter
+
+A chapter that has a note shows a chevron on the right. It opens the note under the description, in the list, so you can
+read the details of a chapter (the ones the model wrote for it, for example) without opening the dialog; press it again to
+hide the note. Which notes are open is not saved.
+
+![A chapter with its note shown](../../images/plugin-arcoutline-note.png)
+
 ### Moving chapters between arcs
 
 A chapter moved up from the first place of its arc goes to the end of the previous arc; one moved down from the last
@@ -61,7 +69,11 @@ are sent only when you check the second one.
 
 ## Generating an arc
 
-The wand button next to **Add new arc** opens a menu with two items: **Generate an arc** asks the model to write a new arc, **Import from story** summarizes what you have already written, see [below](#importing-an-arc-from-the-story). The dialog of **Generate an arc** has two halves.
+The wand button next to **Add new arc** opens a menu with two items: **Generate an arc** asks the model to write a new arc, **Import from story** summarizes what you have already written, see [below](#importing-an-arc-from-the-story).
+
+![The menu of the wand](../../images/plugin-arcoutline-menu.png)
+
+ The dialog of **Generate an arc** has two halves.
 
 On the left:
 
@@ -100,6 +112,8 @@ the one for arcs, with these choices on the left:
 | State of the imported arc and its chapters | **Finished** at first, because the story is written; choose **Current** or **Planned** if you need it. |
 | Token counter | How many messages the range has and their approximate tokens, and the approximate tokens of the whole prompt (instructions, lore, outline and story) next to what the model takes. It turns into a warning when the prompt does not fit, then choose fewer messages. It follows the range, the number of chapters, the prompt and the model. |
 | Prompt | The instructions for the model, with the variables `{{backgroundLore}}`, `{{existingArcs}}`, `{{story}}` (the messages of the range) and `{{numberOfChapters}}`. It starts as the **Story import prompt** of *Settings → Extension Settings → Arc Outline*. |
+
+![Importing an arc from the story](../../images/plugin-arcoutline-import.png)
 
 There are no name tools here, the names are in the story. On the right you see the reasoning, then the arc and its
 chapters as the model writes them. **Save as arc** adds the arc with its chapters at the end of the outline; every one

@@ -41,19 +41,8 @@ export const loreCompaction = `Three Broomsticks: Hogsmeade inn, Madam Rosmerta.
 // Arc Outline: the arcs and chapters the flow writes by hand, and what the model answers when it is asked for an arc
 // and for the chapters of it. The answers are JSON in the schema the plugin sends ({name, description, note}).
 export const arcOutline = {
-  // written by hand: arc 1 is finished, arc 2 is the current one
+  // arc 1 is imported from the story (importArc), arc 2 is written by hand and is the current one
   arcs: [
-    {
-      title: 'A Foggy Weekend in Hogsmeade',
-      description: 'Harry follows Draconia through a foggy Hogsmeade and finds her crying.',
-      note: 'Parts 1-5 of the story. Ends with the church bell and Draconia refusing to explain "tonight".',
-      state: 'Finished',
-      chapters: [
-        { title: 'Fog and Hiccups', description: 'The Three Broomsticks, three butterbeers, Ron\'s hiccups.', state: 'Finished' },
-        { title: 'Under the Lamp', description: 'Draconia, Crabbe and Goyle mock Harry on the main street.', state: 'Finished' },
-        { title: 'Behind the Three Broomsticks', description: 'Harry follows Draconia and finds her crying in the lane.', state: 'Finished' },
-      ],
-    },
     {
       title: 'The Room of Requirement',
       description: 'Harry tries to learn what Draconia builds in the Room of Requirement.',
@@ -61,11 +50,52 @@ export const arcOutline = {
       state: 'Current',
       chapters: [
         { title: 'A Lost Glove', description: 'Harry makes excuses and slips away from the others.', state: 'Finished' },
-        { title: 'Night Watch', description: 'Harry waits outside the seventh floor corridor with the Marauder\'s Map.', state: 'Current' },
+        {
+          title: 'Night Watch',
+          description: 'Harry waits outside the seventh floor corridor with the Marauder\'s Map.',
+          note: 'Harry takes the first watch because he promised Ginny not to go in alone. The map shows Filch asleep two floors down and nobody near the corridor, which is the problem: nothing happens until the candles gutter and a single name, Draconia\'s, appears at the far end.',
+          state: 'Current',
+        },
         { title: 'The Door That Was Not There', description: 'The wall opens for Draconia and closes again before Harry can look inside.', state: 'Planned' },
       ],
     },
   ],
+
+  // arc 1 is written by the model from the five parts of the story (Import from story), in three chapters
+  importArc: {
+    chapters: 3,
+    reasoning: `The five parts of the story fall into three scenes, so the chapters follow them.
+
+1. **Fog and Hiccups**: the Three Broomsticks, three butterbeers and Ron's hiccups (parts 1-2).
+2. **Under the Lamp**: Draconia, Crabbe and Goyle mock Harry on the main street (part 3).
+3. **Behind the Three Broomsticks**: Harry follows Draconia and finds her crying, and the church bell ends it (parts 4-5).`,
+    answer: {
+      name: 'A Foggy Weekend in Hogsmeade',
+      description: 'Harry follows Draconia through a foggy Hogsmeade and finds her crying.',
+      note: `Premise: a Hogsmeade weekend in the fog, with Harry, Ron and Hermione. Ron has the hiccups, the butterbeers are on Harry, and Draconia is somewhere in the village with Crabbe and Goyle.
+
+Conflict: Harry cannot let go of what Draconia is up to. He follows her away from his friends, and finds her alone and crying instead of plotting.
+
+Ending: the church bell rings, Draconia refuses to explain what "tonight" means, and Harry is left with more questions than he came with.`,
+      chapters: [
+        {
+          name: 'Fog and Hiccups',
+          description: 'The Three Broomsticks, three butterbeers, Ron\'s hiccups.',
+          note: 'The three friends warm up in the Three Broomsticks while the fog thickens outside. Ron\'s hiccups get worse every time Hermione tells him to hold his breath, and Harry spots Draconia passing the window.',
+        },
+        {
+          name: 'Under the Lamp',
+          description: 'Draconia, Crabbe and Goyle mock Harry on the main street.',
+          note: 'Outside, the lamp on the main street makes a small island in the fog. Draconia, Crabbe and Goyle step into it and mock Harry. He keeps his temper, but he notices that Draconia is the only one who does not laugh.',
+        },
+        {
+          name: 'Behind the Three Broomsticks',
+          description: 'Harry follows Draconia and finds her crying in the lane.',
+          note: 'Harry follows Draconia into the lane behind the pub and finds her crying. She sends him away without explaining anything and the church bell rings; when he asks what is happening tonight she will not say.',
+        },
+      ],
+    },
+  },
 
   // the third arc is written by the model
   generateArc: {
