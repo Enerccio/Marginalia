@@ -6,11 +6,13 @@ import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.HTabSheet;
 import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
 import com.github.enerccio.marginalia.ui.workspace.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Configurable
@@ -64,6 +67,20 @@ public class DesktopWorkspace implements Workspace {
 
     private final AdminPart adminPart = new AdminPart(this);
     private Component adminPartComponent;
+
+    // names of the parts in the stored state, so it survives reordering the tabs
+    private final Map<String, WorkspaceComponent> partsByKey = new LinkedHashMap<>();
+    {
+        partsByKey.put("books", manuscriptPart);
+        partsByKey.put("lorebooks", lorebookPart);
+        partsByKey.put("settings", userPart);
+        partsByKey.put("protocols", protocolPart);
+        partsByKey.put("models", aiPart);
+        partsByKey.put("resources", resourcesPart);
+        partsByKey.put("trash", trashPart);
+    }
+
+    private final WorkspaceAutosave autosave = new WorkspaceAutosave(this);
 
     private WorkspaceComponent activeComponent;
     private Button adminButton;
@@ -201,6 +218,7 @@ public class DesktopWorkspace implements Workspace {
                     UIUtils.internalServerError(loc, ex);
                 }
             }
+            autosave();
         });
 
         activeComponent = manuscriptPart;
@@ -334,6 +352,65 @@ public class DesktopWorkspace implements Workspace {
         // the admin part (backups, cleanup) refuses anybody but administrators; only they get the button
         if (adminButton != null) {
             adminPart.refresh();
+        }
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class))
+    @Override
+    public void autosave() {
+        autosave.save();
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class))
+    @Override
+    public void restoreAutosaved() {
+        autosave.restore();
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "state", type = JsonObject.class),
+                    @APILocals(name = "parts", type = JsonObject.class),
+                    @APILocals(name = "selected", type = WorkspaceComponent.class)})
+    @Override
+    public JsonObject storeState() {
+        JsonObject state = new JsonObject();
+        JsonObject parts = new JsonObject();
+        WorkspaceComponent selected = tabs == null ? null : tabToComponent.get(tabs.getSelectedTab());
+        partsByKey.forEach((key, part) -> {
+            RestorableState.put(parts, key, part.storeState());
+            if (part == selected) {
+                state.addProperty("tab", key);
+            }
+        });
+        RestorableState.put(state, "parts", parts);
+        return state;
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)},
+            locals = {@APILocals(name = "parts", type = JsonObject.class),
+                    @APILocals(name = "part", type = WorkspaceComponent.class)})
+    @Override
+    public void restoreState(JsonObject self) {
+        JsonObject parts = RestorableState.object(self, "parts");
+        partsByKey.forEach((key, part) -> {
+            JsonObject partState = RestorableState.object(parts, key);
+            if (partState != null) {
+                part.restoreState(partState);
+            }
+        });
+
+        WorkspaceComponent part = partsByKey.get(RestorableState.string(self, "tab"));
+        if (part != null) {
+            tabToComponent.forEach((tab, component) -> {
+                if (component == part && !tab.equals(tabs.getSelectedTab())) {
+                    tabs.setSelectedTab(tab);
+                }
+            });
         }
     }
 

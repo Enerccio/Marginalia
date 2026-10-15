@@ -7,7 +7,10 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.Restorable;
+import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.google.gson.JsonObject;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -20,7 +23,7 @@ import org.apache.commons.lang3.StringUtils;
  * typed in them. The tab puts {@link #createContent} into a popover of its own size and position.
  */
 @Extendable
-public class NewTurnForm {
+public class NewTurnForm implements Restorable {
 
     private final Localization loc;
 
@@ -34,6 +37,7 @@ public class NewTurnForm {
     private String pendingPresentCharacters = "";
     private String pendingInstructions = "";
     private boolean editedByUser = false;
+    private Runnable onChange;
 
     public NewTurnForm(Localization loc) {
         this.loc = loc;
@@ -62,6 +66,7 @@ public class NewTurnForm {
         sceneSettingField.addValueChangeListener(e -> {
             pendingSceneSetting = e.getValue();
             editedByUser = true;
+            fireChanged(e.isFromClient());
         });
 
         povCharacterField = new TextField(loc.getValue(L.LABEL_POV_CHARACTER));
@@ -69,6 +74,7 @@ public class NewTurnForm {
         povCharacterField.addValueChangeListener(e -> {
             pendingPovCharacter = e.getValue();
             editedByUser = true;
+            fireChanged(e.isFromClient());
         });
 
         presentCharactersField = new TextArea(loc.getValue(L.LABEL_PRESENT_CHARACTERS));
@@ -77,6 +83,7 @@ public class NewTurnForm {
         presentCharactersField.addValueChangeListener(e -> {
             pendingPresentCharacters = e.getValue();
             editedByUser = true;
+            fireChanged(e.isFromClient());
         });
 
         instructionsField = new TextArea(loc.getValue(L.LABEL_INSTRUCTIONS));
@@ -85,6 +92,7 @@ public class NewTurnForm {
         instructionsField.addValueChangeListener(e -> {
             pendingInstructions = e.getValue();
             editedByUser = true;
+            fireChanged(e.isFromClient());
         });
 
         Button generateBtn = new Button(loc.getValue(L.LABEL_GENERATE), Solid.PLAY.create(), event -> onGenerate.run());
@@ -147,6 +155,65 @@ public class NewTurnForm {
             returns = @APIReturn(type = void.class))
     public void keepTypedValues() {
         editedByUser = true;
+    }
+
+    /**
+     * @param onChange runs after the user changed a field, the owner passes it on to the workspace autosave
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onChange", type = Runnable.class)})
+    public void setOnChange(Runnable onChange) {
+        this.onChange = onChange;
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "fromClient", type = boolean.class)})
+    private void fireChanged(boolean fromClient) {
+        if (fromClient && onChange != null) {
+            onChange.run();
+        }
+    }
+
+    /**
+     * The scene, the POV character, the present characters and the instructions, as the user left them.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "state", type = JsonObject.class)})
+    @Override
+    public JsonObject storeState() {
+        JsonObject state = new JsonObject();
+        state.addProperty("scene", pendingSceneSetting);
+        state.addProperty("pov", pendingPovCharacter);
+        state.addProperty("present", pendingPresentCharacters);
+        state.addProperty("instructions", pendingInstructions);
+        state.addProperty("edited", editedByUser);
+        return state;
+    }
+
+    /**
+     * Fills the fields with the stored values (the fields are filled when they exist, otherwise the values wait for
+     * them).
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)})
+    @Override
+    public void restoreState(JsonObject self) {
+        pendingSceneSetting = RestorableState.string(self, "scene", pendingSceneSetting);
+        pendingPovCharacter = RestorableState.string(self, "pov", pendingPovCharacter);
+        pendingPresentCharacters = RestorableState.string(self, "present", pendingPresentCharacters);
+        pendingInstructions = RestorableState.string(self, "instructions", pendingInstructions);
+        if (sceneSettingField != null) {
+            sceneSettingField.setValue(pendingSceneSetting);
+            povCharacterField.setValue(pendingPovCharacter);
+            presentCharactersField.setValue(pendingPresentCharacters);
+            instructionsField.setValue(pendingInstructions);
+        }
+        // the fields set it when their value changed
+        editedByUser = RestorableState.bool(self, "edited", editedByUser);
     }
 
 }

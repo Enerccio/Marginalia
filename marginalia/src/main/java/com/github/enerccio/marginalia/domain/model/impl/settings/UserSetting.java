@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrateg
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
+import com.google.gson.JsonObject;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
@@ -69,6 +70,14 @@ public class UserSetting extends Setting {
     @ExtendedAttribute
     @Transient
     private String language;
+
+    /**
+     * Where the user left the workspace (selected tab, filters, the open book, ...), written by the workspace autosave
+     * as the {@code Restorable} state of the workspace and read back after the login.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "workspaceState")
+    @Transient
+    private JsonObject workspaceState = new JsonObject();
 
     public Long getDefaultModel() {
         return defaultModel;
@@ -164,5 +173,13 @@ public class UserSetting extends Setting {
 
     public void setBackupStrategyValue(String backupStrategyValue) {
         this.backupStrategyValue = backupStrategyValue;
+    }
+
+    public JsonObject getWorkspaceState() {
+        return workspaceState;
+    }
+
+    public void setWorkspaceState(JsonObject workspaceState) {
+        this.workspaceState = workspaceState == null ? new JsonObject() : workspaceState;
     }
 }

@@ -1,12 +1,14 @@
 package com.github.enerccio.marginalia.ui.workspace;
 
+import com.github.enerccio.marginalia.ui.Restorable;
 import com.vaadin.flow.component.Component;
 
 /**
  * The top-level layout shown after login. It hosts the parts (manuscripts, lorebooks, settings, ...) and the
- * account actions (admin, change password, logout).
+ * account actions (admin, change password, logout). Its {@link Restorable} state is the selected part and the state of
+ * the parts; the autosave keeps it in the user settings, see {@link #autosave()}.
  */
-public interface Workspace {
+public interface Workspace extends Restorable {
 
     Component create() throws Exception;
 
@@ -21,6 +23,18 @@ public interface Workspace {
     void setNavigationLocked(boolean locked);
 
     boolean isNavigationLocked();
+
+    /**
+     * Stores the state of the workspace into the user settings. The parts call it after the user did something worth
+     * coming back to (navigated to a part, opened a book, changed a filter); it does nothing while the old state is
+     * being restored and when the state did not change.
+     */
+    void autosave();
+
+    /**
+     * Restores the state stored by {@link #autosave()} (after {@link #create()}) and turns the autosave on.
+     */
+    void restoreAutosaved();
 
     Runnable getOnLogout();
 

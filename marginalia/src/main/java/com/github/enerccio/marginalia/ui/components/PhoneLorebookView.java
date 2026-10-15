@@ -10,10 +10,13 @@ import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.Restorable;
+import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
 import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -31,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Reduced {@link LorebookView} for phones. Lorebooks can only be selected (no creating, deleting, importing or
@@ -39,7 +43,7 @@ import java.util.*;
  */
 @Configurable
 @Extendable
-public class PhoneLorebookView extends VerticalLayout {
+public class PhoneLorebookView extends VerticalLayout implements Restorable {
 
     @Autowired
     private Localization loc;
@@ -71,6 +75,10 @@ public class PhoneLorebookView extends VerticalLayout {
 
     private List<LorebookEntry> currentEntries = new ArrayList<>();
     private final Map<Long, Long> entryTokens = new HashMap<>();
+
+    // uuids of the entries whose details are opened, kept over reloading the entries
+    private final Set<String> openEntries = new LinkedHashSet<>();
+    private Runnable onStateChange;
 
     public PhoneLorebookView() {
         this(null);
@@ -105,7 +113,9 @@ public class PhoneLorebookView extends VerticalLayout {
         lorebookCombo.addValueChangeListener(event -> {
             if (event.isFromClient()) {
                 currentLorebook = event.getValue();
+                openEntries.clear();
                 updateSelectedLorebook();
+                fireStateChanged();
             }
         });
 
@@ -186,10 +196,16 @@ public class PhoneLorebookView extends VerticalLayout {
         Span nameSpan = new Span(StringUtils.defaultString(entry.getName()));
         nameSpan.addClassNames(CssStyles.TEXT_BOLD, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE, CssStyles.MIN_WIDTH_0);
 
-        Button toggleDetails = new Button(Solid.ANGLE_DOWN.create(), event -> {
+        Button toggleDetails = new Button((grid.isDetailsVisible(entry) ? Solid.ANGLE_UP : Solid.ANGLE_DOWN).create(), event -> {
             boolean isVisible = grid.isDetailsVisible(entry);
             grid.setDetailsVisible(entry, !isVisible);
             event.getSource().setIcon(!isVisible ? Solid.ANGLE_UP.create() : Solid.ANGLE_DOWN.create());
+            if (isVisible) {
+                openEntries.remove(entry.getUuid());
+            } else {
+                openEntries.add(entry.getUuid());
+            }
+            fireStateChanged();
         });
         toggleDetails.setThemeName("tertiary");
         toggleDetails.addClassName(CssStyles.FLEX_SHRINK_0);
@@ -472,6 +488,7 @@ public class PhoneLorebookView extends VerticalLayout {
         try {
             List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(currentLorebook.getId());
             grid.setItems(entries);
+            showOpenEntries(entries);
             currentEntries = entries;
             entryTokens.clear();
             updateLorebookTokens();
@@ -502,7 +519,95 @@ public class PhoneLorebookView extends VerticalLayout {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "lorebook", type = Lorebook.class)})
     public void setLorebook(Lorebook lorebook) {
+        if (!Objects.equals(currentLorebook, lorebook)) {
+            openEntries.clear();
+        }
         this.currentLorebook = lorebook;
         updateSelectedLorebook();
     }
+
+    /**
+     * Opens the details of the entries that were opened and still exist, forgets the others.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entries", type = List.class)},
+            locals = {@APILocals(name = "entry", type = LorebookEntry.class)})
+    private void showOpenEntries(List<LorebookEntry> entries) {
+        openEntries.retainAll(entries.stream().map(LorebookEntry::getUuid).collect(Collectors.toSet()));
+        for (LorebookEntry entry : entries) {
+            if (openEntries.contains(entry.getUuid())) {
+                grid.setDetailsVisible(entry, true);
+            }
+        }
+    }
+
+    /**
+     * Called after the user changed what {@link #storeState()} stores (the lorebook, an opened entry), the owner
+     * passes it on to the workspace autosave.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onStateChange", type = Runnable.class)})
+    public void setOnStateChange(Runnable onStateChange) {
+        this.onStateChange = onStateChange;
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class))
+    private void fireStateChanged() {
+        if (onStateChange != null) {
+            onStateChange.run();
+        }
+    }
+
+    /**
+     * The lorebook (unless it is pinned: its owner chooses it) and the entries whose details are opened.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "state", type = JsonObject.class)})
+    @Override
+    public JsonObject storeState() {
+        JsonObject state = new JsonObject();
+        if (!pinnedLorebook && currentLorebook != null && currentLorebook.getUuid() != null) {
+            state.addProperty("lorebook", currentLorebook.getUuid());
+        }
+        if (!openEntries.isEmpty()) {
+            state.add("entries", RestorableState.array(openEntries));
+        }
+        return state;
+    }
+
+    /**
+     * Selects the stored lorebook when it still exists (otherwise the lorebook stays as it is) and opens the stored
+     * entries that are still in it.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)},
+            locals = {@APILocals(name = "lorebookUuid", type = String.class),
+                    @APILocals(name = "stored", type = Lorebook.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void restoreState(JsonObject self) {
+        if (grid == null) {
+            return;
+        }
+        try {
+            String lorebookUuid = RestorableState.string(self, "lorebook");
+            if (!pinnedLorebook && lorebookUuid != null) {
+                Lorebook stored = lorebookService.findForUser(lorebookUuid);
+                if (stored != null) {
+                    currentLorebook = stored;
+                }
+            }
+            openEntries.clear();
+            openEntries.addAll(RestorableState.strings(self, "entries"));
+            refresh();
+        } catch (Exception e) {
+            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+        }
+    }
+
 }

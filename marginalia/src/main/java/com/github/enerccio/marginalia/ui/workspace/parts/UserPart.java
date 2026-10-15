@@ -530,6 +530,9 @@ public class UserPart implements WorkspaceComponent {
         String defaultStyle = defaultStyleField.getValue();
 
         try {
+            // the setting is also written by the workspace autosave and the language selector since it was loaded
+            userSetting = settingService.getOrCreate(UserSetting.class);
+
             AI selectedModel = defaultModelCombo.getValue();
             userSetting.setDefaultModel(selectedModel != null ? selectedModel.getId() : null);
 

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.phone.parts;
 
+import com.github.enerccio.marginalia.domain.traits.APIParameter;
 import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
@@ -8,6 +9,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.PhoneLorebookView;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -40,6 +42,11 @@ public class PhoneLorebookPart implements WorkspaceComponent {
     @Override
     public Component create() throws Exception {
         lorebookView = new PhoneLorebookView();
+        lorebookView.setOnStateChange(() -> {
+            if (workspace != null) {
+                workspace.autosave();
+            }
+        });
         return lorebookView.create();
     }
 
@@ -64,6 +71,23 @@ public class PhoneLorebookPart implements WorkspaceComponent {
     @Override
     public void onTabClosed() throws Exception {
 
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = JsonObject.class))
+    @Override
+    public JsonObject storeState() {
+        return lorebookView == null ? new JsonObject() : lorebookView.storeState();
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)})
+    @Override
+    public void restoreState(JsonObject self) {
+        if (lorebookView != null) {
+            lorebookView.restoreState(self);
+        }
     }
 
 }

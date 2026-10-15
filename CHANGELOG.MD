@@ -37,9 +37,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   around it is ignored) into a Jackson tree, to show what has arrived so far. New dependency
   `io.github.funnysaltyfish:partial-json-parser-jvm` (brings `kotlin-stdlib`).
 
+- Workspace autosave: Marginalia remembers where the user was and restores it after the login - the selected tab, the
+  filters of the book list, the lorebook and the open entries of the lorebook tab, the open book with its tab (and
+  the open entries of its lorebook tab) and the new turn form of the story tab (scene, POV character, present
+  characters, instructions). Both the desktop and the phone layout. Stored in the new `UserSetting.workspaceState`
+  extended attribute (no migration). What was deleted meanwhile is skipped, a deleted book is not opened.
+- `Restorable` (`ui`): `storeState()` / `restoreState(JsonObject)` for the UI classes that have state worth
+  remembering, with the helpers in `RestorableState`. API changes plugins can see (since 1.3.0): `Workspace`
+  extends `Restorable` and has `autosave()` and `restoreAutosaved()`; `WorkspaceComponent`, `ManuscriptDialogPart` and
+  `PhoneManuscriptDialogPart` extend `Restorable` with default methods that store nothing, so existing parts compile
+  unchanged; `ManuscriptDialog`/`PhoneManuscriptDialog` have `setOnStateChange` and `stateChanged()` (a plugin that
+  adds a tab calls it), the lorebook views `setOnStateChange`, `NewTurnForm` `setOnChange`.
+
 ### Changed
 
+- The opened details of lorebook entries stay open when the entries are reloaded (refresh button, switching to the tab).
+
 ### Fixed
+
+- Saving the settings no longer writes back a copy of the user setting loaded when the tab was opened, which could undo
+  a language chosen in the meantime.
 
 ### Known issues
 

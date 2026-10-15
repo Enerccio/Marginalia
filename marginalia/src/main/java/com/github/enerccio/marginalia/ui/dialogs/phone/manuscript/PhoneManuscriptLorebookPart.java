@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.ui.components.PhoneLorebookView;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -66,6 +67,7 @@ public class PhoneManuscriptLorebookPart implements PhoneManuscriptDialogPart {
 
         // pinned: the lorebook is the one of the book, chosen in the combo box above
         lorebookView = new PhoneLorebookView(true);
+        lorebookView.setOnStateChange(parent::stateChanged);
         Component lorebookViewComponent = lorebookView.create();
 
         mainLayout.add(activeLorebookCombo, lorebookViewComponent);
@@ -147,6 +149,23 @@ public class PhoneManuscriptLorebookPart implements PhoneManuscriptDialogPart {
             UIUtils.internalServerError(loc, e);
         } finally {
             loading = false;
+        }
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = JsonObject.class))
+    @Override
+    public JsonObject storeState() {
+        return lorebookView == null ? new JsonObject() : lorebookView.storeState();
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "self", type = JsonObject.class)})
+    @Override
+    public void restoreState(JsonObject self) {
+        if (lorebookView != null) {
+            lorebookView.restoreState(self);
         }
     }
 

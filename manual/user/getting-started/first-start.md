@@ -54,4 +54,9 @@ At the bottom are **Admin** (administrators only), the **Language** selector, **
 
 ![The workspace after the first login](../../images/workspace.png)
 
+Marginalia remembers where you were. The next time you log in (on any device) it opens the same tab, with the same
+filters of the book list, the same lorebook and open lorebook entries and, if you left a book open, that book on the
+same tab - with the scene, POV character, present characters and instructions you had typed for the next part. What
+no longer exists (a deleted book, lorebook or tag) is skipped; a book that was deleted is not opened.
+
 Continue with the [quick start](quick-start.md).
