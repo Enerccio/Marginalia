@@ -25,7 +25,7 @@ All data entities extend `ExtendableEntity` ([Domain model](../domain-model.md))
 | `Summary` | Data about a summary. |
 | `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. |
 | `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
-| `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. |
+| `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`.) |
 | `AppSettings` | Settings for the whole installation (administrators). |
 
 `User`, `Resource` and `Usage` are not extendable.
