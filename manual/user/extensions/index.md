@@ -19,7 +19,8 @@ Extensions add features to Marginalia without changing the application itself. T
 | [Instruction Exporter](instruction-exporter.md) | Copies the instructions, scene settings and characters of the story to the clipboard. |
 | [Lore Generator](lore-generator.md) | Writes the content of a lorebook entry with the model, from the lore you already have. |
 | [Lorebook VCS](lorebook-vcs.md) | Revision history for lorebook entries. |
-| [Name generator](name-generator.md) | Names for the model to use instead of inventing them: about 1200 lists of names, as Markov chains. |
+| [Name generator](name-generator.md) | Names for the model to use instead of inventing them: about 1270 lists of names, as Markov chains. |
+| [Name provider](name-provider.md) | Real names for the model to pick from: forenames and surnames of about 100 countries, with the original spelling. |
 | [Reviewer](reviewer.md) | Reviews of story parts written by the model - reader reactions, critique. |
 | [Side Query](side-query.md) | A chat with the model about your book, next to the story. |
 | [Chinese localization](chinese-localization.md) | Simplified Chinese as a language of the user interface. |
@@ -44,7 +45,7 @@ see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marg
 ## Extensions on a phone
 
 The [phone layout](../phone.md) has its own classes, so an extension has to support it. Arc Outline, Author's Note, Chapter Marker,
-Character Tracker, Instruction Exporter and Reviewer do; Side Query, Lore Generator and Lorebook VCS add nothing on a phone (see [Using Marginalia on a phone](../phone.md#extensions)). Name generator, Gemma 4 tools fix and Google Gemini have no screens of their own (Google Gemini only adds a provider to the model dialog, which a phone has as well), and Chinese localization is in the language selector of the phone menu. Extensions are installed from the Admin page,
+Character Tracker, Instruction Exporter and Reviewer do; Side Query, Lore Generator and Lorebook VCS add nothing on a phone (see [Using Marginalia on a phone](../phone.md#extensions)). Name generator, Name provider, Gemma 4 tools fix and Google Gemini have no screens of their own (Google Gemini only adds a provider to the model dialog, which a phone has as well), and Chinese localization is in the language selector of the phone menu. Extensions are installed from the Admin page,
 which a phone doesn't have.
 
 ## Extension settings

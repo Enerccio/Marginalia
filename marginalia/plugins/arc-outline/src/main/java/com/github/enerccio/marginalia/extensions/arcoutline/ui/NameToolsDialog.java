@@ -17,8 +17,9 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * Chooses the categories of the name generator the model may ask names of. There are many of them: a lazy grid with a
- * filter field, where the checked categories stay in the grid whatever the filter says.
+ * Chooses the categories of the name extensions the model may ask names of: the Name Generator ({@code Generator: })
+ * and the Name Provider ({@code Provider: }). There are many of them: a lazy grid with a filter field, where the checked
+ * categories stay in the grid whatever the filter says.
  */
 public class NameToolsDialog extends Dialog {
 
@@ -28,7 +29,7 @@ public class NameToolsDialog extends Dialog {
     private final Span count = new Span();
 
     /**
-     * @param available all the categories of the name generator
+     * @param available all the categories of the name extensions, with the prefix of their source
      * @param checked   the categories checked now (the ones not in {@code available} are ignored)
      * @param onSave    gets the checked categories when the user saves
      */
@@ -39,7 +40,7 @@ public class NameToolsDialog extends Dialog {
         setWidth("min(720px, 95vw)");
         setHeight("80vh");
 
-        Span hint = new Span("The model can ask for names of the checked categories. None checked: no tools.");
+        Span hint = new Span("The model can ask for names of the checked categories: Generator categories give made up names, Provider categories real ones. Checked from one of them: only its tools, from both: both, none checked: no tools.");
         hint.addClassName(CssStyles.HINT_TEXT);
 
         filter.setPlaceholder("Filter categories");

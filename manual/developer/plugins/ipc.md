@@ -9,6 +9,7 @@ covers:
   - marginalia/plugins/sidequery
   - marginalia/plugins/lore-generator/src/main/java/com/github/enerccio/marginalia/extensions/loregenerator/names
   - marginalia/plugins/name-generator/src/main/java/com/github/enerccio/marginalia/extensions/namegenerator/NameGeneratorExtension.java
+  - marginalia/plugins/name-provider/src/main/java/com/github/enerccio/marginalia/extensions/nameprovider/NameProviderExtension.java
 verified: a0219436
 ---
 
@@ -77,8 +78,9 @@ caller may read.
 ## Calling another extension directly
 
 When an extension needs more than text from another one, it calls the other extension's own methods. The
-**Lore Generator** and the **Arc Outline** do this to get names from the **Name Generator**: they let the model call
-its functions (`list_name_categories`, `generate_names`), restricted to the categories the user checked.
+**Lore Generator** and the **Arc Outline** do this to get names from the **Name Generator** and the **Name Provider**: they
+let the model call their functions (`list_name_categories`, `generate_names` and `list_real_name_lists`,
+`pick_real_names`), restricted to the categories the user checked.
 
 ### Do not import the other extension
 
@@ -124,24 +126,29 @@ The rules the bundled code follows:
 - **Only types both sides know cross the border**: the JDK and the application (`List<String>`, `FunctionSet`,
   `Manuscript`...). Your bundle can't name a class of the other one. When you need the other extension's own interface,
   load it with *its* class loader (`extension.getClass().getClassLoader().loadClass(name)`). The Lore Generator does that
-  for `NameGeneratorFunctions`: it wraps the real implementation in a `java.lang.reflect.Proxy` of that interface that
-  only lets the checked categories through, and hands the proxy to `FunctionRegistry.bind(type, proxy)` to get the
-  `FunctionSet` for the model.
+  for `NameGeneratorFunctions` and `NameProviderFunctions`: it wraps the real implementation in a `java.lang.reflect.Proxy`
+  of that interface that only lets the checked categories through, and hands the proxy to
+  `FunctionRegistry.bind(type, proxy)` to get the `FunctionSet` for the model. The sets of several extensions are put
+  together with `FunctionSet.and` (the names of the functions must differ, which is why the provider's are
+  `list_real_name_lists` and `pick_real_names`), so a request has the functions of both, of one or of none.
 - **Look it up on every call.** Keep no reference to the extension, its classes or its `Method` objects: they would
   keep an unloaded extension alive. A missing extension is a normal answer (`null`), not an error: the dialogs of the
   generators ask when they open and hide the *Name tools* button when there is none. A screen that stays open can follow
   the loading and unloading with `OsgiService.addExtensionListener` (the listener is held weakly, keep a reference to it).
-- **One class touches the other extension** (`NameGeneratorBridge`, with the class name and the method names as
+- **One class touches the other extensions** (`NameToolsBridge`, with the class names and the method names as
   constants), so that a change on the other side breaks one place and the reflection is not spread over the code.
   Report a failed call with an exception that says what is missing; the caller decides what to show.
 - **Selections and settings are yours**: the Lore Generator keeps the category names the user checked in its own
   settings and passes them to the bridge each time; the bridge leaves out a category that the other extension no longer
-  has.
+  has. When one bridge serves several extensions, prefix what is saved with its source (`Generator: `, `Provider: `)
+  so that equal titles can not be confused, and read what was saved before the prefix existed as the first source
+  (`NameToolsBridge.normalize`). The caller finds out which functions it got with `FunctionSet.contains` (to add the hint
+  about them to the prompt), no flags have to be carried around.
 
 ### Offering something to be called
 
 An extension that wants to be called gives its `MarginaliaExtension` class a few `public` methods that use only JDK and
-application types (the Name Generator has `categories()`, `newFunctions()` and `functions()`). There is no compiler
+application types (the Name Generator and the Name Provider have `categories()`, `newFunctions()` and `functions()`). There is no compiler
 between the two, so treat the class name, the method names and their signatures as a contract: keep them stable, say so
 in the README of the plugin, and when you must change them, change the callers (here: the two bridges) in the same commit.
 The offering extension does not need to know who calls it.
@@ -156,8 +163,8 @@ The offering extension does not need to know who calls it.
 | The user chooses | what to include (the *Side Query* popover) | usually nothing, the feature simply appears (the *Name tools* button) |
 | When it is missing | its entry is not in the list | the lookup returns `null` |
 
-The two bridges in the repository are `marginalia/plugins/lore-generator/.../names/NameGeneratorBridge.java` and the copy
-in `marginalia/plugins/arc-outline/.../names/NameGeneratorBridge.java` (plugins are separate bundles, so the copy is not
+The two bridges in the repository are `marginalia/plugins/lore-generator/.../names/NameToolsBridge.java` and the copy
+in `marginalia/plugins/arc-outline/.../names/NameToolsBridge.java` (plugins are separate bundles, so the copy is not
 shared).
 
 ## In the bundled extensions

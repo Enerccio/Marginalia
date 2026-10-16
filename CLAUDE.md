@@ -29,7 +29,7 @@ Use a separate `-Duser.home` for dev runs: data lives in `~/.marginalia` (also t
 
 `pom.xml` in the repo root is the parent POM of the app and all plugins: it holds the version (children inherit it; bump with `mvn versions:set -DnewVersion=X -DgenerateBackupPoms=false` in the root) and aggregates them, so `mvn package` there builds everything. Building a plugin on its own needs `mvn -N install` in the root once, besides the app's `mvn install`.
 
-Plugins (`marginalia/plugins/*`: arc-outline, authorsnote, chaptermarker, character-tracker, chineselocalization, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, reviewer, sidequery; the list is in the `<modules>` of the root `pom.xml`) are separate Maven projects (OSGi bundles): after `mvn install` of the app, run `mvn package` in the plugin dir, then load the JAR in Admin → Extensions. They must be built from the same source tree as the app.
+Plugins (`marginalia/plugins/*`: arc-outline, authorsnote, chaptermarker, character-tracker, chineselocalization, gemma4toolsfix, google-genai, instructionexporter, lore-generator, lorebookvcs, name-generator, name-provider, reviewer, sidequery; the list is in the `<modules>` of the root `pom.xml`) are separate Maven projects (OSGi bundles): after `mvn install` of the app, run `mvn package` in the plugin dir, then load the JAR in Admin → Extensions. They must be built from the same source tree as the app.
 
 There is no lint step. First build is slow (Vaadin downloads Node.js and npm packages).
 

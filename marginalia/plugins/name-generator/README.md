@@ -15,9 +15,10 @@ Gives the model functions to get names instead of inventing them, from Markov ch
 
 `NameGeneratorFunctions` is the `@LLMFunction` interface, `NameGeneratorFunctionsImpl` the implementation (`MAX_COUNT`,
 `clampCount`) on `NameTables` (loading and sampling). The extension compiles the interface on load; `NameGeneratorExtension.functions()` returns the bound
-`FunctionSet` to pass to `InferenceService.stream`. The [Lore Generator](../lore-generator/README.md) offers the functions to the
-model for the categories the user checks; it finds this extension by reflection (`NameGeneratorBridge`), so this one can be
-unloaded and installed again without restarting it.
+`FunctionSet` to pass to `InferenceService.stream`. The [Lore Generator](../lore-generator/README.md) and the
+[Arc Outline](../arc-outline/README.md) offer the functions to the model for the categories the user checks (prefix
+`Generator: `, the categories of the [Name provider](../name-provider/README.md) have `Provider: `); they find this extension by
+reflection (`NameToolsBridge`), so this one can be unloaded and installed again without restarting them.
 
 ## Name tables
 
@@ -92,6 +93,18 @@ into `target/markov-namegen-lib` and turns every `word_lists/*.txt` (one name pe
 
 `generate_names` walks the chain, drops names outside the lengths and duplicates, so a small
 category can return fewer names than asked for.
+
+### Popular names by country
+
+`src/build/ImportPopularNames.java` (execution `import-popular-names`, after markov-namegen-lib and before the training)
+clones the [popular names by country dataset](https://github.com/sigpwned/popular-names-by-country-dataset) (CC0) into
+`target/popular-names` and turns the **romanized surnames** of its `common-surnames-by-country.csv` into source files in
+`src/build/resources/popular-names`, one per country. Only the `Country` and `Romanized Name` columns are read; the
+category is `<Country> - Surnames` with the code expanded to the English name (`AM` is `Armenia`, `XK` `Kosovo`). The
+alternatives of a cell (`Huỳnh/Hoàng`) are separate names, rows without a romanized name are dropped, countries with fewer than
+5 names and titles used by another source are skipped (75 categories). Same rules as above for the clone and for a
+missing network. The real names, as pairs with the original script, are the business of the
+[Name provider](../name-provider/README.md).
 
 ### Kate Monk's Onomastikon
 

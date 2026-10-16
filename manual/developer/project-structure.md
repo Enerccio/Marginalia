@@ -324,9 +324,10 @@ plugins/<name>/
 | Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
 | Google Gemini | `extensions.googlegenai` | Activator and extension, `GoogleGenAiFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Google Gen AI SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
-| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `NameToolsDialog`, `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `NameGeneratorBridge` (the Name generator by reflection). |
+| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `NameToolsDialog`, `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `NameToolsBridge` (the Name generator and the Name provider by reflection). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameTables` (the chains and the sampling). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
+| Name provider | `extensions.nameprovider` | The extension, the `@LLMFunction` interface and its implementation, `NameLists` (the lists of real names and the random choice), `NameEntry` (a pair of the romanized and the original name). `src/build/ImportPopularNames.java` writes `name-lists.json` from the popular names by country dataset, see its README. |
 | Reviewer | `extensions.reviewer` | Model (`ReviewerProfile` with a stable uuid), service, dialogs, a settings form and `ManuscriptProfileSelect`, the profile picker of a book's info tab. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |

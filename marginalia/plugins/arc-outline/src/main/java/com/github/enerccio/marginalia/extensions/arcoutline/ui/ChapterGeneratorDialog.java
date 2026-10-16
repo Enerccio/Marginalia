@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
@@ -188,9 +189,9 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
     // --- generation ---
 
     @Override
-    protected String buildPrompt(String template, boolean nameTools) throws Exception {
+    protected String buildPrompt(String template, FunctionSet nameFunctions) throws Exception {
         return service.buildChapterPrompt(manuscript, outline, arc, contextGroup.getValue(), template, numberOfChapters(),
-                generalSpecification.getValue(), chapterSpecification(), nameTools);
+                generalSpecification.getValue(), chapterSpecification(), nameFunctions);
     }
 
     @Override

@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.structured.PartialJson;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.ArcOutlineSettings;
+import com.github.enerccio.marginalia.extensions.arcoutline.names.NameToolsBridge;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.ModelSelection;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -130,10 +131,10 @@ public abstract class GeneratorDialog extends Dialog {
      * The prompt to send.
      *
      * @param template  the template in the prompt field
-     * @param nameTools whether the model gets the name tools (their hint is added to the prompt)
+     * @param nameFunctions the name functions the model gets, null for none (the hint about each kind is added to the prompt)
      * @throws Exception when the template is not valid
      */
-    protected abstract String buildPrompt(String template, boolean nameTools) throws Exception;
+    protected abstract String buildPrompt(String template, FunctionSet nameFunctions) throws Exception;
 
     /** The JSON schema of the answer, for the generation that is about to start. */
     protected abstract JsonNode schema();
@@ -191,7 +192,7 @@ public abstract class GeneratorDialog extends Dialog {
      */
     protected final void build() {
         ArcOutlineSettings settings = loadSettings();
-        nameCategories = settings.getNameCategories();
+        nameCategories = NameToolsBridge.normalize(settings.getNameCategories());
         String prompt = promptTemplate(settings);
 
         // less padding than the default of the dialog and tight spacing, the texts get the room
@@ -220,7 +221,7 @@ public abstract class GeneratorDialog extends Dialog {
 
         // only when the Name Generator extension is loaded
         nameToolsButton = new Button("Name tools", Solid.SIGNATURE.create(), _ -> openNameToolsDialog());
-        nameToolsButton.setTooltipText("Let the model get names from the Name Generator extension");
+        nameToolsButton.setTooltipText("Let the model get names from the Name Generator (made up names) and the Name Provider (real names) extensions");
         nameToolsButton.setVisible(supportsNameTools() && service.nameCategories() != null);
         refreshNameToolsLabel();
 
@@ -315,7 +316,7 @@ public abstract class GeneratorDialog extends Dialog {
     private void openNameToolsDialog() {
         List<String> available = service.nameCategories();
         if (available == null) {
-            Notification.warning("The Name Generator extension is not loaded");
+            Notification.warning("Neither the Name Generator nor the Name Provider extension is loaded");
             nameToolsButton.setVisible(false);
             return;
         }
@@ -347,7 +348,7 @@ public abstract class GeneratorDialog extends Dialog {
         try {
             // the hint about the tools is added only when the model gets them
             FunctionSet nameFunctions = supportsNameTools() ? service.nameFunctions(nameCategories) : null;
-            String prompt = buildPrompt(promptArea.getValue(), nameFunctions != null);
+            String prompt = buildPrompt(promptArea.getValue(), nameFunctions);
             JsonNode schema = schema();
             // forget the last generation only when there is a new one to make
             reset();

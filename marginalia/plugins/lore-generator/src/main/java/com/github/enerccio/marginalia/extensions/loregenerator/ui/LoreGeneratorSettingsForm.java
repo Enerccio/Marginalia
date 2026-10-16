@@ -26,6 +26,7 @@ public class LoreGeneratorSettingsForm extends VerticalLayout {
 
     private TextAreaPopoverComponent compactionPromptArea;
     private TextAreaPopoverComponent nameToolsPromptArea;
+    private TextAreaPopoverComponent nameProviderPromptArea;
 
     private LoreGeneratorData data;
 
@@ -44,13 +45,21 @@ public class LoreGeneratorSettingsForm extends VerticalLayout {
                 compactionPromptArea.getPopover(), null, Defaults.COMPACTION_PROMPT));
         add(compactionPromptArea);
 
-        nameToolsPromptArea = new TextAreaPopoverComponent("Name tools hint (added to the generation prompt when name categories are selected)");
+        nameToolsPromptArea = new TextAreaPopoverComponent("Name generator hint (added to the generation prompt when categories of the Name Generator are selected)");
         nameToolsPromptArea.setWidthFull();
         nameToolsPromptArea.setPlaceholder(Defaults.NAME_TOOLS_PROMPT);
         ResizableTextArea.install(loc, nameToolsPromptArea, "100px");
         nameToolsPromptArea.setPopoverContent(TemplateHints.create(loc, nameToolsPromptArea,
                 nameToolsPromptArea.getPopover(), null, Defaults.NAME_TOOLS_PROMPT));
         add(nameToolsPromptArea);
+
+        nameProviderPromptArea = new TextAreaPopoverComponent("Name provider hint (added to the generation prompt when categories of the Name Provider are selected)");
+        nameProviderPromptArea.setWidthFull();
+        nameProviderPromptArea.setPlaceholder(Defaults.NAME_PROVIDER_PROMPT);
+        ResizableTextArea.install(loc, nameProviderPromptArea, "100px");
+        nameProviderPromptArea.setPopoverContent(TemplateHints.create(loc, nameProviderPromptArea,
+                nameProviderPromptArea.getPopover(), null, Defaults.NAME_PROVIDER_PROMPT));
+        add(nameProviderPromptArea);
 
         refresh();
     }
@@ -60,6 +69,7 @@ public class LoreGeneratorSettingsForm extends VerticalLayout {
             data = loreGeneratorService.getData();
             compactionPromptArea.setValue(StringUtils.defaultString(data.getCompactionPrompt()));
             nameToolsPromptArea.setValue(StringUtils.defaultString(data.getNameToolsPrompt()));
+            nameProviderPromptArea.setValue(StringUtils.defaultString(data.getNameProviderPrompt()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -75,6 +85,7 @@ public class LoreGeneratorSettingsForm extends VerticalLayout {
         // empty means the default prompt is used
         data.setCompactionPrompt(StringUtils.defaultIfBlank(compactionPromptArea.getValue(), null));
         data.setNameToolsPrompt(StringUtils.defaultIfBlank(nameToolsPromptArea.getValue(), null));
+        data.setNameProviderPrompt(StringUtils.defaultIfBlank(nameProviderPromptArea.getValue(), null));
         return data;
     }
 }

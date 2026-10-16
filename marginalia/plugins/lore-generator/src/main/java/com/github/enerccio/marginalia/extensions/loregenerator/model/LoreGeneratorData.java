@@ -42,6 +42,17 @@ public class LoreGeneratorData {
         this.nameToolsPrompt = nameToolsPrompt;
     }
 
+    /** Hint about the real name tools added to the generation prompt; blank means {@code Defaults.NAME_PROVIDER_PROMPT}. */
+    private String nameProviderPrompt;
+
+    public String getNameProviderPrompt() {
+        return nameProviderPrompt;
+    }
+
+    public void setNameProviderPrompt(String nameProviderPrompt) {
+        this.nameProviderPrompt = nameProviderPrompt;
+    }
+
     public String getCompactionPrompt() {
         return compactionPrompt;
     }

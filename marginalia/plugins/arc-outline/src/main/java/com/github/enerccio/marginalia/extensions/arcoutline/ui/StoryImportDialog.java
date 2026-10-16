@@ -5,6 +5,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
@@ -220,7 +221,7 @@ public class StoryImportDialog extends GeneratorDialog {
                 .append(range.size() == 1 ? " message, about " : " messages, about ")
                 .append(format.format(story)).append(" tokens.");
         try {
-            long prompt = service.countTokens(buildPrompt(promptValue(), false));
+            long prompt = service.countTokens(buildPrompt(promptValue(), null));
             text.append(" Prompt sent to the model: about ").append(format.format(prompt)).append(" tokens");
             int available = TokenLimits.promptTokens(selectedAi(), selectedProtocol());
             if (available > 0) {
@@ -242,7 +243,7 @@ public class StoryImportDialog extends GeneratorDialog {
     // --- generation ---
 
     @Override
-    protected String buildPrompt(String template, boolean nameTools) throws Exception {
+    protected String buildPrompt(String template, FunctionSet nameFunctions) throws Exception {
         return service.buildImportPrompt(manuscript, outline, template, selected(), exactCount());
     }
 

@@ -11,7 +11,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
-import com.github.enerccio.marginalia.extensions.arcoutline.names.NameGeneratorBridge;
+import com.github.enerccio.marginalia.extensions.arcoutline.names.NameToolsBridge;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -187,23 +187,24 @@ public class ArcOutlineService {
     // --- name tools ---
 
     /**
-     * The categories of the name generator extension, null when it is not installed (it is looked up on every call,
-     * it can be loaded and unloaded while the application runs).
+     * The categories of the name extensions (Name Generator and Name Provider, each with the prefix of its source),
+     * null when none is installed (they are looked up on every call, they can be loaded and unloaded while the
+     * application runs).
      */
     public List<String> nameCategories() {
-        return osgiService == null ? null : NameGeneratorBridge.categories(osgiService);
+        return osgiService == null ? null : NameToolsBridge.categories(osgiService);
     }
 
     /**
-     * The functions that give the model names of the selected categories, null when none of them is available
-     * (nothing selected, or the extension is gone).
+     * The functions that give the model names of the selected categories: those of the extension of each source that
+     * has a selected category (one, both or, as null, none: nothing selected, or the extensions are gone).
      */
     public FunctionSet nameFunctions(Collection<String> selected) {
         if (selected == null || selected.isEmpty()) {
             return null;
         }
         return osgiService == null ? null
-                : NameGeneratorBridge.functions(osgiService, inferenceServices.getFunctionRegistry(), selected);
+                : NameToolsBridge.functions(osgiService, inferenceServices.getFunctionRegistry(), selected);
     }
 
     // --- generation ---
@@ -251,23 +252,36 @@ public class ArcOutlineService {
 
     /**
      * The prompt for generating an arc: the template with the lore of the book, its arcs and the specification put in,
-     * followed by the hint about the name tools (the user's or {@link Defaults#NAME_TOOLS_PROMPT}) when the model has
-     * them.
+     * followed by the hint about each kind of name tools the model has (see {@link #withNameHints}).
      *
      * @param template      the prompt template, with {{backgroundLore}}, {{existingArcs}} and {{specification}}
      * @param specification what the author wants from the arc
+     * @param nameFunctions the name functions the model gets, null for none
      * @throws Exception when the template is not valid
      */
     public String buildPrompt(Manuscript manuscript, ArcOutline outline, String template, String specification,
-                              boolean nameTools) throws Exception {
+                              FunctionSet nameFunctions) throws Exception {
         ArcGenerationTemplateData data = new ArcGenerationTemplateData();
         data.setBackgroundLore(buildBackgroundLore(manuscript));
         data.setExistingArcs(describeArcs(outline));
         data.setSpecification(StringUtils.defaultIfBlank(specification, "(nothing in particular, decide yourself)").strip());
 
-        String prompt = templateService.processTemplate(template, "arcGeneration", data);
-        if (nameTools) {
+        return withNameHints(templateService.processTemplate(template, "arcGeneration", data), nameFunctions);
+    }
+
+    /**
+     * The prompt followed by the hint about each kind of name tools the model has (the user's or
+     * {@link Defaults#NAME_TOOLS_PROMPT} for the generated names, the user's or {@link Defaults#NAME_PROVIDER_PROMPT}
+     * for the real ones).
+     *
+     * @param nameFunctions the functions the model gets, null for none
+     */
+    private String withNameHints(String prompt, FunctionSet nameFunctions) throws Exception {
+        if (nameFunctions != null && nameFunctions.contains(NameToolsBridge.GENERATOR_FUNCTION)) {
             prompt += "\n\n" + StringUtils.defaultIfBlank(getSettings().getNameToolsPrompt(), Defaults.NAME_TOOLS_PROMPT).strip();
+        }
+        if (nameFunctions != null && nameFunctions.contains(NameToolsBridge.PROVIDER_FUNCTION)) {
+            prompt += "\n\n" + StringUtils.defaultIfBlank(getSettings().getNameProviderPrompt(), Defaults.NAME_PROVIDER_PROMPT).strip();
         }
         return prompt;
     }
@@ -322,7 +336,7 @@ public class ArcOutlineService {
      */
     public String buildChapterPrompt(Manuscript manuscript, ArcOutline outline, Arc arc, ChapterContext context,
                                      String template, String numberOfChapters, String generalSpecification,
-                                     String chapterSpecification, boolean nameTools) throws Exception {
+                                     String chapterSpecification, FunctionSet nameFunctions) throws Exception {
         ChapterGenerationTemplateData data = new ChapterGenerationTemplateData();
         data.setBackgroundLore(buildBackgroundLore(manuscript));
         data.setOutline(describeOutline(outline, arc, context));
@@ -330,11 +344,7 @@ public class ArcOutlineService {
         data.setGeneralSpecification(StringUtils.defaultIfBlank(generalSpecification, "(nothing in particular, decide yourself)").strip());
         data.setChapterSpecification(chapterSpecification);
 
-        String prompt = templateService.processTemplate(template, "chapterGeneration", data);
-        if (nameTools) {
-            prompt += "\n\n" + StringUtils.defaultIfBlank(getSettings().getNameToolsPrompt(), Defaults.NAME_TOOLS_PROMPT).strip();
-        }
-        return prompt;
+        return withNameHints(templateService.processTemplate(template, "chapterGeneration", data), nameFunctions);
     }
 
     /**

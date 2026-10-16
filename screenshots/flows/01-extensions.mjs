@@ -4,7 +4,7 @@ import path from 'node:path';
 import {idle, launch, login, repo, snap} from '../lib/shot.mjs';
 
 const plugins = ['authorsnote', 'chaptermarker', 'character-tracker', 'chineselocalization', 'gemma4toolsfix',
-  'instructionexporter', 'lore-generator', 'lorebookvcs', 'name-generator', 'reviewer', 'sidequery'];
+  'instructionexporter', 'lore-generator', 'lorebookvcs', 'name-generator', 'name-provider', 'reviewer', 'sidequery'];
 
 const { browser, page } = await launch();
 await login(page);
