@@ -554,7 +554,7 @@ class TabDockTest extends MarginaliaTestBase {
 
         Manuscript saved = manuscriptService.find(manuscript);
         assertThat(saved.getAttributes().getAsJsonObject(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE))
-                .isEqualTo(layout("\"" + ManuscriptStoryPart.CHAPTERS_TAB + "\"", "\"extra\""));
+                .isEqualTo(layout("\"" + ManuscriptStoryPart.CHAPTERS_TAB + "\",\"" + ManuscriptStoryPart.LOREBOOK_TAB + "\"", "\"extra\""));
 
         // a dialog opened later has the sheets as they were left
         ManuscriptDialog next = new ManuscriptDialog(saved);

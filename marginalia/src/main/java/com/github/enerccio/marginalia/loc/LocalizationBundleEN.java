@@ -342,6 +342,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_PROVIDER, "Provider");
         setValue(L.LABEL_DROP_TAB_TO_DETACH, "Drop the tab here to detach it");
         setValue(L.LABEL_DROP_TAB_TO_DETACH_SIDE, "Detach to the side");
+        setValue(L.LABEL_INCLUDE_SUB_LOREBOOKS, "Include sub lorebooks");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -523,6 +524,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_MERGE_TAG, "The tag \"%s\" already exists. Merge \"%s\" into it?\nThe tag \"%s\" is deleted and its objects get the tag \"%s\" instead.");
         setValue(L.MSG_TAG_RENAME_NOT_FOUND, "The tag no longer exists");
         setValue(L.MSG_AI_EXTENSION_NOT_LOADED, "The extension \"%s\" that provides this AI is not loaded, so its settings cannot be shown. Load it in Admin → Extensions. The other settings can still be saved.");
+        setValue(L.MSG_NO_STORY_LOREBOOK, "The story has no lorebook. Choose one in the Lorebook tab.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

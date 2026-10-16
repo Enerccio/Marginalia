@@ -342,6 +342,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_PROVIDER, "プロバイダー");
         setValue(L.LABEL_DROP_TAB_TO_DETACH, "ここにタブをドロップして切り離す");
         setValue(L.LABEL_DROP_TAB_TO_DETACH_SIDE, "横に切り離す");
+        setValue(L.LABEL_INCLUDE_SUB_LOREBOOKS, "サブロアブックを含める");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -523,6 +524,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_MERGE_TAG, "タグ「%s」はすでに存在します。「%s」をそれに統合しますか？\nタグ「%s」は削除され、そのオブジェクトには代わりにタグ「%s」が付きます。");
         setValue(L.MSG_TAG_RENAME_NOT_FOUND, "タグはもう存在しません");
         setValue(L.MSG_AI_EXTENSION_NOT_LOADED, "この AI を提供する拡張機能「%s」が読み込まれていないため、その設定を表示できません。管理 → 拡張機能 で読み込んでください。その他の設定は保存できます。");
+        setValue(L.MSG_NO_STORY_LOREBOOK, "このストーリーにはロアブックがありません。「ロアブック」タブで選択してください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.RestorableState;
+import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
@@ -62,6 +63,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
      */
     public static final String CHAPTERS_TAB = "chapters";
 
+    /**
+     * Id of the read only lorebook preview tab in the layout of the sidebar.
+     */
+    public static final String LOREBOOK_TAB = "lorebook";
+
     @Autowired
     private Localization loc;
 
@@ -88,6 +94,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private TabDock leftBar;
     private Span sidebarHeader;
     private VerticalLayout sidebarList;
+    private LorebookPreview lorebookPreview;
 
     private MenuBar menuBar;
     private MenuItem summariesMenuItem;
@@ -138,6 +145,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         });
         leftMarginLayout.add(leftBar);
         createStoryOutlineTab();
+        createLorebookTab();
 
         centerLayout = new VerticalLayout();
         centerLayout.setSizeFull();
@@ -521,6 +529,16 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         leftMarginLayout.setFlexGrow(1, sidebarList);
     }
 
+    /**
+     * The tab with the read only preview of the lore of the story, it is loaded again every time the story is entered.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class))
+    private void createLorebookTab() {
+        lorebookPreview = new LorebookPreview().create();
+        leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), lorebookPreview);
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "leaf", type = ChatMessage.class),
@@ -638,6 +656,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         applyTabsConfig(manuscript);
         renderStoryContent();
         refreshSummariesMenuItem();
+        if (lorebookPreview != null) {
+            // the user may have changed the lore in the other tabs
+            lorebookPreview.refresh(manuscript == null ? null : manuscript.getLorebook());
+        }
     }
 
     /**
