@@ -65,6 +65,31 @@ vaadin-markdown span {
     box-sizing: border-box !important;
 }
 
+/* The other elements Markdown makes break long words too: lists, headings, quotes, tables, links, emphasis */
+vaadin-markdown li,
+vaadin-markdown h1,
+vaadin-markdown h2,
+vaadin-markdown h3,
+vaadin-markdown h4,
+vaadin-markdown h5,
+vaadin-markdown h6,
+vaadin-markdown blockquote,
+vaadin-markdown th,
+vaadin-markdown td,
+vaadin-markdown a,
+vaadin-markdown em,
+vaadin-markdown strong {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+vaadin-markdown img,
+vaadin-markdown table {
+    max-width: 100%;
+}
+
 /* A message card of the story */
 .chat-message {
     margin-bottom: 8px;
