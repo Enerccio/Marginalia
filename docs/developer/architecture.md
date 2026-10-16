@@ -375,7 +375,9 @@ sequenceDiagram
   Vaadin session. `UserServiceImpl.changePassword` / `clearPassword` use it to invalidate the other sessions of the
   user whose password changed - a user changing their own password stays logged in in the current session.
 - **The help chat.** `SessionPoint` (the session-scoped bean with the language) also keeps the conversation with the help
-  assistant (`getHelpChat()`, a synchronized list of messages); logout invalidates the session, which ends it.
+  assistant (`getHelpChat()`, a synchronized list of messages) and the problems the user was shown (`getProblems()`, see
+  [What went wrong](ui.md#what-went-wrong-the-problem-log)); `Main` attaches that log to the Vaadin session after login so that code on
+  threads without a request can write to it. Logout invalidates the session, which ends both.
 - **Open UIs.** After login `Main` and `Viewer` register their UI in `ApplicationPoint` (bean `applicationPoint`)
   with the workspace (`Main` only) and a copy of the user. `SessionInformation.getUI(workspaceClass, applicationPoint)`
   / `getWorkspace(...)` find the session's UI showing a given workspace type.

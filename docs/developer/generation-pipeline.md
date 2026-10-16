@@ -253,7 +253,8 @@ down instead of piling up chunks.
 
 On completion the exact token counts are computed, the state becomes `SUCCESSFUL` (`AFTER_INFERENCE`) and the engine
 moves to `CLEANUP`. An error goes to `CLEANUP` too: a failure of the provider (`InferenceException`, see
-[Services](services.md)) is reported with `onSimpleError` and a localized text of what to fix, anything else with
+[Services](services.md)) is reported with `onInferenceError` (a default method of `GenerationListener` that calls `onSimpleError`; the story editor's
+listener also writes it to the session's problem log for the help assistant) and a localized text of what to fix, anything else with
 `onError`.
 
 ### Usage counting
@@ -378,7 +379,8 @@ The bundled Author's Note plugin is a complete example: it reserves tokens in `B
   the new part or restores the regenerated one, like after an error. Only `CLEANUP` reports the end to the listener.
 - **Errors** - an exception in a step or continuation, a failed request - are reported with
   `GenerationListener.onError` and also end in `CLEANUP`. Validation problems (no provider, context too small) use
-  `onSimpleError` with a localized message, as do failures answered by the provider (wrong key, context too long...).
+  `onSimpleError` with a localized message; failures answered by the provider (wrong key, context too long...) use `onInferenceError`,
+  which does the same unless the listener overrides it.
 - **Questions** - `listener.askQuestion(text, yes, no)` lets a step ask the user and continue in one of two
   continuations (`controller.wrapCallback(...)`); used for invalidated summaries.
 
