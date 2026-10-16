@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489598422">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494101760">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845489598422" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845494101760" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845489598422" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494101760" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845489598422" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845489598422" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494101760" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845494101760" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1046,7 +1046,7 @@ UI describes itself through <code translate="no" v-pre>LLMInteract</code> (<code
 that extends <code translate="no" v-pre>Dialog</code>, <code translate="no" v-pre>Main</code>, the admin panels, and <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>LorebookPreview</code>, <code translate="no" v-pre>TagsView</code>,
 <code translate="no" v-pre>TrashGrid</code>. An element has a name (<code translate="no" v-pre>getLLMName</code>, the simple class name), a state (<code translate="no" v-pre>getLLMState</code>, <strong>Markdown</strong>: free text
 suits the very different things to say, and it is what a model reads best) and children (<code translate="no" v-pre>getLLMChildren(deep)</code>).
-<code translate="no" v-pre>takeLLMSnapshot()</code> builds the tree, <code translate="no" v-pre>LLMSnapshot</code> (a record <code translate="no" v-pre>path</code>, <code translate="no" v-pre>state</code>, <code translate="no" v-pre>children</code>) holds it: the path of a node is
+<code translate="no" v-pre>takeLLMSnapshot()</code> builds the tree, <code translate="no" v-pre>LLMSnapshot</code> (a record <code translate="no" v-pre>path</code>, <code translate="no" v-pre>state</code>, <code translate="no" v-pre>children</code>, <code translate="no" v-pre>interactions</code>, <code translate="no" v-pre>problems</code>, <code translate="no" v-pre>element</code>) holds it: the path of a node is
 the names from the root (<code translate="no" v-pre>UI/Main/DesktopWorkspace/ManuscriptPart</code>), siblings with one name are numbered (<code translate="no" v-pre>Panel[1]</code>,
 <code translate="no" v-pre>Panel[2]</code>), a node that throws is listed with a note, depth is capped. <code translate="no" v-pre>read(path, maxChars)</code> renders a subtree as
 Markdown (a heading with the path per node) and cuts it with the outline of the rest; an unknown path throws with the
@@ -1070,6 +1070,16 @@ unless it says so: <code translate="no" v-pre>LLMInteract.within(part, component
 <p><strong>What to put in a state.</strong> What the user sees and would say himself: the title of the open book, the open tab, a
 filter. Never a secret, an id, the text of a story or a lorebook (the state goes to the AI of the help assistant, which
 may be a provider outside the installation), and nothing long: the model reads all of it.</p>
+</li>
+<li>
+<p><strong>Problems with a form.</strong> <code translate="no" v-pre>getLLMProblems()</code> lists what is wrong with the form an element shows <em>now</em>, one line each, and
+the snapshot renders it under the state (<code translate="no" v-pre>Problems with the form:</code>, also without the interactions flag). The default,
+<code translate="no" v-pre>LLMFormProblems.scan(component)</code>, walks the visible, enabled fields inside the component (not the ones inside another
+<code translate="no" v-pre>LLMInteract</code>, which reports its own, and not what is hidden or a dialog that is not open): a field marked invalid
+(<code translate="no" v-pre>HasValidation.isInvalid()</code>) with the message it shows, and a required (<code translate="no" v-pre>setRequired</code> / required indicator) field that is empty,
+named by its label, aria label or placeholder. <strong>Never a value.</strong> A form that checks across fields in its save method overrides it and
+adds those rules (<code translate="no" v-pre>AIDialog</code>: the numbers positive, the response smaller than the context, the additional parameters a JSON
+object); <code translate="no" v-pre>within(part, component)</code> scans the component of a part that is not a component itself. At most 15 lines.</p>
 </li>
 <li>
 <p><strong>Called on the UI thread</strong> under the session lock (the widget reads through <code translate="no" v-pre>ui.access</code>); quick, read only.</p>
@@ -1102,10 +1112,15 @@ done); an action that throws is reported the same way.</p>
 <ul>
 <li>
 <p><strong>Only harmless moves.</strong> An interaction is something the user could do with one click and undo with another: open a
-section, select a tab. Never one that changes, saves, deletes, sends, generates, logs out or closes a dialog that may hold
+section, select a tab, open the dialog to add something. Never one that changes, saves, deletes, sends, generates, logs out or closes a dialog that may hold
 unsaved work. There are no generic interactions: each element decides. Today <code translate="no" v-pre>DesktopWorkspace</code> / <code translate="no" v-pre>PhoneWorkspace</code> (<code translate="no" v-pre>open-section:&lt;label&gt;</code>,
-through <code translate="no" v-pre>WorkspaceLLMSupport.openSections</code>), <code translate="no" v-pre>AdminPart</code>, <code translate="no" v-pre>ManuscriptDialog</code> and <code translate="no" v-pre>PhoneManuscriptDialog</code> (<code translate="no" v-pre>open-tab:&lt;label&gt;</code>,
-through <code translate="no" v-pre>LLMInteract.tabs</code>). Keys use the labels the user reads, which is what the model sees in the states.</p>
+through <code translate="no" v-pre>WorkspaceLLMSupport.openSections</code>), <code translate="no" v-pre>AdminPart</code>, <code translate="no" v-pre>UserPart</code> (so the phone settings too), <code translate="no" v-pre>ManuscriptDialog</code> and <code translate="no" v-pre>PhoneManuscriptDialog</code>
+(<code translate="no" v-pre>open-tab:&lt;label&gt;</code>, through <code translate="no" v-pre>LLMInteract.tabs</code>), and the lists of books, models and protocols, desktop and phone (<code translate="no" v-pre>open-dialog:&lt;button text&gt;</code>,
+through <code translate="no" v-pre>LLMInteract.dialogButtons(buttons)</code>, which presses the button the way a click does; it is offered only while the button is shown and enabled and no
+dialog is open, since an open dialog blocks the page and a second one would stack on it). A part that is a table says so with
+<code translate="no" v-pre>WorkspaceLLMSupport.describeTable(&quot;models&quot;, grid, addButton)</code> (the number of rows and what the button does, nothing of the rows).
+Keys use the labels the user reads, which is what the model sees in the states. A dialog is put into the page only when
+the response is about to be sent, so <code translate="no" v-pre>dialogButtons</code> runs those pending executions right after the press: the result of the interaction already shows the dialog.</p>
 </li>
 <li>
 <p><strong>The snapshot carries them.</strong> <code translate="no" v-pre>LLMSnapshot</code> also has <code translate="no" v-pre>interactions</code> (key to description) and the live <code translate="no" v-pre>element</code>, so
@@ -1122,8 +1137,45 @@ with interactions), because a move can change something other than the element (
 <code translate="no" v-pre>@PublicAPI</code>. Keep to the rule above.</p>
 </li>
 </ul>
-<p><code translate="no" v-pre>UiStateSource</code> has <code translate="no" v-pre>read(path, deep, withInteractions, done)</code> and <code translate="no" v-pre>interact(path, interactions, done)</code>; <code translate="no" v-pre>HelpAssistantService.ask</code>
-appends <code translate="no" v-pre>HelpPrompts.INTERACTIVE</code> to the prompt when the model has the function, so that an edited prompt cannot lose its rules.</p>
+<p><code translate="no" v-pre>UiStateSource</code> has <code translate="no" v-pre>read(path, deep, withInteractions, done)</code>, <code translate="no" v-pre>interact(path, interactions, done)</code> and <code translate="no" v-pre>readProblems(count, done)</code>;
+<code translate="no" v-pre>HelpAssistantService.ask</code> appends <code translate="no" v-pre>HelpPrompts.INTERACTIVE</code> to the prompt when the model has the function, so that an edited prompt cannot lose its rules.</p>
+<h3 id="what-went-wrong-the-problem-log">What went wrong: the problem log</h3>
+<p>When a user says that something failed, the model calls <code translate="no" v-pre>read_last_errors(count)</code> (<code translate="no" v-pre>HelpTools</code>, bound for everybody) to read what
+the application showed them. Four pieces:</p>
+<ul>
+<li>
+<p><strong><code translate="no" v-pre>UiProblem</code> / <code translate="no" v-pre>ProblemLog</code> (<code translate="no" v-pre>bound</code>).</strong> A problem is <code translate="no" v-pre>(id, time, kind, message, detail)</code>; kinds are <code translate="no" v-pre>EXCEPTION</code> (error dialog), <code translate="no" v-pre>INFERENCE</code>
+(a failed request to a provider), <code translate="no" v-pre>VALIDATION</code>, <code translate="no" v-pre>ERROR</code> and <code translate="no" v-pre>WARNING</code> (notifications). The <code translate="no" v-pre>ProblemLog</code> of the session lives in
+<code translate="no" v-pre>SessionPoint.getProblems()</code>, holds the last 20 and is synchronized. The same message told twice within two seconds is one problem
+and the more specific kind stays (the code that failed records <code translate="no" v-pre>INFERENCE</code> with its exception, then the notification that shows it
+records <code translate="no" v-pre>ERROR</code>). <code translate="no" v-pre>UiProblem.clean</code> makes the text safe for a model: one line, what looks like a key, a token or a password replaced
+by <code translate="no" v-pre>[removed]</code>, cut at 400 characters; <code translate="no" v-pre>detail</code> is the chain of the exceptions (class and message, four deep), never a stack trace.</p>
+</li>
+<li>
+<p><strong><code translate="no" v-pre>UiProblems</code> (<code translate="no" v-pre>utils</code>) is the recorder.</strong> <code translate="no" v-pre>UIUtils.showError</code>, <code translate="no" v-pre>internalServerError</code>, <code translate="no" v-pre>inferenceError</code> and <code translate="no" v-pre>showValidationErrors</code> call it,
+and so does every <code translate="no" v-pre>Notification.error</code> / <code translate="no" v-pre>warning</code> (the central place: the text the user is told is the text recorded), and
+<code translate="no" v-pre>StoryGenerationListener.onInferenceError</code> (new in <code translate="no" v-pre>GenerationListener</code>, a default that calls <code translate="no" v-pre>onSimpleError</code>; <code translate="no" v-pre>InferenceStep</code> calls
+it for a provider failure). It reaches the log through the <em>Vaadin session</em>, where <code translate="no" v-pre>Main</code> (after login) and the widget <code translate="no" v-pre>attach</code> it, not
+through the <code translate="no" v-pre>SessionPoint</code> bean: notifications are shown from <code translate="no" v-pre>ui.access(...)</code> on threads that have no HTTP request, where the
+scoped bean can not be resolved. Nothing is recorded before it is attached, and recording never throws.</p>
+</li>
+<li>
+<p><strong>The browser keeps the last three.</strong> For the unexpected failures (<code translate="no" v-pre>EXCEPTION</code>, <code translate="no" v-pre>INFERENCE</code>) it also pushes the problem as JSON to the
+<code translate="no" v-pre>sessionStorage</code> of the tab (<code translate="no" v-pre>JavascriptLibrary.rememberProblem</code>, key <code translate="no" v-pre>marginalia.problems</code>), which survives a reload and a new session.
+<code translate="no" v-pre>readLastErrors</code> merges both copies by id, newest first (<code translate="no" v-pre>UiProblems.merge</code>), reading the browser&#x27;s through
+<code translate="no" v-pre>JavascriptLibrary.readRememberedProblems</code> (a round trip, so the widget answers the continuation in its callback;
+<code translate="no" v-pre>HelpAssistantWidget.problemsText</code> renders it). What the storage holds is the user&#x27;s, so anything that does not parse is skipped.</p>
+</li>
+<li>
+<p><strong>Form problems are not here.</strong> What is wrong with the form that is open comes with the screen (<code translate="no" v-pre>Problems with the form</code>, above); the
+log has the messages the user was told when they tried to save (the generic <em>validation failed</em> warning, or <code translate="no" v-pre>showValidationErrors</code>&#x27;s text).</p>
+</li>
+</ul>
+<p>The widget also keeps the links of an answer from leaving the application (<code translate="no" v-pre>JavascriptLibrary.openLinksInNewTab</code>: a click handler on the
+messages, <code translate="no" v-pre>noopener</code>) and stays usable above a dialog (<code translate="no" v-pre>JavascriptLibrary.keepOnTopOfDialogs</code>): a dialog and its curtain are in the
+top layer of the browser, over the button and the panel, so while one is open (and again whenever another opens) the widget&#x27;s children
+become manual popovers, shown after it (CSS <code translate="no" v-pre>.help-root &gt; [popover]</code> puts the popover defaults back and moves them to the left, away from
+the buttons a dialog has in its bottom right corner). The server accepts their events: strict modality does not block this widget.</p>
 
                 
                 <!-- Required only on API pages -->

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489598422">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494101760">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845489598422" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845494101760" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845489598422" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494101760" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845489598422" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494101760" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -291,7 +291,8 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `SessionInformation.java` | What `SessionManager` knows about one session: HTTP and Vaadin session, user, main UI, captured request attributes, close listeners. |
 | `SessionCloseListener.java`, `RunInSession.java` | Callbacks: another session was closed; code to run for a session in `runForUsers`. |
 | `ApplicationPoint.java` | The `applicationPoint` bean: application-wide maps of open UIs to their `Workspace` (only `Main`) and to a copy of their logged-in user. `Main` and `Viewer` `register` the UI after login; the entries are removed when the UI detaches. |
-| `SessionPoint.java` | Session-scoped bean; holds the `Language` of the session's UI (set from the user's settings when the workspace opens, read by `LocalizationImpl`) and the conversation with the help assistant (`getHelpChat()`). |">
+| `UiProblem.java`, `ProblemLog.java` | A problem the user was shown (kind, message, detail, with `clean` that makes the text safe for a model) and the last 20 of a session. Written by `utils/UiProblems`, read by the help assistant. |
+| `SessionPoint.java` | Session-scoped bean; holds the `Language` of the session's UI (set from the user's settings when the workspace opens, read by `LocalizationImpl`) the conversation with the help assistant (`getHelpChat()`) and the problems the user was shown (`getProblems()`, a `ProblemLog`, see [What went wrong](ui.md#what-went-wrong-the-problem-log)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -330,8 +331,12 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <td>The <code translate="no" v-pre>applicationPoint</code> bean: application-wide maps of open UIs to their <code translate="no" v-pre>Workspace</code> (only <code translate="no" v-pre>Main</code>) and to a copy of their logged-in user. <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code> <code translate="no" v-pre>register</code> the UI after login; the entries are removed when the UI detaches.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>UiProblem.java</code>, <code translate="no" v-pre>ProblemLog.java</code></td>
+<td>A problem the user was shown (kind, message, detail, with <code translate="no" v-pre>clean</code> that makes the text safe for a model) and the last 20 of a session. Written by <code translate="no" v-pre>utils/UiProblems</code>, read by the help assistant.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>SessionPoint.java</code></td>
-<td>Session-scoped bean; holds the <code translate="no" v-pre>Language</code> of the session&#x27;s UI (set from the user&#x27;s settings when the workspace opens, read by <code translate="no" v-pre>LocalizationImpl</code>) and the conversation with the help assistant (<code translate="no" v-pre>getHelpChat()</code>).</td>
+<td>Session-scoped bean; holds the <code translate="no" v-pre>Language</code> of the session&#x27;s UI (set from the user&#x27;s settings when the workspace opens, read by <code translate="no" v-pre>LocalizationImpl</code>) the conversation with the help assistant (<code translate="no" v-pre>getHelpChat()</code>) and the problems the user was shown (<code translate="no" v-pre>getProblems()</code>, a <code translate="no" v-pre>ProblemLog</code>, see <a href="../ui/#what-went-wrong-the-problem-log">What went wrong</a>).</td>
 </tr>
 </tbody>
 </table>
@@ -340,9 +345,9 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <h3 id="ui---user-interface"><code translate="no" v-pre>ui</code> - user interface</h3>
 <retype-table copy-text="| Package | Files |
 |---|---|
-| `ui` | `Restorable` (`storeState()` / `restoreState(JsonObject)`, implemented by what has state worth remembering) and `RestorableState` (its defensive readers and `put`), see [User interface](ui.md#remembering-where-the-user-was); `JavascriptLibrary` and the other helpers of the package. `LLMInteract` (a part of the UI describes itself to the help assistant's model: name, Markdown state, children, and the harmless moves it offers), `LLMInteraction` (one such move) and `LLMSnapshot` (the tree of what the model reads, with its paths), see [User interface](ui.md#letting-the-help-assistant-see-the-ui). |
+| `ui` | `Restorable` (`storeState()` / `restoreState(JsonObject)`, implemented by what has state worth remembering) and `RestorableState` (its defensive readers and `put`), see [User interface](ui.md#remembering-where-the-user-was); `JavascriptLibrary` and the other helpers of the package. `LLMInteract` (a part of the UI describes itself to the help assistant's model: name, Markdown state, children, and the harmless moves it offers), `LLMInteraction` (one such move) and `LLMSnapshot` (the tree of what the model reads, with its paths), `LLMFormProblems` (what is wrong with the fields of a form, never their values), see [User interface](ui.md#letting-the-help-assistant-see-the-ui). |
 | `ui.main` | `WebappApplicationInitializer` (creates the Spring context, registers the session listener), `MarginaliaServlet` (the `VaadinServlet`), `AppShellConfig` (push, theme, global CSS), `LoginCheckRoute` (login overlay, saved logins, first-start dialog), `Main` (route `/`), `Viewer` (route `/view`, published books). |
-| `ui.workspace` | `Workspace` (interface of the workspace shown after login), `DesktopWorkspace` (its tabbed implementation with footer buttons), `WorkspaceComponent` (interface of its tabs) and `WorkspaceAutosave` (stores the state of the workspace in `UserSetting.workspaceState`). `WorkspaceLLMSupport` (what the workspaces tell the help assistant: the sections by their labels and the moves to open them). |
+| `ui.workspace` | `Workspace` (interface of the workspace shown after login), `DesktopWorkspace` (its tabbed implementation with footer buttons), `WorkspaceComponent` (interface of its tabs) and `WorkspaceAutosave` (stores the state of the workspace in `UserSetting.workspaceState`). `WorkspaceLLMSupport` (what the workspaces and the table sections tell the help assistant: the sections by their labels, the moves to open them, the state of a table with an add button). |
 | `ui.workspace.phone`, `ui.workspace.phone.parts` | `PhoneWorkspace` (the workspace for phones: an `AppLayout` with a drawer instead of the left-hand tabs) `PhoneManuscriptPart` (single column book list), `PhoneLorebookPart` (reduced lorebook view), `PhoneProtocolPart` / `PhoneAIPart` (two column protocol and model lists) `PhoneSettingsPart` (`UserPart` with a stacked header) and `PhoneTrashPart` (trash with `PhoneTrashGrid`). |
 | `ui.dialogs.phone`, `ui.dialogs.phone.manuscript` | `PhoneManuscriptDialog` (the book dialog for phones: full screen, one scrolling tab row), `PhoneSummariesDialog` (`SummariesDialog` with a wide content column) and its tabs `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart` (with `PhoneLorebookView`), `PhoneManuscriptStoryPart` (one column, outline in the drawer of an `AppLayout`, message cards with a header line of icons), `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`. |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`, plus `NewBookAction` (the *Add Book* flow shared by both book lists). |
@@ -363,7 +368,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <tbody>
 <tr>
 <td><code translate="no" v-pre>ui</code></td>
-<td><code translate="no" v-pre>Restorable</code> (<code translate="no" v-pre>storeState()</code> / <code translate="no" v-pre>restoreState(JsonObject)</code>, implemented by what has state worth remembering) and <code translate="no" v-pre>RestorableState</code> (its defensive readers and <code translate="no" v-pre>put</code>), see <a href="../ui/#remembering-where-the-user-was">User interface</a>; <code translate="no" v-pre>JavascriptLibrary</code> and the other helpers of the package. <code translate="no" v-pre>LLMInteract</code> (a part of the UI describes itself to the help assistant&#x27;s model: name, Markdown state, children, and the harmless moves it offers), <code translate="no" v-pre>LLMInteraction</code> (one such move) and <code translate="no" v-pre>LLMSnapshot</code> (the tree of what the model reads, with its paths), see <a href="../ui/#letting-the-help-assistant-see-the-ui">User interface</a>.</td>
+<td><code translate="no" v-pre>Restorable</code> (<code translate="no" v-pre>storeState()</code> / <code translate="no" v-pre>restoreState(JsonObject)</code>, implemented by what has state worth remembering) and <code translate="no" v-pre>RestorableState</code> (its defensive readers and <code translate="no" v-pre>put</code>), see <a href="../ui/#remembering-where-the-user-was">User interface</a>; <code translate="no" v-pre>JavascriptLibrary</code> and the other helpers of the package. <code translate="no" v-pre>LLMInteract</code> (a part of the UI describes itself to the help assistant&#x27;s model: name, Markdown state, children, and the harmless moves it offers), <code translate="no" v-pre>LLMInteraction</code> (one such move) and <code translate="no" v-pre>LLMSnapshot</code> (the tree of what the model reads, with its paths), <code translate="no" v-pre>LLMFormProblems</code> (what is wrong with the fields of a form, never their values), see <a href="../ui/#letting-the-help-assistant-see-the-ui">User interface</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.main</code></td>
@@ -371,7 +376,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace</code></td>
-<td><code translate="no" v-pre>Workspace</code> (interface of the workspace shown after login), <code translate="no" v-pre>DesktopWorkspace</code> (its tabbed implementation with footer buttons), <code translate="no" v-pre>WorkspaceComponent</code> (interface of its tabs) and <code translate="no" v-pre>WorkspaceAutosave</code> (stores the state of the workspace in <code translate="no" v-pre>UserSetting.workspaceState</code>). <code translate="no" v-pre>WorkspaceLLMSupport</code> (what the workspaces tell the help assistant: the sections by their labels and the moves to open them).</td>
+<td><code translate="no" v-pre>Workspace</code> (interface of the workspace shown after login), <code translate="no" v-pre>DesktopWorkspace</code> (its tabbed implementation with footer buttons), <code translate="no" v-pre>WorkspaceComponent</code> (interface of its tabs) and <code translate="no" v-pre>WorkspaceAutosave</code> (stores the state of the workspace in <code translate="no" v-pre>UserSetting.workspaceState</code>). <code translate="no" v-pre>WorkspaceLLMSupport</code> (what the workspaces and the table sections tell the help assistant: the sections by their labels, the moves to open them, the state of a table with an add button).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.workspace.phone</code>, <code translate="no" v-pre>ui.workspace.phone.parts</code></td>
@@ -658,7 +663,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `service.impl.generation.impl` | The eight steps, `PrepareForGenerationStep` ... `CleanupStep`. |
 | `service.impl.generation.dto` | `LLMChatMessage` (role, text and optional `LLMAttachment`s: images, audio, files; the OpenAI compatible provider sends them as content parts of a user message, audio only as wav/mp3; `LLMToolCall`s of an assistant message and the `toolCallId` of a `TOOL` result), `LLMRole`, `PrePromptData` (the prompts collected for one generation). |
 | `service.function` | `FunctionDefinition`, `FunctionSet`, `FunctionCompiler` (JSON schema of the parameters, validation of the asynchronous method shape, argument parsing, method handles), `FunctionContinuation` (how a function answers), `FunctionCallException`; the annotations `@LLMFunction` / `@LLMParam` are in `domain.traits`. |
-| `service.manual` | The manual and the help assistant: `ManualParser`, `ManualIndex`, `ManualPage` / `ManualSection` / `ManualHit`, the functions `ManualTools`, `HelpTools` and `InteractiveHelpTools` with their implementations, `UiStateSource` (how the model reads and moves through the screen), `HelpPrompts` (the default prompts). |
+| `service.manual` | The manual and the help assistant: `ManualParser`, `ManualIndex`, `ManualPage` / `ManualSection` / `ManualHit`, the functions `ManualTools`, `HelpTools`, `InteractiveHelpTools` and `AdminHelpTools` with their implementations, `UiStateSource` (how the model reads and moves through the screen and reads the problems), `AdminDataSource` (where it reads the data of the Admin page; implemented by `HelpAdminData` in `domain.service.impl`), `HelpPrompts` (the default prompts and the rules added for each set of tools). |
 | `service.impl.inference` | `OpenAICompatibleInferenceService` (openai-java client, streaming, reasoning, timeout and retries, mapping of API failures to `InferenceException`). |
 | `service.structured` | `StructuredOutputs` (JSON schema of a class from `@LLMSchema` / `@LLMField`, validation and parsing of a model's answer), `SchemaCheck`, `StructuredOutputException`; used by `InferenceService.infer`. `PartialJson` reads the unfinished JSON of a streamed answer into a Jackson tree (for showing a `stream(..., schema, ...)` answer while it arrives). |
 | `service.impl.inference.tokenizer` | `TokenizerStrategy` and its implementations: OpenAI SDK, llama.cpp, LiteLLM, LiteLLM Anthropic, JTokkit. |">
@@ -689,7 +694,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.manual</code></td>
-<td>The manual and the help assistant: <code translate="no" v-pre>ManualParser</code>, <code translate="no" v-pre>ManualIndex</code>, <code translate="no" v-pre>ManualPage</code> / <code translate="no" v-pre>ManualSection</code> / <code translate="no" v-pre>ManualHit</code>, the functions <code translate="no" v-pre>ManualTools</code>, <code translate="no" v-pre>HelpTools</code> and <code translate="no" v-pre>InteractiveHelpTools</code> with their implementations, <code translate="no" v-pre>UiStateSource</code> (how the model reads and moves through the screen), <code translate="no" v-pre>HelpPrompts</code> (the default prompts).</td>
+<td>The manual and the help assistant: <code translate="no" v-pre>ManualParser</code>, <code translate="no" v-pre>ManualIndex</code>, <code translate="no" v-pre>ManualPage</code> / <code translate="no" v-pre>ManualSection</code> / <code translate="no" v-pre>ManualHit</code>, the functions <code translate="no" v-pre>ManualTools</code>, <code translate="no" v-pre>HelpTools</code>, <code translate="no" v-pre>InteractiveHelpTools</code> and <code translate="no" v-pre>AdminHelpTools</code> with their implementations, <code translate="no" v-pre>UiStateSource</code> (how the model reads and moves through the screen and reads the problems), <code translate="no" v-pre>AdminDataSource</code> (where it reads the data of the Admin page; implemented by <code translate="no" v-pre>HelpAdminData</code> in <code translate="no" v-pre>domain.service.impl</code>), <code translate="no" v-pre>HelpPrompts</code> (the default prompts and the rules added for each set of tools).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>service.impl.inference</code></td>
@@ -835,7 +840,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `instruct` | `RuntimeInstrumentationInitializer` (installs the ByteBuddy agent), `ExtendableMethodVisitor` (the bytecode rewrite), `ExtensionServiceHolder` (static access to `ExtensionService` from instrumented code); `instruct.verify`: `ExtensionVerifier` (checks an extension's decorators against the application before it is started, `ExtensionService.verifyExtension`), `ContextInterpreter` and `ContextValue` (its bytecode data-flow analysis), `ExtensionVerification` (the result). |
 | `loc` | `L` (all text keys), `Localization` (the service interface) / `LocalizationImpl` (picks the bundle of the session's language), `Language`, `LocalizationBundle` (texts and formats of one language) / `LocalizationBundleBase` / `LocalizationBundleEN` / `LocalizationBundleJP`, `NaturalOrderComparator`. |
 | `concurrent` | `AsyncRunnableWrapper` (keeps the submitting stack trace for errors on worker threads), `ThrowingRunnable`. |
-| `utils` | `AITypes` (the type of an AI as the lists show it), `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, `clientAddress`), `ClientAddressResolver` (the client address of a request: `X-Forwarded-For` only from the `trustedProxies`, see [Login throttling](services.md#login-throttling)), `ReflectUtils` (cached reflection), `GeneratedTextHighlighter` (word diff of a part against its original text, `&lt;mark&gt;` around the shared words), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
+| `utils` | `AITypes` (the type of an AI as the lists show it), `UiProblems` (writes down what the user was shown that went wrong: the session's problem log and the last three failures in the browser's session storage, for the help assistant), `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, `clientAddress`), `ClientAddressResolver` (the client address of a request: `X-Forwarded-For` only from the `trustedProxies`, see [Login throttling](services.md#login-throttling)), `ReflectUtils` (cached reflection), `GeneratedTextHighlighter` (word diff of a part against its original text, `&lt;mark&gt;` around the shared words), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
 | `com.github.enerccio.tools` | `Pair`, `Pointer` (small holders used across the code) and `GenerateFlywayDiff` (development tool, see [Database schema changes](building.md#database-schema-changes)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -864,7 +869,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>utils</code></td>
-<td><code translate="no" v-pre>AITypes</code> (the type of an AI as the lists show it), <code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, <code translate="no" v-pre>clientAddress</code>), <code translate="no" v-pre>ClientAddressResolver</code> (the client address of a request: <code translate="no" v-pre>X-Forwarded-For</code> only from the <code translate="no" v-pre>trustedProxies</code>, see <a href="../services/#login-throttling">Login throttling</a>), <code translate="no" v-pre>ReflectUtils</code> (cached reflection), <code translate="no" v-pre>GeneratedTextHighlighter</code> (word diff of a part against its original text, <code translate="no" v-pre>&lt;mark&gt;</code> around the shared words), <code translate="no" v-pre>ThreadUtils</code> (<code translate="no" v-pre>executeInThread</code> - runs a task on a fresh thread without the caller&#x27;s thread locals and waits for it).</td>
+<td><code translate="no" v-pre>AITypes</code> (the type of an AI as the lists show it), <code translate="no" v-pre>UiProblems</code> (writes down what the user was shown that went wrong: the session&#x27;s problem log and the last three failures in the browser&#x27;s session storage, for the help assistant), <code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, <code translate="no" v-pre>clientAddress</code>), <code translate="no" v-pre>ClientAddressResolver</code> (the client address of a request: <code translate="no" v-pre>X-Forwarded-For</code> only from the <code translate="no" v-pre>trustedProxies</code>, see <a href="../services/#login-throttling">Login throttling</a>), <code translate="no" v-pre>ReflectUtils</code> (cached reflection), <code translate="no" v-pre>GeneratedTextHighlighter</code> (word diff of a part against its original text, <code translate="no" v-pre>&lt;mark&gt;</code> around the shared words), <code translate="no" v-pre>ThreadUtils</code> (<code translate="no" v-pre>executeInThread</code> - runs a task on a fresh thread without the caller&#x27;s thread locals and waits for it).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>com.github.enerccio.tools</code></td>
@@ -1033,7 +1038,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | `backup`, `cleanup`, `lorebook`, `db` | Book and database backups, cleanup planner, lorebook import/export, Flyway migrations. |
 | `instruct` | Bytecode instrumentation (with fixture classes in `instruct.fixture`), the extension verifier and the check that every method of an `@Extendable` class declares its `@PublicAPI` (`PublicAPISignatureTest`). |
 | `domain`, `domain.service` | Entity listener, token limits, cron expressions, SillyTavern conversion. |
-| `manual`, `ui` (`LLMSnapshotTest`, `WorkspaceLLMSupportTest`), `ui.components`, `domain` (`HelpAssistantServiceTest`) | The manual parser and index, the help assistant (who pays, prompts, the functions, interactions), what the UI tells it and the widget that answers it. |">
+| `manual`, `ui` (`LLMSnapshotTest`, `WorkspaceLLMSupportTest`, `WorkspacePartsLLMTest`), `ui.components`, `bound` / `utils` (`ProblemLogTest`, `UiProblemsTest`), `domain` (`HelpAssistantServiceTest`, `HelpAdminDataTest`) | The manual parser and index, the help assistant (who pays, prompts, the functions, interactions), what the UI tells it and the widget that answers it. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -1076,7 +1081,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Entity listener, token limits, cron expressions, SillyTavern conversion.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>manual</code>, <code translate="no" v-pre>ui</code> (<code translate="no" v-pre>LLMSnapshotTest</code>, <code translate="no" v-pre>WorkspaceLLMSupportTest</code>), <code translate="no" v-pre>ui.components</code>, <code translate="no" v-pre>domain</code> (<code translate="no" v-pre>HelpAssistantServiceTest</code>)</td>
+<td><code translate="no" v-pre>manual</code>, <code translate="no" v-pre>ui</code> (<code translate="no" v-pre>LLMSnapshotTest</code>, <code translate="no" v-pre>WorkspaceLLMSupportTest</code>, <code translate="no" v-pre>WorkspacePartsLLMTest</code>), <code translate="no" v-pre>ui.components</code>, <code translate="no" v-pre>bound</code> / <code translate="no" v-pre>utils</code> (<code translate="no" v-pre>ProblemLogTest</code>, <code translate="no" v-pre>UiProblemsTest</code>), <code translate="no" v-pre>domain</code> (<code translate="no" v-pre>HelpAssistantServiceTest</code>, <code translate="no" v-pre>HelpAdminDataTest</code>)</td>
 <td>The manual parser and index, the help assistant (who pays, prompts, the functions, interactions), what the UI tells it and the widget that answers it.</td>
 </tr>
 </tbody>
@@ -1260,7 +1265,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 | The story tree operations | `ChatMessageServiceImpl` (branch, swipe, delete), `ManuscriptTreePart` (UI) |
 | An entity or the schema | the entity in `domain/model/impl/`, a new Flyway migration, `persistence.xml` - see [Database &amp; migrations](database.md) |
 | A new service | interface in `domain/service/`, implementation in `impl/`, a bean in `services-config.xml` |
-| The help assistant | `HelpAssistantServiceImpl`, `HelpPrompts` (prompts), `ui/components/HelpAssistantWidget.java`, `ui/LLMInteract.java` (what a part of the UI says and offers), `ui/workspace/parts/admin/HelpAssistantPanel.java` (settings) |
+| The help assistant | `HelpAssistantServiceImpl`, `HelpPrompts` (prompts), `ui/components/HelpAssistantWidget.java`, `ui/LLMInteract.java` (what a part of the UI says and offers), `utils/UiProblems.java` and `bound/ProblemLog.java` (what went wrong), `domain/service/impl/HelpAdminData.java` (the data of the Admin page), `ui/workspace/parts/admin/HelpAssistantPanel.java` (settings) |
 | What an extension can hook into | classes annotated `@Extendable` in `ui/` |
 | Global styles | `src/main/frontend/styles/shared-styles.css`, `reading-mode-styles.css` |
 | Login and saved logins | `ui/main/LoginCheckRoute.java`, `UserServiceImpl` |
@@ -1317,7 +1322,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
 </tr>
 <tr>
 <td>The help assistant</td>
-<td><code translate="no" v-pre>HelpAssistantServiceImpl</code>, <code translate="no" v-pre>HelpPrompts</code> (prompts), <code translate="no" v-pre>ui/components/HelpAssistantWidget.java</code>, <code translate="no" v-pre>ui/LLMInteract.java</code> (what a part of the UI says and offers), <code translate="no" v-pre>ui/workspace/parts/admin/HelpAssistantPanel.java</code> (settings)</td>
+<td><code translate="no" v-pre>HelpAssistantServiceImpl</code>, <code translate="no" v-pre>HelpPrompts</code> (prompts), <code translate="no" v-pre>ui/components/HelpAssistantWidget.java</code>, <code translate="no" v-pre>ui/LLMInteract.java</code> (what a part of the UI says and offers), <code translate="no" v-pre>utils/UiProblems.java</code> and <code translate="no" v-pre>bound/ProblemLog.java</code> (what went wrong), <code translate="no" v-pre>domain/service/impl/HelpAdminData.java</code> (the data of the Admin page), <code translate="no" v-pre>ui/workspace/parts/admin/HelpAssistantPanel.java</code> (settings)</td>
 </tr>
 <tr>
 <td>What an extension can hook into</td>

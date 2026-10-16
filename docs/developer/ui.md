@@ -539,7 +539,7 @@ UI describes itself through `LLMInteract` (`ui`), which every UI class that matt
 that extends `Dialog`, `Main`, the admin panels, and `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `TagsView`,
 `TrashGrid`. An element has a name (`getLLMName`, the simple class name), a state (`getLLMState`, **Markdown**: free text
 suits the very different things to say, and it is what a model reads best) and children (`getLLMChildren(deep)`).
-`takeLLMSnapshot()` builds the tree, `LLMSnapshot` (a record `path`, `state`, `children`) holds it: the path of a node is
+`takeLLMSnapshot()` builds the tree, `LLMSnapshot` (a record `path`, `state`, `children`, `interactions`, `problems`, `element`) holds it: the path of a node is
 the names from the root (`UI/Main/DesktopWorkspace/ManuscriptPart`), siblings with one name are numbered (`Panel[1]`,
 `Panel[2]`), a node that throws is listed with a note, depth is capped. `read(path, maxChars)` renders a subtree as
 Markdown (a heading with the path per node) and cuts it with the outline of the rest; an unknown path throws with the
@@ -558,6 +558,14 @@ outline of the paths there are.
 - **What to put in a state.** What the user sees and would say himself: the title of the open book, the open tab, a
   filter. Never a secret, an id, the text of a story or a lorebook (the state goes to the AI of the help assistant, which
   may be a provider outside the installation), and nothing long: the model reads all of it.
+- **Problems with a form.** `getLLMProblems()` lists what is wrong with the form an element shows *now*, one line each, and
+  the snapshot renders it under the state (`Problems with the form:`, also without the interactions flag). The default,
+  `LLMFormProblems.scan(component)`, walks the visible, enabled fields inside the component (not the ones inside another
+  `LLMInteract`, which reports its own, and not what is hidden or a dialog that is not open): a field marked invalid
+  (`HasValidation.isInvalid()`) with the message it shows, and a required (`setRequired` / required indicator) field that is empty,
+  named by its label, aria label or placeholder. **Never a value.** A form that checks across fields in its save method overrides it and
+  adds those rules (`AIDialog`: the numbers positive, the response smaller than the context, the additional parameters a JSON
+  object); `within(part, component)` scans the component of a part that is not a component itself. At most 15 lines.
 - **Called on the UI thread** under the session lock (the widget reads through `ui.access`); quick, read only.
 - **In the extendable classes** (`Main`, both workspaces, `AdminPart`, both manuscript dialogs) the overrides carry
   `@PublicAPI` like any method; `DesktopWorkspace` / `PhoneWorkspace` describe the sections through
@@ -585,10 +593,15 @@ the sequence with an `IllegalArgumentException` that names what was done and wha
 done); an action that throws is reported the same way.
 
 - **Only harmless moves.** An interaction is something the user could do with one click and undo with another: open a
-  section, select a tab. Never one that changes, saves, deletes, sends, generates, logs out or closes a dialog that may hold
+  section, select a tab, open the dialog to add something. Never one that changes, saves, deletes, sends, generates, logs out or closes a dialog that may hold
   unsaved work. There are no generic interactions: each element decides. Today `DesktopWorkspace` / `PhoneWorkspace` (`open-section:<label>`,
-  through `WorkspaceLLMSupport.openSections`), `AdminPart`, `ManuscriptDialog` and `PhoneManuscriptDialog` (`open-tab:<label>`,
-  through `LLMInteract.tabs`). Keys use the labels the user reads, which is what the model sees in the states.
+  through `WorkspaceLLMSupport.openSections`), `AdminPart`, `UserPart` (so the phone settings too), `ManuscriptDialog` and `PhoneManuscriptDialog`
+  (`open-tab:<label>`, through `LLMInteract.tabs`), and the lists of books, models and protocols, desktop and phone (`open-dialog:<button text>`,
+  through `LLMInteract.dialogButtons(buttons)`, which presses the button the way a click does; it is offered only while the button is shown and enabled and no
+  dialog is open, since an open dialog blocks the page and a second one would stack on it). A part that is a table says so with
+  `WorkspaceLLMSupport.describeTable("models", grid, addButton)` (the number of rows and what the button does, nothing of the rows).
+  Keys use the labels the user reads, which is what the model sees in the states. A dialog is put into the page only when
+  the response is about to be sent, so `dialogButtons` runs those pending executions right after the press: the result of the interaction already shows the dialog.
 - **The snapshot carries them.** `LLMSnapshot` also has `interactions` (key to description) and the live `element`, so
   `LLMSnapshot.interact(path, keys)` finds the element by the same path the model read (`[n]` numbering included) and applies
   the keys to it. `toMarkdown(true)` / `read(path, max, true)` list them under the state of the node (`Interactions:`); without the flag they are left out, which is what the
@@ -598,5 +611,36 @@ done); an action that throws is reported the same way.
 - **Plugins** add interactions to their own `LLMInteract` components the same way; `getInteraction` in an extendable class carries
   `@PublicAPI`. Keep to the rule above.
 
-`UiStateSource` has `read(path, deep, withInteractions, done)` and `interact(path, interactions, done)`; `HelpAssistantService.ask`
-appends `HelpPrompts.INTERACTIVE` to the prompt when the model has the function, so that an edited prompt cannot lose its rules.
+`UiStateSource` has `read(path, deep, withInteractions, done)`, `interact(path, interactions, done)` and `readProblems(count, done)`;
+`HelpAssistantService.ask` appends `HelpPrompts.INTERACTIVE` to the prompt when the model has the function, so that an edited prompt cannot lose its rules.
+
+### What went wrong: the problem log
+
+When a user says that something failed, the model calls `read_last_errors(count)` (`HelpTools`, bound for everybody) to read what
+the application showed them. Four pieces:
+
+- **`UiProblem` / `ProblemLog` (`bound`).** A problem is `(id, time, kind, message, detail)`; kinds are `EXCEPTION` (error dialog), `INFERENCE`
+  (a failed request to a provider), `VALIDATION`, `ERROR` and `WARNING` (notifications). The `ProblemLog` of the session lives in
+  `SessionPoint.getProblems()`, holds the last 20 and is synchronized. The same message told twice within two seconds is one problem
+  and the more specific kind stays (the code that failed records `INFERENCE` with its exception, then the notification that shows it
+  records `ERROR`). `UiProblem.clean` makes the text safe for a model: one line, what looks like a key, a token or a password replaced
+  by `[removed]`, cut at 400 characters; `detail` is the chain of the exceptions (class and message, four deep), never a stack trace.
+- **`UiProblems` (`utils`) is the recorder.** `UIUtils.showError`, `internalServerError`, `inferenceError` and `showValidationErrors` call it,
+  and so does every `Notification.error` / `warning` (the central place: the text the user is told is the text recorded), and
+  `StoryGenerationListener.onInferenceError` (new in `GenerationListener`, a default that calls `onSimpleError`; `InferenceStep` calls
+  it for a provider failure). It reaches the log through the *Vaadin session*, where `Main` (after login) and the widget `attach` it, not
+  through the `SessionPoint` bean: notifications are shown from `ui.access(...)` on threads that have no HTTP request, where the
+  scoped bean can not be resolved. Nothing is recorded before it is attached, and recording never throws.
+- **The browser keeps the last three.** For the unexpected failures (`EXCEPTION`, `INFERENCE`) it also pushes the problem as JSON to the
+  `sessionStorage` of the tab (`JavascriptLibrary.rememberProblem`, key `marginalia.problems`), which survives a reload and a new session.
+  `readLastErrors` merges both copies by id, newest first (`UiProblems.merge`), reading the browser's through
+  `JavascriptLibrary.readRememberedProblems` (a round trip, so the widget answers the continuation in its callback;
+  `HelpAssistantWidget.problemsText` renders it). What the storage holds is the user's, so anything that does not parse is skipped.
+- **Form problems are not here.** What is wrong with the form that is open comes with the screen (`Problems with the form`, above); the
+  log has the messages the user was told when they tried to save (the generic *validation failed* warning, or `showValidationErrors`'s text).
+
+The widget also keeps the links of an answer from leaving the application (`JavascriptLibrary.openLinksInNewTab`: a click handler on the
+messages, `noopener`) and stays usable above a dialog (`JavascriptLibrary.keepOnTopOfDialogs`): a dialog and its curtain are in the
+top layer of the browser, over the button and the panel, so while one is open (and again whenever another opens) the widget's children
+become manual popovers, shown after it (CSS `.help-root > [popover]` puts the popover defaults back and moves them to the left, away from
+the buttons a dialog has in its bottom right corner). The server accepts their events: strict modality does not block this widget.

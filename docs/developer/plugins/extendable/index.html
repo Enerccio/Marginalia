@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489598422">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494101760">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845489598422" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845494101760" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845489598422" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845494101760" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845489598422" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845489598422" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845494101760" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845494101760" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -261,7 +261,7 @@ private MenuItem createCogsMenuItem(MenuBar bar) {</code></pre>
 </table>
 </div>
 </retype-table>
-<p>The methods that describe a class to the help assistant (<code translate="no" v-pre>getLLMState</code>, <code translate="no" v-pre>getLLMChildren</code>, <code translate="no" v-pre>getInteraction</code>) are public API
+<p>The methods that describe a class to the help assistant (<code translate="no" v-pre>getLLMState</code>, <code translate="no" v-pre>getLLMChildren</code>, <code translate="no" v-pre>getInteraction</code>, <code translate="no" v-pre>getLLMProblems</code>) are public API
 like the others where a class overrides them, and a plugin can decorate them to add to what the assistant knows, see
 <a href="../ui-extensions/#telling-the-help-assistant-about-your-ui">Extending the UI</a>.</p>
 <p>Types are class literals, so a refactoring that renames or moves a class in the IDE updates them too. They are erased
@@ -592,7 +592,9 @@ stores them.</p>
 | `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
 | `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
 | `LorebookView` | `createEntryDetailLayout(entry)` | argument `entry`; local `detailsLayout` | Add a panel to each entry's details (Lorebook VCS). |
-| `DesktopWorkspace`, `PhoneWorkspace`, `AdminPart`, `ManuscriptDialog`, `PhoneManuscriptDialog` | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet. |">
+| `DesktopWorkspace`, `PhoneWorkspace`, `AdminPart`, `ManuscriptDialog`, `PhoneManuscriptDialog` | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet. |
+| `UserPart` (and `PhoneSettingsPart`), `AIPart`, `ProtocolPart`, `ManuscriptPart` and their phone versions | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | The same for the settings tabs and the lists of models, protocols and books (`open-tab:`, `open-dialog:`). Not used by a bundled plugin yet. |
+| `AIDialog` | `getLLMProblems()` | `getCurrentReturn` / `setCurrentReturn` | Add what a plugin's own checks find wrong with the form (a list of lines, never a value). Not used by a bundled plugin yet. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -675,6 +677,18 @@ stores them.</p>
 <td><code translate="no" v-pre>getLLMState()</code> / <code translate="no" v-pre>getInteraction()</code></td>
 <td><code translate="no" v-pre>getCurrentReturn</code> / <code translate="no" v-pre>setCurrentReturn</code></td>
 <td>Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>UserPart</code> (and <code translate="no" v-pre>PhoneSettingsPart</code>), <code translate="no" v-pre>AIPart</code>, <code translate="no" v-pre>ProtocolPart</code>, <code translate="no" v-pre>ManuscriptPart</code> and their phone versions</td>
+<td><code translate="no" v-pre>getLLMState()</code> / <code translate="no" v-pre>getInteraction()</code></td>
+<td><code translate="no" v-pre>getCurrentReturn</code> / <code translate="no" v-pre>setCurrentReturn</code></td>
+<td>The same for the settings tabs and the lists of models, protocols and books (<code translate="no" v-pre>open-tab:</code>, <code translate="no" v-pre>open-dialog:</code>). Not used by a bundled plugin yet.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AIDialog</code></td>
+<td><code translate="no" v-pre>getLLMProblems()</code></td>
+<td><code translate="no" v-pre>getCurrentReturn</code> / <code translate="no" v-pre>setCurrentReturn</code></td>
+<td>Add what a plugin&#x27;s own checks find wrong with the form (a list of lines, never a value). Not used by a bundled plugin yet.</td>
 </tr>
 </tbody>
 </table>

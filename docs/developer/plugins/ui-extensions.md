@@ -236,11 +236,20 @@ public class MyPanel extends VerticalLayout implements LLMInteract {
   outside provider.
 - `getInteraction()` offers moves the model may make: a map from a key to an `LLMInteraction(description, action)`. Only
   harmless ones the user could undo with a click (select a tab, open a section), never anything that changes, saves, deletes,
-  sends or generates; none while your UI is locked. `LLMInteract.tabs(...)` makes the entries for a row of tabs.
+  sends or generates; none while your UI is locked. `LLMInteract.tabs(...)` makes the entries for a row of tabs,
+  `LLMInteract.dialogButtons(button...)` the ones that press a button that opens a dialog (offered only while no dialog is open).
+- `getLLMProblems()` is what the model reads to explain why a form can not be saved. The default already lists the visible fields of
+  your component that are invalid (with the message the field shows) or required and empty, by their labels, never their values;
+  override it only for a rule that your save method checks across fields (`LLMInteract.super.getLLMProblems()` plus your lines).
+  Give your fields labels and mark the required ones, then the model can name them.
 - To add to a class of the application, decorate its `getLLMState` (or `getInteraction`) with `getCurrentReturn` /
   `setCurrentReturn` (see [Changing the return value](extendable.md#changing-the-return-value)); append to the text and put your
   entries into a copy of the map. Only the classes that override those methods can be decorated: both workspaces, `AdminPart`,
-  both story editor dialogs and `Main`; the other elements use the defaults of the interface.
+  both story editor dialogs, `Main`, `UserPart` and the lists of models, protocols and books (`getLLMState`, `getInteraction`) and
+  `AIDialog` (`getLLMProblems`); the other elements use the defaults of the interface.
+- What a user was shown that went wrong is recorded for you: your `Notification.error` / `warning` (the application's
+  `ui.widgets.Notification`) and `UIUtils.showError` / `showValidationErrors` / `inferenceError` write it to the session's problem
+  log, which the model reads with `read_last_errors` ([What went wrong](../ui.md#what-went-wrong-the-problem-log)). Say what is wrong in the message (the model gets the text the user saw).
 
 ## Styles of a plugin
 

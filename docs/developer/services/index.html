@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489598422">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494101760">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845489598422" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845494101760" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845489598422" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494101760" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845489598422" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845489598422" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494101760" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845494101760" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -733,7 +733,7 @@ support for Japanese or Chinese text). <code translate="no" v-pre>getPage</code>
 <code translate="no" v-pre>search(query, limit)</code> returns <code translate="no" v-pre>ManualHit</code>s, best first.</p>
 <h3 id="the-help-assistant">The help assistant</h3>
 <p><code translate="no" v-pre>HelpAssistantService</code> is the model behind the help chat (<code translate="no" v-pre>ui.components.HelpAssistantWidget</code>). <code translate="no" v-pre>getSettings</code> / <code translate="no" v-pre>saveSettings</code> are for
-administrators (<code translate="no" v-pre>AdminGuard</code>) and keep <code translate="no" v-pre>Settings(enabled, aiUuid, applyLimits)</code> in <code translate="no" v-pre>AppSettings</code>;
+administrators (<code translate="no" v-pre>AdminGuard</code>) and keep <code translate="no" v-pre>Settings(enabled, aiUuid, applyLimits, ...prompts, interactions, adminData)</code> in <code translate="no" v-pre>AppSettings</code>;
 <code translate="no" v-pre>saveSettings</code> accepts only an AI the administrator owns (<code translate="no" v-pre>IllegalArgumentException</code> otherwise) and an enabled
 assistant needs one; requests are made without a protocol. <code translate="no" v-pre>isAvailable()</code> and <code translate="no" v-pre>stream(payload, functions, callback)</code> are for every user. The
 AI is loaded by uuid whoever owns it (the user could not see it), and only while it is not deleted and its owner is
@@ -752,8 +752,25 @@ and calls <code translate="no" v-pre>stream</code>. <code translate="no" v-pre>H
 model can read), see <a href="../ui/#letting-the-help-assistant-see-the-ui">Letting the help assistant see the UI</a>. When the
 administrator allowed interactions (<code translate="no" v-pre>Settings.interactions</code>, <code translate="no" v-pre>AppSettings.helpInteractions</code>) and there is a <code translate="no" v-pre>UiStateSource</code>,
 <code translate="no" v-pre>ask</code> binds <code translate="no" v-pre>InteractiveHelpTools</code> instead (adds <code translate="no" v-pre>interact_with_ui(path, interactions)</code>, which calls <code translate="no" v-pre>UiStateSource.interact</code>)
-and appends <code translate="no" v-pre>HelpPrompts.INTERACTIVE</code> to the instructions; see <a href="../ui/#interactions">Interactions</a>. The
-instructions are one of two prompts, for administrators (<code translate="no" v-pre>AdminGuard.isAdmin()</code>) or for the other users: the text in
+and appends <code translate="no" v-pre>HelpPrompts.INTERACTIVE</code> to the instructions; see <a href="../ui/#interactions">Interactions</a>. <code translate="no" v-pre>HelpTools</code> also has
+<code translate="no" v-pre>read_last_errors(count)</code> (what the user was shown that went wrong, read through <code translate="no" v-pre>UiStateSource.readProblems</code>, see <a href="../ui/#what-went-wrong-the-problem-log">What went
+wrong</a>); the rules for it are <code translate="no" v-pre>HelpPrompts.PROBLEMS</code>, added to every prompt after the one the
+administrator may have edited. Manual tools print the address of what they found (<code translate="no" v-pre>URL:</code> next to <code translate="no" v-pre>Page:</code>):
+<code translate="no" v-pre>ManualPage.url()</code> / <code translate="no" v-pre>ManualSection.url()</code> turn the path in the manual into the address on the published site
+(<code translate="no" v-pre>ManualPage.WEB_BASE</code>, <code translate="no" v-pre>https://enerccio.github.io/Marginalia/user/</code>, the GitHub pages of the project: <code translate="no" v-pre>books/story-editor.md#images</code> is
+<code translate="no" v-pre>.../user/books/story-editor/#images</code>; <code translate="no" v-pre>ManualServiceTest</code> checks that every page has its file under <code translate="no" v-pre>docs/</code>), and the default prompt tells the model to cite
+pages as Markdown links with those addresses only; the widget opens them in a new tab.</p>
+<p><strong>The data of the Admin page.</strong> With <code translate="no" v-pre>Settings.adminData</code> (<code translate="no" v-pre>AppSettings.helpAdminData</code>, off by default, a checkbox of the <em>Help assistant</em> tab)
+<strong>and</strong> an administrator asking, <code translate="no" v-pre>ask</code> binds a second set of functions beside the others (<code translate="no" v-pre>FunctionSet.and</code>), <code translate="no" v-pre>AdminHelpTools</code>:
+<code translate="no" v-pre>get_admin_data(topic)</code> (<code translate="no" v-pre>extensions</code>, <code translate="no" v-pre>users</code>, <code translate="no" v-pre>backups</code>, <code translate="no" v-pre>cleanup</code>, <code translate="no" v-pre>application</code>) and <code translate="no" v-pre>read_extension_log(extension, lines)</code>, with
+<code translate="no" v-pre>HelpPrompts.ADMIN_DATA</code> added to the instructions. They read through <code translate="no" v-pre>AdminDataSource</code>, implemented by <code translate="no" v-pre>HelpAdminData</code>: the extensions
+with their state and verification (<code translate="no" v-pre>OsgiService</code>, optional: it is not in the test context), the counts of the users (no names), the
+database backups and schedule, what <code translate="no" v-pre>CleanupService.analyze()</code> would purge (nothing is changed), memory and uptime, and the last lines
+(40 by default, 200 at most, 6000 characters) of the log of an extension, found by its name, symbolic name or JAR (<code translate="no" v-pre>OsgiService.readLog</code>).
+The functions run on threads of their own, so <code translate="no" v-pre>HelpAdminData</code> runs each read in the request of the administrator that asked
+(<code translate="no" v-pre>ThreadCopyRequestAttributes</code> taken in <code translate="no" v-pre>ask</code>) and checks <code translate="no" v-pre>AdminGuard.requireAdmin()</code> again. Log lines and verification reports go through
+<code translate="no" v-pre>UiProblem.clean</code> (cut, keys removed), nothing more: the setting exists because they can still carry text an extension wrote, on its way to
+the AI of the assistant. The instructions are one of two prompts, for administrators (<code translate="no" v-pre>AdminGuard.isAdmin()</code>) or for the other users: the text in
 <code translate="no" v-pre>AppSettings.helpPromptAdmin</code> / <code translate="no" v-pre>helpPromptUser</code> or, when that is null or blank, the default (<code translate="no" v-pre>HelpPrompts.ADMIN</code> /
 <code translate="no" v-pre>USER</code>); <code translate="no" v-pre>saveSettings</code> stores a blank prompt or one equal to the default as null, so a default follows the new version.
 &#x60;&#x60; in a prompt is replaced by the list of pages (path, title, 110 characters of the description), a prompt

@@ -16,10 +16,10 @@
     <loc>https://enerccio.github.io/Marginalia/developer/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/protocols/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/extensions/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/extensions/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/protocols/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/</loc>
@@ -190,13 +190,13 @@
     <loc>https://enerccio.github.io/Marginalia/user/extensions/name-generator/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/administration/cleanup/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/name-provider/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/users/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/administration/cleanup/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/help-assistant/</loc>
