@@ -11,7 +11,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/utils/AITypes.java
   - marginalia/src/main/resources/migration/V14__extension_ai.sql
   - marginalia/plugins/google-genai
-verified: 939f3671
+verified: 0b626835
 ---
 
 # Inference providers from a plugin
