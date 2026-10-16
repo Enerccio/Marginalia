@@ -1,7 +1,7 @@
 ---
 label: Plugin basics
 order: 100
-verified: 2701b409
+verified: 939f3671
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
