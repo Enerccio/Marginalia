@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489570744">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489586054">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845489570744" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845489586054" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845489586054" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845489570744" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845489586054" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845489586054" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1063,7 +1063,8 @@ alternatives are expanded and hidden elements are included and marked <code tran
 <li>
 <p><strong>Defaults.</strong> A component finds its children as the nearest visible descendants that are <code translate="no" v-pre>LLMInteract</code>; a dialog
 describes itself by its title. Something that is not a component (a workspace part, a dialog part) has no children
-unless it says so: <code translate="no" v-pre>LLMInteract.within(part, component)</code> adds the elements of the component the part created.</p>
+unless it says so: <code translate="no" v-pre>LLMInteract.within(part, component)</code> adds the elements of the component the part created. A bare <code translate="no" v-pre>Text</code> node has no visibility
+(<code translate="no" v-pre>isVisible()</code> throws) and counts as shown; it is never an element, the search goes on below it.</p>
 </li>
 <li>
 <p><strong>What to put in a state.</strong> What the user sees and would say himself: the title of the open book, the open tab, a

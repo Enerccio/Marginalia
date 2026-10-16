@@ -553,7 +553,8 @@ outline of the paths there are.
   alternatives are expanded and hidden elements are included and marked `*Hidden*`.
 - **Defaults.** A component finds its children as the nearest visible descendants that are `LLMInteract`; a dialog
   describes itself by its title. Something that is not a component (a workspace part, a dialog part) has no children
-  unless it says so: `LLMInteract.within(part, component)` adds the elements of the component the part created.
+  unless it says so: `LLMInteract.within(part, component)` adds the elements of the component the part created. A bare `Text` node has no visibility
+  (`isVisible()` throws) and counts as shown; it is never an element, the search goes on below it.
 - **What to put in a state.** What the user sees and would say himself: the title of the open book, the open tab, a
   filter. Never a secret, an id, the text of a story or a lorebook (the state goes to the AI of the help assistant, which
   may be a provider outside the installation), and nothing long: the model reads all of it.
