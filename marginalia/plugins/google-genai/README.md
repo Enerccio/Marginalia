@@ -26,5 +26,5 @@ in the JAR (`Embed-Dependency`, about 14 MB); what the application ships (OkHttp
 used from the application, which the bundle sees first through boot delegation.
 
 ```sh
-mvn package        # target/google-genai-1.3.0.jar, runs the unit tests of the messages, errors and settings
+mvn package        # target/google-genai-1.4.0.jar, runs the unit tests of the messages, errors and settings
 ```
