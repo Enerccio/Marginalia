@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.google.gson.JsonObject;
@@ -10,7 +11,7 @@ import org.vaadin.firitin.layouts.VTabSheet;
  * A tab of the {@link com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog}. A tab with something to remember
  * between sessions overrides the {@link Restorable} methods, the others have no state.
  */
-public interface ManuscriptDialogPart extends Restorable {
+public interface ManuscriptDialogPart extends Restorable, LLMInteract {
 
     Component create(VTabSheet container) throws Exception;
 

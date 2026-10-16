@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
+import com.vaadin.flow.component.tabs.Tab;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -31,7 +34,7 @@ import java.util.*;
 
 @Configurable
 @Extendable
-public class ManuscriptDialog extends Dialog implements StoryHost, Restorable {
+public class ManuscriptDialog extends Dialog implements StoryHost, Restorable, LLMInteract {
 
     @Autowired
     protected Localization loc;
@@ -313,6 +316,53 @@ public class ManuscriptDialog extends Dialog implements StoryHost, Restorable {
         });
         RestorableState.put(state, "parts", parts);
         return state;
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "selected", type = Tab.class)})
+    @Override
+    public String getLLMState() {
+        Tab selected = tabs == null ? null : tabs.getSelectedTab();
+        return "The story editor of the book \"" + manuscript.getName() + "\", a full screen dialog with tabs "
+                + "(book settings, prompt, lorebook, story, tree, backup). The open tab is **"
+                + (selected == null ? "" : selected.getLabel()) + "**."
+                + (frozen ? " The book is being generated now: the tabs are locked." : "");
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Map.class),
+            locals = {@APILocals(name = "all", type = List.class)})
+    @Override
+    public Map<String, LLMInteraction> getInteraction() {
+        if (tabs == null) {
+            return Map.of();
+        }
+        List<Tab> all = new ArrayList<>();
+        for (int i = 0; i < tabs.getTabCount(); i++) {
+            all.add(tabs.getTabAt(i));
+        }
+        return LLMInteract.tabs(all, tabs.getSelectedTab(), tabs::setSelectedTab);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "deep", type = boolean.class)},
+            locals = {@APILocals(name = "selected", type = ManuscriptDialogPart.class),
+                    @APILocals(name = "components", type = Map.class),
+                    @APILocals(name = "part", type = ManuscriptDialogPart.class)})
+    @Override
+    public List<LLMInteract> getLLMChildren(boolean deep) {
+        ManuscriptDialogPart selected = tabs == null || tabs.getSelectedTab() == null ? null : c2p.get(tabs.getComponent(tabs.getSelectedTab()));
+        Map<ManuscriptDialogPart, Component> components = new LinkedHashMap<>();
+        for (ManuscriptDialogPart part : parts) {
+            c2p.forEach((component, candidate) -> {
+                if (candidate == part) {
+                    components.put(part, component);
+                }
+            });
+        }
+        return LLMInteract.parts(components, selected, deep);
     }
 
     /**

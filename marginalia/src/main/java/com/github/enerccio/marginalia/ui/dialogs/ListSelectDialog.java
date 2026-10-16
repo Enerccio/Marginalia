@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.ItemLabelGenerator;
@@ -18,7 +19,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 @Configurable
-public class ListSelectDialog<T> extends Dialog {
+public class ListSelectDialog<T> extends Dialog implements LLMInteract {
 
     @Autowired
     private Localization loc;

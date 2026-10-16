@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
@@ -24,7 +25,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
 @Extendable
-public class UserDialog extends Dialog {
+public class UserDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private Localization loc;

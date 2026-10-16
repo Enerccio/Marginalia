@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
@@ -14,7 +15,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
 @Extendable
-public class LorebookDialog extends Dialog {
+public class LorebookDialog extends Dialog implements LLMInteract {
 
     @Autowired
     protected Localization loc;

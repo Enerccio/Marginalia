@@ -9,6 +9,8 @@ RUN mvn dependency:go-offline -B
 
 # Copy source code and build the application
 COPY marginalia/src ./src
+# the user manual (Markdown) is packed into the WAR for the in-app help, see <resources> in marginalia/pom.xml
+COPY manual/user /build/manual/user
 COPY .git /build/.git
 RUN mvn clean package -DskipTests
 

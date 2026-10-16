@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
@@ -42,7 +43,7 @@ import java.util.List;
 
 @Configurable
 @Extendable
-public class AIDialog extends Dialog {
+public class AIDialog extends Dialog implements LLMInteract {
     private static final Gson gson = new GsonBuilder().create();
     private static final int DEFAULT_MAX_CONTEXT = 16384;
     private static final int DEFAULT_MAX_RESPONSE = 2048;

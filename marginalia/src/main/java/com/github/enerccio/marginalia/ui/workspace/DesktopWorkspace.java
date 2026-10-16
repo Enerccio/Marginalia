@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
@@ -24,8 +26,10 @@ import com.vaadin.flow.component.tabs.Tab;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Configurable
@@ -227,6 +231,61 @@ public class DesktopWorkspace implements Workspace {
         return vl;
     }
 
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "keys", type = List.class),
+                    @APILocals(name = "active", type = String.class)})
+    @Override
+    public String getLLMState() {
+        List<String> keys = new ArrayList<>(partsByKey.keySet());
+        String active = activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
+                .filter(entry -> entry.getValue() == activeComponent).map(Map.Entry::getKey).findFirst().orElse("books");
+        if (adminButton != null) {
+            keys.add("admin");
+        }
+        return WorkspaceLLMSupport.describe(loc, "desktop", keys, active, navigationLocked);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Map.class),
+            locals = {@APILocals(name = "sections", type = Map.class),
+                    @APILocals(name = "active", type = String.class)})
+    @Override
+    public Map<String, LLMInteraction> getInteraction() {
+        Map<String, Runnable> sections = new LinkedHashMap<>();
+        partsByKey.forEach((key, part) -> tabToComponent.forEach((tab, candidate) -> {
+            if (candidate == part) {
+                sections.put(key, () -> tabs.setSelectedTab(tab));
+            }
+        }));
+        if (adminButton != null) {
+            sections.put("admin", this::openAdmin);
+        }
+        String active = activeComponent == adminPart ? "admin" : partsByKey.entrySet().stream()
+                .filter(entry -> entry.getValue() == activeComponent).map(Map.Entry::getKey).findFirst().orElse("books");
+        return WorkspaceLLMSupport.openSections(loc, sections, active, navigationLocked);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "deep", type = boolean.class)},
+            locals = {@APILocals(name = "parts", type = Map.class)})
+    @Override
+    public List<LLMInteract> getLLMChildren(boolean deep) {
+        Map<WorkspaceComponent, Component> parts = new LinkedHashMap<>();
+        parts.put(manuscriptPart, manuscriptPartComponent);
+        parts.put(lorebookPart, lorebookPartComponent);
+        parts.put(userPart, userPartComponent);
+        parts.put(protocolPart, protocolPartComponent);
+        parts.put(aiPart, aiPartComponent);
+        parts.put(resourcesPart, resourcesPartComponent);
+        parts.put(trashPart, trashPartComponent);
+        if (adminButton != null) {
+            parts.put(adminPart, adminPartComponent);
+        }
+        return LLMInteract.parts(parts, activeComponent, deep);
+    }
+
     /**
      * The red bar about invalid extensions, hidden while there are none. Extensions that become invalid later show
      * when the user logs in again (the workspace is built once per login).
@@ -287,23 +346,31 @@ public class DesktopWorkspace implements Workspace {
     private Component createAdminFooter() {
         adminButton = new Button(loc.getValue(L.LABEL_ADMIN), Solid.USER_TIE.create());
         adminButton.setWidthFull();
-        adminButton.addClickListener(e -> {
-            if (activeComponent != null) {
-                try {
-                    activeComponent.onTabClosed();
-                } catch (Exception ex) {
-                    UIUtils.internalServerError(loc, ex);
-                }
-            }
-            tabs.setCustomContent(adminPartComponent);
-            activeComponent = adminPart;
+        adminButton.addClickListener(e -> openAdmin());
+        return adminButton;
+    }
+
+    /**
+     * Shows the Admin page in place of the open section, what the Admin button does.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "ex", type = Exception.class)})
+    private void openAdmin() {
+        if (activeComponent != null) {
             try {
-                adminPart.onTabSwitched();
+                activeComponent.onTabClosed();
             } catch (Exception ex) {
                 UIUtils.internalServerError(loc, ex);
             }
-        });
-        return adminButton;
+        }
+        tabs.setCustomContent(adminPartComponent);
+        activeComponent = adminPart;
+        try {
+            adminPart.onTabSwitched();
+        } catch (Exception ex) {
+            UIUtils.internalServerError(loc, ex);
+        }
     }
 
     @PublicAPI(from = "1.1.0",

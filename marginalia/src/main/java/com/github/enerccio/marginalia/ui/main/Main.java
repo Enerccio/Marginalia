@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.components.HelpAssistantWidget;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.phone.PhoneWorkspace;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -20,11 +22,12 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import java.util.List;
 
 @Route("/")
 @Configurable(preConstruction = true)
 @Extendable
-public class Main extends LoginCheckRoute {
+public class Main extends LoginCheckRoute implements LLMInteract {
 
     @Autowired
     private User user;
@@ -45,6 +48,19 @@ public class Main extends LoginCheckRoute {
 
     public Main() {
         showLogin();
+    }
+
+    /**
+     * The workspace of this page is the only child: the components in the page belong to it.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "deep", type = boolean.class)},
+            locals = {@APILocals(name = "workspace", type = Workspace.class)})
+    @Override
+    public List<LLMInteract> getLLMChildren(boolean deep) {
+        Workspace workspace = applicationPoint.getUIs().get(UI.getCurrent());
+        return workspace == null ? List.of() : List.of(workspace);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -109,6 +125,7 @@ public class Main extends LoginCheckRoute {
             applicationPoint.register(UI.getCurrent(), workspace, referenceCopy);
             workspace.setOnLogout(this::logout);
             add(workspace.create());
+            add(new HelpAssistantWidget());
             workspace.refresh();
             workspace.restoreAutosaved();
         } catch (Exception e) {

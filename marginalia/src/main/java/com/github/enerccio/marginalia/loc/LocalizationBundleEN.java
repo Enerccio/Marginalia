@@ -343,6 +343,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_DROP_TAB_TO_DETACH, "Drop the tab here to detach it");
         setValue(L.LABEL_DROP_TAB_TO_DETACH_SIDE, "Detach to the side");
         setValue(L.LABEL_INCLUDE_SUB_LOREBOOKS, "Include sub lorebooks");
+        setValue(L.LABEL_HELP_ASSISTANT, "Help assistant");
+        setValue(L.LABEL_APPLY_LIMITS, "Apply limits");
+        setValue(L.LABEL_SEND, "Send");
+        setValue(L.LABEL_ASK_ABOUT_MARGINALIA, "Ask about Marginalia...");
+        setValue(L.LABEL_HELP_PROMPT_ADMIN, "Prompt for administrators");
+        setValue(L.LABEL_HELP_PROMPT_USER, "Prompt for other users");
+        setValue(L.LABEL_RESET_TO_DEFAULT, "Reset to default");
+        setValue(L.LABEL_HELP_INTERACTIONS, "Allow navigating the interface");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -528,6 +536,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_INVALID_EXTENSIONS_ADMIN, "Some extensions are invalid and are not running. Hover to see which.");
         setValue(L.MSG_INVALID_EXTENSIONS_ADMIN_LIST, "Invalid extensions (the reports are in Admin → Extensions):");
         setValue(L.MSG_INVALID_EXTENSIONS_USER, "Some extensions are invalid and are not running. Please tell the administrator.");
+        setValue(L.MSG_HELP_ANSWERING_WITH, "Answering with %s");
+        setValue(L.MSG_HELP_LIMITS_APPLY, "Your limit on this model applies: your questions count against your usage and can be refused when it is reached.");
+        setValue(L.MSG_HELP_WELCOME, "Ask how something works in Marginalia. Answers come from the manual, but an AI wrote them and can still be wrong.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -541,6 +552,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_LIMIT_EMPTY_UNLIMITED, "Leave a limit empty for no limit. Whichever limit is reached first stops the user until the next reset.");
         setValue(L.HELP_LIMITS_OTHERS_UNLIMITED, "Users without a limit here are not limited.");
         setValue(L.HELP_LIMIT_GENERATED_HARD, "A hard limit of the generated tokens refuses a request when the response it reserves (the maximum response size) would not fit into what is left; without it the last response can go over the limit.");
+        setValue(L.HELP_ASSISTANT, "A chat that answers questions about Marginalia from its manual, for all users. Choose one of your own models; the users need none of their own.");
+        setValue(L.HELP_ASSISTANT_APPLY_LIMITS, "Only for a shared model: the questions count against each user's limit and usage like any other request to the model. Without it, or for a model that is not shared, the owner of the model pays: nothing is limited and nothing is counted for the user.");
+        setValue(L.HELP_ASSISTANT_PROMPT, "The instructions the model gets with every question. {{manualIndex}} is replaced by the list of the pages of the manual. A prompt that is empty or the same as the default is the default, so it follows the changes of a new version.");
+        setValue(L.HELP_ASSISTANT_INTERACTIONS, "The assistant may move through the interface when a user asks it to show them something: open a section or select a tab. Nothing else: it can not press other buttons, type, save, delete or generate anything. The model also gets the names of the elements on the screen with what they offer.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

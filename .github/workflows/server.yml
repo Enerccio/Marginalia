@@ -16,6 +16,7 @@ on:
   pull_request:
     paths:
       - 'marginalia/**'
+      - 'manual/user/**'
       - 'pom.xml'
       - 'Dockerfile'
       - 'docker-entrypoint.sh'

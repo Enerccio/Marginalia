@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
@@ -59,7 +60,7 @@ import java.util.stream.Collectors;
 
 @Configurable
 @Extendable
-public class LorebookView extends VerticalLayout implements Restorable {
+public class LorebookView extends VerticalLayout implements Restorable, LLMInteract {
 
     @Autowired
     private Localization loc;

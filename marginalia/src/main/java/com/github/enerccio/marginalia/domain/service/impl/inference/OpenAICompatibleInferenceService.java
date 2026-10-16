@@ -164,12 +164,16 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     @Override
     public CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, JsonNode schema,
                                     FunctionSet functions, InferenceAsyncCallback callback) throws Exception {
+        // read here, the request goes on in other threads
+        boolean metered = !UnmeteredScope.isActive();
         // the limits an administrator set for the user, before anything is sent: the prompt is known, so it must fit
-        limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        if (metered) {
+            limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        }
         Request request = new Request(openClient(), protocol, functions != null && !functions.isEmpty() ? functions : null,
                 callback, new CancellationToken(),
                 // the request ends on other threads, the user it counts for is the one who started it
-                ThreadCopyRequestAttributes.create(), schema);
+                ThreadCopyRequestAttributes.create(), schema, metered);
         startRound(request, new ArrayList<>(payload), 0);
         return request.cancellationToken();
     }
@@ -177,9 +181,12 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     @Override
     public CancellationToken infer(List<LLMChatMessage> payload, Protocol protocol, JsonNode schema,
                                    FunctionSet functions, InferenceResultCallback callback) throws Exception {
-        limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        boolean metered = !UnmeteredScope.isActive();
+        if (metered) {
+            limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        }
         Request request = new Request(openClient(), protocol, functions != null && !functions.isEmpty() ? functions : null,
-                null, new CancellationToken(), ThreadCopyRequestAttributes.create(), schema);
+                null, new CancellationToken(), ThreadCopyRequestAttributes.create(), schema, metered);
         Outcome outcome = new Outcome(callback::isDead, callback::onFunctionCall, callback::onCancel, callback::onError);
         inferRound(request, outcome, callback, schema, new ArrayList<>(payload), 0);
         return request.cancellationToken();
@@ -210,7 +217,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     String text = message == null ? "" : message.content().orElse("");
                     TokenUsage reported = completion.usage()
                             .map(usage -> new TokenUsage(usage.promptTokens(), usage.completionTokens())).orElse(null);
-                    recordUsage(request.attributes(), conversation, reported, text);
+                    if (request.metered()) {
+                        recordUsage(request.attributes(), conversation, reported, text);
+                    }
 
                     List<LLMToolCall> calls = new ArrayList<>();
                     if (functionsOffered && !finalRound && message != null) {
@@ -243,9 +252,11 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
 
     /**
      * What stays the same through the rounds of a request: with functions the model is asked again after each call.
+     * {@code metered}: whether the limits apply and the usage is counted, see {@link UnmeteredScope}.
      */
     private record Request(OpenAIClient client, Protocol protocol, FunctionSet functions, InferenceAsyncCallback callback,
-                           CancellationToken cancellationToken, ThreadCopyRequestAttributes attributes, JsonNode schema) {
+                           CancellationToken cancellationToken, ThreadCopyRequestAttributes attributes, JsonNode schema,
+                           boolean metered) {
 
         /** The part of the callback the function calls need, the same for a stream and for infer. */
         Outcome outcome() {
@@ -288,7 +299,11 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     StreamResponse<ChatCompletionChunk> streamResponse = request.client().chat().completions().createStreaming(paramsBuilder.build());
                     OpenAIInferenceAsyncController controller = new OpenAIInferenceAsyncController(streamResponse,
                             request.callback(), request.cancellationToken(),
-                            (reported, generated) -> recordUsage(request.attributes(), conversation, reported, generated),
+                            (reported, generated) -> {
+                                if (request.metered()) {
+                                    recordUsage(request.attributes(), conversation, reported, generated);
+                                }
+                            },
                             functionsOffered && !finalRound
                                     ? (text, calls) -> callFunctions(request, request.outcome(), conversation, text, calls,
                                     next -> startRound(request, next, round + 1)) : null);

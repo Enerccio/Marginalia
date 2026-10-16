@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -22,7 +23,7 @@ import org.yaml.snakeyaml.representer.Representer;
 
 @Configurable
 @Extendable
-public class PromptDialog extends Dialog {
+public class PromptDialog extends Dialog implements LLMInteract {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 

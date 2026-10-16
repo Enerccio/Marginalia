@@ -61,6 +61,55 @@ public class AppSettings extends Setting {
     @ExtendedAttribute
     private Boolean userAisAllowed = true;
 
+    // help assistant
+
+    /**
+     * Whether the help assistant (a chat about the manual) is on for everybody. Off by default.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean helpEnabled = false;
+
+    /**
+     * Uuid of the AI the help assistant uses, an AI of an administrator (shared or not).
+     */
+    @Transient
+    @ExtendedAttribute
+    private String helpAiUuid;
+
+    /**
+     * For a shared help AI: whether the limits of the user and their usage apply to the help questions as to any
+     * other request to the AI. Without it, or for an AI that is not shared, the help is paid by the owner of the AI,
+     * not limited and not counted for the user.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean helpApplyLimits = false;
+
+    /**
+     * Whether the help assistant may move through the interface for the user (open a section, select a tab). Only
+     * moves that are harmless and can be undone; off by default.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean helpInteractions = false;
+
+    /**
+     * The instructions of the help assistant for administrators, null or empty for the default
+     * ({@code HelpPrompts.ADMIN}).
+     */
+    @Transient
+    @ExtendedAttribute
+    private String helpPromptAdmin;
+
+    /**
+     * The instructions of the help assistant for the other users, null or empty for the default
+     * ({@code HelpPrompts.USER}).
+     */
+    @Transient
+    @ExtendedAttribute
+    private String helpPromptUser;
+
     public Integer getDbVersion() {
         return dbVersion;
     }
@@ -123,5 +172,53 @@ public class AppSettings extends Setting {
 
     public void setUserAisAllowed(Boolean userAisAllowed) {
         this.userAisAllowed = userAisAllowed;
+    }
+
+    public Boolean getHelpEnabled() {
+        return helpEnabled != null && helpEnabled;
+    }
+
+    public void setHelpEnabled(Boolean helpEnabled) {
+        this.helpEnabled = helpEnabled;
+    }
+
+    public String getHelpAiUuid() {
+        return helpAiUuid;
+    }
+
+    public void setHelpAiUuid(String helpAiUuid) {
+        this.helpAiUuid = helpAiUuid;
+    }
+
+    public String getHelpPromptAdmin() {
+        return helpPromptAdmin;
+    }
+
+    public void setHelpPromptAdmin(String helpPromptAdmin) {
+        this.helpPromptAdmin = helpPromptAdmin;
+    }
+
+    public String getHelpPromptUser() {
+        return helpPromptUser;
+    }
+
+    public void setHelpPromptUser(String helpPromptUser) {
+        this.helpPromptUser = helpPromptUser;
+    }
+
+    public Boolean getHelpApplyLimits() {
+        return helpApplyLimits != null && helpApplyLimits;
+    }
+
+    public void setHelpApplyLimits(Boolean helpApplyLimits) {
+        this.helpApplyLimits = helpApplyLimits;
+    }
+
+    public Boolean getHelpInteractions() {
+        return helpInteractions != null && helpInteractions;
+    }
+
+    public void setHelpInteractions(Boolean helpInteractions) {
+        this.helpInteractions = helpInteractions;
     }
 }

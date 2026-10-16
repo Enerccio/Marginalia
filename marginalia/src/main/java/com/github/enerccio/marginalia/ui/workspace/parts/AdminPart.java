@@ -13,6 +13,8 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ExtensionLogDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
@@ -20,6 +22,7 @@ import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.ui.workspace.parts.admin.CleanupPanel;
 import com.github.enerccio.marginalia.ui.workspace.parts.admin.DatabaseBackupPanel;
+import com.github.enerccio.marginalia.ui.workspace.parts.admin.HelpAssistantPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -45,7 +48,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 
 @Configurable
@@ -71,10 +77,13 @@ public class AdminPart implements WorkspaceComponent {
     @Autowired
     private Localization loc;
 
+    private TabSheet adminTabs;
+    private final Map<Tab, LLMInteract> adminPanels = new LinkedHashMap<>();
     private Grid<Bundle> extensionsGrid;
     private Grid<User> usersGrid;
     private final DatabaseBackupPanel databaseBackupPanel = new DatabaseBackupPanel();
     private final CleanupPanel cleanupPanel = new CleanupPanel();
+    private final HelpAssistantPanel helpAssistantPanel = new HelpAssistantPanel();
 
     public AdminPart(Workspace workspace) {
         this.workspace = workspace;
@@ -87,6 +96,7 @@ public class AdminPart implements WorkspaceComponent {
                     @APILocals(name = "usersContent", type = Component.class),
                     @APILocals(name = "databaseTab", type = Tab.class),
                     @APILocals(name = "cleanupTab", type = Tab.class),
+                    @APILocals(name = "helpTab", type = Tab.class),
                     @APILocals(name = "extensionsTab", type = Tab.class),
                     @APILocals(name = "extensionsContent", type = Component.class),
                     @APILocals(name = "container", type = Div.class)})
@@ -105,6 +115,14 @@ public class AdminPart implements WorkspaceComponent {
         Tab cleanupTab = new Tab(loc.getValue(L.LABEL_CLEANUP));
         tabSheet.add(cleanupTab, cleanupPanel.create());
 
+        Tab helpTab = new Tab(loc.getValue(L.LABEL_HELP_ASSISTANT));
+        tabSheet.add(helpTab, helpAssistantPanel.create());
+
+        adminTabs = tabSheet;
+        adminPanels.put(databaseTab, databaseBackupPanel);
+        adminPanels.put(cleanupTab, cleanupPanel);
+        adminPanels.put(helpTab, helpAssistantPanel);
+
         Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
         Component extensionsContent = createExtensionsTab();
         tabSheet.add(extensionsTab, extensionsContent);
@@ -112,6 +130,51 @@ public class AdminPart implements WorkspaceComponent {
         Div container = new Div(tabSheet);
         container.setSizeFull();
         return container;
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "selected", type = Tab.class)})
+    @Override
+    public String getLLMState() {
+        if (adminTabs == null) {
+            return "";
+        }
+        Tab selected = adminTabs.getSelectedTab();
+        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Help assistant, Extensions. "
+                + "The open tab is **" + (selected == null ? "" : selected.getLabel()) + "**."
+                + (selected != null && !adminPanels.containsKey(selected)
+                ? " (The user and extension lists are tables with buttons to add, edit and delete.)" : "");
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Map.class),
+            locals = {@APILocals(name = "tabs", type = List.class)})
+    @Override
+    public Map<String, LLMInteraction> getInteraction() {
+        if (adminTabs == null) {
+            return Map.of();
+        }
+        List<Tab> tabs = new ArrayList<>();
+        for (int i = 0; i < adminTabs.getTabCount(); i++) {
+            tabs.add(adminTabs.getTabAt(i));
+        }
+        return LLMInteract.tabs(tabs, adminTabs.getSelectedTab(), adminTabs::setSelectedTab);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "deep", type = boolean.class)},
+            locals = {@APILocals(name = "selected", type = Tab.class),
+                    @APILocals(name = "all", type = List.class)})
+    @Override
+    public List<LLMInteract> getLLMChildren(boolean deep) {
+        if (adminTabs == null) {
+            return List.of();
+        }
+        Tab selected = adminTabs.getSelectedTab();
+        List<LLMInteract> all = new ArrayList<>(adminPanels.values());
+        return LLMInteract.options(all, selected == null ? null : adminPanels.get(selected), deep);
     }
 
     @PublicAPI(from = "1.1.0",

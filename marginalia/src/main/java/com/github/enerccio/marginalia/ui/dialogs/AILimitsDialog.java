@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
@@ -25,7 +26,7 @@ import java.util.List;
  * The limits an administrator set for the users of a shared AI. Users that are not in the table are not limited.
  */
 @Configurable
-public class AILimitsDialog extends Dialog {
+public class AILimitsDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private AILimitService limitService;

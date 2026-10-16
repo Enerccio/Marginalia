@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
@@ -42,7 +43,7 @@ import java.util.*;
  */
 @Configurable(preConstruction = true)
 @Extendable
-public class SummariesDialog extends Dialog {
+public class SummariesDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private Localization loc;

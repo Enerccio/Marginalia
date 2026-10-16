@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
@@ -29,7 +30,7 @@ import java.util.function.Consumer;
  */
 @Configurable
 @Extendable
-public class LorebookImportDialog extends Dialog {
+public class LorebookImportDialog extends Dialog implements LLMInteract {
 
     public enum Mode {
         SAME_NAME,

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.loc.L;
@@ -19,7 +20,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * refresh and clear.
  */
 @Configurable
-public class ExtensionLogDialog extends Dialog {
+public class ExtensionLogDialog extends Dialog implements LLMInteract {
 
     private static final int MAX_BYTES = 256 * 1024;
 

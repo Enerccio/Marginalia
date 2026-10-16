@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.phone;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -39,7 +41,7 @@ import java.util.*;
  */
 @Configurable
 @Extendable
-public class PhoneManuscriptDialog extends Dialog implements StoryHost, Restorable {
+public class PhoneManuscriptDialog extends Dialog implements StoryHost, Restorable, LLMInteract {
 
     @Autowired
     protected Localization loc;
@@ -307,6 +309,50 @@ public class PhoneManuscriptDialog extends Dialog implements StoryHost, Restorab
         if (onStateChange != null) {
             onStateChange.run();
         }
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "selected", type = Tab.class)})
+    @Override
+    public String getLLMState() {
+        Tab selected = tabs == null ? null : tabs.getSelectedTab();
+        return "The story editor of the book \"" + manuscript.getName() + "\" in the phone layout, a full screen dialog "
+                + "with a row of tabs (book settings, prompt, lorebook, story, tree, backup). The open tab is **"
+                + (selected == null ? "" : selected.getLabel()) + "**."
+                + (frozen ? " The book is being generated now: the tabs are locked." : "");
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Map.class),
+            locals = {@APILocals(name = "all", type = List.class)})
+    @Override
+    public Map<String, LLMInteraction> getInteraction() {
+        if (tabs == null) {
+            return Map.of();
+        }
+        List<Tab> all = tabs.getChildren().filter(Tab.class::isInstance).map(Tab.class::cast).toList();
+        return LLMInteract.tabs(all, tabs.getSelectedTab(), tabs::setSelectedTab);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "deep", type = boolean.class)},
+            locals = {@APILocals(name = "selected", type = PhoneManuscriptDialogPart.class),
+                    @APILocals(name = "components", type = Map.class),
+                    @APILocals(name = "part", type = PhoneManuscriptDialogPart.class)})
+    @Override
+    public List<LLMInteract> getLLMChildren(boolean deep) {
+        PhoneManuscriptDialogPart selected = tabs == null ? null : tabToPart.get(tabs.getSelectedTab());
+        Map<PhoneManuscriptDialogPart, Component> components = new LinkedHashMap<>();
+        for (PhoneManuscriptDialogPart part : parts) {
+            tabToPart.forEach((tab, candidate) -> {
+                if (candidate == part) {
+                    components.put(part, tabToContent.get(tab));
+                }
+            });
+        }
+        return LLMInteract.parts(components, selected, deep);
     }
 
     /**

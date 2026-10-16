@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
@@ -8,7 +9,7 @@ import com.vaadin.flow.component.Component;
  * A part of the workspace (a tab). A part with something to remember between sessions overrides the {@link Restorable}
  * methods, the others have no state.
  */
-public interface WorkspaceComponent extends Restorable {
+public interface WorkspaceComponent extends Restorable, LLMInteract {
 
     Component create() throws Exception;
     void refresh() throws Exception;

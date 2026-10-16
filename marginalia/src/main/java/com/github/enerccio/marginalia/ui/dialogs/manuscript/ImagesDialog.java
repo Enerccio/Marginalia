@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
@@ -33,7 +34,7 @@ import java.util.function.Consumer;
  */
 @Configurable(preConstruction = true)
 @Extendable
-public class ImagesDialog extends Dialog {
+public class ImagesDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private Localization loc;

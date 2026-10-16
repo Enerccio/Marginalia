@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.service.UsageService;
@@ -21,7 +22,7 @@ import java.util.List;
  * What every user used of every AI, for administrators.
  */
 @Configurable
-public class UsageDialog extends Dialog {
+public class UsageDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private UsageService usageService;

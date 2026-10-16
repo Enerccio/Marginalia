@@ -15,6 +15,7 @@ RUN mvn dependency:go-offline -B
 # Build and install the application into the local Maven repository. The plugins need only its classes JAR, so the
 # Vaadin frontend build (Node.js, npm, Vite) is skipped; the WAR of this build is not used and not production-ready.
 COPY marginalia/src ./src
+COPY manual/user /build/manual/user
 COPY .git /build/.git
 RUN mvn install -DskipTests -Dvaadin.skip=true -B \
     && mvn install -N -B -f /build/pom.xml

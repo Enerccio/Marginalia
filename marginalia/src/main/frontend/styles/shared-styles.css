@@ -692,3 +692,84 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     color: var(--lumo-secondary-text-color);
     font-size: var(--lumo-font-size-s);
 }
+
+/* Help assistant (ui.components.HelpAssistantWidget): a round button fixed in the bottom right corner that opens a chat panel above it */
+.help-root {
+    display: contents;
+}
+
+.help-fab {
+    position: fixed;
+    right: var(--lumo-space-l);
+    bottom: var(--lumo-space-l);
+    z-index: 100;
+    width: var(--lumo-size-xl);
+    height: var(--lumo-size-xl);
+    border-radius: 50%;
+    padding: 0;
+    box-shadow: var(--lumo-box-shadow-m);
+}
+
+.help-panel {
+    position: fixed;
+    right: var(--lumo-space-l);
+    bottom: calc(var(--lumo-size-xl) + var(--lumo-space-l) + var(--lumo-space-s));
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: min(420px, calc(100vw - 2 * var(--lumo-space-m)));
+    height: min(560px, calc(100dvh - var(--lumo-size-xl) - 3 * var(--lumo-space-l)));
+    background: var(--lumo-base-color);
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: var(--lumo-box-shadow-l);
+    overflow: hidden;
+}
+
+.help-header {
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+    background: var(--lumo-contrast-5pct);
+    font-weight: 600;
+}
+
+.help-warning {
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    background: var(--lumo-warning-color-10pct);
+    color: var(--lumo-warning-text-color);
+    font-size: var(--lumo-font-size-xs);
+}
+
+.help-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--lumo-space-s);
+}
+
+.help-message {
+    box-sizing: border-box;
+    max-width: 100%;
+    margin-bottom: var(--lumo-space-s);
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-m);
+    background: var(--lumo-contrast-5pct);
+    overflow-wrap: anywhere;
+}
+
+.help-message-user {
+    margin-left: var(--lumo-space-xl);
+    background: var(--lumo-primary-color-10pct);
+    white-space: pre-wrap;
+}
+
+.help-message-error {
+    background: var(--lumo-error-color-10pct);
+    color: var(--lumo-error-text-color);
+}
+
+.help-input {
+    padding: var(--lumo-space-s);
+    border-top: 1px solid var(--lumo-contrast-10pct);
+}

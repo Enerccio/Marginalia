@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.PromptTokenBreakdown;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -28,7 +29,7 @@ import java.util.Map;
  */
 @Configurable
 @Extendable
-public class TokenUsageDialog extends Dialog {
+public class TokenUsageDialog extends Dialog implements LLMInteract {
 
     private static final Gson gson = new Gson();
 

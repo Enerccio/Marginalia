@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
@@ -26,7 +27,7 @@ import java.text.NumberFormat;
  * the value of another tag asks whether to merge the two.
  */
 @Configurable
-public class TagsView extends VerticalLayout {
+public class TagsView extends VerticalLayout implements LLMInteract {
 
     @Autowired
     private TagService tagService;

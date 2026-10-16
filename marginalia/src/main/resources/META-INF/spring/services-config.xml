@@ -123,6 +123,10 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.TokenizerServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ManualServiceImpl" init-method="load" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.HelpAssistantServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.StoryGenerationServiceImpl">
         <property name="installedSteps">
             <list>

@@ -108,6 +108,18 @@ public final class CssStyles {
     public static final String PHONE_MESSAGE_HEADER = "phone-message-header";
     public static final String PHONE_POPOVER_CONTENT = "phone-popover-content";
 
+    // --- Help assistant (ui.components.HelpAssistantWidget) ---
+    public static final String HELP_ROOT = "help-root";
+    public static final String HELP_FAB = "help-fab";
+    public static final String HELP_PANEL = "help-panel";
+    public static final String HELP_HEADER = "help-header";
+    public static final String HELP_WARNING = "help-warning";
+    public static final String HELP_MESSAGES = "help-messages";
+    public static final String HELP_MESSAGE = "help-message";
+    public static final String HELP_MESSAGE_USER = "help-message-user";
+    public static final String HELP_MESSAGE_ERROR = "help-message-error";
+    public static final String HELP_INPUT = "help-input";
+
     private CssStyles() {
     }
 

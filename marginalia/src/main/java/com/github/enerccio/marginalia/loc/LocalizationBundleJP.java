@@ -343,6 +343,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_DROP_TAB_TO_DETACH, "ここにタブをドロップして切り離す");
         setValue(L.LABEL_DROP_TAB_TO_DETACH_SIDE, "横に切り離す");
         setValue(L.LABEL_INCLUDE_SUB_LOREBOOKS, "サブロアブックを含める");
+        setValue(L.LABEL_HELP_ASSISTANT, "ヘルプアシスタント");
+        setValue(L.LABEL_APPLY_LIMITS, "制限を適用する");
+        setValue(L.LABEL_SEND, "送信");
+        setValue(L.LABEL_ASK_ABOUT_MARGINALIA, "Marginaliaについて質問...");
+        setValue(L.LABEL_HELP_PROMPT_ADMIN, "管理者向けプロンプト");
+        setValue(L.LABEL_HELP_PROMPT_USER, "その他のユーザー向けプロンプト");
+        setValue(L.LABEL_RESET_TO_DEFAULT, "デフォルトに戻す");
+        setValue(L.LABEL_HELP_INTERACTIONS, "インターフェースの操作を許可する");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -528,6 +536,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_INVALID_EXTENSIONS_ADMIN, "無効な拡張機能があり、実行されていません。マウスを重ねると一覧が表示されます。");
         setValue(L.MSG_INVALID_EXTENSIONS_ADMIN_LIST, "無効な拡張機能（レポートは 管理 → 拡張機能 にあります）:");
         setValue(L.MSG_INVALID_EXTENSIONS_USER, "無効な拡張機能があり、実行されていません。管理者に知らせてください。");
+        setValue(L.MSG_HELP_ANSWERING_WITH, "回答モデル：%s");
+        setValue(L.MSG_HELP_LIMITS_APPLY, "このモデルでのあなたの制限が適用されます。質問は使用量に計上され、上限に達すると拒否されることがあります。");
+        setValue(L.MSG_HELP_WELCOME, "Marginaliaの使い方を質問してください。回答はマニュアルに基づきますが、AIが作成しているため誤りを含む場合があります。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -541,6 +552,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_LIMIT_EMPTY_UNLIMITED, "上限を空欄にすると無制限になります。最初に到達した上限で、次のリセットまでユーザーは利用できなくなります。");
         setValue(L.HELP_LIMITS_OTHERS_UNLIMITED, "ここに制限がないユーザーは制限されません。");
         setValue(L.HELP_LIMIT_GENERATED_HARD, "生成トークンの厳格な上限では、リクエストが予約する応答（最大応答サイズ）が残りに収まらない場合、そのリクエストを拒否します。厳格でない場合は、最後の応答が上限を超えることがあります。");
+        setValue(L.HELP_ASSISTANT, "マニュアルをもとにMarginaliaについての質問に答えるチャットを、全ユーザーに提供します。ご自身のモデルを選んでください。ユーザー自身のモデルは不要です。");
+        setValue(L.HELP_ASSISTANT_APPLY_LIMITS, "共有モデルの場合のみ有効：質問は、モデルへの他のリクエストと同様に各ユーザーの制限と使用量に計上されます。無効の場合、またはモデルが共有されていない場合は、モデルの所有者が費用を負担し、制限も使用量の計上もありません。");
+        setValue(L.HELP_ASSISTANT_PROMPT, "質問ごとにモデルへ渡される指示です。{{manualIndex}} はマニュアルのページ一覧に置き換えられます。空、またはデフォルトと同じ内容の場合はデフォルトとして扱われ、新しいバージョンの変更に追従します。");
+        setValue(L.HELP_ASSISTANT_INTERACTIONS, "ユーザーが場所を案内してほしいと頼んだとき、アシスタントはインターフェース内を移動できます（セクションを開く、タブを選択する）。それ以外はできません：他のボタンの操作、入力、保存、削除、生成は行えません。モデルには、画面上の要素の名前とその操作可能な内容も渡されます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
