@@ -39,6 +39,12 @@ The build decides, not the packaging: IDE runs and `mvn jetty:run` use `target/c
 file. The WAR plugin adds `src/main/resources-release/` to `WEB-INF/classes` and leaves the development file out, so
 every WAR from `mvn package` - the Docker image, the `desktop` profile, a WAR deployed by hand - logs at `INFO`.
 
+The user manual is packed too: `<resources>` in `marginalia/pom.xml` copies the Markdown pages of `manual/user` (no
+pictures, never filtered) to `classpath:/manual/`, where `ManualService` reads them (see
+[Services](services.md#the-manual)). The source folder is outside `marginalia/`, so a build that copies only
+`marginalia/src` must copy `manual/user` as well, as both Dockerfiles do (`/build/manual/user`); without it the WAR
+builds, with an empty manual.
+
 The build also needs the Git history: `git-commit-id-plugin` writes the commit id and the closest tag into
 `git.properties`, and the WAR filters them into its build info. Build from a clone, not from a source archive.
 
@@ -49,7 +55,7 @@ The `Dockerfile` in the repository root has two stages:
 1. **builder** (`maven:3.9-eclipse-temurin-25`)
    - copies the parent `pom.xml` and `marginalia/pom.xml` and runs `mvn dependency:go-offline`, so the dependency layer is cached while only
      the sources change;
-   - copies `marginalia/src` and `.git` (for `git-commit-id-plugin`);
+   - copies `marginalia/src`, `manual/user` (the manual packed into the WAR) and `.git` (for `git-commit-id-plugin`);
    - runs `mvn clean package -DskipTests`.
 2. **runtime** (`jetty:12-jdk25-eclipse-temurin`)
    - creates a Jetty base with the modules `server, http, ee11-deploy, ee11-websocket-jakarta, ee11-webapp,

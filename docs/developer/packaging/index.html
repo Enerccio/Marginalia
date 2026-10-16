@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845465136904">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845488153586">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845465136904" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845488153586" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845465136904" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845488153586" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -254,6 +254,11 @@ For everyday builds see <a href="../building/">Building from source</a>.</p>
 <p>The build decides, not the packaging: IDE runs and <code translate="no" v-pre>mvn jetty:run</code> use <code translate="no" v-pre>target/classes</code>, which has the development
 file. The WAR plugin adds <code translate="no" v-pre>src/main/resources-release/</code> to <code translate="no" v-pre>WEB-INF/classes</code> and leaves the development file out, so
 every WAR from <code translate="no" v-pre>mvn package</code> - the Docker image, the <code translate="no" v-pre>desktop</code> profile, a WAR deployed by hand - logs at <code translate="no" v-pre>INFO</code>.</p>
+<p>The user manual is packed too: <code translate="no" v-pre>&lt;resources&gt;</code> in <code translate="no" v-pre>marginalia/pom.xml</code> copies the Markdown pages of <code translate="no" v-pre>manual/user</code> (no
+pictures, never filtered) to <code translate="no" v-pre>classpath:/manual/</code>, where <code translate="no" v-pre>ManualService</code> reads them (see
+<a href="../services/#the-manual">Services</a>). The source folder is outside <code translate="no" v-pre>marginalia/</code>, so a build that copies only
+<code translate="no" v-pre>marginalia/src</code> must copy <code translate="no" v-pre>manual/user</code> as well, as both Dockerfiles do (<code translate="no" v-pre>/build/manual/user</code>); without it the WAR
+builds, with an empty manual.</p>
 <p>The build also needs the Git history: <code translate="no" v-pre>git-commit-id-plugin</code> writes the commit id and the closest tag into
 <code translate="no" v-pre>git.properties</code>, and the WAR filters them into its build info. Build from a clone, not from a source archive.</p>
 <h2 id="docker-image">Docker image</h2>
@@ -266,7 +271,7 @@ every WAR from <code translate="no" v-pre>mvn package</code> - the Docker image,
 the sources change;</p>
 </li>
 <li>
-<p>copies <code translate="no" v-pre>marginalia/src</code> and <code translate="no" v-pre>.git</code> (for <code translate="no" v-pre>git-commit-id-plugin</code>);</p>
+<p>copies <code translate="no" v-pre>marginalia/src</code>, <code translate="no" v-pre>manual/user</code> (the manual packed into the WAR) and <code translate="no" v-pre>.git</code> (for <code translate="no" v-pre>git-commit-id-plugin</code>);</p>
 </li>
 <li>
 <p>runs <code translate="no" v-pre>mvn clean package -DskipTests</code>.</p>

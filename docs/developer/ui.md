@@ -51,7 +51,7 @@ flowchart TB
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
-| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `InvalidExtensionsWarning`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
+| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `InvalidExtensionsWarning`, `HelpAssistantWidget`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
 | `ui.widgets` | Small reusable widgets, among them `TrashGrid` (see [Trash](#trash)). |
 
 ## The shell, routes and login
@@ -352,6 +352,8 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
+| `LLMInteract` / `LLMSnapshot` (`ui`) | What the help assistant's model can read of the screen, see [Letting the help assistant see the UI](#letting-the-help-assistant-see-the-ui). |
+| `HelpAssistantWidget` | The help chat: a round robot `Button` fixed in the bottom right corner (`CssStyles.HELP_FAB`) opening a fixed panel above it (`HELP_PANEL`: header with clear and close, which AI answers, a warning when `Info.metered()`, the messages, an input row whose send button turns into stop). Added to `Main` after the workspace, so the phone layout has it too; hidden unless `HelpAssistantService.isAvailable()` when the page is built, the panel reads `getInfo()` at each opening. Answers stream into a `Markdown` card with `ui.access` + `UIPushGuard.push`; the conversation is `SessionPoint.getHelpChat()` (the widget keeps the list, the callbacks have no session). A request that fails or is refused (limit) takes the question back into the input field and shows the reason in the card. Reasoning chunks are not shown. |
 | `LorebookPreview` | The read only *Lorebook* tab of the desktop story editor: a tree grid of the lorebook (optionally with its sub lorebooks as top level rows) and its entries, opening to the content and the text activation. `create()`, then `refresh(lorebook)`. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
 | `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. |
@@ -528,3 +530,72 @@ cookies). Without a parameter it lists the user's own books, with name and tag f
 name; other users' published books are opened by their link; with `/view/<uuid>` it shows the book's active branch as Markdown in
 the book's reading style. Books are resolved only through `ManuscriptService.findViewable(uuid)` (owner or
 published, never deleted). The layout is made for phones.
+
+## Letting the help assistant see the UI
+
+The help assistant's model has a function, `get_ui_state(path, deep)`, that returns what the user currently sees. The
+UI describes itself through `LLMInteract` (`ui`), which every UI class that matters implements: `Workspace`,
+`WorkspaceComponent` (so all parts of both layouts), `ManuscriptDialogPart` and `PhoneManuscriptDialogPart`, every class
+that extends `Dialog`, `Main`, the admin panels, and `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `TagsView`,
+`TrashGrid`. An element has a name (`getLLMName`, the simple class name), a state (`getLLMState`, **Markdown**: free text
+suits the very different things to say, and it is what a model reads best) and children (`getLLMChildren(deep)`).
+`takeLLMSnapshot()` builds the tree, `LLMSnapshot` (a record `path`, `state`, `children`) holds it: the path of a node is
+the names from the root (`UI/Main/DesktopWorkspace/ManuscriptPart`), siblings with one name are numbered (`Panel[1]`,
+`Panel[2]`), a node that throws is listed with a note, depth is capped. `read(path, maxChars)` renders a subtree as
+Markdown (a heading with the path per node) and cuts it with the outline of the rest; an unknown path throws with the
+outline of the paths there are.
+
+- **Only the active branch.** `takeLLMSnapshot()` expands what is shown: invisible components, dialogs that are not open
+  and the content of tabs that are not selected are left out. Where the UI has alternatives the element reports them
+  with `LLMInteract.options(all, active, deep)` (the others become `inactive` stubs: the name and "Not open", no
+  children), or `LLMInteract.parts(partsWithComponents, active, deep)` for parts that created a component each. With
+  `deep = true` (`takeLLMSnapshot(true)`, the function's `deep` parameter, for something that is not on the screen) the
+  alternatives are expanded and hidden elements are included and marked `*Hidden*`.
+- **Defaults.** A component finds its children as the nearest visible descendants that are `LLMInteract`; a dialog
+  describes itself by its title. Something that is not a component (a workspace part, a dialog part) has no children
+  unless it says so: `LLMInteract.within(part, component)` adds the elements of the component the part created.
+- **What to put in a state.** What the user sees and would say himself: the title of the open book, the open tab, a
+  filter. Never a secret, an id, the text of a story or a lorebook (the state goes to the AI of the help assistant, which
+  may be a provider outside the installation), and nothing long: the model reads all of it.
+- **Called on the UI thread** under the session lock (the widget reads through `ui.access`); quick, read only.
+- **In the extendable classes** (`Main`, both workspaces, `AdminPart`, both manuscript dialogs) the overrides carry
+  `@PublicAPI` like any method; `DesktopWorkspace` / `PhoneWorkspace` describe the sections through
+  `WorkspaceLLMSupport`.
+- **Extensions** implement `LLMInteract` on their own components (a tab, a panel) and are found like any other: they
+  appear under the nearest element above them, so a tab an extension adds to the story editor shows up when it is the
+  open one.
+
+The widget builds the root with `LLMSnapshot.ofComponentTree("UI", ..., ui, deep)`, so the dialogs open on top of the
+page appear next to `Main`; `Main` reports the workspace of its UI (from `ApplicationPoint`) as its only child. The
+function is `HelpTools.getUiState`, bound with the manual tools by `HelpAssistantService.ask(history, uiState, callback)`;
+`UiStateSource` is how the widget answers it.
+
+### Interactions
+
+When an administrator allows it (**Allow navigating the interface** in the *Help assistant* tab, `AppSettings.helpInteractions`,
+off by default) the model can also move through the UI for the user, with a second function, `interact_with_ui(path,
+interactions)` (`InteractiveHelpTools`, bound instead of `HelpTools` only when the setting is on **and** the question comes
+from a page). An element offers interactions by overriding `getInteraction()`: a map from a key to an `LLMInteraction`
+(`description` for the model, `action` a `Runnable`). The map is what is possible *now*: the section that is open is not
+offered again, nothing while the navigation is locked, no disabled tab. `applyInteraction(key)` and
+`applyInteraction(List<String> keys)` run them in order and return `takeLLMSnapshot()` of the element after them; the map
+is read again before each step, so a sequence can use what an earlier step made possible. A key that is not offered ends
+the sequence with an `IllegalArgumentException` that names what was done and what the element offers (what was done stays
+done); an action that throws is reported the same way.
+
+- **Only harmless moves.** An interaction is something the user could do with one click and undo with another: open a
+  section, select a tab. Never one that changes, saves, deletes, sends, generates, logs out or closes a dialog that may hold
+  unsaved work. There are no generic interactions: each element decides. Today `DesktopWorkspace` / `PhoneWorkspace` (`open-section:<label>`,
+  through `WorkspaceLLMSupport.openSections`), `AdminPart`, `ManuscriptDialog` and `PhoneManuscriptDialog` (`open-tab:<label>`,
+  through `LLMInteract.tabs`). Keys use the labels the user reads, which is what the model sees in the states.
+- **The snapshot carries them.** `LLMSnapshot` also has `interactions` (key to description) and the live `element`, so
+  `LLMSnapshot.interact(path, keys)` finds the element by the same path the model read (`[n]` numbering included) and applies
+  the keys to it. `toMarkdown(true)` / `read(path, max, true)` list them under the state of the node (`Interactions:`); without the flag they are left out, which is what the
+  model gets while the setting is off. Hidden and inactive elements offer nothing. The `element` is only valid on the thread of the page.
+- **What the model gets back** is the whole page after the moves (`HelpAssistantWidget.interactNow`: apply, then read the page
+  with interactions), because a move can change something other than the element (a section opens a dialog elsewhere).
+- **Plugins** add interactions to their own `LLMInteract` components the same way; `getInteraction` in an extendable class carries
+  `@PublicAPI`. Keep to the rule above.
+
+`UiStateSource` has `read(path, deep, withInteractions, done)` and `interact(path, interactions, done)`; `HelpAssistantService.ask`
+appends `HelpPrompts.INTERACTIVE` to the prompt when the model has the function, so that an edited prompt cannot lose its rules.

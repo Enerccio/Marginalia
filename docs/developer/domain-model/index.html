@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845465136904">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845488153586">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845465136904" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845488153586" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845465136904" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845488153586" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1220,7 +1220,7 @@ set, sent plus generated below the total (the total could never be reached).</p>
 values are extended attributes.</p>
 <retype-table copy-text="| Class | Owner | Contains |
 |---|---|---|
-| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), `userAisAllowed` (users who are not administrators can create AIs, default and `null` = yes; `AIService.setUserCreationAllowed`, checked in `AIServiceImpl.save` for new AIs only, existing ones stay editable). |
+| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), `userAisAllowed` (users who are not administrators can create AIs, default and `null` = yes; `AIService.setUserCreationAllowed`, checked in `AIServiceImpl.save` for new AIs only, existing ones stay editable), the help assistant (`helpEnabled`, `helpAiUuid`, `helpApplyLimits`, and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). |
 | `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1235,7 +1235,7 @@ values are extended attributes.</p>
 <tr>
 <td><code translate="no" v-pre>AppSettings</code></td>
 <td>none (one per installation)</td>
-<td>Data versions (<code translate="no" v-pre>dbVersion</code>, <code translate="no" v-pre>appVersion</code>), the database backup schedule (<code translate="no" v-pre>backupScheduleEnabled</code>, <code translate="no" v-pre>backupSchedule</code>, <code translate="no" v-pre>backupKeep</code>, <code translate="no" v-pre>lastScheduledBackup</code>, <code translate="no" v-pre>backupScheduleChanged</code>), <code translate="no" v-pre>userAisAllowed</code> (users who are not administrators can create AIs, default and <code translate="no" v-pre>null</code> = yes; <code translate="no" v-pre>AIService.setUserCreationAllowed</code>, checked in <code translate="no" v-pre>AIServiceImpl.save</code> for new AIs only, existing ones stay editable).</td>
+<td>Data versions (<code translate="no" v-pre>dbVersion</code>, <code translate="no" v-pre>appVersion</code>), the database backup schedule (<code translate="no" v-pre>backupScheduleEnabled</code>, <code translate="no" v-pre>backupSchedule</code>, <code translate="no" v-pre>backupKeep</code>, <code translate="no" v-pre>lastScheduledBackup</code>, <code translate="no" v-pre>backupScheduleChanged</code>), <code translate="no" v-pre>userAisAllowed</code> (users who are not administrators can create AIs, default and <code translate="no" v-pre>null</code> = yes; <code translate="no" v-pre>AIService.setUserCreationAllowed</code>, checked in <code translate="no" v-pre>AIServiceImpl.save</code> for new AIs only, existing ones stay editable), the help assistant (<code translate="no" v-pre>helpEnabled</code>, <code translate="no" v-pre>helpAiUuid</code>, <code translate="no" v-pre>helpApplyLimits</code>, and the prompts <code translate="no" v-pre>helpPromptAdmin</code> / <code translate="no" v-pre>helpPromptUser</code>, null = the default; the uuid, not the id; written only by <code translate="no" v-pre>HelpAssistantService.saveSettings</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>

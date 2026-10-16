@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845465136904">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845488153586">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845465136904" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845488153586" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845465136904" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845488153586" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -719,6 +719,48 @@ service method calls <code translate="no" v-pre>adminGuard.requireAdmin()</code>
 </table>
 </div>
 </retype-table>
+<h3 id="the-manual">The manual</h3>
+<p><code translate="no" v-pre>ManualService</code> (<code translate="no" v-pre>ManualServiceImpl</code>, a plain bean with <code translate="no" v-pre>init-method=&quot;load&quot;</code>) holds the user manual in memory: the
+Markdown pages of <code translate="no" v-pre>manual/user</code> that the build packs as <code translate="no" v-pre>classpath:/manual/</code> (see
+<a href="../packaging/#the-war">Packaging</a>). It is global read-only data, so it has no user and no transaction.
+<code translate="no" v-pre>load()</code> reads every <code translate="no" v-pre>manual/**/*.md</code> and keeps the pages, a missing or unreadable page is only logged. <code translate="no" v-pre>ManualParser</code>
+turns a page into a <code translate="no" v-pre>ManualPage</code>: removes the front matter, pictures and Retype admonition markers (<code translate="no" v-pre>!!!warning Title</code>
+becomes a bold <code translate="no" v-pre>**Warning: Title**</code> line), rewrites links between pages to paths in the manual
+(<code translate="no" v-pre>books/story-editor.md#images</code>, links into the developer manual become plain text) and splits the page by its second
+and third level headings into <code translate="no" v-pre>ManualSection</code>s with the Retype anchors. <code translate="no" v-pre>ManualIndex</code> is an immutable BM25 index over
+the sections (heading and page title weigh more than the body, light English stemming, stop words dropped, no
+support for Japanese or Chinese text). <code translate="no" v-pre>getPage</code> tolerates a leading slash, an <code translate="no" v-pre>#anchor</code> and a missing <code translate="no" v-pre>.md</code>,
+<code translate="no" v-pre>search(query, limit)</code> returns <code translate="no" v-pre>ManualHit</code>s, best first.</p>
+<h3 id="the-help-assistant">The help assistant</h3>
+<p><code translate="no" v-pre>HelpAssistantService</code> is the model behind the help chat (<code translate="no" v-pre>ui.components.HelpAssistantWidget</code>). <code translate="no" v-pre>getSettings</code> / <code translate="no" v-pre>saveSettings</code> are for
+administrators (<code translate="no" v-pre>AdminGuard</code>) and keep <code translate="no" v-pre>Settings(enabled, aiUuid, applyLimits)</code> in <code translate="no" v-pre>AppSettings</code>;
+<code translate="no" v-pre>saveSettings</code> accepts only an AI the administrator owns (<code translate="no" v-pre>IllegalArgumentException</code> otherwise) and an enabled
+assistant needs one; requests are made without a protocol. <code translate="no" v-pre>isAvailable()</code> and <code translate="no" v-pre>stream(payload, functions, callback)</code> are for every user. The
+AI is loaded by uuid whoever owns it (the user could not see it), and only while it is not deleted and its owner is
+still an administrator, which is checked at each request, so a demoted administrator&#x27;s
+AI is never handed to everybody. A request is <strong>metered</strong> (the normal path, <code translate="no" v-pre>AILimitService.check</code> and
+<code translate="no" v-pre>UsageService.record</code> for the current user) only for a shared AI with <code translate="no" v-pre>applyLimits</code>; any other request runs in an
+<code translate="no" v-pre>UnmeteredScope</code>: a thread-local, opened by the caller around the call that starts the request, that an inference
+service reads once when the request starts (before it moves to other threads) and then skips the limit check and
+does not count the usage. <code translate="no" v-pre>OpenAICompatibleInferenceService</code> and the <code translate="no" v-pre>google-genai</code> plugin do this; an extension AI
+must too, see <a href="../plugins/ai-providers/#the-inference-service">AI providers</a>. The tokens of an unmetered
+request are not counted anywhere: not for the user, not for the owner.</p>
+<p><code translate="no" v-pre>getInfo()</code> tells any user which AI answers (<code translate="no" v-pre>Info(aiName, model, metered)</code>, null when unavailable). <code translate="no" v-pre>ask(history, uiState, callback)</code> is what the chat calls: it puts the instructions in front of the conversation, binds <code translate="no" v-pre>HelpTools</code>
+and calls <code translate="no" v-pre>stream</code>. <code translate="no" v-pre>HelpTools</code> are <code translate="no" v-pre>ManualTools</code> (<code translate="no" v-pre>search_manual</code> over <code translate="no" v-pre>ManualService.search</code>, <code translate="no" v-pre>read_manual_page</code> over
+<code translate="no" v-pre>getPage</code>; read only, answers cut to a size a small model can use) and <code translate="no" v-pre>get_ui_state(path, deep)</code>, which asks the
+<code translate="no" v-pre>UiStateSource</code> (the page the question comes from; null when there is none, the function then fails with a message the
+model can read), see <a href="../ui/#letting-the-help-assistant-see-the-ui">Letting the help assistant see the UI</a>. When the
+administrator allowed interactions (<code translate="no" v-pre>Settings.interactions</code>, <code translate="no" v-pre>AppSettings.helpInteractions</code>) and there is a <code translate="no" v-pre>UiStateSource</code>,
+<code translate="no" v-pre>ask</code> binds <code translate="no" v-pre>InteractiveHelpTools</code> instead (adds <code translate="no" v-pre>interact_with_ui(path, interactions)</code>, which calls <code translate="no" v-pre>UiStateSource.interact</code>)
+and appends <code translate="no" v-pre>HelpPrompts.INTERACTIVE</code> to the instructions; see <a href="../ui/#interactions">Interactions</a>. The
+instructions are one of two prompts, for administrators (<code translate="no" v-pre>AdminGuard.isAdmin()</code>) or for the other users: the text in
+<code translate="no" v-pre>AppSettings.helpPromptAdmin</code> / <code translate="no" v-pre>helpPromptUser</code> or, when that is null or blank, the default (<code translate="no" v-pre>HelpPrompts.ADMIN</code> /
+<code translate="no" v-pre>USER</code>); <code translate="no" v-pre>saveSettings</code> stores a blank prompt or one equal to the default as null, so a default follows the new version.
+&#x60;&#x60; in a prompt is replaced by the list of pages (path, title, 110 characters of the description), a prompt
+without it gets no index. The settings are installation wide, so a test that saves them must reset them first. It does not store anything. The conversation of the user is the list <code translate="no" v-pre>SessionPoint.getHelpChat()</code>
+(a synchronized <code translate="no" v-pre>List&lt;LLMChatMessage&gt;</code>, user and assistant messages only), which lives and dies with the HTTP session
+(logout invalidates it). A model without function calling fails the request; there is no fallback to a
+prompt with searched sections.</p>
 <h2 id="asynchronous-operations">Asynchronous operations</h2>
 <p>Long operations - generating a part, a summary, streaming from a model - return immediately and report through a
 callback:</p>

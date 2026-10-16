@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845465136904">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845488153586">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845465136904" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845488153586" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845465136904" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845488153586" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -223,7 +223,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
-| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `InvalidExtensionsWarning`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
+| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `InvalidExtensionsWarning`, `HelpAssistantWidget`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
 | `ui.widgets` | Small reusable widgets, among them `TrashGrid` (see [Trash](#trash)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -264,7 +264,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.components</code></td>
-<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>LorebookPreview</code>, <code translate="no" v-pre>InvalidExtensionsWarning</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>.</td>
+<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>LorebookPreview</code>, <code translate="no" v-pre>InvalidExtensionsWarning</code>, <code translate="no" v-pre>HelpAssistantWidget</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.widgets</code></td>
@@ -730,6 +730,8 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
+| `LLMInteract` / `LLMSnapshot` (`ui`) | What the help assistant's model can read of the screen, see [Letting the help assistant see the UI](#letting-the-help-assistant-see-the-ui). |
+| `HelpAssistantWidget` | The help chat: a round robot `Button` fixed in the bottom right corner (`CssStyles.HELP_FAB`) opening a fixed panel above it (`HELP_PANEL`: header with clear and close, which AI answers, a warning when `Info.metered()`, the messages, an input row whose send button turns into stop). Added to `Main` after the workspace, so the phone layout has it too; hidden unless `HelpAssistantService.isAvailable()` when the page is built, the panel reads `getInfo()` at each opening. Answers stream into a `Markdown` card with `ui.access` + `UIPushGuard.push`; the conversation is `SessionPoint.getHelpChat()` (the widget keeps the list, the callbacks have no session). A request that fails or is refused (limit) takes the question back into the input field and shows the reason in the card. Reasoning chunks are not shown. |
 | `LorebookPreview` | The read only *Lorebook* tab of the desktop story editor: a tree grid of the lorebook (optionally with its sub lorebooks as top level rows) and its entries, opening to the content and the text activation. `create()`, then `refresh(lorebook)`. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
 | `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. |
@@ -761,6 +763,14 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 <tr>
 <td><code translate="no" v-pre>TagsView</code> (<code translate="no" v-pre>ui.components</code>)</td>
 <td>The Tags tab of <code translate="no" v-pre>UserPart</code>: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>LLMInteract</code> / <code translate="no" v-pre>LLMSnapshot</code> (<code translate="no" v-pre>ui</code>)</td>
+<td>What the help assistant&#x27;s model can read of the screen, see <doc-anchor-trigger to="#letting-the-help-assistant-see-the-ui">Letting the help assistant see the UI</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>HelpAssistantWidget</code></td>
+<td>The help chat: a round robot <code translate="no" v-pre>Button</code> fixed in the bottom right corner (<code translate="no" v-pre>CssStyles.HELP_FAB</code>) opening a fixed panel above it (<code translate="no" v-pre>HELP_PANEL</code>: header with clear and close, which AI answers, a warning when <code translate="no" v-pre>Info.metered()</code>, the messages, an input row whose send button turns into stop). Added to <code translate="no" v-pre>Main</code> after the workspace, so the phone layout has it too; hidden unless <code translate="no" v-pre>HelpAssistantService.isAvailable()</code> when the page is built, the panel reads <code translate="no" v-pre>getInfo()</code> at each opening. Answers stream into a <code translate="no" v-pre>Markdown</code> card with <code translate="no" v-pre>ui.access</code> + <code translate="no" v-pre>UIPushGuard.push</code>; the conversation is <code translate="no" v-pre>SessionPoint.getHelpChat()</code> (the widget keeps the list, the callbacks have no session). A request that fails or is refused (limit) takes the question back into the input field and shows the reason in the card. Reasoning chunks are not shown.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookPreview</code></td>
@@ -1029,6 +1039,90 @@ cookies). Without a parameter it lists the user&#x27;s own books, with name and 
 name; other users&#x27; published books are opened by their link; with <code translate="no" v-pre>/view/&lt;uuid&gt;</code> it shows the book&#x27;s active branch as Markdown in
 the book&#x27;s reading style. Books are resolved only through <code translate="no" v-pre>ManuscriptService.findViewable(uuid)</code> (owner or
 published, never deleted). The layout is made for phones.</p>
+<h2 id="letting-the-help-assistant-see-the-ui">Letting the help assistant see the UI</h2>
+<p>The help assistant&#x27;s model has a function, <code translate="no" v-pre>get_ui_state(path, deep)</code>, that returns what the user currently sees. The
+UI describes itself through <code translate="no" v-pre>LLMInteract</code> (<code translate="no" v-pre>ui</code>), which every UI class that matters implements: <code translate="no" v-pre>Workspace</code>,
+<code translate="no" v-pre>WorkspaceComponent</code> (so all parts of both layouts), <code translate="no" v-pre>ManuscriptDialogPart</code> and <code translate="no" v-pre>PhoneManuscriptDialogPart</code>, every class
+that extends <code translate="no" v-pre>Dialog</code>, <code translate="no" v-pre>Main</code>, the admin panels, and <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>LorebookPreview</code>, <code translate="no" v-pre>TagsView</code>,
+<code translate="no" v-pre>TrashGrid</code>. An element has a name (<code translate="no" v-pre>getLLMName</code>, the simple class name), a state (<code translate="no" v-pre>getLLMState</code>, <strong>Markdown</strong>: free text
+suits the very different things to say, and it is what a model reads best) and children (<code translate="no" v-pre>getLLMChildren(deep)</code>).
+<code translate="no" v-pre>takeLLMSnapshot()</code> builds the tree, <code translate="no" v-pre>LLMSnapshot</code> (a record <code translate="no" v-pre>path</code>, <code translate="no" v-pre>state</code>, <code translate="no" v-pre>children</code>) holds it: the path of a node is
+the names from the root (<code translate="no" v-pre>UI/Main/DesktopWorkspace/ManuscriptPart</code>), siblings with one name are numbered (<code translate="no" v-pre>Panel[1]</code>,
+<code translate="no" v-pre>Panel[2]</code>), a node that throws is listed with a note, depth is capped. <code translate="no" v-pre>read(path, maxChars)</code> renders a subtree as
+Markdown (a heading with the path per node) and cuts it with the outline of the rest; an unknown path throws with the
+outline of the paths there are.</p>
+<ul>
+<li>
+<p><strong>Only the active branch.</strong> <code translate="no" v-pre>takeLLMSnapshot()</code> expands what is shown: invisible components, dialogs that are not open
+and the content of tabs that are not selected are left out. Where the UI has alternatives the element reports them
+with <code translate="no" v-pre>LLMInteract.options(all, active, deep)</code> (the others become <code translate="no" v-pre>inactive</code> stubs: the name and &quot;Not open&quot;, no
+children), or <code translate="no" v-pre>LLMInteract.parts(partsWithComponents, active, deep)</code> for parts that created a component each. With
+<code translate="no" v-pre>deep = true</code> (<code translate="no" v-pre>takeLLMSnapshot(true)</code>, the function&#x27;s <code translate="no" v-pre>deep</code> parameter, for something that is not on the screen) the
+alternatives are expanded and hidden elements are included and marked <code translate="no" v-pre>*Hidden*</code>.</p>
+</li>
+<li>
+<p><strong>Defaults.</strong> A component finds its children as the nearest visible descendants that are <code translate="no" v-pre>LLMInteract</code>; a dialog
+describes itself by its title. Something that is not a component (a workspace part, a dialog part) has no children
+unless it says so: <code translate="no" v-pre>LLMInteract.within(part, component)</code> adds the elements of the component the part created.</p>
+</li>
+<li>
+<p><strong>What to put in a state.</strong> What the user sees and would say himself: the title of the open book, the open tab, a
+filter. Never a secret, an id, the text of a story or a lorebook (the state goes to the AI of the help assistant, which
+may be a provider outside the installation), and nothing long: the model reads all of it.</p>
+</li>
+<li>
+<p><strong>Called on the UI thread</strong> under the session lock (the widget reads through <code translate="no" v-pre>ui.access</code>); quick, read only.</p>
+</li>
+<li>
+<p><strong>In the extendable classes</strong> (<code translate="no" v-pre>Main</code>, both workspaces, <code translate="no" v-pre>AdminPart</code>, both manuscript dialogs) the overrides carry
+<code translate="no" v-pre>@PublicAPI</code> like any method; <code translate="no" v-pre>DesktopWorkspace</code> / <code translate="no" v-pre>PhoneWorkspace</code> describe the sections through
+<code translate="no" v-pre>WorkspaceLLMSupport</code>.</p>
+</li>
+<li>
+<p><strong>Extensions</strong> implement <code translate="no" v-pre>LLMInteract</code> on their own components (a tab, a panel) and are found like any other: they
+appear under the nearest element above them, so a tab an extension adds to the story editor shows up when it is the
+open one.</p>
+</li>
+</ul>
+<p>The widget builds the root with <code translate="no" v-pre>LLMSnapshot.ofComponentTree(&quot;UI&quot;, ..., ui, deep)</code>, so the dialogs open on top of the
+page appear next to <code translate="no" v-pre>Main</code>; <code translate="no" v-pre>Main</code> reports the workspace of its UI (from <code translate="no" v-pre>ApplicationPoint</code>) as its only child. The
+function is <code translate="no" v-pre>HelpTools.getUiState</code>, bound with the manual tools by <code translate="no" v-pre>HelpAssistantService.ask(history, uiState, callback)</code>;
+<code translate="no" v-pre>UiStateSource</code> is how the widget answers it.</p>
+<h3 id="interactions">Interactions</h3>
+<p>When an administrator allows it (<strong>Allow navigating the interface</strong> in the <em>Help assistant</em> tab, <code translate="no" v-pre>AppSettings.helpInteractions</code>,
+off by default) the model can also move through the UI for the user, with a second function, <code translate="no" v-pre>interact_with_ui(path, interactions)</code> (<code translate="no" v-pre>InteractiveHelpTools</code>, bound instead of <code translate="no" v-pre>HelpTools</code> only when the setting is on <strong>and</strong> the question comes
+from a page). An element offers interactions by overriding <code translate="no" v-pre>getInteraction()</code>: a map from a key to an <code translate="no" v-pre>LLMInteraction</code>
+(<code translate="no" v-pre>description</code> for the model, <code translate="no" v-pre>action</code> a <code translate="no" v-pre>Runnable</code>). The map is what is possible <em>now</em>: the section that is open is not
+offered again, nothing while the navigation is locked, no disabled tab. <code translate="no" v-pre>applyInteraction(key)</code> and
+<code translate="no" v-pre>applyInteraction(List&lt;String&gt; keys)</code> run them in order and return <code translate="no" v-pre>takeLLMSnapshot()</code> of the element after them; the map
+is read again before each step, so a sequence can use what an earlier step made possible. A key that is not offered ends
+the sequence with an <code translate="no" v-pre>IllegalArgumentException</code> that names what was done and what the element offers (what was done stays
+done); an action that throws is reported the same way.</p>
+<ul>
+<li>
+<p><strong>Only harmless moves.</strong> An interaction is something the user could do with one click and undo with another: open a
+section, select a tab. Never one that changes, saves, deletes, sends, generates, logs out or closes a dialog that may hold
+unsaved work. There are no generic interactions: each element decides. Today <code translate="no" v-pre>DesktopWorkspace</code> / <code translate="no" v-pre>PhoneWorkspace</code> (<code translate="no" v-pre>open-section:&lt;label&gt;</code>,
+through <code translate="no" v-pre>WorkspaceLLMSupport.openSections</code>), <code translate="no" v-pre>AdminPart</code>, <code translate="no" v-pre>ManuscriptDialog</code> and <code translate="no" v-pre>PhoneManuscriptDialog</code> (<code translate="no" v-pre>open-tab:&lt;label&gt;</code>,
+through <code translate="no" v-pre>LLMInteract.tabs</code>). Keys use the labels the user reads, which is what the model sees in the states.</p>
+</li>
+<li>
+<p><strong>The snapshot carries them.</strong> <code translate="no" v-pre>LLMSnapshot</code> also has <code translate="no" v-pre>interactions</code> (key to description) and the live <code translate="no" v-pre>element</code>, so
+<code translate="no" v-pre>LLMSnapshot.interact(path, keys)</code> finds the element by the same path the model read (<code translate="no" v-pre>[n]</code> numbering included) and applies
+the keys to it. <code translate="no" v-pre>toMarkdown(true)</code> / <code translate="no" v-pre>read(path, max, true)</code> list them under the state of the node (<code translate="no" v-pre>Interactions:</code>); without the flag they are left out, which is what the
+model gets while the setting is off. Hidden and inactive elements offer nothing. The <code translate="no" v-pre>element</code> is only valid on the thread of the page.</p>
+</li>
+<li>
+<p><strong>What the model gets back</strong> is the whole page after the moves (<code translate="no" v-pre>HelpAssistantWidget.interactNow</code>: apply, then read the page
+with interactions), because a move can change something other than the element (a section opens a dialog elsewhere).</p>
+</li>
+<li>
+<p><strong>Plugins</strong> add interactions to their own <code translate="no" v-pre>LLMInteract</code> components the same way; <code translate="no" v-pre>getInteraction</code> in an extendable class carries
+<code translate="no" v-pre>@PublicAPI</code>. Keep to the rule above.</p>
+</li>
+</ul>
+<p><code translate="no" v-pre>UiStateSource</code> has <code translate="no" v-pre>read(path, deep, withInteractions, done)</code> and <code translate="no" v-pre>interact(path, interactions, done)</code>; <code translate="no" v-pre>HelpAssistantService.ask</code>
+appends <code translate="no" v-pre>HelpPrompts.INTERACTIVE</code> to the prompt when the model has the function, so that an edited prompt cannot lose its rules.</p>
 
                 
                 <!-- Required only on API pages -->

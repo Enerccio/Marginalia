@@ -297,6 +297,54 @@ service method calls `adminGuard.requireAdmin()` first.
 | `IPCService` | Data that extensions offer to each other as text: providers about a book (`ManuscriptPluginData`) or a story part (`ChatMessagePluginData`) are registered under a bundle identifier and a key (`registerManuscriptProvider` / `registerChatMessageProvider`), listed in registration order (`getManuscriptProviders` / `getChatMessageProviders`: bundle → key → name) and asked with `getManuscriptData` / `getChatMessageData` (`null` when the provider is gone). `OsgiServiceImpl` removes the providers of a bundle's symbolic name when the extension is unloaded. See [Sharing data between extensions](plugins/ipc.md). |
 | `OsgiService`, `ExtensionService` | Loading extensions and the `@Extendable` decorators (which read arguments and locals and can replace the return value of the decorated method), see [Plugin development](plugins/index.md). `OsgiService` lists the installed extensions that are invalid (`getInvalidExtensions`, shown as a red bar in the workspace), also stops and starts extensions without uninstalling them (`stopExtension` / `startExtension` / `isStopped`, the `<jar name>.STOPPED` flag next to the JAR), gives the SHA-256 of an extension's JAR (`getSha256`, cached until the file changes) and gives each extension its own logger: `createLogger(bundle)` returns an SLF4J logger (implemented by `ExtensionLogger`) that appends to `<jar name>.log` in the extensions folder (moved to `.log.old` over 2 MB) and chains each line to the application log (logger `extension.<name>`); `readLog` / `clearLog` serve the Admin page. See [Logging](plugins/overview.md#logging). |
 
+### The manual
+
+`ManualService` (`ManualServiceImpl`, a plain bean with `init-method="load"`) holds the user manual in memory: the
+Markdown pages of `manual/user` that the build packs as `classpath:/manual/` (see
+[Packaging](packaging.md#the-war)). It is global read-only data, so it has no user and no transaction.
+`load()` reads every `manual/**/*.md` and keeps the pages, a missing or unreadable page is only logged. `ManualParser`
+turns a page into a `ManualPage`: removes the front matter, pictures and Retype admonition markers (`!!!warning Title`
+becomes a bold `**Warning: Title**` line), rewrites links between pages to paths in the manual
+(`books/story-editor.md#images`, links into the developer manual become plain text) and splits the page by its second
+and third level headings into `ManualSection`s with the Retype anchors. `ManualIndex` is an immutable BM25 index over
+the sections (heading and page title weigh more than the body, light English stemming, stop words dropped, no
+support for Japanese or Chinese text). `getPage` tolerates a leading slash, an `#anchor` and a missing `.md`,
+`search(query, limit)` returns `ManualHit`s, best first.
+
+### The help assistant
+
+`HelpAssistantService` is the model behind the help chat (`ui.components.HelpAssistantWidget`). `getSettings` / `saveSettings` are for
+administrators (`AdminGuard`) and keep `Settings(enabled, aiUuid, applyLimits)` in `AppSettings`;
+`saveSettings` accepts only an AI the administrator owns (`IllegalArgumentException` otherwise) and an enabled
+assistant needs one; requests are made without a protocol. `isAvailable()` and `stream(payload, functions, callback)` are for every user. The
+AI is loaded by uuid whoever owns it (the user could not see it), and only while it is not deleted and its owner is
+still an administrator, which is checked at each request, so a demoted administrator's
+AI is never handed to everybody. A request is **metered** (the normal path, `AILimitService.check` and
+`UsageService.record` for the current user) only for a shared AI with `applyLimits`; any other request runs in an
+`UnmeteredScope`: a thread-local, opened by the caller around the call that starts the request, that an inference
+service reads once when the request starts (before it moves to other threads) and then skips the limit check and
+does not count the usage. `OpenAICompatibleInferenceService` and the `google-genai` plugin do this; an extension AI
+must too, see [AI providers](plugins/ai-providers.md#the-inference-service). The tokens of an unmetered
+request are not counted anywhere: not for the user, not for the owner.
+
+`getInfo()` tells any user which AI answers (`Info(aiName, model, metered)`, null when unavailable). `ask(history,
+uiState, callback)` is what the chat calls: it puts the instructions in front of the conversation, binds `HelpTools`
+and calls `stream`. `HelpTools` are `ManualTools` (`search_manual` over `ManualService.search`, `read_manual_page` over
+`getPage`; read only, answers cut to a size a small model can use) and `get_ui_state(path, deep)`, which asks the
+`UiStateSource` (the page the question comes from; null when there is none, the function then fails with a message the
+model can read), see [Letting the help assistant see the UI](ui.md#letting-the-help-assistant-see-the-ui). When the
+administrator allowed interactions (`Settings.interactions`, `AppSettings.helpInteractions`) and there is a `UiStateSource`,
+`ask` binds `InteractiveHelpTools` instead (adds `interact_with_ui(path, interactions)`, which calls `UiStateSource.interact`)
+and appends `HelpPrompts.INTERACTIVE` to the instructions; see [Interactions](ui.md#interactions). The
+instructions are one of two prompts, for administrators (`AdminGuard.isAdmin()`) or for the other users: the text in
+`AppSettings.helpPromptAdmin` / `helpPromptUser` or, when that is null or blank, the default (`HelpPrompts.ADMIN` /
+`USER`); `saveSettings` stores a blank prompt or one equal to the default as null, so a default follows the new version.
+`` in a prompt is replaced by the list of pages (path, title, 110 characters of the description), a prompt
+without it gets no index. The settings are installation wide, so a test that saves them must reset them first. It does not store anything. The conversation of the user is the list `SessionPoint.getHelpChat()`
+(a synchronized `List<LLMChatMessage>`, user and assistant messages only), which lives and dies with the HTTP session
+(logout invalidates it). A model without function calling fails the request; there is no fallback to a
+prompt with searched sections.
+
 ## Asynchronous operations
 
 Long operations - generating a part, a summary, streaming from a model - return immediately and report through a

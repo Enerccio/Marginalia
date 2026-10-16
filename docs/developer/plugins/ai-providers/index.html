@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845465136904">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845488153586">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845465136904" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845488153586" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845465136904" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845465136904" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845488153586" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -284,6 +284,7 @@ What a service has to take care of itself, because nothing above it does:</p>
 <retype-table copy-text="| | |
 |---|---|
 | **Limits** | Call `AILimitService.check(ai, promptTokens, responseTokens)` at the start of `stream` and `infer`, in the caller's thread: it throws `InferenceException` (`NOT_AVAILABLE`, `LIMIT_REACHED`) when an administrator's limit for the user forbids the request. |
+| **Unmetered requests** | Read `UnmeteredScope.isActive()` once, in the caller's thread, when the request starts. When it is true the application asks on its own account (the help assistant with an AI that is not shared or has no *Apply limits*): skip `AILimitService.check` and do not call `UsageService.record` for that request, however many rounds and threads it takes. |
 | **Usage** | Call `UsageService.record(ai, prefill, generated)` once per request, whichever way it ends, with the numbers the API reported (otherwise your own estimate - `TokenizerService.countTokensApprox`). It needs the user: capture `ThreadCopyRequestAttributes.create()` in the thread that calls `stream`/`infer` and run the recording in `InRequestScope`. |
 | **Errors** | Fail with `InferenceException` and the right `Type` (authentication, rate limit, context overflow...): the application has a localized text for each and `InferenceErrors.describe` adds the provider's message. Anything else is shown as an internal error. |
 | **Callbacks** | `stream` hands chunks one at a time: call `onChunk(controller, type, text)` and wait for `controller.continueInference()` before the next, then `onCompletion()`. `ChunkType.REASONING` is the thinking, shown apart from the answer. Check `callback.isDead()` and the `CancellationToken` between chunks and end with `onCancel()`. Cut a blocked read short by cancelling the HTTP call when the token is cancelled (the Google plugin does it with an OkHttp interceptor). |
@@ -301,6 +302,10 @@ What a service has to take care of itself, because nothing above it does:</p>
 <tr>
 <td><strong>Limits</strong></td>
 <td>Call <code translate="no" v-pre>AILimitService.check(ai, promptTokens, responseTokens)</code> at the start of <code translate="no" v-pre>stream</code> and <code translate="no" v-pre>infer</code>, in the caller&#x27;s thread: it throws <code translate="no" v-pre>InferenceException</code> (<code translate="no" v-pre>NOT_AVAILABLE</code>, <code translate="no" v-pre>LIMIT_REACHED</code>) when an administrator&#x27;s limit for the user forbids the request.</td>
+</tr>
+<tr>
+<td><strong>Unmetered requests</strong></td>
+<td>Read <code translate="no" v-pre>UnmeteredScope.isActive()</code> once, in the caller&#x27;s thread, when the request starts. When it is true the application asks on its own account (the help assistant with an AI that is not shared or has no <em>Apply limits</em>): skip <code translate="no" v-pre>AILimitService.check</code> and do not call <code translate="no" v-pre>UsageService.record</code> for that request, however many rounds and threads it takes.</td>
 </tr>
 <tr>
 <td><strong>Usage</strong></td>
