@@ -33,7 +33,7 @@ public class PrepareForGenerationStep extends GenerationStepBase {
             }
             manuscript.setProtocol(protocol);
 
-            InferenceService inferenceService = inferenceServices.forAI(manuscript.getAi());
+            InferenceService inferenceService = inferenceServices.forAIOrThrow(manuscript.getAi());
             if (inferenceService == null) {
                 controller.getUIListener().onError(new IllegalStateException("Missing inference service!"));
                 controller.jumpTo(GenerationStepType.CLEANUP);

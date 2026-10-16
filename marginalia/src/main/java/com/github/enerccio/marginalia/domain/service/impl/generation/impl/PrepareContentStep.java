@@ -32,7 +32,7 @@ public class PrepareContentStep extends GenerationStepBase {
         controller.emitEvent(Events.BEFORE_PREPARE_CONTENT, () -> {
             ChatMessage activeMessage = chatMessageService.find(controller.getManuscript().getActiveLeaf());
 
-            InferenceService inferenceService = inferenceServices.forAI(controller.getManuscript().getAi());
+            InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getManuscript().getAi());
             PrePromptData data = controller.getPrePromptData();
             List<ChatMessage> fromRoot = null;
             List<ChatMessage> invalidatedSummaries = new ArrayList<>();

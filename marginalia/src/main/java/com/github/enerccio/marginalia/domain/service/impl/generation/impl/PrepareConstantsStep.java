@@ -21,7 +21,7 @@ public class PrepareConstantsStep extends GenerationStepBase {
             PrePromptData data = new PrePromptData();
 
             Manuscript manuscript = controller.getManuscript();
-            InferenceService inferenceService = inferenceServices.forAI(manuscript.getAi());
+            InferenceService inferenceService = inferenceServices.forAIOrThrow(manuscript.getAi());
 
             log.trace("Processing model jailbreak");
             if (Boolean.TRUE.equals(manuscript.getAi().getNeedsJailbreak())) {

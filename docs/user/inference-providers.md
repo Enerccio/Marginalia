@@ -47,7 +47,8 @@ At the top of the dialog:
 | Field | |
 |---|---|
 | **Name** | Your name for the provider, shown when you pick a model for a book. Include the model, e.g. `OpenRouter - Claude Sonnet`. |
-| **Type** | The kind of API. Currently only **OpenAI Compatible**. |
+| **Type** | The kind of API: **OpenAI Compatible**, or **Extension** for a provider that an [extension](extensions/index.md) brings (it is offered only while such an extension is loaded, e.g. [Google Gemini](extensions/google-genai.md)). The type can't be changed after the provider is created. |
+| **Provider** | Only for the type **Extension**: which extension's provider this is. Its own settings fill the *Per Type Settings* tab. |
 
 ### Per Type Settings
 
@@ -154,7 +155,8 @@ and tries these methods in order:
 5. a local estimate with the OpenAI tokenizer.
 
 The first method that works is used from then on. The local estimate is close for most models but not exact, which
-is another reason to keep **Max Context Size** a little below the real limit.
+is another reason to keep **Max Context Size** a little below the real limit. Providers of the type *Extension* count
+as their extension says; the [Google Gemini](extensions/google-genai.md) one uses the local estimate.
 
 ## Shared providers
 

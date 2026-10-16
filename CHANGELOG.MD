@@ -9,6 +9,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Inference providers from extensions.** An extension registers an `ExtensionAIFactory`
+  (`InferenceServices.registerExtensionFactory` / `unregisterExtensionFactory`, `getExtensionFactory(id)`,
+  `getExtensionFactories()`) that creates the `InferenceService` and the settings form (`ExtensionAIForm`) of its AIs. New
+  AI type `AIType.EXTENSION` and entity `ExtensionAI` (`ais_extension`, one column `extensionId`, **migration V14**); the
+  settings of the provider are in `ExtensionAI.getSettings()` (the dynamic attributes of the AI), secrets are encrypted with
+  the new `InferenceServices.protectSecret` / `revealSecret`. In the AI dialog the type *Extension* (offered while some
+  extension provides AIs) shows a *Provider* selector, the form of the provider and *Test Connection*; the type of an existing
+  AI can no longer be changed. While the extension is not loaded `InferenceServices.forAI` returns `null`, the new
+  `forAIOrThrow` throws `InferenceException` of the new type `EXTENSION_UNAVAILABLE` (the generation steps and summaries use it
+  and the user is told to load the extension), the AI list shows the provider name (`AITypes.label`) and the dialog opens such
+  an AI with a notice and keeps the settings of the extension as they are. API changes plugins can see (since 1.3.0): the
+  `AIDialog` methods `createFields`, `updateDynamicFields`, `save` and `populateFields` have new locals, new `AIDialog` methods
+  `addExtensionSettings`, `isExtensionMissing`, `extensionAiFor`, `currentExtensionAI`, `testExtensionConnection`. New texts
+  in all language bundles (the Chinese localization plugin too).
+- New plugin **Google Gemini** (`marginalia/plugins/google-genai`): Google's Gemini models as an inference provider over the
+  Google Gen AI Java SDK, which is embedded in the plugin JAR only (about 14 MB, nothing is added to the application). API key
+  (encrypted), model list, optional proxy URL, timeout, retries, safety filters off, the thinking summaries as reasoning
+  (thinking level for Gemini 3, token budget for the others), streaming with prompt cancellation, JSON schema, function calls
+  (with the thought signatures Gemini 3 needs), attachments, usage and limits like the OpenAI-compatible provider.
 - New plugin **Arc Outline** (`marginalia/plugins/arc-outline`): an *Arcs* tab in the story sidebar with the arcs of the
   book and their chapters. Arcs and chapters have a title, description, note and a state (planned, current, finished),
   are reordered with buttons (a chapter moved past the end of its arc goes into the neighbouring arc) and finishing an

@@ -21,6 +21,7 @@
     <module>marginalia/plugins/chineselocalization</module>
     <module>marginalia/plugins/instructionexporter</module>
     <module>marginalia/plugins/gemma4toolsfix</module>
+    <module>marginalia/plugins/google-genai</module>
     <module>marginalia/plugins/lore-generator</module>
     <module>marginalia/plugins/lorebookvcs</module>
     <module>marginalia/plugins/name-generator</module>

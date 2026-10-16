@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845413391881">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845441819202">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845413391881" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845441819202" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845413391881" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845441819202" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845413391881" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845441819202" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -422,7 +422,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `impl/ChatMessage` | A story part - a node of the story tree. |
 | `impl/Summary` | A summary of the story up to a part, or a meta summary of summaries. |
 | `impl/Lorebook`, `impl/LorebookEntry` | Lorebooks and their entries. |
-| `impl/AI`, `impl/OpenAICompatible` | Inference providers (`AI` is the base, `OpenAICompatible` the only type). |
+| `impl/AI`, `impl/OpenAICompatible`, `impl/ExtensionAI` | Inference providers (`AI` is the base; `OpenAICompatible` talks to an OpenAI-compatible API, `ExtensionAI` is provided by an extension). |
 | `impl/Protocol`, `impl/ChatCompletionProtocol` | Protocols (generation settings). |
 | `impl/Tag`, `impl/TagRelation` | Tags and their assignment to objects (by class and id, optionally as a negative tag). |
 | `impl/Resource` | Uploaded files stored by hash, used for the image attachments of a part (`ChatMessage.getImages()`); `clazz` + `objectId` loosely note what uses it. Listed in the Resources tab (`ResourcesPart`). |
@@ -462,8 +462,8 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <td>Lorebooks and their entries.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>impl/AI</code>, <code translate="no" v-pre>impl/OpenAICompatible</code></td>
-<td>Inference providers (<code translate="no" v-pre>AI</code> is the base, <code translate="no" v-pre>OpenAICompatible</code> the only type).</td>
+<td><code translate="no" v-pre>impl/AI</code>, <code translate="no" v-pre>impl/OpenAICompatible</code>, <code translate="no" v-pre>impl/ExtensionAI</code></td>
+<td>Inference providers (<code translate="no" v-pre>AI</code> is the base; <code translate="no" v-pre>OpenAICompatible</code> talks to an OpenAI-compatible API, <code translate="no" v-pre>ExtensionAI</code> is provided by an extension).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>impl/Protocol</code>, <code translate="no" v-pre>impl/ChatCompletionProtocol</code></td>
@@ -816,11 +816,11 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <h3 id="extensions-localization-helpers">Extensions, localization, helpers</h3>
 <retype-table copy-text="| Package | |
 |---|---|
-| `extensions` | `MarginaliaExtension` - the service interface every extension bundle registers; `ExtensionHasCss` and `ExtensionHasLocalization` - optional interfaces of an extension (its styles, its languages). |
+| `extensions` | `MarginaliaExtension` - the service interface every extension bundle registers; `ExtensionHasCss` and `ExtensionHasLocalization` - optional interfaces of an extension (its styles, its languages); `ExtensionAIFactory` and `ExtensionAIForm` - an inference provider brought by an extension and its settings form. |
 | `instruct` | `RuntimeInstrumentationInitializer` (installs the ByteBuddy agent), `ExtendableMethodVisitor` (the bytecode rewrite), `ExtensionServiceHolder` (static access to `ExtensionService` from instrumented code); `instruct.verify`: `ExtensionVerifier` (checks an extension's decorators against the application before it is started, `ExtensionService.verifyExtension`), `ContextInterpreter` and `ContextValue` (its bytecode data-flow analysis), `ExtensionVerification` (the result). |
 | `loc` | `L` (all text keys), `Localization` (the service interface) / `LocalizationImpl` (picks the bundle of the session's language), `Language`, `LocalizationBundle` (texts and formats of one language) / `LocalizationBundleBase` / `LocalizationBundleEN` / `LocalizationBundleJP`, `NaturalOrderComparator`. |
 | `concurrent` | `AsyncRunnableWrapper` (keeps the submitting stack trace for errors on worker threads), `ThrowingRunnable`. |
-| `utils` | `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, `clientAddress`), `ClientAddressResolver` (the client address of a request: `X-Forwarded-For` only from the `trustedProxies`, see [Login throttling](services.md#login-throttling)), `ReflectUtils` (cached reflection), `GeneratedTextHighlighter` (word diff of a part against its original text, `&lt;mark&gt;` around the shared words), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
+| `utils` | `AITypes` (the type of an AI as the lists show it), `UIUtils` (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, `clientAddress`), `ClientAddressResolver` (the client address of a request: `X-Forwarded-For` only from the `trustedProxies`, see [Login throttling](services.md#login-throttling)), `ReflectUtils` (cached reflection), `GeneratedTextHighlighter` (word diff of a part against its original text, `&lt;mark&gt;` around the shared words), `ThreadUtils` (`executeInThread` - runs a task on a fresh thread without the caller's thread locals and waits for it). |
 | `com.github.enerccio.tools` | `Pair`, `Pointer` (small holders used across the code) and `GenerateFlywayDiff` (development tool, see [Database schema changes](building.md#database-schema-changes)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -833,7 +833,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <tbody>
 <tr>
 <td><code translate="no" v-pre>extensions</code></td>
-<td><code translate="no" v-pre>MarginaliaExtension</code> - the service interface every extension bundle registers; <code translate="no" v-pre>ExtensionHasCss</code> and <code translate="no" v-pre>ExtensionHasLocalization</code> - optional interfaces of an extension (its styles, its languages).</td>
+<td><code translate="no" v-pre>MarginaliaExtension</code> - the service interface every extension bundle registers; <code translate="no" v-pre>ExtensionHasCss</code> and <code translate="no" v-pre>ExtensionHasLocalization</code> - optional interfaces of an extension (its styles, its languages); <code translate="no" v-pre>ExtensionAIFactory</code> and <code translate="no" v-pre>ExtensionAIForm</code> - an inference provider brought by an extension and its settings form.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>instruct</code></td>
@@ -849,7 +849,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>utils</code></td>
-<td><code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, <code translate="no" v-pre>clientAddress</code>), <code translate="no" v-pre>ClientAddressResolver</code> (the client address of a request: <code translate="no" v-pre>X-Forwarded-For</code> only from the <code translate="no" v-pre>trustedProxies</code>, see <a href="../services/#login-throttling">Login throttling</a>), <code translate="no" v-pre>ReflectUtils</code> (cached reflection), <code translate="no" v-pre>GeneratedTextHighlighter</code> (word diff of a part against its original text, <code translate="no" v-pre>&lt;mark&gt;</code> around the shared words), <code translate="no" v-pre>ThreadUtils</code> (<code translate="no" v-pre>executeInThread</code> - runs a task on a fresh thread without the caller&#x27;s thread locals and waits for it).</td>
+<td><code translate="no" v-pre>AITypes</code> (the type of an AI as the lists show it), <code translate="no" v-pre>UIUtils</code> (error dialogs, validation messages, layout and grid helpers, dialog positioning, cookies, <code translate="no" v-pre>clientAddress</code>), <code translate="no" v-pre>ClientAddressResolver</code> (the client address of a request: <code translate="no" v-pre>X-Forwarded-For</code> only from the <code translate="no" v-pre>trustedProxies</code>, see <a href="../services/#login-throttling">Login throttling</a>), <code translate="no" v-pre>ReflectUtils</code> (cached reflection), <code translate="no" v-pre>GeneratedTextHighlighter</code> (word diff of a part against its original text, <code translate="no" v-pre>&lt;mark&gt;</code> around the shared words), <code translate="no" v-pre>ThreadUtils</code> (<code translate="no" v-pre>executeInThread</code> - runs a task on a fresh thread without the caller&#x27;s thread locals and waits for it).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>com.github.enerccio.tools</code></td>
@@ -1080,6 +1080,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
 | Character Tracker | `extensions.charactertracker` | Model (characters, relationships, the in-memory `CharacterBook`), service, a sidebar tab, dialogs (character, import from the lorebook, relationship map on `GraphView`) and `charactertracker.css`. |
 | Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
+| Google Gemini | `extensions.googlegenai` | Activator and extension, `GoogleGenAiFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Google Gen AI SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `NameToolsDialog`, `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `NameGeneratorBridge` (the Name generator by reflection). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
@@ -1121,6 +1122,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Gemma 4 tools fix</td>
 <td><code translate="no" v-pre>extensions.gemma4toolsfix</code></td>
 <td>Activator and extension only; registers a <code translate="no" v-pre>ToolRoleResolver</code>.</td>
+</tr>
+<tr>
+<td>Google Gemini</td>
+<td><code translate="no" v-pre>extensions.googlegenai</code></td>
+<td>Activator and extension, <code translate="no" v-pre>GoogleGenAiFactory</code> (the <code translate="no" v-pre>ExtensionAIFactory</code>), the settings form, the inference service over the Google Gen AI SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests.</td>
 </tr>
 <tr>
 <td>Instruction Exporter</td>

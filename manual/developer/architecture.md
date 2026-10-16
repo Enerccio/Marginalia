@@ -323,7 +323,7 @@ error or an interrupted thread jump straight to `CLEANUP`.
 Prompts are [Handlebars](https://github.com/jknack/handlebars.java) templates rendered by `TemplateService`;
 SillyTavern macros ({%{`{{user}}`, `{{getvar::x}}`, `{{random::a::b}}`}%}...) are translated to Handlebars helpers by
 `MacroTranslator` first. Inference goes through `InferenceServices`, which picks the implementation for the provider
-type - today only `OpenAICompatibleInferenceService` (openai-java). Token counts come from `TokenizerService`, which tries the
+type: `OpenAICompatibleInferenceService` (openai-java), or the service that the factory of an extension creates for an `ExtensionAI` (see [Inference providers from a plugin](plugins/ai-providers.md)). Token counts come from `TokenizerService`, which tries the
 `TokenizerStrategy` implementations in turn (OpenAI SDK, llama.cpp and LiteLLM tokenize endpoints, JTokkit as the local
 fallback) and remembers the first one that works for each provider.
 

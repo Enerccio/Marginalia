@@ -23,7 +23,7 @@ public class GenerateNewMessageStep extends GenerationStepBase {
     protected void onStep(GenerationController controller) throws Exception {
         controller.emitEvent(Events.BEFORE_GENERATE_NEW_MESSAGE, () -> {
             Manuscript manuscript = controller.getManuscript();
-            InferenceService inferenceService = inferenceServices.forAI(manuscript.getAi());
+            InferenceService inferenceService = inferenceServices.forAIOrThrow(manuscript.getAi());
             TurnInput input = controller.getInput();
             List<LLMChatMessage> payload = controller.getPayload();
 

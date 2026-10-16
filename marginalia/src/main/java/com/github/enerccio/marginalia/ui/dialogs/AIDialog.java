@@ -4,25 +4,27 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.ExtensionAI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.domain.service.AIService;
-import com.github.enerccio.marginalia.domain.service.InferenceErrors;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.TokenizerService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.inference.OpenAICompatibleInferenceService;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.extensions.ExtensionAIFactory;
+import com.github.enerccio.marginalia.extensions.ExtensionAIForm;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.*;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -90,6 +92,11 @@ public class AIDialog extends Dialog {
     private IntegerField maxRetriesField;
     private Button testConnectionButton;
 
+    // Extension type: the provider the extension offers and the form of its settings (null until a provider is chosen)
+    private ComboBox<ExtensionAIFactory> providerCombo;
+    private ExtensionAIFactory extensionFactory;
+    private ExtensionAIForm extensionForm;
+
     public AIDialog() {
         this(null);
     }
@@ -155,8 +162,16 @@ public class AIDialog extends Dialog {
         mainLayout.setFlexGrow(1, tabSheet);
 
         typeCombo.addValueChangeListener(event -> updateDynamicFields(event.getValue()));
+        providerCombo.addValueChangeListener(event -> {
+            extensionFactory = null;
+            extensionForm = null;
+            updateDynamicFields(AIType.EXTENSION);
+        });
 
         if (isEdit) {
+            // the type decides the class of the AI, it can't be changed
+            typeCombo.setReadOnly(true);
+            providerCombo.setReadOnly(true);
             populateFields();
         } else {
             typeCombo.setValue(AIType.OPEN_AI_COMPATIBLE);
@@ -186,18 +201,30 @@ public class AIDialog extends Dialog {
         getFooter().add(footerLayout);
     }
 
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = void.class))
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "types", type = List.class)})
     private void createFields() {
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setRequired(true);
         nameField.setWidthFull();
 
         typeCombo = new ComboBox<>(loc.getValue(L.LABEL_TYPE));
-        typeCombo.setItems(AIType.values());
+        // the type Extension is offered when some extension provides an AI (or the AI being edited is one)
+        List<AIType> types = new ArrayList<>(List.of(AIType.values()));
+        if (inferenceServices.getExtensionFactories().isEmpty() && !(ai instanceof ExtensionAI)) {
+            types.remove(AIType.EXTENSION);
+        }
+        typeCombo.setItems(types);
         typeCombo.setItemLabelGenerator(type -> loc.getValue(loc.getAIType(type)));
         typeCombo.setRequired(true);
         typeCombo.setWidthFull();
+
+        providerCombo = new ComboBox<>(loc.getValue(L.LABEL_PROVIDER));
+        providerCombo.setItems(inferenceServices.getExtensionFactories());
+        providerCombo.setItemLabelGenerator(ExtensionAIFactory::getName);
+        providerCombo.setRequired(true);
+        providerCombo.setWidthFull();
 
         // only administrators share, the service refuses it for anybody else
         sharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARED_WITH_ALL_USERS));
@@ -276,11 +303,12 @@ public class AIDialog extends Dialog {
         testConnectionButton = new Button(loc.getValue(L.LABEL_TEST_CONNECTION), event -> testConnection());
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "type", type = AIType.class)},
             locals = {@APILocals(name = "apiKeyLayout", type = HorizontalLayout.class),
-                    @APILocals(name = "modelLayout", type = HorizontalLayout.class)})
+                    @APILocals(name = "modelLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "factories", type = List.class)})
     private void updateDynamicFields(AIType type) {
         dynamicFormLayout.removeAll();
         if (type == AIType.OPEN_AI_COMPATIBLE) {
@@ -302,13 +330,81 @@ public class AIDialog extends Dialog {
             dynamicFormLayout.setColspan(apiKeyLayout, 2);
             dynamicFormLayout.setColspan(modelLayout, 2);
             dynamicFormLayout.setColspan(additionalParametersField, 2);
+        } else if (type == AIType.EXTENSION) {
+            List<ExtensionAIFactory> factories = inferenceServices.getExtensionFactories();
+            if (providerCombo.isEmpty() && ai == null && factories.size() == 1) {
+                // nothing to choose from; the listener of the combo builds the form
+                providerCombo.setValue(factories.get(0));
+                return;
+            }
+            dynamicFormLayout.add(providerCombo);
+            dynamicFormLayout.setColspan(providerCombo, 2);
+            addExtensionSettings();
         }
+    }
+
+    /**
+     * The form of the chosen provider under the provider selector; when an AI being edited belongs to an extension that
+     * is not loaded, a notice instead (its settings are not touched).
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "factory", type = ExtensionAIFactory.class),
+                    @APILocals(name = "formComponent", type = Component.class),
+                    @APILocals(name = "extensionAI", type = ExtensionAI.class),
+                    @APILocals(name = "notice", type = Span.class)})
+    private void addExtensionSettings() {
+        ExtensionAIFactory factory = providerCombo.getValue();
+        if (factory != null) {
+            if (extensionForm == null || extensionFactory != factory) {
+                extensionFactory = factory;
+                extensionForm = factory.createForm(extensionAiFor(factory));
+            }
+            Component formComponent = extensionForm.getComponent();
+            dynamicFormLayout.add(formComponent, testConnectionButton);
+            dynamicFormLayout.setColspan(formComponent, 2);
+        } else if (ai instanceof ExtensionAI extensionAI && isExtensionMissing()) {
+            Span notice = new Span(String.format(loc.getValue(L.MSG_AI_EXTENSION_NOT_LOADED), extensionAI.getExtensionId()));
+            notice.addClassName(CssStyles.NOTICE_WARNING);
+            dynamicFormLayout.add(notice);
+            dynamicFormLayout.setColspan(notice, 2);
+        }
+    }
+
+    /**
+     * Whether the AI being edited belongs to an extension that is not loaded now.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = boolean.class),
+            locals = {@APILocals(name = "extensionAI", type = ExtensionAI.class)})
+    private boolean isExtensionMissing() {
+        return ai instanceof ExtensionAI extensionAI && inferenceServices.getExtensionFactory(extensionAI.getExtensionId()) == null;
+    }
+
+    /**
+     * The AI the form of the provider reads its settings from: the one being edited, a new one for the provider
+     * otherwise.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = ExtensionAI.class),
+            parameters = {@APIParameter(name = "factory", type = ExtensionAIFactory.class)},
+            locals = {@APILocals(name = "extensionAI", type = ExtensionAI.class),
+                    @APILocals(name = "newAI", type = ExtensionAI.class)})
+    private ExtensionAI extensionAiFor(ExtensionAIFactory factory) {
+        if (ai instanceof ExtensionAI extensionAI && factory.getExtensionId().equals(extensionAI.getExtensionId())) {
+            return extensionAI;
+        }
+        ExtensionAI newAI = new ExtensionAI();
+        newAI.setAiType(AIType.EXTENSION);
+        newAI.setExtensionId(factory.getExtensionId());
+        return newAI;
     }
 
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "compatible", type = OpenAICompatible.class),
-                    @APILocals(name = "modelName", type = String.class)})
+                    @APILocals(name = "modelName", type = String.class),
+                    @APILocals(name = "extensionAI", type = ExtensionAI.class)})
     private void populateFields() {
         if (ai == null) {
             return;
@@ -348,6 +444,11 @@ public class AIDialog extends Dialog {
                     ? compatible.getRequestTimeoutSeconds() : OpenAICompatibleInferenceService.DEFAULT_TIMEOUT_SECONDS);
             maxRetriesField.setValue(compatible.getMaxRetries() != null && compatible.getMaxRetries() >= 0
                     ? compatible.getMaxRetries() : OpenAICompatibleInferenceService.DEFAULT_MAX_RETRIES);
+        }
+
+        if (ai.getAiType() == AIType.EXTENSION && ai instanceof ExtensionAI extensionAI) {
+            // null when the extension is not loaded, the notice is shown instead of the form
+            providerCombo.setValue(inferenceServices.getExtensionFactory(extensionAI.getExtensionId()));
         }
     }
 
@@ -452,6 +553,10 @@ public class AIDialog extends Dialog {
                     @APILocals(name = "models", type = List.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void testConnection() {
+        if (typeCombo.getValue() == AIType.EXTENSION) {
+            testExtensionConnection();
+            return;
+        }
         if (typeCombo.getValue() != AIType.OPEN_AI_COMPATIBLE) {
             return;
         }
@@ -475,7 +580,70 @@ public class AIDialog extends Dialog {
         }
     }
 
-    @PublicAPI(from = "1.1.0",
+    /**
+     * Like {@link #testConnection()} for the provider of an extension: the inference service of an AI with the values
+     * in the dialog (not saved) is asked to test the connection.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "copy", type = ExtensionAI.class),
+                    @APILocals(name = "service", type = InferenceService.class),
+                    @APILocals(name = "models", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void testExtensionConnection() {
+        ExtensionAI copy = currentExtensionAI();
+        if (copy == null) {
+            return;
+        }
+
+        try {
+            InferenceService service = inferenceServices.forAI(copy);
+            if (service == null) {
+                Notification.warning(String.format(loc.getValue(L.MSG_AI_EXTENSION_NOT_LOADED), copy.getExtensionId()));
+                return;
+            }
+            List<String> models = service.testConnection();
+            Notification.success(models.isEmpty()
+                    ? loc.getValue(L.MSG_CONNECTION_OK_NO_MODELS)
+                    : String.format(loc.getValue(L.MSG_CONNECTION_OK), models.size()));
+        } catch (Exception e) {
+            if (InferenceErrors.find(e) != null) {
+                Notification.error(InferenceErrors.describe(loc, e), Notification.DURATION_LONGER);
+            } else {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+    }
+
+    /**
+     * AI of the extension with the values currently in the dialog (not saved), null when the form says they can't be
+     * used - it told the user why.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = ExtensionAI.class),
+            locals = {@APILocals(name = "copy", type = ExtensionAI.class),
+                    @APILocals(name = "extensionAI", type = ExtensionAI.class)})
+    private ExtensionAI currentExtensionAI() {
+        if (extensionFactory == null || extensionForm == null || !extensionForm.validate()) {
+            return null;
+        }
+
+        ExtensionAI copy = new ExtensionAI();
+        copy.setAiType(AIType.EXTENSION);
+        copy.setExtensionId(extensionFactory.getExtensionId());
+        if (ai instanceof ExtensionAI extensionAI && extensionAI.getAttributes() != null) {
+            copy.setAttributes(extensionAI.getAttributes().deepCopy());
+        }
+        copy.setName(nameField.getValue());
+        copy.setMaxContext(maxContextField.getValue());
+        copy.setMaxCompletionTokens(maxResponseField.getValue());
+        copy.setEnabledReasoning(enabledReasoningCheckbox.getValue());
+        copy.setReasoningEffort(reasoningEffortCombo.getValue());
+        extensionForm.apply(copy);
+        return copy;
+    }
+
+    @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "name", type = String.class),
                     @APILocals(name = "type", type = AIType.class),
@@ -484,8 +652,10 @@ public class AIDialog extends Dialog {
                     @APILocals(name = "additionalParams", type = String.class),
                     @APILocals(name = "jsonElement", type = JsonElement.class),
                     @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "newExtensionAI", type = ExtensionAI.class),
                     @APILocals(name = "compatible", type = OpenAICompatible.class),
-                    @APILocals(name = "selectedModel", type = String.class)})
+                    @APILocals(name = "selectedModel", type = String.class),
+                    @APILocals(name = "extensionAI", type = ExtensionAI.class)})
     private void save() {
         String name = nameField.getValue();
         AIType type = typeCombo.getValue();
@@ -531,10 +701,30 @@ public class AIDialog extends Dialog {
             }
         }
 
+        // an AI of an extension that is not loaded keeps the settings of the extension as they are
+        boolean editsExtensionSettings = false;
+        if (type == AIType.EXTENSION) {
+            if (!isExtensionMissing()) {
+                if (providerCombo.getValue() == null || extensionForm == null) {
+                    Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
+                    return;
+                }
+                if (!extensionForm.validate()) {
+                    return;
+                }
+                editsExtensionSettings = true;
+            }
+        }
+
         try {
             if (ai == null) {
                 switch (type) {
                     case OPEN_AI_COMPATIBLE -> ai = new OpenAICompatible();
+                    case EXTENSION -> {
+                        ExtensionAI newExtensionAI = new ExtensionAI();
+                        newExtensionAI.setExtensionId(providerCombo.getValue().getExtensionId());
+                        ai = newExtensionAI;
+                    }
                     default -> throw new RuntimeException();
                 }
             }
@@ -562,6 +752,10 @@ public class AIDialog extends Dialog {
                 compatible.setAdditionalParameters(gson.fromJson(additionalParametersField.getValue(), JsonObject.class));
                 compatible.setRequestTimeoutSeconds(requestTimeoutField.getValue());
                 compatible.setMaxRetries(maxRetriesField.getValue());
+            }
+
+            if (editsExtensionSettings && ai instanceof ExtensionAI extensionAI) {
+                extensionForm.apply(extensionAI);
             }
 
             ai = aiService.save(ai);

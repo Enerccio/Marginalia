@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845441819202">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Inference providers from a plugin</title>
+    <meta name="title" content="Inference providers from a plugin">
+    <meta name="description" content="A plugin can bring a model API of its own. The user then creates an AI of the type Extension, chooses the provider of the plugin in the AI dialog, and the AI works like an OpenAI-compatible one: books use it, it is shared and limited, its usage is counted.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/plugins/ai-providers/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/plugins/ai-providers/">
+    <meta property="og:title" content="Inference providers from a plugin">
+    <meta property="og:description" content="A plugin can bring a model API of its own. The user then creates an AI of the type Extension, chooses the provider of the plugin in the AI dialog, and the AI works like an OpenAI-compatible one: books use it, it is shared and limited, its usage is counted.">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/plugins/ai-providers/">
+    <meta name="twitter:title" content="Inference providers from a plugin">
+    <meta name="twitter:description" content="A plugin can bring a model API of its own. The user then creates an AI of the type Extension, chooses the provider of the plugin in the AI dialog, and the AI works like an OpenAI-compatible one: books use it, it is shared and limited, its usage is counted.">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/plugins/ai-providers.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../../resources/css/retype.css?v=4.6.0.845441819202" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845441819202" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845441819202" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845441819202" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="inference-providers-from-a-plugin">Inference providers from a plugin</h1>
+<p>A plugin can bring a model API of its own. The user then creates an AI of the type <strong>Extension</strong>, chooses the
+provider of the plugin in the AI dialog, and the AI works like an OpenAI-compatible one: books use it, it is shared and
+limited, its usage is counted. The bundled
+<a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai">Google Gemini</a> plugin is the
+worked example.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    Plugin[&quot;plugin&lt;br/&gt;ExtensionAIFactory&quot;] --&gt;|registerExtensionFactory| IS[&quot;InferenceServices&quot;]
+    Dialog[&quot;AIDialog&lt;br/&gt;type Extension&quot;] --&gt;|getExtensionFactories| IS
+    Dialog --&gt;|createForm| Form[&quot;ExtensionAIForm&lt;br/&gt;(tab of the dialog)&quot;]
+    Form --&gt;|apply| AI[&quot;ExtensionAI&lt;br/&gt;extensionId + settings&quot;]
+    Gen[&quot;generation, summaries...&quot;] --&gt;|forAI| IS
+    IS --&gt;|createInferenceService| Plugin
+    Plugin --&gt; Svc[&quot;InferenceService&lt;br/&gt;(cached in the AI)&quot;]</pre></div>
+<h2 id="the-pieces">The pieces</h2>
+<retype-table copy-text="| Piece | What it is |
+|---|---|
+| `AIType.EXTENSION` | The type of such an AI. Stored as an ordinal like the others (1), so it must stay the last value. |
+| `ExtensionAI` (`ais_extension`) | An `AI` subclass with **one column**, `extensionId`. Everything else the provider needs lives in `getSettings()`: the object under the key `extensionId` of the [dynamic attributes](extended-attributes.md), so there is no migration for it and it travels with the AI. |
+| `ExtensionAIFactory` | What the plugin registers: its `getExtensionId()`, a `getName()` for the user, `createInferenceService(ExtensionAI)` and `createForm(ExtensionAI)`. |
+| `ExtensionAIForm` | The settings of the provider in the *Per Type Settings* tab of the dialog: `getComponent()`, `validate()` and `apply(ExtensionAI)`. |
+| `InferenceServices` | `registerExtensionFactory` / `unregisterExtensionFactory`, `getExtensionFactory(id)` and `getExtensionFactories()`, and `forAI(ai)`, which asks the factory of an `ExtensionAI`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Piece</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>AIType.EXTENSION</code></td>
+<td>The type of such an AI. Stored as an ordinal like the others (1), so it must stay the last value.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ExtensionAI</code> (<code translate="no" v-pre>ais_extension</code>)</td>
+<td>An <code translate="no" v-pre>AI</code> subclass with <strong>one column</strong>, <code translate="no" v-pre>extensionId</code>. Everything else the provider needs lives in <code translate="no" v-pre>getSettings()</code>: the object under the key <code translate="no" v-pre>extensionId</code> of the <a href="../extended-attributes/">dynamic attributes</a>, so there is no migration for it and it travels with the AI.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ExtensionAIFactory</code></td>
+<td>What the plugin registers: its <code translate="no" v-pre>getExtensionId()</code>, a <code translate="no" v-pre>getName()</code> for the user, <code translate="no" v-pre>createInferenceService(ExtensionAI)</code> and <code translate="no" v-pre>createForm(ExtensionAI)</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ExtensionAIForm</code></td>
+<td>The settings of the provider in the <em>Per Type Settings</em> tab of the dialog: <code translate="no" v-pre>getComponent()</code>, <code translate="no" v-pre>validate()</code> and <code translate="no" v-pre>apply(ExtensionAI)</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>InferenceServices</code></td>
+<td><code translate="no" v-pre>registerExtensionFactory</code> / <code translate="no" v-pre>unregisterExtensionFactory</code>, <code translate="no" v-pre>getExtensionFactory(id)</code> and <code translate="no" v-pre>getExtensionFactories()</code>, and <code translate="no" v-pre>forAI(ai)</code>, which asks the factory of an <code translate="no" v-pre>ExtensionAI</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The extension id is stored in every AI of the provider and never changes: use the symbolic name of the bundle
+(the Google plugin uses <code translate="no" v-pre>google-genai</code>).</p>
+<h2 id="registering">Registering</h2>
+<p>Register the factory in <code translate="no" v-pre>onExtensionLoad</code> and take it back in <code translate="no" v-pre>onExtensionUnload</code>, like the other registrations
+(see <a href="../overview/">Plugin basics</a>):</p>
+<div id="registering-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Configurable
+public class MyExtension implements MarginaliaExtension {
+
+    @Autowired
+    private InferenceServices inferenceServices;
+
+    private MyFactory factory;
+
+    @Override
+    public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        factory = new MyFactory(inferenceServices, parentService.createLogger(bundle));
+        inferenceServices.registerExtensionFactory(factory);   // IllegalStateException when the id is taken
+    }
+
+    @Override
+    public void onExtensionUnload(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        inferenceServices.unregisterExtensionFactory(factory);
+        factory.close();                                        // HTTP clients, threads
+    }
+}</code></pre>
+</doc-codeblock></div>
+<h2 id="the-settings-form">The settings form</h2>
+<p><code translate="no" v-pre>createForm</code> is called by the AI dialog each time the user picks the provider (and when an existing AI is edited), with
+the <code translate="no" v-pre>ExtensionAI</code> being edited, or a new one that only has the extension id. The form reads the AI&#x27;s
+<code translate="no" v-pre>getSettings()</code> and builds its fields (a <code translate="no" v-pre>FormLayout</code> is the usual root; use <code translate="no" v-pre>@Configurable(preConstruction = true)</code> to
+get <code translate="no" v-pre>Localization</code> into the constructor). The dialog:</p>
+<ul>
+<li>
+<p>calls <code translate="no" v-pre>validate()</code> before it saves or tests, and does not go on when it returns <code translate="no" v-pre>false</code> - the form tells the user
+why (a notification);</p>
+</li>
+<li>
+<p>calls <code translate="no" v-pre>apply(ai)</code> on the AI it saves, and on a throw-away copy (a deep copy of the attributes with the values of the
+dialog, no id) when the user clicks <strong>Test Connection</strong>, which runs <code translate="no" v-pre>testConnection()</code> of the service the factory
+creates for the copy. A form that lists models (a <strong>Refresh</strong> button) can create a service for such a copy itself and
+close it afterwards.</p>
+</li>
+</ul>
+<p>The general settings of the AI (name, context and response size, jailbreak, reasoning) stay with the dialog; the
+service reads them from the <code translate="no" v-pre>AI</code> (<code translate="no" v-pre>getMaxContext()</code>, <code translate="no" v-pre>getEnabledReasoning()</code>, <code translate="no" v-pre>getReasoningEffort()</code>...) and the
+protocol (<code translate="no" v-pre>TokenLimits</code>).</p>
+<h3 id="secrets">Secrets</h3>
+<p>The attributes are <strong>not encrypted</strong>. Keep an API key with <code translate="no" v-pre>inferenceServices.protectSecret(key)</code> (AES with the
+installation key, the same as the API key column of an OpenAI-compatible AI) and read it with <code translate="no" v-pre>revealSecret</code>, which
+returns <code translate="no" v-pre>null</code> for a key from another installation. Never show a stored key: disable the field and offer a <strong>Reset</strong>
+button, as the bundled forms do.</p>
+<h2 id="the-inference-service">The inference service</h2>
+<p><code translate="no" v-pre>createInferenceService(ai)</code> returns an <code translate="no" v-pre>InferenceService</code>. <code translate="no" v-pre>InferenceServices.forAI</code> calls it <strong>once</strong> and keeps the
+service in the AI (<code translate="no" v-pre>ExtensionAI.getInferenceServiceFactory()</code> remembers which factory made it), exactly as for an
+OpenAI-compatible AI. Saving the AI in the dialog clears the cache (<code translate="no" v-pre>setAiType</code>), so new settings reach the next service.
+Read the settings in the constructor: the service is not rebuilt per request.</p>
+<p>The core calls a service for many things (the generation, summaries, other plugins), so implement all of
+<code translate="no" v-pre>InferenceService</code> that your API can do and throw <code translate="no" v-pre>UnsupportedOperationException</code> for the rest, as the defaults do.
+What a service has to take care of itself, because nothing above it does:</p>
+<retype-table copy-text="| | |
+|---|---|
+| **Limits** | Call `AILimitService.check(ai, promptTokens, responseTokens)` at the start of `stream` and `infer`, in the caller's thread: it throws `InferenceException` (`NOT_AVAILABLE`, `LIMIT_REACHED`) when an administrator's limit for the user forbids the request. |
+| **Usage** | Call `UsageService.record(ai, prefill, generated)` once per request, whichever way it ends, with the numbers the API reported (otherwise your own estimate - `TokenizerService.countTokensApprox`). It needs the user: capture `ThreadCopyRequestAttributes.create()` in the thread that calls `stream`/`infer` and run the recording in `InRequestScope`. |
+| **Errors** | Fail with `InferenceException` and the right `Type` (authentication, rate limit, context overflow...): the application has a localized text for each and `InferenceErrors.describe` adds the provider's message. Anything else is shown as an internal error. |
+| **Callbacks** | `stream` hands chunks one at a time: call `onChunk(controller, type, text)` and wait for `controller.continueInference()` before the next, then `onCompletion()`. `ChunkType.REASONING` is the thinking, shown apart from the answer. Check `callback.isDead()` and the `CancellationToken` between chunks and end with `onCancel()`. Cut a blocked read short by cancelling the HTTP call when the token is cancelled (the Google plugin does it with an OkHttp interceptor). |
+| **Functions** | When a `FunctionSet` is passed, offer its definitions, run the calls the model makes with `FunctionSet.call(...)` (asynchronously, in the request scope), report each with `onFunctionCall`, ask again with the results, up to `MAX_FUNCTION_ROUNDS`. See `callFunctions` in the Google plugin. |
+| **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it. `TokenizerService.countTokensApprox` is local. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th> </th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Limits</strong></td>
+<td>Call <code translate="no" v-pre>AILimitService.check(ai, promptTokens, responseTokens)</code> at the start of <code translate="no" v-pre>stream</code> and <code translate="no" v-pre>infer</code>, in the caller&#x27;s thread: it throws <code translate="no" v-pre>InferenceException</code> (<code translate="no" v-pre>NOT_AVAILABLE</code>, <code translate="no" v-pre>LIMIT_REACHED</code>) when an administrator&#x27;s limit for the user forbids the request.</td>
+</tr>
+<tr>
+<td><strong>Usage</strong></td>
+<td>Call <code translate="no" v-pre>UsageService.record(ai, prefill, generated)</code> once per request, whichever way it ends, with the numbers the API reported (otherwise your own estimate - <code translate="no" v-pre>TokenizerService.countTokensApprox</code>). It needs the user: capture <code translate="no" v-pre>ThreadCopyRequestAttributes.create()</code> in the thread that calls <code translate="no" v-pre>stream</code>/<code translate="no" v-pre>infer</code> and run the recording in <code translate="no" v-pre>InRequestScope</code>.</td>
+</tr>
+<tr>
+<td><strong>Errors</strong></td>
+<td>Fail with <code translate="no" v-pre>InferenceException</code> and the right <code translate="no" v-pre>Type</code> (authentication, rate limit, context overflow...): the application has a localized text for each and <code translate="no" v-pre>InferenceErrors.describe</code> adds the provider&#x27;s message. Anything else is shown as an internal error.</td>
+</tr>
+<tr>
+<td><strong>Callbacks</strong></td>
+<td><code translate="no" v-pre>stream</code> hands chunks one at a time: call <code translate="no" v-pre>onChunk(controller, type, text)</code> and wait for <code translate="no" v-pre>controller.continueInference()</code> before the next, then <code translate="no" v-pre>onCompletion()</code>. <code translate="no" v-pre>ChunkType.REASONING</code> is the thinking, shown apart from the answer. Check <code translate="no" v-pre>callback.isDead()</code> and the <code translate="no" v-pre>CancellationToken</code> between chunks and end with <code translate="no" v-pre>onCancel()</code>. Cut a blocked read short by cancelling the HTTP call when the token is cancelled (the Google plugin does it with an OkHttp interceptor).</td>
+</tr>
+<tr>
+<td><strong>Functions</strong></td>
+<td>When a <code translate="no" v-pre>FunctionSet</code> is passed, offer its definitions, run the calls the model makes with <code translate="no" v-pre>FunctionSet.call(...)</code> (asynchronously, in the request scope), report each with <code translate="no" v-pre>onFunctionCall</code>, ask again with the results, up to <code translate="no" v-pre>MAX_FUNCTION_ROUNDS</code>. See <code translate="no" v-pre>callFunctions</code> in the Google plugin.</td>
+</tr>
+<tr>
+<td><strong>Tokens</strong></td>
+<td><code translate="no" v-pre>countTokens</code> is called very often (every part of the prompt): do not make a request for it. <code translate="no" v-pre>TokenizerService.countTokensApprox</code> is local.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="when-the-plugin-is-not-loaded">When the plugin is not loaded</h2>
+<p>AIs are rows in the database: the AI of an unloaded plugin stays in the list (<code translate="no" v-pre>AITypes.label</code> shows its provider name, or
+<code translate="no" v-pre>Extension: &lt;id&gt;</code>) and works again when the plugin is loaded. In between:</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>InferenceServices.forAI(ai)</code> returns <code translate="no" v-pre>null</code> and drops a service cached from the unloaded plugin; so it does when
+the plugin was loaded again meanwhile, because the cached service was made by the old factory: the next call asks
+the new one.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>forAIOrThrow(ai)</code> throws <code translate="no" v-pre>InferenceException</code> of the type <code translate="no" v-pre>EXTENSION_UNAVAILABLE</code> (&quot;The extension that provides this AI
+is not loaded...&quot;) and is what the generation steps and the summaries call. Code that has a sensible fallback (the
+token count in <code translate="no" v-pre>StorySupport</code>) keeps using <code translate="no" v-pre>forAI</code> and its <code translate="no" v-pre>null</code>.</p>
+</li>
+<li>
+<p>The AI dialog opens such an AI with a notice instead of the form, saves the general settings and leaves the settings
+of the plugin untouched.</p>
+</li>
+</ul>
+<p>Unregistering does not stop the services that exist. Close what they hold in <code translate="no" v-pre>onExtensionUnload</code> (the Google factory
+keeps its services in a weak set and closes their clients) and let a closed service fail with
+<code translate="no" v-pre>EXTENSION_UNAVAILABLE</code>.</p>
+<h2 id="the-ai-dialog">The AI dialog</h2>
+<p><code translate="no" v-pre>AIDialog</code> offers the type <strong>Extension</strong> only while a factory is registered (or when the AI being edited is one).
+The type of an existing AI cannot be changed, because the type decides the entity class. For the type Extension the
+dialog shows a <strong>Provider</strong> selector - preselected when only one plugin provides AIs, read-only when editing - and, under
+it, the form of the chosen provider and the <strong>Test Connection</strong> button. The methods that do this
+(<code translate="no" v-pre>addExtensionSettings</code>, <code translate="no" v-pre>currentExtensionAI</code>, <code translate="no" v-pre>testExtensionConnection</code>...) are <code translate="no" v-pre>@PublicAPI</code> like the rest of the dialog.</p>
+<h2 id="the-google-gemini-plugin">The Google Gemini plugin</h2>
+<p><code translate="no" v-pre>marginalia/plugins/google-genai</code> uses the
+<a href="https://github.com/googleapis/java-genai">Google Gen AI Java SDK</a>:</p>
+<retype-table copy-text="| Class | Role |
+|---|---|
+| `GoogleGenAiActivator`, `GoogleGenAiExtension` | Bundle start; the extension registers `GoogleGenAiFactory` and closes it on unload. |
+| `GoogleGenAiFactory` | `google-genai`, &quot;Google Gemini&quot;; creates the services and keeps them (weakly) to close their clients. |
+| `GoogleGenAiSettings` | The settings of an AI (`apiKey` encrypted, `model`, `baseUrl`, `requestTimeoutSeconds`, `maxRetries`, `safetyFiltersOff`) read from `ExtensionAI.getSettings()`. |
+| `GoogleGenAiForm` | The fields, **Refresh** for the model list, validation, `apply`. |
+| `GoogleGenAiInferenceService` | `stream`, `infer`, function calls, JSON schema (`responseJsonSchema`), usage, limits, thinking (`ThinkingConfig`: a level for `gemini-3*`, a token budget for the others), safety settings, cancellation. |
+| `GoogleGenAiMessages` | The payload as Gemini `Content`s: leading system messages are the system instruction, system messages later in the conversation become user messages, neighbouring messages of one role are one content, the results of the calls of one message are one content. |
+| `GoogleGenAiErrors` | `ApiException` and IO failures as `InferenceException`. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>GoogleGenAiActivator</code>, <code translate="no" v-pre>GoogleGenAiExtension</code></td>
+<td>Bundle start; the extension registers <code translate="no" v-pre>GoogleGenAiFactory</code> and closes it on unload.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>GoogleGenAiFactory</code></td>
+<td><code translate="no" v-pre>google-genai</code>, &quot;Google Gemini&quot;; creates the services and keeps them (weakly) to close their clients.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>GoogleGenAiSettings</code></td>
+<td>The settings of an AI (<code translate="no" v-pre>apiKey</code> encrypted, <code translate="no" v-pre>model</code>, <code translate="no" v-pre>baseUrl</code>, <code translate="no" v-pre>requestTimeoutSeconds</code>, <code translate="no" v-pre>maxRetries</code>, <code translate="no" v-pre>safetyFiltersOff</code>) read from <code translate="no" v-pre>ExtensionAI.getSettings()</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>GoogleGenAiForm</code></td>
+<td>The fields, <strong>Refresh</strong> for the model list, validation, <code translate="no" v-pre>apply</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>GoogleGenAiInferenceService</code></td>
+<td><code translate="no" v-pre>stream</code>, <code translate="no" v-pre>infer</code>, function calls, JSON schema (<code translate="no" v-pre>responseJsonSchema</code>), usage, limits, thinking (<code translate="no" v-pre>ThinkingConfig</code>: a level for <code translate="no" v-pre>gemini-3*</code>, a token budget for the others), safety settings, cancellation.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>GoogleGenAiMessages</code></td>
+<td>The payload as Gemini <code translate="no" v-pre>Content</code>s: leading system messages are the system instruction, system messages later in the conversation become user messages, neighbouring messages of one role are one content, the results of the calls of one message are one content.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>GoogleGenAiErrors</code></td>
+<td><code translate="no" v-pre>ApiException</code> and IO failures as <code translate="no" v-pre>InferenceException</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Two things in it are worth copying:</p>
+<ul>
+<li>
+<p><strong>Thought signatures.</strong> Gemini 3 refuses the next round of a function call unless the model&#x27;s previous answer comes
+back with its thought signatures. The service therefore keeps the model&#x27;s own <code translate="no" v-pre>Content</code> (with the signature parts, without
+the thinking summaries) and puts it in front of the results of the calls, instead of rebuilding the turn from the
+<code translate="no" v-pre>LLMToolCall</code>s.</p>
+</li>
+<li>
+<p><strong>Cancellation.</strong> The SDK hides its HTTP call. Every request carries a header with the id of the run, an OkHttp interceptor
+stores the <code translate="no" v-pre>Call</code> under it (and removes the header before the request leaves), and the <code translate="no" v-pre>CancellationToken</code> cancels that
+call, so a generation stops at once even if Google is slow to send the next chunk.</p>
+</li>
+</ul>
+<h3 id="packaging-a-library-only-the-plugin-needs">Packaging a library only the plugin needs</h3>
+<p>The SDK is not a dependency of the application. The plugin&#x27;s <code translate="no" v-pre>pom.xml</code> lists it as a normal dependency and embeds it:</p>
+<div id="packaging-a-library-only-the-plugin-needs-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-markup"><code v-pre class="language-markup">&lt;Embed-Dependency&gt;*;scope=compile|runtime;inline=false&lt;/Embed-Dependency&gt;
+&lt;Embed-Transitive&gt;true&lt;/Embed-Transitive&gt;
+&lt;Import-Package&gt;!com.github.enerccio.marginalia.extensions.googlegenai.*&lt;/Import-Package&gt;</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>maven-bundle-plugin</code> puts the JARs inside the bundle and adds them to <code translate="no" v-pre>Bundle-ClassPath</code>. The framework is started with
+<code translate="no" v-pre>org.osgi.framework.bootdelegation=*</code> and the application&#x27;s class loader as the parent, so <strong>a class the application
+has wins over an embedded copy</strong> (the bundle looks in its own JARs only for what the application does not have). Hence:</p>
+<ul>
+<li>
+<p>libraries the application ships already (OkHttp, Jackson, Kotlin, Gson, slf4j, jspecify) are <code translate="no" v-pre>exclusions</code> of the SDK and
+<code translate="no" v-pre>provided</code> for compiling - the SDK then runs on the application&#x27;s versions (OkHttp 4.12, Jackson 2.22), which must stay
+compatible with the ones the SDK was built for;</p>
+</li>
+<li>
+<p>nothing is imported (<code translate="no" v-pre>Import-Package</code> lists only the negated own package), so no package of an embedded library has to be
+exported by the application;</p>
+</li>
+<li>
+<p>the JAR is large (about 14 MB: the SDK, Guava, Protobuf, google-auth).</p>
+</li>
+</ul>
+<p>The plugin has unit tests for the pure parts (<code translate="no" v-pre>GoogleGenAiMessagesTest</code>, <code translate="no" v-pre>GoogleGenAiErrorsTest</code>,
+<code translate="no" v-pre>GoogleGenAiSettingsTest</code>); the core has <code translate="no" v-pre>ExtensionAIFactoryTest</code>, <code translate="no" v-pre>ExtensionAICrudTest</code>, <code translate="no" v-pre>ExtensionAIGenerationTest</code> and
+<code translate="no" v-pre>AIDialogExtensionTest</code> with a fake factory, which is the way to test your own provider&#x27;s contract without a plugin.</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../developer/plugins/ipc/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Sharing data between extensions</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../developer/plugins/example/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Example plugin</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Inference providers from a plugin", level: 3, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/plugins/ai-providers.md" }</script>
+</body>
+</html>

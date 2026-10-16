@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.service.AIService;
+import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
@@ -15,6 +16,7 @@ import com.github.enerccio.marginalia.ui.dialogs.AILimitsDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.utils.AITypes;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -46,6 +48,9 @@ public class PhoneAIPart implements WorkspaceComponent {
 
     @Autowired
     private AIService aiService;
+
+    @Autowired
+    private InferenceServices inferenceServices;
 
     @Autowired
     private UsageService usageService;
@@ -112,7 +117,7 @@ public class PhoneAIPart implements WorkspaceComponent {
         textLayout.setWidthFull();
         textLayout.addClassName(CssStyles.MIN_WIDTH_0);
 
-        textLayout.add(createLine(loc.getValue(L.LABEL_TYPE), loc.getValue(loc.getAIType(ai.getAiType()))));
+        textLayout.add(createLine(loc.getValue(L.LABEL_TYPE), AITypes.label(loc, inferenceServices, ai)));
         textLayout.add(createLine(loc.getValue(L.LABEL_NAME), ai.getName()));
         if (ai.isShared()) {
             textLayout.add(createLine(loc.getValue(L.LABEL_SHARED), loc.getValue(L.LABEL_YES)));
