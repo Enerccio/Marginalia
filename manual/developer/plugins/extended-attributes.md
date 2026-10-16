@@ -1,7 +1,7 @@
 ---
 label: Extended attributes
 order: 80
-verified: 5a99ac8c
+verified: 91693e9b
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/listener
