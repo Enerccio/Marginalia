@@ -22,6 +22,25 @@ This page describes the desktop layout. On a phone the story is one column with 
 The divider between the outline and the parts can be dragged. Marginalia remembers the scroll position of each branch
 and returns to it when you open the book again.
 
+### Arranging the sidebar tabs
+
+The left sidebar is a set of tabs: the **Outline**, and the tabs [extensions](../extensions/index.md) add (Characters, Arcs,
+Side Query...). Drag a tab by its header to rearrange them (desktop only, the drawer on a phone keeps one list):
+
+- Drop it on one of the dashed strips that appear above, between and under the panels of a column to **detach** it into a
+  panel of its own in that column; the panels of a column are stacked under each other.
+- Drop it on one of the tall strips at the left, right or between the columns to **detach it to the side**: it gets a
+  column of its own, next to the others. Widen the sidebar with the divider to make room for more columns.
+
+The panels and the columns are separated by splitters: drag them to give each panel the room you need. The sizes are saved
+with the arrangement.
+- Drop it on the tab header or on the body of another panel to **join** that panel (dropping on a tab puts it before that
+  tab, dropping on the body puts it last). A panel that loses its last tab disappears, and so does a column without panels.
+
+The arrangement and the sizes are saved with the book, so it is the same the next time you open it and in every browser; the tab each
+panel shows is remembered with the rest of your workspace. A tab of an extension that is not loaded keeps its place for when
+the extension is back.
+
 ## Writing the next part
 
 1. Click **+** in the bottom right corner. The *New Turn Instructions* panel opens.

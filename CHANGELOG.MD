@@ -9,6 +9,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Detachable sidebar tabs in the desktop story editor.** The tabs of the left sidebar (Outline and the tabs of extensions)
+  can be dragged out into panels of their own, in the same column under each other or in a column of their own next to the
+  others, and dragged back onto another panel (on a tab to put it before that tab, on the body to put it last). While a tab
+  is dragged, dashed strips between the panels and tall strips between the columns take a drop to detach it. The panels and
+  the columns are separated by splitters (`SplitLayout`) the user can drag, their sizes are saved in the layout too. The arrangement is saved with the book, in the attributes of the manuscript under
+  `$desktopManuscriptStoryPartTabsConfig` as `{"columns":[{"size":..,"groups":[{"size":..,"tabs":[...]}]}]}` (no migration; it travels with backups), and a tab of an extension that is not loaded
+  keeps its place. The selected tab of every panel is part of the workspace autosave (`Restorable`, key `tabs` of the story
+  part). New reusable widget `ui.widgets.TabDock`. API changes plugins can see (since 1.3.0): the field `leftBar` of
+  `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` is a `TabDock` instead of a `VTabSheet` (`add(id, caption, content)`,
+  `add(caption, content)`, `remove(content)`; extensions that read it as `VTabSheet` must be updated - Arc Outline, Character
+  Tracker and Side Query were, and give their tabs the ids `arc-outline`, `character-tracker` and `sidequery`); new
+  `ManuscriptStoryPart` methods `applyTabsConfig` and `saveTabsConfig`, `restoreState` has the new local `tabs`. New text in
+  all language bundles (the Chinese localization plugin too).
 - **Inference providers from extensions.** An extension registers an `ExtensionAIFactory`
   (`InferenceServices.registerExtensionFactory` / `unregisterExtensionFactory`, `getExtensionFactory(id)`,
   `getExtensionFactories()`) that creates the `InferenceService` and the settings form (`ExtensionAIForm`) of its AIs. New

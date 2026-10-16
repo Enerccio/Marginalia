@@ -340,6 +340,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_MERGE, "統合");
         setValue(L.LABEL_OBJECTS, "オブジェクト");
         setValue(L.LABEL_PROVIDER, "プロバイダー");
+        setValue(L.LABEL_DROP_TAB_TO_DETACH, "ここにタブをドロップして切り離す");
+        setValue(L.LABEL_DROP_TAB_TO_DETACH_SIDE, "横に切り離す");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

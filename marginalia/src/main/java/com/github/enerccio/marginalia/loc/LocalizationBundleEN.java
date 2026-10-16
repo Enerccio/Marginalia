@@ -340,6 +340,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_MERGE, "Merge");
         setValue(L.LABEL_OBJECTS, "Objects");
         setValue(L.LABEL_PROVIDER, "Provider");
+        setValue(L.LABEL_DROP_TAB_TO_DETACH, "Drop the tab here to detach it");
+        setValue(L.LABEL_DROP_TAB_TO_DETACH_SIDE, "Detach to the side");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

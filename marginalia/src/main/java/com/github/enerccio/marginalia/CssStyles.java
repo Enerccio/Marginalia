@@ -65,6 +65,15 @@ public final class CssStyles {
     public static final String LIST_ITEM_SUBROW = "list-item-subrow";
     public static final String SIDEBAR_BUTTON = "sidebar-button";
     public static final String SIDEBAR_HEADER = "sidebar-header";
+    public static final String TAB_DOCK = "tab-dock";
+    public static final String TAB_DOCK_CELL = "tab-dock-cell";
+    public static final String TAB_DOCK_COLUMN = "tab-dock-column";
+    public static final String TAB_DOCK_COLUMN_BODY = "tab-dock-column-body";
+    public static final String TAB_DOCK_PANEL = "tab-dock-panel";
+    public static final String TAB_DOCK_TAB = "tab-dock-tab";
+    public static final String TAB_DOCK_ZONE = "tab-dock-zone";
+    public static final String TAB_DOCK_SIDE_ZONE = "tab-dock-side-zone";
+    public static final String TAB_DOCK_DRAGGING = "tab-dock-dragging";
     public static final String STORY_SCROLL_PANEL = "story-scroll-panel";
     public static final String READER_SCROLL_PANEL = "reader-scroll-panel";
     public static final String READER_CONTENT = "reader-content";
