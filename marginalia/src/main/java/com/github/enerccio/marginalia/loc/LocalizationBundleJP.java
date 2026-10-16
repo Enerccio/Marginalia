@@ -339,6 +339,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_RENAME, "名前を変更");
         setValue(L.LABEL_MERGE, "統合");
         setValue(L.LABEL_OBJECTS, "オブジェクト");
+        setValue(L.LABEL_PROVIDER, "プロバイダー");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -385,6 +386,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_RESET_DAILY, "毎日");
         setValue(L.ENUM_RESET_WEEKLY, "毎週（月曜日から）");
         setValue(L.ENUM_RESET_MONTHLY, "毎月");
+        setValue(L.ENUM_AI_TYPE_EXTENSION, "拡張機能");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -425,6 +427,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_LIMIT_NEGATIVE, "上限に負の値は指定できません。");
         setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "送信トークンと生成トークンの上限の合計が合計の上限に満たないため、合計の上限には到達しません。");
         setValue(L.ERROR_LIMIT_USER_REQUIRED, "ユーザーを選択してください。");
+        setValue(L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE, "この AI を提供する拡張機能が読み込まれていません。管理 → 拡張機能 で読み込むか、別の AI を選択してください。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -517,6 +520,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_DELETE_TAG, "タグ「%s」を削除しますか？ %s 個のオブジェクトから外されます。");
         setValue(L.MSG_CONFIRM_MERGE_TAG, "タグ「%s」はすでに存在します。「%s」をそれに統合しますか？\nタグ「%s」は削除され、そのオブジェクトには代わりにタグ「%s」が付きます。");
         setValue(L.MSG_TAG_RENAME_NOT_FOUND, "タグはもう存在しません");
+        setValue(L.MSG_AI_EXTENSION_NOT_LOADED, "この AI を提供する拡張機能「%s」が読み込まれていないため、その設定を表示できません。管理 → 拡張機能 で読み込んでください。その他の設定は保存できます。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

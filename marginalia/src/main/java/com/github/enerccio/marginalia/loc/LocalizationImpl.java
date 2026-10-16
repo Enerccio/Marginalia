@@ -75,6 +75,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
 
     private void loadMaps() {
         aiTypes.put(AIType.OPEN_AI_COMPATIBLE, L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE);
+        aiTypes.put(AIType.EXTENSION, L.ENUM_AI_TYPE_EXTENSION);
 
         protocolTypes.put(ProtocolType.CHAT_COMPLETION, L.ENUM_PROTOCOL_TYPE_OPEN_CHAT_COMPLETION);
 

@@ -29,7 +29,7 @@ public class InferenceStep extends GenerationStepBase {
     @Override
     protected void onStep(GenerationController controller) throws Exception {
         controller.emitEvent(Events.BEFORE_INFERENCE, () -> {
-            InferenceService inferenceService = inferenceServices.forAI(controller.getManuscript().getAi());
+            InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getManuscript().getAi());
 
             long promptTokens = inferenceService.countTokens(gson.toJson(controller.getPayload()));
             controller.getMessage().setPromptTokens(promptTokens);

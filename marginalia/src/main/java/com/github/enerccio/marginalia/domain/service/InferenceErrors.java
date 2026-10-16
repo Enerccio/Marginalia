@@ -63,6 +63,7 @@ public final class InferenceErrors {
             case BAD_REQUEST -> L.ERROR_INFERENCE_BAD_REQUEST;
             case NOT_AVAILABLE -> L.ERROR_INFERENCE_NOT_AVAILABLE;
             case LIMIT_REACHED -> L.ERROR_INFERENCE_LIMIT_REACHED;
+            case EXTENSION_UNAVAILABLE -> L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE;
             case UNKNOWN -> L.ERROR_INFERENCE_UNKNOWN;
         };
     }

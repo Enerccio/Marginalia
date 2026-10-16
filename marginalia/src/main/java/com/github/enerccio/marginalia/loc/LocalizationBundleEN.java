@@ -339,6 +339,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_RENAME, "Rename");
         setValue(L.LABEL_MERGE, "Merge");
         setValue(L.LABEL_OBJECTS, "Objects");
+        setValue(L.LABEL_PROVIDER, "Provider");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -385,6 +386,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_RESET_DAILY, "Daily");
         setValue(L.ENUM_RESET_WEEKLY, "Weekly (from Monday)");
         setValue(L.ENUM_RESET_MONTHLY, "Monthly");
+        setValue(L.ENUM_AI_TYPE_EXTENSION, "Extension");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -425,6 +427,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_LIMIT_NEGATIVE, "Limits can not be negative.");
         setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "The limits of tokens sent and tokens generated add up to less than the limit in total, so the total would never be reached.");
         setValue(L.ERROR_LIMIT_USER_REQUIRED, "Choose a user.");
+        setValue(L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE, "The extension that provides this AI is not loaded. Load it in Admin → Extensions or pick another AI.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -517,6 +520,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_DELETE_TAG, "Delete the tag \"%s\"? It is removed from %s objects.");
         setValue(L.MSG_CONFIRM_MERGE_TAG, "The tag \"%s\" already exists. Merge \"%s\" into it?\nThe tag \"%s\" is deleted and its objects get the tag \"%s\" instead.");
         setValue(L.MSG_TAG_RENAME_NOT_FOUND, "The tag no longer exists");
+        setValue(L.MSG_AI_EXTENSION_NOT_LOADED, "The extension \"%s\" that provides this AI is not loaded, so its settings cannot be shown. Load it in Admin → Extensions. The other settings can still be saved.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

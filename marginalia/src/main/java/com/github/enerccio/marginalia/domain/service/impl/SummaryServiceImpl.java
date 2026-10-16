@@ -85,7 +85,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
         AI ai = aiService.find(manuscript.getAi());
         Protocol protocol = protocolService.find(manuscript.getProtocol());
-        InferenceService inferenceService = inferenceServices.forAI(ai);
+        InferenceService inferenceService = inferenceServices.forAIOrThrow(ai);
         if (inferenceService == null)
             return null;
         

@@ -28,7 +28,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `ChatMessage` | `messages` | Part (of the story) |
 | `Summary` | `summaries` | Summary |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
-| `AI`, `OpenAICompatible` | `ais`, `ais_openaicompat` | Inference provider |
+| `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
@@ -105,6 +105,7 @@ classDiagram
     ExtendableEntity <|-- TagRelation
     ExtendableEntity <|-- Setting
     AI <|-- OpenAICompatible
+    AI <|-- ExtensionAI
     Protocol <|-- ChatCompletionProtocol
     Setting <|-- AppSettings
     Setting <|-- UserSetting
@@ -388,19 +389,20 @@ through `@CleanupReference(targetClassField = "clazz")`.
 
 ## Inference providers and protocols
 
-Both use joined inheritance: a base table with the common fields and one table per type. Today each has one type.
+Both use joined inheritance: a base table with the common fields and one table per type. `Protocol` has one type; `AI` has two, `OpenAICompatible` and `ExtensionAI`.
 
-### `AI` / `OpenAICompatible` (inference provider)
+### `AI` / `OpenAICompatible` / `ExtensionAI` (inference provider)
 
 | Field | Stored | |
 |---|---|---|
-| `aiType` | column (ordinal) | `AIType.OPEN_AI_COMPATIBLE`. `InferenceServices` picks the implementation by this type. |
+| `aiType` | column (ordinal) | `AIType.OPEN_AI_COMPATIBLE` or `AIType.EXTENSION`. `InferenceServices` picks the implementation by this type. |
 | `name` | column | |
 | `maxContext`, `maxCompletionTokens` | columns | Context size and maximum response tokens of the model. A protocol can lower them, never raise them (`TokenLimits`). |
 | `shared` | column (indexed with `deleted`) | An AI of an administrator that every user can use: `AIRepository`'s `findAll(user)`, `findAllIds(user)` and `findByUuid` return the user's own AIs and the shared ones, so `findAllForUser()` / `findForUser(uuid)` see them, as do backup restore and the model combos. Only the owner changes or deletes it and only an administrator sets the flag (`AIServiceImpl`, server side; the UI hides edit, delete and the API key from others). Real column because the lookups filter on it. |
 | `enabledReasoning`, `reasoningEffort` | columns | Reasoning settings. |
 | `needsJailbreak`, `jailbreak` | columns | Text put before the system prompt. |
 | `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (encrypted, see [Encrypted columns](database.md#encrypted-columns)). |
+| `extensionId` | column (`ais_extension`, `ExtensionAI` only) | The extension that provides the AI, the id of its `ExtensionAIFactory`. The settings of the provider are in `getSettings()`, the object under that id in the dynamic attributes (`attributes_<id>`); secrets in it are encrypted with `InferenceServices.protectSecret`. See [Inference providers from a plugin](plugins/ai-providers.md). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
 | `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |
 

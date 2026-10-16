@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.AIService;
+import com.github.enerccio.marginalia.domain.service.InferenceServices;
 import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.APILocals;
 import com.github.enerccio.marginalia.domain.traits.APIReturn;
@@ -17,6 +18,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.utils.AITypes;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -43,6 +45,9 @@ public class AIPart implements WorkspaceComponent {
 
     @Autowired
     private AIService aiService;
+
+    @Autowired
+    private InferenceServices inferenceServices;
 
     @Autowired
     private UsageService usageService;
@@ -108,7 +113,7 @@ public class AIPart implements WorkspaceComponent {
         grid = new Grid<>(AI.class, false);
         grid.setSizeFull();
 
-        grid.addColumn(ai -> loc.getValue(loc.getAIType(ai.getAiType())))
+        grid.addColumn(ai -> AITypes.label(loc, inferenceServices, ai))
                 .setHeader(loc.getValue(L.LABEL_TYPE))
                 .setFlexGrow(1);
 

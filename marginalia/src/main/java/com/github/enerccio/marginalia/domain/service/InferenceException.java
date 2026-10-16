@@ -31,6 +31,8 @@ public class InferenceException extends RuntimeException {
         NOT_AVAILABLE,
         /** The user used up the token limit an administrator set for them; nothing was sent to the provider. */
         LIMIT_REACHED,
+        /** The extension that provides the AI is not loaded; nothing was sent. */
+        EXTENSION_UNAVAILABLE,
         UNKNOWN
     }
 

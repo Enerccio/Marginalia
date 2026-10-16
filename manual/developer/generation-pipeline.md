@@ -107,7 +107,7 @@ and turns any exception into `listener.onError(e)` plus a jump to `CLEANUP`. Con
 ### 1. `PREPARE_GENERATION` - `PrepareForGenerationStep`
 
 Loads the book's inference provider (`AI`) and protocol and checks that both are set and that `InferenceServices` has
-an implementation for the provider type. Otherwise the user gets *Book is missing model.* / *Book is missing protocol.* and the
+an implementation for the provider type. (The steps get the service with `forAIOrThrow`: an AI of an extension that is not loaded ends the generation with the error that says to load it.) Otherwise the user gets *Book is missing model.* / *Book is missing protocol.* and the
 generation ends.
 
 Events: `BEFORE_PREPARE_GENERATION`, `AFTER_PREPARE_GENERATION`.

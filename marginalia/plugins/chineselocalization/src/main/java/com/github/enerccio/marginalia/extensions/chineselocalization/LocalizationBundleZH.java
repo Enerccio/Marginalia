@@ -347,6 +347,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_RENAME, "重命名");
         setValue(L.LABEL_MERGE, "合并");
         setValue(L.LABEL_OBJECTS, "对象");
+        setValue(L.LABEL_PROVIDER, "提供方");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -393,6 +394,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_RESET_DAILY, "每天");
         setValue(L.ENUM_RESET_WEEKLY, "每周（从周一开始）");
         setValue(L.ENUM_RESET_MONTHLY, "每月");
+        setValue(L.ENUM_AI_TYPE_EXTENSION, "扩展");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -433,6 +435,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_LIMIT_NEGATIVE, "上限不能为负数。");
         setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "发送令牌与生成令牌的上限之和小于总上限，总上限永远不会达到。");
         setValue(L.ERROR_LIMIT_USER_REQUIRED, "请选择用户。");
+        setValue(L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE, "提供此 AI 的扩展未加载。请在“管理 → 扩展”中加载它，或选择其他 AI。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -525,6 +528,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_DELETE_TAG, "删除标签“%s”？它将从 %s 个对象中移除。");
         setValue(L.MSG_CONFIRM_MERGE_TAG, "标签“%s”已存在。将“%s”合并到其中吗？\n标签“%s”将被删除，其对象将改为使用标签“%s”。");
         setValue(L.MSG_TAG_RENAME_NOT_FOUND, "该标签已不存在");
+        setValue(L.MSG_AI_EXTENSION_NOT_LOADED, "提供此 AI 的扩展“%s”未加载，因此无法显示其设置。请在“管理 → 扩展”中加载它。其他设置仍可保存。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
