@@ -101,7 +101,7 @@ await main(async ({ page }) => {
     await idle(page, 1500);
     await press(page, 'Admin');
     await openTab(page, 'Extensions');
-    await page.locator('vaadin-upload input[type=file]').setInputFiles(path.join(root, 'out/broken/authorsnote-1.3.0.jar'));
+    await page.locator('vaadin-upload input[type=file]').setInputFiles(path.join(root, 'out/broken/authorsnote-1.4.0.jar'));
     await page.getByText('Verification Report', { exact: true }).waitFor({ timeout: 20000 });
     await sleep(500);
     await snap(page, 'extension-verification');

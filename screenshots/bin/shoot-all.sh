@@ -34,8 +34,8 @@ run shoot-tabs.mjs                               # drags the sidebar tabs apart 
 # application verifies it again at the start
 on 13-db-backup
 "$SHOT_ROOT/bin/stop-app.sh" >/dev/null
-cp out/broken/authorsnote-1.3.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.3.0.jar"
-rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.3.0.valid"
+cp out/broken/authorsnote-1.4.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.4.0.jar"
+rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.4.0.valid"
 "$SHOT_ROOT/bin/start-app.sh" >/dev/null
 run shoot-invalid-extensions.mjs                  # a copy, discarded
 # plugin screens
