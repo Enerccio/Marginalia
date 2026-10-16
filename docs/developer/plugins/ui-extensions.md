@@ -96,16 +96,22 @@ once, so the selected tab survives a redraw. The method runs many times, so chec
 tab on leave:
 
 ```java
-VTabSheet leftBar = context.getReflectiveFieldValue(instrumented, "leftBar", VTabSheet.class);
+TabDock leftBar = context.getReflectiveFieldValue(instrumented, "leftBar", TabDock.class);
 Manuscript book = context.getReflectiveFieldValue(instrumented, "currentManuscript", Manuscript.class);
 if (leftBar != null && book != null && ComponentUtil.getData(leftBar, KEY) == null) {
     SideQueryView view = new SideQueryView(book, sideQueryService);
-    leftBar.add("Side Query", view);
+    leftBar.add("sidequery", "Side Query", view);
     ComponentUtil.setData(leftBar, KEY, view);
 }
 ```
 
-The tab sheet (and so the plugin's component) lives as long as the story part, a redraw does not recreate it.
+The tab dock (and so the plugin's component) lives as long as the story part, a redraw does not recreate it.
+
+`leftBar` is a `TabDock` (`ui.widgets`; since 1.3.0, before it was a `VTabSheet`): on the desktop the user can drag its tabs
+into panels of their own, stacked or side by side, and `add`/`remove` find the tab wherever it is now. Give the tab a **stable id** of your own
+(`add(id, caption, content)`, not the localized caption): the layout the user made is saved with the book by these ids, and
+a tab added later or after the extension was off lands where the user left it. `add(caption, content)` uses the caption as
+the id. Remove the tab with `leftBar.remove(view)`. The phone drawer has a `TabDock` too, but with the detaching off.
 
 ### Panels in an existing layout
 
@@ -360,7 +366,7 @@ again - moved, in a tab sheet, in a reopened dialog - stays bound):
 
 ```java
 SideQueryView view = new SideQueryView(book, service);
-leftBar.add("Side Query", view);
+leftBar.add("sidequery", "Side Query", view);
 osgiService.bindAttachableComponent(view, () -> leftBar.remove(view), this);
 ```
 

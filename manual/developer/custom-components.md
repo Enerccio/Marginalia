@@ -155,5 +155,5 @@ Besides the libraries above, the application uses two Vaadin add-ons (Maven depe
 
 | Add-on | Used for |
 |---|---|
-| [Viritin](https://github.com/viritin/viritin) (`in.virit:viritin`) | `VTabSheet`, the tab sheet of the story editor's left bar, which is also the one extensions add tabs to. |
+| [Viritin](https://github.com/viritin/viritin) (`in.virit:viritin`) | `VTabSheet`, the tab sheet of the book window. (The left bar of the story editor, which extensions add tabs to, is the `TabDock` widget.) |
 | [Font Awesome iron iconset](https://github.com/FlowingCode/FontAwesomeIronIconset) (`com.flowingcode.addons`) | The `FontAwesome.Solid` icons (`Solid.PLUS.create()`) used for buttons. |

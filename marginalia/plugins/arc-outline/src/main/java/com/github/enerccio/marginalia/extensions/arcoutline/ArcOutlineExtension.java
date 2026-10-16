@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineStyles;
 import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineView;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
+import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
@@ -24,7 +25,6 @@ import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.vaadin.firitin.layouts.VTabSheet;
 
 import java.util.Collections;
 import java.util.Set;
@@ -56,7 +56,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
 
-    private final Set<VTabSheet> activeTabSheets = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private final Set<TabDock> activeTabSheets = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
@@ -78,7 +78,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
 
                 @Override
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    VTabSheet leftBar = context.getReflectiveFieldValue(instrumented, "leftBar", VTabSheet.class);
+                    TabDock leftBar = context.getReflectiveFieldValue(instrumented, "leftBar", TabDock.class);
                     Manuscript currentManuscript = context.getReflectiveFieldValue(instrumented, "currentManuscript", Manuscript.class);
 
                     if (leftBar != null && currentManuscript != null) {
@@ -87,7 +87,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                         }
 
                         ArcOutlineView view = new ArcOutlineView(currentManuscript, service);
-                        leftBar.add("Arcs", view);
+                        leftBar.add("arc-outline", "Arcs", view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);
@@ -183,7 +183,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
 
         // remove the tab from story views that are open
         synchronized (activeTabSheets) {
-            for (VTabSheet leftBar : activeTabSheets) {
+            for (TabDock leftBar : activeTabSheets) {
                 // the components belong to the UIs of all users - change each one in its own session
                 UIUtils.accessComponent(leftBar, () -> {
                     ArcOutlineView view = (ArcOutlineView) ComponentUtil.getData(leftBar, VIEW_KEY);

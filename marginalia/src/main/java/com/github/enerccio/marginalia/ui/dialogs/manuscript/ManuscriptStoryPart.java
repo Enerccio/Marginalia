@@ -17,8 +17,10 @@ import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
+import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -49,6 +51,17 @@ import java.util.Set;
 @Extendable
 public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
+    /**
+     * Key of the {@link Manuscript#getAttributes() attributes} of the manuscript that holds the layout of the sidebar tabs
+     * ({@link TabDock#getLayout()}): which tabs the user detached into sheets of their own.
+     */
+    public static final String TABS_CONFIG_ATTRIBUTE = "$desktopManuscriptStoryPartTabsConfig";
+
+    /**
+     * Id of the outline tab in the layout of the sidebar; extensions give their tabs ids of their own.
+     */
+    public static final String CHAPTERS_TAB = "chapters";
+
     @Autowired
     private Localization loc;
 
@@ -72,7 +85,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private VerticalLayout centerLayout;
     private ScrollPanel centerContentPanel;
     private HorizontalLayout bottomControlsLayout;
-    private VTabSheet leftBar;
+    private TabDock leftBar;
     private Span sidebarHeader;
     private VerticalLayout sidebarList;
 
@@ -115,8 +128,14 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         leftMarginLayout.addClassName(CssStyles.BORDER_RIGHT_SUBTLE);
 
         // created once: a redraw of the story only refills the outline, so the selected tab (and the tabs extensions add) survive it
-        leftBar = new VTabSheet();
+        leftBar = new TabDock();
         leftBar.setSizeFull();
+        leftBar.setOnLayoutChange(this::saveTabsConfig);
+        leftBar.setOnStateChange(() -> {
+            if (parent != null) {
+                parent.stateChanged();
+            }
+        });
         leftMarginLayout.add(leftBar);
         createStoryOutlineTab();
 
@@ -488,7 +507,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private void createStoryOutlineTab() {
         VerticalLayout leftMarginLayout = new VerticalLayout();
         leftMarginLayout.setSizeFull();
-        leftBar.add(loc.getValue(L.LABEL_CHAPTERS), leftMarginLayout);
+        leftBar.add(CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), leftMarginLayout);
 
         sidebarHeader = new Span();
         sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
@@ -615,12 +634,47 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         if (manuscript != null && mainLayout != null) {
             applyLanguage(manuscript);
         }
+        // before the story is rendered, the tabs extensions add then find their place
+        applyTabsConfig(manuscript);
         renderStoryContent();
         refreshSummariesMenuItem();
     }
 
     /**
-     * What the user typed into the new turn form.
+     * Arranges the sidebar tabs as the manuscript has them saved (all in one sheet when it has nothing saved).
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "config", type = JsonElement.class)})
+    private void applyTabsConfig(Manuscript manuscript) {
+        if (leftBar == null || manuscript == null) {
+            return;
+        }
+        JsonElement config = manuscript.getAttributes().get(TABS_CONFIG_ATTRIBUTE);
+        leftBar.setLayout(config != null && config.isJsonObject() ? config.getAsJsonObject() : null);
+    }
+
+    /**
+     * Saves the sidebar layout into the attributes of the manuscript, called after the user dragged a tab.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void saveTabsConfig() {
+        try {
+            Manuscript manuscript = parent.refreshManuscript();
+            manuscript.getAttributes().add(TABS_CONFIG_ATTRIBUTE, leftBar.getLayout());
+            parent.save();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * What the user typed into the new turn form and the selected tab of every sheet of the sidebar (which tabs the
+     * sheets hold is saved with the manuscript, see {@link #TABS_CONFIG_ATTRIBUTE}).
      */
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = JsonObject.class),
@@ -629,15 +683,21 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     public JsonObject storeState() {
         JsonObject state = new JsonObject();
         RestorableState.put(state, "newTurn", newTurnForm == null ? null : newTurnForm.storeState());
+        RestorableState.put(state, "tabs", leftBar == null ? null : leftBar.storeState());
         return state;
     }
 
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "self", type = JsonObject.class)},
-            locals = {@APILocals(name = "newTurn", type = JsonObject.class)})
+            locals = {@APILocals(name = "tabs", type = JsonObject.class),
+                    @APILocals(name = "newTurn", type = JsonObject.class)})
     @Override
     public void restoreState(JsonObject self) {
+        JsonObject tabs = RestorableState.object(self, "tabs");
+        if (tabs != null && leftBar != null) {
+            leftBar.restoreState(tabs);
+        }
         JsonObject newTurn = RestorableState.object(self, "newTurn");
         if (newTurn != null && newTurnForm != null) {
             newTurnForm.restoreState(newTurn);

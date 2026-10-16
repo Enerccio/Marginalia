@@ -264,7 +264,7 @@ Methods the bundled plugins use, as examples:
 | Class | Method | Reached through | Used for |
 |---|---|---|---|
 | `ManuscriptStoryPart` | `createSidebarButton(msg, orderId, dbId)` | arguments; local `sidebarBtn`; field `sidebarList` | Change the sidebar entry of a part (Chapter Marker). |
-| `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar`, `currentManuscript` | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. |
+| `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar` (a `TabDock`), `currentManuscript` | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. |
 | `ManuscriptStoryPart` | `populateMenuBar(bar)` / `createCogsMenuItem(bar)` | argument `bar`; local `cogs` | Add items to the menu bar of the story editor / to its settings menu. Not used by a bundled plugin yet. |
 | `SummariesDialog` | `populateMenuBar(bar)` | argument `bar` | Add tools to the (empty) menu bar of the summaries overview. Not used by a bundled plugin yet. |
 | `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu (Reviewer). |
@@ -287,7 +287,7 @@ On a phone the book opens in `PhoneManuscriptDialog`, whose tabs are separate cl
 `hamburgerMenu`, `message`, `this$0`), so a plugin supports the phone by registering the same decorator a second time
 under the other class name. The Reviewer, Chapter Marker and Author's Note do; Side Query, Lore Generator and Lorebook VCS don't.
 Two differences: the card has no right-hand column (the metadata is in a popover), and `leftBar` is the tab sheet in
-the drawer of the story; on both, `leftBar` is created once and not rebuilt by `renderStoryContent()` (check for your
+the drawer of the story (a `TabDock` that does not detach, like the desktop one); on both, `leftBar` is created once and not rebuilt by `renderStoryContent()` (check for your
 tab first, as Author's Note does). Reach the outer part through `this$0` as an `Object`, since its type depends on the dialog.
 
 ## Verification before loading

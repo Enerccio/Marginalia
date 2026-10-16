@@ -348,6 +348,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_MERGE, "合并");
         setValue(L.LABEL_OBJECTS, "对象");
         setValue(L.LABEL_PROVIDER, "提供方");
+        setValue(L.LABEL_DROP_TAB_TO_DETACH, "将标签拖到此处以分离");
+        setValue(L.LABEL_DROP_TAB_TO_DETACH_SIDE, "分离到侧边");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

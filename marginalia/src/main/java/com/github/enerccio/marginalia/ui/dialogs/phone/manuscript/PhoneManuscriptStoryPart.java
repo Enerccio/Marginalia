@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.ui.dialogs.ExportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.PromptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.TokenUsageDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ImagesDialog;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
@@ -26,6 +27,7 @@ import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneSummariesDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
+import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
@@ -48,7 +50,6 @@ import com.vaadin.flow.component.textfield.TextArea;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.vaadin.firitin.layouts.VTabSheet;
 
 import java.util.List;
 import java.util.Set;
@@ -91,7 +92,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     private VerticalLayout centerLayout;
     private ScrollPanel centerContentPanel;
     private HorizontalLayout bottomControlsLayout;
-    private VTabSheet leftBar;
+    private TabDock leftBar;
     private Span sidebarHeader;
     private VerticalLayout sidebarList;
 
@@ -473,7 +474,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
             locals = {@APILocals(name = "outlineTab", type = VerticalLayout.class),
                     @APILocals(name = "outline", type = VerticalLayout.class)})
     private VerticalLayout createStoryOutline() {
-        leftBar = new VTabSheet();
+        // the drawer is narrow, the tabs are not detachable there
+        leftBar = new TabDock(false);
         leftBar.setSizeFull();
 
         VerticalLayout outlineTab = new VerticalLayout();
@@ -491,7 +493,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
 
         outlineTab.add(sidebarHeader, sidebarList);
         outlineTab.setFlexGrow(1, sidebarList);
-        leftBar.add(loc.getValue(L.LABEL_CHAPTERS), outlineTab);
+        leftBar.add(ManuscriptStoryPart.CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), outlineTab);
 
         VerticalLayout outline = new VerticalLayout(leftBar);
         outline.setSizeFull();

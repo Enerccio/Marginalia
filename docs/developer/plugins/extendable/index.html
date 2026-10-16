@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845442315786">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845445102136">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845442315786" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845445102136" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845442315786" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845442315786" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845442315786" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845445102136" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -579,7 +579,7 @@ stores them.</p>
 <retype-table copy-text="| Class | Method | Reached through | Used for |
 |---|---|---|---|
 | `ManuscriptStoryPart` | `createSidebarButton(msg, orderId, dbId)` | arguments; local `sidebarBtn`; field `sidebarList` | Change the sidebar entry of a part (Chapter Marker). |
-| `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar`, `currentManuscript` | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. |
+| `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar` (a `TabDock`), `currentManuscript` | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. |
 | `ManuscriptStoryPart` | `populateMenuBar(bar)` / `createCogsMenuItem(bar)` | argument `bar`; local `cogs` | Add items to the menu bar of the story editor / to its settings menu. Not used by a bundled plugin yet. |
 | `SummariesDialog` | `populateMenuBar(bar)` | argument `bar` | Add tools to the (empty) menu bar of the summaries overview. Not used by a bundled plugin yet. |
 | `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add items to a part's menu (Reviewer). |
@@ -609,7 +609,7 @@ stores them.</p>
 <tr>
 <td><code translate="no" v-pre>ManuscriptStoryPart</code></td>
 <td><code translate="no" v-pre>renderStoryContent()</code></td>
-<td>fields <code translate="no" v-pre>leftBar</code>, <code translate="no" v-pre>currentManuscript</code></td>
+<td>fields <code translate="no" v-pre>leftBar</code> (a <code translate="no" v-pre>TabDock</code>), <code translate="no" v-pre>currentManuscript</code></td>
 <td>Add a tab next to the story outline (Side Query). Runs on every redraw of the story.</td>
 </tr>
 <tr>
@@ -680,7 +680,7 @@ stores them.</p>
 <code translate="no" v-pre>hamburgerMenu</code>, <code translate="no" v-pre>message</code>, <code translate="no" v-pre>this$0</code>), so a plugin supports the phone by registering the same decorator a second time
 under the other class name. The Reviewer, Chapter Marker and Author&#x27;s Note do; Side Query, Lore Generator and Lorebook VCS don&#x27;t.
 Two differences: the card has no right-hand column (the metadata is in a popover), and <code translate="no" v-pre>leftBar</code> is the tab sheet in
-the drawer of the story; on both, <code translate="no" v-pre>leftBar</code> is created once and not rebuilt by <code translate="no" v-pre>renderStoryContent()</code> (check for your
+the drawer of the story (a <code translate="no" v-pre>TabDock</code> that does not detach, like the desktop one); on both, <code translate="no" v-pre>leftBar</code> is created once and not rebuilt by <code translate="no" v-pre>renderStoryContent()</code> (check for your
 tab first, as Author&#x27;s Note does). Reach the outer part through <code translate="no" v-pre>this$0</code> as an <code translate="no" v-pre>Object</code>, since its type depends on the dialog.</p>
 <h2 id="verification-before-loading">Verification before loading</h2>
 <p>Every name a decorator uses is unchecked at compile time, so Marginalia checks them before it starts an extension:

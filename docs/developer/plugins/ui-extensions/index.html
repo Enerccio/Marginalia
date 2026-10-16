@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845442315786">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845445102136">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845442315786" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845445102136" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845442315786" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845442315786" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845442315786" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845445102136" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -269,15 +269,20 @@ redrawn (opening the book, after a generation, after a delete); the <code transl
 once, so the selected tab survives a redraw. The method runs many times, so check for your tab first. Side Query adds its
 tab on leave:</p>
 <div id="a-tab-next-to-the-story-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">VTabSheet leftBar = context.getReflectiveFieldValue(instrumented, &quot;leftBar&quot;, VTabSheet.class);
+<pre translate="no" class="language-java"><code v-pre class="language-java">TabDock leftBar = context.getReflectiveFieldValue(instrumented, &quot;leftBar&quot;, TabDock.class);
 Manuscript book = context.getReflectiveFieldValue(instrumented, &quot;currentManuscript&quot;, Manuscript.class);
 if (leftBar != null &amp;&amp; book != null &amp;&amp; ComponentUtil.getData(leftBar, KEY) == null) {
     SideQueryView view = new SideQueryView(book, sideQueryService);
-    leftBar.add(&quot;Side Query&quot;, view);
+    leftBar.add(&quot;sidequery&quot;, &quot;Side Query&quot;, view);
     ComponentUtil.setData(leftBar, KEY, view);
 }</code></pre>
 </doc-codeblock></div>
-<p>The tab sheet (and so the plugin&#x27;s component) lives as long as the story part, a redraw does not recreate it.</p>
+<p>The tab dock (and so the plugin&#x27;s component) lives as long as the story part, a redraw does not recreate it.</p>
+<p><code translate="no" v-pre>leftBar</code> is a <code translate="no" v-pre>TabDock</code> (<code translate="no" v-pre>ui.widgets</code>; since 1.3.0, before it was a <code translate="no" v-pre>VTabSheet</code>): on the desktop the user can drag its tabs
+into panels of their own, stacked or side by side, and <code translate="no" v-pre>add</code>/<code translate="no" v-pre>remove</code> find the tab wherever it is now. Give the tab a <strong>stable id</strong> of your own
+(<code translate="no" v-pre>add(id, caption, content)</code>, not the localized caption): the layout the user made is saved with the book by these ids, and
+a tab added later or after the extension was off lands where the user left it. <code translate="no" v-pre>add(caption, content)</code> uses the caption as
+the id. Remove the tab with <code translate="no" v-pre>leftBar.remove(view)</code>. The phone drawer has a <code translate="no" v-pre>TabDock</code> too, but with the detaching off.</p>
 <h3 id="panels-in-an-existing-layout">Panels in an existing layout</h3>
 <p>Find the layout and insert at a position relative to a known child. Lorebook VCS puts its panel above the lorebook
 header that <code translate="no" v-pre>LorebookView.create()</code> builds:</p>
@@ -526,7 +531,7 @@ run when the extension is unloaded, for as long as <code translate="no" v-pre>co
 again - moved, in a tab sheet, in a reopened dialog - stays bound):</p>
 <div id="unloading-code-2" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">SideQueryView view = new SideQueryView(book, service);
-leftBar.add(&quot;Side Query&quot;, view);
+leftBar.add(&quot;sidequery&quot;, &quot;Side Query&quot;, view);
 osgiService.bindAttachableComponent(view, () -&gt; leftBar.remove(view), this);</code></pre>
 </doc-codeblock></div>
 <p>(<code translate="no" v-pre>osgiService</code> is the one passed to <code translate="no" v-pre>onExtensionLoad</code>, or injected.) The callbacks run before <code translate="no" v-pre>onExtensionUnload</code>,

@@ -211,7 +211,7 @@ and `PhoneManuscriptDialogPart` (default: no state), both book dialogs, `Loreboo
 | `DesktopWorkspace`, `PhoneWorkspace` | `tab` (`books`, `lorebooks`, `settings`, `protocols`, `models`, `resources`, `trash`) and `parts`, the state of each part under its tab name. The admin panel is not remembered. |
 | `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
 | `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
-| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. |
+| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each sidebar panel shows. |
 | `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book) and `entries`, the uuids of the entries whose details are open. |
 
 Everything is stored by uuid and looked up when it is restored (`findForUser`), so a book, lorebook, entry or tag that
@@ -256,6 +256,21 @@ book backups, and the menu bar of the bottom bar (see [The story menu bar](#the-
 `renderStoryContent()` redraws only the cards and the outline list: the left tab sheet is created once in `create()`
 (so the selected tab and the tabs of extensions survive), and the reasonings that were open are reopened on the new
 cards. `PhoneManuscriptStoryPart` does the same.
+
+The left bar (`leftBar`) is a `TabDock` (`ui.widgets`), a reusable widget: a row of columns, each a stack of tab sheets, whose
+tabs the user can drag out into sheets of their own (a strip between the sheets of a column) or into a column of their own (a
+strip between the columns and at the sides) and back (the drag and drop is Flow's `DragSource`/`DropTarget`, no JavaScript;
+the strips show while a tab is dragged). The columns and the sheets of a column are separated by `SplitLayout`s the user can
+resize; a split layout has two sides, so the cells of a row or column are a chain of nested split layouts, the position of each
+being the share of its cell in what is left (`chain`, `shares`). When a splitter is dragged the shares of all cells are read
+again and stored as `size` (percent of the dock / of the column) in the layout, `onLayoutChange` saves them; a cell without a
+size gets the average. Tabs have a stable id (`add(id, caption, content)`, the
+outline is `ManuscriptStoryPart.CHAPTERS_TAB`); the layout, `{"columns":[{"size":50,"groups":[{"size":50,"tabs":["id", ...]}, ...]}, ...]}` (`size` optional)
+(`getLayout`/`setLayout`; a layout with `groups` at the top level, as the dock stored before it had columns, is one column), names tabs only by id and keeps the place of tabs that are not there now, because extensions add
+their tabs late (a tab the layout does not know goes to the first sheet). `ManuscriptStoryPart` stores the layout in the
+attributes of the manuscript under `$desktopManuscriptStoryPartTabsConfig` (`TABS_CONFIG_ATTRIBUTE`): `saveTabsConfig()` runs
+after a drag, `applyTabsConfig()` in `load()` before the story is drawn. The selected tab of each sheet is not part of the
+layout but the `Restorable` state of the dock. `PhoneManuscriptStoryPart` uses `new TabDock(false)`, one plain sheet.
 
 What the desktop and the phone story editor have in common lives in `ui.dialogs.story`, so the two classes keep only
 their layout and the methods extensions decorate (`renderStoryContent`, `createSidebarButton`, `populateMenuBar`,

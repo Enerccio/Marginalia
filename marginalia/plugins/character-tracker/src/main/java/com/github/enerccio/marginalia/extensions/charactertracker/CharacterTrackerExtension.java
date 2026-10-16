@@ -13,11 +13,11 @@ import com.github.enerccio.marginalia.extensions.charactertracker.ui.CharacterTr
 import com.github.enerccio.marginalia.extensions.charactertracker.ui.CharacterTrackerView;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
+import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import org.osgi.framework.Bundle;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.vaadin.firitin.layouts.VTabSheet;
 
 import java.util.Collections;
 import java.util.Set;
@@ -35,7 +35,7 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
 
     private ExtensionDecorator storyPartDecorator;
 
-    private final Set<VTabSheet> activeTabSheets = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private final Set<TabDock> activeTabSheets = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -47,7 +47,7 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
 
                 @Override
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    VTabSheet leftBar = context.getReflectiveFieldValue(instrumented, "leftBar", VTabSheet.class);
+                    TabDock leftBar = context.getReflectiveFieldValue(instrumented, "leftBar", TabDock.class);
                     Manuscript currentManuscript = context.getReflectiveFieldValue(instrumented, "currentManuscript", Manuscript.class);
 
                     if (leftBar != null && currentManuscript != null) {
@@ -56,7 +56,7 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
                         }
 
                         CharacterTrackerView view = new CharacterTrackerView(currentManuscript, service);
-                        leftBar.add("Characters", view);
+                        leftBar.add("character-tracker", "Characters", view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);
@@ -95,7 +95,7 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
 
         // remove the tab from story views that are open
         synchronized (activeTabSheets) {
-            for (VTabSheet leftBar : activeTabSheets) {
+            for (TabDock leftBar : activeTabSheets) {
                 // the components belong to the UIs of all users - change each one in its own session
                 UIUtils.accessComponent(leftBar, () -> {
                     CharacterTrackerView view = (CharacterTrackerView) ComponentUtil.getData(leftBar, VIEW_KEY);

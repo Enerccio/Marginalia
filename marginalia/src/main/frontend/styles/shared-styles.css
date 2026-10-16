@@ -413,6 +413,98 @@ vaadin-markdown span {
     padding: 12px 12px 4px 12px;
 }
 
+/* Tab dock: tab sheets whose tabs can be dragged apart and together */
+.tab-dock {
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.tab-dock > * {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* What a splitter separates: a sheet with the strips for a new sheet, or a column */
+.tab-dock-cell {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.tab-dock-column {
+    flex-direction: row;
+}
+
+.tab-dock-column-body {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.tab-dock-column-body > * {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.tab-dock-panel {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.tab-dock-tab {
+    cursor: grab;
+}
+
+.tab-dock-tab.v-dragged {
+    opacity: 0.5;
+}
+
+.tab-dock-zone {
+    display: none;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    margin: var(--lumo-space-xs);
+    padding: var(--lumo-space-s);
+    border: 2px dashed var(--lumo-contrast-30pct);
+    border-radius: var(--lumo-border-radius-m);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+    text-align: center;
+}
+
+.tab-dock-dragging .tab-dock-zone {
+    display: flex;
+}
+
+.tab-dock-side-zone {
+    writing-mode: vertical-rl;
+    overflow: hidden;
+}
+
+.tab-dock-zone.v-drag-over-target {
+    border-color: var(--lumo-primary-color);
+    background: var(--lumo-primary-color-10pct);
+    color: var(--lumo-primary-text-color);
+}
+
+.tab-dock-dragging .tab-dock-panel.v-drag-over-target {
+    outline: 2px solid var(--lumo-primary-color);
+    outline-offset: -2px;
+}
+
+.tab-dock-dragging .tab-dock-tab.v-drag-over-target {
+    box-shadow: inset 2px 0 0 var(--lumo-primary-color);
+}
+
 .story-scroll-panel {
     padding: 8px;
     overscroll-behavior: contain;

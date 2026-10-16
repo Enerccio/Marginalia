@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845442315786">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845445102136">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845442315786" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845445102136" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845442315786" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845442315786" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845442315786" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845445102136" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -474,7 +474,7 @@ and <code translate="no" v-pre>PhoneManuscriptDialogPart</code> (default: no sta
 | `DesktopWorkspace`, `PhoneWorkspace` | `tab` (`books`, `lorebooks`, `settings`, `protocols`, `models`, `resources`, `trash`) and `parts`, the state of each part under its tab name. The admin panel is not remembered. |
 | `ManuscriptPart`, `PhoneManuscriptPart` | `filters` (`name`, `tags` as tag uuids) and `dialog`, the state of the open book window. |
 | `ManuscriptDialog`, `PhoneManuscriptDialog` | `manuscript` (uuid), `tab` (`info`, `prompt`, `lorebook`, `story`, `tree`, `backup`) and `parts`, the state of the tabs. |
-| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. |
+| `ManuscriptStoryPart`, `PhoneManuscriptStoryPart` | `newTurn`, the `NewTurnForm`: `scene`, `pov`, `present`, `instructions` and `edited`. The desktop part also stores `tabs`, the `TabDock` state: `selected`, the ids of the tab each sidebar panel shows. |
 | `LorebookPart`, `LorebookView`, `PhoneLorebookView` and the lorebook tab of the book window | `lorebook` (uuid, not for the view pinned to the lorebook of a book) and `entries`, the uuids of the entries whose details are open. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -499,7 +499,7 @@ and <code translate="no" v-pre>PhoneManuscriptDialogPart</code> (default: no sta
 </tr>
 <tr>
 <td><code translate="no" v-pre>ManuscriptStoryPart</code>, <code translate="no" v-pre>PhoneManuscriptStoryPart</code></td>
-<td><code translate="no" v-pre>newTurn</code>, the <code translate="no" v-pre>NewTurnForm</code>: <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>present</code>, <code translate="no" v-pre>instructions</code> and <code translate="no" v-pre>edited</code>.</td>
+<td><code translate="no" v-pre>newTurn</code>, the <code translate="no" v-pre>NewTurnForm</code>: <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>present</code>, <code translate="no" v-pre>instructions</code> and <code translate="no" v-pre>edited</code>. The desktop part also stores <code translate="no" v-pre>tabs</code>, the <code translate="no" v-pre>TabDock</code> state: <code translate="no" v-pre>selected</code>, the ids of the tab each sidebar panel shows.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>LorebookPart</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code> and the lorebook tab of the book window</td>
@@ -572,6 +572,20 @@ book backups, and the menu bar of the bottom bar (see <doc-anchor-trigger to="#t
 <p><code translate="no" v-pre>renderStoryContent()</code> redraws only the cards and the outline list: the left tab sheet is created once in <code translate="no" v-pre>create()</code>
 (so the selected tab and the tabs of extensions survive), and the reasonings that were open are reopened on the new
 cards. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> does the same.</p>
+<p>The left bar (<code translate="no" v-pre>leftBar</code>) is a <code translate="no" v-pre>TabDock</code> (<code translate="no" v-pre>ui.widgets</code>), a reusable widget: a row of columns, each a stack of tab sheets, whose
+tabs the user can drag out into sheets of their own (a strip between the sheets of a column) or into a column of their own (a
+strip between the columns and at the sides) and back (the drag and drop is Flow&#x27;s <code translate="no" v-pre>DragSource</code>/<code translate="no" v-pre>DropTarget</code>, no JavaScript;
+the strips show while a tab is dragged). The columns and the sheets of a column are separated by <code translate="no" v-pre>SplitLayout</code>s the user can
+resize; a split layout has two sides, so the cells of a row or column are a chain of nested split layouts, the position of each
+being the share of its cell in what is left (<code translate="no" v-pre>chain</code>, <code translate="no" v-pre>shares</code>). When a splitter is dragged the shares of all cells are read
+again and stored as <code translate="no" v-pre>size</code> (percent of the dock / of the column) in the layout, <code translate="no" v-pre>onLayoutChange</code> saves them; a cell without a
+size gets the average. Tabs have a stable id (<code translate="no" v-pre>add(id, caption, content)</code>, the
+outline is <code translate="no" v-pre>ManuscriptStoryPart.CHAPTERS_TAB</code>); the layout, <code translate="no" v-pre>{&quot;columns&quot;:[{&quot;size&quot;:50,&quot;groups&quot;:[{&quot;size&quot;:50,&quot;tabs&quot;:[&quot;id&quot;, ...]}, ...]}, ...]}</code> (<code translate="no" v-pre>size</code> optional)
+(<code translate="no" v-pre>getLayout</code>/<code translate="no" v-pre>setLayout</code>; a layout with <code translate="no" v-pre>groups</code> at the top level, as the dock stored before it had columns, is one column), names tabs only by id and keeps the place of tabs that are not there now, because extensions add
+their tabs late (a tab the layout does not know goes to the first sheet). <code translate="no" v-pre>ManuscriptStoryPart</code> stores the layout in the
+attributes of the manuscript under <code translate="no" v-pre>$desktopManuscriptStoryPartTabsConfig</code> (<code translate="no" v-pre>TABS_CONFIG_ATTRIBUTE</code>): <code translate="no" v-pre>saveTabsConfig()</code> runs
+after a drag, <code translate="no" v-pre>applyTabsConfig()</code> in <code translate="no" v-pre>load()</code> before the story is drawn. The selected tab of each sheet is not part of the
+layout but the <code translate="no" v-pre>Restorable</code> state of the dock. <code translate="no" v-pre>PhoneManuscriptStoryPart</code> uses <code translate="no" v-pre>new TabDock(false)</code>, one plain sheet.</p>
 <p>What the desktop and the phone story editor have in common lives in <code translate="no" v-pre>ui.dialogs.story</code>, so the two classes keep only
 their layout and the methods extensions decorate (<code translate="no" v-pre>renderStoryContent</code>, <code translate="no" v-pre>createSidebarButton</code>, <code translate="no" v-pre>populateMenuBar</code>,
 <code translate="no" v-pre>createCogsMenuItem</code>, the card&#x27;s <code translate="no" v-pre>createMenuItems</code>, <code translate="no" v-pre>refreshSummaryMenuItems</code>, <code translate="no" v-pre>autosaveAndSwapToMarkdown</code>):</p>
