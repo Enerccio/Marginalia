@@ -480,8 +480,8 @@ the loading indicator, the story text (`.chat-message`), the story tree (`.Trean
 (`.manuscript-styles .chat-message-markdown`) is in `reading-mode-styles.css`, imported separately by `AppShellConfig`. Components are
 styled by adding these classes (`addClassName(CssStyles.TEXT_SECONDARY)`), not with `getStyle().set(...)`; keep that
 only for values computed at runtime (the combo box overlay width). A new class goes
-into the stylesheet and into `CssStyles` together. All `vaadin-markdown` elements wrap long lines through one rule
-there, so a `Markdown` needs no extra call. Class names used from Java are constants in
+into the stylesheet and into `CssStyles` together. All `vaadin-markdown` elements wrap long lines (and break long words of
+paragraphs, code, headings, lists, quotes, tables and links) through the rules there, so a `Markdown` needs no extra call. Class names used from Java are constants in
 `CssStyles`; column widths and offsets in `UIConstants`. Use Lumo's CSS custom properties (`--lumo-space-m`,
 `--lumo-contrast-10pct`...) instead of fixed colors, so the dark theme stays consistent.
 
