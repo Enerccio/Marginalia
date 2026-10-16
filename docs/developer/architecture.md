@@ -127,11 +127,13 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 | `ui.main` | UI | Servlet, app shell, the two routes: `Main` (`/`) and `Viewer` (`/view`), login handling (`LoginCheckRoute`). |
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
-| `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree) and small widgets. |
+| `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
+| `ui` (`LLMInteract`, `LLMSnapshot`) | UI | How the UI describes itself to the help assistant's model and what the model may do to it. |
 | `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
 | `domain.service.impl.inference` | Services | The OpenAI-compatible client and the tokenizer strategies. |
+| `domain.service.manual` | Services | The in-app help: the user manual parsed and searched (`ManualParser`, `ManualIndex`), the functions and prompts of the help assistant (`HelpTools`, `InteractiveHelpTools`, `HelpPrompts`, `UiStateSource`). |
 | `domain.templates` | Services | Template data objects and the macro system. |
 | `domain.repository` (+ `impl`) | Data | JPA repositories. |
 | `domain.model` (+ `impl`) | Data | Entities and their base classes. |
@@ -198,6 +200,7 @@ request attributes copied over - see [Threads and push](#threads-and-push).
 ```mermaid
 flowchart TB
     Main["Main (route /)<br/>LoginCheckRoute"] --> WS["DesktopWorkspace"]
+    Main --> HW["HelpAssistantWidget<br/>robot button and chat"]
     Viewer["Viewer (route /view)<br/>read-only published books"]
     WS --> MP["ManuscriptPart<br/>Books"]
     WS --> LP["LorebookPart"]
@@ -206,7 +209,7 @@ flowchart TB
     WS --> AP["AIPart<br/>Inference Providers"]
     WS --> RP["ResourcesPart<br/>Resources"]
     WS --> TP["TrashPart<br/>Trash"]
-    WS --> AdP["AdminPart<br/>Users, Backups, Cleanup, Extensions"]
+    WS --> AdP["AdminPart<br/>Users, Backups, Cleanup, Help assistant, Extensions"]
     MP --> MD["ManuscriptDialog<br/>(book window)"]
     MD --> Story["ManuscriptStoryPart"]
     MD --> Tree["ManuscriptTreePart"]
@@ -219,7 +222,10 @@ flowchart TB
 - `Main` shows the login (or the *create administrator* dialog on an empty installation), restores a saved login
   from cookies, and after login replaces its content with the `DesktopWorkspace` (the implementation of the `Workspace`
   interface), then restores the autosaved state of the workspace (the tab, the open book...) with
-  `restoreAutosaved()`; see [Remembering where the user was](ui.md#remembering-where-the-user-was).
+  `restoreAutosaved()`; see [Remembering where the user was](ui.md#remembering-where-the-user-was). It also adds the
+  `HelpAssistantWidget` (the round robot button with the chat panel, hidden while the
+  [help assistant](services.md#the-help-assistant) is off). The classes of the UI describe themselves to the assistant's model
+  through `LLMInteract`, see [Letting the help assistant see the UI](ui.md#letting-the-help-assistant-see-the-ui).
 - `DesktopWorkspace` holds the left-hand tabs. Each tab is a `WorkspaceComponent` (`create`, `refresh`, `onTabSwitched`,
   `onTabClosed`) and is `Restorable` (it stores and restores its own state).
 - Opening a book opens `ManuscriptDialog`, whose tabs are `ManuscriptDialogPart`s. The story editor
@@ -368,6 +374,8 @@ sequenceDiagram
   waits for the dispatch, not for the queued `access` tasks. The `skipCurrent` overload leaves out the caller's own
   Vaadin session. `UserServiceImpl.changePassword` / `clearPassword` use it to invalidate the other sessions of the
   user whose password changed - a user changing their own password stays logged in in the current session.
+- **The help chat.** `SessionPoint` (the session-scoped bean with the language) also keeps the conversation with the help
+  assistant (`getHelpChat()`, a synchronized list of messages); logout invalidates the session, which ends it.
 - **Open UIs.** After login `Main` and `Viewer` register their UI in `ApplicationPoint` (bean `applicationPoint`)
   with the workspace (`Main` only) and a copy of the user. `SessionInformation.getUI(workspaceClass, applicationPoint)`
   / `getWorkspace(...)` find the session's UI showing a given workspace type.

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845488153586">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489570744">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845488153586" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845489570744" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845488153586" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845489570744" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -367,6 +367,42 @@ see <a href="../example/#walkthrough-chinese-localization">Example plugin → Ch
 </li>
 <li>
 <p><strong>Add routes.</strong> Routes are registered when the servlet starts. Use dialogs and tabs instead.</p>
+</li>
+</ul>
+<h3 id="telling-the-help-assistant-about-your-ui">Telling the help assistant about your UI</h3>
+<p>The <a href="../../services/#the-help-assistant">help assistant</a> can read the screen of the user, and, when an administrator allows
+it, move through it. It sees only the classes that implement <code translate="no" v-pre>LLMInteract</code>
+(<a href="../../ui/#letting-the-help-assistant-see-the-ui">User interface → Letting the help assistant see the UI</a>), so a plugin
+dialog or panel that does not is not part of what it reads: a dialog of yours is simply absent from the screen.</p>
+<div id="telling-the-help-assistant-about-your-ui-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Configurable
+public class MyPanel extends VerticalLayout implements LLMInteract {
+    @Override
+    public String getLLMState() {
+        return &quot;The panel of My plugin, with the filter **&quot; + filter.getValue() + &quot;**.&quot;;   // what the user sees, nothing secret
+    }
+}</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p>The element is found under the nearest <code translate="no" v-pre>LLMInteract</code> above it in the component tree, and only while it is visible (a dialog
+only while it is open). Its path is the names of the elements above it and its own simple class name.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>getLLMState</code> is Markdown for the model: say what the user sees and would say themselves (the open tab, a filter, a title). Never
+the text of a story or a lorebook, a key, a password or an id: the state goes to the administrator&#x27;s AI, which may be an
+outside provider.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>getInteraction()</code> offers moves the model may make: a map from a key to an <code translate="no" v-pre>LLMInteraction(description, action)</code>. Only
+harmless ones the user could undo with a click (select a tab, open a section), never anything that changes, saves, deletes,
+sends or generates; none while your UI is locked. <code translate="no" v-pre>LLMInteract.tabs(...)</code> makes the entries for a row of tabs.</p>
+</li>
+<li>
+<p>To add to a class of the application, decorate its <code translate="no" v-pre>getLLMState</code> (or <code translate="no" v-pre>getInteraction</code>) with <code translate="no" v-pre>getCurrentReturn</code> /
+<code translate="no" v-pre>setCurrentReturn</code> (see <a href="../extendable/#changing-the-return-value">Changing the return value</a>); append to the text and put your
+entries into a copy of the map. Only the classes that override those methods can be decorated: both workspaces, <code translate="no" v-pre>AdminPart</code>,
+both story editor dialogs and <code translate="no" v-pre>Main</code>; the other elements use the defaults of the interface.</p>
 </li>
 </ul>
 <h2 id="styles-of-a-plugin">Styles of a plugin</h2>

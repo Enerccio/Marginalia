@@ -36,7 +36,10 @@ mvn install -DskipTests -Dvaadin.skip=true   # plugins only need the classes JAR
 
 What a build does, in order:
 
-1. `git-commit-id-plugin` writes `git.properties` (commit id, time, closest tag) into the classes.
+1. `git-commit-id-plugin` writes `git.properties` (commit id, time, closest tag) into the classes. The resources
+   step also copies the Markdown pages of the user manual (`../manual/user/**/*.md`, unfiltered) to `classpath:/manual/`
+   for the [help assistant](services.md#the-help-assistant); the folder is outside `marginalia/`, see
+   [Packaging](packaging.md).
 2. `vaadin-maven-plugin` prepares the frontend (`prepare-frontend`): it generates `package.json`, `vite` config and
    the files in `src/main/frontend/generated/` (ignored by Git) and downloads Node.js if needed.
 3. `maven-compiler-plugin` compiles the sources, then `aspectj-maven-plugin` compiles them again with the AspectJ
@@ -266,7 +269,7 @@ exact version of the application. See [Plugin development](plugins/index.md).
 
 `marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
-repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `.git` and `marginalia/plugins`, runs
+repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` (packed into the application's classes, so a plugin build against it sees the same manual), `.git` and `marginalia/plugins`, runs
 `mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
 The JARs are copied out when the container runs, because they go into a bind mount:
 

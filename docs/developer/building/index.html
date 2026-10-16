@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845488153586">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489570744">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845488153586" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845489570744" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845488153586" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845489570744" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -251,7 +251,10 @@ mvn install -DskipTests -Dvaadin.skip=true   # plugins only need the classes JAR
 <p>What a build does, in order:</p>
 <ol>
 <li>
-<p><code translate="no" v-pre>git-commit-id-plugin</code> writes <code translate="no" v-pre>git.properties</code> (commit id, time, closest tag) into the classes.</p>
+<p><code translate="no" v-pre>git-commit-id-plugin</code> writes <code translate="no" v-pre>git.properties</code> (commit id, time, closest tag) into the classes. The resources
+step also copies the Markdown pages of the user manual (<code translate="no" v-pre>../manual/user/**/*.md</code>, unfiltered) to <code translate="no" v-pre>classpath:/manual/</code>
+for the <a href="../services/#the-help-assistant">help assistant</a>; the folder is outside <code translate="no" v-pre>marginalia/</code>, see
+<a href="../packaging/">Packaging</a>.</p>
 </li>
 <li>
 <p><code translate="no" v-pre>vaadin-maven-plugin</code> prepares the frontend (<code translate="no" v-pre>prepare-frontend</code>): it generates <code translate="no" v-pre>package.json</code>, <code translate="no" v-pre>vite</code> config and
@@ -522,7 +525,7 @@ exact version of the application. See <a href="../plugins/">Plugin development</
 <h3 id="in-docker">In Docker</h3>
 <p><code translate="no" v-pre>marginalia/plugins/Dockerfile</code> and <code translate="no" v-pre>docker-compose.yml</code> build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see <a href="../packaging/#plugins">Packaging</a>). The build context is the
-repository root; the image copies <code translate="no" v-pre>pom.xml</code>, <code translate="no" v-pre>marginalia/pom.xml</code>, <code translate="no" v-pre>marginalia/src</code>, <code translate="no" v-pre>.git</code> and <code translate="no" v-pre>marginalia/plugins</code>, runs
+repository root; the image copies <code translate="no" v-pre>pom.xml</code>, <code translate="no" v-pre>marginalia/pom.xml</code>, <code translate="no" v-pre>marginalia/src</code>, <code translate="no" v-pre>manual/user</code> (packed into the application&#x27;s classes, so a plugin build against it sees the same manual), <code translate="no" v-pre>.git</code> and <code translate="no" v-pre>marginalia/plugins</code>, runs
 <code translate="no" v-pre>mvn install -DskipTests -Dvaadin.skip=true</code> for the application, <code translate="no" v-pre>mvn install -N</code> for the parent POM and <code translate="no" v-pre>mvn package</code> in every folder of <code translate="no" v-pre>plugins/</code> that has a <code translate="no" v-pre>pom.xml</code>.
 The JARs are copied out when the container runs, because they go into a bind mount:</p>
 <div id="in-docker-code-1" class="codeblock-wrapper"><doc-codeblock>

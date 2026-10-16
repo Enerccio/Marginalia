@@ -212,6 +212,36 @@ What plugins can't do:
   see [Example plugin → Chinese localization](example.md#walkthrough-chinese-localization).
 - **Add routes.** Routes are registered when the servlet starts. Use dialogs and tabs instead.
 
+### Telling the help assistant about your UI
+
+The [help assistant](../services.md#the-help-assistant) can read the screen of the user, and, when an administrator allows
+it, move through it. It sees only the classes that implement `LLMInteract`
+([User interface → Letting the help assistant see the UI](../ui.md#letting-the-help-assistant-see-the-ui)), so a plugin
+dialog or panel that does not is not part of what it reads: a dialog of yours is simply absent from the screen.
+
+```java
+@Configurable
+public class MyPanel extends VerticalLayout implements LLMInteract {
+    @Override
+    public String getLLMState() {
+        return "The panel of My plugin, with the filter **" + filter.getValue() + "**.";   // what the user sees, nothing secret
+    }
+}
+```
+
+- The element is found under the nearest `LLMInteract` above it in the component tree, and only while it is visible (a dialog
+  only while it is open). Its path is the names of the elements above it and its own simple class name.
+- `getLLMState` is Markdown for the model: say what the user sees and would say themselves (the open tab, a filter, a title). Never
+  the text of a story or a lorebook, a key, a password or an id: the state goes to the administrator's AI, which may be an
+  outside provider.
+- `getInteraction()` offers moves the model may make: a map from a key to an `LLMInteraction(description, action)`. Only
+  harmless ones the user could undo with a click (select a tab, open a section), never anything that changes, saves, deletes,
+  sends or generates; none while your UI is locked. `LLMInteract.tabs(...)` makes the entries for a row of tabs.
+- To add to a class of the application, decorate its `getLLMState` (or `getInteraction`) with `getCurrentReturn` /
+  `setCurrentReturn` (see [Changing the return value](extendable.md#changing-the-return-value)); append to the text and put your
+  entries into a copy of the map. Only the classes that override those methods can be decorated: both workspaces, `AdminPart`,
+  both story editor dialogs and `Main`; the other elements use the defaults of the interface.
+
 ## Styles of a plugin
 
 A plugin can't add to the application's stylesheet, but it can ship its own CSS. Implement `ExtensionHasCss` on the

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845488153586">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489570744">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845488153586" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845489570744" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845488153586" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845489570744" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -369,11 +369,13 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 | `ui.main` | UI | Servlet, app shell, the two routes: `Main` (`/`) and `Viewer` (`/view`), login handling (`LoginCheckRoute`). |
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. |
-| `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree) and small widgets. |
+| `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
+| `ui` (`LLMInteract`, `LLMSnapshot`) | UI | How the UI describes itself to the help assistant's model and what the model may do to it. |
 | `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
 | `domain.service.impl.inference` | Services | The OpenAI-compatible client and the tokenizer strategies. |
+| `domain.service.manual` | Services | The in-app help: the user manual parsed and searched (`ManualParser`, `ManualIndex`), the functions and prompts of the help assistant (`HelpTools`, `InteractiveHelpTools`, `HelpPrompts`, `UiStateSource`). |
 | `domain.templates` | Services | Template data objects and the macro system. |
 | `domain.repository` (+ `impl`) | Data | JPA repositories. |
 | `domain.model` (+ `impl`) | Data | Entities and their base classes. |
@@ -411,7 +413,12 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <tr>
 <td><code translate="no" v-pre>ui.components</code>, <code translate="no" v-pre>ui.widgets</code></td>
 <td>UI</td>
-<td>Reusable components (lorebook editor, story tree) and small widgets.</td>
+<td>Reusable components (lorebook editor, story tree, the help assistant&#x27;s button and chat) and small widgets.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui</code> (<code translate="no" v-pre>LLMInteract</code>, <code translate="no" v-pre>LLMSnapshot</code>)</td>
+<td>UI</td>
+<td>How the UI describes itself to the help assistant&#x27;s model and what the model may do to it.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.components</code></td>
@@ -432,6 +439,11 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <td><code translate="no" v-pre>domain.service.impl.inference</code></td>
 <td>Services</td>
 <td>The OpenAI-compatible client and the tokenizer strategies.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>domain.service.manual</code></td>
+<td>Services</td>
+<td>The in-app help: the user manual parsed and searched (<code translate="no" v-pre>ManualParser</code>, <code translate="no" v-pre>ManualIndex</code>), the functions and prompts of the help assistant (<code translate="no" v-pre>HelpTools</code>, <code translate="no" v-pre>InteractiveHelpTools</code>, <code translate="no" v-pre>HelpPrompts</code>, <code translate="no" v-pre>UiStateSource</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.templates</code></td>
@@ -579,6 +591,7 @@ request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">
 <h2 id="user-interface">User interface</h2>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart TB
     Main[&quot;Main (route /)&lt;br/&gt;LoginCheckRoute&quot;] --&gt; WS[&quot;DesktopWorkspace&quot;]
+    Main --&gt; HW[&quot;HelpAssistantWidget&lt;br/&gt;robot button and chat&quot;]
     Viewer[&quot;Viewer (route /view)&lt;br/&gt;read-only published books&quot;]
     WS --&gt; MP[&quot;ManuscriptPart&lt;br/&gt;Books&quot;]
     WS --&gt; LP[&quot;LorebookPart&quot;]
@@ -587,7 +600,7 @@ request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">
     WS --&gt; AP[&quot;AIPart&lt;br/&gt;Inference Providers&quot;]
     WS --&gt; RP[&quot;ResourcesPart&lt;br/&gt;Resources&quot;]
     WS --&gt; TP[&quot;TrashPart&lt;br/&gt;Trash&quot;]
-    WS --&gt; AdP[&quot;AdminPart&lt;br/&gt;Users, Backups, Cleanup, Extensions&quot;]
+    WS --&gt; AdP[&quot;AdminPart&lt;br/&gt;Users, Backups, Cleanup, Help assistant, Extensions&quot;]
     MP --&gt; MD[&quot;ManuscriptDialog&lt;br/&gt;(book window)&quot;]
     MD --&gt; Story[&quot;ManuscriptStoryPart&quot;]
     MD --&gt; Tree[&quot;ManuscriptTreePart&quot;]
@@ -600,7 +613,10 @@ request attributes copied over - see <doc-anchor-trigger to="#threads-and-push">
 <p><code translate="no" v-pre>Main</code> shows the login (or the <em>create administrator</em> dialog on an empty installation), restores a saved login
 from cookies, and after login replaces its content with the <code translate="no" v-pre>DesktopWorkspace</code> (the implementation of the <code translate="no" v-pre>Workspace</code>
 interface), then restores the autosaved state of the workspace (the tab, the open book...) with
-<code translate="no" v-pre>restoreAutosaved()</code>; see <a href="../ui/#remembering-where-the-user-was">Remembering where the user was</a>.</p>
+<code translate="no" v-pre>restoreAutosaved()</code>; see <a href="../ui/#remembering-where-the-user-was">Remembering where the user was</a>. It also adds the
+<code translate="no" v-pre>HelpAssistantWidget</code> (the round robot button with the chat panel, hidden while the
+<a href="../services/#the-help-assistant">help assistant</a> is off). The classes of the UI describe themselves to the assistant&#x27;s model
+through <code translate="no" v-pre>LLMInteract</code>, see <a href="../ui/#letting-the-help-assistant-see-the-ui">Letting the help assistant see the UI</a>.</p>
 </li>
 <li>
 <p><code translate="no" v-pre>DesktopWorkspace</code> holds the left-hand tabs. Each tab is a <code translate="no" v-pre>WorkspaceComponent</code> (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>onTabSwitched</code>,
@@ -807,6 +823,10 @@ free, and changes are pushed when the lock is released. The sessions are process
 waits for the dispatch, not for the queued <code translate="no" v-pre>access</code> tasks. The <code translate="no" v-pre>skipCurrent</code> overload leaves out the caller&#x27;s own
 Vaadin session. <code translate="no" v-pre>UserServiceImpl.changePassword</code> / <code translate="no" v-pre>clearPassword</code> use it to invalidate the other sessions of the
 user whose password changed - a user changing their own password stays logged in in the current session.</p>
+</li>
+<li>
+<p><strong>The help chat.</strong> <code translate="no" v-pre>SessionPoint</code> (the session-scoped bean with the language) also keeps the conversation with the help
+assistant (<code translate="no" v-pre>getHelpChat()</code>, a synchronized list of messages); logout invalidates the session, which ends it.</p>
 </li>
 <li>
 <p><strong>Open UIs.</strong> After login <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code> register their UI in <code translate="no" v-pre>ApplicationPoint</code> (bean <code translate="no" v-pre>applicationPoint</code>)

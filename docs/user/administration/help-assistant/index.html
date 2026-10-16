@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845488153586">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845489570744">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/administration/help-assistant/">
     <meta property="og:title" content="Help assistant">
     <meta property="og:description" content="The help assistant is a chat that answers questions about Marginalia from its manual. An administrator turns it on and chooses which model it uses; after that every user can ask it, without a model of their own.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/help-assistant.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Help assistant">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/administration/help-assistant/">
     <meta name="twitter:title" content="Help assistant">
     <meta name="twitter:description" content="The help assistant is a chat that answers questions about Marginalia from its manual. An administrator turns it on and chooses which model it uses; after that every user can ask it, without a model of their own.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/help-assistant.png">
+    <meta name="twitter:image:alt" content="Help assistant">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/administration/help-assistant.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845488153586" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845489570744" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845488153586" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845489570744" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -173,11 +179,19 @@ the answers up in the manual (it can search it and read its pages), names the pa
 changes nothing and does not see the user&#x27;s books. (It can also take the user somewhere, if you allow it, see
 <doc-anchor-trigger to="#showing-the-way">Showing the way</doc-anchor-trigger>.) The conversation is kept until the user logs out (closing the panel
 or reloading the page keeps it), the broom button clears it.</p>
+<figure class="content-center">
+    <img src="../../../images/help-assistant.png" alt="The help assistant answering a question" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="440" height="580" />
+    <figcaption class="caption">The help assistant answering a question</figcaption>
+</figure>
 <p>The button appears when a user opens Marginalia, and the model and the limit warning are read each time the panel
 is opened; if you turn the assistant off, users who already have the page open lose the button when they reload it
 (or when they open the panel).</p>
 <h2 id="settings">Settings</h2>
 <p>Open <strong>Admin → Help assistant</strong>:</p>
+<figure class="content-center">
+    <img src="../../../images/admin-help-assistant.png" alt="The Help assistant tab" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The Help assistant tab</figcaption>
+</figure>
 <retype-table copy-text="| Setting | |
 |---|---|
 | **Enabled** | Turns the assistant on for all users. Off by default. Needs a model. |
@@ -233,6 +247,10 @@ them only when the question needs it. It never gets the text of a story, a loreb
 It can do nothing else: it does not press other buttons, type, save, delete, generate, close a dialog or log out, and a user who
 cannot open something cannot have the assistant open it for them. It does not move on its own initiative, only when asked.
 Where the navigation is locked (the open section has unsaved changes, a book is being generated) it can not move.</p>
+<figure class="content-center">
+    <img src="../../../images/help-assistant-navigate.png" alt="The assistant opened the Database Backups tab on request" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The assistant opened the Database Backups tab on request</figcaption>
+</figure>
 <p>Allowing it also tells the model the names of the elements on the screen and what they offer; that is the same kind of
 information as in <doc-anchor-trigger to="#what-the-assistant-sees-of-the-screen">What the assistant sees of the screen</doc-anchor-trigger>.</p>
 <h2 id="prompts">Prompts</h2>

@@ -10,6 +10,8 @@ changes nothing and does not see the user's books. (It can also take the user so
 [Showing the way](#showing-the-way).) The conversation is kept until the user logs out (closing the panel
 or reloading the page keeps it), the broom button clears it.
 
+![The help assistant answering a question](../../images/help-assistant.png)
+
 The button appears when a user opens Marginalia, and the model and the limit warning are read each time the panel
 is opened; if you turn the assistant off, users who already have the page open lose the button when they reload it
 (or when they open the panel).
@@ -17,6 +19,8 @@ is opened; if you turn the assistant off, users who already have the page open l
 ## Settings
 
 Open **Admin → Help assistant**:
+
+![The Help assistant tab](../../images/admin-help-assistant.png)
 
 | Setting | |
 |---|---|
@@ -45,6 +49,8 @@ With **Allow navigating the interface** on, the assistant can do a few things in
 It can do nothing else: it does not press other buttons, type, save, delete, generate, close a dialog or log out, and a user who
 cannot open something cannot have the assistant open it for them. It does not move on its own initiative, only when asked.
 Where the navigation is locked (the open section has unsaved changes, a book is being generated) it can not move.
+
+![The assistant opened the Database Backups tab on request](../../images/help-assistant-navigate.png)
 
 Allowing it also tells the model the names of the elements on the screen and what they offer; that is the same kind of
 information as in [What the assistant sees of the screen](#what-the-assistant-sees-of-the-screen).
