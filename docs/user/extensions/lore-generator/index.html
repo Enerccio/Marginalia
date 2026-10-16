@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845445102136">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845446425239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845445102136" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845446425239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -290,23 +290,31 @@ again restores them, taking priority over the prompt you used last and your save
 never generated into opens with the usual defaults. The options belong to the entry, so they travel with backups and
 exports of the lorebook.</p>
 <h3 id="name-tools">Name tools</h3>
-<p>When the Name generator extension is loaded, the top row has a <strong>Name tools</strong> button. It opens a table of the name
-categories with a checkbox each. The list is long, so it loads as you scroll and has a filter field above it: type a part
-of a name to show only the matching categories. The checked categories always stay in the table, whatever the filter
+<p>When the <a href="../name-generator/">Name generator</a> or the <a href="../name-provider/">Name provider</a> extension is loaded, the top row has a
+<strong>Name tools</strong> button. It opens a table of the name categories of both with a checkbox each. The categories of the Name
+generator (names made up to sound like a category) start with <code translate="no" v-pre>Generator: </code>, the ones of the Name provider (real names, each
+with its original spelling) with <code translate="no" v-pre>Provider: </code>. The list is long, so it loads as you scroll and has a filter field above it:
+type a part of a name to show only the matching categories. The checked categories always stay in the table, whatever the filter
 says. The checkbox in the header checks or unchecks all the categories shown at that moment, and a line below the
 table counts how many are checked. The checked categories are saved with your account, so they stay checked the next
 time. While at least one is checked, the model can list them and ask for names of them during the generation (not the
-compaction), instead of inventing names (see <a href="../name-generator/">Name generator</a>).</p>
+compaction), instead of inventing names. The model gets the tools of the extensions that have a checked category: check
+only <code translate="no" v-pre>Generator: </code> categories and it gets the generator&#x27;s, only <code translate="no" v-pre>Provider: </code> ones and it gets the provider&#x27;s, both and it
+gets both, none and it gets no tools.</p>
 <figure class="content-center">
     <img src="../../../images/plugin-loregenerator-names.png" alt="Name tools with a filtered table of categories" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="745" />
     <figcaption class="caption">Name tools with a filtered table of categories</figcaption>
 </figure>
-<p>A short hint telling the model about the tools is added to the end of the generation prompt. The built-in one asks the
-model to call the tools instead of inventing names, to pick from what it gets, and allows it to modify or remix the names
-when none fits as it is (combine parts of two, change an ending, adjust the spelling). You can replace it with your own in
-<em>Settings → Extension Settings → Lore Generator</em> (<em>Name tools hint</em>, empty means the built-in one; a hint you saved before
-keeps working as it is). The button shows how many categories are checked. Without the Name generator there is no
-button; the extension can be unloaded and installed again while Marginalia runs, the button comes back.</p>
+<p>A short hint for each kind of tools the model gets is added to the end of the generation prompt. The built-in hint of the
+Name generator asks the model to call the tools instead of inventing names, to pick from what it gets, and allows it to
+modify or remix the names when none fits as it is (combine parts of two, change an ending, adjust the spelling). The
+built-in hint of the Name provider asks it to pick a name from the real names it gets and to keep it as it was returned
+(the romanized one, with the original next to it when that suits the setting), without making up another spelling; a
+forename and a surname of the same country may be combined. You can replace them with your own in
+<em>Settings → Extension Settings → Lore Generator</em> (<em>Name generator hint</em> and <em>Name provider hint</em>, empty means the
+built-in one; a generator hint you saved before keeps working as it is, and so do the categories you checked before, they
+count as <code translate="no" v-pre>Generator: </code> ones). The button shows how many categories are checked. Without both extensions there is no
+button; they can be unloaded and installed again while Marginalia runs, the button comes back.</p>
 <h3 id="attachments">Attachments</h3>
 <p>Under the prompt you can add files for the model to look at: reference images, a map, a character sheet. Drop them on
 the upload area, choose them, or paste them into the prompt with Ctrl+V (a screenshot or a copied file becomes an
@@ -343,10 +351,10 @@ include them. Nothing is stored with the lorebook; the generated text exists in 
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/name-generator/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/name-provider/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Name generator</span>
+                                <span class="block mt-1">Name provider</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>

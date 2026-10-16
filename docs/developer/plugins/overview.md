@@ -297,7 +297,7 @@ first: Marginalia's own classes, Vaadin, Spring, Hibernate, Gson, everything in 
   wiring is to one revision of the other bundle, so after it is unloaded and installed again your bundle keeps the old
   classes and does not recognize the new objects, and the JVM remembers a class reference that failed to resolve
   (`NoClassDefFoundError`), so a reference used while the other bundle was missing keeps failing after it is installed.
-  The Lore Generator does it with the Name generator, see `NameGeneratorBridge`.
+  The Lore Generator and the Arc Outline do it with the Name generator and the Name provider, see `NameToolsBridge`.
 - The plugin's own classes are loaded by the bundle's class loader, so the class names you pass to
   `registerDecorator` must be those of the **application's** classes; a plugin's own classes are never instrumented.
 

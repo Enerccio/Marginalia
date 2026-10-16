@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845445102136">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845446425239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845445102136" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845446425239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -312,7 +312,7 @@ are sent only when you check the second one.</p>
 |---|---|
 | Prompt | The instructions for the model, with three variables: `` (the entries of the book's lorebook and its sub lorebooks), `` (your arcs and chapters, with their states and descriptions, but not your private notes) and ``. It starts as the prompt from *Settings → Extension Settings → Arc Outline* (the default prompt when you have not changed it); what you edit here applies to this generation only. |
 | Specification | What you want from the arc: the theme, the characters, where it should lead. Can be empty. |
-| Name tools | Only when the [Name generator](name-generator.md) is loaded: the categories of names the model may use instead of inventing them, the same as in the [Lore Generator](lore-generator.md). |
+| Name tools | Only when the [Name generator](name-generator.md) or the [Name provider](name-provider.md) is loaded: the categories of names the model may use instead of inventing them (`Generator: ` made up, `Provider: ` real), the same as in the [Lore Generator](lore-generator.md). |
 | Model, Protocols | Start as the model and protocol of the book (your default ones from *Settings* when the book has none). Change them to use another model for this generation only; the choice is not saved. |
 | Generate | Starts the model. While it runs the button is a red **Stop** and everything else in the dialog is disabled. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -334,7 +334,7 @@ are sent only when you check the second one.</p>
 </tr>
 <tr>
 <td>Name tools</td>
-<td>Only when the <a href="../name-generator/">Name generator</a> is loaded: the categories of names the model may use instead of inventing them, the same as in the <a href="../lore-generator/">Lore Generator</a>.</td>
+<td>Only when the <a href="../name-generator/">Name generator</a> or the <a href="../name-provider/">Name provider</a> is loaded: the categories of names the model may use instead of inventing them (<code translate="no" v-pre>Generator: </code> made up, <code translate="no" v-pre>Provider: </code> real), the same as in the <a href="../lore-generator/">Lore Generator</a>.</td>
 </tr>
 <tr>
 <td>Model, Protocols</td>

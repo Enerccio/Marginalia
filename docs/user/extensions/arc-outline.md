@@ -76,7 +76,7 @@ On the left:
 |---|---|
 | Prompt | The instructions for the model, with three variables: `` (the entries of the book's lorebook and its sub lorebooks), `` (your arcs and chapters, with their states and descriptions, but not your private notes) and ``. It starts as the prompt from *Settings → Extension Settings → Arc Outline* (the default prompt when you have not changed it); what you edit here applies to this generation only. |
 | Specification | What you want from the arc: the theme, the characters, where it should lead. Can be empty. |
-| Name tools | Only when the [Name generator](name-generator.md) is loaded: the categories of names the model may use instead of inventing them, the same as in the [Lore Generator](lore-generator.md). |
+| Name tools | Only when the [Name generator](name-generator.md) or the [Name provider](name-provider.md) is loaded: the categories of names the model may use instead of inventing them (`Generator: ` made up, `Provider: ` real), the same as in the [Lore Generator](lore-generator.md). |
 | Model, Protocols | Start as the model and protocol of the book (your default ones from *Settings* when the book has none). Change them to use another model for this generation only; the choice is not saved. |
 | Generate | Starts the model. While it runs the button is a red **Stop** and everything else in the dialog is disabled. |
 

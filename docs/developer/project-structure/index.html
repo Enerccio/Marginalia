@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845445102136">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845446425239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845445102136" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845446425239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -1082,9 +1082,10 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
 | Google Gemini | `extensions.googlegenai` | Activator and extension, `GoogleGenAiFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Google Gen AI SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
-| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `NameToolsDialog`, `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `NameGeneratorBridge` (the Name generator by reflection). |
+| Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `NameToolsDialog`, `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `NameToolsBridge` (the Name generator and the Name provider by reflection). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Name generator | `extensions.namegenerator` | The extension, the `@LLMFunction` interface and its implementation, `NameTables` (the chains and the sampling). `src/build` holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README. |
+| Name provider | `extensions.nameprovider` | The extension, the `@LLMFunction` interface and its implementation, `NameLists` (the lists of real names and the random choice), `NameEntry` (a pair of the romanized and the original name). `src/build/ImportPopularNames.java` writes `name-lists.json` from the popular names by country dataset, see its README. |
 | Reviewer | `extensions.reviewer` | Model (`ReviewerProfile` with a stable uuid), service, dialogs, a settings form and `ManuscriptProfileSelect`, the profile picker of a book's info tab. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |">
@@ -1136,7 +1137,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <tr>
 <td>Lore Generator</td>
 <td><code translate="no" v-pre>extensions.loregenerator</code></td>
-<td>Model (the prompts), service (lore selection, prompts), a dialog split into <code translate="no" v-pre>NameToolsDialog</code>, <code translate="no" v-pre>SavePromptAsDialog</code>, <code translate="no" v-pre>AttachmentPanel</code> and <code translate="no" v-pre>GenerationPane</code>, a settings form, and <code translate="no" v-pre>NameGeneratorBridge</code> (the Name generator by reflection).</td>
+<td>Model (the prompts), service (lore selection, prompts), a dialog split into <code translate="no" v-pre>NameToolsDialog</code>, <code translate="no" v-pre>SavePromptAsDialog</code>, <code translate="no" v-pre>AttachmentPanel</code> and <code translate="no" v-pre>GenerationPane</code>, a settings form, and <code translate="no" v-pre>NameToolsBridge</code> (the Name generator and the Name provider by reflection).</td>
 </tr>
 <tr>
 <td>Lorebook VCS</td>
@@ -1147,6 +1148,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Name generator</td>
 <td><code translate="no" v-pre>extensions.namegenerator</code></td>
 <td>The extension, the <code translate="no" v-pre>@LLMFunction</code> interface and its implementation, <code translate="no" v-pre>NameTables</code> (the chains and the sampling). <code translate="no" v-pre>src/build</code> holds the Java programs of the build: importers of the sources of names, the tuner and the trainer, see its README.</td>
+</tr>
+<tr>
+<td>Name provider</td>
+<td><code translate="no" v-pre>extensions.nameprovider</code></td>
+<td>The extension, the <code translate="no" v-pre>@LLMFunction</code> interface and its implementation, <code translate="no" v-pre>NameLists</code> (the lists of real names and the random choice), <code translate="no" v-pre>NameEntry</code> (a pair of the romanized and the original name). <code translate="no" v-pre>src/build/ImportPopularNames.java</code> writes <code translate="no" v-pre>name-lists.json</code> from the popular names by country dataset, see its README.</td>
 </tr>
 <tr>
 <td>Reviewer</td>

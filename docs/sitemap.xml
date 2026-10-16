@@ -40,9 +40,6 @@
     <loc>https://enerccio.github.io/Marginalia/user/resources/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/account/</loc>
-  </url>
-  <url>
     <loc>https://enerccio.github.io/Marginalia/user/getting-started/docker-server/</loc>
   </url>
   <url>
@@ -52,13 +49,16 @@
     <loc>https://enerccio.github.io/Marginalia/user/templates/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/books/summaries/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/account/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/troubleshooting/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/getting-started/first-start/</loc>
+  </url>
+  <url>
+    <loc>https://enerccio.github.io/Marginalia/user/books/summaries/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/</loc>
@@ -133,13 +133,19 @@
     <loc>https://enerccio.github.io/Marginalia/user/lorebooks/import-export/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/extensions/arc-outline/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/developer/custom-components/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/testing/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/extensions/arc-outline/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/extensions/authors-note/</loc>
+  </url>
+  <url>
+    <loc>https://enerccio.github.io/Marginalia/user/extensions/lore-generator/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/database-backups/</loc>
@@ -151,22 +157,16 @@
     <loc>https://enerccio.github.io/Marginalia/user/templates/templates/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/extensions/authors-note/</loc>
-  </url>
-  <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/chinese-localization/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/chapter-marker/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/extensions/lore-generator/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/extensions/lorebook-vcs/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/character-tracker/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/extensions/lorebook-vcs/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/reviewer/</loc>
@@ -190,6 +190,9 @@
     <loc>https://enerccio.github.io/Marginalia/user/administration/extensions/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/extensions/name-provider/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/users/</loc>
   </url>
   <url>
@@ -208,13 +211,13 @@
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/extended-attributes/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/plugins/example/</loc>
-  </url>
-  <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/generation-events/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/ai-providers/</loc>
+  </url>
+  <url>
+    <loc>https://enerccio.github.io/Marginalia/developer/plugins/example/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/ipc/</loc>

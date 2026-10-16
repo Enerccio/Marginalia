@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845445102136">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845446425239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845445102136" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845446425239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -175,8 +175,9 @@
 names and surnames of many countries, places, deities, monsters, drugs, companies, foods, and more - and are made new by
 a Markov chain, so they sound like the category without being copies of it.</p>
 <p>The extension has no screen of its own and nothing to configure. Other extensions offer its functions to the model; at
-the moment that is the <a href="../lore-generator/#name-tools">Lore Generator</a>, where you choose which categories the model
-may use.</p>
+the moment that are the <a href="../lore-generator/#name-tools">Lore Generator</a> and the <a href="../arc-outline/">Arc Outline</a>, where you
+choose which categories the model may use; their categories have the prefix <code translate="no" v-pre>Generator: </code> there, next to the <code translate="no" v-pre>Provider: </code>
+ones of the <a href="../name-provider/">Name provider</a>, which hands out real names instead of made up ones.</p>
 <figure class="content-center">
     <img src="../../../images/plugin-loregenerator-names.png" alt="Choosing the categories of names in the Lore Generator" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="745" />
     <figcaption class="caption">Choosing the categories of names in the Lore Generator</figcaption>
@@ -210,13 +211,19 @@ may use.</p>
 <p>Without a length, the names are as long as the names of that category usually are (a category of long company names gives
 long names, one of short forenames short ones). The model can ask for other lengths between 2 and 30 letters. A small
 category may return fewer names than asked for, because the chain runs out of different ones. The model is free to
-pick one of the names, change it or combine two of them; see the <em>Name tools hint</em> of the Lore Generator.</p>
+pick one of the names, change it or combine two of them; see the <em>Name generator hint</em> of the Lore Generator.</p>
 <h2 id="categories">Categories</h2>
-<p>There are about 1200 categories. Their names say what they are:</p>
+<p>There are about 1270 categories. Their names say what they are:</p>
 <ul>
 <li>
 <p><strong>Given names and surnames of the world</strong>, from Kate Monk&#x27;s Onomastikon: <code translate="no" v-pre>Europe Western - France - Surnames</code>,
 <code translate="no" v-pre>Ancient World - Egypt - Male</code>, <code translate="no" v-pre>India - Hindu Gods - Goddesses</code>. Several hundred of them.</p>
+</li>
+<li>
+<p><strong>Surnames of 75 countries</strong>, the romanized surnames of the <a href="https://github.com/sigpwned/popular-names-by-country-dataset">popular names by country dataset</a>
+(CC0): <code translate="no" v-pre>Armenia - Surnames</code>, <code translate="no" v-pre>Japan - Surnames</code>, <code translate="no" v-pre>Kosovo - Surnames</code>. They are small lists (6 to about 150 names), so the
+chains stay short and the new names are close to the real ones; for the real ones themselves use the
+<a href="../name-provider/">Name provider</a>.</p>
 </li>
 <li>
 <p><strong>Lists from other collections</strong>: gods, angels, demons, ancient cities and states, emperors, planets (fantasygen),
@@ -241,11 +248,11 @@ Generator. Without it, the Lore Generator has no <em>Name tools</em> button.</p>
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/lore-generator/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/name-provider/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Lore Generator</span>
+                                <span class="block mt-1">Name provider</span>
                             </span>
                         </a>
                     </div>

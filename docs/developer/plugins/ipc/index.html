@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845445102136">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845446425239">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845445102136" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845446425239" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845445102136" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845445102136" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845446425239" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -266,8 +266,9 @@ checked by the service itself: a provider gives the data of the book it is hande
 caller may read.</p>
 <h2 id="calling-another-extension-directly">Calling another extension directly</h2>
 <p>When an extension needs more than text from another one, it calls the other extension&#x27;s own methods. The
-<strong>Lore Generator</strong> and the <strong>Arc Outline</strong> do this to get names from the <strong>Name Generator</strong>: they let the model call
-its functions (<code translate="no" v-pre>list_name_categories</code>, <code translate="no" v-pre>generate_names</code>), restricted to the categories the user checked.</p>
+<strong>Lore Generator</strong> and the <strong>Arc Outline</strong> do this to get names from the <strong>Name Generator</strong> and the <strong>Name Provider</strong>: they
+let the model call their functions (<code translate="no" v-pre>list_name_categories</code>, <code translate="no" v-pre>generate_names</code> and <code translate="no" v-pre>list_real_name_lists</code>,
+<code translate="no" v-pre>pick_real_names</code>), restricted to the categories the user checked.</p>
 <h3 id="do-not-import-the-other-extension">Do not import the other extension</h3>
 <p>The obvious way - depend on the other plugin in the <code translate="no" v-pre>pom.xml</code> and import its packages - is the wrong one. A bundle that
 imports the packages of another bundle is tied to the classes of that bundle: when the other extension is unloaded
@@ -308,9 +309,11 @@ public static List&lt;String&gt; categories(OsgiService osgiService) {
 <p><strong>Only types both sides know cross the border</strong>: the JDK and the application (<code translate="no" v-pre>List&lt;String&gt;</code>, <code translate="no" v-pre>FunctionSet</code>,
 <code translate="no" v-pre>Manuscript</code>...). Your bundle can&#x27;t name a class of the other one. When you need the other extension&#x27;s own interface,
 load it with <em>its</em> class loader (<code translate="no" v-pre>extension.getClass().getClassLoader().loadClass(name)</code>). The Lore Generator does that
-for <code translate="no" v-pre>NameGeneratorFunctions</code>: it wraps the real implementation in a <code translate="no" v-pre>java.lang.reflect.Proxy</code> of that interface that
-only lets the checked categories through, and hands the proxy to <code translate="no" v-pre>FunctionRegistry.bind(type, proxy)</code> to get the
-<code translate="no" v-pre>FunctionSet</code> for the model.</p>
+for <code translate="no" v-pre>NameGeneratorFunctions</code> and <code translate="no" v-pre>NameProviderFunctions</code>: it wraps the real implementation in a <code translate="no" v-pre>java.lang.reflect.Proxy</code>
+of that interface that only lets the checked categories through, and hands the proxy to
+<code translate="no" v-pre>FunctionRegistry.bind(type, proxy)</code> to get the <code translate="no" v-pre>FunctionSet</code> for the model. The sets of several extensions are put
+together with <code translate="no" v-pre>FunctionSet.and</code> (the names of the functions must differ, which is why the provider&#x27;s are
+<code translate="no" v-pre>list_real_name_lists</code> and <code translate="no" v-pre>pick_real_names</code>), so a request has the functions of both, of one or of none.</p>
 </li>
 <li>
 <p><strong>Look it up on every call.</strong> Keep no reference to the extension, its classes or its <code translate="no" v-pre>Method</code> objects: they would
@@ -319,19 +322,22 @@ generators ask when they open and hide the <em>Name tools</em> button when there
 the loading and unloading with <code translate="no" v-pre>OsgiService.addExtensionListener</code> (the listener is held weakly, keep a reference to it).</p>
 </li>
 <li>
-<p><strong>One class touches the other extension</strong> (<code translate="no" v-pre>NameGeneratorBridge</code>, with the class name and the method names as
+<p><strong>One class touches the other extensions</strong> (<code translate="no" v-pre>NameToolsBridge</code>, with the class names and the method names as
 constants), so that a change on the other side breaks one place and the reflection is not spread over the code.
 Report a failed call with an exception that says what is missing; the caller decides what to show.</p>
 </li>
 <li>
 <p><strong>Selections and settings are yours</strong>: the Lore Generator keeps the category names the user checked in its own
 settings and passes them to the bridge each time; the bridge leaves out a category that the other extension no longer
-has.</p>
+has. When one bridge serves several extensions, prefix what is saved with its source (<code translate="no" v-pre>Generator: </code>, <code translate="no" v-pre>Provider: </code>)
+so that equal titles can not be confused, and read what was saved before the prefix existed as the first source
+(<code translate="no" v-pre>NameToolsBridge.normalize</code>). The caller finds out which functions it got with <code translate="no" v-pre>FunctionSet.contains</code> (to add the hint
+about them to the prompt), no flags have to be carried around.</p>
 </li>
 </ul>
 <h3 id="offering-something-to-be-called">Offering something to be called</h3>
 <p>An extension that wants to be called gives its <code translate="no" v-pre>MarginaliaExtension</code> class a few <code translate="no" v-pre>public</code> methods that use only JDK and
-application types (the Name Generator has <code translate="no" v-pre>categories()</code>, <code translate="no" v-pre>newFunctions()</code> and <code translate="no" v-pre>functions()</code>). There is no compiler
+application types (the Name Generator and the Name Provider have <code translate="no" v-pre>categories()</code>, <code translate="no" v-pre>newFunctions()</code> and <code translate="no" v-pre>functions()</code>). There is no compiler
 between the two, so treat the class name, the method names and their signatures as a contract: keep them stable, say so
 in the README of the plugin, and when you must change them, change the callers (here: the two bridges) in the same commit.
 The offering extension does not need to know who calls it.</p>
@@ -382,8 +388,8 @@ The offering extension does not need to know who calls it.</p>
 </table>
 </div>
 </retype-table>
-<p>The two bridges in the repository are <code translate="no" v-pre>marginalia/plugins/lore-generator/.../names/NameGeneratorBridge.java</code> and the copy
-in <code translate="no" v-pre>marginalia/plugins/arc-outline/.../names/NameGeneratorBridge.java</code> (plugins are separate bundles, so the copy is not
+<p>The two bridges in the repository are <code translate="no" v-pre>marginalia/plugins/lore-generator/.../names/NameToolsBridge.java</code> and the copy
+in <code translate="no" v-pre>marginalia/plugins/arc-outline/.../names/NameToolsBridge.java</code> (plugins are separate bundles, so the copy is not
 shared).</p>
 <h2 id="in-the-bundled-extensions">In the bundled extensions</h2>
 <ul>
