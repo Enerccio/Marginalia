@@ -59,6 +59,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     public static final String TABS_CONFIG_ATTRIBUTE = "$desktopManuscriptStoryPartTabsConfig";
 
     /**
+     * Key of the {@link Manuscript#getAttributes() attributes} of the manuscript that holds the position of the splitter
+     * between the sidebar and the story (percent of the width the sidebar has).
+     */
+    public static final String SPLIT_POSITION_ATTRIBUTE = "$desktopManuscriptStoryPartSplitPosition";
+
+    /**
      * Id of the outline tab in the layout of the sidebar; extensions give their tabs ids of their own.
      */
     public static final String CHAPTERS_TAB = "chapters";
@@ -168,6 +174,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         mainLayout.addToPrimary(leftMarginLayout);
         mainLayout.addToSecondary(centerLayout);
         mainLayout.setSplitterPosition(20);
+        mainLayout.addSplitterDragEndListener(event -> saveSplitPosition());
 
         container.add(loc.getValue(L.LABEL_STORY_PART), mainLayout);
         return mainLayout;
@@ -654,6 +661,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
         // before the story is rendered, the tabs extensions add then find their place
         applyTabsConfig(manuscript);
+        applySplitPosition(manuscript);
         renderStoryContent();
         refreshSummariesMenuItem();
         if (lorebookPreview != null) {
@@ -675,6 +683,50 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
         }
         JsonElement config = manuscript.getAttributes().get(TABS_CONFIG_ATTRIBUTE);
         leftBar.setLayout(config != null && config.isJsonObject() ? config.getAsJsonObject() : null);
+    }
+
+    /**
+     * Puts the splitter between the sidebar and the story where the manuscript has it saved (it stays where it is when
+     * nothing is saved).
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "position", type = JsonElement.class)})
+    private void applySplitPosition(Manuscript manuscript) {
+        if (mainLayout == null || manuscript == null) {
+            return;
+        }
+        JsonElement position = manuscript.getAttributes().get(SPLIT_POSITION_ATTRIBUTE);
+        if (position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber()) {
+            double value = position.getAsDouble();
+            if (value > 0 && value < 100) {
+                mainLayout.setSplitterPosition(value);
+            }
+        }
+    }
+
+    /**
+     * Saves the position of the splitter between the sidebar and the story into the attributes of the manuscript,
+     * called after the user dragged it.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "position", type = Double.class),
+                    @APILocals(name = "manuscript", type = Manuscript.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void saveSplitPosition() {
+        try {
+            Double position = mainLayout.getSplitterPosition();
+            if (position == null) {
+                return;
+            }
+            Manuscript manuscript = parent.refreshManuscript();
+            manuscript.getAttributes().addProperty(SPLIT_POSITION_ATTRIBUTE, Math.round(position * 100) / 100.0);
+            parent.save();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**

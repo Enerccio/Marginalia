@@ -23,7 +23,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   the columns are separated by splitters (`SplitLayout`) the user can drag, their sizes are saved in the layout too. The arrangement is saved with the book, in the attributes of the manuscript under
   `$desktopManuscriptStoryPartTabsConfig` as `{"columns":[{"size":..,"groups":[{"size":..,"tabs":[...]}]}]}` (no migration; it travels with backups), and a tab of an extension that is not loaded
   keeps its place. The selected tab of every panel is part of the workspace autosave (`Restorable`, key `tabs` of the story
-  part). New reusable widget `ui.widgets.TabDock`. API changes plugins can see (since 1.3.0): the field `leftBar` of
+  part). The position of the divider between the sidebar and the story is saved with the book too
+  (attribute `$desktopManuscriptStoryPartSplitPosition`, new `ManuscriptStoryPart` methods `applySplitPosition` and `saveSplitPosition`).
+  New reusable widget `ui.widgets.TabDock`. API changes plugins can see (since 1.3.0): the field `leftBar` of
   `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` is a `TabDock` instead of a `VTabSheet` (`add(id, caption, content)`,
   `add(caption, content)`, `remove(content)`; extensions that read it as `VTabSheet` must be updated (the extension verification refuses them) - Arc Outline, Character
   Tracker, Side Query and Author's Note were, and give their tabs the ids `arc-outline`, `character-tracker`, `sidequery` and `authors-note`); new

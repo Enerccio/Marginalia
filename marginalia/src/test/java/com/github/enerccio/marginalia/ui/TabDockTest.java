@@ -567,6 +567,30 @@ class TabDockTest extends MarginaliaTestBase {
     }
 
     @Test
+    void storyPartKeepsTheSplitPositionInTheManuscript() throws Exception {
+        login();
+        Manuscript manuscript = new Manuscript();
+        manuscript.setName(uniqueName("book"));
+        manuscript = manuscriptService.save(manuscript);
+
+        ManuscriptDialog dialog = new ManuscriptDialog(manuscript);
+        dialog.create();
+        dialog.open();
+        assertThat(mainSplit(dialog).getSplitterPosition()).isEqualTo(20.0);
+
+        dragEnd(mainSplit(dialog), 35);
+
+        Manuscript saved = manuscriptService.find(manuscript);
+        assertThat(saved.getAttributes().get(ManuscriptStoryPart.SPLIT_POSITION_ATTRIBUTE).getAsDouble()).isEqualTo(35.0);
+
+        // a dialog opened later has the divider where it was left
+        ManuscriptDialog next = new ManuscriptDialog(saved);
+        next.create();
+        next.open();
+        assertThat(mainSplit(next).getSplitterPosition()).isEqualTo(35.0);
+    }
+
+    @Test
     void storyPartStoresTheSelectedSidebarTab() throws Exception {
         login();
         Manuscript manuscript = new Manuscript();
@@ -589,6 +613,17 @@ class TabDockTest extends MarginaliaTestBase {
     private void attached(TabDock dock) {
         dock.removeFromParent();
         ui.add(dock);
+    }
+
+    /**
+     * The splitter between the sidebar and the story.
+     */
+    private static SplitLayout mainSplit(ManuscriptDialog dialog) throws Exception {
+        java.lang.reflect.Field story = ManuscriptDialog.class.getDeclaredField("storyPart");
+        story.setAccessible(true);
+        java.lang.reflect.Field split = ManuscriptStoryPart.class.getDeclaredField("mainLayout");
+        split.setAccessible(true);
+        return (SplitLayout) split.get(story.get(dialog));
     }
 
     private static TabDock leftBar(ManuscriptDialog dialog) throws Exception {
