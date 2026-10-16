@@ -239,7 +239,8 @@ public class LorebookPreview extends VerticalLayout {
         if (row.entry() == null) {
             return details;
         }
-        details.addClassName(CssStyles.SUBTLE_BOX);
+        // a flex item does not get narrower than its content unless it is allowed to: the text wraps inside the cell
+        details.addClassNames(CssStyles.SUBTLE_BOX, CssStyles.MIN_WIDTH_0, CssStyles.MAX_WIDTH_FULL, CssStyles.BORDER_BOX);
 
         LorebookEntry entry = row.entry();
         if (StringUtils.isNotBlank(entry.getFiltering())) {
@@ -253,7 +254,9 @@ public class LorebookPreview extends VerticalLayout {
             Span contentLabel = new Span(loc.getValue(L.LABEL_CONTENT) + ":");
             contentLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
             // entries are often written in Markdown
-            details.add(contentLabel, new Markdown(entry.getPayload()));
+            Markdown content = new Markdown(entry.getPayload());
+            content.addClassNames(CssStyles.MIN_WIDTH_0, CssStyles.MAX_WIDTH_FULL);
+            details.add(contentLabel, content);
         }
         return details;
     }
