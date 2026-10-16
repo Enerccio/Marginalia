@@ -50,4 +50,20 @@ await main(async ({ page }) => {
   await page.locator('.help-message').getByText('I opened the').waitFor();
   await idle(page, 1500);
   await snap(page, 'help-assistant-navigate');
+
+  // a form that can not be saved: the assistant stays usable above the dialog, reads what is wrong with the form
+  // (get_ui_state lists the empty required field) and explains it
+  await page.locator('.help-panel').getByRole('button').first().click(); // the broom: a new conversation
+  await idle(page, 500);
+  await openTab(page, 'Inference Providers');
+  await page.getByRole('button', { name: 'Add Inference Provider' }).click();
+  await idle(page, 900);
+  await llm('/_queue', { toolCalls: [{ name: 'get_ui_state', arguments: { path: 'UI/AIDialog' } }] });
+  await llm('/_queue', { reply: 'The form can not be saved yet: **Name** is required and still empty. Give the provider a name (for example "Local LLM"), then fill in the address and model on the **Per Type Settings** tab and press **OK**.\n\n*Pages used: [Inference providers](https://enerccio.github.io/Marginalia/user/inference-providers/).*' });
+  const ask3 = page.locator('.help-panel input[type="text"]');
+  await ask3.fill('Why can I not save this?');
+  await ask3.press('Enter');
+  await page.locator('.help-message').getByText('still empty').waitFor();
+  await idle(page, 1500);
+  await snap(page, 'help-assistant-form');
 });

@@ -5,6 +5,9 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.Grid;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,5 +76,37 @@ public final class WorkspaceLLMSupport {
     private static String label(Localization loc, String key) {
         L label = LABELS.get(key);
         return label == null ? String.valueOf(key) : loc.getValue(label);
+    }
+
+    /**
+     * The state of a section that is a table with a button to add a row: what it lists, how many rows, and what the
+     * button does. Nothing of the rows themselves.
+     *
+     * @param what the rows in plain words ("models")
+     * @param grid the table, null while the section is not built
+     * @param add  the button that opens the dialog to add one, null when there is none
+     */
+    public static String describeTable(String what, Grid<?> grid, Button add) {
+        StringBuilder sb = new StringBuilder("A table of the user's ").append(what);
+        int rows = rows(grid);
+        if (rows >= 0) {
+            sb.append(" (").append(rows).append(rows == 1 ? " row)" : " rows)");
+        }
+        sb.append('.');
+        if (add != null && add.isVisible() && !add.getText().isBlank()) {
+            sb.append(" The button \"").append(add.getText().strip()).append("\" opens a dialog to add one.");
+        }
+        return sb.toString();
+    }
+
+    private static int rows(Grid<?> grid) {
+        if (grid == null) {
+            return -1;
+        }
+        try {
+            return grid.getDataCommunicator().getItemCount();
+        } catch (RuntimeException e) {
+            return -1;
+        }
     }
 }

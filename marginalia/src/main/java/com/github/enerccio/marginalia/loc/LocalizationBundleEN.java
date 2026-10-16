@@ -351,6 +351,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_HELP_PROMPT_USER, "Prompt for other users");
         setValue(L.LABEL_RESET_TO_DEFAULT, "Reset to default");
         setValue(L.LABEL_HELP_INTERACTIONS, "Allow navigating the interface");
+        setValue(L.LABEL_HELP_ADMIN_DATA, "Allow reading administration data");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -555,7 +556,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_ASSISTANT, "A chat that answers questions about Marginalia from its manual, for all users. Choose one of your own models; the users need none of their own.");
         setValue(L.HELP_ASSISTANT_APPLY_LIMITS, "Only for a shared model: the questions count against each user's limit and usage like any other request to the model. Without it, or for a model that is not shared, the owner of the model pays: nothing is limited and nothing is counted for the user.");
         setValue(L.HELP_ASSISTANT_PROMPT, "The instructions the model gets with every question. {{manualIndex}} is replaced by the list of the pages of the manual. A prompt that is empty or the same as the default is the default, so it follows the changes of a new version.");
-        setValue(L.HELP_ASSISTANT_INTERACTIONS, "The assistant may move through the interface when a user asks it to show them something: open a section or select a tab. Nothing else: it can not press other buttons, type, save, delete or generate anything. The model also gets the names of the elements on the screen with what they offer.");
+        setValue(L.HELP_ASSISTANT_INTERACTIONS, "The assistant may move through the interface when a user asks it to show them something: open a section, select a tab or open the dialog to add something (it only opens, nothing is created). Nothing else: it can not press other buttons, type, save, delete or generate anything. The model also gets the names of the elements on the screen with what they offer.");
+        setValue(L.HELP_ASSISTANT_ADMIN_DATA, "The assistant may read the data of the Admin page for an administrator who asks it: the state of the extensions and their logs, the database backups, what a cleanup would remove, how many users there are (no names). It is sent to the model of the assistant, which may be an external provider, and logs can contain text that extensions wrote. Never for other users. It cannot change anything.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

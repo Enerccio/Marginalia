@@ -289,4 +289,82 @@ public final class JavascriptLibrary {
                     el.dispatchEvent(event);
                 })""", tabSheet);
     }
+
+    // --- help assistant ---
+
+    /** The sessionStorage key of the problems the browser keeps for the help assistant. */
+    private static final String PROBLEMS_KEY = "marginalia.problems";
+
+    /**
+     * Adds a problem (a JSON object) to the ones the browser tab keeps in its sessionStorage, the last {@code keep} of
+     * them: they survive a reload of the page, which the session's own copy does not outlive a new session.
+     */
+    public static void rememberProblem(Page page, String json, int keep) {
+        page.executeJs("""
+                try {
+                  const list = JSON.parse(sessionStorage.getItem($0) || '[]');
+                  list.push(JSON.parse($1));
+                  sessionStorage.setItem($0, JSON.stringify(list.slice(-$2)));
+                } catch (e) {}
+                """, PROBLEMS_KEY, json, keep);
+    }
+
+    /** The problems the browser tab kept, as the text of a JSON array (empty when there are none or storage is blocked). */
+    public static PendingJavaScriptResult readRememberedProblems(Page page) {
+        return page.executeJs("""
+                try { return sessionStorage.getItem($0) || '[]'; } catch (e) { return '[]'; }
+                """, PROBLEMS_KEY);
+    }
+
+    /**
+     * Makes the links inside the element (also those added later, like the answers of the help assistant) open in a
+     * new tab, so that following a link does not leave the application.
+     */
+    public static void openLinksInNewTab(Element element) {
+        element.executeJs("""
+                if ($0.__linksInNewTab) return;
+                $0.__linksInNewTab = true;
+                $0.addEventListener('click', e => {
+                  const link = e.composedPath().find(n => n.tagName === 'A' && n.href);
+                  if (link && /^https?:/.test(link.href)) {
+                    e.preventDefault();
+                    window.open(link.href, '_blank', 'noopener');
+                  }
+                });
+                """, element);
+    }
+
+    /**
+     * Keeps the children of the element (the button and the panel of the help assistant) usable while a dialog is
+     * open: a dialog and its curtain are shown in the top layer of the browser, above everything on the page and
+     * blocking it, so while one is open (and again whenever another opens) the children are moved into the top layer
+     * after it, as manual popovers. When the last dialog closes they are put back.
+     */
+    public static void keepOnTopOfDialogs(Element root) {
+        root.executeJs("""
+                if ($0.__keepOnTop || !HTMLElement.prototype.showPopover) return;
+                $0.__keepOnTop = true;
+                const root = $0;
+                const dialogOpen = () => !!document.querySelector('vaadin-dialog[opened], vaadin-confirm-dialog[opened]');
+                const sync = () => {
+                  const modal = dialogOpen();
+                  for (const el of root.children) {
+                    if (modal && !el.hasAttribute('hidden')) {
+                      if (!el.hasAttribute('popover')) el.setAttribute('popover', 'manual');
+                      try { if (el.matches(':popover-open')) el.hidePopover(); el.showPopover(); } catch (e) {}
+                    } else if (el.hasAttribute('popover')) {
+                      try { el.hidePopover(); } catch (e) {}
+                      el.removeAttribute('popover');
+                    }
+                  }
+                };
+                // the overlay of a dialog is shown a moment after it is marked as opened
+                const later = () => { sync(); setTimeout(sync, 100); };
+                new MutationObserver(later).observe(document.body,
+                    { subtree: true, attributes: true, attributeFilter: ['opened'] });
+                new MutationObserver(records => { if (records.some(r => r.target.parentElement === root)) later(); })
+                    .observe(root, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
+                later();
+                """, root);
+    }
 }

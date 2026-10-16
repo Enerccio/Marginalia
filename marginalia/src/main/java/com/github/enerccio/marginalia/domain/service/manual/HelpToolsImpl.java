@@ -36,4 +36,13 @@ public class HelpToolsImpl extends ManualToolsImpl implements HelpTools {
         }
         uiState.read(path == null ? "" : path, deep, interactive, done);
     }
+
+    @Override
+    public void readLastErrors(FunctionContinuation<String> done, int count) {
+        if (uiState == null) {
+            done.fail("The screen of the user is not available.");
+            return;
+        }
+        uiState.readProblems(count, done);
+    }
 }

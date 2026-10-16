@@ -32,7 +32,7 @@ public class ManualToolsImpl implements ManualTools {
         for (ManualHit hit : hits) {
             ManualSection section = hit.section();
             sb.append("## ").append(section.pageTitle()).append(" > ").append(section.heading())
-                    .append("\nPage: ").append(section.link()).append("\n\n")
+                    .append("\nPage: ").append(section.link()).append("\nURL: ").append(section.url()).append("\n\n")
                     .append(cut(section.text(), MAX_SECTION_CHARS)).append("\n\n");
         }
         done.complete(sb.toString().strip());
@@ -41,7 +41,7 @@ public class ManualToolsImpl implements ManualTools {
     @Override
     public void readManualPage(FunctionContinuation<String> done, String path) {
         manual.getPage(path).ifPresentOrElse(
-                page -> done.complete("# " + page.title() + "\nPage: " + page.path() + "\n\n" + cut(page.text(), MAX_PAGE_CHARS)),
+                page -> done.complete("# " + page.title() + "\nPage: " + page.path() + "\nURL: " + page.url() + "\n\n" + cut(page.text(), MAX_PAGE_CHARS)),
                 () -> done.fail("There is no manual page \"" + path + "\". Use a path from the page index."));
     }
 

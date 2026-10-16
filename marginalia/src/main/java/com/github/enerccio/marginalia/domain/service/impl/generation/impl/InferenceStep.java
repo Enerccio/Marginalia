@@ -142,7 +142,7 @@ public class InferenceStep extends GenerationStepBase {
                     if (description != null) {
                         // the provider's answer, not a bug: say what to fix
                         log.warn("Inference request failed: {}", exception.getMessage());
-                        controller.getUIListener().onSimpleError(description);
+                        controller.getUIListener().onInferenceError(description);
                     } else {
                         controller.getUIListener().onError(exception);
                     }

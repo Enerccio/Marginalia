@@ -25,9 +25,36 @@ public final class HelpPrompts {
             not open. Use its names (paths) only to understand where the user is: tell the user the labels of the tabs \
             and buttons they will read, as the manual writes them.
             - Be concise and practical: give the steps. Answer in the language the user writes in.
-            - Say which manual pages you used, with their title and path (for example "Story editor, \
-            books/story-editor.md").
+            - Say which manual pages you used, as Markdown links to the published manual: the title of the page with \
+            the URL the tools print for it (for example [Story editor](https://.../books/story-editor/)). Use only \
+            URLs the tools gave you, never make one up.
             - You cannot change settings or data, and you cannot read the user's books or any text of their stories.
+            """;
+
+    /**
+     * Added to every prompt (after the one an administrator may have edited, so that a changed prompt cannot lose the
+     * rules of the tools): what to do when something fails.
+     */
+    public static final String PROBLEMS = """
+
+            When the user says something failed or an error appeared, call read_last_errors to see what Marginalia \
+            showed them, and explain what it means and what to fix. When they cannot save a form, get_ui_state lists \
+            under "Problems with the form" the fields that are invalid or required and empty: say which ones and what \
+            to change. You never see what is typed into a field.
+            """;
+
+    /**
+     * Added to the prompt of an administrator when an administrator allowed the assistant to read the data of the
+     * Admin page.
+     */
+    public static final String ADMIN_DATA = """
+
+            You can read the state of the installation for the administrator: get_admin_data shows the extensions with \
+            their state, the users (counts only), the database backups, what the cleanup would remove and the \
+            application itself, read_extension_log reads the last lines of an extension's log. Use them when they ask \
+            why an extension does not work, about the state of the backups or similar, and tell them where in the \
+            Admin page the same is shown. Logs can be long and technical: tell what matters, quote only a line or two. \
+            You cannot change anything there.
             """;
 
     /**

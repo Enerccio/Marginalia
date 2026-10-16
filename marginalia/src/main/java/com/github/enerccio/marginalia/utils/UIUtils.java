@@ -61,6 +61,7 @@ public class UIUtils {
 
     public static void showError(String errorMessage, Throwable cause) {
         log.error(errorMessage, cause);
+        UiProblems.exception(errorMessage, cause);
 
         ErrorDialog errorDialog = new ErrorDialog(errorMessage, cause);
 
@@ -78,11 +79,13 @@ public class UIUtils {
             return;
         }
         log.warn("Inference request failed: {}", cause.getMessage());
+        UiProblems.inference(description, cause);
         Notification.error(description, Notification.DURATION_LONGER);
     }
 
     public static void internalServerError(Localization loc, Throwable cause) {
         log.error(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
+        UiProblems.exception(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
 
         ErrorDialog errorDialog = new ErrorDialog(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
 
@@ -181,10 +184,11 @@ public class UIUtils {
 
     public static void showValidationErrors(Localization loc, ValidationException ve) {
         String msg = UIUtils.validationToMessage(ve);
-        if (StringUtils.isBlank(msg))
-            Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
-        else
-            Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + msg);
+        String text = StringUtils.isBlank(msg)
+                ? loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE)
+                : loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE_EXT) + msg;
+        UiProblems.validation(text);
+        Notification.warning(text);
     }
 
     public static ValidationException simpleValidationError(String error) {

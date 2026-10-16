@@ -1,8 +1,11 @@
 package com.github.enerccio.marginalia.ui;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.textfield.TextField;
 import org.junit.jupiter.api.Test;
 
 import com.vaadin.flow.component.tabs.Tab;
@@ -457,5 +460,125 @@ class LLMSnapshotTest {
         LLMInteract wrapped = LLMInteract.within(tabbed, new Div());
 
         assertThat(wrapped.getInteraction()).containsOnlyKeys("open-tab:Two");
+    }
+
+    private static TextField required(String label) {
+        TextField field = new TextField(label);
+        field.setRequired(true);
+        return field;
+    }
+
+    @Test
+    void anElementListsWhatIsWrongWithItsFormWithoutTheValues() {
+        Panel form = new Panel("A form.");
+        TextField empty = required("Name");
+        TextField filled = required("Title");
+        filled.setValue("My secret novel");
+        TextField invalid = new TextField("Url");
+        invalid.setValue("not a url");
+        invalid.setInvalid(true);
+        invalid.setErrorMessage("Not an address");
+        TextField optional = new TextField("Nickname");
+        form.add(empty, filled, invalid, optional);
+
+        LLMSnapshot snapshot = form.takeLLMSnapshot();
+
+        assertThat(snapshot.problems()).containsExactly("\"Name\": required and empty", "\"Url\": Not an address");
+        String markdown = snapshot.toMarkdown();
+        assertThat(markdown).contains("Problems with the form:").contains("- \"Name\": required and empty")
+                .doesNotContain("My secret novel").doesNotContain("not a url");
+    }
+
+    @Test
+    void aFormWithoutProblemsSaysNothing() {
+        Panel form = new Panel("A form.");
+        TextField filled = required("Name");
+        filled.setValue("x");
+        form.add(filled);
+
+        assertThat(form.takeLLMSnapshot().problems()).isEmpty();
+        assertThat(form.takeLLMSnapshot().toMarkdown()).doesNotContain("Problems");
+    }
+
+    @Test
+    void hiddenAndDisabledFieldsAndTheOnesOfAnotherElementAreNotItsProblems() {
+        Panel form = new Panel("A form.");
+        TextField hidden = required("Hidden");
+        hidden.setVisible(false);
+        TextField disabled = required("Disabled");
+        disabled.setEnabled(false);
+        TextField readOnly = required("Read only");
+        readOnly.setReadOnly(true);
+        Panel nested = new Panel("Another form.");
+        nested.add(required("Nested"));
+        form.add(hidden, disabled, readOnly, nested);
+
+        LLMSnapshot snapshot = form.takeLLMSnapshot();
+
+        assertThat(snapshot.problems()).isEmpty();
+        assertThat(snapshot.children().getFirst().problems()).containsExactly("\"Nested\": required and empty");
+    }
+
+    @Test
+    void aFieldWithoutALabelIsNamedByItsPlaceholderOrSaidSo() {
+        Panel form = new Panel("A form.");
+        TextField placeholder = required("");
+        placeholder.setPlaceholder("Search");
+        TextField anonymous = required("");
+        form.add(placeholder, anonymous);
+
+        assertThat(form.takeLLMSnapshot().problems()).containsExactly("\"Search\": required and empty",
+                "\"a field without a label\": required and empty");
+    }
+
+    @Test
+    void aPartThatIsNotAComponentReportsTheFormOfItsComponent() {
+        Div container = new Div(required("Name"));
+
+        LLMInteract part = LLMInteract.within(new Part(), container);
+
+        assertThat(part.takeLLMSnapshot().problems()).containsExactly("\"Name\": required and empty");
+    }
+
+    @Test
+    void anElementThatFailsToCheckItsFormIsListedAnyway() {
+        LLMInteract broken = new LLMInteract() {
+            @Override
+            public List<String> getLLMProblems() {
+                throw new IllegalStateException("boom");
+            }
+        };
+
+        assertThat(broken.takeLLMSnapshot().problems()).isEmpty();
+    }
+
+    @Test
+    void aButtonThatOpensADialogIsOfferedByItsLabelUnlessADialogIsOpen() {
+        List<String> pressed = new ArrayList<>();
+        Button add = new Button("Add book", e -> pressed.add("add"));
+        Button hidden = new Button("Add hidden");
+        hidden.setVisible(false);
+        Button disabled = new Button("Add disabled");
+        disabled.setEnabled(false);
+
+        Map<String, LLMInteraction> offered = LLMInteract.dialogButtons(add, hidden, disabled, null);
+
+        assertThat(offered).containsOnlyKeys("open-dialog:Add book");
+        offered.get("open-dialog:Add book").action().run();
+        assertThat(pressed).containsExactly("add");
+
+        UI ui = new UI();
+        UI.setCurrent(ui);
+        try {
+            Dialog dialog = new Dialog();
+            dialog.open();
+            ui.add(dialog);
+            assertThat(LLMInteract.dialogIsOpen()).isTrue();
+            assertThat(LLMInteract.dialogButtons(add)).as("the page is blocked by the dialog").isEmpty();
+            dialog.close();
+            assertThat(LLMInteract.dialogButtons(add)).containsOnlyKeys("open-dialog:Add book");
+        } finally {
+            UI.setCurrent(null);
+        }
     }
 }

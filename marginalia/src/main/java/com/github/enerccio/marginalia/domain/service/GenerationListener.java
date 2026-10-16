@@ -27,6 +27,14 @@ public interface GenerationListener {
     /** For simple failures like validation etc. */
     void onSimpleError(String error);
 
+    /**
+     * The request to the inference provider failed (wrong key, no such model, a limit): the text says what to fix. A
+     * simple failure by default; the UI also remembers it for the help assistant.
+     */
+    default void onInferenceError(String description) {
+        onSimpleError(description);
+    }
+
     /** Something the user should know, the generation goes on. */
     default void onWarning(String warning) {
     }

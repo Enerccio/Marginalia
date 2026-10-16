@@ -36,9 +36,18 @@ public interface HelpAssistantService {
      * @param userPrompt   the instructions for the other users, null for the default
      * @param interactions whether the model may move through the interface for the user (open a section, select a
      *                     tab), see {@link #ask(List, UiStateSource, InferenceAsyncCallback)}
+     * @param adminData    whether the model may read the data of the Admin page (extensions and their logs, backups,
+     *                     cleanup, user counts) for an administrator, see {@link
+     *                     com.github.enerccio.marginalia.domain.service.manual.AdminHelpTools}
      */
     record Settings(boolean enabled, String aiUuid, boolean applyLimits, String adminPrompt, String userPrompt,
-                    boolean interactions) {
+                    boolean interactions, boolean adminData) {
+
+        /** Settings without the data of the Admin page. */
+        public Settings(boolean enabled, String aiUuid, boolean applyLimits, String adminPrompt, String userPrompt,
+                        boolean interactions) {
+            this(enabled, aiUuid, applyLimits, adminPrompt, userPrompt, interactions, false);
+        }
 
         /** Settings with the default prompts and no interactions. */
         public Settings(boolean enabled, String aiUuid, boolean applyLimits) {

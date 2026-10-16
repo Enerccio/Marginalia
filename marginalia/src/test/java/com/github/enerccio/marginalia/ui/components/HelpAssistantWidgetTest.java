@@ -263,4 +263,20 @@ class HelpAssistantWidgetTest extends MarginaliaTestBase {
         assertThat(state.length()).isLessThan(30000);
         assertThat(state).contains("[...cut").contains("- UI/Editor[400]");
     }
+
+    @Test
+    void theProblemsTheModelReadsAreThoseOfTheSessionAndTheBrowserNewestFirst() {
+        var inSession = new com.github.enerccio.marginalia.bound.UiProblem("s", System.currentTimeMillis() - 2_000,
+                com.github.enerccio.marginalia.bound.UiProblem.Kind.VALIDATION, "Validation failed, can't save", "");
+        String browser = "[{\"id\":\"b\",\"time\":" + (System.currentTimeMillis() - 90_000)
+                + ",\"kind\":\"EXCEPTION\",\"message\":\"Internal error\",\"detail\":\"X: y\"},"
+                + "{\"id\":\"s\",\"time\":1,\"kind\":\"ERROR\",\"message\":\"the same, older copy\",\"detail\":\"\"}]";
+
+        String text = HelpAssistantWidget.problemsText(List.of(inSession), browser, 0);
+
+        assertThat(text).startsWith("1. **VALIDATION**").contains("2. **EXCEPTION**").contains("Detail: X: y")
+                .doesNotContain("older copy");
+        assertThat(HelpAssistantWidget.problemsText(List.of(inSession), browser, 1)).doesNotContain("EXCEPTION");
+        assertThat(HelpAssistantWidget.problemsText(List.of(), "not json", 3)).contains("Nothing went wrong");
+    }
 }

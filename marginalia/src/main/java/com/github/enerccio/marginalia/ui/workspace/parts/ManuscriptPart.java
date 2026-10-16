@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import java.util.Map;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
@@ -69,6 +73,7 @@ public class ManuscriptPart implements WorkspaceComponent {
 
     private final Workspace workspace;
     private Grid<ManuscriptWrapper> grid;
+    private Button addBookButton;
     private VerticalLayout mainLayout;
 
     private Column<ManuscriptWrapper> nameColumn;
@@ -119,6 +124,7 @@ public class ManuscriptPart implements WorkspaceComponent {
         Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK),
                 event -> new NewBookAction(this::refreshGrid).run());
         addBookButton.setThemeName("primary");
+        this.addBookButton = addBookButton;
 
         headerLayout.add(titleSpan, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
@@ -355,6 +361,20 @@ public class ManuscriptPart implements WorkspaceComponent {
         } catch (Exception e) {
             log.warn("Could not restore the state of the book list", e);
         }
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = String.class))
+    @Override
+    public String getLLMState() {
+        return WorkspaceLLMSupport.describeTable("books", grid, addBookButton);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Map.class))
+    @Override
+    public Map<String, LLMInteraction> getInteraction() {
+        return LLMInteract.dialogButtons(addBookButton);
     }
 
     @PublicAPI(from = "1.1.0",

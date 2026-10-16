@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.components.HelpAssistantWidget;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.phone.PhoneWorkspace;
+import com.github.enerccio.marginalia.utils.UiProblems;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
@@ -113,6 +114,7 @@ public class Main extends LoginCheckRoute implements LLMInteract {
             sessionManager.userLoggedIn(user, VaadinSession.getCurrent());
 
             sessionPoint.setLanguage(loc.resolveLanguage(settingService.getOrCreate(UserSetting.class).getLanguage()));
+            UiProblems.attach(sessionPoint);
 
             ExtendedClientDetails details = UI.getCurrent().getPage().getExtendedClientDetails();
             boolean isPhone = details != null && details.getBodyClientWidth() < 768;

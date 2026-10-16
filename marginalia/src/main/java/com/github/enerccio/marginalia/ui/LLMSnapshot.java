@@ -21,11 +21,12 @@ import java.util.function.Supplier;
  * @param state        Markdown text of the state of the element itself, empty when there is nothing to say
  * @param children     the elements inside it
  * @param interactions what the element offers ({@link LLMInteract#getInteraction()}): the key and what it does
+ * @param problems     what is wrong with the form the element shows now ({@link LLMInteract#getLLMProblems()})
  * @param element      the live element the node describes, to apply an interaction to; null for a node that was not
  *                     taken from one. Only valid on the thread of the page, and while the UI is as it was taken.
  */
 public record LLMSnapshot(String path, String state, List<LLMSnapshot> children, Map<String, String> interactions,
-                          LLMInteract element) {
+                          List<String> problems, LLMInteract element) {
     private static final Logger log = LoggerFactory.getLogger(LLMSnapshot.class);
 
     /** A deeper tree is cut (a cycle in the children of an element must not hang the request). */
@@ -37,6 +38,13 @@ public record LLMSnapshot(String path, String state, List<LLMSnapshot> children,
         state = state == null ? "" : state.strip();
         children = children == null ? List.of() : List.copyOf(children);
         interactions = interactions == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(interactions));
+        problems = problems == null ? List.of() : List.copyOf(problems);
+    }
+
+    /** A node without problems. */
+    public LLMSnapshot(String path, String state, List<LLMSnapshot> children, Map<String, String> interactions,
+                       LLMInteract element) {
+        this(path, state, children, interactions, List.of(), element);
     }
 
     /** A node that offers nothing to do. */
@@ -82,7 +90,8 @@ public record LLMSnapshot(String path, String state, List<LLMSnapshot> children,
         Map<String, String> interactions = new LinkedHashMap<>();
         safe(element::getInteraction, Map.<String, LLMInteraction>of())
                 .forEach((key, interaction) -> interactions.put(key, interaction.description()));
-        return new LLMSnapshot(name, state, children, interactions, element);
+        List<String> problems = safe(element::getLLMProblems, List.<String>of());
+        return new LLMSnapshot(name, state, children, interactions, problems, element);
     }
 
     /**
@@ -121,7 +130,7 @@ public record LLMSnapshot(String path, String state, List<LLMSnapshot> children,
 
     private static void collect(Component component, boolean deep, boolean hidden, List<LLMInteract> found) {
         // a dialog that is not open shows nothing (it is removed from the page when it closes, but may still be there)
-        boolean hiddenHere = hidden || !isShown(component) || (component instanceof Dialog dialog && !dialog.isOpened());
+        boolean hiddenHere = hidden || isHidden(component);
         if (hiddenHere && !deep) {
             return;
         }
@@ -131,6 +140,11 @@ public record LLMSnapshot(String path, String state, List<LLMSnapshot> children,
         } else {
             component.getChildren().forEach(child -> collect(child, deep, hiddenHere, found));
         }
+    }
+
+    /** Whether the component is not shown: invisible, or a dialog that is not open (it may still be in the tree). */
+    static boolean isHidden(Component component) {
+        return !isShown(component) || (component instanceof Dialog dialog && !dialog.isOpened());
     }
 
     /** Whether the component is visible; a {@code Text} (a bare text node) has no visibility and is never hidden on its own. */
@@ -252,6 +266,10 @@ public record LLMSnapshot(String path, String state, List<LLMSnapshot> children,
         if (!state.isEmpty()) {
             sb.append(state).append('\n');
         }
+        if (!problems.isEmpty()) {
+            sb.append("\nProblems with the form:\n");
+            problems.forEach(problem -> sb.append("- ").append(problem).append('\n'));
+        }
         if (withInteractions && !interactions.isEmpty()) {
             sb.append("\nInteractions:\n");
             interactions.forEach((key, description) -> sb.append("- `").append(key).append("`: ").append(description).append('\n'));
@@ -306,14 +324,14 @@ public record LLMSnapshot(String path, String state, List<LLMSnapshot> children,
     /** The node and its descendants with {@code parent/} in front of every path. */
     LLMSnapshot under(String parent) {
         return new LLMSnapshot(parent + "/" + path, state, children.stream().map(child -> child.under(parent)).toList(),
-                interactions, element);
+                interactions, problems, element);
     }
 
     /** The node and its descendants with the path prefix {@code from} replaced by {@code to}. */
     private LLMSnapshot reroot(String from, String to) {
         String rewritten = path.equals(from) || path.startsWith(from + "/") ? to + path.substring(from.length()) : path;
         return new LLMSnapshot(rewritten, state, children.stream().map(child -> child.reroot(from, to)).toList(),
-                interactions, element);
+                interactions, problems, element);
     }
 
     private static <T> T safe(Supplier<T> supplier, T fallback) {

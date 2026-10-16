@@ -351,6 +351,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_HELP_PROMPT_USER, "その他のユーザー向けプロンプト");
         setValue(L.LABEL_RESET_TO_DEFAULT, "デフォルトに戻す");
         setValue(L.LABEL_HELP_INTERACTIONS, "インターフェースの操作を許可する");
+        setValue(L.LABEL_HELP_ADMIN_DATA, "管理データの読み取りを許可する");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -555,7 +556,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_ASSISTANT, "マニュアルをもとにMarginaliaについての質問に答えるチャットを、全ユーザーに提供します。ご自身のモデルを選んでください。ユーザー自身のモデルは不要です。");
         setValue(L.HELP_ASSISTANT_APPLY_LIMITS, "共有モデルの場合のみ有効：質問は、モデルへの他のリクエストと同様に各ユーザーの制限と使用量に計上されます。無効の場合、またはモデルが共有されていない場合は、モデルの所有者が費用を負担し、制限も使用量の計上もありません。");
         setValue(L.HELP_ASSISTANT_PROMPT, "質問ごとにモデルへ渡される指示です。{{manualIndex}} はマニュアルのページ一覧に置き換えられます。空、またはデフォルトと同じ内容の場合はデフォルトとして扱われ、新しいバージョンの変更に追従します。");
-        setValue(L.HELP_ASSISTANT_INTERACTIONS, "ユーザーが場所を案内してほしいと頼んだとき、アシスタントはインターフェース内を移動できます（セクションを開く、タブを選択する）。それ以外はできません：他のボタンの操作、入力、保存、削除、生成は行えません。モデルには、画面上の要素の名前とその操作可能な内容も渡されます。");
+        setValue(L.HELP_ASSISTANT_INTERACTIONS, "ユーザーが場所を案内してほしいと頼んだとき、アシスタントはインターフェース内を移動できます（セクションを開く、タブを選択する、追加用のダイアログを開く（開くだけで、何も作成されません））。それ以外はできません：他のボタンの操作、入力、保存、削除、生成は行えません。モデルには、画面上の要素の名前とその操作可能な内容も渡されます。");
+        setValue(L.HELP_ASSISTANT_ADMIN_DATA, "アシスタントは、尋ねた管理者に対して管理ページのデータを読み取れます：拡張機能の状態とそのログ、データベースのバックアップ、クリーンアップで削除される内容、ユーザー数（名前は含まれません）。これらはアシスタントのモデルに送信され、モデルは外部プロバイダーの場合があります。ログには拡張機能が書き込んだテキストが含まれることがあります。他のユーザーには提供されません。何も変更できません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

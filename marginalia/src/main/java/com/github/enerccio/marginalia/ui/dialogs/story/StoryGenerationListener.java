@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 
@@ -284,6 +285,18 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
     public void onSimpleError(String error) {
         ui.access(() -> {
             Notification.error(error);
+            UIPushGuard.push(ui);
+        });
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "description", type = String.class)})
+    @Override
+    public void onInferenceError(String description) {
+        ui.access(() -> {
+            UiProblems.inference(description, null);
+            Notification.error(description);
             UIPushGuard.push(ui);
         });
     }

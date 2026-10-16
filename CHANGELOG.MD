@@ -20,7 +20,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   changes anything. UI elements offer such moves by overriding the new `LLMInteract.getInteraction()` (a map of keys to `LLMInteraction`);
   `applyInteraction(key)` / `applyInteraction(List)` run them in order and return the new snapshot; `LLMSnapshot` gained `interactions` and
   `element`; `UiStateSource` gained `interact` and a `withInteractions` flag on `read`; new `InteractiveHelpTools`; implemented by both workspaces,
-  `AdminPart` and both story editor dialogs (these overrides carry `@PublicAPI`; `DesktopWorkspace` got a private `openAdmin()`). A new **Help assistant** tab on the Admin page lets an administrator turn the
+  `AdminPart` and both story editor dialogs (these overrides carry `@PublicAPI`; `DesktopWorkspace` got a private `openAdmin()`).
+  Interactions also select a tab of the Settings (`UserPart`, so the phone settings too) and press the button that opens the dialog
+  to add a book, a model or a protocol (`open-dialog:<button text>`, `LLMInteract.dialogButtons`; not while a dialog is open): those
+  lists and the settings now describe themselves (`getLLMState`, `getInteraction` with `@PublicAPI`; `WorkspaceLLMSupport.describeTable`).
+  **When something goes wrong** the model can read it: a function `read_last_errors(count)` returns the last errors, failed requests
+  to a provider (`InferenceException`s, also a generation's), warnings and validation messages the user was shown (every `ui.widgets.Notification`
+  error and warning, `UIUtils.showError` / `internalServerError` / `inferenceError` / `showValidationErrors`), newest first. They are
+  kept in the new `ProblemLog` of the session (`SessionPoint.getProblems()`, the last 20, written by the new `utils.UiProblems`), the
+  unexpected ones also in the `sessionStorage` of the browser tab (the last three, they survive a reload); keys, tokens and passwords are
+  removed from the text and it is cut at 400 characters. New `GenerationListener.onInferenceError` (a default method calling
+  `onSimpleError`; `StoryGenerationListener` overrides it, with `@PublicAPI`). **Forms:** `get_ui_state` lists under *Problems with the form*
+  the fields that are invalid (with the message they show) or required and empty, never their values (new
+  `LLMInteract.getLLMProblems()`, default `LLMFormProblems.scan`; `AIDialog` adds its cross field rules, with `@PublicAPI`;
+  `LLMSnapshot` gained `problems`; `UiStateSource` gained `readProblems`). **Manual links:** the manual tools print the address of the
+  page on the published manual (`https://enerccio.github.io/Marginalia/user/...`, `ManualPage.url()`), the assistant cites pages as links
+  and they open in a new tab. **The assistant is usable above a dialog** (a book is one; before, the dialog blocked the button and the
+  panel): in the top layer it moves to the bottom left while a dialog is open. **Administration data:** with **Allow reading
+  administration data** (new setting `helpAdminData`, off by default) an administrator's assistant gets `get_admin_data(topic)`
+  (extensions with their state, user counts, database backups, what a cleanup would remove, the application) and
+  `read_extension_log(extension, lines)` (new `AdminHelpTools`, `AdminDataSource`; never for other users, read only). A new **Help assistant** tab on the Admin page lets an administrator turn the
   assistant on or off and choose one of their own models for
   it; **Apply limits** (shared models only) makes the questions count against each user's limit and usage like any other
   request to the model, otherwise (or for a model that is not shared) the owner of the model pays and nothing is counted for the
@@ -28,7 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   as `classpath:/manual/` and searched in memory by the new `ManualService` (`ManualPage`, `ManualSection`, `ManualHit`);
   new `HelpAssistantService` (`ask`, `getInfo`), new `ManualTools`, `HelpTools`, `UiStateSource`, `HelpPrompts`, new `ui.LLMInteract` and `ui.LLMSnapshot` (implemented by `Workspace`,
   `WorkspaceComponent`, `ManuscriptDialogPart`, `PhoneManuscriptDialogPart`, every dialog, `Main` and several components; extensions can
-  implement it on their own components, see the developer manual, *UI*; the overrides in the extendable classes carry `@PublicAPI`), new component `ui.components.HelpAssistantWidget` (added to `Main`), new application settings `helpEnabled`, `helpAiUuid`, `helpApplyLimits`, `helpPromptAdmin`, `helpPromptUser`
+  implement it on their own components, see the developer manual, *UI*; the overrides in the extendable classes carry `@PublicAPI`), new component `ui.components.HelpAssistantWidget` (added to `Main`), new application settings `helpEnabled`, `helpAiUuid`, `helpApplyLimits`, `helpInteractions`, `helpAdminData`, `helpPromptAdmin`, `helpPromptUser`
   (extended attributes, no migration), new texts in all language bundles (the Chinese localization plugin too).
   **For plugins:** new `UnmeteredScope`; an inference service (an extension AI) must skip `AILimitService.check` and
   `UsageService.record` for a request started while `UnmeteredScope.isActive()`, see the developer manual,
