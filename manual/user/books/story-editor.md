@@ -20,8 +20,8 @@ This page describes the desktop layout. On a phone the story is one column with 
 | **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
 | **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |
 
-The divider between the outline and the parts can be dragged. Marginalia remembers the scroll position of each branch
-and returns to it when you open the book again.
+The divider between the sidebar and the parts can be dragged. Marginalia remembers where you left it (saved with the book)
+and the scroll position of each branch, and returns to them when you open the book again.
 
 ### The lorebook tab
 
