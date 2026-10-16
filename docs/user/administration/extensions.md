@@ -84,6 +84,8 @@ everybody: an administrator sees which extensions on hover, other users are aske
 you stopped yourself is not counted). Next to each extension's JAR you'll find a small `.valid` or `.invalid` file with the
 report; it is removed with the extension and can be left alone.
 
+![The red bar over the workspace when an extension is invalid](../../images/invalid-extensions-warning.png)
+
 ![The verification report of an extension that does not fit, and a stopped extension (Start button)](../../images/extension-verification.png)
 
 An extension in the `extensions` folder that fails to start (for example one built for another version) doesn't stop

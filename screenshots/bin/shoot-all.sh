@@ -28,6 +28,14 @@ on 13-db-backup
 run plugin-googlegenai.mjs                       # installs the Gemini plugin: a copy, discarded
 on 22-arcoutline
 run shoot-tabs.mjs                               # drags the sidebar tabs apart (saved with the book): a copy, discarded
+# the red bar for invalid extensions: the Author's Note JAR is replaced by the broken one and its report is deleted, so that the
+# application verifies it again at the start
+on 13-db-backup
+"$SHOT_ROOT/bin/stop-app.sh" >/dev/null
+cp out/broken/authorsnote-1.3.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.3.0.jar"
+rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.3.0.valid"
+"$SHOT_ROOT/bin/start-app.sh" >/dev/null
+run shoot-invalid-extensions.mjs                  # a copy, discarded
 # plugin screens
 on 21-chaptermarker
 run shoot-plugin-characters.mjs
