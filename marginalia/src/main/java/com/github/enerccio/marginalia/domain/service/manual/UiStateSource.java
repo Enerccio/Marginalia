@@ -30,4 +30,13 @@ public interface UiStateSource {
      *                     offered now), or failed with a message the model can act on (no such element or interaction)
      */
     void interact(String path, List<String> interactions, FunctionContinuation<String> done);
+
+    /**
+     * What went wrong for the user lately (see {@link HelpTools#readLastErrors}), newest first: the problems the
+     * session wrote down and the unexpected failures the browser tab kept.
+     *
+     * @param count how many to read, anything below one for the default; more than ten are cut
+     * @param done  answered with the problems as Markdown
+     */
+    void readProblems(int count, FunctionContinuation<String> done);
 }

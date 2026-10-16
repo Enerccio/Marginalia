@@ -1,6 +1,9 @@
 package com.github.enerccio.marginalia.ui;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.tabs.Tab;
 
 import java.util.ArrayList;
@@ -28,9 +31,9 @@ import java.util.function.Consumer;
  * alternatives and the hidden components too; hidden ones are marked as such.
  * <p>
  * An element can also offer <b>interactions</b> ({@link #getInteraction()}): moves through the interface the model may
- * make for the user when an administrator allowed it (open a section, select a tab), applied with {@link
- * #applyInteraction(List)}. Only moves that are harmless and can be undone with one click: never one that changes,
- * deletes, saves, sends, generates, logs out or leaves a dialog that may hold unsaved work.
+ * make for the user when an administrator allowed it (open a section, select a tab, open the dialog to add something),
+ * applied with {@link #applyInteraction(List)}. Only moves that are harmless and can be undone with one click: never one
+ * that changes, deletes, saves, sends, generates, logs out or leaves a dialog that may hold unsaved work.
  * <p>
  * Describing the state is called on the UI thread under the session lock, so it may read components freely, and must
  * be quick and must not change anything. The interactions run there too. Extensions can implement it on their own
@@ -66,6 +69,17 @@ public interface LLMInteract {
      */
     default List<LLMInteract> getLLMChildren(boolean deep) {
         return this instanceof Component component ? LLMSnapshot.nearestDescendants(component, deep) : List.of();
+    }
+
+    /**
+     * What is wrong with the form this element shows right now, one line each: the fields that are marked invalid, with
+     * the message they show, the required ones that are empty ({@link LLMFormProblems}); the model uses it to say why a
+     * form can not be saved. For a component by default the visible fields inside it that are not inside another
+     * element; override to add what the form checks on its own (fields that depend on each other). Never a value of a
+     * field. Empty when the form is fine, or there is none.
+     */
+    default List<String> getLLMProblems() {
+        return this instanceof Component component ? LLMFormProblems.scan(component) : List.of();
     }
 
     /**
@@ -212,6 +226,50 @@ public interface LLMInteract {
     }
 
     /**
+     * The interactions for buttons that open a dialog (Add book, Add model): pressing each as {@code
+     * open-dialog:Label}, the label being the text of the button. A dialog only opens, nothing is created until the
+     * user confirms in it. A button is offered only when it is shown and enabled, and no dialog is open (the page is
+     * blocked by it; opening one on top of another would stack them).
+     *
+     * @param buttons the buttons, null ones are skipped
+     */
+    static Map<String, LLMInteraction> dialogButtons(Button... buttons) {
+        Map<String, LLMInteraction> interactions = new LinkedHashMap<>();
+        if (dialogIsOpen()) {
+            return interactions;
+        }
+        for (Button button : buttons) {
+            if (button != null && button.isVisible() && button.isEnabled() && !button.getText().isBlank()) {
+                interactions.put("open-dialog:" + button.getText().strip(),
+                        new LLMInteraction("Press the button \"" + button.getText().strip() + "\", which opens a dialog.",
+                                () -> {
+                                    button.click();
+                                    attachPendingComponents();
+                                }));
+            }
+        }
+        return interactions;
+    }
+
+    /**
+     * A dialog is put into the page only when the response is about to be sent; so that what an interaction opened is
+     * there when the screen is read right after it (and is seen as open by the next interaction), the work that waits
+     * for the response is done now.
+     */
+    private static void attachPendingComponents() {
+        UI ui = UI.getCurrent();
+        if (ui != null && ui.getSession() != null) {
+            ui.getInternals().getStateTree().runExecutionsBeforeClientResponse();
+        }
+    }
+
+    /** Whether a dialog is open on the page of the current request. */
+    static boolean dialogIsOpen() {
+        UI ui = UI.getCurrent();
+        return ui != null && ui.getChildren().anyMatch(child -> child instanceof Dialog dialog && dialog.isOpened());
+    }
+
+    /**
      * The element with the elements of the component added to its children: for a part of the workspace or a dialog,
      * which is not a component itself, while the components it created are in the tree of the window.
      */
@@ -233,6 +291,13 @@ public interface LLMInteract {
             @Override
             public Map<String, LLMInteraction> getInteraction() {
                 return element.getInteraction();
+            }
+
+            @Override
+            public List<String> getLLMProblems() {
+                List<String> problems = new ArrayList<>(element.getLLMProblems());
+                problems.addAll(LLMFormProblems.scan(container));
+                return problems;
             }
 
             @Override

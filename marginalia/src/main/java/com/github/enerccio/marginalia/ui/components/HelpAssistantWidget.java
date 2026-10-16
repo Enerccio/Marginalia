@@ -2,7 +2,9 @@ package com.github.enerccio.marginalia.ui.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.bound.ProblemLog;
 import com.github.enerccio.marginalia.bound.SessionPoint;
+import com.github.enerccio.marginalia.bound.UiProblem;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService.Info;
@@ -20,11 +22,13 @@ import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMSnapshot;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.UIDetachedException;
+import com.vaadin.flow.dom.ElementUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
@@ -61,6 +65,9 @@ public class HelpAssistantWidget extends Div {
     /** The longest state of the screen the model gets in one answer; it asks for a path below for the rest. */
     private static final int MAX_UI_STATE_CHARS = 12000;
 
+    /** The most problems of the session the model can read at once. */
+    private static final int MAX_PROBLEMS = 10;
+
     private static final String PAGE_STATE = "Everything in the browser window of the user: the main window and the "
             + "dialogs that are open on top of it.";
 
@@ -75,6 +82,8 @@ public class HelpAssistantWidget extends Div {
 
     // the list of the session, kept here: the answers arrive on threads that have no session
     private final List<LLMChatMessage> history;
+    // the same for the problems the user was shown
+    private final ProblemLog problems;
 
     private final Button fab;
     private Div panel;
@@ -91,6 +100,7 @@ public class HelpAssistantWidget extends Div {
 
     public HelpAssistantWidget() {
         history = sessionPoint.getHelpChat();
+        problems = sessionPoint.getProblems();
         addClassName(CssStyles.HELP_ROOT);
 
         fab = new Button(Solid.ROBOT.create(), e -> toggle());
@@ -271,7 +281,7 @@ public class HelpAssistantWidget extends Div {
         Answer answer = new Answer(UI.getCurrent(), question, text, questionCard, answerCard);
         try {
             UI ui = UI.getCurrent();
-            token = helpService.ask(recentHistory(), screenOf(ui), answer);
+            token = helpService.ask(recentHistory(), screenOf(ui, problems), answer);
         } catch (Exception e) {
             answer.fail(e);
         }
@@ -281,7 +291,7 @@ public class HelpAssistantWidget extends Div {
      * The screen of the page for the model: it reads and moves through the components on the thread of the page, under
      * its lock, whichever thread the function runs on.
      */
-    private static UiStateSource screenOf(UI ui) {
+    private static UiStateSource screenOf(UI ui, ProblemLog problems) {
         return new UiStateSource() {
             @Override
             public void read(String path, boolean deep, boolean withInteractions, FunctionContinuation<String> done) {
@@ -292,6 +302,21 @@ public class HelpAssistantWidget extends Div {
             @Override
             public void interact(String path, List<String> interactions, FunctionContinuation<String> done) {
                 onPage(ui, done, "The screen could not be operated.", () -> interactNow(ui, path, interactions));
+            }
+
+            @Override
+            public void readProblems(int count, FunctionContinuation<String> done) {
+                try {
+                    ui.access(() -> {
+                        List<UiProblem> session = problems.last(MAX_PROBLEMS);
+                        // the browser answers later; what it kept is added to what the session knows
+                        JavascriptLibrary.readRememberedProblems(ui.getPage()).then(String.class,
+                                json -> done.complete(problemsText(session, json, count)),
+                                error -> done.complete(problemsText(session, null, count)));
+                    });
+                } catch (UIDetachedException e) {
+                    done.fail("The page of the user is closed.");
+                }
             }
         };
     }
@@ -339,6 +364,16 @@ public class HelpAssistantWidget extends Div {
         return readUiStateNow(ui, "", false, true);
     }
 
+    /**
+     * The last problems as Markdown: the ones of the session and the ones the browser kept (the text of its JSON), each
+     * once, newest first.
+     */
+    static String problemsText(List<UiProblem> session, String browserJson, int count) {
+        int wanted = count < 1 ? UiProblems.defaultCount() : count;
+        return UiProblems.toMarkdown(UiProblems.merge(session, UiProblems.fromBrowser(browserJson), wanted),
+                System.currentTimeMillis());
+    }
+
     private static LLMSnapshot page(UI ui, boolean deep) {
         return LLMSnapshot.ofComponentTree("UI", PAGE_STATE, ui, deep);
     }
@@ -366,6 +401,14 @@ public class HelpAssistantWidget extends Div {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         cancelled = false;
+        UiProblems.attach(sessionPoint);
+        // a link of an answer (a page of the manual) opens in a new tab, the application stays where it is
+        JavascriptLibrary.openLinksInNewTab(messages.getElement());
+        // a dialog (a book is one) blocks the page, the assistant has to stay usable above it: on the server (a strict
+        // dialog makes everything else inert, the clicks and the typing would be dropped) and in the browser (it is
+        // in the top layer, over the button and the panel)
+        ElementUtil.setIgnoreParentInert(getElement(), true);
+        JavascriptLibrary.keepOnTopOfDialogs(getElement());
     }
 
     @Override

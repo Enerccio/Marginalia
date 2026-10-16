@@ -727,6 +727,29 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     overflow: hidden;
 }
 
+/* while a dialog is open the button and the panel are manual popovers (JavascriptLibrary.keepOnTopOfDialogs): in the top
+   layer above the dialog, which would otherwise cover them; the popover defaults are put back to what they are. They move to
+   the left: a dialog (a book) has its buttons in the bottom right corner, where the button would be over them */
+.help-root > [popover] {
+    inset: auto;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    pointer-events: auto;
+}
+
+.help-root > .help-fab[popover] {
+    left: var(--lumo-space-l);
+    bottom: var(--lumo-space-l);
+    border: none;
+    overflow: visible;
+}
+
+.help-root > .help-panel[popover] {
+    left: var(--lumo-space-l);
+    bottom: calc(var(--lumo-size-xl) + var(--lumo-space-l) + var(--lumo-space-s));
+}
+
 .help-header {
     padding: var(--lumo-space-xs) var(--lumo-space-s);
     border-bottom: 1px solid var(--lumo-contrast-10pct);

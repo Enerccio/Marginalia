@@ -13,6 +13,9 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceA
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.manual.AdminDataSource;
+import com.github.enerccio.marginalia.domain.service.manual.AdminHelpTools;
+import com.github.enerccio.marginalia.domain.service.manual.AdminHelpToolsImpl;
 import com.github.enerccio.marginalia.domain.service.manual.ManualPage;
 import com.github.enerccio.marginalia.domain.service.manual.HelpPrompts;
 import com.github.enerccio.marginalia.domain.service.manual.HelpTools;
@@ -20,6 +23,7 @@ import com.github.enerccio.marginalia.domain.service.manual.HelpToolsImpl;
 import com.github.enerccio.marginalia.domain.service.manual.InteractiveHelpTools;
 import com.github.enerccio.marginalia.domain.service.manual.InteractiveHelpToolsImpl;
 import com.github.enerccio.marginalia.domain.service.manual.UiStateSource;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
@@ -54,6 +58,16 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
     @Autowired
     private User currentUser;
 
+    @Autowired
+    private DatabaseBackupService databaseBackupService;
+
+    @Autowired
+    private CleanupService cleanupService;
+
+    // not there without the extension system (the tests)
+    @Autowired(required = false)
+    private OsgiService osgiService;
+
     /** What a request uses: the AI of the settings, and whether the user's limits apply. */
     private record Target(AI ai, boolean metered) {}
 
@@ -63,7 +77,7 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
         adminGuard.requireAdmin();
         AppSettings app = settingService.getOrCreateApp(AppSettings.class);
         return new Settings(app.getHelpEnabled(), app.getHelpAiUuid(), app.getHelpApplyLimits(),
-                app.getHelpPromptAdmin(), app.getHelpPromptUser(), app.getHelpInteractions());
+                app.getHelpPromptAdmin(), app.getHelpPromptUser(), app.getHelpInteractions(), app.getHelpAdminData());
     }
 
     @Override
@@ -82,6 +96,7 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
         app.setHelpAiUuid(aiUuid);
         app.setHelpApplyLimits(settings.applyLimits());
         app.setHelpInteractions(settings.interactions());
+        app.setHelpAdminData(settings.adminData());
         app.setHelpPromptAdmin(promptOrNull(settings.adminPrompt(), HelpPrompts.ADMIN));
         app.setHelpPromptUser(promptOrNull(settings.userPrompt(), HelpPrompts.USER));
         settingService.save(app);
@@ -125,14 +140,23 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
     public CancellationToken ask(List<LLMChatMessage> history, UiStateSource uiState, InferenceAsyncCallback callback)
             throws Exception {
         // only with a screen to move through: a request that does not come from a page has nothing to interact with
-        boolean interactive = uiState != null && settingService.getOrCreateApp(AppSettings.class).getHelpInteractions();
+        AppSettings app = settingService.getOrCreateApp(AppSettings.class);
+        boolean interactive = uiState != null && app.getHelpInteractions();
+        // the data of the Admin page: only for an administrator, and only when an administrator allowed it
+        boolean adminData = app.getHelpAdminData() && adminGuard.isAdmin();
         List<LLMChatMessage> payload = new ArrayList<>();
-        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, instructions() + (interactive ? HelpPrompts.INTERACTIVE : "")));
+        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, instructions() + HelpPrompts.PROBLEMS
+                + (interactive ? HelpPrompts.INTERACTIVE : "") + (adminData ? HelpPrompts.ADMIN_DATA : "")));
         payload.addAll(history);
+        FunctionRegistry registry = inferenceServices.getFunctionRegistry();
         FunctionSet tools = interactive
-                ? inferenceServices.getFunctionRegistry().bind(InteractiveHelpTools.class,
-                new InteractiveHelpToolsImpl(manualService, uiState))
-                : inferenceServices.getFunctionRegistry().bind(HelpTools.class, new HelpToolsImpl(manualService, uiState));
+                ? registry.bind(InteractiveHelpTools.class, new InteractiveHelpToolsImpl(manualService, uiState))
+                : registry.bind(HelpTools.class, new HelpToolsImpl(manualService, uiState));
+        if (adminData) {
+            AdminDataSource data = new HelpAdminData(adminGuard, osgiService, userService, databaseBackupService,
+                    cleanupService, ThreadCopyRequestAttributes.create());
+            tools = tools.and(registry.bind(AdminHelpTools.class, new AdminHelpToolsImpl(data)));
+        }
         return stream(payload, tools, callback);
     }
 

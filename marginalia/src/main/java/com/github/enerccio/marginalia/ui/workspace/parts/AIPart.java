@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
@@ -211,6 +214,20 @@ public class AIPart implements WorkspaceComponent {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = String.class))
+    @Override
+    public String getLLMState() {
+        return WorkspaceLLMSupport.describeTable("models", grid, addModelButton);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Map.class))
+    @Override
+    public Map<String, LLMInteraction> getInteraction() {
+        return LLMInteract.dialogButtons(addModelButton);
     }
 
     @PublicAPI(from = "1.1.0",

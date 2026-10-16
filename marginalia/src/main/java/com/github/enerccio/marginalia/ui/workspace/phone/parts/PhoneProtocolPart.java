@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.ui.workspace.phone.parts;
 
+import java.util.Map;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -42,6 +46,7 @@ public class PhoneProtocolPart implements WorkspaceComponent {
 
     private final Workspace workspace;
     private Grid<Protocol> grid;
+    private Button addProtocolButton;
 
     public PhoneProtocolPart(Workspace workspace) {
         this.workspace = workspace;
@@ -71,6 +76,7 @@ public class PhoneProtocolPart implements WorkspaceComponent {
             dialog.open();
         });
         addProtocolButton.setThemeName("primary");
+        this.addProtocolButton = addProtocolButton;
         addProtocolButton.setWidthFull();
 
         grid = new Grid<>();
@@ -168,6 +174,20 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = String.class))
+    @Override
+    public String getLLMState() {
+        return WorkspaceLLMSupport.describeTable("protocols", grid, addProtocolButton);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Map.class))
+    @Override
+    public Map<String, LLMInteraction> getInteraction() {
+        return LLMInteract.dialogButtons(addProtocolButton);
     }
 
     @PublicAPI(from = "1.1.0",

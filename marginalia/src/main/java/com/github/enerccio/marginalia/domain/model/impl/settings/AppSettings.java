@@ -95,6 +95,15 @@ public class AppSettings extends Setting {
     private Boolean helpInteractions = false;
 
     /**
+     * Whether the help assistant may read the data of the Admin page (the state of the extensions, their logs, the
+     * backups, the cleanup, counts of users) for an administrator who asks it: it all goes to the AI of the assistant,
+     * which may be an external provider. Off by default.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean helpAdminData = false;
+
+    /**
      * The instructions of the help assistant for administrators, null or empty for the default
      * ({@code HelpPrompts.ADMIN}).
      */
@@ -220,5 +229,13 @@ public class AppSettings extends Setting {
 
     public void setHelpInteractions(Boolean helpInteractions) {
         this.helpInteractions = helpInteractions;
+    }
+
+    public Boolean getHelpAdminData() {
+        return helpAdminData != null && helpAdminData;
+    }
+
+    public void setHelpAdminData(Boolean helpAdminData) {
+        this.helpAdminData = helpAdminData;
     }
 }

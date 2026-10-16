@@ -16,6 +16,8 @@ public class SessionPoint {
 
     private final List<LLMChatMessage> helpChat = Collections.synchronizedList(new ArrayList<>());
 
+    private final ProblemLog problems = new ProblemLog();
+
     /**
      * Language of the UI of this session, {@code null} until one is set (the default language is used then). Set from
      * the settings of the user when the workspace is opened.
@@ -35,6 +37,15 @@ public class SessionPoint {
      */
     public List<LLMChatMessage> getHelpChat() {
         return helpChat;
+    }
+
+    /**
+     * What went wrong for the user in this session, as it was shown to them (errors, inference failures, forms that
+     * could not be saved): the help assistant reads it to explain a failure. Keep the log itself (not this bean) in
+     * code that runs off the request, see {@link com.github.enerccio.marginalia.utils.UiProblems}.
+     */
+    public ProblemLog getProblems() {
+        return problems;
     }
 
 }

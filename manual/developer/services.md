@@ -325,7 +325,7 @@ support for Japanese or Chinese text). `getPage` tolerates a leading slash, an `
 ### The help assistant
 
 `HelpAssistantService` is the model behind the help chat (`ui.components.HelpAssistantWidget`). `getSettings` / `saveSettings` are for
-administrators (`AdminGuard`) and keep `Settings(enabled, aiUuid, applyLimits)` in `AppSettings`;
+administrators (`AdminGuard`) and keep `Settings(enabled, aiUuid, applyLimits, ...prompts, interactions, adminData)` in `AppSettings`;
 `saveSettings` accepts only an AI the administrator owns (`IllegalArgumentException` otherwise) and an enabled
 assistant needs one; requests are made without a protocol. `isAvailable()` and `stream(payload, functions, callback)` are for every user. The
 AI is loaded by uuid whoever owns it (the user could not see it), and only while it is not deleted and its owner is
@@ -346,8 +346,26 @@ and calls `stream`. `HelpTools` are `ManualTools` (`search_manual` over `ManualS
 model can read), see [Letting the help assistant see the UI](ui.md#letting-the-help-assistant-see-the-ui). When the
 administrator allowed interactions (`Settings.interactions`, `AppSettings.helpInteractions`) and there is a `UiStateSource`,
 `ask` binds `InteractiveHelpTools` instead (adds `interact_with_ui(path, interactions)`, which calls `UiStateSource.interact`)
-and appends `HelpPrompts.INTERACTIVE` to the instructions; see [Interactions](ui.md#interactions). The
-instructions are one of two prompts, for administrators (`AdminGuard.isAdmin()`) or for the other users: the text in
+and appends `HelpPrompts.INTERACTIVE` to the instructions; see [Interactions](ui.md#interactions). `HelpTools` also has
+`read_last_errors(count)` (what the user was shown that went wrong, read through `UiStateSource.readProblems`, see [What went
+wrong](ui.md#what-went-wrong-the-problem-log)); the rules for it are `HelpPrompts.PROBLEMS`, added to every prompt after the one the
+administrator may have edited. Manual tools print the address of what they found (`URL:` next to `Page:`):
+`ManualPage.url()` / `ManualSection.url()` turn the path in the manual into the address on the published site
+(`ManualPage.WEB_BASE`, `https://enerccio.github.io/Marginalia/user/`, the GitHub pages of the project: `books/story-editor.md#images` is
+`.../user/books/story-editor/#images`; `ManualServiceTest` checks that every page has its file under `docs/`), and the default prompt tells the model to cite
+pages as Markdown links with those addresses only; the widget opens them in a new tab.
+
+**The data of the Admin page.** With `Settings.adminData` (`AppSettings.helpAdminData`, off by default, a checkbox of the *Help assistant* tab)
+**and** an administrator asking, `ask` binds a second set of functions beside the others (`FunctionSet.and`), `AdminHelpTools`:
+`get_admin_data(topic)` (`extensions`, `users`, `backups`, `cleanup`, `application`) and `read_extension_log(extension, lines)`, with
+`HelpPrompts.ADMIN_DATA` added to the instructions. They read through `AdminDataSource`, implemented by `HelpAdminData`: the extensions
+with their state and verification (`OsgiService`, optional: it is not in the test context), the counts of the users (no names), the
+database backups and schedule, what `CleanupService.analyze()` would purge (nothing is changed), memory and uptime, and the last lines
+(40 by default, 200 at most, 6000 characters) of the log of an extension, found by its name, symbolic name or JAR (`OsgiService.readLog`).
+The functions run on threads of their own, so `HelpAdminData` runs each read in the request of the administrator that asked
+(`ThreadCopyRequestAttributes` taken in `ask`) and checks `AdminGuard.requireAdmin()` again. Log lines and verification reports go through
+`UiProblem.clean` (cut, keys removed), nothing more: the setting exists because they can still carry text an extension wrote, on its way to
+the AI of the assistant. The instructions are one of two prompts, for administrators (`AdminGuard.isAdmin()`) or for the other users: the text in
 `AppSettings.helpPromptAdmin` / `helpPromptUser` or, when that is null or blank, the default (`HelpPrompts.ADMIN` /
 `USER`); `saveSettings` stores a blank prompt or one equal to the default as null, so a default follows the new version.
 `{{manualIndex}}` in a prompt is replaced by the list of pages (path, title, 110 characters of the description), a prompt

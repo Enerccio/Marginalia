@@ -202,6 +202,48 @@ public class AIDialog extends Dialog implements LLMInteract {
         getFooter().add(footerLayout);
     }
 
+    /**
+     * The required fields that are empty, as any form, and what the dialog checks across fields when it saves: the
+     * numbers have to be positive and the response smaller than the context, the additional parameters a JSON object.
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "problems", type = List.class),
+                    @APILocals(name = "context", type = Integer.class),
+                    @APILocals(name = "response", type = Integer.class),
+                    @APILocals(name = "parameters", type = JsonElement.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public List<String> getLLMProblems() {
+        List<String> problems = new ArrayList<>(LLMInteract.super.getLLMProblems());
+        if (maxContextField == null || maxResponseField == null) {
+            return problems;
+        }
+        Integer context = maxContextField.getValue();
+        Integer response = maxResponseField.getValue();
+        if (context != null && context <= 0) {
+            problems.add("\"" + maxContextField.getLabel() + "\": must be greater than zero");
+        }
+        if (response != null && response <= 0) {
+            problems.add("\"" + maxResponseField.getLabel() + "\": must be greater than zero");
+        }
+        if (context != null && response != null && context > 0 && response > 0 && response >= context) {
+            problems.add("\"" + maxResponseField.getLabel() + "\": must be smaller than \"" + maxContextField.getLabel() + "\"");
+        }
+        if (typeCombo.getValue() == AIType.OPEN_AI_COMPATIBLE && additionalParametersField != null
+                && StringUtils.isNotBlank(additionalParametersField.getValue())) {
+            try {
+                JsonElement parameters = JsonParser.parseString(additionalParametersField.getValue());
+                if (!parameters.isJsonObject()) {
+                    problems.add("\"" + additionalParametersField.getLabel() + "\": must be a JSON object");
+                }
+            } catch (Exception e) {
+                problems.add("\"" + additionalParametersField.getLabel() + "\": is not valid JSON");
+            }
+        }
+        return problems;
+    }
+
     @PublicAPI(from = "1.3.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "types", type = List.class)})
@@ -537,7 +579,7 @@ public class AIDialog extends Dialog implements LLMInteract {
             }
         } catch (Exception e) {
             if (InferenceErrors.find(e) != null) {
-                Notification.error(InferenceErrors.describe(loc, e), Notification.DURATION_LONGER);
+                UIUtils.inferenceError(loc, e);
             } else {
                 UIUtils.showError(loc.getValue(L.MSG_FETCH_MODELS_FAILED), e);
             }
@@ -574,7 +616,7 @@ public class AIDialog extends Dialog implements LLMInteract {
                     : String.format(loc.getValue(L.MSG_CONNECTION_OK), models.size()));
         } catch (Exception e) {
             if (InferenceErrors.find(e) != null) {
-                Notification.error(InferenceErrors.describe(loc, e), Notification.DURATION_LONGER);
+                UIUtils.inferenceError(loc, e);
             } else {
                 UIUtils.internalServerError(loc, e);
             }
@@ -609,7 +651,7 @@ public class AIDialog extends Dialog implements LLMInteract {
                     : String.format(loc.getValue(L.MSG_CONNECTION_OK), models.size()));
         } catch (Exception e) {
             if (InferenceErrors.find(e) != null) {
-                Notification.error(InferenceErrors.describe(loc, e), Notification.DURATION_LONGER);
+                UIUtils.inferenceError(loc, e);
             } else {
                 UIUtils.internalServerError(loc, e);
             }

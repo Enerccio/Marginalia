@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
+import com.vaadin.flow.component.tabs.Tab;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
@@ -44,7 +47,9 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Configurable
@@ -661,6 +666,41 @@ public class UserPart implements WorkspaceComponent {
         dialog.getFooter().add(cancelBtn);
 
         dialog.open();
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "tabs", type = List.class),
+                    @APILocals(name = "selected", type = Tab.class)})
+    @Override
+    public String getLLMState() {
+        if (tabSheet == null) {
+            return "";
+        }
+        List<String> tabs = new ArrayList<>();
+        for (int i = 0; i < tabSheet.getTabCount(); i++) {
+            tabs.add(tabSheet.getTabAt(i).getLabel());
+        }
+        Tab selected = tabSheet.getSelectedTab();
+        return "The settings of the user. Its tabs: " + String.join(", ", tabs) + ". The open tab is **"
+                + (selected == null ? "" : selected.getLabel()) + "**."
+                + (changed ? " There are unsaved changes: the other sections of the main window can not be opened until"
+                + " they are saved or discarded." : "");
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Map.class),
+            locals = {@APILocals(name = "tabs", type = List.class)})
+    @Override
+    public Map<String, LLMInteraction> getInteraction() {
+        if (tabSheet == null) {
+            return Map.of();
+        }
+        List<Tab> tabs = new ArrayList<>();
+        for (int i = 0; i < tabSheet.getTabCount(); i++) {
+            tabs.add(tabSheet.getTabAt(i));
+        }
+        return LLMInteract.tabs(tabs, tabSheet.getSelectedTab(), tabSheet::setSelectedTab);
     }
 
     @PublicAPI(from = "1.1.0",

@@ -359,6 +359,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_HELP_PROMPT_USER, "其他用户提示词");
         setValue(L.LABEL_RESET_TO_DEFAULT, "恢复默认");
         setValue(L.LABEL_HELP_INTERACTIONS, "允许操作界面导航");
+        setValue(L.LABEL_HELP_ADMIN_DATA, "允许读取管理数据");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -563,7 +564,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_ASSISTANT, "根据手册回答有关 Marginalia 的问题的聊天，面向所有用户。请选择您自己的模型；用户无需自己的模型。");
         setValue(L.HELP_ASSISTANT_APPLY_LIMITS, "仅适用于共享模型：提问会像对模型的其他请求一样计入每个用户的限额和用量。未启用或模型未共享时，由模型的所有者承担费用：不设限额，也不为用户计数。");
         setValue(L.HELP_ASSISTANT_PROMPT, "每次提问时发送给模型的指令。{{manualIndex}} 会被替换为手册页面列表。为空或与默认相同的提示词即为默认值，会随新版本的更新而更新。");
-        setValue(L.HELP_ASSISTANT_INTERACTIONS, "当用户请求带路时，助手可以在界面中移动：打开某个版块或选择某个标签页。仅限于此：它不能点击其他按钮、输入、保存、删除或生成任何内容。模型还会获得屏幕上各元素的名称及其可执行的操作。");
+        setValue(L.HELP_ASSISTANT_INTERACTIONS, "当用户请求带路时，助手可以在界面中移动：打开某个版块、选择某个标签页或打开用于添加内容的对话框（仅打开，不会创建任何内容）。仅限于此：它不能点击其他按钮、输入、保存、删除或生成任何内容。模型还会获得屏幕上各元素的名称及其可执行的操作。");
+        setValue(L.HELP_ASSISTANT_ADMIN_DATA, "当管理员提问时，助手可以读取管理页面的数据：扩展的状态及其日志、数据库备份、清理将删除的内容、用户数量（不含姓名）。这些数据会发送给助手使用的模型，该模型可能是外部提供商，日志中可能包含扩展写入的文本。不会提供给其他用户。助手无法更改任何内容。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

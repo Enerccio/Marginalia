@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.github.enerccio.marginalia.utils.UiProblems;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -62,6 +63,12 @@ public class Notification extends com.vaadin.flow.component.notification.Notific
     }
 
     private static void notify(String message, int duration, boolean htmlEscape, NotificationVariant notificationVariant) {
+        // what the user is told is what the help assistant can read back when they ask why something failed
+        if (notificationVariant == NotificationVariant.LUMO_ERROR) {
+            UiProblems.error(message);
+        } else if (notificationVariant == NotificationVariant.LUMO_CONTRAST) {
+            UiProblems.warning(message);
+        }
         com.vaadin.flow.component.notification.Notification notification = new com.vaadin.flow.component.notification.Notification();
         notification.addThemeVariants(notificationVariant);
         notification.setDuration(duration);

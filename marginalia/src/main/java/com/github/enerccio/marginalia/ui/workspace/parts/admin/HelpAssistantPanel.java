@@ -45,6 +45,7 @@ public class HelpAssistantPanel implements LLMInteract {
     private ComboBox<AI> aiCombo;
     private Checkbox applyLimits;
     private Checkbox interactions;
+    private Checkbox adminData;
     private TextArea adminPrompt;
     private TextArea userPrompt;
 
@@ -70,13 +71,16 @@ public class HelpAssistantPanel implements LLMInteract {
         interactions = new Checkbox(loc.getValue(L.LABEL_HELP_INTERACTIONS));
         interactions.setHelperText(loc.getValue(L.HELP_ASSISTANT_INTERACTIONS));
 
+        adminData = new Checkbox(loc.getValue(L.LABEL_HELP_ADMIN_DATA));
+        adminData.setHelperText(loc.getValue(L.HELP_ASSISTANT_ADMIN_DATA));
+
         adminPrompt = promptArea(L.LABEL_HELP_PROMPT_ADMIN);
         userPrompt = promptArea(L.LABEL_HELP_PROMPT_USER);
 
         Button save = new Button(loc.getValue(L.LABEL_SAVE), e -> save());
         save.setThemeName("primary");
 
-        layout.add(description, enabled, aiCombo, applyLimits, interactions, promptRow(adminPrompt, true), promptRow(userPrompt, false), save);
+        layout.add(description, enabled, aiCombo, applyLimits, interactions, adminData, promptRow(adminPrompt, true), promptRow(userPrompt, false), save);
 
         load();
         return layout;
@@ -112,6 +116,7 @@ public class HelpAssistantPanel implements LLMInteract {
         aiCombo.setValue(models.stream().filter(ai -> Objects.equals(ai.getUuid(), settings.aiUuid())).findFirst().orElse(null));
         applyLimits.setValue(settings.applyLimits());
         interactions.setValue(settings.interactions());
+        adminData.setValue(settings.adminData());
         // what is in force: the stored prompt or the default
         adminPrompt.setValue(settings.adminPrompt() == null ? HelpPrompts.ADMIN : settings.adminPrompt());
         userPrompt.setValue(settings.userPrompt() == null ? HelpPrompts.USER : settings.userPrompt());
@@ -131,7 +136,8 @@ public class HelpAssistantPanel implements LLMInteract {
         }
         try {
             helpService.saveSettings(new Settings(enabled.getValue(), ai == null ? null : ai.getUuid(),
-                    applyLimits.getValue(), adminPrompt.getValue(), userPrompt.getValue(), interactions.getValue()));
+                    applyLimits.getValue(), adminPrompt.getValue(), userPrompt.getValue(), interactions.getValue(),
+                    adminData.getValue()));
             Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

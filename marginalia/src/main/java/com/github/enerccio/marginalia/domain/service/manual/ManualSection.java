@@ -16,4 +16,9 @@ public record ManualSection(String pagePath, String pageTitle, String heading, S
     public String link() {
         return anchor.isEmpty() ? pagePath : pagePath + "#" + anchor;
     }
+
+    /** The address of the section in the published manual, see {@link ManualPage#url(String, String)}. */
+    public String url() {
+        return ManualPage.url(pagePath, anchor);
+    }
 }

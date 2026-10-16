@@ -339,6 +339,11 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
             public void interact(String path, List<String> interactions, FunctionContinuation<String> done) {
                 done.fail("not expected");
             }
+
+            @Override
+            public void readProblems(int count, FunctionContinuation<String> done) {
+                done.fail("not expected");
+            }
         };
         llm.enqueue(MockLLMResponse.toolCall("get_ui_state", "{\"path\":\"UI/Main\",\"deep\":true}"),
                 MockLLMResponse.toolCall("get_ui_state", "{}"),
@@ -367,6 +372,13 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
     private static final class RecordingScreen implements UiStateSource {
         final List<String> reads = new CopyOnWriteArrayList<>();
         final List<String> moves = new CopyOnWriteArrayList<>();
+        final List<Integer> problemReads = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void readProblems(int count, FunctionContinuation<String> done) {
+            problemReads.add(count);
+            done.complete("1. **INFERENCE**, 5 s ago: The provider did not accept the API key.");
+        }
 
         @Override
         public void read(String path, boolean deep, boolean withInteractions, FunctionContinuation<String> done) {
@@ -457,5 +469,105 @@ class HelpAssistantServiceTest extends MarginaliaTestBase {
         askAndWait();
 
         assertThat(bodyOfLastRequest()).doesNotContain("interact_with_ui");
+    }
+
+    @Test
+    void theModelCanReadWhatWentWrongForTheUser() throws Exception {
+        adminSetup(false);
+        enable(false);
+        loginAs(createUser());
+        RecordingScreen screen = new RecordingScreen();
+        llm.enqueue(MockLLMResponse.toolCall("read_last_errors", "{\"count\":5}"),
+                MockLLMResponse.toolCall("read_last_errors", "{}"),
+                MockLLMResponse.text("The key is wrong."));
+
+        askWith(screen);
+
+        assertThat(screen.problemReads).as("what the model asked for, 0 when it did not say").containsExactly(5, 0);
+        assertThat(bodyOfLastRequest()).contains("The provider did not accept the API key.");
+        assertThat(llm.getCompletionRequests().getFirst().getRawBody()).contains("read_last_errors");
+    }
+
+    @Test
+    void withoutAPageThereAreNoErrorsToRead() throws Exception {
+        adminSetup(false);
+        enable(false);
+        llm.enqueue(MockLLMResponse.toolCall("read_last_errors", "{}"), MockLLMResponse.text("I can not see it."));
+
+        askAndWait();
+
+        assertThat(bodyOfLastRequest()).contains("The screen of the user is not available.");
+    }
+
+    @Test
+    void whatToDoWhenSomethingFailsIsNotLostWithACustomPrompt() throws Exception {
+        adminSetup(false);
+        helpService.saveSettings(new Settings(true, ai.getUuid(), false, "Custom admin prompt.", null));
+        llm.enqueue(MockLLMResponse.text("a"));
+
+        askAndWait();
+
+        assertThat(bodyOfLastRequest()).contains("Custom admin prompt.").contains("read_last_errors")
+                .contains("Problems with the form");
+    }
+
+    @Test
+    void theAdministrationDataIsOffUntilAnAdministratorAllowsIt() throws Exception {
+        adminSetup(false);
+        enable(false);
+        assertThat(helpService.getSettings().adminData()).isFalse();
+        llm.enqueue(MockLLMResponse.text("a"));
+
+        askAndWait();
+
+        assertThat(bodyOfLastRequest()).doesNotContain("get_admin_data").doesNotContain("read_extension_log");
+    }
+
+    @Test
+    void anAdministratorCanReadTheAdministrationDataWhenAllowed() throws Exception {
+        adminSetup(false);
+        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, false, true));
+        assertThat(helpService.getSettings().adminData()).isTrue();
+        llm.enqueue(MockLLMResponse.toolCall("get_admin_data", "{\"topic\":\"users\"}"),
+                MockLLMResponse.toolCall("get_admin_data", "{\"topic\":\"backups\"}"),
+                MockLLMResponse.toolCall("get_admin_data", "{\"topic\":\"extensions\"}"),
+                MockLLMResponse.text("done"));
+
+        askAndWait();
+
+        String first = llm.getCompletionRequests().getFirst().getRawBody();
+        assertThat(first).contains("get_admin_data", "read_extension_log", "You can read the state of the installation");
+        String last = bodyOfLastRequest();
+        assertThat(last).as("the counts of the users").contains("administrators").contains("locked out");
+        assertThat(last).as("the backups").contains("database backup(s)");
+        assertThat(last).as("the test installation has no extension system").contains("extension system is not running");
+    }
+
+    @Test
+    void anUnknownTopicOrExtensionIsRefusedWithWhatThereIs() throws Exception {
+        adminSetup(false);
+        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, false, true));
+        llm.enqueue(MockLLMResponse.toolCall("get_admin_data", "{\"topic\":\"passwords\"}"),
+                MockLLMResponse.toolCall("read_extension_log", "{\"extension\":\"sidequery\"}"),
+                MockLLMResponse.text("done"));
+
+        askAndWait();
+
+        assertThat(bodyOfLastRequest()).contains("There is no topic").contains("passwords")
+                .contains("The topics are: extensions, users, backups, cleanup, application")
+                .as("no extension system in the test installation").contains("extension system is not running");
+    }
+
+    @Test
+    void otherUsersNeverGetTheAdministrationDataEvenWhenAllowed() throws Exception {
+        adminSetup(false);
+        helpService.saveSettings(new Settings(true, ai.getUuid(), false, null, null, false, true));
+        loginAs(createUser());
+        llm.enqueue(MockLLMResponse.text("a"));
+
+        askAndWait();
+
+        assertThat(bodyOfLastRequest()).doesNotContain("get_admin_data").doesNotContain("read_extension_log")
+                .doesNotContain("You can read the state of the installation");
     }
 }
