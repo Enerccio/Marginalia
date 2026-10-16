@@ -28,6 +28,7 @@ public class ArcOutlineSettingsForm extends VerticalLayout {
     private final TextAreaPopoverComponent chapterGenerationPromptArea;
     private final TextAreaPopoverComponent importPromptArea;
     private final TextAreaPopoverComponent nameToolsPromptArea;
+    private final TextAreaPopoverComponent nameProviderPromptArea;
 
     private ArcOutlineSettings settings;
 
@@ -65,13 +66,21 @@ public class ArcOutlineSettingsForm extends VerticalLayout {
                 importPromptArea.getPopover(), null, Defaults.IMPORT_PROMPT));
         add(importPromptArea);
 
-        nameToolsPromptArea = new TextAreaPopoverComponent("Name tools hint (added to the arc generation prompt when name categories are selected)");
+        nameToolsPromptArea = new TextAreaPopoverComponent("Name generator hint (added to the arc generation prompt when categories of the Name Generator are selected)");
         nameToolsPromptArea.setWidthFull();
         nameToolsPromptArea.setPlaceholder(Defaults.NAME_TOOLS_PROMPT);
         ResizableTextArea.install(loc, nameToolsPromptArea, "100px");
         nameToolsPromptArea.setPopoverContent(TemplateHints.create(loc, nameToolsPromptArea,
                 nameToolsPromptArea.getPopover(), null, Defaults.NAME_TOOLS_PROMPT));
         add(nameToolsPromptArea);
+
+        nameProviderPromptArea = new TextAreaPopoverComponent("Name provider hint (added to the arc generation prompt when categories of the Name Provider are selected)");
+        nameProviderPromptArea.setWidthFull();
+        nameProviderPromptArea.setPlaceholder(Defaults.NAME_PROVIDER_PROMPT);
+        ResizableTextArea.install(loc, nameProviderPromptArea, "100px");
+        nameProviderPromptArea.setPopoverContent(TemplateHints.create(loc, nameProviderPromptArea,
+                nameProviderPromptArea.getPopover(), null, Defaults.NAME_PROVIDER_PROMPT));
+        add(nameProviderPromptArea);
 
         refresh();
     }
@@ -83,6 +92,7 @@ public class ArcOutlineSettingsForm extends VerticalLayout {
             chapterGenerationPromptArea.setValue(StringUtils.defaultString(settings.getChapterGenerationPrompt()));
             importPromptArea.setValue(StringUtils.defaultString(settings.getImportPrompt()));
             nameToolsPromptArea.setValue(StringUtils.defaultString(settings.getNameToolsPrompt()));
+            nameProviderPromptArea.setValue(StringUtils.defaultString(settings.getNameProviderPrompt()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -100,6 +110,7 @@ public class ArcOutlineSettingsForm extends VerticalLayout {
         settings.setChapterGenerationPrompt(StringUtils.defaultIfBlank(chapterGenerationPromptArea.getValue(), null));
         settings.setImportPrompt(StringUtils.defaultIfBlank(importPromptArea.getValue(), null));
         settings.setNameToolsPrompt(StringUtils.defaultIfBlank(nameToolsPromptArea.getValue(), null));
+        settings.setNameProviderPrompt(StringUtils.defaultIfBlank(nameProviderPromptArea.getValue(), null));
         return settings;
     }
 }

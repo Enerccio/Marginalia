@@ -10,8 +10,9 @@ names and surnames of many countries, places, deities, monsters, drugs, companie
 a Markov chain, so they sound like the category without being copies of it.
 
 The extension has no screen of its own and nothing to configure. Other extensions offer its functions to the model; at
-the moment that is the [Lore Generator](lore-generator.md#name-tools), where you choose which categories the model
-may use.
+the moment that are the [Lore Generator](lore-generator.md#name-tools) and the [Arc Outline](arc-outline.md), where you
+choose which categories the model may use; their categories have the prefix `Generator: ` there, next to the `Provider: `
+ones of the [Name provider](name-provider.md), which hands out real names instead of made up ones.
 
 ![Choosing the categories of names in the Lore Generator](../../images/plugin-loregenerator-names.png)
 
@@ -25,14 +26,18 @@ may use.
 Without a length, the names are as long as the names of that category usually are (a category of long company names gives
 long names, one of short forenames short ones). The model can ask for other lengths between 2 and 30 letters. A small
 category may return fewer names than asked for, because the chain runs out of different ones. The model is free to
-pick one of the names, change it or combine two of them; see the *Name tools hint* of the Lore Generator.
+pick one of the names, change it or combine two of them; see the *Name generator hint* of the Lore Generator.
 
 ## Categories
 
-There are about 1200 categories. Their names say what they are:
+There are about 1270 categories. Their names say what they are:
 
 - **Given names and surnames of the world**, from Kate Monk's Onomastikon: `Europe Western - France - Surnames`,
   `Ancient World - Egypt - Male`, `India - Hindu Gods - Goddesses`. Several hundred of them.
+- **Surnames of 75 countries**, the romanized surnames of the [popular names by country dataset](https://github.com/sigpwned/popular-names-by-country-dataset)
+  (CC0): `Armenia - Surnames`, `Japan - Surnames`, `Kosovo - Surnames`. They are small lists (6 to about 150 names), so the
+  chains stay short and the new names are close to the real ones; for the real ones themselves use the
+  [Name provider](name-provider.md).
 - **Lists from other collections**: gods, angels, demons, ancient cities and states, emperors, planets (fantasygen),
   Corpora (animals, tarot, Tolkien names, Game of Thrones houses, drugs, hospitals, fabrics, gemstones, programming
   languages...) and markov-namegen-lib (Pokemon, dragons, cocktails, banks, Roman place names...).

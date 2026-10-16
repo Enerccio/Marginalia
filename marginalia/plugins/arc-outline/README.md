@@ -56,8 +56,9 @@ The wand next to *Add new arc* opens a menu: *Generate an arc* and *Import from 
   lorebooks), `{{existingArcs}}` (the arcs and chapters of the outline with their states and descriptions, without
   the private notes) and `{{specification}}` (the text below). Edits here apply to this generation only.
 - *Specification* - what you want from the arc.
-- *Name tools* - shown when the Name Generator plugin is loaded: the categories the model may ask names of, as in the
-  Lore Generator. The hint about the tools (editable in the settings) is added to the end of the prompt.
+- *Name tools* - shown when the Name Generator or the Name Provider plugin is loaded: the categories (with the prefix
+  `Generator: ` or `Provider: `) the model may ask names of, as in the Lore Generator. The hint about the tools of each
+  source (*Name generator hint*, *Name provider hint*, editable in the settings) is added to the end of the prompt.
 - *Generate*, which becomes a red *Stop* while the model runs. Everything else is disabled meanwhile.
 
 On the right the reasoning of the model streams in as Markdown, and once the answer starts the arc shows as it would
@@ -128,5 +129,5 @@ extension is loaded (`ExtensionHasCss`).
 The arcs, with their chapters inside, are stored with the book (`com.github.enerccio.marginalia.extensions.arcoutline`
 in its attributes: `arcs`), so they are included in book backups and copies. Every arc and chapter has a stable `uuid`;
 a generated arc or chapter also has `generationReasoning` and `generationResult` (the raw reasoning and JSON of the
-model). The prompts, the name tools hint and the name categories are in the user settings
+model). The prompts, the name generator and name provider hints and the name categories are in the user settings
 (`com.github.enerccio.marginalia.extensions.arcoutline.settings` in their attributes).

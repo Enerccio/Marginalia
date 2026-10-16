@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
+import com.github.enerccio.marginalia.extensions.loregenerator.names.NameToolsBridge;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService.EntryLimit;
@@ -112,7 +113,7 @@ public class LoreGeneratorDialog extends Dialog {
         });
 
         loadData();
-        nameCategories = data.getNameCategories();
+        nameCategories = NameToolsBridge.normalize(data.getNameCategories());
         buildUI();
         String last = data.getLastGenerationPrompt();
         selectPrompt(last != null && data.getGenerationPrompts().containsKey(last)
@@ -177,7 +178,7 @@ public class LoreGeneratorDialog extends Dialog {
 
         // only when the Name Generator extension is loaded
         nameToolsButton = new Button("Name tools", Solid.SIGNATURE.create(), e -> openNameToolsDialog());
-        nameToolsButton.setTooltipText("Let the model get names from the Name Generator extension");
+        nameToolsButton.setTooltipText("Let the model get names from the Name Generator (made up names) and the Name Provider (real names) extensions");
         nameToolsButton.setVisible(service.nameCategories() != null);
         refreshNameToolsLabel();
 
@@ -319,7 +320,7 @@ public class LoreGeneratorDialog extends Dialog {
         scopeGroup.setValue(enumOr(LoreScope.class, saved.getScope(), scopeGroup.getValue()));
         limitGroup.setValue(enumOr(EntryLimit.class, saved.getLimit(), limitGroup.getValue()));
         if (saved.getNameCategories() != null) {
-            nameCategories = saved.getNameCategories();
+            nameCategories = NameToolsBridge.normalize(saved.getNameCategories());
         }
     }
 
@@ -372,7 +373,7 @@ public class LoreGeneratorDialog extends Dialog {
     private void openNameToolsDialog() {
         List<String> available = service.nameCategories();
         if (available == null) {
-            Notification.warning("The Name Generator extension is not loaded");
+            Notification.warning("Neither the Name Generator nor the Name Provider extension is loaded");
             nameToolsButton.setVisible(false);
             return;
         }
@@ -403,7 +404,7 @@ public class LoreGeneratorDialog extends Dialog {
             // the hint about the tools is added only when the model gets them
             FunctionSet nameFunctions = service.nameFunctions(nameCategories);
             String prompt = service.buildGenerationPrompt(lorebook, entry, scopeGroup.getValue(), limitGroup.getValue(),
-                    promptArea.getValue(), nameFunctions != null);
+                    promptArea.getValue(), nameFunctions);
             start(generationPane, prompt, attachmentPanel.getAttachments(), nameFunctions);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

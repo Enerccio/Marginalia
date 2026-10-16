@@ -13,7 +13,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
-import com.github.enerccio.marginalia.extensions.loregenerator.names.NameGeneratorBridge;
+import com.github.enerccio.marginalia.extensions.loregenerator.names.NameToolsBridge;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -91,23 +91,24 @@ public class LoreGeneratorService {
     }
 
     /**
-     * The categories of the name generator extension, null when it is not installed (it is looked up on every call,
-     * it can be loaded and unloaded while the application runs).
+     * The categories of the name extensions (Name Generator and Name Provider, each with the prefix of its source),
+     * null when none is installed (they are looked up on every call, they can be loaded and unloaded while the
+     * application runs).
      */
     public List<String> nameCategories() {
-        return osgiService == null ? null : NameGeneratorBridge.categories(osgiService);
+        return osgiService == null ? null : NameToolsBridge.categories(osgiService);
     }
 
     /**
-     * The functions that give the model names of the selected categories, null when none of them is available
-     * (nothing selected, or the extension is gone).
+     * The functions that give the model names of the selected categories: those of the extension of each source that
+     * has a selected category (one, both or, as null, none: nothing selected, or the extensions are gone).
      */
     public FunctionSet nameFunctions(Collection<String> selected) {
         if (selected == null || selected.isEmpty()) {
             return null;
         }
         return osgiService == null ? null
-                : NameGeneratorBridge.functions(osgiService, inferenceServices.getFunctionRegistry(), selected);
+                : NameToolsBridge.functions(osgiService, inferenceServices.getFunctionRegistry(), selected);
     }
 
     /**
@@ -199,13 +200,19 @@ public class LoreGeneratorService {
 
     /**
      * The prompt for generating {@code target}: the lore the user selected followed by the generation prompt, and the
-     * hint about the name tools (the user's or {@link Defaults#NAME_TOOLS_PROMPT}) when the model has them.
+     * hint about each kind of name tools the model has (the user's or {@link Defaults#NAME_TOOLS_PROMPT} for the
+     * generated names, the user's or {@link Defaults#NAME_PROVIDER_PROMPT} for the real ones).
+     *
+     * @param nameFunctions the functions the model gets, null for none
      */
     public String buildGenerationPrompt(Lorebook current, LorebookEntry target, LoreScope scope, EntryLimit limit,
-                                        String generationPrompt, boolean nameTools) throws Exception {
+                                        String generationPrompt, FunctionSet nameFunctions) throws Exception {
         String prompt = buildLoreBlock(current, target, scope, limit) + "\n\n" + generationPrompt;
-        if (nameTools) {
+        if (nameFunctions != null && nameFunctions.contains(NameToolsBridge.GENERATOR_FUNCTION)) {
             prompt += "\n\n" + StringUtils.defaultIfBlank(getData().getNameToolsPrompt(), Defaults.NAME_TOOLS_PROMPT).strip();
+        }
+        if (nameFunctions != null && nameFunctions.contains(NameToolsBridge.PROVIDER_FUNCTION)) {
+            prompt += "\n\n" + StringUtils.defaultIfBlank(getData().getNameProviderPrompt(), Defaults.NAME_PROVIDER_PROMPT).strip();
         }
         return prompt;
     }

@@ -81,22 +81,30 @@ exports of the lorebook.
 
 ### Name tools
 
-When the Name generator extension is loaded, the top row has a **Name tools** button. It opens a table of the name
-categories with a checkbox each. The list is long, so it loads as you scroll and has a filter field above it: type a part
-of a name to show only the matching categories. The checked categories always stay in the table, whatever the filter
+When the [Name generator](name-generator.md) or the [Name provider](name-provider.md) extension is loaded, the top row has a
+**Name tools** button. It opens a table of the name categories of both with a checkbox each. The categories of the Name
+generator (names made up to sound like a category) start with `Generator: `, the ones of the Name provider (real names, each
+with its original spelling) with `Provider: `. The list is long, so it loads as you scroll and has a filter field above it:
+type a part of a name to show only the matching categories. The checked categories always stay in the table, whatever the filter
 says. The checkbox in the header checks or unchecks all the categories shown at that moment, and a line below the
 table counts how many are checked. The checked categories are saved with your account, so they stay checked the next
 time. While at least one is checked, the model can list them and ask for names of them during the generation (not the
-compaction), instead of inventing names (see [Name generator](name-generator.md)).
+compaction), instead of inventing names. The model gets the tools of the extensions that have a checked category: check
+only `Generator: ` categories and it gets the generator's, only `Provider: ` ones and it gets the provider's, both and it
+gets both, none and it gets no tools.
 
 ![Name tools with a filtered table of categories](../../images/plugin-loregenerator-names.png)
 
-A short hint telling the model about the tools is added to the end of the generation prompt. The built-in one asks the
-model to call the tools instead of inventing names, to pick from what it gets, and allows it to modify or remix the names
-when none fits as it is (combine parts of two, change an ending, adjust the spelling). You can replace it with your own in
-*Settings → Extension Settings → Lore Generator* (*Name tools hint*, empty means the built-in one; a hint you saved before
-keeps working as it is). The button shows how many categories are checked. Without the Name generator there is no
-button; the extension can be unloaded and installed again while Marginalia runs, the button comes back.
+A short hint for each kind of tools the model gets is added to the end of the generation prompt. The built-in hint of the
+Name generator asks the model to call the tools instead of inventing names, to pick from what it gets, and allows it to
+modify or remix the names when none fits as it is (combine parts of two, change an ending, adjust the spelling). The
+built-in hint of the Name provider asks it to pick a name from the real names it gets and to keep it as it was returned
+(the romanized one, with the original next to it when that suits the setting), without making up another spelling; a
+forename and a surname of the same country may be combined. You can replace them with your own in
+*Settings → Extension Settings → Lore Generator* (*Name generator hint* and *Name provider hint*, empty means the
+built-in one; a generator hint you saved before keeps working as it is, and so do the categories you checked before, they
+count as `Generator: ` ones). The button shows how many categories are checked. Without both extensions there is no
+button; they can be unloaded and installed again while Marginalia runs, the button comes back.
 
 ### Attachments
 

@@ -87,10 +87,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   `PhoneManuscriptDialogPart` extend `Restorable` with default methods that store nothing, so existing parts compile
   unchanged; `ManuscriptDialog`/`PhoneManuscriptDialog` have `setOnStateChange` and `stateChanged()` (a plugin that
   adds a tab calls it), the lorebook views `setOnStateChange`, `NewTurnForm` `setOnChange`.
+- New plugin **Name provider** (`marginalia/plugins/name-provider`): the model gets real names instead of generated ones.
+  `list_real_name_lists` lists about 180 lists, `<Country> - Surnames` (75 countries) and `<Country> - Forenames` (106), and
+  `pick_real_names` picks up to 100 of a list at random as pairs `{romanized, original}` (`Satō` / `佐藤`). The data is the
+  popular names by country dataset (CC0), imported at build time into `name-lists.json` (committed; without network the
+  committed file is used), the country codes are expanded to the English names of the countries.
+- Name generator: 75 new categories `<Country> - Surnames` trained on the romanized surnames of the same dataset (new build
+  step `import-popular-names`, `src/build/ImportPopularNames.java`), the tables and `chains.json` are extended, the
+  existing ones are unchanged.
 
 ### Changed
 
 - The opened details of lorebook entries stay open when the entries are reloaded (refresh button, switching to the tab).
+- Lore Generator and Arc Outline: the *Name tools* table lists the categories of the Name generator and of the Name provider
+  together, with the prefix of the source (`Generator: `, `Provider: `), and the model gets the tools of the extensions that have a
+  checked category: both, one or none. Each kind has its own hint in the settings (*Name generator hint*, the former *Name
+  tools hint*, and the new *Name provider hint*, which tells the model to pick a name from the returned ones and keep it as
+  it is). Categories saved before count as Generator ones. `NameGeneratorBridge` is now `NameToolsBridge`; the service
+  methods `buildGenerationPrompt`, `buildPrompt` and `buildChapterPrompt` take the `FunctionSet` instead of a flag.
 
 ### Fixed
 

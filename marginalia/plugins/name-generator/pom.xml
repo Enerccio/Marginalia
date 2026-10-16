@@ -141,6 +141,29 @@
                             </arguments>
                         </configuration>
                     </execution>
+                    <!-- Before the training: clones the popular names by country dataset (once, into target) and turns its
+                         romanized surnames into src/build/resources/popular-names/*.json, one category per country
+                         ("Armenia - Surnames"); without network nothing is imported -->
+                    <execution>
+                        <id>import-popular-names</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/java</executable>
+                            <classpathScope>compile</classpathScope>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${project.basedir}/src/build/ImportPopularNames.java</argument>
+                                <argument>https://github.com/sigpwned/popular-names-by-country-dataset</argument>
+                                <argument>${project.build.directory}/popular-names</argument>
+                                <argument>${project.basedir}/src/build/resources</argument>
+                                <argument>${project.basedir}/src/build/resources/popular-names</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>generate-name-tables</id>
                         <phase>generate-resources</phase>

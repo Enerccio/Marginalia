@@ -17,7 +17,7 @@ public class ArcOutlineSettings {
     private String importPrompt;
     /** Hint about the name tools added to the prompt when name categories are selected. */
     private String nameToolsPrompt;
-    /** Categories of the name generator the model may use; none selected means no tools. */
+    /** Categories of the name generator and name provider (with the prefix of the source) the model may use; none selected means no tools. */
     private List<String> nameCategories;
 
     public String getGenerationPrompt() {
@@ -50,6 +50,17 @@ public class ArcOutlineSettings {
 
     public void setNameToolsPrompt(String nameToolsPrompt) {
         this.nameToolsPrompt = nameToolsPrompt;
+    }
+
+    /** Hint about the real name tools added to the generation prompt; blank means {@code Defaults.NAME_PROVIDER_PROMPT}. */
+    private String nameProviderPrompt;
+
+    public String getNameProviderPrompt() {
+        return nameProviderPrompt;
+    }
+
+    public void setNameProviderPrompt(String nameProviderPrompt) {
+        this.nameProviderPrompt = nameProviderPrompt;
     }
 
     public List<String> getNameCategories() {
