@@ -164,6 +164,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - SillyTavern **export** (import exists).
     - Recursive activation / scan depth (entries activating other entries) and activation preview
       ("which entries would fire for this prompt").
+    - ✅ A read only *Lorebook* tab in the story editor (desktop) shows the lorebook of the story without leaving it:
+      entries with their activation text and Markdown content, optionally with the sub lorebooks (`LorebookPreview`).
+      Not done: editing from there, a phone twin, search in it.
 
 21. **Character / persona management.** POV and present characters are free text per turn. A character card
     entity (name, description, avatar via the `Resource` entity (`ResourceService.uploadImage`), linked lorebook entries) with
@@ -211,7 +214,11 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 24. **Extension management polish.** ✅ A JAR is verified before it is installed and again after an update, and an
     extension built for another core version is refused (`ExtensionVerifier`, *Verification* column). Extensions can be stopped and
     started without uninstalling (`.STOPPED` flag file next to the JAR) and log into their own file, shown in the *Log*
-    dialog (`OsgiService.createLogger`, `ExtensionLogDialog`). Still missing: show bundle errors and dependencies. The plugin API is not frozen in 1.0.
+    dialog (`OsgiService.createLogger`, `ExtensionLogDialog`). A red bar at the top of the workspace tells everybody (the
+    administrator which ones, with a tooltip) that installed extensions are invalid and not running
+    (`InvalidExtensionsWarning`, `OsgiService.getInvalidExtensions`); it is built at login, so it does not appear for an
+    extension that turns invalid while the page is open, and it does not link to *Admin → Extensions* yet. Still missing:
+    show bundle errors and dependencies. The plugin API is not frozen in 1.0.
 
 24b. **Summaries overview tools** 🧩 — the *Summaries* dialog (`SummariesDialog`, `@Extendable`) has an empty menu bar
     for these:

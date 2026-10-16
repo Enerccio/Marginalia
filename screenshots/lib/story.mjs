@@ -50,9 +50,18 @@ export async function readingStyle(page, on = true) {
 
 /** Drags the divider between the sidebar and the story to the right, so that all tabs of the sidebar fit. */
 export async function widenSidebar(page, to = 700) {
-  await page.mouse.move(405, 488);
+  // the position of the divider is saved with the book, so it is not at 405 any more once it was moved
+  const from = await page.evaluate(() => {
+    for (const sl of document.querySelectorAll('vaadin-split-layout')) {
+      const r = sl.shadowRoot?.querySelector('[part="splitter"]')?.getBoundingClientRect();
+      if (r && r.height > 300 && r.x > 300 && r.x < 1000 && r.y < 488 && r.y + r.height > 488) return r.x + r.width / 2;
+    }
+    return 405;
+  });
+  if (Math.abs(from - to) < 10) return;
+  await page.mouse.move(from, 488);
   await page.mouse.down();
-  await page.mouse.move((405 + to) / 2, 488, { steps: 5 });
+  await page.mouse.move((from + to) / 2, 488, { steps: 5 });
   await page.mouse.move(to, 488, { steps: 5 });
   await page.mouse.up();
   await idle(page, 600);

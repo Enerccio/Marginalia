@@ -31,6 +31,8 @@ swap tabs to check what an entry says. It is a preview: nothing can be changed h
 - Entries and lorebooks that are switched off (they are not used for the story) are shown dimmed.
 - A book without a lorebook shows a note instead.
 
+![The Lorebook tab with two entries opened](../../images/story-lorebook-tab.png)
+
 Like every sidebar tab it can be dragged out into a panel of its own, see below.
 
 ### Arranging the sidebar tabs

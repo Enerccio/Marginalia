@@ -5,7 +5,7 @@ root = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 repo = os.path.join(root, '..')
 # the state a flow runs on: a chain flow starts from the step before it (bin/chain.txt), the shooting flows as bin/shoot-all.sh says
 state = {
-  'shoot-admin': '13-db-backup', 'shoot-workspace': '13-db-backup', 'shoot-book': '13-db-backup', 'shoot-book-extra': '13-db-backup',
+  'shoot-admin': '13-db-backup', 'shoot-workspace': '13-db-backup', 'shoot-book': '13-db-backup', 'shoot-book-extra': '13-db-backup', 'shoot-lorebook-tab': '13-db-backup',
   'shoot-phone': '13-db-backup', 'shoot-extra': '13-db-backup (copy, discarded)',
   'shoot-plugin-characters': '21-chaptermarker', 'shoot-export': '21-chaptermarker', 'plugin-instructionexporter': '21-chaptermarker',
   'plugin-chinese': '21-chaptermarker',

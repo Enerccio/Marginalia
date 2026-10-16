@@ -109,7 +109,7 @@ export async function login(page, who = users.admin, path = '/') {
  * The workspace autosave reopens the book that was open at the last logout, and its full-screen window covers the
  * workspace the flows start from: closes it (the flows open their book themselves).
  */
-async function closeRestoredBook(page) {
+export async function closeRestoredBook(page) {
   await sleep(1200);
   const book = page.locator('vaadin-dialog[opened]').filter({ has: page.getByRole('tab', { name: 'Branch view', exact: true }) });
   if (!(await book.count())) return;
@@ -259,7 +259,7 @@ export async function section(page, name, fn) {
     await fn();
     console.log('  ok  ', name);
   } catch (e) {
-    console.log('  FAIL', name, '-', String(e.message || e).split('\n')[0].slice(0, 160));
+    console.log('  FAIL', name, '-', String(e.message || e).split('\n').slice(0,8).join(' | ').slice(0, 900));
     await page.screenshot({ path: path.join(outDir, '_fail-' + name.replace(/[^a-z0-9]+/gi, '-') + '.png') }).catch(() => {});
     // close dialogs that may be left open, so the next part starts clean
     for (let i = 0; i < 3; i++) {

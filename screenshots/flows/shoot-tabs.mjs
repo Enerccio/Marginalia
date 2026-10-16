@@ -1,5 +1,5 @@
-// The sidebar of the story editor with its tabs dragged apart (TabDock): Characters detached into a column of its own,
-// Side Query under it. Pictures: story-editor-tabs.
+// The sidebar of the story editor with its tabs dragged apart (TabDock): Side Query under the others,
+// Characters detached into a column of its own. Pictures: story-editor-tabs.
 // State: a COPY of 22-arcoutline (the arrangement is saved with the book, so the data is discarded afterwards);
 // Characters and Side Query come from steps 14 and 17, the Arcs tab from step 22.
 import {bookTab, idle, login, main, openBook, sleep, snap} from '../lib/shot.mjs';
@@ -29,13 +29,8 @@ await main(async ({ page }) => {
   await bookTab(page, 'Story');
   await widenSidebar(page, 900);
 
-  // Characters into a column of its own, on the right side of the sidebar
-  await dragTab(page, 'Characters', async () => {
-    const zones = page.locator('.tab-dock-side-zone');
-    const n = await zones.count();
-    return zones.nth(n - 1).boundingBox();
-  });
-  // Side Query under Characters: the strip under the sheet in the right column
+  // Side Query first, while it is still visible: it goes under the sheet, in a row of its own (with the six tabs
+  // of the sidebar, Side Query is hidden behind the arrow of a sheet of the width that is left after the next drag)
   await dragTab(page, 'Side Query', async () => {
     const zones = page.locator('.tab-dock-zone:not(.tab-dock-side-zone)');
     const n = await zones.count();
@@ -45,6 +40,12 @@ await main(async ({ page }) => {
       if (b && b.width > 0 && (!best || (b.x > best.x - 5 && b.y > best.y))) best = b;
     }
     return best;
+  });
+  // Characters into a column of its own, on the right side of the sidebar
+  await dragTab(page, 'Characters', async () => {
+    const zones = page.locator('.tab-dock-side-zone');
+    const n = await zones.count();
+    return zones.nth(n - 1).boundingBox();
   });
   await sideTab(page, 'Arcs');
   await sleep(500);
