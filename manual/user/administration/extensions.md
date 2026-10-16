@@ -84,7 +84,9 @@ fit - typically one built for another version of Marginalia - is not loaded. An 
 and is not kept; an extension in the `extensions` folder stays in the list, not started, with **Invalid** in the
 *Verification* column, and the report is in the log. The check is repeated after Marginalia is updated, so an
 extension that worked before can be refused afterwards: get the version of the extension that was built for the new
-version of Marginalia and load it. Next to each extension's JAR you'll find a small `.valid` or `.invalid` file with the
+version of Marginalia and load it. While an extension is invalid, a **red bar at the top of the workspace** tells
+everybody: an administrator sees which extensions on hover, other users are asked to tell the administrator (an extension
+you stopped yourself is not counted). Next to each extension's JAR you'll find a small `.valid` or `.invalid` file with the
 report; it is removed with the extension and can be left alone.
 
 ![The verification report of an extension that does not fit, and a stopped extension (Start button)](../../images/extension-verification.png)

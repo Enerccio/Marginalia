@@ -525,6 +525,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_TAG_RENAME_NOT_FOUND, "タグはもう存在しません");
         setValue(L.MSG_AI_EXTENSION_NOT_LOADED, "この AI を提供する拡張機能「%s」が読み込まれていないため、その設定を表示できません。管理 → 拡張機能 で読み込んでください。その他の設定は保存できます。");
         setValue(L.MSG_NO_STORY_LOREBOOK, "このストーリーにはロアブックがありません。「ロアブック」タブで選択してください。");
+        setValue(L.MSG_INVALID_EXTENSIONS_ADMIN, "無効な拡張機能があり、実行されていません。マウスを重ねると一覧が表示されます。");
+        setValue(L.MSG_INVALID_EXTENSIONS_ADMIN_LIST, "無効な拡張機能（レポートは 管理 → 拡張機能 にあります）:");
+        setValue(L.MSG_INVALID_EXTENSIONS_USER, "無効な拡張機能があり、実行されていません。管理者に知らせてください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

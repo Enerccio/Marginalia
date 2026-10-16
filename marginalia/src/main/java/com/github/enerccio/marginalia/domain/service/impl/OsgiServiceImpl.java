@@ -616,6 +616,17 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         return null;
     }
 
+    @Override
+    public List<Bundle> getInvalidExtensions() {
+        List<Bundle> invalid = new ArrayList<>();
+        for (Bundle b : getBundles()) {
+            if (!isStopped(b) && ExtensionVerifier.reportFile(locationFile(b), false).exists()) {
+                invalid.add(b);
+            }
+        }
+        return invalid;
+    }
+
     private void startBundleInternal(Bundle b) throws Exception {
         for (ServiceReference<?> sr : getServices(b, MarginaliaExtension.class)) {
             if (activeExtensions.containsKey(sr)) {

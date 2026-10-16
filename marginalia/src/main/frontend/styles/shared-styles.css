@@ -392,6 +392,14 @@ vaadin-markdown table {
     padding: var(--lumo-space-s);
 }
 
+.notice-error {
+    background-color: var(--lumo-error-color);
+    color: var(--lumo-error-contrast-color);
+    border-radius: var(--lumo-border-radius-m);
+    padding: var(--lumo-space-s);
+    font-weight: 600;
+}
+
 .subtle-box {
     padding: var(--lumo-space-xs);
     background-color: var(--lumo-contrast-5pct);

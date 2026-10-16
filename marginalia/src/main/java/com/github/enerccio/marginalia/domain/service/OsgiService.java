@@ -124,6 +124,13 @@ public interface OsgiService {
      */
     ExtensionReport getVerificationReport(Bundle b);
 
+    /**
+     * The installed extensions that are not working because their verification report says they are invalid (they do not
+     * fit this version of the application). An extension the administrator stopped is not listed. Cheap enough to be
+     * asked whenever a workspace is opened: only the existence of the {@code .invalid} reports is checked.
+     */
+    List<Bundle> getInvalidExtensions();
+
     record ExtensionReport(boolean valid, String text) {
     }
 
