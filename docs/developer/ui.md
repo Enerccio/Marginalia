@@ -264,6 +264,16 @@ attributes of the manuscript under `$desktopManuscriptStoryPartTabsConfig` (`TAB
 after a drag, `applyTabsConfig()` in `load()` before the story is drawn. The selected tab of each sheet is not part of the
 layout but the `Restorable` state of the dock. `PhoneManuscriptStoryPart` uses `new TabDock(false)`, one plain sheet.
 
+The tab with the id `ManuscriptStoryPart.LOREBOOK_TAB` (`lorebook`) of the left bar is the `LorebookPreview` (`ui.components`),
+a read only preview of the lore of the book, desktop only (the phone has the `PhoneLorebookView`). It is a `TreeGrid` of
+`Row`s (a lorebook or one of its entries) over a `TreeData` it rebuilds in `refresh(lorebook)`: with the *Include sub
+lorebooks* checkbox the lorebook and every lorebook below it (found breadth first like `ProcessLorebookStep` does, each
+once, so a cycle ends) are the top level rows and their entries the children, otherwise the entries of the lorebook are the
+top level rows. The item details of an entry row show the content and the filtering (text or pattern). It saves nothing;
+the opened entries and the lorebooks the user closed are kept (as uuids) over a refresh. `ManuscriptStoryPart.load()`
+refreshes it, and `onTabEnter()` calls `load()`, so the lore is read again every time the user returns to the Story tab. Like
+the other views of this kind the components are built in `create()`, the injected services are not there in the constructor.
+
 What the desktop and the phone story editor have in common lives in `ui.dialogs.story`, so the two classes keep only
 their layout and the methods extensions decorate (`renderStoryContent`, `createSidebarButton`, `populateMenuBar`,
 `createCogsMenuItem`, the card's `createMenuItems`, `refreshSummaryMenuItems`, `autosaveAndSwapToMarkdown`):
@@ -340,6 +350,7 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `HTabSheet` | The workspace's left-hand tab sheet with a footer area. |
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
+| `LorebookPreview` | The read only *Lorebook* tab of the desktop story editor: a tree grid of the lorebook (optionally with its sub lorebooks as top level rows) and its entries, opening to the content and the text activation. `create()`, then `refresh(lorebook)`. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
 | `ModelProtocolPicker` | A model and a protocol combo box (the AIs and protocols of the user, the protocol optional) for a dialog that runs the model with a choice of its own: `setSelection(ai, protocol)` / `getAi()` / `getProtocol()` / `addSelectionListener(Runnable)`. Used by the generator dialogs of the Lore Generator and the Arc Outline. |
 | `TextAreaPopoverComponent`, `TextFieldPopOverComponent` | Prompt fields with a hints popover. |

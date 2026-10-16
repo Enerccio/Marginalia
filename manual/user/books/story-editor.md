@@ -16,15 +16,31 @@ This page describes the desktop layout. On a phone the story is one column with 
 | Area | |
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
+| **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
 | **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
 | **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |
 
 The divider between the outline and the parts can be dragged. Marginalia remembers the scroll position of each branch
 and returns to it when you open the book again.
 
+### The lorebook tab
+
+The **Lorebook** tab of the sidebar shows the lore of the book's lorebook without leaving the story, so you do not have to
+swap tabs to check what an entry says. It is a preview: nothing can be changed here, change the lore in the book's
+*Lorebook* tab. It is read again every time you come back to the *Story* tab, so changes you made there show at once.
+
+- Every entry is a row with its name; the arrow opens it to show its **content** and the **text that activates it** (the
+  *Filtering Text/Pattern*, with a note when it is a regular expression).
+- **Include sub lorebooks** shows the lorebook and each of its sub lorebooks (and theirs, however deep) as rows of their own, with their entries
+  under them; click the arrow of a lorebook to hide its entries. Without it only the entries of the book's lorebook are listed.
+- Entries and lorebooks that are switched off (they are not used for the story) are shown dimmed.
+- A book without a lorebook shows a note instead.
+
+Like every sidebar tab it can be dragged out into a panel of its own, see below.
+
 ### Arranging the sidebar tabs
 
-The left sidebar is a set of tabs: the **Outline**, and the tabs [extensions](../extensions/index.md) add (Characters, Arcs,
+The left sidebar is a set of tabs: the **Outline**, the **Lorebook**, and the tabs [extensions](../extensions/index.md) add (Characters, Arcs,
 Side Query...). Drag a tab by its header to rearrange them (desktop only, the drawer on a phone keeps one list):
 
 - Drop it on one of the dashed strips that appear above, between and under the panels of a column to **detach** it into a

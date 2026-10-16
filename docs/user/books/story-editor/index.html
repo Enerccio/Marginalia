@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845451540190">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845452556688">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845451540190" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845452556688" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845451540190" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845452556688" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845451540190" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845452556688" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -182,6 +182,7 @@ from the beginning to the end.</p>
 <retype-table copy-text="| Area | |
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
+| **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
 | **Parts** (center) | The text of each part, with its menu (☰) and its metadata on the right. |
 | **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the **+** button on the right. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -198,6 +199,10 @@ from the beginning to the end.</p>
 <td>One entry per part, <code translate="no" v-pre>#1</code>, <code translate="no" v-pre>#2</code>... with the part&#x27;s database ID. Click an entry to scroll to the part. The header shows how many parts the branch has. The <a href="../../extensions/chapter-marker/">Chapter Marker</a> extension shows chapter titles here.</td>
 </tr>
 <tr>
+<td><strong>Lorebook</strong> (left, next to the Outline)</td>
+<td>A read only look at the lore of the book, see <doc-anchor-trigger to="#the-lorebook-tab">The lorebook tab</doc-anchor-trigger>.</td>
+</tr>
+<tr>
 <td><strong>Parts</strong> (center)</td>
 <td>The text of each part, with its menu (☰) and its metadata on the right.</td>
 </tr>
@@ -211,8 +216,29 @@ from the beginning to the end.</p>
 </retype-table>
 <p>The divider between the outline and the parts can be dragged. Marginalia remembers the scroll position of each branch
 and returns to it when you open the book again.</p>
+<h3 id="the-lorebook-tab">The lorebook tab</h3>
+<p>The <strong>Lorebook</strong> tab of the sidebar shows the lore of the book&#x27;s lorebook without leaving the story, so you do not have to
+swap tabs to check what an entry says. It is a preview: nothing can be changed here, change the lore in the book&#x27;s
+<em>Lorebook</em> tab. It is read again every time you come back to the <em>Story</em> tab, so changes you made there show at once.</p>
+<ul>
+<li>
+<p>Every entry is a row with its name; the arrow opens it to show its <strong>content</strong> and the <strong>text that activates it</strong> (the
+<em>Filtering Text/Pattern</em>, with a note when it is a regular expression).</p>
+</li>
+<li>
+<p><strong>Include sub lorebooks</strong> shows the lorebook and each of its sub lorebooks (and theirs, however deep) as rows of their own, with their entries
+under them; click the arrow of a lorebook to hide its entries. Without it only the entries of the book&#x27;s lorebook are listed.</p>
+</li>
+<li>
+<p>Entries and lorebooks that are switched off (they are not used for the story) are shown dimmed.</p>
+</li>
+<li>
+<p>A book without a lorebook shows a note instead.</p>
+</li>
+</ul>
+<p>Like every sidebar tab it can be dragged out into a panel of its own, see below.</p>
 <h3 id="arranging-the-sidebar-tabs">Arranging the sidebar tabs</h3>
-<p>The left sidebar is a set of tabs: the <strong>Outline</strong>, and the tabs <a href="../../extensions/">extensions</a> add (Characters, Arcs,
+<p>The left sidebar is a set of tabs: the <strong>Outline</strong>, the <strong>Lorebook</strong>, and the tabs <a href="../../extensions/">extensions</a> add (Characters, Arcs,
 Side Query...). Drag a tab by its header to rearrange them (desktop only, the drawer on a phone keeps one list):</p>
 <ul>
 <li>

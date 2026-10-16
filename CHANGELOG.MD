@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Lorebook preview in the desktop story editor.** A new read only *Lorebook* tab in the left sidebar (next to the
+  Outline, a `TabDock` tab with the id `lorebook`, so it can be detached too) shows the entries of the book's lorebook in a
+  tree grid; an entry opens to its content and the text or pattern that activates it. *Include sub lorebooks* lists the
+  lorebook and all sub lorebooks below it as top level rows with their entries under them, without it only the entries are
+  listed. It is read again whenever the Story tab is entered; nothing is saved from it. New component
+  `ui.components.LorebookPreview`, new `ManuscriptStoryPart.createLorebookTab` and `LOREBOOK_TAB` (plugins must not give a
+  tab of theirs the ids `chapters` or `lorebook`). New text in all language bundles (the Chinese localization plugin too).
 - **Detachable sidebar tabs in the desktop story editor.** The tabs of the left sidebar (Outline and the tabs of extensions)
   can be dragged out into panels of their own, in the same column under each other or in a column of their own next to the
   others, and dragged back onto another panel (on a tab to put it before that tab, on the body to put it last). While a tab

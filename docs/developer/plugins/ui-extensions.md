@@ -111,7 +111,8 @@ The tab dock (and so the plugin's component) lives as long as the story part, a 
 into panels of their own, stacked or side by side, and `add`/`remove` find the tab wherever it is now. Give the tab a **stable id** of your own
 (`add(id, caption, content)`, not the localized caption): the layout the user made is saved with the book by these ids, and
 a tab added later or after the extension was off lands where the user left it. `add(caption, content)` uses the caption as
-the id. Remove the tab with `leftBar.remove(view)`. The phone drawer has a `TabDock` too, but with the detaching off.
+the id. The ids `chapters` (the outline) and `lorebook` (the read only lorebook preview, desktop only) belong to the application; a tab
+with the same id would replace them. Remove the tab with `leftBar.remove(view)`. The phone drawer has a `TabDock` too, but with the detaching off.
 
 ### Panels in an existing layout
 
