@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845458858892">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845458885230">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845458858892" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845458885230" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845458858892" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845458885230" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845458858892" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845458858892" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845458885230" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845458885230" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -223,7 +223,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
-| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
+| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `InvalidExtensionsWarning`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
 | `ui.widgets` | Small reusable widgets, among them `TrashGrid` (see [Trash](#trash)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -264,7 +264,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.components</code></td>
-<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>.</td>
+<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>LorebookPreview</code>, <code translate="no" v-pre>InvalidExtensionsWarning</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.widgets</code></td>
@@ -382,7 +382,7 @@ but follow the same pattern: construct with the entity, call <code translate="no
 <p><code translate="no" v-pre>Workspace</code> is the interface of the top-level layout shown after login (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>setNavigationLocked</code>,
 <code translate="no" v-pre>isNavigationLocked</code>, <code translate="no" v-pre>getOnLogout</code>, <code translate="no" v-pre>setOnLogout</code>). <code translate="no" v-pre>Main</code>, the parts, <code translate="no" v-pre>ApplicationPoint</code> and <code translate="no" v-pre>SessionInformation</code>
 only depend on this interface. <code translate="no" v-pre>DesktopWorkspace</code> is the implementation (<code translate="no" v-pre>@Configurable</code>, <code translate="no" v-pre>@Extendable</code>): it builds an
-<code translate="no" v-pre>HTabSheet</code> (tabs on the left, a footer with <em>Admin</em>, the language selector, <em>Change Password</em>, <em>Logout</em>) and creates all tab components up
+<code translate="no" v-pre>HTabSheet</code> (tabs on the left, a footer with <em>Admin</em>, the language selector, <em>Change Password</em>, <em>Logout</em>) and puts the red <code translate="no" v-pre>InvalidExtensionsWarning</code> bar (<code translate="no" v-pre>ui.components</code>; hidden while no installed extension is invalid, the administrator gets the names as its tooltip, other users a note to tell the administrator, from <code translate="no" v-pre>OsgiService.getInvalidExtensions()</code>) above it - the phone workspace has it in the navbar - and creates all tab components up
 front (the admin part is refreshed only when the user is an administrator and has the <em>Admin</em> button: it refuses anybody else). Each tab is a <code translate="no" v-pre>WorkspaceComponent</code>:</p>
 <retype-table copy-text="| Method | Called |
 |---|---|
