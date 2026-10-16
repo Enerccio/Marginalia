@@ -472,6 +472,19 @@ class OsgiServiceImplTest {
     }
 
     @Test
+    void invalidExtensionsAreListedUnlessStopped() throws Exception {
+        writeJar("good.jar", bundle("test.good", "1.0.0"));
+        writeJar("bad.jar", invalidBundle("test.bad", "1.0.0"));
+        service.start();
+
+        assertThat(service.getInvalidExtensions()).extracting(Bundle::getSymbolicName).containsExactly("test.bad");
+
+        // the administrator stopped it on purpose: nothing to warn about
+        Files.writeString(new File(extensions, "bad.jar.STOPPED").toPath(), "", StandardCharsets.UTF_8);
+        assertThat(service.getInvalidExtensions()).isEmpty();
+    }
+
+    @Test
     void invalidUploadIsRejectedWithTheReportAndKeepsTheInstalledVersion() throws Exception {
         writeJar("a.jar", bundle("test.a", "1.0.0"));
         service.start();

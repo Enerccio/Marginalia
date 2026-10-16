@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Red warning about invalid extensions.** A red bar at the top of the workspace (desktop; below the title bar on phones) shows when an
+  installed extension is invalid, so it is not found out only on the Admin page or by a missing function. An administrator sees
+  which extensions on hover, other users are told to tell the administrator. Extensions the administrator stopped are not counted. New
+  `OsgiService.getInvalidExtensions()`, new component `ui.components.InvalidExtensionsWarning`, new texts in all language
+  bundles (the Chinese localization plugin too).
 - **Lorebook preview in the desktop story editor.** A new read only *Lorebook* tab in the left sidebar (next to the
   Outline, a `TabDock` tab with the id `lorebook`, so it can be detached too) shows the entries of the book's lorebook in a
   tree grid; an entry opens to its content (rendered as Markdown) and the text or pattern that activates it. *Include sub lorebooks* lists the

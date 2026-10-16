@@ -55,6 +55,7 @@ public final class CssStyles {
 
     // --- Panels and boxes ---
     public static final String NOTICE_WARNING = "notice-warning";
+    public static final String NOTICE_ERROR = "notice-error";
     public static final String SUBTLE_BOX = "subtle-box";
     public static final String BORDERED_PANEL = "bordered-panel";
     public static final String INFO_ICON = "info-icon";

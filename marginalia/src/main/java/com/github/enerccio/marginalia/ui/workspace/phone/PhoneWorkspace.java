@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.RestorableState;
+import com.github.enerccio.marginalia.ui.components.InvalidExtensionsWarning;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
@@ -101,6 +102,7 @@ public class PhoneWorkspace implements Workspace {
         title = new Span();
         title.addClassName(CssStyles.SECTION_TITLE);
         layout.addToNavbar(drawerToggle, title);
+        layout.addToNavbar(true, createInvalidExtensionsWarning());
 
         tabs = new Tabs();
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
@@ -133,6 +135,18 @@ public class PhoneWorkspace implements Workspace {
         show(tabToComponent.get(first), tabToContent.get(first), tabToTitle.get(first));
 
         return layout;
+    }
+
+    /**
+     * The red bar about invalid extensions, hidden while there are none. Extensions that become invalid later show
+     * when the user logs in again (the workspace is built once per login).
+     */
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "user", type = User.class)})
+    private Component createInvalidExtensionsWarning() throws Exception {
+        User user = userService.find(currentUser.getId());
+        return new InvalidExtensionsWarning(user != null && user.isAdmin()).create();
     }
 
     @PublicAPI(from = "1.1.0",

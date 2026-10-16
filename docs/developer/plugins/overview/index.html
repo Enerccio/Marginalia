@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845458220990">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845458858892">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845458220990" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845458858892" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845458220990" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845458858892" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845458220990" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845458220990" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845458858892" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845458858892" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -374,7 +374,9 @@ skipped. When the folder holds several versions of one extension (same symbolic 
 the old JAR), only the newest is started; a warning names the skipped JARs, which are moved to <code translate="no" v-pre>extensions/old-versions</code> (not deleted). Before a bundle
 is started it is <strong>verified</strong>: the decorators it registers are checked against this version
 of the application (<a href="../extendable/#verification-before-loading">Verification before loading</a>). An invalid extension
-stays installed but is not started, and its report is logged. A bundle whose JAR has a <code translate="no" v-pre>&lt;jar name&gt;.STOPPED</code> flag
+stays installed but is not started, and its report is logged. <code translate="no" v-pre>OsgiService.getInvalidExtensions()</code> lists the installed,
+not stopped bundles that have a <code translate="no" v-pre>.invalid</code> report; the workspaces show them in the red <code translate="no" v-pre>InvalidExtensionsWarning</code> bar (<code translate="no" v-pre>ui.components</code>) at the top
+(the administrator gets the names as its tooltip, other users a note to tell the administrator). A bundle whose JAR has a <code translate="no" v-pre>&lt;jar name&gt;.STOPPED</code> flag
 next to it (see <strong>Stopping</strong>) is installed but not started either.</p>
 </li>
 <li>

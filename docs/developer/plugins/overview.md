@@ -198,7 +198,9 @@ sequenceDiagram
   the old JAR), only the newest is started; a warning names the skipped JARs, which are moved to `extensions/old-versions` (not deleted). Before a bundle
   is started it is **verified**: the decorators it registers are checked against this version
   of the application ([Verification before loading](extendable.md#verification-before-loading)). An invalid extension
-  stays installed but is not started, and its report is logged. A bundle whose JAR has a `<jar name>.STOPPED` flag
+  stays installed but is not started, and its report is logged. `OsgiService.getInvalidExtensions()` lists the installed,
+  not stopped bundles that have a `.invalid` report; the workspaces show them in the red `InvalidExtensionsWarning` bar (`ui.components`) at the top
+  (the administrator gets the names as its tooltip, other users a note to tell the administrator). A bundle whose JAR has a `<jar name>.STOPPED` flag
   next to it (see **Stopping**) is installed but not started either.
 - **Installing at runtime.** *Admin → Extensions → Load Extension (.jar)* writes the uploaded file into
   `~/.marginalia/extensions` (the file name is sanitized: only letters, digits, `.`, `_` and `-`) and installs and
