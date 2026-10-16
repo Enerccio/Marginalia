@@ -14,6 +14,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -32,7 +33,7 @@ import java.util.function.Consumer;
  * Read only preview of the lore of a story, for a quick look without leaving the story: the entries of its lorebook,
  * each opens to its content and the text that activates it. Nothing is saved from here. With the sub lorebooks included,
  * the lorebook and every lorebook below it (however deep) is a top level row with its entries under it, otherwise
- * the entries of the lorebook of the story are the top level rows.
+ * the entries of the lorebook of the story are the top level rows. The content of an entry is rendered as Markdown.
  * <p>
  * The owner calls {@link #refresh} whenever the lore may have changed.
  */
@@ -248,7 +249,12 @@ public class LorebookPreview extends VerticalLayout {
             }
             details.add(activation);
         }
-        details.add(infoSpan(L.LABEL_CONTENT, entry.getPayload()));
+        if (StringUtils.isNotBlank(entry.getPayload())) {
+            Span contentLabel = new Span(loc.getValue(L.LABEL_CONTENT) + ":");
+            contentLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
+            // entries are often written in Markdown
+            details.add(contentLabel, new Markdown(entry.getPayload()));
+        }
         return details;
     }
 
