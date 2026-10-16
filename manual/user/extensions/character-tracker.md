@@ -41,10 +41,14 @@ Characters are saved with the book as soon as you change them, so they are inclu
 | **Icon** | Upload a PNG, JPEG or GIF. It is scaled down to at most 200 x 200 pixels, the proportions are kept. |
 | **Color** | Background of the character in the list and in the map. |
 
-The fields are applied with **Save**. If you press **Cancel** (or Esc) while there are unsaved changes, including a
-relationship you filled in but did not add yet, you are asked whether to discard them.
+The fields are applied with **Save**.
 
 ![A character with its relationships](../../images/plugin-charactertracker-dialog.png)
+
+If you press **Cancel** (or Esc) while there are unsaved changes, including a
+relationship you filled in but did not add yet, you are asked whether to discard them.
+
+![The question when a character with unsaved changes is cancelled](../../images/plugin-charactertracker-unsaved.png)
 
 ### Relationships
 

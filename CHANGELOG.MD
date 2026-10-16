@@ -124,6 +124,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Reviewer: the review dialog no longer saves an older copy of the part (reverting an edit or unlinking a summary made after the book was opened); it reloads the part before it reads or writes the reviews.
 - Side Query: the sidebar tab no longer shows a second scrollbar around the message list (only the messages scroll), and the options bar wraps in a narrow sidebar.
 - Saving the settings no longer writes back a copy of the user setting loaded when the tab was opened, which could undo
   a language chosen in the meantime.
