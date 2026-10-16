@@ -98,6 +98,7 @@ public class SideQueryTabContent extends VerticalLayout {
         setSizeFull();
         setPadding(false);
         setSpacing(false);
+        addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
 
         buildUI();
         displayMessages();
@@ -106,6 +107,7 @@ public class SideQueryTabContent extends VerticalLayout {
     private void buildUI() {
         optionsBar = new HorizontalLayout();
         optionsBar.setWidthFull();
+        optionsBar.setWrap(true);
         optionsBar.setAlignItems(Alignment.CENTER);
         optionsBar.addClassNames(CssStyles.PADDING_COMPACT, SideQueryStyles.BAR);
 
@@ -172,7 +174,8 @@ public class SideQueryTabContent extends VerticalLayout {
         messagesListLayout.setSpacing(true);
 
         messagesScrollPanel = new ScrollPanel();
-        messagesScrollPanel.setSizeFull();
+        messagesScrollPanel.setWidthFull();
+        messagesScrollPanel.addClassName(CssStyles.MIN_HEIGHT_0);
         messagesScrollPanel.add(messagesListLayout);
 
         VerticalLayout controlsLayout = new VerticalLayout();

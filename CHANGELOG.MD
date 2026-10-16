@@ -112,6 +112,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Character Tracker: the *Add relationship* button is above the fields of a new relationship, and closing the character dialog
+  (Cancel, Esc) with unsaved changes asks for confirmation (Yes/No).
 - The opened details of lorebook entries stay open when the entries are reloaded (refresh button, switching to the tab).
 - Lore Generator and Arc Outline: the *Name tools* table lists the categories of the Name generator and of the Name provider
   together, with the prefix of the source (`Generator: `, `Provider: `), and the model gets the tools of the extensions that have a
@@ -122,6 +124,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Side Query: the sidebar tab no longer shows a second scrollbar around the message list (only the messages scroll), and the options bar wraps in a narrow sidebar.
 - Saving the settings no longer writes back a copy of the user setting loaded when the tab was opened, which could undo
   a language chosen in the meantime.
 

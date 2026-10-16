@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.sidequery.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.sidequery.model.SideQueryData;
 import com.github.enerccio.marginalia.extensions.sidequery.model.SideQuerySession;
@@ -50,6 +51,8 @@ public class SideQueryView extends VerticalLayout {
         setSizeFull();
         setPadding(false);
         setSpacing(false);
+        // the children are sized to the room that is left, only the message list scrolls
+        addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
 
         loadData();
         buildUI();
@@ -100,7 +103,8 @@ public class SideQueryView extends VerticalLayout {
         tabHeader.add(tabs, addTabBtn);
 
         contentHolder = new VerticalLayout();
-        contentHolder.setSizeFull();
+        contentHolder.setWidthFull();
+        contentHolder.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
         contentHolder.setPadding(false);
         contentHolder.setSpacing(false);
 
