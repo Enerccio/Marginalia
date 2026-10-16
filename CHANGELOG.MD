@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Lorebook preview in the desktop story editor.** A new read only *Lorebook* tab in the left sidebar (next to the
   Outline, a `TabDock` tab with the id `lorebook`, so it can be detached too) shows the entries of the book's lorebook in a
-  tree grid; an entry opens to its content and the text or pattern that activates it. *Include sub lorebooks* lists the
+  tree grid; an entry opens to its content (rendered as Markdown) and the text or pattern that activates it. *Include sub lorebooks* lists the
   lorebook and all sub lorebooks below it as top level rows with their entries under them, without it only the entries are
   listed. It is read again whenever the Story tab is entered; nothing is saved from it. New component
   `ui.components.LorebookPreview`, new `ManuscriptStoryPart.createLorebookTab` and `LOREBOOK_TAB` (plugins must not give a

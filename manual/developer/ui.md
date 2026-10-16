@@ -277,7 +277,7 @@ a read only preview of the lore of the book, desktop only (the phone has the `Ph
 `Row`s (a lorebook or one of its entries) over a `TreeData` it rebuilds in `refresh(lorebook)`: with the *Include sub
 lorebooks* checkbox the lorebook and every lorebook below it (found breadth first like `ProcessLorebookStep` does, each
 once, so a cycle ends) are the top level rows and their entries the children, otherwise the entries of the lorebook are the
-top level rows. The item details of an entry row show the content and the filtering (text or pattern). It saves nothing;
+top level rows. The item details of an entry row show the content, rendered with a `Markdown` component, and the filtering (text or pattern). It saves nothing;
 the opened entries and the lorebooks the user closed are kept (as uuids) over a refresh. `ManuscriptStoryPart.load()`
 refreshes it, and `onTabEnter()` calls `load()`, so the lore is read again every time the user returns to the Story tab. Like
 the other views of this kind the components are built in `create()`, the injected services are not there in the constructor.

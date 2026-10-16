@@ -24,7 +24,7 @@ The **Lorebook** tab of the sidebar shows the lore of the book's lorebook withou
 swap tabs to check what an entry says. It is a preview: nothing can be changed here, change the lore in the book's
 *Lorebook* tab. It is read again every time you come back to the *Story* tab, so changes you made there show at once.
 
-- Every entry is a row with its name; the arrow opens it to show its **content** and the **text that activates it** (the
+- Every entry is a row with its name; the arrow opens it to show its **content** (rendered as Markdown) and the **text that activates it** (the
   *Filtering Text/Pattern*, with a note when it is a regular expression).
 - **Include sub lorebooks** shows the lorebook and each of its sub lorebooks (and theirs, however deep) as rows of their own, with their entries
   under them; click the arrow of a lorebook to hide its entries. Without it only the entries of the book's lorebook are listed.
