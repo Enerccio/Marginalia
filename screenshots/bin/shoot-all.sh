@@ -17,6 +17,7 @@ run shoot-admin.mjs
 run shoot-workspace.mjs
 run shoot-book.mjs
 run shoot-book-extra.mjs
+run shoot-lorebook-tab.mjs
 run shoot-phone.mjs
 # these change the data: every one on a fresh copy
 for part in language quick-start context-warning verification; do

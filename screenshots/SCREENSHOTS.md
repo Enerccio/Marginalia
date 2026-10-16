@@ -140,11 +140,12 @@ characters... would show in the outline, the prompt and the token numbers of the
 | `shoot-workspace` | `13-db-backup` | the workspace tabs, protocols, providers (edit dialog), settings (all tabs, merge of tags), lorebook, resources, trash, plugin settings |
 | `shoot-book` | `13-db-backup` | the book window: About, Prompts, the story (hero, turn details, prompt, token usage, highlight), Branch view, Backups |
 | `shoot-book-extra` | `13-db-backup` | the reasoning of a part, the backup dialogs, export dialogs (PDF), import of a backup as a new book |
+| `shoot-lorebook-tab` | `13-db-backup` | the read only *Lorebook* tab of the story editor with two entries opened: `story-lorebook-tab` |
 | `shoot-phone` | `13-db-backup` | the phone layout (Chrome as a phone: 402x874, touch, mobile user agent) and the viewer |
 | `shoot-extra --only <part>` | a **copy** of `13-db-backup`, discarded | `language` (selector, Japanese), `quick-start` (a new book, an error of the model), `context-warning`, `verification` (a patched plugin, a stopped one) |
 | `shoot-plugin-characters` | `21-chaptermarker` | Character Tracker: list, dialog, map (2x pixel ratio), import dialog |
 | `plugin-googlegenai` | a **copy** of `13-db-backup`, discarded | installs the Google Gemini JAR, adds a provider of the type *Extension* (nothing is sent to Google): `plugin-googlegenai-type`, `plugin-googlegenai`, `plugin-googlegenai-list` |
-| `shoot-tabs` | a **copy** of `22-arcoutline`, discarded | drags *Characters* into a column of its own and *Side Query* under it (the arrangement is saved with the book): `story-editor-tabs` |
+| `shoot-tabs` | a **copy** of `22-arcoutline`, discarded | drags *Side Query* under the other tabs and *Characters* into a column of its own (the arrangement is saved with the book): `story-editor-tabs` |
 | `plugin-instructionexporter`, `plugin-chinese`, `shoot-export` | `21-chaptermarker` | the menu item, the UI in Chinese (the language is reset), `export-result` (PDF page 1 and 2 with `pdftoppm` + `magick`) |
 
 The dev UI maps are not pictures of a flow: `dev-ui-map-*-not-annotated.png` are plain screenshots, and

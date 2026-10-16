@@ -2,6 +2,7 @@
 import {
     bookTab,
     closeDialog,
+    closeRestoredBook,
     dialog,
     dialogRects,
     idle,
@@ -22,6 +23,7 @@ await main(async ({ page }) => {
   const fresh = async () => {
     await page.reload();
     await idle(page, 1500);
+    await closeRestoredBook(page);
     await openBook(page);
     await bookTab(page, 'Story');
     await widenSidebar(page, 700);
