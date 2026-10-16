@@ -40,6 +40,8 @@ Characters without relationships are not in the map.
 
 ![A character with its relationships](../../../manual/images/plugin-charactertracker-dialog.png)
 
+![Cancelling a character with unsaved changes](../../../manual/images/plugin-charactertracker-unsaved.png)
+
 ![The relationship map](../../../manual/images/plugin-charactertracker-map.png)
 
 ![Importing characters from the lorebook](../../../manual/images/plugin-charactertracker-import.png)

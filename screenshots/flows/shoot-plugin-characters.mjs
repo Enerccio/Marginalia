@@ -57,6 +57,25 @@ await main(async ({ page }) => {
     await closeDialog(page);
   });
 
+  await section(page, 'unsaved', async () => {
+    // Cancel with an edited field asks before the changes are thrown away (nothing is saved: the answer is Yes)
+    await fresh();
+    const y = await page.evaluate(() => {
+      const el = [...document.querySelectorAll('*')].find(e => e.children.length === 0 && e.textContent.trim() === 'Harry Potter' && e.getBoundingClientRect().x < 700);
+      const r = el.getBoundingClientRect(); return r.y + r.height / 2;
+    });
+    await page.mouse.click(602, y);
+    await idle(page, 900);
+    const d = page.locator('vaadin-dialog[opened]').last();
+    await d.getByLabel('Tagline', { exact: true }).first().fill('The boy who lived, twice');
+    await d.getByLabel('Tagline', { exact: true }).first().dispatchEvent('change');
+    await d.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await idle(page, 600);
+    await snapDialog(page, 'plugin-charactertracker-unsaved');
+    await page.locator('vaadin-dialog[opened]').last().getByRole('button', { name: 'Yes', exact: true }).click();
+    await idle(page, 500);
+  });
+
   await section(page, 'map', async () => {
     // the map is small in the dialog: a second browser with a 2x pixel ratio gives a readable picture of the graph
     const hi = await launch({ scale: 2 });

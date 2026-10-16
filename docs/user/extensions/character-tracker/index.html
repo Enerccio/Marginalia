@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845462734560">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845465103940">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845462734560" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845465103940" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845462734560" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845465103940" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845462734560" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845465103940" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -262,13 +262,20 @@ smaller letters (two lines at most). The buttons of a character:</p>
     <img src="../../../images/plugin-charactertracker-dialog.png" alt="A character with its relationships" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="640" height="838" />
     <figcaption class="caption">A character with its relationships</figcaption>
 </figure>
+<p>If you press <strong>Cancel</strong> (or Esc) while there are unsaved changes, including a
+relationship you filled in but did not add yet, you are asked whether to discard them.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-charactertracker-unsaved.png" alt="The question when a character with unsaved changes is cancelled" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="509" height="167" />
+    <figcaption class="caption">The question when a character with unsaved changes is cancelled</figcaption>
+</figure>
 <h3 id="relationships">Relationships</h3>
 <p>When you open an existing character, the dialog also lists its relationships: the ones the character points to (<code translate="no" v-pre>→</code>),
 the ones that point to it (<code translate="no" v-pre>←</code>) and the unidirectional ones (<code translate="no" v-pre>↔</code>), each with a name and a tagline. The trash button
 deletes a relationship.</p>
 <p>To add one, search for the other character, choose the <strong>Direction</strong> (<em>this character → other</em>, <em>other → this
 character</em> or <em>both ways</em>), enter a <strong>Name</strong> (e.g. <em>employs</em>, <em>friends</em>) and optionally a <strong>Tagline</strong>, and press <strong>Add
-relationship</strong>. Relationships are saved at once. A new character can get relationships after it has been saved.</p>
+relationship</strong> (the button is above these fields). Relationships are saved at once. A new character can get relationships
+after it has been saved.</p>
 <h2 id="importing-characters-from-the-lorebook">Importing characters from the lorebook</h2>
 <p>If your characters are already in the lorebook, the wand menu creates them for you. <strong>Import lore entries as
 characters</strong> opens a dialog with the entries of the book&#x27;s lorebook and of all its sub lorebooks, sorted by their

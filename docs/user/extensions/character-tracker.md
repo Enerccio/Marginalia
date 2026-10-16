@@ -40,6 +40,11 @@ The fields are applied with **Save**.
 
 ![A character with its relationships](../../images/plugin-charactertracker-dialog.png)
 
+If you press **Cancel** (or Esc) while there are unsaved changes, including a
+relationship you filled in but did not add yet, you are asked whether to discard them.
+
+![The question when a character with unsaved changes is cancelled](../../images/plugin-charactertracker-unsaved.png)
+
 ### Relationships
 
 When you open an existing character, the dialog also lists its relationships: the ones the character points to (`→`),
@@ -48,7 +53,8 @@ deletes a relationship.
 
 To add one, search for the other character, choose the **Direction** (*this character → other*, *other → this
 character* or *both ways*), enter a **Name** (e.g. *employs*, *friends*) and optionally a **Tagline**, and press **Add
-relationship**. Relationships are saved at once. A new character can get relationships after it has been saved.
+relationship** (the button is above these fields). Relationships are saved at once. A new character can get relationships
+after it has been saved.
 
 ## Importing characters from the lorebook
 

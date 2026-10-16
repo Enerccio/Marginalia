@@ -23,12 +23,6 @@ In the review dialog:
 - *Thinking Process* shows the reasoning of [reasoning models](../inference-providers.md#reasoning-models);
 - **Close** closes the dialog.
 
-!!!warning Reopen the book after editing a part
-In the current version, the review dialog can save an older copy of the part: when the part was edited, or got a
-[summary](../books/summaries.md), after the book was opened, opening or generating a review brings back the old text
-and drops the summary. After editing or summarizing a part, close and reopen the book before reviewing it.
-!!!
-
 ## What the model gets
 
 By default the review uses the **same prompt the part was written from** (*Use standard prompt info*): the system
