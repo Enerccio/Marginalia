@@ -40,6 +40,7 @@
 - [Creating lorebooks](https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks.md): Open the Lorebooks tab. The editor shows one lorebook at a time; pick it in the Lorebook field at the top. Lorebooks belong to your account: other users don't see them.
 - [Entries & activation](https://enerccio.github.io/Marginalia/user/lorebooks/entries.md): Each row of the lorebook editor is one entry:
 - [Import & export](https://enerccio.github.io/Marginalia/user/lorebooks/import-export.md): Select the lorebook in the editor and click the export button (file icon, Export Lorebook). The browser downloads lorebook name.json with:
+- [Commands](https://enerccio.github.io/Marginalia/user/commands/index.md): Commands are small actions you run by typing them, instead of clicking through menus. Marginalia itself comes with only a couple of example commands; the real use of the command line is that extensions can add commands of their own, for example to look something up, change the book or start a task.
 
 ### Templates & macros
 
@@ -84,6 +85,12 @@
 - [Domain model](https://enerccio.github.io/Marginalia/developer/domain-model.md): The entities Marginalia stores, how they relate, and the rules every entity follows: identity, ownership, soft delete, extended attributes and cleanup. Entities are in domain/model/ (base classes), domain/model/impl/ and domain/security/model/User.java.
 - [Database & migrations](https://enerccio.github.io/Marginalia/developer/database.md): Marginalia keeps all its data in one SQLite file. The schema is created and upgraded by Flyway migrations, and Hibernate maps the entities onto it but never changes it.
 - [Services](https://enerccio.github.io/Marginalia/developer/services.md): The service layer holds Marginalia's logic: everything the UI does to data goes through a service, and services are the main API extensions use. This page describes how services and repositories are built, how transactions and the current user work, and what each service is for.
+
+### Commands
+
+- [Commands](https://enerccio.github.io/Marginalia/developer/commands/index.md): A command is a named action with typed arguments and a return value, run by name: from the command bar the user types, from code in the application or in an extension, and later by agents (each command carries a description written for a model).
+- [Writing commands](https://enerccio.github.io/Marginalia/developer/commands/writing-commands.md): This page shows how to add commands, in the application and in a plugin. Read Commands first for the model.
+- [The command bar](https://enerccio.github.io/Marginalia/developer/commands/command-bar.md): CommandBar (package ui.components) is the input line for commands, a CompositeHorizontalLayout with a ComboBox and a run button. It is a separate component: it can be placed anywhere (a dialog, a sidebar, a toolbar).
 - [Generation pipeline](https://enerccio.github.io/Marginalia/developer/generation-pipeline.md): How Marginalia turns the instruction panel into a new story part: the steps that build the prompt, how the prompt is fitted into the model's context, how the answer is streamed into the part, and the events extensions can use to change any of it.
 - [Templating & macros](https://enerccio.github.io/Marginalia/developer/templating.md): Every prompt Marginalia sends is rendered from a template: the master template, the user prompt, lorebook entries and the summary prompt. Templates are Handlebars with SillyTavern-compatible macros on top.
 - [User interface](https://enerccio.github.io/Marginalia/developer/ui.md): Marginalia's UI is written in Java with Vaadin Flow 25: the component tree lives on the server, the browser renders it with Vaadin's web components (Lumo theme, dark color scheme) and sends events back over HTTP and a push WebSocket.

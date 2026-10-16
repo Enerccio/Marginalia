@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845505692034">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Commands</title>
+    <meta name="title" content="Commands">
+    <meta name="description" content="A command is a named action with typed arguments and a return value, run by name: from the command bar the user types, from code in the application or in an extension, and later by agents (each command carries a description written for a model).">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/commands/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/commands/">
+    <meta property="og:title" content="Commands">
+    <meta property="og:description" content="A command is a named action with typed arguments and a return value, run by name: from the command bar the user types, from code in the application or in an extension, and later by agents (each command carries a description written for a model).">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/commands/">
+    <meta name="twitter:title" content="Commands">
+    <meta name="twitter:description" content="A command is a named action with typed arguments and a return value, run by name: from the command bar the user types, from code in the application or in an extension, and later by agents (each command carries a description written for a model).">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/commands/index.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../resources/css/retype.css?v=4.6.0.845505692034" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="commands">Commands</h1>
+<p>A <strong>command</strong> is a named action with typed arguments and a return value, run by name: from the
+<a href="command-bar/">command bar</a> the user types, from code in the application or in an extension, and later by agents
+(each command carries a description written for a model). This page explains the model; <a href="writing-commands/">Writing commands</a>
+shows how to write and register a suite, and <a href="command-bar/">The command bar</a> how the UI side works. The user&#x27;s view is
+in the <a href="../../user/commands/">user guide</a>.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    bar[&quot;CommandBar&lt;br/&gt;/name arg arg&quot;] --&gt;|executeLine| svc
+    code[&quot;Application / extension code&quot;] --&gt;|execute, executePositional| svc
+    svc[&quot;CommandService&lt;br/&gt;registry + dispatcher&quot;] --&gt;|overload that fits| suite[&quot;Command suite&lt;br/&gt;@Command methods&quot;]
+    suite --&gt;|&quot;setReturn / fail&quot;| fut[&quot;CompletableFuture&quot;]
+    ext[&quot;Extension&lt;br/&gt;onExtensionLoad&quot;] --&gt;|registerCommands| svc</pre></div>
+<h2 id="concepts">Concepts</h2>
+<retype-table copy-text="| Concept             | What it is                                                                                                                                                                                  |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Suite**           | Any object whose class has methods annotated with `@Command`. Registering the object registers all of them.                                                                                |
+| **Command method**  | `public void name(CommandContext context)`: the only parameter is the context, nothing is returned from the method itself.                                                                  |
+| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents, a `signature`, a return declaration and `async`.   |
+| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and each its own `signature`. One `CommandDefinition` exists per form.          |
+| **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is &quot;any arguments&quot;.    |
+| **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`) and `isTerminated()`. It belongs to one run.                                                      |
+| **Run**             | One call, which returns a `CompletableFuture&lt;Object&gt;` that completes with the value given to `setReturn`.                                                                                  |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Concept</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Suite</strong></td>
+<td>Any object whose class has methods annotated with <code translate="no" v-pre>@Command</code>. Registering the object registers all of them.</td>
+</tr>
+<tr>
+<td><strong>Command method</strong></td>
+<td><code translate="no" v-pre>public void name(CommandContext context)</code>: the only parameter is the context, nothing is returned from the method itself.</td>
+</tr>
+<tr>
+<td><strong>Command</strong></td>
+<td>A name (<code translate="no" v-pre>commandName</code>: letters, digits, <code translate="no" v-pre>_</code>, <code translate="no" v-pre>-</code>, <code translate="no" v-pre>.</code>) with a <code translate="no" v-pre>humanName</code> for the user, a <code translate="no" v-pre>description</code>, an <code translate="no" v-pre>llmDescription</code> for agents, a <code translate="no" v-pre>signature</code>, a return declaration and <code translate="no" v-pre>async</code>.</td>
+</tr>
+<tr>
+<td><strong>Form</strong> (overload)</td>
+<td>Methods of a suite that share a <code translate="no" v-pre>commandName</code> are forms of one command. They must have the same <code translate="no" v-pre>humanName</code> and each its own <code translate="no" v-pre>signature</code>. One <code translate="no" v-pre>CommandDefinition</code> exists per form.</td>
+</tr>
+<tr>
+<td><strong>Signature</strong></td>
+<td><code translate="no" v-pre>@CommandParameterSignature(@CommandParameter(name, type, description), ...)</code>: the arguments of one form. An empty signature is a form without arguments; <code translate="no" v-pre>any = true</code> is &quot;any arguments&quot;.</td>
+</tr>
+<tr>
+<td><strong>Context</strong></td>
+<td><code translate="no" v-pre>CommandContext</code>: the arguments (<code translate="no" v-pre>get</code>, <code translate="no" v-pre>getPositional</code>), the answer (<code translate="no" v-pre>setReturn</code>, <code translate="no" v-pre>fail</code>) and <code translate="no" v-pre>isTerminated()</code>. It belongs to one run.</td>
+</tr>
+<tr>
+<td><strong>Run</strong></td>
+<td>One call, which returns a <code translate="no" v-pre>CompletableFuture&lt;Object&gt;</code> that completes with the value given to <code translate="no" v-pre>setReturn</code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="the-context">The context</h2>
+<p>A command never receives its arguments as Java parameters; it reads them from the context by the names of its signature:</p>
+<retype-table copy-text="| Method                          | Use                                                                                                                                          |
+|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| `get(name)`                     | The value as passed (converted to the parameter's type), `null` if not passed.                                                               |
+| `get(name, type)`               | As `type`; `IllegalArgumentException` when it is not an instance (numbers are converted when they fit).                                      |
+| `getPositional()`               | The arguments in order. For a form that takes any arguments, the objects the caller passed.                                                  |
+| `has(name)`, `getArguments()`   | Whether an argument was passed, and all of them (read only).                                                                                 |
+| `setReturn(value)`              | The answer. A form with `async = false` must call it before its method returns, otherwise the result is `null`. Later calls are ignored.     |
+| `fail(error)`                   | Ends the run with a `CommandException` (for `async` commands that report from another thread; a synchronous command can throw).             |
+| `isTerminated()`                | True when the run is over for the caller: the command answered or failed, or the caller cancelled the future. Never true while a synchronous command runs. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>get(name)</code></td>
+<td>The value as passed (converted to the parameter&#x27;s type), <code translate="no" v-pre>null</code> if not passed.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>get(name, type)</code></td>
+<td>As <code translate="no" v-pre>type</code>; <code translate="no" v-pre>IllegalArgumentException</code> when it is not an instance (numbers are converted when they fit).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getPositional()</code></td>
+<td>The arguments in order. For a form that takes any arguments, the objects the caller passed.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>has(name)</code>, <code translate="no" v-pre>getArguments()</code></td>
+<td>Whether an argument was passed, and all of them (read only).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>setReturn(value)</code></td>
+<td>The answer. A form with <code translate="no" v-pre>async = false</code> must call it before its method returns, otherwise the result is <code translate="no" v-pre>null</code>. Later calls are ignored.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>fail(error)</code></td>
+<td>Ends the run with a <code translate="no" v-pre>CommandException</code> (for <code translate="no" v-pre>async</code> commands that report from another thread; a synchronous command can throw).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>isTerminated()</code></td>
+<td>True when the run is over for the caller: the command answered or failed, or the caller cancelled the future. Never true while a synchronous command runs.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="arguments-and-dispatch">Arguments and dispatch</h2>
+<p>A call names the command and passes the arguments in one of three ways:</p>
+<retype-table copy-text="| Call                              | Arguments                                                                                                               |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `execute(name, Map)`              | By name. The form whose parameter names are exactly the keys is called; a form that takes any arguments gets the map.   |
+| `executePositional(name, List)`   | By position. The form with as many parameters as there are arguments, all convertible, is called.                       |
+| `executeLine(&quot;/name a b&quot;)`        | A command typed as text; the arguments are strings, split by `CommandLine.parse` (see below).                            |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Call</th>
+<th>Arguments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>execute(name, Map)</code></td>
+<td>By name. The form whose parameter names are exactly the keys is called; a form that takes any arguments gets the map.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>executePositional(name, List)</code></td>
+<td>By position. The form with as many parameters as there are arguments, all convertible, is called.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>executeLine(&quot;/name a b&quot;)</code></td>
+<td>A command typed as text; the arguments are strings, split by <code translate="no" v-pre>CommandLine.parse</code> (see below).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>When several forms fit, the closest types win. Each argument costs 0 when it already has the parameter&#x27;s type, 1 for a
+parameter of type <code translate="no" v-pre>Object</code> (&quot;any&quot;), 2 when text or a number has to be converted (to a number, boolean, character or
+enum); a form that takes any arguments costs 1000, so it is the last resort. The form with the lowest total is called,
+ties go to the form that is listed first (declared forms by the number of parameters, then by method name). The
+<code translate="no" v-pre>Object.class</code> parameter is &quot;any&quot;: it takes the argument as it is, including a <code translate="no" v-pre>List</code> of objects, so a command can be
+given a list as one argument.</p>
+<p>Conversions (<code translate="no" v-pre>CommandValues</code>): an instance of the type is passed as it is; a number to another number type when the value
+fits; text to a number, boolean, character or enum constant.</p>
+<h3 id="the-command-line">The command line</h3>
+<p><code translate="no" v-pre>CommandLine.parse(text)</code> splits a command typed as text. The text is a command when it starts with <code translate="no" v-pre>/</code>.</p>
+<ul>
+<li>
+<p>Arguments are separated by spaces; repeated spaces count as one.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>\ </code> is a space inside an argument, <code translate="no" v-pre>\\</code> a backslash and <code translate="no" v-pre>\&quot;</code> a quote.</p>
+</li>
+<li>
+<p>A double quote starts or ends a quoted part in which spaces need no escape. Quotes may start anywhere in an argument
+(<code translate="no" v-pre>a&quot;b c&quot;d</code> is <code translate="no" v-pre>ab cd</code>), <code translate="no" v-pre>&quot;&quot;</code> is an empty argument, a quote that is never closed runs to the end of the text.</p>
+</li>
+<li>
+<p>Any other backslash stays as it is (<code translate="no" v-pre>C:\dir</code> is unchanged).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>trailingSeparator</code> tells whether the text ends with a space that starts a new, still empty argument; with
+<code translate="no" v-pre>typingName()</code> and <code translate="no" v-pre>currentArgument()</code> the help knows what the user is typing. <code translate="no" v-pre>CommandLine.escape(argument)</code> writes an
+argument so that <code translate="no" v-pre>parse</code> reads it back as one argument.</p>
+</li>
+</ul>
+<h2 id="return-values">Return values</h2>
+<p><code translate="no" v-pre>@Command(returns = @CommandReturn(name, type, description))</code> declares what the command returns; the type is a direct
+class reference (<code translate="no" v-pre>String.class</code>, <code translate="no" v-pre>Object.class</code> for &quot;any&quot;, <code translate="no" v-pre>void.class</code> by default). It is documentation for the user and
+for agents (the help shows it); the service does not check the value against it.</p>
+<h2 id="synchronous-and-asynchronous-commands">Synchronous and asynchronous commands</h2>
+<retype-table copy-text="| `async`   | The method runs                                                                                                  | Answer                                                                       |
+|-----------|------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| `false`   | On the thread of the caller; the future is complete when `execute*` returns.                                     | `setReturn` before the method returns, or `null`. A thrown exception fails the future. |
+| `true`    | On a worker thread (a daemon cached pool) with the **request attributes of the caller**, so session-scoped beans resolve. | The future completes with the first `setReturn` or `fail`, from any thread, whenever the command likes. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th><code translate="no" v-pre>async</code></th>
+<th>The method runs</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>false</code></td>
+<td>On the thread of the caller; the future is complete when <code translate="no" v-pre>execute*</code> returns.</td>
+<td><code translate="no" v-pre>setReturn</code> before the method returns, or <code translate="no" v-pre>null</code>. A thrown exception fails the future.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>true</code></td>
+<td>On a worker thread (a daemon cached pool) with the <strong>request attributes of the caller</strong>, so session-scoped beans resolve.</td>
+<td>The future completes with the first <code translate="no" v-pre>setReturn</code> or <code translate="no" v-pre>fail</code>, from any thread, whenever the command likes.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A caller can cancel the future (the <strong>Stop</strong> button of the progress window does). Then <code translate="no" v-pre>isTerminated()</code> becomes true, the
+worker thread is interrupted, and a command that has not started yet does not start. A long-running <code translate="no" v-pre>async</code> command must
+cooperate: look at <code translate="no" v-pre>isTerminated()</code> (and the interrupt flag) between the steps of its work and return at once. What it
+sets afterwards is ignored. <code translate="no" v-pre>/hello-world-async</code> (<code translate="no" v-pre>HelloWorldCommands</code>) is the model of such a loop.</p>
+<h2 id="failures">Failures</h2>
+<p>A future fails with:</p>
+<ul>
+<li><code translate="no" v-pre>CommandException</code> when the command throws or calls <code translate="no" v-pre>fail</code> (the cause is the original error),</li>
+<li><code translate="no" v-pre>IllegalArgumentException</code> when there is no command of that name, no form fits the arguments, or the text for
+<code translate="no" v-pre>executeLine</code> does not start with <code translate="no" v-pre>/</code>.</li>
+</ul>
+<h2 id="registration">Registration</h2>
+<p><code translate="no" v-pre>registerCommands(Object suite)</code> validates the whole suite and registers all of it or nothing, and throws
+<code translate="no" v-pre>IllegalArgumentException</code> for: a class without a <code translate="no" v-pre>@Command</code> method; a command method that is not <code translate="no" v-pre>public void</code> with a
+<code translate="no" v-pre>CommandContext</code> as the only parameter; a name with characters other than letters, digits, <code translate="no" v-pre>_</code>, <code translate="no" v-pre>-</code>, <code translate="no" v-pre>.</code>; two forms
+with the same signature; forms with different <code translate="no" v-pre>humanName</code>; a signature that is also <code translate="no" v-pre>any</code>; a duplicate parameter name; a
+name another object already holds. It returns the <code translate="no" v-pre>CommandDefinition</code>s. Registering the same object again does nothing.</p>
+<p><code translate="no" v-pre>unregisterCommands(Object suite)</code> removes the suite, <code translate="no" v-pre>unregisterCommand(String)</code> one command with all its forms. The
+service does not know which bundle a suite came from: <strong>an extension unregisters its suites in <code translate="no" v-pre>onExtensionUnload</code></strong>.
+Runs in progress are not interrupted by unregistering.</p>
+<p>The application registers its own suites in <code translate="no" v-pre>CommandServiceImpl.afterPropertiesSet</code> (today <code translate="no" v-pre>HelloWorldCommands</code>).</p>
+<h2 id="statelessness">Statelessness</h2>
+<p>A suite is one object shared by all users and runs in parallel, so it must be <strong>stateless</strong>: no fields that hold what a
+run or a user did. What a command needs to know about the current state it reads when it runs:</p>
+<ul>
+<li>from the services, which resolve the current user and check ownership (<code translate="no" v-pre>ManuscriptService</code>, and so on),</li>
+<li>from the session-scoped <code translate="no" v-pre>SessionPoint</code> (<code translate="no" v-pre>getLanguage()</code>, <code translate="no" v-pre>getWorkspace()</code>), through <code translate="no" v-pre>CommandUtils</code>.</li>
+</ul>
+<p><code translate="no" v-pre>CommandUtils</code> (package <code translate="no" v-pre>utils</code>) reads the session of the caller – also on the worker thread of an <code translate="no" v-pre>async</code> command, which
+gets the request attributes – and returns <code translate="no" v-pre>null</code> when there is nothing to return (no session, no workspace yet, no book
+open), so a command checks its results:</p>
+<retype-table copy-text="| Method                    | Returns                                                                       |
+|---------------------------|-------------------------------------------------------------------------------|
+| `getSessionPoint()`       | The `SessionPoint` of the session.                                            |
+| `getWorkspace()`          | The user's `Workspace` (desktop or phone).                                    |
+| `getManuscriptSection()`  | The part of the workspace that holds book windows (`ManuscriptSection`).      |
+| `getManuscriptWindow()`   | The open book window (`ManuscriptWindow`, the same interface on the desktop and the phone). |
+| `getCurrentManuscript()`  | The open book (`Manuscript`).                                                 |
+| `getCurrentAI()`          | The AI of the open book.                                                      |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>getSessionPoint()</code></td>
+<td>The <code translate="no" v-pre>SessionPoint</code> of the session.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getWorkspace()</code></td>
+<td>The user&#x27;s <code translate="no" v-pre>Workspace</code> (desktop or phone).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getManuscriptSection()</code></td>
+<td>The part of the workspace that holds book windows (<code translate="no" v-pre>ManuscriptSection</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getManuscriptWindow()</code></td>
+<td>The open book window (<code translate="no" v-pre>ManuscriptWindow</code>, the same interface on the desktop and the phone).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getCurrentManuscript()</code></td>
+<td>The open book (<code translate="no" v-pre>Manuscript</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getCurrentAI()</code></td>
+<td>The AI of the open book.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>A command that changes the UI does it on the UI thread: from a synchronous command that is the calling thread, from an
+<code translate="no" v-pre>async</code> one use <code translate="no" v-pre>ui.access(...)</code> (see <a href="../plugins/ui-extensions/#threads">UI extensions → Threads</a>).</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../developer/services/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Services</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../developer/commands/writing-commands/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Writing commands</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Commands", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/commands/index.md" }</script>
+</body>
+</html>

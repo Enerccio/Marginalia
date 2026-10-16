@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845505692034">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=4.6.0.845505692034" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -204,7 +204,9 @@ Before every part Marginalia builds the prompt for the model from:</p>
 | **Inference provider** | The connection to a model: API address, API key, model and its limits.                                                                                                 | [Inference providers](inference-providers.md)             |
 | **Protocol**           | Generation settings: temperature, top P, penalties and optional limits. The provider says *which* model writes, the protocol *how*.                                    | [Protocols](protocols.md)                                 |
 | **Tag**                | A label on books and lorebooks; tags also decide which lorebook entries a book uses.                                                                                   | [Managing books](books/managing-books.md)                 |
-| **Extension**          | A plugin that adds features, such as chapter markers or AI reviews.                                                                                                    | [Extensions](extensions/index.md)                         |">
+| **Extension**          | A plugin that adds features, such as chapter markers or AI reviews.                                                                                                    | [Extensions](extensions/index.md)                         |
+| [Commands](commands/index.md)                 | The command line next to the story menu: running commands, writing arguments, stopping a long command. |
+| **Command**            | A small action you run by typing `/name` in the command line next to the story menu; extensions add their own.                                                         | [Commands](commands/index.md)                             |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -269,6 +271,16 @@ Before every part Marginalia builds the prompt for the model from:</p>
 <td><strong>Extension</strong></td>
 <td>A plugin that adds features, such as chapter markers or AI reviews.</td>
 <td><a href="extensions/">Extensions</a></td>
+</tr>
+<tr>
+<td><a href="commands/">Commands</a></td>
+<td>The command line next to the story menu: running commands, writing arguments, stopping a long command.</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>Command</strong></td>
+<td>A small action you run by typing <code translate="no" v-pre>/name</code> in the command line next to the story menu; extensions add their own.</td>
+<td><a href="commands/">Commands</a></td>
 </tr>
 </tbody>
 </table>

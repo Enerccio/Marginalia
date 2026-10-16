@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845494342077">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845505692034">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845494342077" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845505692034" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845494342077" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845494342077" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845505692034" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -439,8 +439,21 @@ action columns of their desktop lists with a text column (<em>Type:</em> and <em
 <code translate="no" v-pre>PhoneSettingsPart</code> extends <code translate="no" v-pre>UserPart</code> (so the extension settings panels that decorate <code translate="no" v-pre>UserPart.refresh</code>/<code translate="no" v-pre>save</code> keep
 working) and only overrides <code translate="no" v-pre>createHeader()</code>: the title, the unsaved changes hint and the <em>Discard</em>/<em>Save</em> buttons are
 stacked, and <em>Import backup as new book</em> is left out. The other parts are the desktop ones.</p>
+<p>Code that must not care which layout the user has works with the common interfaces: <code translate="no" v-pre>ManuscriptWindow</code> (package <code translate="no" v-pre>ui.dialogs</code>, implemented
+by <code translate="no" v-pre>ManuscriptDialog</code> and <code translate="no" v-pre>PhoneManuscriptDialog</code>: the book, its model, open/close, the story tab, the state callbacks, <code translate="no" v-pre>asDialog()</code>),
+<code translate="no" v-pre>ManuscriptSection</code> (package <code translate="no" v-pre>ui.workspace</code>, implemented by <code translate="no" v-pre>ManuscriptPart</code> and <code translate="no" v-pre>PhoneManuscriptPart</code>: <code translate="no" v-pre>getOpenWindow()</code>, the window of
+the book that is open or <code translate="no" v-pre>null</code>) and <code translate="no" v-pre>Workspace.getManuscriptSection()</code> / <code translate="no" v-pre>getOpenManuscriptWindow()</code>. The session&#x27;s <code translate="no" v-pre>SessionPoint</code> holds the
+workspace, and <code translate="no" v-pre>CommandUtils</code> (package <code translate="no" v-pre>utils</code>) reads it for commands: <code translate="no" v-pre>getWorkspace()</code>, <code translate="no" v-pre>getManuscriptSection()</code>, <code translate="no" v-pre>getManuscriptWindow()</code>,
+<code translate="no" v-pre>getCurrentManuscript()</code> and <code translate="no" v-pre>getCurrentAI()</code> return <code translate="no" v-pre>null</code> when there is no session, workspace or open book.</p>
+<p><strong>Command bar</strong> (see <a href="../commands/command-bar/">The command bar</a>). <code translate="no" v-pre>CommandBar</code> (package <code translate="no" v-pre>ui.components</code>, a <code translate="no" v-pre>Composite</code>) is the input line for the commands of <code translate="no" v-pre>CommandService</code>, to be placed anywhere:
+a <code translate="no" v-pre>ComboBox</code> with custom values, where the user types <code translate="no" v-pre>/name arg arg</code>, plus a run button. The list is filled lazily from the registry (<code translate="no" v-pre>CommandHelp.matchingNames</code>),
+the help is a <code translate="no" v-pre>Popover</code> above the bar (it covers what is above and moves nothing in the layout), rebuilt as the text changes (description, the forms that fit, the next parameter highlighted, the return value, &quot;too many arguments&quot;); it opens for the arguments, for text that is not a command and for a name nothing matches, and while the name is typed the list (with the descriptions) is the help;
+picking a command writes <code translate="no" v-pre>/name </code> into the field, or runs it when it takes no arguments. The bar shows no results: it hands them to its
+<code translate="no" v-pre>CommandResultTarget</code> (<code translate="no" v-pre>setResultTarget</code>), an interface (<code translate="no" v-pre>onCommandResult</code>, and <code translate="no" v-pre>clearCommandResult</code> when the user types or runs something else) that each place implements as it needs; the story tab (<code translate="no" v-pre>ManuscriptStoryPart.createCommandBox()</code>, next to
+the menu bar) uses <code translate="no" v-pre>CommandResultView</code>, a popover above the bar with a close button, and other places can consume the value differently. An <code translate="no" v-pre>async</code> command opens
+<code translate="no" v-pre>CommandProgressDialog</code> (modal, Stop cancels the future); failures and stops are shown by the bar. Not on the phone story tab yet.</p>
 <p>Opening a book on a phone shows the <code translate="no" v-pre>PhoneManuscriptDialog</code> (package <code translate="no" v-pre>ui.dialogs.phone</code>) instead of <code translate="no" v-pre>ManuscriptDialog</code>;
-<code translate="no" v-pre>NewBookAction(onClose, true)</code> opens it after <em>Add Book</em>. It is a separate class, not a subclass, so extensions know
+<em>Add Book</em> (<code translate="no" v-pre>NewBookAction</code>) creates the book and hands it to <code translate="no" v-pre>openManuscript</code> of the list, which opens the window of its layout and remembers it. It is a separate class, not a subclass, so extensions know
 which dialog they decorate (decorators of <code translate="no" v-pre>ManuscriptDialog</code> and the desktop parts do not run on a phone). It fills the
 screen (the <code translate="no" v-pre>phone-dialog</code> class), the exit button is an icon in the header and the tabs are one scrolling <code translate="no" v-pre>Tabs</code> row
 above the content of the selected tab. Every tab is a <code translate="no" v-pre>PhoneManuscriptDialogPart</code> of <code translate="no" v-pre>ui.dialogs.phone.manuscript</code>
@@ -602,7 +615,7 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 <code translate="no" v-pre>createCogsMenuItem</code>, the card&#x27;s <code translate="no" v-pre>createMenuItems</code>, <code translate="no" v-pre>refreshSummaryMenuItems</code>, <code translate="no" v-pre>autosaveAndSwapToMarkdown</code>):</p>
 <retype-table copy-text="| Class | Does |
 |---|---|
-| `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it. |
+| `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it (through `ManuscriptWindow`). |
 | `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave). |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
 | `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |
@@ -618,7 +631,7 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 <tbody>
 <tr>
 <td><code translate="no" v-pre>StoryHost</code></td>
-<td>What a story tab needs from its dialog (<code translate="no" v-pre>refreshManuscript</code>, <code translate="no" v-pre>save</code>, <code translate="no" v-pre>freeze</code>, <code translate="no" v-pre>unfreeze</code>); <code translate="no" v-pre>ManuscriptDialog</code> and <code translate="no" v-pre>PhoneManuscriptDialog</code> implement it.</td>
+<td>What a story tab needs from its dialog (<code translate="no" v-pre>refreshManuscript</code>, <code translate="no" v-pre>save</code>, <code translate="no" v-pre>freeze</code>, <code translate="no" v-pre>unfreeze</code>); <code translate="no" v-pre>ManuscriptDialog</code> and <code translate="no" v-pre>PhoneManuscriptDialog</code> implement it (through <code translate="no" v-pre>ManuscriptWindow</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>StoryCard</code>, <code translate="no" v-pre>StoryCards</code></td>

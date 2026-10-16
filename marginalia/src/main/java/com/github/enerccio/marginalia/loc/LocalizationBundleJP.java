@@ -352,6 +352,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_RESET_TO_DEFAULT, "デフォルトに戻す");
         setValue(L.LABEL_HELP_INTERACTIONS, "インターフェースの操作を許可する");
         setValue(L.LABEL_HELP_ADMIN_DATA, "管理データの読み取りを許可する");
+        setValue(L.LABEL_COMMAND_PLACEHOLDER, "/ でコマンドを入力");
+        setValue(L.LABEL_RUN_COMMAND, "コマンドを実行");
+        setValue(L.LABEL_COMMAND_RUNNING, "%s を実行中");
+        setValue(L.LABEL_COMMAND_RESULT, "%s の結果");
+        setValue(L.LABEL_COMMAND_NO_RESULT, "完了しました。コマンドは何も返しませんでした");
+        setValue(L.LABEL_COMMAND_RETURNS, "戻り値");
+        setValue(L.LABEL_COMMAND_NO_ARGUMENTS, "引数なし");
+        setValue(L.LABEL_COMMAND_ANY_ARGUMENTS, "任意の引数");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -440,6 +448,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "送信トークンと生成トークンの上限の合計が合計の上限に満たないため、合計の上限には到達しません。");
         setValue(L.ERROR_LIMIT_USER_REQUIRED, "ユーザーを選択してください。");
         setValue(L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE, "この AI を提供する拡張機能が読み込まれていません。管理 → 拡張機能 で読み込むか、別の AI を選択してください。");
+        setValue(L.ERROR_COMMAND_NEEDS_SLASH, "コマンドは /hello-world のようにスラッシュで始まります");
+        setValue(L.ERROR_COMMAND_UNKNOWN, "コマンド %s はありません");
+        setValue(L.ERROR_COMMAND_ARGUMENTS, "コマンド %s はこれらの引数を受け付けません");
+        setValue(L.ERROR_COMMAND_FAILED, "コマンド %s は失敗しました：%s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -540,6 +552,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_HELP_ANSWERING_WITH, "回答モデル：%s");
         setValue(L.MSG_HELP_LIMITS_APPLY, "このモデルでのあなたの制限が適用されます。質問は使用量に計上され、上限に達すると拒否されることがあります。");
         setValue(L.MSG_HELP_WELCOME, "Marginaliaの使い方を質問してください。回答はマニュアルに基づきますが、AIが作成しているため誤りを含む場合があります。");
+        setValue(L.MSG_COMMAND_STOPPED, "コマンド %s を停止しました");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -558,6 +571,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_ASSISTANT_PROMPT, "質問ごとにモデルへ渡される指示です。{{manualIndex}} はマニュアルのページ一覧に置き換えられます。空、またはデフォルトと同じ内容の場合はデフォルトとして扱われ、新しいバージョンの変更に追従します。");
         setValue(L.HELP_ASSISTANT_INTERACTIONS, "ユーザーが場所を案内してほしいと頼んだとき、アシスタントはインターフェース内を移動できます（セクションを開く、タブを選択する、追加用のダイアログを開く（開くだけで、何も作成されません））。それ以外はできません：他のボタンの操作、入力、保存、削除、生成は行えません。モデルには、画面上の要素の名前とその操作可能な内容も渡されます。");
         setValue(L.HELP_ASSISTANT_ADMIN_DATA, "アシスタントは、尋ねた管理者に対して管理ページのデータを読み取れます：拡張機能の状態とそのログ、データベースのバックアップ、クリーンアップで削除される内容、ユーザー数（名前は含まれません）。これらはアシスタントのモデルに送信され、モデルは外部プロバイダーの場合があります。ログには拡張機能が書き込んだテキストが含まれることがあります。他のユーザーには提供されません。何も変更できません。");
+        setValue(L.HELP_COMMAND_TYPE_SLASH, "/ とコマンド名を入力します。引数はスペースで区切ります。引数に含まれるスペースやバックスラッシュの前には \\ を付けます。引数を \"二重引用符\" で囲むこともできます。");
+        setValue(L.HELP_COMMAND_NO_MATCH, "一致するコマンドはありません。");
+        setValue(L.HELP_COMMAND_TOO_MANY_ARGUMENTS, "コマンドが受け付ける数より多い引数です。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

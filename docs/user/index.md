@@ -42,6 +42,8 @@ Everything in this picture can be adjusted, and the user guide is organized alon
 | **Protocol**           | Generation settings: temperature, top P, penalties and optional limits. The provider says *which* model writes, the protocol *how*.                                    | [Protocols](protocols.md)                                 |
 | **Tag**                | A label on books and lorebooks; tags also decide which lorebook entries a book uses.                                                                                   | [Managing books](books/managing-books.md)                 |
 | **Extension**          | A plugin that adds features, such as chapter markers or AI reviews.                                                                                                    | [Extensions](extensions/index.md)                         |
+| [Commands](commands/index.md)                 | The command line next to the story menu: running commands, writing arguments, stopping a long command. |
+| **Command**            | A small action you run by typing `/name` in the command line next to the story menu; extensions add their own.                                                         | [Commands](commands/index.md)                             |
 
 Everything you create belongs to your account. Other users of the same Marginalia don't see your books, lorebooks,
 providers or settings - only books you choose to [publish](books/publishing.md).

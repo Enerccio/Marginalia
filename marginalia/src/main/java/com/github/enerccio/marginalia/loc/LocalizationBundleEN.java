@@ -352,6 +352,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_RESET_TO_DEFAULT, "Reset to default");
         setValue(L.LABEL_HELP_INTERACTIONS, "Allow navigating the interface");
         setValue(L.LABEL_HELP_ADMIN_DATA, "Allow reading administration data");
+        setValue(L.LABEL_COMMAND_PLACEHOLDER, "Type / for commands");
+        setValue(L.LABEL_RUN_COMMAND, "Run command");
+        setValue(L.LABEL_COMMAND_RUNNING, "Running %s");
+        setValue(L.LABEL_COMMAND_RESULT, "Result of %s");
+        setValue(L.LABEL_COMMAND_NO_RESULT, "Done, the command returned nothing");
+        setValue(L.LABEL_COMMAND_RETURNS, "Returns");
+        setValue(L.LABEL_COMMAND_NO_ARGUMENTS, "no arguments");
+        setValue(L.LABEL_COMMAND_ANY_ARGUMENTS, "any arguments");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -440,6 +448,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "The limits of tokens sent and tokens generated add up to less than the limit in total, so the total would never be reached.");
         setValue(L.ERROR_LIMIT_USER_REQUIRED, "Choose a user.");
         setValue(L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE, "The extension that provides this AI is not loaded. Load it in Admin → Extensions or pick another AI.");
+        setValue(L.ERROR_COMMAND_NEEDS_SLASH, "A command starts with a slash, like /hello-world");
+        setValue(L.ERROR_COMMAND_UNKNOWN, "There is no command %s");
+        setValue(L.ERROR_COMMAND_ARGUMENTS, "The command %s does not take these arguments");
+        setValue(L.ERROR_COMMAND_FAILED, "The command %s failed: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -540,6 +552,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_HELP_ANSWERING_WITH, "Answering with %s");
         setValue(L.MSG_HELP_LIMITS_APPLY, "Your limit on this model applies: your questions count against your usage and can be refused when it is reached.");
         setValue(L.MSG_HELP_WELCOME, "Ask how something works in Marginalia. Answers come from the manual, but an AI wrote them and can still be wrong.");
+        setValue(L.MSG_COMMAND_STOPPED, "The command %s was stopped");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -558,6 +571,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_ASSISTANT_PROMPT, "The instructions the model gets with every question. {{manualIndex}} is replaced by the list of the pages of the manual. A prompt that is empty or the same as the default is the default, so it follows the changes of a new version.");
         setValue(L.HELP_ASSISTANT_INTERACTIONS, "The assistant may move through the interface when a user asks it to show them something: open a section, select a tab or open the dialog to add something (it only opens, nothing is created). Nothing else: it can not press other buttons, type, save, delete or generate anything. The model also gets the names of the elements on the screen with what they offer.");
         setValue(L.HELP_ASSISTANT_ADMIN_DATA, "The assistant may read the data of the Admin page for an administrator who asks it: the state of the extensions and their logs, the database backups, what a cleanup would remove, how many users there are (no names). It is sent to the model of the assistant, which may be an external provider, and logs can contain text that extensions wrote. Never for other users. It cannot change anything.");
+        setValue(L.HELP_COMMAND_TYPE_SLASH, "Type / and the name of a command. Separate arguments with spaces; put \\ before a space or a backslash that belongs to an argument, or wrap the argument in \"double quotes\".");
+        setValue(L.HELP_COMMAND_NO_MATCH, "No command matches.");
+        setValue(L.HELP_COMMAND_TOO_MANY_ARGUMENTS, "More arguments than the command takes.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

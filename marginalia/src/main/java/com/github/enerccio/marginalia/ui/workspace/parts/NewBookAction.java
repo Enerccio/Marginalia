@@ -10,16 +10,16 @@ import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
-import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
+import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 /**
- * Asks for a name, creates a book with the user's default model and protocol and opens it in the book dialog.
- * Shared by the book lists of the desktop and phone workspaces (the phone one opens the phone book dialog).
+ * Asks for a name, creates a book with the user's default model and protocol and hands it to the book list to open,
+ * so that the list knows which book window is open ({@link ManuscriptSection#getOpenWindow()}). Shared by the book
+ * lists of the desktop and phone workspaces, each opens its own kind of window.
  */
 @Configurable
 public class NewBookAction {
@@ -39,23 +39,21 @@ public class NewBookAction {
     @Autowired
     private ProtocolService protocolService;
 
-    private final Runnable onClose;
-    private final boolean phone;
+    private final Opener opener;
 
     /**
-     * @param onClose called when the book dialog is closed
+     * What opens the new book in the window of the list.
      */
-    public NewBookAction(Runnable onClose) {
-        this(onClose, false);
+    @FunctionalInterface
+    public interface Opener {
+        void open(Manuscript manuscript) throws Exception;
     }
 
     /**
-     * @param onClose called when the book dialog is closed
-     * @param phone   opens the {@link PhoneManuscriptDialog} instead of the {@link ManuscriptDialog}
+     * @param opener opens the created book, the way the list opens a book from its rows
      */
-    public NewBookAction(Runnable onClose, boolean phone) {
-        this.onClose = onClose;
-        this.phone = phone;
+    public NewBookAction(Opener opener) {
+        this.opener = opener;
     }
 
     public void run() {
@@ -81,18 +79,7 @@ public class NewBookAction {
                 }
 
                 manuscript = manuscriptService.save(manuscript);
-                manuscriptService.markOpened(manuscript);
-                if (phone) {
-                    PhoneManuscriptDialog manuscriptDialog = new PhoneManuscriptDialog(manuscript);
-                    manuscriptDialog.setOnClose(onClose);
-                    manuscriptDialog.create();
-                    manuscriptDialog.open();
-                } else {
-                    ManuscriptDialog manuscriptDialog = new ManuscriptDialog(manuscript);
-                    manuscriptDialog.setOnClose(onClose);
-                    manuscriptDialog.create();
-                    manuscriptDialog.open();
-                }
+                opener.open(manuscript);
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }

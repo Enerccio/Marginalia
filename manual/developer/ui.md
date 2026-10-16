@@ -172,8 +172,23 @@ action columns of their desktop lists with a text column (*Type:* and *Name:* on
 working) and only overrides `createHeader()`: the title, the unsaved changes hint and the *Discard*/*Save* buttons are
 stacked, and *Import backup as new book* is left out. The other parts are the desktop ones.
 
+Code that must not care which layout the user has works with the common interfaces: `ManuscriptWindow` (package `ui.dialogs`, implemented
+by `ManuscriptDialog` and `PhoneManuscriptDialog`: the book, its model, open/close, the story tab, the state callbacks, `asDialog()`),
+`ManuscriptSection` (package `ui.workspace`, implemented by `ManuscriptPart` and `PhoneManuscriptPart`: `getOpenWindow()`, the window of
+the book that is open or `null`) and `Workspace.getManuscriptSection()` / `getOpenManuscriptWindow()`. The session's `SessionPoint` holds the
+workspace, and `CommandUtils` (package `utils`) reads it for commands: `getWorkspace()`, `getManuscriptSection()`, `getManuscriptWindow()`,
+`getCurrentManuscript()` and `getCurrentAI()` return `null` when there is no session, workspace or open book.
+
+**Command bar** (see [The command bar](commands/command-bar.md)). `CommandBar` (package `ui.components`, a `Composite`) is the input line for the commands of `CommandService`, to be placed anywhere:
+a `ComboBox` with custom values, where the user types `/name arg arg`, plus a run button. The list is filled lazily from the registry (`CommandHelp.matchingNames`),
+the help is a `Popover` above the bar (it covers what is above and moves nothing in the layout), rebuilt as the text changes (description, the forms that fit, the next parameter highlighted, the return value, "too many arguments"); it opens for the arguments, for text that is not a command and for a name nothing matches, and while the name is typed the list (with the descriptions) is the help;
+picking a command writes `/name ` into the field, or runs it when it takes no arguments. The bar shows no results: it hands them to its
+`CommandResultTarget` (`setResultTarget`), an interface (`onCommandResult`, and `clearCommandResult` when the user types or runs something else) that each place implements as it needs; the story tab (`ManuscriptStoryPart.createCommandBox()`, next to
+the menu bar) uses `CommandResultView`, a popover above the bar with a close button, and other places can consume the value differently. An `async` command opens
+`CommandProgressDialog` (modal, Stop cancels the future); failures and stops are shown by the bar. Not on the phone story tab yet.
+
 Opening a book on a phone shows the `PhoneManuscriptDialog` (package `ui.dialogs.phone`) instead of `ManuscriptDialog`;
-`NewBookAction(onClose, true)` opens it after *Add Book*. It is a separate class, not a subclass, so extensions know
+*Add Book* (`NewBookAction`) creates the book and hands it to `openManuscript` of the list, which opens the window of its layout and remembers it. It is a separate class, not a subclass, so extensions know
 which dialog they decorate (decorators of `ManuscriptDialog` and the desktop parts do not run on a phone). It fills the
 screen (the `phone-dialog` class), the exit button is an icon in the header and the tabs are one scrolling `Tabs` row
 above the content of the selected tab. Every tab is a `PhoneManuscriptDialogPart` of `ui.dialogs.phone.manuscript`
@@ -290,7 +305,7 @@ their layout and the methods extensions decorate (`renderStoryContent`, `createS
 
 | Class | Does |
 |---|---|
-| `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it. |
+| `StoryHost` | What a story tab needs from its dialog (`refreshManuscript`, `save`, `freeze`, `unfreeze`); `ManuscriptDialog` and `PhoneManuscriptDialog` implement it (through `ManuscriptWindow`). |
 | `StoryCard`, `StoryCards` | The card interface both `ChatMessageCard` classes implement, and the registry of the cards of the branch and the streaming one (opened reasonings, last flags, freezing, autosave). |
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
 | `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. |

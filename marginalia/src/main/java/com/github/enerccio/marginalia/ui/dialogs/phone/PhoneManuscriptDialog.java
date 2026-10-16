@@ -1,7 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs.phone;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -11,10 +9,11 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.Restorable;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.*;
-import com.github.enerccio.marginalia.ui.dialogs.story.StoryHost;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
@@ -41,7 +40,7 @@ import java.util.*;
  */
 @Configurable
 @Extendable
-public class PhoneManuscriptDialog extends Dialog implements StoryHost, Restorable, LLMInteract {
+public class PhoneManuscriptDialog extends Dialog implements ManuscriptWindow {
 
     @Autowired
     protected Localization loc;

@@ -796,3 +796,59 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     padding: var(--lumo-space-s);
     border-top: 1px solid var(--lumo-contrast-10pct);
 }
+
+/* Commands (ui.components.CommandBar, CommandResultView) */
+.command-box {
+    flex: 1 1 40%;
+    min-width: 12em;
+    margin-right: var(--lumo-space-s);
+}
+
+.command-bar vaadin-combo-box {
+    min-width: 0;
+}
+
+/* the help and the result are popovers above the bar */
+.command-help {
+    box-sizing: border-box;
+    max-width: 36em;
+    font-size: var(--lumo-font-size-s);
+    overflow-wrap: anywhere;
+}
+
+.command-help-usage {
+    font-family: var(--lumo-font-family-monospace, monospace);
+}
+
+.command-help-current {
+    font-weight: bold;
+    color: var(--lumo-primary-text-color);
+}
+
+.command-help-error {
+    color: var(--lumo-error-text-color);
+}
+
+.command-item-name {
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-weight: bold;
+}
+
+.command-item-description {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.command-result {
+    box-sizing: border-box;
+    max-width: 36em;
+    min-width: 16em;
+    font-size: var(--lumo-font-size-s);
+}
+
+.command-result-text {
+    max-height: 10em;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}

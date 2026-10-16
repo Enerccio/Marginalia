@@ -13,6 +13,8 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.RestorableState;
+import com.github.enerccio.marginalia.ui.components.CommandBar;
+import com.github.enerccio.marginalia.ui.components.CommandResultView;
 import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
@@ -103,6 +105,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
     private LorebookPreview lorebookPreview;
 
     private MenuBar menuBar;
+    private CommandBar commandBar;
+    private CommandResultView commandResultView;
     private MenuItem summariesMenuItem;
     private MenuItem cogsMenuItem;
     private MenuItem changeStyles;
@@ -217,9 +221,25 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         layout.add(menuBar);
         layout.setFlexGrow(1, menuBar);
+        layout.add(createCommandBox());
         layout.add(actionButton);
 
         return layout;
+    }
+
+    /**
+     * The command line next to the menu. The story tab is the place that shows the results: the bar only hands them to
+     * its result target, here a popover above the bar (like the help of the bar) that moves nothing in the layout.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = Component.class))
+    private Component createCommandBox() {
+        commandBar = new CommandBar();
+        commandBar.addClassName(CssStyles.COMMAND_BOX);
+        commandResultView = new CommandResultView();
+        commandResultView.create(commandBar);
+        commandBar.setResultTarget(commandResultView);
+        return commandBar;
     }
 
     /**
@@ -635,6 +655,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart {
 
         leftMarginLayout.setEnabled(!frozen);
         menuBar.setEnabled(!frozen);
+        commandBar.setEnabled(!frozen);
 
         cards.setFrozen(frozen);
 

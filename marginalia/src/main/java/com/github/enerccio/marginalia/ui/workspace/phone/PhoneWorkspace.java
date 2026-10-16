@@ -1,7 +1,5 @@
 package com.github.enerccio.marginalia.ui.workspace.phone;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -9,15 +7,13 @@ import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.InvalidExtensionsWarning;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
-import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
-import com.github.enerccio.marginalia.ui.workspace.Workspace;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceAutosave;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
+import com.github.enerccio.marginalia.ui.workspace.*;
 import com.github.enerccio.marginalia.ui.workspace.parts.ResourcesPart;
 import com.github.enerccio.marginalia.ui.workspace.phone.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -33,11 +29,7 @@ import com.vaadin.flow.component.tabs.Tabs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Workspace for phones. The vertical tab sheet of {@link DesktopWorkspace} would take most of the screen, so the
@@ -315,6 +307,13 @@ public class PhoneWorkspace implements Workspace {
     @Override
     public boolean isNavigationLocked() {
         return navigationLocked;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ManuscriptSection.class))
+    @Override
+    public ManuscriptSection getManuscriptSection() {
+        return manuscriptPart;
     }
 
     @PublicAPI(from = "1.1.0",

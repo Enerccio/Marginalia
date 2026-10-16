@@ -120,6 +120,18 @@ public final class CssStyles {
     public static final String HELP_MESSAGE_ERROR = "help-message-error";
     public static final String HELP_INPUT = "help-input";
 
+    // --- Commands (ui.components.CommandBar, CommandResultView) ---
+    public static final String COMMAND_BOX = "command-box";
+    public static final String COMMAND_BAR = "command-bar";
+    public static final String COMMAND_HELP = "command-help";
+    public static final String COMMAND_HELP_USAGE = "command-help-usage";
+    public static final String COMMAND_HELP_CURRENT = "command-help-current";
+    public static final String COMMAND_HELP_ERROR = "command-help-error";
+    public static final String COMMAND_ITEM_NAME = "command-item-name";
+    public static final String COMMAND_ITEM_DESCRIPTION = "command-item-description";
+    public static final String COMMAND_RESULT = "command-result";
+    public static final String COMMAND_RESULT_TEXT = "command-result-text";
+
     private CssStyles() {
     }
 

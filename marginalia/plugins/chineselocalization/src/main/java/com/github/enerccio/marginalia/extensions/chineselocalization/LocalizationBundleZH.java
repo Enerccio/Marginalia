@@ -360,6 +360,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_RESET_TO_DEFAULT, "恢复默认");
         setValue(L.LABEL_HELP_INTERACTIONS, "允许操作界面导航");
         setValue(L.LABEL_HELP_ADMIN_DATA, "允许读取管理数据");
+        setValue(L.LABEL_COMMAND_PLACEHOLDER, "输入 / 使用命令");
+        setValue(L.LABEL_RUN_COMMAND, "运行命令");
+        setValue(L.LABEL_COMMAND_RUNNING, "正在运行 %s");
+        setValue(L.LABEL_COMMAND_RESULT, "%s 的结果");
+        setValue(L.LABEL_COMMAND_NO_RESULT, "已完成，命令没有返回值");
+        setValue(L.LABEL_COMMAND_RETURNS, "返回");
+        setValue(L.LABEL_COMMAND_NO_ARGUMENTS, "无参数");
+        setValue(L.LABEL_COMMAND_ANY_ARGUMENTS, "任意参数");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -448,6 +456,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_LIMIT_TOTAL_UNREACHABLE, "发送令牌与生成令牌的上限之和小于总上限，总上限永远不会达到。");
         setValue(L.ERROR_LIMIT_USER_REQUIRED, "请选择用户。");
         setValue(L.ERROR_INFERENCE_EXTENSION_UNAVAILABLE, "提供此 AI 的扩展未加载。请在“管理 → 扩展”中加载它，或选择其他 AI。");
+        setValue(L.ERROR_COMMAND_NEEDS_SLASH, "命令以斜杠开头，例如 /hello-world");
+        setValue(L.ERROR_COMMAND_UNKNOWN, "没有命令 %s");
+        setValue(L.ERROR_COMMAND_ARGUMENTS, "命令 %s 不接受这些参数");
+        setValue(L.ERROR_COMMAND_FAILED, "命令 %s 失败：%s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -548,6 +560,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_HELP_ANSWERING_WITH, "回答模型：%s");
         setValue(L.MSG_HELP_LIMITS_APPLY, "此模型上您的限额适用：提问会计入您的用量，达到上限后可能被拒绝。");
         setValue(L.MSG_HELP_WELCOME, "询问 Marginalia 的使用方法。回答来自手册，但由 AI 生成，仍可能有误。");
+        setValue(L.MSG_COMMAND_STOPPED, "命令 %s 已停止");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -566,6 +579,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_ASSISTANT_PROMPT, "每次提问时发送给模型的指令。{{manualIndex}} 会被替换为手册页面列表。为空或与默认相同的提示词即为默认值，会随新版本的更新而更新。");
         setValue(L.HELP_ASSISTANT_INTERACTIONS, "当用户请求带路时，助手可以在界面中移动：打开某个版块、选择某个标签页或打开用于添加内容的对话框（仅打开，不会创建任何内容）。仅限于此：它不能点击其他按钮、输入、保存、删除或生成任何内容。模型还会获得屏幕上各元素的名称及其可执行的操作。");
         setValue(L.HELP_ASSISTANT_ADMIN_DATA, "当管理员提问时，助手可以读取管理页面的数据：扩展的状态及其日志、数据库备份、清理将删除的内容、用户数量（不含姓名）。这些数据会发送给助手使用的模型，该模型可能是外部提供商，日志中可能包含扩展写入的文本。不会提供给其他用户。助手无法更改任何内容。");
+        setValue(L.HELP_COMMAND_TYPE_SLASH, "输入 / 和命令名。参数用空格分隔；参数中的空格或反斜杠前加 \\，或用 \"双引号\" 括起整个参数。");
+        setValue(L.HELP_COMMAND_NO_MATCH, "没有匹配的命令。");
+        setValue(L.HELP_COMMAND_TOO_MANY_ARGUMENTS, "参数多于命令所接受的数量。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
