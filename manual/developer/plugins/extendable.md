@@ -91,6 +91,10 @@ private MenuItem createCogsMenuItem(MenuBar bar) {
 | `parameters` | One `@APIParameter(name, type)` for each argument, in declaration order: the name `getMethodArgument` takes and the declared type. Primitives stay primitive (`int.class`). |
 | `locals` | One `@APILocals(name, type)` for each named object local variable that is not an argument: what `getLocalVariable` in `onMethodLeave` can read. The type is the declared type of the variable; a name used for more than one type is listed once for each. Primitive locals are not recorded and not listed. Locals of lambdas and compiler-generated locals (`var5`) are not part of it. |
 
+The methods that describe a class to the help assistant (`getLLMState`, `getLLMChildren`, `getInteraction`) are public API
+like the others where a class overrides them, and a plugin can decorate them to add to what the assistant knows, see
+[Extending the UI](ui-extensions.md#telling-the-help-assistant-about-your-ui).
+
 Types are class literals, so a refactoring that renames or moves a class in the IDE updates them too. They are erased
 (`List.class` for `List<String>`).
 
@@ -286,6 +290,7 @@ Methods the bundled plugins use, as examples:
 | `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
 | `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
 | `LorebookView` | `createEntryDetailLayout(entry)` | argument `entry`; local `detailsLayout` | Add a panel to each entry's details (Lorebook VCS). |
+| `DesktopWorkspace`, `PhoneWorkspace`, `AdminPart`, `ManuscriptDialog`, `PhoneManuscriptDialog` | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet. |
 
 Inner classes reach their outer instance through the synthetic field `this$0`.
 

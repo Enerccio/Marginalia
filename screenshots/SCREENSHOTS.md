@@ -68,7 +68,7 @@ reasoning in `reasoning_content`, or plain JSON). **What** it answers comes from
 their system prompt, the side query, the review, the lore generation and compaction the same way. The server restarts
 itself when `llm/` or `dataset/` change (`node --watch`).
 
-Control endpoints: `POST /_queue {"reply": "...", "reasoning": "...", "status": 401, "message": "..."}` (a one-shot answer
+Control endpoints: `POST /_queue {"reply": "...", "reasoning": "...", "status": 401, "message": "...", "toolCalls": [{"name": "...", "arguments": {...}}]}` (a one-shot answer
 that wins over the rules, used for `t2b` and for the error picture), `POST /_mode`, `GET /_log` (the last requests, also all in
 `.run/llm-requests.jsonl`), `POST /_reset`. When a new kind of request shows up, look at the log, then add a rule.
 
@@ -144,6 +144,7 @@ characters... would show in the outline, the prompt and the token numbers of the
 | `shoot-phone` | `13-db-backup` | the phone layout (Chrome as a phone: 402x874, touch, mobile user agent) and the viewer |
 | `shoot-extra --only <part>` | a **copy** of `13-db-backup`, discarded | `language` (selector, Japanese), `quick-start` (a new book, an error of the model), `context-warning`, `verification` (a patched plugin, a stopped one) |
 | `shoot-plugin-characters` | `21-chaptermarker` | Character Tracker: list, dialog, the question when a changed dialog is cancelled, map (2x pixel ratio), import dialog |
+| `shoot-help` | a **copy** of `13-db-backup`, discarded | the help assistant (it is off in all other pictures, so the robot button is not in them): its Admin tab with the model chosen, the chat panel with an answer queued in the fake model, then a second question for which the fake model calls `get_ui_state` and `interact_with_ui` (queued `toolCalls`) so that the assistant really opens the Admin page and a tab: `admin-help-assistant`, `help-assistant`, `help-assistant-navigate` |
 | `plugin-googlegenai` | a **copy** of `13-db-backup`, discarded | installs the Google Gemini JAR, adds a provider of the type *Extension* (nothing is sent to Google): `plugin-googlegenai-type`, `plugin-googlegenai`, `plugin-googlegenai-list` |
 | `shoot-invalid-extensions` | a **copy** of `13-db-backup`, discarded | the Author's Note JAR is replaced by the broken one (`bin/make-broken-plugin.py`) and its `.valid` report deleted before the start (the block in `bin/shoot-all.sh`): the red bar, `invalid-extensions-warning` |
 | `shoot-tabs` | a **copy** of `22-arcoutline`, discarded | drags *Side Query* under the other tabs and *Characters* into a column of its own (the arrangement is saved with the book): `story-editor-tabs` |

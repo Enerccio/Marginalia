@@ -67,6 +67,19 @@ class LLMSnapshotTest {
     }
 
     @Test
+    void aBareTextNodeInTheTreeIsNotAProblem() {
+        // Component.isVisible() throws for a Text (found in the real UI: a Div with new Text(...) among its children)
+        Panel panel = new Panel("");
+        Div plain = new Div(new com.vaadin.flow.component.Text("some text"), new Leaf());
+        panel.add(plain);
+
+        LLMSnapshot snapshot = panel.takeLLMSnapshot();
+
+        assertThat(snapshot.children()).extracting(LLMSnapshot::path).containsExactly("Panel/Leaf");
+        assertThat(panel.takeLLMSnapshot(true).children()).hasSize(1);
+    }
+
+    @Test
     void invisibleComponentsAndWhatIsInsideThemAreNotListed() {
         Panel panel = new Panel("");
         Leaf shown = new Leaf();
