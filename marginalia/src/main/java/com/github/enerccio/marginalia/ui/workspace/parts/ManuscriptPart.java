@@ -1,9 +1,5 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
-import java.util.Map;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
@@ -19,13 +15,17 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
+import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
@@ -48,15 +48,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Configurable
 @Extendable
-public class ManuscriptPart implements WorkspaceComponent {
+public class ManuscriptPart implements ManuscriptSection {
     private static final Logger log = LoggerFactory.getLogger(ManuscriptPart.class);
 
     @Autowired
@@ -122,7 +119,7 @@ public class ManuscriptPart implements WorkspaceComponent {
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
 
         Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK),
-                event -> new NewBookAction(this::refreshGrid).run());
+                event -> new NewBookAction(this::openManuscript).run());
         addBookButton.setThemeName("primary");
         this.addBookButton = addBookButton;
 
@@ -285,6 +282,16 @@ public class ManuscriptPart implements WorkspaceComponent {
         dialog.open();
         notifyStateChanged();
         return dialog;
+    }
+
+    /**
+     * The book window that is open, null when none is.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ManuscriptWindow.class))
+    @Override
+    public ManuscriptWindow getOpenWindow() {
+        return openDialog;
     }
 
     @PublicAPI(from = "1.3.0",

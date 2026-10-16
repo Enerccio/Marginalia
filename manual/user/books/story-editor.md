@@ -217,6 +217,13 @@ The highlight is available in the desktop view only, not in the [phone view](../
 
 ![Highlighted generated text and the settings menu](../../images/highlight-generated.png)
 
+## Commands
+
+Next to the menu below the story there is a **command line**: type `/` to see the commands, pick one and press **Enter**
+(or the play button) to run it. What a command returns is shown in a small window above the line. See
+[Commands](../commands/index.md) for how to write arguments, what the help shows and how to stop a command that takes a
+while. The command line is only in the story tab of the desktop layout so far.
+
 ## Exporting the story
 
 The settings menu (⚙) also has **Export story**, which saves the active branch as a text, Markdown, HTML, Word, PDF or EPUB

@@ -1,13 +1,13 @@
 package com.github.enerccio.marginalia.ui.workspace;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.InvalidExtensionsWarning;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
@@ -26,11 +26,7 @@ import com.vaadin.flow.component.tabs.Tab;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configurable
 @Extendable
@@ -401,6 +397,13 @@ public class DesktopWorkspace implements Workspace {
     @Override
     public boolean isNavigationLocked() {
         return navigationLocked;
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ManuscriptSection.class))
+    @Override
+    public ManuscriptSection getManuscriptSection() {
+        return manuscriptPart;
     }
 
     @PublicAPI(from = "1.1.0",

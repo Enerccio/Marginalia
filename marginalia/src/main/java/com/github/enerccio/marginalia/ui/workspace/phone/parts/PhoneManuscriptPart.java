@@ -1,8 +1,5 @@
 package com.github.enerccio.marginalia.ui.workspace.phone.parts;
 
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -17,13 +14,17 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter.Ordering;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
+import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
-import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
 import com.github.enerccio.marginalia.ui.workspace.parts.NewBookAction;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
@@ -55,7 +56,7 @@ import java.util.stream.Stream;
  */
 @Configurable
 @Extendable
-public class PhoneManuscriptPart implements WorkspaceComponent {
+public class PhoneManuscriptPart implements ManuscriptSection {
     private static final Logger log = LoggerFactory.getLogger(PhoneManuscriptPart.class);
 
     private static final String SORT_MODIFICATION = "modification";
@@ -116,7 +117,7 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         mainLayout.setSpacing(true);
 
         Button addBookButton = new Button(loc.getValue(L.LABEL_ADD_BOOK), Solid.PLUS.create(),
-                event -> new NewBookAction(this::refreshGrid, true).run());
+                event -> new NewBookAction(this::openManuscript).run());
         addBookButton.setThemeName("primary");
         this.addBookButton = addBookButton;
 
@@ -336,6 +337,16 @@ public class PhoneManuscriptPart implements WorkspaceComponent {
         dialog.open();
         notifyStateChanged();
         return dialog;
+    }
+
+    /**
+     * The book window that is open, null when none is.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = ManuscriptWindow.class))
+    @Override
+    public ManuscriptWindow getOpenWindow() {
+        return openDialog;
     }
 
     @PublicAPI(from = "1.3.0",
