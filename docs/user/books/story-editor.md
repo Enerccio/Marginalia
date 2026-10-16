@@ -29,6 +29,9 @@ Side Query...). Drag a tab by its header to rearrange them (desktop only, the dr
 
 The panels and the columns are separated by splitters: drag them to give each panel the room you need. The sizes are saved
 with the arrangement.
+
+![The sidebar with Characters in a column of its own and Side Query under it](../../images/story-editor-tabs.png)
+
 - Drop it on the tab header or on the body of another panel to **join** that panel (dropping on a tab puts it before that
   tab, dropping on the body puts it last). A panel that loses its last tab disappears, and so does a column without panels.
 

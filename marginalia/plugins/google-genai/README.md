@@ -4,7 +4,7 @@ Google's Gemini models as an inference provider, over the [Google Gen AI Java SD
 instead of an OpenAI-compatible endpoint.
 
 Once the plugin is loaded, the **Type** list of the inference provider dialog offers **Extension**, and the **Provider**
-list under it **Google Gemini**. The settings are the API key of [Google AI Studio](https://aistudio.google.com/apikey)
+list of the *Per Type Settings* tab **Google Gemini**. The settings are the API key of [Google AI Studio](https://aistudio.google.com/apikey)
 (stored encrypted), the model (with a **Refresh** that lists the models the key can use), an optional URL for a proxy, the
 timeout, the retries and a switch for the adjustable safety filters (`BLOCK_NONE`). The reasoning settings of the dialog are
 used: the summaries of the thinking arrive as the reasoning of the story part, the effort is a thinking level for `gemini-3*`

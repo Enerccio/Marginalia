@@ -15,15 +15,24 @@ The JAR is large (about 14 MB): it contains Google's SDK and the libraries only 
 uses them.
 
 Once it is loaded, the **Type** list of the inference provider dialog has a new entry, **Extension**, and the **Provider**
-list under it offers **Google Gemini**. Without a loaded extension that provides AIs, **Extension** is not offered.
+list at the top of the *Per Type Settings* tab offers **Google Gemini** (it is chosen for you while it is the only one).
+Without a loaded extension that provides AIs, **Extension** is not offered.
 
 ## Adding a Gemini provider
 
 1. Get an API key in [Google AI Studio](https://aistudio.google.com/apikey).
 2. On the **Inference Providers** tab click **Add Inference Provider**, enter a **Name**, choose the type **Extension** and
    the provider **Google Gemini**.
-3. Fill in the general settings (context size, response size, [reasoning](#reasoning)) and the settings of the Google
-   Gemini tab of the dialog, then click **Test Connection**.
+3. Fill in the *General Settings* (context size, response size, [reasoning](#reasoning)) and the settings of the
+   provider on the *Per Type Settings* tab, then click **Test Connection**.
+
+![The general settings of a provider of the type Extension](../../images/plugin-googlegenai-general.png)
+
+![The Per Type Settings of the Google Gemini provider](../../images/plugin-googlegenai.png)
+
+The provider is then on the list like any other, with the name of the provider in the *Type* column:
+
+![The Inference Providers list with a Google Gemini provider](../../images/plugin-googlegenai-list.png)
 
 | Field | |
 |---|---|

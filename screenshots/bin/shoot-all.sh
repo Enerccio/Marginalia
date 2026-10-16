@@ -4,6 +4,7 @@
 # What state a part runs on:
 #   13-db-backup   the story, summaries, pictures, users, trash, backups - before any plugin data (core screens)
 #   21-chaptermarker  everything, with the plugin data (plugin screens, export)
+#   22-arcoutline     everything incl. the Arc Outline (the sidebar with the tabs dragged apart)
 . "$(dirname "$0")/env.sh"
 cd "$SHOT_ROOT"
 "$SHOT_ROOT/bin/start-llm.sh" >/dev/null
@@ -22,6 +23,10 @@ for part in language quick-start context-warning verification; do
   on 13-db-backup
   run shoot-extra.mjs --only $part
 done
+on 13-db-backup
+run plugin-googlegenai.mjs                       # installs the Gemini plugin: a copy, discarded
+on 22-arcoutline
+run shoot-tabs.mjs                               # drags the sidebar tabs apart (saved with the book): a copy, discarded
 # plugin screens
 on 21-chaptermarker
 run shoot-plugin-characters.mjs

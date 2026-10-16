@@ -37,14 +37,23 @@ await main(async ({ page }) => {
   await sleep(1000);
   await snapDialog(page, 'plugin-loregenerator-compaction', -1);
 
-  // the Name tools (needs the Name generator extension)
+  // the Name tools (needs the Name generator and the Name provider extensions)
   await press(d, 'Name tools', { exact: false });
   await idle(page, 1500);
   const names = page.locator('vaadin-dialog[opened]').last();
-  await names.locator('input[placeholder="Filter categories"]').fill('England');
+  // one category of each source: the filter "Japan" lists the ones of the Name generator first, the ones of the Name
+  // provider last (the first checkbox is the one of the header)
+  await names.locator('input[placeholder="Filter categories"]').fill('Japan');
   await sleep(1200);
-  await names.locator('vaadin-checkbox').nth(1).click();
-  await names.locator('vaadin-checkbox').nth(2).click();
+  // the checkbox of the row with this category (the grid reuses its row elements, so the row is found by its text)
+  const check = async text => {
+    const cell = await names.locator('vaadin-grid-cell-content').filter({ hasText: text }).first().boundingBox();
+    const box = await names.locator('vaadin-checkbox').nth(1).boundingBox();
+    await page.mouse.click(box.x + box.width / 2, cell.y + cell.height / 2);
+    await sleep(300);
+  };
+  await check('Generator: Japan - Surnames');
+  await check('Provider: Japan - Surnames');
   await sleep(500);
   await snapDialog(page, 'plugin-loregenerator-names');
   await closeDialog(page);

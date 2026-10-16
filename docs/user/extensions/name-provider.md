@@ -9,6 +9,8 @@ The extension has no screen of its own and nothing to configure. Other extension
 model may use. Its lists have the prefix `Provider: ` there, the ones of the Name generator `Generator: `, and you can
 check lists of both, of one of them or of none.
 
+![The Name tools of the Lore Generator with one list of each extension checked](../../images/plugin-loregenerator-names.png)
+
 ## What the model can do
 
 | Function | What it does |

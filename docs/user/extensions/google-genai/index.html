@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845446425239">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845451494741">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/extensions/google-genai/">
     <meta property="og:title" content="Google Gemini">
     <meta property="og:description" content="Adds Google's Gemini models as an inference provider, over Google's own API instead of an OpenAI-compatible one.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/plugin-googlegenai-general.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Google Gemini">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/extensions/google-genai/">
     <meta name="twitter:title" content="Google Gemini">
     <meta name="twitter:description" content="Adds Google's Gemini models as an inference provider, over Google's own API instead of an OpenAI-compatible one.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/plugin-googlegenai-general.png">
+    <meta name="twitter:image:alt" content="Google Gemini">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/extensions/google-genai.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845446425239" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845451494741" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845451494741" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845446425239" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845451494741" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -176,7 +182,8 @@ budget of the earlier models, the safety filters, and the exact token counts Goo
 The JAR is large (about 14 MB): it contains Google&#x27;s SDK and the libraries only the SDK needs. Nothing else in Marginalia
 uses them.</p>
 <p>Once it is loaded, the <strong>Type</strong> list of the inference provider dialog has a new entry, <strong>Extension</strong>, and the <strong>Provider</strong>
-list under it offers <strong>Google Gemini</strong>. Without a loaded extension that provides AIs, <strong>Extension</strong> is not offered.</p>
+list at the top of the <em>Per Type Settings</em> tab offers <strong>Google Gemini</strong> (it is chosen for you while it is the only one).
+Without a loaded extension that provides AIs, <strong>Extension</strong> is not offered.</p>
 <h2 id="adding-a-gemini-provider">Adding a Gemini provider</h2>
 <ol>
 <li>
@@ -187,10 +194,23 @@ list under it offers <strong>Google Gemini</strong>. Without a loaded extension 
 the provider <strong>Google Gemini</strong>.</p>
 </li>
 <li>
-<p>Fill in the general settings (context size, response size, <doc-anchor-trigger to="#reasoning">reasoning</doc-anchor-trigger>) and the settings of the Google
-Gemini tab of the dialog, then click <strong>Test Connection</strong>.</p>
+<p>Fill in the <em>General Settings</em> (context size, response size, <doc-anchor-trigger to="#reasoning">reasoning</doc-anchor-trigger>) and the settings of the
+provider on the <em>Per Type Settings</em> tab, then click <strong>Test Connection</strong>.</p>
 </li>
 </ol>
+<figure class="content-center">
+    <img src="../../../images/plugin-googlegenai-general.png" alt="The general settings of a provider of the type Extension" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="600" height="820" />
+    <figcaption class="caption">The general settings of a provider of the type Extension</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/plugin-googlegenai.png" alt="The Per Type Settings of the Google Gemini provider" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="600" height="820" />
+    <figcaption class="caption">The Per Type Settings of the Google Gemini provider</figcaption>
+</figure>
+<p>The provider is then on the list like any other, with the name of the provider in the <em>Type</em> column:</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-googlegenai-list.png" alt="The Inference Providers list with a Google Gemini provider" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1612" height="900" />
+    <figcaption class="caption">The Inference Providers list with a Google Gemini provider</figcaption>
+</figure>
 <retype-table copy-text="| Field | |
 |---|---|
 | **Api Key** | The key of Google AI Studio. It is stored encrypted and not shown again; when you edit the provider, click **Reset** to enter another one. |
