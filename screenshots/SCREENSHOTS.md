@@ -145,6 +145,7 @@ characters... would show in the outline, the prompt and the token numbers of the
 | `shoot-extra --only <part>` | a **copy** of `13-db-backup`, discarded | `language` (selector, Japanese), `quick-start` (a new book, an error of the model), `context-warning`, `verification` (a patched plugin, a stopped one) |
 | `shoot-plugin-characters` | `21-chaptermarker` | Character Tracker: list, dialog, map (2x pixel ratio), import dialog |
 | `plugin-googlegenai` | a **copy** of `13-db-backup`, discarded | installs the Google Gemini JAR, adds a provider of the type *Extension* (nothing is sent to Google): `plugin-googlegenai-type`, `plugin-googlegenai`, `plugin-googlegenai-list` |
+| `shoot-invalid-extensions` | a **copy** of `13-db-backup`, discarded | the Author's Note JAR is replaced by the broken one (`bin/make-broken-plugin.py`) and its `.valid` report deleted before the start (the block in `bin/shoot-all.sh`): the red bar, `invalid-extensions-warning` |
 | `shoot-tabs` | a **copy** of `22-arcoutline`, discarded | drags *Side Query* under the other tabs and *Characters* into a column of its own (the arrangement is saved with the book): `story-editor-tabs` |
 | `plugin-instructionexporter`, `plugin-chinese`, `shoot-export` | `21-chaptermarker` | the menu item, the UI in Chinese (the language is reset), `export-result` (PDF page 1 and 2 with `pdftoppm` + `magick`) |
 

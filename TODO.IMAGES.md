@@ -25,5 +25,4 @@ retaken); retake them by hand when the screen they show changes.
 
 * The `gemma4toolsfix` plugin has no screen (nothing to show but its row in *Admin → Extensions*).
 * A picture of the *Lorebook Revisions* row (export / import of the history) of the Lorebook VCS plugin.
-* A picture of the red bar that warns about invalid extensions (`manual/user/administration/extensions.md`): copy the JAR made by `screenshots/bin/make-broken-plugin.py` into the extensions folder of the screenshot data, delete its `.valid` report and start the app.
 * A picture of the Lorebook tab with *Include sub lorebooks* on (the dataset has no sub lorebooks).

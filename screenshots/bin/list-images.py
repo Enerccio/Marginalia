@@ -9,7 +9,7 @@ state = {
   'shoot-phone': '13-db-backup', 'shoot-extra': '13-db-backup (copy, discarded)',
   'shoot-plugin-characters': '21-chaptermarker', 'shoot-export': '21-chaptermarker', 'plugin-instructionexporter': '21-chaptermarker',
   'plugin-chinese': '21-chaptermarker',
-  'plugin-googlegenai': '13-db-backup (copy, discarded)', 'shoot-tabs': '22-arcoutline (copy, discarded)',
+  'plugin-googlegenai': '13-db-backup (copy, discarded)', 'shoot-invalid-extensions': '13-db-backup (copy, discarded)', 'shoot-tabs': '22-arcoutline (copy, discarded)',
 }
 prev = '00-empty'
 for line in open(os.path.join(root, 'bin', 'chain.txt'), encoding='utf-8'):
