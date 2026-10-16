@@ -1,7 +1,7 @@
 ---
 label: "@Extendable hooks"
 order: 90
-verified: 0e175850
+verified: 29e22f59
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
