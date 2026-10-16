@@ -121,7 +121,7 @@ public record LLMSnapshot(String path, String state, List<LLMSnapshot> children,
 
     private static void collect(Component component, boolean deep, boolean hidden, List<LLMInteract> found) {
         // a dialog that is not open shows nothing (it is removed from the page when it closes, but may still be there)
-        boolean hiddenHere = hidden || !component.isVisible() || (component instanceof Dialog dialog && !dialog.isOpened());
+        boolean hiddenHere = hidden || !isShown(component) || (component instanceof Dialog dialog && !dialog.isOpened());
         if (hiddenHere && !deep) {
             return;
         }
@@ -130,6 +130,15 @@ public record LLMSnapshot(String path, String state, List<LLMSnapshot> children,
             found.add(hiddenHere ? hiddenElement(element) : element);
         } else {
             component.getChildren().forEach(child -> collect(child, deep, hiddenHere, found));
+        }
+    }
+
+    /** Whether the component is visible; a {@code Text} (a bare text node) has no visibility and is never hidden on its own. */
+    private static boolean isShown(Component component) {
+        try {
+            return component.isVisible();
+        } catch (UnsupportedOperationException e) {
+            return true;
         }
     }
 

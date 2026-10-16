@@ -6,6 +6,7 @@
 // What it answers comes from llm/rules.mjs (first matching rule wins) unless a one-shot answer was queued:
 //
 //   POST /_queue   {"reply":"text","reasoning":"...","status":429,"message":"...","delayMs":0}   (one-shot, FIFO)
+//                  {"toolCalls":[{"name":"get_ui_state","arguments":{"path":""}}]}               the model calls functions
 //   POST /_mode    {"mode":"slow"|null}      rules can look at ctx.mode (e.g. to produce an error)
 //   GET  /_log                              the last requests (messages flattened), newest last
 //   POST /_reset                            clears queue, mode and log
@@ -99,12 +100,18 @@ async function chat(req, res, body) {
   const model = body.model ?? MODELS[0];
   const created = Math.floor(Date.now() / 1000);
 
+  const toolCalls = (answer.toolCalls ?? []).map((call, index) => ({
+    index, id: `call_${Date.now()}_${index}`, type: 'function',
+    function: { name: call.name, arguments: typeof call.arguments === 'string' ? call.arguments : JSON.stringify(call.arguments ?? {}) },
+  }));
+
   if (!ctx.stream) {
-    const message = { role: 'assistant', content: reply, refusal: null };
+    const message = { role: 'assistant', content: toolCalls.length ? null : reply, refusal: null };
+    if (toolCalls.length) message.tool_calls = toolCalls;
     if (reasoning) message.reasoning_content = reasoning;
     return sendJson(res, 200, {
       id, object: 'chat.completion', created, model,
-      choices: [{ index: 0, message, finish_reason: 'stop', logprobs: null }],
+      choices: [{ index: 0, message, finish_reason: toolCalls.length ? 'tool_calls' : 'stop', logprobs: null }],
       usage: { prompt_tokens: promptTokens, completion_tokens: completionTokens, total_tokens: promptTokens + completionTokens },
     });
   }
@@ -120,11 +127,12 @@ async function chat(req, res, body) {
     event(first ? { role: 'assistant', reasoning_content: piece } : { reasoning_content: piece });
     first = false; await sleep(pause);
   }
-  for (const piece of splitForStream(reply)) {
+  for (const piece of splitForStream(toolCalls.length ? '' : reply)) {
     event(first ? { role: 'assistant', content: piece } : { content: piece });
     first = false; await sleep(pause);
   }
-  event({}, 'stop');
+  if (toolCalls.length) event(first ? { role: 'assistant', tool_calls: toolCalls } : { tool_calls: toolCalls });
+  event({}, toolCalls.length ? 'tool_calls' : 'stop');
   if (body.stream_options?.include_usage !== false) {
     res.write('data: ' + JSON.stringify({
       id, object: 'chat.completion.chunk', created, model, choices: [],

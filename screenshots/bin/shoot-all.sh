@@ -25,6 +25,8 @@ for part in language quick-start context-warning verification; do
   run shoot-extra.mjs --only $part
 done
 on 13-db-backup
+run shoot-help.mjs                               # turns the help assistant on (installation wide): a copy, discarded
+on 13-db-backup
 run plugin-googlegenai.mjs                       # installs the Gemini plugin: a copy, discarded
 on 22-arcoutline
 run shoot-tabs.mjs                               # drags the sidebar tabs apart (saved with the book): a copy, discarded
