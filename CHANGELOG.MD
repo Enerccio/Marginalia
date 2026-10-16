@@ -18,8 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   keeps its place. The selected tab of every panel is part of the workspace autosave (`Restorable`, key `tabs` of the story
   part). New reusable widget `ui.widgets.TabDock`. API changes plugins can see (since 1.3.0): the field `leftBar` of
   `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` is a `TabDock` instead of a `VTabSheet` (`add(id, caption, content)`,
-  `add(caption, content)`, `remove(content)`; extensions that read it as `VTabSheet` must be updated - Arc Outline, Character
-  Tracker and Side Query were, and give their tabs the ids `arc-outline`, `character-tracker` and `sidequery`); new
+  `add(caption, content)`, `remove(content)`; extensions that read it as `VTabSheet` must be updated (the extension verification refuses them) - Arc Outline, Character
+  Tracker, Side Query and Author's Note were, and give their tabs the ids `arc-outline`, `character-tracker`, `sidequery` and `authors-note`); new
   `ManuscriptStoryPart` methods `applyTabsConfig` and `saveTabsConfig`, `restoreState` has the new local `tabs`. New text in
   all language bundles (the Chinese localization plugin too).
 - **Inference providers from extensions.** An extension registers an `ExtensionAIFactory`

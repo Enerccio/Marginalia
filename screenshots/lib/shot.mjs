@@ -102,6 +102,20 @@ export async function login(page, who = users.admin, path = '/') {
   await page.getByRole('button', { name: 'Login', exact: true }).click();
   await idle(page, 1000);
   await dismissLoginError(page);
+  await closeRestoredBook(page);
+}
+
+/**
+ * The workspace autosave reopens the book that was open at the last logout, and its full-screen window covers the
+ * workspace the flows start from: closes it (the flows open their book themselves).
+ */
+async function closeRestoredBook(page) {
+  await sleep(1200);
+  const book = page.locator('vaadin-dialog[opened]').filter({ has: page.getByRole('tab', { name: 'Branch view', exact: true }) });
+  if (!(await book.count())) return;
+  console.log('  (closed the book that the workspace autosave reopened)');
+  await book.last().getByRole('button', { name: 'Exit', exact: true }).click();
+  await idle(page, 800);
 }
 
 export async function logout(page) {

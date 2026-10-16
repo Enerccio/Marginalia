@@ -97,7 +97,7 @@ public class GoogleGenAiForm implements ExtensionAIForm {
         modelLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
         modelLayout.setFlexGrow(1, modelCombo);
 
-        baseUrlField = new TextField(loc.getValue(L.LABEL_URL));
+        baseUrlField = new TextField("URL");
         baseUrlField.setWidthFull();
         baseUrlField.setPlaceholder("https://generativelanguage.googleapis.com");
         baseUrlField.setHelperText("Optional. Empty uses Google's API, set it to go through a proxy.");

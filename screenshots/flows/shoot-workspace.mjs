@@ -87,15 +87,13 @@ await main(async ({ page }) => {
     await openTab(page, 'Settings');
     await page.getByText('Extension Settings', { exact: true }).first().click();
     await idle(page, 800);
-    // the Reviewer settings are open at first
-    await snap(page, 'plugin-reviewer-settings');
+    // the accordion keeps one panel open and its order follows the load order of the extensions: open each by its name
     await page.getByText('Reviewer Settings', { exact: true }).click();
-    await sleep(400);
+    await sleep(800);
+    await snap(page, 'plugin-reviewer-settings');
     await page.getByText('SideQuery Settings', { exact: true }).click();
     await sleep(800);
     await snap(page, 'plugin-sidequery-settings');
-    await page.getByText('SideQuery Settings', { exact: true }).click();
-    await sleep(400);
     await page.getByText('Lore Generator', { exact: true }).last().click();
     await sleep(800);
     await snap(page, 'settings-extensions');

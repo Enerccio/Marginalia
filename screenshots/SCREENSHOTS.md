@@ -29,7 +29,10 @@ screenshots/
 ## Requirements
 
 * the WAR built from the **same commit** as the plugins: `mvn package -DskipTests` in the repository root builds the
-  application and all plugins (`marginalia/target/marginalia-1.3.0.war`, `marginalia/plugins/*/target/*-1.3.0.jar`);
+  application and all plugins (`marginalia/target/marginalia-1.3.0.war`, `marginalia/plugins/*/target/*-1.3.0.jar`). Use
+  `mvn clean package -DskipTests -pl <plugin folders>` for the plugins when they were built before: an incremental build
+  can leave a plugin without the AspectJ weaving (its `@Autowired` fields are then `null` and its dialogs fail with a
+  `NullPointerException` in the log);
 * Node.js 20+ (`npm install` in this folder, once), Google Chrome in `/Applications`, JDK 25 + Maven, `lsof`, `curl`;
 * for `export-result.png`: `pdftoppm` (`brew install poppler`) and ImageMagick (`magick`);
 * for the annotated UI maps: Pillow (`bin/shoot-all.sh` installs it into `.run/pil`).
@@ -100,7 +103,7 @@ A flow may also take pictures on the way (names in the last column).
 |---|---|---|---|
 | `00-empty` | (a fresh installation) | | |
 | `01-admin` | `00-first-start` | creates the administrator | `first-start`, `login` |
-| `02-extensions` | `01-extensions` | installs all 11 plugin JARs through *Admin → Extensions* | |
+| `02-extensions` | `01-extensions` | installs the 12 plugin JARs (all but Arc Outline and Google Gemini) through *Admin → Extensions* | |
 | `03-providers` | `02-providers` | the three providers (fill *General Settings* first, see the quirks) | |
 | `04-protocols` | `03-protocols-settings` | two protocols and the default settings | |
 | `05-lorebook` | `04-lorebook` | imports the lorebook file | |
@@ -140,6 +143,8 @@ characters... would show in the outline, the prompt and the token numbers of the
 | `shoot-phone` | `13-db-backup` | the phone layout (Chrome as a phone: 402x874, touch, mobile user agent) and the viewer |
 | `shoot-extra --only <part>` | a **copy** of `13-db-backup`, discarded | `language` (selector, Japanese), `quick-start` (a new book, an error of the model), `context-warning`, `verification` (a patched plugin, a stopped one) |
 | `shoot-plugin-characters` | `21-chaptermarker` | Character Tracker: list, dialog, map (2x pixel ratio), import dialog |
+| `plugin-googlegenai` | a **copy** of `13-db-backup`, discarded | installs the Google Gemini JAR, adds a provider of the type *Extension* (nothing is sent to Google): `plugin-googlegenai-type`, `plugin-googlegenai`, `plugin-googlegenai-list` |
+| `shoot-tabs` | a **copy** of `22-arcoutline`, discarded | drags *Characters* into a column of its own and *Side Query* under it (the arrangement is saved with the book): `story-editor-tabs` |
 | `plugin-instructionexporter`, `plugin-chinese`, `shoot-export` | `21-chaptermarker` | the menu item, the UI in Chinese (the language is reset), `export-result` (PDF page 1 and 2 with `pdftoppm` + `magick`) |
 
 The dev UI maps are not pictures of a flow: `dev-ui-map-*-not-annotated.png` are plain screenshots, and
