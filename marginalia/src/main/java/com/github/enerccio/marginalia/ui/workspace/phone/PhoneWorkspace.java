@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.phone;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -15,6 +17,7 @@ import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceAutosave;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
 import com.github.enerccio.marginalia.ui.workspace.parts.ResourcesPart;
 import com.github.enerccio.marginalia.ui.workspace.phone.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -30,8 +33,10 @@ import com.vaadin.flow.component.tabs.Tabs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -135,6 +140,50 @@ public class PhoneWorkspace implements Workspace {
         show(tabToComponent.get(first), tabToContent.get(first), tabToTitle.get(first));
 
         return layout;
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "keys", type = List.class),
+                    @APILocals(name = "active", type = String.class)})
+    @Override
+    public String getLLMState() {
+        List<String> keys = new ArrayList<>(partsByKey.keySet());
+        String active = partsByKey.entrySet().stream()
+                .filter(entry -> entry.getValue() == activeComponent).map(Map.Entry::getKey).findFirst().orElse("books");
+        return WorkspaceLLMSupport.describe(loc, "phone", keys, active, navigationLocked);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = Map.class),
+            locals = {@APILocals(name = "sections", type = Map.class),
+                    @APILocals(name = "active", type = String.class)})
+    @Override
+    public Map<String, LLMInteraction> getInteraction() {
+        Map<String, Runnable> sections = new LinkedHashMap<>();
+        partsByKey.forEach((key, part) -> tabToComponent.forEach((tab, candidate) -> {
+            if (candidate == part) {
+                sections.put(key, () -> tabs.setSelectedTab(tab));
+            }
+        }));
+        String active = partsByKey.entrySet().stream()
+                .filter(entry -> entry.getValue() == activeComponent).map(Map.Entry::getKey).findFirst().orElse("books");
+        return WorkspaceLLMSupport.openSections(loc, sections, active, navigationLocked);
+    }
+
+    @PublicAPI(from = "1.3.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "deep", type = boolean.class)},
+            locals = {@APILocals(name = "parts", type = Map.class)})
+    @Override
+    public List<LLMInteract> getLLMChildren(boolean deep) {
+        Map<WorkspaceComponent, Component> parts = new LinkedHashMap<>();
+        partsByKey.values().forEach(part -> tabToComponent.forEach((tab, candidate) -> {
+            if (candidate == part) {
+                parts.put(part, tabToContent.get(tab));
+            }
+        }));
+        return LLMInteract.parts(parts, activeComponent, deep);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -34,7 +35,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  */
 @Configurable(preConstruction = true)
 @Extendable
-public class SummaryDialog extends Dialog {
+public class SummaryDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private Localization loc;

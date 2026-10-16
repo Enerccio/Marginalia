@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.vaadin.flow.component.Component;
 
@@ -8,7 +9,7 @@ import com.vaadin.flow.component.Component;
  * account actions (admin, change password, logout). Its {@link Restorable} state is the selected part and the state of
  * the parts; the autosave keeps it in the user settings, see {@link #autosave()}.
  */
-public interface Workspace extends Restorable {
+public interface Workspace extends Restorable, LLMInteract {
 
     Component create() throws Exception;
 

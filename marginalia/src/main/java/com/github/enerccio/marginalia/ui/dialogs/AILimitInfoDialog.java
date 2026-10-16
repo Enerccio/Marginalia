@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
@@ -26,7 +27,7 @@ import java.util.List;
  * What the current user used of a shared AI and what the administrator limited them to.
  */
 @Configurable
-public class AILimitInfoDialog extends Dialog {
+public class AILimitInfoDialog extends Dialog implements LLMInteract {
 
     private record Row(String name, long used, Long limit, boolean hard) {}
 

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.vaadin.flow.component.UI;
@@ -8,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.RequestContextHolder;
 
-public abstract class ThreadAccessDialog extends Dialog {
+public abstract class ThreadAccessDialog extends Dialog implements LLMInteract {
 	private static final Logger log = LoggerFactory.getLogger(ThreadAccessDialog.class);
 
 	private ThreadCopyRequestAttributes attributes;

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.parts.admin;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.CleanupService;
@@ -31,7 +32,7 @@ import java.util.List;
 
 @Configurable
 @Extendable
-public class CleanupPanel {
+public class CleanupPanel implements LLMInteract {
 
     @Autowired
     private Localization loc;

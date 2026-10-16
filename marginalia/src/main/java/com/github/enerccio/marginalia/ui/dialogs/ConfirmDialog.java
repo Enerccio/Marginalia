@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -14,7 +15,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.util.HtmlUtils;
 
 @Configurable
-public class ConfirmDialog extends Dialog {
+public class ConfirmDialog extends Dialog implements LLMInteract {
 
 	@Autowired
 	private Localization loc;

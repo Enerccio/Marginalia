@@ -351,6 +351,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_DROP_TAB_TO_DETACH, "将标签拖到此处以分离");
         setValue(L.LABEL_DROP_TAB_TO_DETACH_SIDE, "分离到侧边");
         setValue(L.LABEL_INCLUDE_SUB_LOREBOOKS, "包含子世界书");
+        setValue(L.LABEL_HELP_ASSISTANT, "帮助助手");
+        setValue(L.LABEL_APPLY_LIMITS, "应用限额");
+        setValue(L.LABEL_SEND, "发送");
+        setValue(L.LABEL_ASK_ABOUT_MARGINALIA, "询问有关 Marginalia 的问题...");
+        setValue(L.LABEL_HELP_PROMPT_ADMIN, "管理员提示词");
+        setValue(L.LABEL_HELP_PROMPT_USER, "其他用户提示词");
+        setValue(L.LABEL_RESET_TO_DEFAULT, "恢复默认");
+        setValue(L.LABEL_HELP_INTERACTIONS, "允许操作界面导航");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -536,6 +544,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_INVALID_EXTENSIONS_ADMIN, "有些扩展无效，未在运行。将鼠标悬停可查看是哪些。");
         setValue(L.MSG_INVALID_EXTENSIONS_ADMIN_LIST, "无效的扩展（报告见“管理 → 扩展”）：");
         setValue(L.MSG_INVALID_EXTENSIONS_USER, "有些扩展无效，未在运行。请告知管理员。");
+        setValue(L.MSG_HELP_ANSWERING_WITH, "回答模型：%s");
+        setValue(L.MSG_HELP_LIMITS_APPLY, "此模型上您的限额适用：提问会计入您的用量，达到上限后可能被拒绝。");
+        setValue(L.MSG_HELP_WELCOME, "询问 Marginalia 的使用方法。回答来自手册，但由 AI 生成，仍可能有误。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -549,6 +560,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_LIMIT_EMPTY_UNLIMITED, "留空表示不限制。最先达到的上限会让用户在下次重置前无法使用。");
         setValue(L.HELP_LIMITS_OTHERS_UNLIMITED, "此处没有限制的用户不受限制。");
         setValue(L.HELP_LIMIT_GENERATED_HARD, "生成令牌的硬性上限会在请求预留的回复（最大回复大小）超出剩余额度时拒绝该请求；否则最后一次回复可能超出上限。");
+        setValue(L.HELP_ASSISTANT, "根据手册回答有关 Marginalia 的问题的聊天，面向所有用户。请选择您自己的模型；用户无需自己的模型。");
+        setValue(L.HELP_ASSISTANT_APPLY_LIMITS, "仅适用于共享模型：提问会像对模型的其他请求一样计入每个用户的限额和用量。未启用或模型未共享时，由模型的所有者承担费用：不设限额，也不为用户计数。");
+        setValue(L.HELP_ASSISTANT_PROMPT, "每次提问时发送给模型的指令。{{manualIndex}} 会被替换为手册页面列表。为空或与默认相同的提示词即为默认值，会随新版本的更新而更新。");
+        setValue(L.HELP_ASSISTANT_INTERACTIONS, "当用户请求带路时，助手可以在界面中移动：打开某个版块或选择某个标签页。仅限于此：它不能点击其他按钮、输入、保存、删除或生成任何内容。模型还会获得屏幕上各元素的名称及其可执行的操作。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

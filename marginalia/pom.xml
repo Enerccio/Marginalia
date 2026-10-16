@@ -370,6 +370,21 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <!-- the user manual (Markdown only, no pictures) is packed as classpath:/manual/ for the in-app help;
+           never filtered, the pages contain ${...} and {{...}} examples -->
+      <resource>
+        <directory>${project.basedir}/../manual/user</directory>
+        <targetPath>manual</targetPath>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.md</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>pl.project13.maven</groupId>

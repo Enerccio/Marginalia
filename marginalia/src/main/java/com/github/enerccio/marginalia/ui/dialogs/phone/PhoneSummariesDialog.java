@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.phone;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
@@ -45,7 +46,7 @@ import java.util.*;
  */
 @Configurable(preConstruction = true)
 @Extendable
-public class PhoneSummariesDialog extends Dialog {
+public class PhoneSummariesDialog extends Dialog implements LLMInteract {
 
     private static final String CONTENT_WIDTH = "640px";
 

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.collections.ProtocolType;
 import com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -27,7 +28,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
 @Extendable
-public class ProtocolDialog extends Dialog {
+public class ProtocolDialog extends Dialog implements LLMInteract {
 
     @Autowired
     protected Localization loc;

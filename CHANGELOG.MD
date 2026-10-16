@@ -9,6 +9,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Help assistant.** A round robot button in the bottom right corner (desktop and phone) opens a chat that answers questions
+  about Marginalia from its manual: the model searches and reads the manual pages with two functions and names the pages it used. The
+  panel says which AI answers and warns when the user's limit applies; the conversation is kept in the session
+  (`SessionPoint.getHelpChat()`). The model can also read what the user is doing (the open section, tab or dialog and its
+  title, never story text) with a function `get_ui_state(path, deep)`; by default it gets only what is on the screen, `deep` also
+  expands the tabs that are not open. There are two default prompts, for administrators and for other users, editable (with **Reset to
+  default**) in the new tab. With **Allow navigating the interface** (new setting `helpInteractions`, off by default) the model can also
+  move through the UI for the user with a function `interact_with_ui(path, interactions)`: open a section, select a tab, nothing that
+  changes anything. UI elements offer such moves by overriding the new `LLMInteract.getInteraction()` (a map of keys to `LLMInteraction`);
+  `applyInteraction(key)` / `applyInteraction(List)` run them in order and return the new snapshot; `LLMSnapshot` gained `interactions` and
+  `element`; `UiStateSource` gained `interact` and a `withInteractions` flag on `read`; new `InteractiveHelpTools`; implemented by both workspaces,
+  `AdminPart` and both story editor dialogs (these overrides carry `@PublicAPI`; `DesktopWorkspace` got a private `openAdmin()`). A new **Help assistant** tab on the Admin page lets an administrator turn the
+  assistant on or off and choose one of their own models for
+  it; **Apply limits** (shared models only) makes the questions count against each user's limit and usage like any other
+  request to the model, otherwise (or for a model that is not shared) the owner of the model pays and nothing is counted for the
+  user. The user manual (`manual/user`, Markdown, no pictures) is now packed into the WAR
+  as `classpath:/manual/` and searched in memory by the new `ManualService` (`ManualPage`, `ManualSection`, `ManualHit`);
+  new `HelpAssistantService` (`ask`, `getInfo`), new `ManualTools`, `HelpTools`, `UiStateSource`, `HelpPrompts`, new `ui.LLMInteract` and `ui.LLMSnapshot` (implemented by `Workspace`,
+  `WorkspaceComponent`, `ManuscriptDialogPart`, `PhoneManuscriptDialogPart`, every dialog, `Main` and several components; extensions can
+  implement it on their own components, see the developer manual, *UI*; the overrides in the extendable classes carry `@PublicAPI`), new component `ui.components.HelpAssistantWidget` (added to `Main`), new application settings `helpEnabled`, `helpAiUuid`, `helpApplyLimits`, `helpPromptAdmin`, `helpPromptUser`
+  (extended attributes, no migration), new texts in all language bundles (the Chinese localization plugin too).
+  **For plugins:** new `UnmeteredScope`; an inference service (an extension AI) must skip `AILimitService.check` and
+  `UsageService.record` for a request started while `UnmeteredScope.isActive()`, see the developer manual,
+  *AI providers*. The `google-genai` plugin does it. Both Dockerfiles now copy `manual/user` into the build.
 - **Red warning about invalid extensions.** A red bar at the top of the workspace (desktop; below the title bar on phones) shows when an
   installed extension is invalid, so it is not found out only on the Admin page or by a missing function. An administrator sees
   which extensions on hover, other users are told to tell the administrator. Extensions the administrator stopped are not counted. New

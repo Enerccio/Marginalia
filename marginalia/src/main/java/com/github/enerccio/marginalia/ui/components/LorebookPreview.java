@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
@@ -38,7 +39,7 @@ import java.util.function.Consumer;
  * The owner calls {@link #refresh} whenever the lore may have changed.
  */
 @Configurable
-public class LorebookPreview extends VerticalLayout {
+public class LorebookPreview extends VerticalLayout implements LLMInteract {
 
     /**
      * A row of the grid: a lorebook (without entry) or one of its entries.

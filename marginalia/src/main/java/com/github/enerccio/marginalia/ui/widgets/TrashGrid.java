@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
  */
 @Configurable
 @Extendable
-public class TrashGrid extends VerticalLayout {
+public class TrashGrid extends VerticalLayout implements LLMInteract {
 
     @Autowired
     protected Localization loc;

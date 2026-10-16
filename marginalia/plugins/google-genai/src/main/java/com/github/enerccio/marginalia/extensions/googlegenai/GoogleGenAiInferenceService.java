@@ -137,7 +137,9 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     public CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, JsonNode schema,
                                     FunctionSet functions, InferenceAsyncCallback callback) throws Exception {
         // the limits an administrator set for the user, before anything is sent: the prompt is known, so it must fit
-        limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        if (!UnmeteredScope.isActive()) {
+            limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        }
         GoogleGenAiMessages.Prepared prepared = GoogleGenAiMessages.prepare(payload);
         Run run = new Run(protocol, functions != null && !functions.isEmpty() ? functions : null, schema,
                 prepared.systemInstruction(), new Outcome(callback::isDead, callback::onFunctionCall, callback::onCancel, callback::onError));
@@ -166,7 +168,11 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                     }
                     ResponseStream<GenerateContentResponse> stream = sdk.models.generateContentStream(model, contents, config);
                     GoogleStreamController controller = new GoogleStreamController(stream, callback, run,
-                            (reported, generated) -> recordUsage(run.attributes, contents, reported, generated),
+                            (reported, generated) -> {
+                                if (run.metered) {
+                                    recordUsage(run.attributes, contents, reported, generated);
+                                }
+                            },
                             functionsOffered && !finalRound
                                     ? (answer, modelContent, calls) -> callFunctions(run, run.outcome, contents, modelContent, calls,
                                     next -> startStreamRound(run, callback, next, round + 1)) : null);
@@ -185,7 +191,9 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
     @Override
     public CancellationToken infer(List<LLMChatMessage> payload, Protocol protocol, JsonNode schema,
                                    FunctionSet functions, InferenceResultCallback callback) throws Exception {
-        limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        if (!UnmeteredScope.isActive()) {
+            limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        }
         GoogleGenAiMessages.Prepared prepared = GoogleGenAiMessages.prepare(payload);
         Run run = new Run(protocol, functions != null && !functions.isEmpty() ? functions : null, schema,
                 prepared.systemInstruction(), new Outcome(callback::isDead, callback::onFunctionCall, callback::onCancel, callback::onError));
@@ -215,7 +223,9 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                     GenerateContentResponse response = sdk.models.generateContent(model, contents, config);
                     Answer answer = new Answer();
                     answer.absorb(response, functionsOffered && !finalRound);
-                    recordUsage(run.attributes, contents, answer.reported, answer.received.toString());
+                    if (run.metered) {
+                        recordUsage(run.attributes, contents, answer.reported, answer.received.toString());
+                    }
 
                     // the request can not be taken back once sent, but a canceled one gets no result
                     if (run.outcome.dead().getAsBoolean() || run.token.isCancelled()) {
@@ -253,6 +263,8 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         final CancellationToken token = new CancellationToken();
         // the request ends on other threads, the user it counts for is the one who started it
         final ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        // read in the thread that starts the request: it is not metered inside an UnmeteredScope (the help assistant)
+        final boolean metered = !UnmeteredScope.isActive();
         final String id = UUID.randomUUID().toString();
 
         Run(Protocol protocol, FunctionSet functions, JsonNode schema, Content systemInstruction, Outcome outcome) {

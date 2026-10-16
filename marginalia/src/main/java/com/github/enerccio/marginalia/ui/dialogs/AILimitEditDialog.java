@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
 import com.github.enerccio.marginalia.domain.collections.ResetStrategy;
 import com.github.enerccio.marginalia.domain.components.AILimit;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  * Adds the limit of a user of a shared AI or changes one. The user of an existing limit can not be changed.
  */
 @Configurable
-public class AILimitEditDialog extends Dialog {
+public class AILimitEditDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private AILimitService limitService;

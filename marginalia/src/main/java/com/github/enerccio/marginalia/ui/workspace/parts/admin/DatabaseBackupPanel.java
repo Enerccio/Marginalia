@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.parts.admin;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.CronSchedule;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
 
 @Configurable
 @Extendable
-public class DatabaseBackupPanel {
+public class DatabaseBackupPanel implements LLMInteract {
 
     @Autowired
     private Localization loc;

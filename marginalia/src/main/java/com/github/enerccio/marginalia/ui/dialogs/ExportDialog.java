@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -42,7 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Configurable(preConstruction = true)
 @Extendable
-public class ExportDialog extends Dialog {
+public class ExportDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private Localization loc;

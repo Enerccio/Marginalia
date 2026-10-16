@@ -14,6 +14,7 @@ on:
   pull_request:
     paths:
       - 'marginalia/**'
+      - 'manual/user/**'
       - 'pom.xml'
       - '.github/workflows/desktop.yml'
   workflow_dispatch:
