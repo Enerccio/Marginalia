@@ -13,6 +13,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandParameter.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandParameterSignature.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandReturn.java
+verified: a5fb0fe1
 ---
 
 # Commands

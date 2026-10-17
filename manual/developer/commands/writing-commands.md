@@ -6,6 +6,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/commands
   - marginalia/src/main/java/com/github/enerccio/marginalia/utils/CommandUtils.java
   - marginalia/src/test/java/com/github/enerccio/marginalia/command
+verified: a5fb0fe1
 ---
 
 # Writing commands
