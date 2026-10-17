@@ -1,8 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
@@ -83,6 +84,7 @@ public class ListSelectDialog<T> extends Dialog implements LLMInteract {
         });
         list.setItemLabelGenerator(labelGenerator);
         list.setWidth("100%");
+        DialogFocus.onOpen(this, list);
 
         VerticalLayout vl = new VerticalLayout();
         vl.add(list);

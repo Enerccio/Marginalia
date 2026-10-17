@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -13,6 +12,8 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -91,6 +92,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         fileName = new TextField(loc.getValue(L.LABEL_FILE_NAME), StringUtils.defaultString(manuscript.getName()), "");
         bookTitle = new TextField(loc.getValue(L.LABEL_BOOK_TITLE), StringUtils.defaultString(manuscript.getName()), "");
         author = new TextField(loc.getValue(L.LABEL_AUTHOR), StringUtils.defaultIfBlank(user.getFullName(), user.getLogin()), "");
+        DialogFocus.onOpen(this, fileName);
 
         from = new IntegerField(loc.getValue(L.LABEL_FROM_MESSAGE));
         from.setMin(1);

@@ -1,12 +1,13 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -102,6 +103,8 @@ public class UserDialog extends Dialog implements LLMInteract {
         passwordRepeatField = new PasswordField(loc.getValue(L.LABEL_PASSWORD_AGAIN));
         passwordRepeatField.setRequired(true);
         passwordRepeatField.setWidthFull();
+
+        DialogFocus.onOpen(this, openedFromUser ? currentPassword : loginField);
 
         // only an administrator editing an existing account can remove its password (forgotten password reset)
         clearPasswordCheckbox = new Checkbox(loc.getValue(L.LABEL_CLEAR_PASSWORD));

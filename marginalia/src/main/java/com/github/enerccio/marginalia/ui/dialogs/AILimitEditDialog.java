@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
 import com.github.enerccio.marginalia.domain.collections.ResetStrategy;
 import com.github.enerccio.marginalia.domain.components.AILimit;
@@ -11,6 +10,8 @@ import com.github.enerccio.marginalia.domain.service.AILimitService;
 import com.github.enerccio.marginalia.domain.service.AILimitService.Entry;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -72,6 +73,9 @@ public class AILimitEditDialog extends Dialog implements LLMInteract {
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
         form.add(userCombo, strategyCombo, resetCombo, prefillField, generatedField, hardGeneratedCheckbox, totalField, help);
         add(form);
+        if (entry == null) {
+            DialogFocus.onOpen(this, userCombo);
+        }
 
         Button cancel = new Button("", e -> close());
         Button save = new Button("", e -> save());

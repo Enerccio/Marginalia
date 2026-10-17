@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSetting;
 import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.Gson;
@@ -79,6 +80,7 @@ public class AdvancedOptionsDialog extends Dialog {
 
         promptArea = new TextArea("Prompt Override");
         promptArea.setWidthFull();
+        DialogFocus.onOpen(this, promptArea);
         ResizableTextArea.install(loc, promptArea, "160px");
         promptArea.setValue(options.getPrompt() != null ? options.getPrompt() : "");
         promptArea.addValueChangeListener(event -> {

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.structured.StructuredOutput
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.textfield.TextArea;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +59,7 @@ public class ArcGeneratorDialog extends GeneratorDialog {
     protected Component createInputs() {
         specificationArea = new TextArea("Specification");
         specificationArea.setWidthFull();
+        DialogFocus.onOpen(this, specificationArea);
         specificationArea.setMinHeight("140px");
         specificationArea.setMaxHeight("30vh");
         specificationArea.setPlaceholder("What you want from the arc: its theme, the characters, where it should lead...");

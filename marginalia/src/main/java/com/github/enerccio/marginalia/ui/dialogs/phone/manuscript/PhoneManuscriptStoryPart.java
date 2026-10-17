@@ -390,6 +390,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
         popover.addOpenedChangeListener(event -> {
             if (event.isOpened()) {
                 newTurnForm.syncIfUntouched(currentManuscript != null ? currentManuscript.getActiveLeaf() : null);
+                newTurnForm.focusInstructions();
             }
         });
 
