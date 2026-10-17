@@ -3,11 +3,11 @@ package com.github.enerccio.marginalia.domain.service;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.command.CommandException;
+import com.github.enerccio.marginalia.domain.service.command.CommandRun;
 import com.github.enerccio.marginalia.domain.traits.Command;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * The commands the application and its extensions offer, to be run by name by the UI, by other extensions or by agents.
@@ -82,9 +82,10 @@ public interface CommandService {
      * error, and with {@link IllegalArgumentException} when no such command is registered or no overload fits.
      *
      * @param arguments what {@link CommandContext#get} reads, may be null
-     * @return the value the command set with {@link CommandContext#setReturn}, null if it set none
+     * @return the run, a future of the value the command set with {@link CommandContext#setReturn} (null if it set
+     * none); it also holds the status the command reports, see {@link CommandRun}
      */
-    CompletableFuture<Object> execute(String commandName, Map<String, Object> arguments);
+    CommandRun execute(String commandName, Map<String, Object> arguments);
 
     /**
      * Runs the command with the arguments by position (any objects, text from a command line included). The overload
@@ -94,13 +95,13 @@ public interface CommandService {
      * command that declares no signature takes any arguments, they are in {@link CommandContext#getPositional()}.
      * Otherwise like {@link #execute(String, Map)}.
      */
-    CompletableFuture<Object> executePositional(String commandName, List<Object> arguments);
+    CommandRun executePositional(String commandName, List<Object> arguments);
 
     /**
      * Runs a command typed as text, {@code /command-name argument argument}, see
      * {@link com.github.enerccio.marginalia.domain.service.command.CommandLine}; the arguments are text. Fails with
      * {@link IllegalArgumentException} when the text does not start with a slash.
      */
-    CompletableFuture<Object> executeLine(String line);
+    CommandRun executeLine(String line);
 
 }

@@ -304,6 +304,16 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
         helpPopover.setOpened(focused);
     }
 
+    /**
+     * The command has started: empties the field, so the next one is typed from scratch. Commands that are not valid
+     * never get here, the user keeps the text to correct it.
+     */
+    private void clearInput() {
+        text = "";
+        pickedByEnter = false;
+        input.clear();
+    }
+
     private void run(String line) {
         CommandLine parsed = CommandLine.parse(line);
         if (!parsed.command()) {
@@ -321,7 +331,8 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
         if (resultTarget != null) {
             resultTarget.clearCommandResult();
         }
-        CompletableFuture<Object> future = commandService.executeLine(line);
+        clearInput();
+        CommandRun future = commandService.executeLine(line);
         if (future.isDone()) {
             finished(parsed.name(), humanName, future);
             return;
@@ -333,6 +344,21 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
         CommandProgressDialog dialog = new CommandProgressDialog(humanName, () -> future.cancel(true));
         dialog.create();
         dialog.open();
+        future.addStatusListener((status, subStatus) -> {
+            try {
+                ui.access(() -> {
+                    dialog.setStatus(status);
+                    dialog.setSubStatus(subStatus);
+                    UIPushGuard.push(ui);
+                });
+            } catch (RuntimeException e) {
+                // the UI is gone
+                log.debug("The UI of command {} is gone", parsed.name(), e);
+            }
+        });
+        // what was set before the listener was added
+        dialog.setStatus(future.getStatus());
+        dialog.setSubStatus(future.getSubStatus());
         future.whenComplete((_, _) -> {
             try {
                 ui.access(() -> {

@@ -460,6 +460,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_UNKNOWN, "没有命令 %s");
         setValue(L.ERROR_COMMAND_ARGUMENTS, "命令 %s 不接受这些参数");
         setValue(L.ERROR_COMMAND_FAILED, "命令 %s 失败：%s");
+        setValue(L.ERROR_COMMAND_NO_BOOK_OPEN, "没有打开的书。请先打开要操作的书。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -561,6 +562,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_HELP_LIMITS_APPLY, "此模型上您的限额适用：提问会计入您的用量，达到上限后可能被拒绝。");
         setValue(L.MSG_HELP_WELCOME, "询问 Marginalia 的使用方法。回答来自手册，但由 AI 生成，仍可能有误。");
         setValue(L.MSG_COMMAND_STOPPED, "命令 %s 已停止");
+        setValue(L.MSG_COMMAND_BACKUP_TAKING, "正在备份 %s");
+        setValue(L.MSG_COMMAND_BACKUP_WRITING, "正在收集书稿内容并写入备份文件");
+        setValue(L.MSG_COMMAND_BACKUP_TAKEN, "已备份 %s（%d 条消息，%d 张图片）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

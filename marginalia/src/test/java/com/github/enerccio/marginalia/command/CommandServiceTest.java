@@ -4,11 +4,13 @@ import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.command.CommandException;
+import com.github.enerccio.marginalia.domain.service.command.CommandRun;
 import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -87,6 +89,21 @@ class CommandServiceTest {
         @Command(commandName = "later-fails", humanName = "Later fails", async = true)
         public void fails(CommandContext context) {
             new Thread(() -> context.fail(new IllegalStateException("async bang"))).start();
+        }
+    }
+
+    public static class Reporting {
+        public final CompletableFuture<Void> release = new CompletableFuture<>();
+        volatile CommandContext kept;
+
+        @Command(commandName = "reporting", humanName = "Reporting", async = true)
+        public void run(CommandContext context) {
+            kept = context;
+            context.setStatus("Step 1");
+            context.setSubStatus("Detail 1");
+            release.join();
+            context.setStatus("  ");
+            context.setReturn("done");
         }
     }
 
@@ -314,4 +331,61 @@ class CommandServiceTest {
         assertThatThrownBy(() -> seen[0].getArguments().put("z", 1)).isInstanceOf(UnsupportedOperationException.class);
         assertThatThrownBy(() -> seen[0].get("x", Integer.class)).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void theRunKeepsTheStatusTheCommandReportsAndTellsTheListeners() throws Exception {
+        Reporting reporting = new Reporting();
+        commands.registerCommands(reporting);
+        List<String> seen = new ArrayList<>();
+
+        CommandRun run = commands.execute("reporting", Map.of());
+        run.addStatusListener((status, sub) -> seen.add(status + "/" + sub));
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (!"Detail 1".equals(run.getSubStatus()) && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+        }
+
+        assertThat(run.getStatus()).isEqualTo("Step 1");
+        assertThat(run.getSubStatus()).isEqualTo("Detail 1");
+
+        reporting.release.complete(null);
+        assertThat(run.get(5, TimeUnit.SECONDS)).isEqualTo("done");
+        // a blank line clears it; the other line stays; nothing changes after the run is over
+        assertThat(run.getStatus()).isNull();
+        assertThat(run.getSubStatus()).isEqualTo("Detail 1");
+        reporting.kept.setStatus("late");
+        assertThat(run.getStatus()).isNull();
+        assertThat(seen).contains("null/Detail 1").doesNotContain("late/Detail 1");
+    }
+
+    @Test
+    void aListenerThatThrowsDoesNotBreakTheCommand() throws Exception {
+        Reporting reporting = new Reporting();
+        commands.registerCommands(reporting);
+
+        CommandRun run = commands.execute("reporting", Map.of());
+        run.addStatusListener((status, sub) -> {
+            throw new IllegalStateException("view is gone");
+        });
+        reporting.release.complete(null);
+
+        assertThat(run.get(5, TimeUnit.SECONDS)).isEqualTo("done");
+    }
+
+    @Test
+    void statusSetAfterTheRunWasCancelledIsIgnored() throws Exception {
+        Reporting reporting = new Reporting();
+        commands.registerCommands(reporting);
+
+        CommandRun run = commands.execute("reporting", Map.of());
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (reporting.kept == null && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+        }
+        run.cancel(true);
+        reporting.kept.setStatus("after stop");
+
+        assertThat(run.getStatus()).isEqualTo("Step 1");
+    }
+
 }

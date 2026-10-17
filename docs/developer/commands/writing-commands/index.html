@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845505692034">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845507468760">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845505692034" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845507468760" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845505692034" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845507468760" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -258,6 +258,9 @@ public void slow(CommandContext context) {
     context.setReturn(&quot;done&quot;);
 }</code></pre>
 </doc-codeblock></div>
+<p>Tell the user what is going on with <code translate="no" v-pre>context.setStatus(&quot;Taking a backup of Dune&quot;)</code> (the main line) and
+<code translate="no" v-pre>context.setSubStatus(&quot;Chapter 3 of 12&quot;)</code> (the detail under it); they appear in the progress window. Set them as the work
+advances, <code translate="no" v-pre>null</code> clears a line.</p>
 <p>Blocking calls (<code translate="no" v-pre>Thread.sleep</code>, a network call) are interrupted when the run is cancelled; let the <code translate="no" v-pre>InterruptedException</code>
 end the command or set the interrupt flag again and return. A command that is stopped should not call <code translate="no" v-pre>setReturn</code>; if it
 does, the call is ignored.</p>
@@ -267,7 +270,8 @@ does, the call is ignored.</p>
 <div id="the-application-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">registerCommands(new HelloWorldCommands());</code></pre>
 </doc-codeblock></div>
-<p>The application&#x27;s suites are plain objects, not Spring beans, and are created with <code translate="no" v-pre>new</code>. Keep the logic in services and
+<p>The application&#x27;s suites are plain objects, not Spring beans, and are created with <code translate="no" v-pre>new</code>; one that needs services is
+<code translate="no" v-pre>@Configurable</code> and gets them <code translate="no" v-pre>@Autowired</code>, like the UI classes (<code translate="no" v-pre>BackupCommands</code>). Keep the logic in services and
 make the command a thin adapter that reads the current state through <code translate="no" v-pre>CommandUtils</code>.</p>
 <h3 id="a-plugin">A plugin</h3>
 <p>The plugin gets the <code translate="no" v-pre>CommandService</code> injected into its (<code translate="no" v-pre>@Configurable</code>) extension and registers the suite in
@@ -298,7 +302,7 @@ loader of the unloaded bundle alive. <code translate="no" v-pre>registerCommands
 (<code translate="no" v-pre>dice-roll</code>) unless the name is meant to be shared.</p>
 <h2 id="running-a-command-from-code">Running a command from code</h2>
 <div id="running-a-command-from-code-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">CompletableFuture&lt;Object&gt; result = commandService.executeLine(&quot;/roll 20&quot;);
+<pre translate="no" class="language-java"><code v-pre class="language-java">CommandRun result = commandService.executeLine(&quot;/roll 20&quot;);   // a CompletableFuture&lt;Object&gt;; also getStatus()
 Object value = result.get();                         // blocks; fine for a synchronous command
 commandService.execute(&quot;roll&quot;, Map.of(&quot;sides&quot;, 20)); // by name
 commandService.executePositional(&quot;roll&quot;, List.of(20));</code></pre>

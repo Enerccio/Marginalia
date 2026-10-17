@@ -452,6 +452,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_UNKNOWN, "There is no command %s");
         setValue(L.ERROR_COMMAND_ARGUMENTS, "The command %s does not take these arguments");
         setValue(L.ERROR_COMMAND_FAILED, "The command %s failed: %s");
+        setValue(L.ERROR_COMMAND_NO_BOOK_OPEN, "No book is open. Open the book you want to work with first.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -553,6 +554,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_HELP_LIMITS_APPLY, "Your limit on this model applies: your questions count against your usage and can be refused when it is reached.");
         setValue(L.MSG_HELP_WELCOME, "Ask how something works in Marginalia. Answers come from the manual, but an AI wrote them and can still be wrong.");
         setValue(L.MSG_COMMAND_STOPPED, "The command %s was stopped");
+        setValue(L.MSG_COMMAND_BACKUP_TAKING, "Taking a backup of %s");
+        setValue(L.MSG_COMMAND_BACKUP_WRITING, "Collecting the content of the book and writing the backup file");
+        setValue(L.MSG_COMMAND_BACKUP_TAKEN, "Backup of %s taken (%d messages, %d images)");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

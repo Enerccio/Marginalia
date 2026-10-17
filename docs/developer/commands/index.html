@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845505692034">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845507468760">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845505692034" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845507468760" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -185,8 +185,8 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 | **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents, a `signature`, a return declaration and `async`.   |
 | **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and each its own `signature`. One `CommandDefinition` exists per form.          |
 | **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is &quot;any arguments&quot;.    |
-| **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`) and `isTerminated()`. It belongs to one run.                                                      |
-| **Run**             | One call, which returns a `CompletableFuture&lt;Object&gt;` that completes with the value given to `setReturn`.                                                                                  |">
+| **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`), the two lines of status (`setStatus`, `setSubStatus`) and `isTerminated()`. It belongs to one run. |
+| **Run**             | One call, which returns a `CommandRun` (a `CompletableFuture&lt;Object&gt;`) that completes with the value given to `setReturn` and holds the status the command reports.                       |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -218,11 +218,11 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 </tr>
 <tr>
 <td><strong>Context</strong></td>
-<td><code translate="no" v-pre>CommandContext</code>: the arguments (<code translate="no" v-pre>get</code>, <code translate="no" v-pre>getPositional</code>), the answer (<code translate="no" v-pre>setReturn</code>, <code translate="no" v-pre>fail</code>) and <code translate="no" v-pre>isTerminated()</code>. It belongs to one run.</td>
+<td><code translate="no" v-pre>CommandContext</code>: the arguments (<code translate="no" v-pre>get</code>, <code translate="no" v-pre>getPositional</code>), the answer (<code translate="no" v-pre>setReturn</code>, <code translate="no" v-pre>fail</code>), the two lines of status (<code translate="no" v-pre>setStatus</code>, <code translate="no" v-pre>setSubStatus</code>) and <code translate="no" v-pre>isTerminated()</code>. It belongs to one run.</td>
 </tr>
 <tr>
 <td><strong>Run</strong></td>
-<td>One call, which returns a <code translate="no" v-pre>CompletableFuture&lt;Object&gt;</code> that completes with the value given to <code translate="no" v-pre>setReturn</code>.</td>
+<td>One call, which returns a <code translate="no" v-pre>CommandRun</code> (a <code translate="no" v-pre>CompletableFuture&lt;Object&gt;</code>) that completes with the value given to <code translate="no" v-pre>setReturn</code> and holds the status the command reports.</td>
 </tr>
 </tbody>
 </table>
@@ -238,6 +238,7 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 | `has(name)`, `getArguments()`   | Whether an argument was passed, and all of them (read only).                                                                                 |
 | `setReturn(value)`              | The answer. A form with `async = false` must call it before its method returns, otherwise the result is `null`. Later calls are ignored.     |
 | `fail(error)`                   | Ends the run with a `CommandException` (for `async` commands that report from another thread; a synchronous command can throw).             |
+| `setStatus(text)`, `setSubStatus(text)` | Two lines of progress for the user: what the command is doing now, and the detail of that step. They are independent, `null` or blank clears one. Any thread; ignored once the run is over. |
 | `isTerminated()`                | True when the run is over for the caller: the command answered or failed, or the caller cancelled the future. Never true while a synchronous command runs. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -271,6 +272,10 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 <tr>
 <td><code translate="no" v-pre>fail(error)</code></td>
 <td>Ends the run with a <code translate="no" v-pre>CommandException</code> (for <code translate="no" v-pre>async</code> commands that report from another thread; a synchronous command can throw).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>setStatus(text)</code>, <code translate="no" v-pre>setSubStatus(text)</code></td>
+<td>Two lines of progress for the user: what the command is doing now, and the detail of that step. They are independent, <code translate="no" v-pre>null</code> or blank clears one. Any thread; ignored once the run is over.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>isTerminated()</code></td>
@@ -379,6 +384,13 @@ for agents (the help shows it); the service does not check the value against it.
 worker thread is interrupted, and a command that has not started yet does not start. A long-running <code translate="no" v-pre>async</code> command must
 cooperate: look at <code translate="no" v-pre>isTerminated()</code> (and the interrupt flag) between the steps of its work and return at once. What it
 sets afterwards is ignored. <code translate="no" v-pre>/hello-world-async</code> (<code translate="no" v-pre>HelloWorldCommands</code>) is the model of such a loop.</p>
+<h3 id="status">Status</h3>
+<p>A command that takes time tells the user what it is doing with <code translate="no" v-pre>setStatus</code> (the main line, &quot;Taking a backup of Dune&quot;) and
+<code translate="no" v-pre>setSubStatus</code> (the detail, &quot;Chapter 3 of 12&quot;). The lines are kept in the <code translate="no" v-pre>CommandRun</code> that <code translate="no" v-pre>execute*</code> returns
+(<code translate="no" v-pre>getStatus()</code>, <code translate="no" v-pre>getSubStatus()</code>); <code translate="no" v-pre>addStatusListener((status, subStatus) -&gt; ...)</code> is called on the thread of the command on
+each change, so a view must hop to its own thread (the progress window of the command bar does with <code translate="no" v-pre>ui.access</code>). A
+listener does not get what was set before it was added: read the getters after adding it. A listener that throws is
+ignored. <code translate="no" v-pre>/take-backup</code> (<code translate="no" v-pre>BackupCommands</code>) is an example.</p>
 <h2 id="failures">Failures</h2>
 <p>A future fails with:</p>
 <ul>

@@ -4,7 +4,6 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandException;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Context of one run of a command. A command that is not async only stores its value, which the service hands over when
@@ -17,13 +16,15 @@ class CommandContextImpl implements CommandContext {
     private final Map<String, Object> arguments;
     private final List<Object> positional;
     private final boolean async;
-    private final CompletableFuture<Object> result;
+    private final CommandRunImpl result;
 
     private Object value;
     private boolean closed;
+    private String status;
+    private String subStatus;
 
     CommandContextImpl(String commandName, Map<String, Object> arguments, List<Object> positional, boolean async,
-                       CompletableFuture<Object> result) {
+                       CommandRunImpl result) {
         this.commandName = commandName;
         // LinkedHashMap and ArrayList, not Map.copyOf: arguments may be null
         this.arguments = arguments == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(arguments));
@@ -69,6 +70,36 @@ class CommandContextImpl implements CommandContext {
     @Override
     public boolean isTerminated() {
         return result.isDone();
+    }
+
+    @Override
+    public void setStatus(String status) {
+        update(blankToNull(status), null, true);
+    }
+
+    @Override
+    public void setSubStatus(String subStatus) {
+        update(null, blankToNull(subStatus), false);
+    }
+
+    /**
+     * Stores the line that was set and tells the run. Under the lock, so the listeners see the changes in the order they
+     * were made. The two lines are independent: setting one leaves the other as it was.
+     */
+    private synchronized void update(String status, String subStatus, boolean main) {
+        if (closed || result.isDone()) {
+            return;
+        }
+        if (main) {
+            this.status = status;
+        } else {
+            this.subStatus = subStatus;
+        }
+        result.status(this.status, this.subStatus);
+    }
+
+    private static String blankToNull(String text) {
+        return text == null || text.isBlank() ? null : text;
     }
 
     @Override

@@ -73,9 +73,11 @@ arguments, an unknown command or text without a slash. The texts are localizatio
 
 ## Running and asynchronous commands
 
-`run(line)` closes the help, clears the result (`clearCommandResult()`) and calls `commandService.executeLine`. For a
+`run(line)` closes the help, clears the result (`clearCommandResult()`), empties the field (`clearInput()`; text that is not a known command returns earlier and stays) and calls `commandService.executeLine`. For a
 command that completed (synchronous) the result is delivered at once. For an `async` command the bar opens a
-`CommandProgressDialog` – modal, an indeterminate `ProgressBar` and a **Stop** button whose handler cancels the future. When
+`CommandProgressDialog` – modal, an indeterminate `ProgressBar`, the two status lines of the command (`setStatus`,
+`setSubStatus`; a line that is empty is hidden) and a **Stop** button whose handler cancels the future. The bar feeds the
+lines from `CommandRun.addStatusListener` through `ui.access(...)`, after reading the status already set. When
 the future completes, `ui.access(...)` (with the request scope and `UIPushGuard.push`) closes the dialog and delivers the
 result, or shows a notification for a stop, a `CommandException` or an `IllegalArgumentException`. This is why an `async`
 command **must** react to `isTerminated()`: Stop only cancels the future.

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845505692034">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845507468760">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845505692034" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845507468760" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845505692034" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845505692034" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845507468760" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -268,9 +268,11 @@ the forms with the current parameter highlighted and its description, the return
 arguments, an unknown command or text without a slash. The texts are localization keys (<code translate="no" v-pre>LABEL_COMMAND_*</code>,
 <code translate="no" v-pre>HELP_COMMAND_*</code>, <code translate="no" v-pre>ERROR_COMMAND_*</code>); the Japanese and Chinese bundles carry them too.</p>
 <h2 id="running-and-asynchronous-commands">Running and asynchronous commands</h2>
-<p><code translate="no" v-pre>run(line)</code> closes the help, clears the result (<code translate="no" v-pre>clearCommandResult()</code>) and calls <code translate="no" v-pre>commandService.executeLine</code>. For a
+<p><code translate="no" v-pre>run(line)</code> closes the help, clears the result (<code translate="no" v-pre>clearCommandResult()</code>), empties the field (<code translate="no" v-pre>clearInput()</code>; text that is not a known command returns earlier and stays) and calls <code translate="no" v-pre>commandService.executeLine</code>. For a
 command that completed (synchronous) the result is delivered at once. For an <code translate="no" v-pre>async</code> command the bar opens a
-<code translate="no" v-pre>CommandProgressDialog</code> – modal, an indeterminate <code translate="no" v-pre>ProgressBar</code> and a <strong>Stop</strong> button whose handler cancels the future. When
+<code translate="no" v-pre>CommandProgressDialog</code> – modal, an indeterminate <code translate="no" v-pre>ProgressBar</code>, the two status lines of the command (<code translate="no" v-pre>setStatus</code>,
+<code translate="no" v-pre>setSubStatus</code>; a line that is empty is hidden) and a <strong>Stop</strong> button whose handler cancels the future. The bar feeds the
+lines from <code translate="no" v-pre>CommandRun.addStatusListener</code> through <code translate="no" v-pre>ui.access(...)</code>, after reading the status already set. When
 the future completes, <code translate="no" v-pre>ui.access(...)</code> (with the request scope and <code translate="no" v-pre>UIPushGuard.push</code>) closes the dialog and delivers the
 result, or shows a notification for a stop, a <code translate="no" v-pre>CommandException</code> or an <code translate="no" v-pre>IllegalArgumentException</code>. This is why an <code translate="no" v-pre>async</code>
 command <strong>must</strong> react to <code translate="no" v-pre>isTerminated()</code>: Stop only cancels the future.</p>
