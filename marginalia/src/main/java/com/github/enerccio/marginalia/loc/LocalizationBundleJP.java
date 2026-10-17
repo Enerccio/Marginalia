@@ -360,6 +360,21 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_RETURNS, "戻り値");
         setValue(L.LABEL_COMMAND_NO_ARGUMENTS, "引数なし");
         setValue(L.LABEL_COMMAND_ANY_ARGUMENTS, "任意の引数");
+        setValue(L.LABEL_SEARCH_AND_REPLACE, "検索と置換");
+        setValue(L.LABEL_REPLACE, "置換");
+        setValue(L.LABEL_SEARCH_AGAIN, "再検索");
+        setValue(L.LABEL_SEARCH_FOR, "検索する文字列");
+        setValue(L.LABEL_REPLACE_WITH, "置換後の文字列");
+        setValue(L.LABEL_SEARCH_BY_REGEX, "正規表現で検索");
+        setValue(L.LABEL_SEARCH_IN_SUMMARIES, "要約を検索");
+        setValue(L.LABEL_SEARCH_IN_ALL_BRANCHES, "すべてのブランチを検索");
+        setValue(L.LABEL_ID, "ID");
+        setValue(L.LABEL_SEARCH_CONTEXT, "検索結果の前後");
+        setValue(L.LABEL_REPLACE_CONTEXT, "置換後の前後");
+        setValue(L.LABEL_SEARCHED_TEXT_PLACEHOLDER, "[検索文字列]");
+        setValue(L.LABEL_REPLACE_TEXT_PLACEHOLDER, "[置換文字列]");
+        setValue(L.LABEL_REVALIDATE_ALL_SUMMARIES, "すべての要約を再検証");
+        setValue(L.LABEL_CASE_SENSITIVE, "大文字と小文字を区別");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -453,6 +468,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_ARGUMENTS, "コマンド %s はこれらの引数を受け付けません");
         setValue(L.ERROR_COMMAND_FAILED, "コマンド %s は失敗しました：%s");
         setValue(L.ERROR_COMMAND_NO_BOOK_OPEN, "開いている本がありません。先に対象の本を開いてください。");
+        setValue(L.ERROR_INVALID_REGEX, "正規表現が正しくありません: %s");
+        setValue(L.ERROR_INVALID_REPLACEMENT, "置換文字列が正しくありません: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -557,6 +574,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_BACKUP_TAKING, "%s のバックアップを作成中");
         setValue(L.MSG_COMMAND_BACKUP_WRITING, "本の内容を収集し、バックアップファイルを書き込み中");
         setValue(L.MSG_COMMAND_BACKUP_TAKEN, "%s のバックアップを作成しました（メッセージ %d 件、画像 %d 点）");
+        setValue(L.MSG_SEARCH_NOTHING_FOUND, "見つかりませんでした");
+        setValue(L.MSG_SEARCH_STOPPED, "検索を停止しました");
+        setValue(L.MSG_SEARCH_FOUND, "%d 件の一致が %d 件の項目で見つかりました");
+        setValue(L.MSG_REPLACE_DONE, "%d 件の一致を %d 件の項目で置換しました");
+        setValue(L.MSG_REPLACE_SKIPPED, "検索後に変更された項目が %d 件あり、そのままにしました");
+        setValue(L.MSG_REPLACE_OUTDATED_SUMMARIES, "この置換により、検索対象外（他のブランチ、または要約を検索しない設定）の %d 件の要約の元になっているテキストが変わります。それらの要約は古いものとして扱われます。\n続行しますか？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

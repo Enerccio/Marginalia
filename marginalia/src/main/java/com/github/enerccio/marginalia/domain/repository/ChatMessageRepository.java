@@ -34,6 +34,23 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
     List<Object[]> findFulltexts(Manuscript manuscript, List<List<String>> likePatterns) throws Exception;
 
     /**
+     * Id and {@code _fulltext} ({@code Object[]{Long, String}}) of the messages of the manuscript that are not deleted,
+     * oldest first. The rest of the message is not read.
+     *
+     * @param literal text the {@code _fulltext} has to contain (the database compares ignoring the case of the letters
+     *                it knows, so the caller checks again); null for all the messages
+     */
+    List<Object[]> findFulltextsContaining(Manuscript manuscript, String literal) throws Exception;
+
+    /**
+     * Id of the message, id of its summary and {@code _fulltext} of the summary ({@code Object[]{Long, Long, String}})
+     * of the messages of the manuscript that are not deleted and have a summary that is not deleted, oldest first.
+     *
+     * @param literal see {@link #findFulltextsContaining}
+     */
+    List<Object[]> findSummaryFulltextsContaining(Manuscript manuscript, String literal) throws Exception;
+
+    /**
      * Ids of the messages below the message (its children, their children...) that are not deleted, the message itself
      * is not among them.
      */

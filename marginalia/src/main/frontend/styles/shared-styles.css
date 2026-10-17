@@ -852,3 +852,71 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
+
+/* Search and replace dialog (ui.dialogs.search) */
+.search-button-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9em, 1fr));
+    gap: var(--lumo-space-s);
+    width: 100%;
+}
+
+/* the children are, in this order: search field, replace field, options, search button, replace button */
+.search-input-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas:
+        "search search-button"
+        "replace replace-button"
+        "options options";
+    align-items: end;
+    gap: var(--lumo-space-s) var(--lumo-space-m);
+    width: 100%;
+}
+
+.search-input-grid > :nth-child(1) {
+    grid-area: search;
+}
+
+.search-input-grid > :nth-child(2) {
+    grid-area: replace;
+}
+
+.search-input-grid > :nth-child(3) {
+    grid-area: options;
+    align-self: start;
+}
+
+.search-input-grid > :nth-child(4) {
+    grid-area: search-button;
+}
+
+.search-input-grid > :nth-child(5) {
+    grid-area: replace-button;
+}
+
+.search-hit-context {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.search-hit-match,
+.search-hit-replacement {
+    font-weight: bold;
+    border-radius: var(--lumo-border-radius-s);
+    padding: 0 var(--lumo-space-xs);
+}
+
+.search-hit-match {
+    background-color: var(--lumo-error-color-10pct);
+    color: var(--lumo-error-text-color);
+}
+
+.search-hit-replacement {
+    background-color: var(--lumo-success-color-10pct);
+    color: var(--lumo-success-text-color);
+}
+
+.search-hit-placeholder {
+    font-style: italic;
+}

@@ -120,6 +120,28 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Override
     @CommonTxReadOnly
+    public List<MessageFulltext> findFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
+        if (manuscript == null || manuscriptService.findForUser(manuscript.getUuid()) == null) {
+            return Collections.emptyList();
+        }
+        return getRepository().findFulltextsContaining(manuscript, literal).stream()
+                .map(row -> new MessageFulltext((Long) row[0], (String) row[1]))
+                .toList();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<SummaryFulltext> findSummaryFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
+        if (manuscript == null || manuscriptService.findForUser(manuscript.getUuid()) == null) {
+            return Collections.emptyList();
+        }
+        return getRepository().findSummaryFulltextsContaining(manuscript, literal).stream()
+                .map(row -> new SummaryFulltext((Long) row[0], (Long) row[1], (String) row[2]))
+                .toList();
+    }
+
+    @Override
+    @CommonTxReadOnly
     public ChatMessage findLeafFor(Manuscript manuscript, ChatMessage target) throws Exception {
         if (manuscript == null || target == null || manuscriptService.findForUser(manuscript.getUuid()) == null) {
             return null;

@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
+import com.github.enerccio.marginalia.domain.service.search.LikePatterns;
 import jakarta.persistence.TypedQuery;
 
 import java.util.*;
@@ -190,6 +191,33 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
         TypedQuery<Object[]> q = getEntityManager().createQuery(query.toString(), Object[].class)
                 .setParameter("manuscript", manuscript);
         parameters.forEach(q::setParameter);
+        return q.getResultList();
+    }
+
+    @Override
+    public List<Object[]> findFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
+        return fulltextsContaining("SELECT m.id, m._fulltext FROM ChatMessage m WHERE m.parentScript = :manuscript AND m.deleted = false",
+                "m._fulltext", manuscript, literal);
+    }
+
+    @Override
+    public List<Object[]> findSummaryFulltextsContaining(Manuscript manuscript, String literal) throws Exception {
+        return fulltextsContaining("SELECT m.id, m.summary.id, m.summary._fulltext FROM ChatMessage m WHERE m.parentScript = :manuscript"
+                        + " AND m.deleted = false AND m.summary IS NOT NULL AND m.summary.deleted = false",
+                "m.summary._fulltext", manuscript, literal);
+    }
+
+    private List<Object[]> fulltextsContaining(String select, String column, Manuscript manuscript, String literal) {
+        StringBuilder query = new StringBuilder(select);
+        if (literal != null) {
+            query.append(" AND ").append(column).append(" LIKE :pattern ESCAPE '\\'");
+        }
+        query.append(" ORDER BY m.creation");
+        TypedQuery<Object[]> q = getEntityManager().createQuery(query.toString(), Object[].class)
+                .setParameter("manuscript", manuscript);
+        if (literal != null) {
+            q.setParameter("pattern", "%" + LikePatterns.literal(literal) + "%");
+        }
         return q.getResultList();
     }
 

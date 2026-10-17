@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.components;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -11,8 +10,10 @@ import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.github.enerccio.marginalia.ui.RestorableState;
+import com.github.enerccio.marginalia.ui.dialogs.search.LorebookSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
 import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
@@ -69,6 +70,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
 
     private ComboBox<Lorebook> lorebookCombo;
     private Button refreshButton;
+    private Button searchReplaceButton;
     private Checkbox lorebookEnabledCheckbox;
     private Span lorebookInfoSpan;
     private Span lorebookTokensSpan;
@@ -148,7 +150,10 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
 
         lorebookTokensSpan = createTokensSpan();
 
-        HorizontalLayout enabledLayout = new HorizontalLayout(lorebookEnabledCheckbox, lorebookTokensSpan);
+        searchReplaceButton = new Button(Solid.EXCHANGE_ALT.create(), _ -> openSearchReplaceDialog());
+        searchReplaceButton.setTooltipText(loc.getValue(L.LABEL_SEARCH_AND_REPLACE));
+
+        HorizontalLayout enabledLayout = new HorizontalLayout(lorebookEnabledCheckbox, lorebookTokensSpan, searchReplaceButton);
         enabledLayout.setWidthFull();
         enabledLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
@@ -426,12 +431,35 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         }
     }
 
+    /**
+     * Opens the search and replace in the entries of the lorebook, the entries are shown again when something was
+     * replaced.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = LorebookSearchReplaceDialog.class)})
+    private void openSearchReplaceDialog() {
+        if (currentLorebook == null) {
+            return;
+        }
+        LorebookSearchReplaceDialog dialog = new LorebookSearchReplaceDialog(currentLorebook, true);
+        dialog.onReplaced(() -> {
+            try {
+                refresh();
+            } catch (Exception e) {
+                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            }
+        });
+        dialog.open();
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class))
     private void updateSelectedLorebook() {
         boolean hasLorebook = currentLorebook != null;
         lorebookEnabledCheckbox.setEnabled(hasLorebook);
         refreshButton.setEnabled(hasLorebook);
+        searchReplaceButton.setEnabled(hasLorebook);
 
         if (hasLorebook) {
             lorebookEnabledCheckbox.setValue(currentLorebook.isEnabled());

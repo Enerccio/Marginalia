@@ -363,6 +363,20 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     @Override
     @CommonTxReadOnly
     public List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst) throws Exception {
+        return walkBlocks(newestFirst.iterator(), BlockTexts.CURRENT, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public SummaryBlock collectFirstBlock(Iterator<ChatMessage> newestFirst, BlockTexts texts) throws Exception {
+        List<SummaryBlock> blocks = walkBlocks(newestFirst, texts, true);
+        return blocks.isEmpty() ? null : blocks.getFirst();
+    }
+
+    /**
+     * @param firstOnly stop at the end of the first block, the messages after it are not read
+     */
+    private List<SummaryBlock> walkBlocks(Iterator<ChatMessage> newestFirst, BlockTexts texts, boolean firstOnly) throws Exception {
         List<SummaryBlock> blocks = new ArrayList<>();
         MessageDigest digest = null;
         ChatMessage head = null;
@@ -371,11 +385,15 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         boolean ignoring = false;
         String nextUuid = null;
 
-        for (ChatMessage message : newestFirst) {
+        while (newestFirst.hasNext()) {
+            ChatMessage message = newestFirst.next();
             Summary summary = message.getSummary() == null ? null : find(message.getSummary());
             if (summary != null && (!ignoring || Objects.equals(summary.getUuid(), nextUuid))) {
                 if (head != null) {
                     blocks.add(new SummaryBlock(head, headSummary, HexFormat.of().formatHex(digest.digest())));
+                    if (firstOnly) {
+                        return blocks;
+                    }
                 }
                 head = message;
                 headSummary = summary;
@@ -383,9 +401,12 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
                 ignoring = summary.getSummaryType() == SummaryType.META_SUMMARY;
                 nextUuid = summary.getNextSummaryUuid();
                 // summary of the head is what is being checked
-                updateHash(digest, message, null);
+                updateHash(digest, message, null, texts);
             } else if (head != null) {
-                updateHash(digest, message, summary);
+                updateHash(digest, message, summary, texts);
+            } else if (firstOnly) {
+                // the branch has to start with the message of the summary
+                return blocks;
             }
         }
         if (head != null) {
@@ -398,10 +419,10 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
      * What a summary block hash is made of: the story text and, for the summaries a meta summary stands in for, their
      * text. Head of the block puts in no summary, that is the one being checked.
      */
-    private static void updateHash(MessageDigest digest, ChatMessage message, Summary summary) {
-        digest.update(StringUtils.defaultString(message.getResponse()).getBytes(StandardCharsets.UTF_8));
+    private static void updateHash(MessageDigest digest, ChatMessage message, Summary summary, BlockTexts texts) {
+        digest.update(StringUtils.defaultString(texts.response(message)).getBytes(StandardCharsets.UTF_8));
         if (summary != null) {
-            digest.update(StringUtils.defaultString(summary.getSummary()).getBytes(StandardCharsets.UTF_8));
+            digest.update(StringUtils.defaultString(texts.summary(summary)).getBytes(StandardCharsets.UTF_8));
         }
     }
 
@@ -502,7 +523,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         int end = next == null ? tree.size() : indexOf(tree, next.head());
         for (int i = 0; i < end; i++) {
             ChatMessage message = tree.get(i);
-            updateHash(digest, message, i == 0 || message.getSummary() == null ? null : find(message.getSummary()));
+            updateHash(digest, message, i == 0 || message.getSummary() == null ? null : find(message.getSummary()), BlockTexts.CURRENT);
         }
         newSummary.setSummaryMessageHash(HexFormat.of().formatHex(digest.digest()));
 

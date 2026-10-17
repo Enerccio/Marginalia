@@ -132,6 +132,14 @@ public final class CssStyles {
     public static final String COMMAND_RESULT = "command-result";
     public static final String COMMAND_RESULT_TEXT = "command-result-text";
 
+    // --- Search and replace (ui.dialogs.search) ---
+    public static final String SEARCH_BUTTON_ROW = "search-button-row";
+    public static final String SEARCH_INPUT_GRID = "search-input-grid";
+    public static final String SEARCH_HIT_CONTEXT = "search-hit-context";
+    public static final String SEARCH_HIT_MATCH = "search-hit-match";
+    public static final String SEARCH_HIT_REPLACEMENT = "search-hit-replacement";
+    public static final String SEARCH_HIT_PLACEHOLDER = "search-hit-placeholder";
+
     private CssStyles() {
     }
 

@@ -46,4 +46,15 @@ public class LorebookEntryServiceImpl extends ExtendableServiceImpl<LorebookEntr
         }
         return getEntriesForLorebook(lorebook.getId());
     }
+
+    @Override
+    @CommonTxReadOnly
+    public List<EntryFulltext> findFulltextsContaining(Lorebook lorebook, String literal) throws Exception {
+        if (lorebook == null || lorebook.getId() == null) {
+            return Collections.emptyList();
+        }
+        return getRepository().findFulltextsContaining(lorebook.getId(), literal).stream()
+                .map(row -> new EntryFulltext((Long) row[0], (String) row[1]))
+                .toList();
+    }
 }

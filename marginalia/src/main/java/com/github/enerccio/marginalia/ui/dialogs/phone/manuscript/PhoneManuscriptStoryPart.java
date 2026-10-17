@@ -25,6 +25,7 @@ import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneSummariesDialog;
+import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
@@ -239,6 +240,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
     private MenuItem createCogsMenuItem(MenuBar bar) {
         MenuItem cogs = bar.addItem(Solid.COGS.create());
         changeStyles = createChangeStylesMenuItem(cogs);
+        createSearchReplaceMenuItem(cogs);
         createExportMenuItem(cogs);
         return cogs;
     }
@@ -257,6 +259,37 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart {
                 UIUtils.internalServerError(loc, e);
             }
         });
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = MenuItem.class),
+            parameters = {@APIParameter(name = "cogs", type = MenuItem.class)})
+    private MenuItem createSearchReplaceMenuItem(MenuItem cogs) {
+        return cogs.getSubMenu().addItem(UIUtils.menuItemWithIcon(Solid.EXCHANGE_ALT.create(), loc.getValue(L.LABEL_SEARCH_AND_REPLACE)),
+                event -> openSearchReplaceDialog());
+    }
+
+    /**
+     * Opens the search and replace of the book, the story is shown again when something was replaced.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = ManuscriptSearchReplaceDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void openSearchReplaceDialog() {
+        try {
+            ManuscriptSearchReplaceDialog dialog = new ManuscriptSearchReplaceDialog(parent.refreshManuscript(), true);
+            dialog.onReplaced(() -> {
+                try {
+                    load(parent.refreshManuscript());
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            });
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     @PublicAPI(from = "1.1.0",

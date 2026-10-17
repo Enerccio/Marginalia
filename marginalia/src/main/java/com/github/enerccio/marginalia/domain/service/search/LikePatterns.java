@@ -16,4 +16,14 @@ public final class LikePatterns {
                 new String[]{"\\", "_", "%", "*"},
                 new String[]{"\\\\", "\\_", "\\%", "%"});
     }
+
+    /**
+     * Turns text into a part of a {@code LIKE ... ESCAPE '\'} pattern that matches exactly that text: {@code *} is a
+     * plain character here, unlike in {@link #fromWildcards}.
+     */
+    public static String literal(String text) {
+        return StringUtils.replaceEach(text,
+                new String[]{"\\", "_", "%"},
+                new String[]{"\\\\", "\\_", "\\%"});
+    }
 }

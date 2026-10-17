@@ -368,6 +368,21 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_RETURNS, "返回");
         setValue(L.LABEL_COMMAND_NO_ARGUMENTS, "无参数");
         setValue(L.LABEL_COMMAND_ANY_ARGUMENTS, "任意参数");
+        setValue(L.LABEL_SEARCH_AND_REPLACE, "搜索和替换");
+        setValue(L.LABEL_REPLACE, "替换");
+        setValue(L.LABEL_SEARCH_AGAIN, "重新搜索");
+        setValue(L.LABEL_SEARCH_FOR, "搜索内容");
+        setValue(L.LABEL_REPLACE_WITH, "替换为");
+        setValue(L.LABEL_SEARCH_BY_REGEX, "使用正则表达式搜索");
+        setValue(L.LABEL_SEARCH_IN_SUMMARIES, "在摘要中搜索");
+        setValue(L.LABEL_SEARCH_IN_ALL_BRANCHES, "在所有分支中搜索");
+        setValue(L.LABEL_ID, "ID");
+        setValue(L.LABEL_SEARCH_CONTEXT, "搜索上下文");
+        setValue(L.LABEL_REPLACE_CONTEXT, "替换上下文");
+        setValue(L.LABEL_SEARCHED_TEXT_PLACEHOLDER, "[搜索内容]");
+        setValue(L.LABEL_REPLACE_TEXT_PLACEHOLDER, "[替换内容]");
+        setValue(L.LABEL_REVALIDATE_ALL_SUMMARIES, "重新验证所有摘要");
+        setValue(L.LABEL_CASE_SENSITIVE, "区分大小写");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -461,6 +476,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_ARGUMENTS, "命令 %s 不接受这些参数");
         setValue(L.ERROR_COMMAND_FAILED, "命令 %s 失败：%s");
         setValue(L.ERROR_COMMAND_NO_BOOK_OPEN, "没有打开的书。请先打开要操作的书。");
+        setValue(L.ERROR_INVALID_REGEX, "正则表达式无效：%s");
+        setValue(L.ERROR_INVALID_REPLACEMENT, "替换内容无效：%s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -565,6 +582,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_BACKUP_TAKING, "正在备份 %s");
         setValue(L.MSG_COMMAND_BACKUP_WRITING, "正在收集书稿内容并写入备份文件");
         setValue(L.MSG_COMMAND_BACKUP_TAKEN, "已备份 %s（%d 条消息，%d 张图片）");
+        setValue(L.MSG_SEARCH_NOTHING_FOUND, "未找到任何内容");
+        setValue(L.MSG_SEARCH_STOPPED, "搜索已停止");
+        setValue(L.MSG_SEARCH_FOUND, "找到 %d 处匹配，涉及 %d 项");
+        setValue(L.MSG_REPLACE_DONE, "已替换 %d 处，涉及 %d 项");
+        setValue(L.MSG_REPLACE_SKIPPED, "有 %d 项在搜索后被修改，已保持原样");
+        setValue(L.MSG_REPLACE_OUTDATED_SUMMARIES, "此次替换会修改 %d 条摘要所依据的文本，而搜索未覆盖这些摘要（其他分支，或未搜索摘要）。这些摘要将被标记为已过时。\n是否继续？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
