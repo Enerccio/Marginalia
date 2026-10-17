@@ -13,13 +13,14 @@ import java.lang.annotation.*;
  * arguments with {@code CommandContext.get(...)} and answers with {@code CommandContext.setReturn(...)}.
  * <pre>
  * public class DiceCommands {
- *     &#64;Command(commandName = "roll", humanNameText = "Roll a die", descriptionText = "Rolls a die with the given sides")
+ *     &#64;Command(commandName = "roll", humanNameText = "Roll a die", descriptionText = "Rolls a die with the given sides",
+ *             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE)
  *     public void roll(CommandContext context) {
  *         int sides = context.get("sides", Integer.class);
  *         context.setReturn(ThreadLocalRandom.current().nextInt(sides) + 1);
  *     }
  *
- *     &#64;Command(commandName = "coin", humanNameText = "Flip a coin")
+ *     &#64;Command(commandName = "coin", humanNameText = "Flip a coin", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE)
  *     public void coin(CommandContext context) {
  *         context.setReturn(ThreadLocalRandom.current().nextBoolean() ? "heads" : "tails");
  *     }
@@ -36,6 +37,7 @@ import java.lang.annotation.*;
  * write the value alone, as for any annotation array: {@code humanName = L.LABEL_X} or
  * {@code humanNameText = "X"}. Giving both of a pair, or more than one element, is an error when the suite is
  * registered, and so is giving neither for the human name. The other texts are optional.
+ * Every command declares its {@link #dataSeverity()}: whether it changes or removes the data that exists.
  * A command with {@link #async()} {@code false} must call {@code setReturn} before the method returns (otherwise it
  * returned {@code null}); an asynchronous one runs on a worker thread and may answer later, from any thread.
  */
@@ -89,5 +91,13 @@ public @interface Command {
      * {@code setReturn} (or {@code fail}), from any thread; it may hand the work to something else.
      */
     boolean async() default false;
+
+    /**
+     * What the command does to the data that exists, see {@link CommandDataSeverity}. The user sees it in the command
+     * bar, and an agent (LLM) that runs commands on its own is meant to ask the user before it runs a destructive one.
+     * It defaults to {@link CommandDataSeverity#DESTRUCTIVE}, the safe assumption for a command that does not say, so
+     * a command that only reads or adds data declares {@link CommandDataSeverity#NON_DESTRUCTIVE}.
+     */
+    CommandDataSeverity dataSeverity() default CommandDataSeverity.DESTRUCTIVE;
 
 }

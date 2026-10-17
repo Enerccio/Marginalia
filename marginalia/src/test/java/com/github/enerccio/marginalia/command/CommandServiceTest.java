@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.command.CommandRun;
 import com.github.enerccio.marginalia.domain.service.command.CommandText;
 import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
 import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
@@ -242,6 +243,24 @@ class CommandServiceTest {
         }
     }
 
+    public static class DifferentSeverities {
+        @Command(commandName = "severity", humanNameText = "Severity", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+                signature = @CommandParameterSignature)
+        public void one(CommandContext context) {
+        }
+
+        @Command(commandName = "severity", humanNameText = "Severity", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+                signature = @CommandParameterSignature(@CommandParameter(name = "x")))
+        public void two(CommandContext context) {
+        }
+    }
+
+    public static class Reading {
+        @Command(commandName = "reading", humanNameText = "Reading", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE)
+        public void run(CommandContext context) {
+        }
+    }
+
     private CommandDefinition firstOf(String name) {
         List<CommandDefinition> overloads = commands.getCommands(name);
         return overloads.isEmpty() ? null : overloads.getFirst();
@@ -284,6 +303,22 @@ class CommandServiceTest {
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("return value");
         assertThatThrownBy(() -> commands.registerCommands(new DifferentKinds()))
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("human names");
+        assertThat(commands.getCommands()).isEmpty();
+    }
+
+    @Test
+    void aCommandIsDestructiveUnlessItSaysOtherwise() {
+        commands.registerCommands(new Arithmetic());
+        commands.registerCommands(new Reading());
+
+        assertThat(firstOf("add").dataSeverity()).isEqualTo(CommandDataSeverity.DESTRUCTIVE);
+        assertThat(firstOf("reading").dataSeverity()).isEqualTo(CommandDataSeverity.NON_DESTRUCTIVE);
+    }
+
+    @Test
+    void theOverloadsOfACommandShareTheDataSeverity() {
+        assertThatThrownBy(() -> commands.registerCommands(new DifferentSeverities()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("data severities");
         assertThat(commands.getCommands()).isEmpty();
     }
 

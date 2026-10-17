@@ -388,6 +388,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_TAKE_BACKUP, "创建备份");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_STORY, "在故事中查找并替换");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "在世界书中查找并替换");
+        setValue(L.LABEL_COMMAND_DESTRUCTIVE, "破坏性");
+        setValue(L.LABEL_COMMAND_NON_DESTRUCTIVE, "非破坏性");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -620,6 +622,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_TYPE_SLASH, "输入 / 和命令名。参数用空格分隔；参数中的空格或反斜杠前加 \\，或用 \"双引号\" 括起整个参数。");
         setValue(L.HELP_COMMAND_NO_MATCH, "没有匹配的命令。");
         setValue(L.HELP_COMMAND_TOO_MANY_ARGUMENTS, "参数多于命令所接受的数量。");
+        setValue(L.HELP_COMMAND_DESTRUCTIVE, "此命令会修改或删除已有的数据。");
+        setValue(L.HELP_COMMAND_NON_DESTRUCTIVE, "此命令只读取数据或添加新数据，不会修改任何已有的内容。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

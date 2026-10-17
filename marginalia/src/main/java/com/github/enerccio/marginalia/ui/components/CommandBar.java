@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.*;
+import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -165,7 +166,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
         row.add(nameSpan);
         if (!overloads.isEmpty()) {
             Span humanName = new Span(" " + overloads.getFirst().humanName().get(loc));
-            row.add(humanName);
+            row.add(humanName, severityBadge(overloads.getFirst().dataSeverity()));
             String description = overloads.stream().map(d -> d.description().get(loc)).filter(d -> !d.isBlank())
                     .findFirst().orElse("");
             if (!description.isBlank()) {
@@ -175,6 +176,18 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             }
         }
         return row;
+    }
+
+    /**
+     * The small label that tells whether the command changes or removes the data that exists, with the sentence that
+     * explains it as its tooltip.
+     */
+    private Span severityBadge(CommandDataSeverity severity) {
+        Span badge = new Span(loc.getValue(severity.getLabel()));
+        badge.addClassNames(CssStyles.COMMAND_SEVERITY, severity.isDestructive()
+                ? CssStyles.COMMAND_SEVERITY_DESTRUCTIVE : CssStyles.COMMAND_SEVERITY_NON_DESTRUCTIVE);
+        badge.getElement().setAttribute("title", loc.getValue(severity.getDescription()));
+        return badge;
     }
 
     /**
@@ -263,7 +276,9 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
 
         String description = info.overloads().stream().map(d -> d.description().get(loc)).filter(d -> !d.isBlank())
                 .findFirst().orElse(info.overloads().getFirst().humanName().get(loc));
-        help.add(new Div(description));
+        Div descriptionDiv = new Div(new Span(description));
+        descriptionDiv.add(severityBadge(info.overloads().getFirst().dataSeverity()));
+        help.add(descriptionDiv);
 
         for (CommandDefinition overload : info.overloads()) {
             Div usage = new Div();
