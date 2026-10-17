@@ -410,7 +410,7 @@ table (`createDescription()`), and the table has only the check box column and o
 shows name, type, owner (`allUsers`), delete time and the *Extended Content* link below each other.
 
 Generic dialogs: `ConfirmDialog.show(message, onYes)`, `TextInputDialog.Builder`, `ListSelectDialog`,
-`ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`, `SearchReplaceDialog`. `ExtensionLogDialog.show(bundle, name)` is the
+`ErrorDialog` (message and expandable stack trace), `ProgressBarDialog`, `SearchReplaceDialog`. `DialogFocus.onOpen(dialog, field)` (`ui.widgets`) puts the cursor into the field a dialog is about every time it opens, so the user can type at once; the form dialogs (`AIDialog`, `ProtocolDialog`, `UserDialog`, `ExportDialog`, `TextInputDialog`, `ListSelectDialog`, `AILimitEditDialog`, `SearchReplaceDialog`) call it. `ExtensionLogDialog.show(bundle, name)` is the
 read-only, monospace view of an extension's log. `UsageDialog.show()` is the read-only table of every user's `Usage` (administrators). `AILimitsDialog.show(ai)` is the table of the limits of a shared AI with add / edit (`AILimitEditDialog`) / delete, `AILimitInfoDialog.show(ai)` the current user's limit and usage of it.
 
 `SearchReplaceDialog` (`ui.dialogs.search`) is the search and replace window without any knowledge of what it searches.
@@ -424,6 +424,10 @@ runs on a `ThreadAccessDialog` thread and reports to the progress bar through `T
 selects the layout (the fields and buttons below each other, one column in the table), so one class serves both
 layouts. `ManuscriptSearchReplaceDialog` adds the summaries and all branches options and calls `ManuscriptReplaceService`;
 the story parts of both layouts open it from the settings menu and show the story again when `onReplaced` fires. `LorebookSearchReplaceDialog` is the second subclass, for the entries of a lorebook (no extra options, `getIdColumnHeader()` makes the table show entry names); `LorebookView` has a button for it after *Add Entry* and `PhoneLorebookView` an icon button.
+
+![The ManuscriptSearchReplaceDialog with a part opened](../images/search-replace-found.png)
+
+![The same dialog in the phone layout](../images/phone-search-replace.png)
 
 ## Conventions
 

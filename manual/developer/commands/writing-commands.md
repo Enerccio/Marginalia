@@ -220,6 +220,8 @@ the UI of the book window, on top of the progress window (so over its Stop butto
 only after the answer. `/search-replace-parts` and `/search-replace-lore-entries` (`SearchReplaceChatMessageCommand`,
 `SearchReplaceLoreEntryCommand`) are the examples; their `confirm` method is a hook that tests override.
 
+![The question of /search-replace-parts](../../images/command-confirm.png)
+
 ## Checklist
 
 - [ ] Each form has `description`, `llmDescription` (as `L` keys when the texts are translated), `signature`, `returns`.

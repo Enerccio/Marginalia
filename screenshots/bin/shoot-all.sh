@@ -10,7 +10,8 @@ cd "$SHOT_ROOT"
 "$SHOT_ROOT/bin/start-llm.sh" >/dev/null
 python3 bin/make-broken-plugin.py >/dev/null
 run() { echo "=== $*"; node "flows/$@" 2>&1 | grep -v "^  saved\|dismissed"; }
-on() { "$SHOT_ROOT/bin/restore.sh" "$1" >/dev/null; curl -s -X POST "localhost:$SHOT_LLM_PORT/v1/_reset" >/dev/null; }
+# the steps hold the plugin JARs of the day they were made: swap in the ones that were built now, then start
+on() { "$SHOT_ROOT/bin/restore.sh" "$1" --no-start >/dev/null; "$SHOT_ROOT/bin/refresh-plugins.sh" >/dev/null; "$SHOT_ROOT/bin/start-app.sh" >/dev/null; curl -s -X POST "localhost:$SHOT_LLM_PORT/v1/_reset" >/dev/null; }
 
 on 13-db-backup
 run shoot-admin.mjs
@@ -24,6 +25,10 @@ for part in language quick-start context-warning verification; do
   on 13-db-backup
   run shoot-extra.mjs --only $part
 done
+on 13-db-backup
+run shoot-commands.mjs                           # /take-backup adds a backup to the book: a copy, discarded
+on 13-db-backup
+run shoot-search-replace.mjs                     # looks only, but leaves the workspace on the Lorebooks tab: a copy, discarded
 on 13-db-backup
 run shoot-help.mjs                               # turns the help assistant on (installation wide): a copy, discarded
 on 13-db-backup
@@ -41,6 +46,7 @@ run shoot-invalid-extensions.mjs                  # a copy, discarded
 # plugin screens
 on 21-chaptermarker
 run shoot-plugin-characters.mjs
+on 21-chaptermarker                                # the sidebar width of the Characters flow is saved with the book: the other flows click on the menu below the story
 run plugin-instructionexporter.mjs
 run shoot-export.mjs
 run plugin-chinese.mjs

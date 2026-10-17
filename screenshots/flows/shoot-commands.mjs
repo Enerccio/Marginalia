@@ -5,7 +5,7 @@ import {bookTab, closeDialog, dialogRects, idle, login, main, openBook, section,
 
 const BAR = 'input[placeholder="Type / for commands"]';
 // the lower part of the story tab: the command line with everything that opens above it
-const LOWER = { x: 400, y: 330, width: 1500, height: 550 };
+const LOWER = { x: 400, y: 330, width: 1500, height: 520 };
 
 await main(async ({ page }) => {
   await login(page);
@@ -58,9 +58,10 @@ await main(async ({ page }) => {
     await input.click();
     await input.pressSequentially('/search-replace-parts Draconia Dracona', { delay: 10 });
     await input.press('Enter');
-    await page.locator('vaadin-confirm-dialog[opened], vaadin-dialog[opened]').filter({ hasText: 'cannot be undone' }).first().waitFor({ timeout: 20000 });
+    await page.getByRole('button', { name: 'Yes', exact: true }).waitFor({ timeout: 20000 });
     await idle(page, 600);
-    await snapDialog(page, 'command-confirm', 0);
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await snap(page, 'command-confirm', { clip: { x: 560, y: 300, width: 800, height: 320 } });
     await page.getByRole('button', { name: 'No', exact: true }).click();
     await idle(page, 800);
   });

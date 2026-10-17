@@ -1,9 +1,10 @@
 // Search and replace of the story (menu, window, matches, the warning about summaries) and of a lorebook.
 // Pictures: story-settings-menu, search-replace-dialog, search-replace-found, search-replace-warning,
 // lorebook-search-replace. State: 13-db-backup; nothing is replaced (the questions are answered with No/Cancel).
-import {bookTab, closeDialog, fill, idle, login, main, openBook, openTab, pick, section, sleep, snap, snapDialog} from '../lib/shot.mjs';
+import {openStoryMenu} from '../lib/story.mjs';
+import {bookTab, closeDialog, closeRestoredBook, fill, idle, login, main, openBook, openTab, pick, section, sleep, snap, snapDialog} from '../lib/shot.mjs';
 
-const openMenu = async page => { await page.mouse.click(534, 822); await idle(page, 500); };
+const openMenu = openStoryMenu;
 
 await main(async ({ page }) => {
   await login(page);
@@ -30,10 +31,7 @@ await main(async ({ page }) => {
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
-    // open the rows, the lower one first (the rows below an opened one move down)
-    await page.mouse.click(406, 627);                      // Story #5
-    await idle(page, 600);
-    await page.mouse.click(406, 519);                      // Story #2
+    await page.mouse.click(406, 519);                      // open the first row, Story #2: the matches in it
     await idle(page, 900);
     await snapDialog(page, 'search-replace-found', 0);
 
@@ -47,7 +45,7 @@ await main(async ({ page }) => {
     await idle(page, 1200);
     await page.getByRole('button', { name: 'Replace', exact: true }).click();
     await idle(page, 1200);
-    await snapDialog(page, 'search-replace-warning', 0);
+    await snap(page, 'search-replace-warning');
     await page.getByRole('button', { name: 'No', exact: true }).click().catch(() => page.keyboard.press('Escape'));
     await idle(page, 600);
     await closeDialog(page);
@@ -56,6 +54,7 @@ await main(async ({ page }) => {
   await section(page, 'lorebook', async () => {
     await page.goto('http://localhost:8099/', { waitUntil: 'load' });
     await idle(page, 1000);
+    await closeRestoredBook(page);
     await openTab(page, 'Lorebooks');
     await pick(page, 'Lorebook', 'Harry Potter - Half-Blood Prince');
     await sleep(1000);
@@ -66,7 +65,8 @@ await main(async ({ page }) => {
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
-    await page.getByRole('button', { name: 'Search', exact: false }).first().blur().catch(() => {});
+    await page.mouse.click(406, 591);                      // open the row of Draconia Malfoy: the matches in it
+    await idle(page, 900);
     await snapDialog(page, 'lorebook-search-replace', 0);
     await closeDialog(page);
   });

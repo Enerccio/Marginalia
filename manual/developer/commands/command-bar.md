@@ -29,6 +29,12 @@ flowchart LR
     target -.-> view["CommandResultView<br/>popover above the bar"]
 ```
 
+The list the bar shows when `/` is typed, and the help popover of a command while its arguments are typed:
+
+![The list of commands](../../images/command-list.png)
+
+![The help of a command](../../images/command-help.png)
+
 ## Using it
 
 ```java
@@ -96,6 +102,8 @@ of the button from `addUninterruptableListener` (disabled while the command is u
 the future completes, `ui.access(...)` (with the request scope and `UIPushGuard.push`) closes the dialog and delivers the
 result, or shows a notification for a stop, a `CommandException` or an `IllegalArgumentException`. This is why an `async`
 command **must** react to `isTerminated()`: Stop only cancels the future.
+
+![The CommandProgressDialog of an asynchronous command](../../images/command-running.png)
 
 ## Adding the bar elsewhere
 
