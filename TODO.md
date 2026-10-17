@@ -235,7 +235,20 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 25. **Writing statistics** — words per day/session, per-book totals, goals. 🧩
 26. **Undo for edits** — message edits overwrite text in place; keep per-message edit history (branching
     covers generations but not manual edits). 🧩 (similar to `lorebookvcs`)
-27. **Keyboard shortcuts** in the story editor (generate, stop, swipe, regenerate, edit).
+27. **Keyboard shortcuts** in the story editor (generate, stop, swipe, regenerate, edit), so most of the writing loop
+    works with the keyboard and tabs. First step: a shortcut on the open story tab that opens the new-turn popover
+    (`NewTurnForm.focusInstructions` already puts the cursor into the instructions), Ctrl+Enter in the popover to
+    generate and Esc to close it, the focus going back to the story afterwards. Single keys such as `+` fire only when
+    no text field (or other input) has the focus, the ones that would collide with typing need a modifier. Check the
+    browser and OS collisions (Ctrl+N/T/W are the browser's, Option+letter types characters on a Mac) in a real browser
+    before choosing the defaults, show the key in the tooltip of the button it triggers, and make the shortcuts active
+    only for the open story tab. The command bar (`/`), search and replace and next/previous tab are the next
+    candidates; the phone layout needs none.
+    **Key binding dialog.** The defaults are not final, so the user changes them in a dialog (user settings): a table of
+    actions with their current key, a field that records the next key combination pressed, a reset to the default and a
+    warning when two actions get the same key or the key is one the browser keeps. The bindings are a per-user setting
+    (an `@ExtendedAttribute` of `UserSetting`, travels with backups); plugins register their actions with a default key
+    so they show up in the same dialog.
 28. ✅ **Mobile layout** — below 768 px (decided once, at page load) the app uses `PhoneWorkspace`: a drawer instead of
     the tab bar and phone twins of the parts (`workspace/phone/parts`) and of the book window
     (`PhoneManuscriptDialog`, tabs in `dialogs/phone/manuscript`), documented in `manual/user/phone.md`. Not done: the
