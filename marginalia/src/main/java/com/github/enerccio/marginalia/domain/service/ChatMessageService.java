@@ -35,6 +35,25 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     List<FulltextHit> searchFulltext(Manuscript manuscript, String query) throws Exception;
 
     /**
+     * The id and {@code _fulltext} of the parts of the book that are not deleted, oldest first.
+     *
+     * @param literal the text the {@code _fulltext} has to contain (the database does not tell the case of every
+     *                letter apart, check again), null for all the parts
+     */
+    List<MessageFulltext> findFulltextsContaining(Manuscript manuscript, String literal) throws Exception;
+
+    /**
+     * The same for the summaries of the parts that are not deleted, with the id of the part.
+     */
+    List<SummaryFulltext> findSummaryFulltextsContaining(Manuscript manuscript, String literal) throws Exception;
+
+    record MessageFulltext(Long messageId, String fulltext) {
+    }
+
+    record SummaryFulltext(Long messageId, Long summaryId, String fulltext) {
+    }
+
+    /**
      * The end of the branch to show to display the part: the active leaf when the part is on the active branch,
      * otherwise the nearest end of a branch below the part (the newer one when there are two). Null when the part
      * isn't a part of the book.

@@ -121,6 +121,10 @@
         <property name="repository" ref="summaryRepository" />
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptReplaceServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.LorebookReplaceServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.TokenizerServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ManualServiceImpl" init-method="load" />

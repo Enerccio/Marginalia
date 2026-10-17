@@ -81,6 +81,42 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
     List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst) throws Exception;
 
     /**
+     * The first block of a branch that is given from the message with the summary down to the root, with the hash the
+     * block would have if the story had the texts of {@code texts}. Gives the hash a summary needs after a change of
+     * the story (a search and replace) without walking the whole branch.
+     *
+     * @param newestFirst the message with the summary and its ancestors, newest first
+     * @return null when the first message has no summary
+     */
+    SummaryBlock collectFirstBlock(java.util.Iterator<ChatMessage> newestFirst, BlockTexts texts) throws Exception;
+
+    /**
+     * The texts the hash of a summary block is made of.
+     */
+    interface BlockTexts {
+
+        /**
+         * The story as it is saved.
+         */
+        BlockTexts CURRENT = new BlockTexts() {
+            @Override
+            public String response(ChatMessage message) {
+                return message.getResponse();
+            }
+
+            @Override
+            public String summary(Summary summary) {
+                return summary.getSummary();
+            }
+        };
+
+        String response(ChatMessage message);
+
+        String summary(Summary summary);
+
+    }
+
+    /**
      * @param hash hash of the block as it is now, compared to {@link Summary#getSummaryMessageHash()} it tells whether
      *             the summary still describes the story
      */

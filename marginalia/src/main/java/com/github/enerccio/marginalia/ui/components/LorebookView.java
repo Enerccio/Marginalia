@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.components;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
@@ -17,9 +16,11 @@ import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.search.LorebookSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
@@ -93,6 +94,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private TagMultiComboBox tagMultiComboBox;
 
     private Button addEntryButton;
+    private Button searchReplaceButton;
     private Button refreshButton;
 
     private Grid<LorebookEntry> grid;
@@ -187,6 +189,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createNewEntry());
         addEntryButton.setThemeName("primary");
 
+        searchReplaceButton = new Button(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), Solid.EXCHANGE_ALT.create(), event -> openSearchReplaceDialog());
+
         refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.REFRESH.create(), event -> {
             try {
                 refreshEntries();
@@ -195,7 +199,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, addEntryButton, refreshButton);
+        controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, addEntryButton, searchReplaceButton, refreshButton);
         controlsLayout.setAlignItems(Alignment.END);
 
         HorizontalLayout lorebookHeaderLayout = new HorizontalLayout();
@@ -701,6 +705,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         lorebookEnabledCheckbox.setEnabled(hasLorebook);
         subLorebooksCombo.setEnabled(hasLorebook);
         addEntryButton.setEnabled(hasLorebook);
+        searchReplaceButton.setEnabled(hasLorebook);
         deleteLorebookButton.setEnabled(hasLorebook);
         exportLorebookButton.setEnabled(hasLorebook);
         exportLorebookAnchor.setEnabled(hasLorebook);
@@ -833,6 +838,22 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         } catch (Exception e) {
             UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
         }
+    }
+
+    /**
+     * Opens the search and replace in the entries of the lorebook, the entries are shown again when something was
+     * replaced.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = LorebookSearchReplaceDialog.class)})
+    private void openSearchReplaceDialog() {
+        if (currentLorebook == null) {
+            return;
+        }
+        LorebookSearchReplaceDialog dialog = new LorebookSearchReplaceDialog(currentLorebook, false);
+        dialog.onReplaced(this::refreshEntries);
+        dialog.open();
     }
 
     @PublicAPI(from = "1.1.0",

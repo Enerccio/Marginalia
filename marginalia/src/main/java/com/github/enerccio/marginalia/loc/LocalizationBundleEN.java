@@ -360,6 +360,21 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_RETURNS, "Returns");
         setValue(L.LABEL_COMMAND_NO_ARGUMENTS, "no arguments");
         setValue(L.LABEL_COMMAND_ANY_ARGUMENTS, "any arguments");
+        setValue(L.LABEL_SEARCH_AND_REPLACE, "Search and replace");
+        setValue(L.LABEL_REPLACE, "Replace");
+        setValue(L.LABEL_SEARCH_AGAIN, "Search again");
+        setValue(L.LABEL_SEARCH_FOR, "Search for");
+        setValue(L.LABEL_REPLACE_WITH, "Replace with");
+        setValue(L.LABEL_SEARCH_BY_REGEX, "Search by regex");
+        setValue(L.LABEL_SEARCH_IN_SUMMARIES, "Search in summaries");
+        setValue(L.LABEL_SEARCH_IN_ALL_BRANCHES, "Search in all branches");
+        setValue(L.LABEL_ID, "ID");
+        setValue(L.LABEL_SEARCH_CONTEXT, "Search context");
+        setValue(L.LABEL_REPLACE_CONTEXT, "Replace context");
+        setValue(L.LABEL_SEARCHED_TEXT_PLACEHOLDER, "[searched text]");
+        setValue(L.LABEL_REPLACE_TEXT_PLACEHOLDER, "[replace text]");
+        setValue(L.LABEL_REVALIDATE_ALL_SUMMARIES, "Revalidate all summaries");
+        setValue(L.LABEL_CASE_SENSITIVE, "Case sensitive");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -453,6 +468,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_ARGUMENTS, "The command %s does not take these arguments");
         setValue(L.ERROR_COMMAND_FAILED, "The command %s failed: %s");
         setValue(L.ERROR_COMMAND_NO_BOOK_OPEN, "No book is open. Open the book you want to work with first.");
+        setValue(L.ERROR_INVALID_REGEX, "Invalid regular expression: %s");
+        setValue(L.ERROR_INVALID_REPLACEMENT, "Invalid replacement: %s");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -557,6 +574,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_BACKUP_TAKING, "Taking a backup of %s");
         setValue(L.MSG_COMMAND_BACKUP_WRITING, "Collecting the content of the book and writing the backup file");
         setValue(L.MSG_COMMAND_BACKUP_TAKEN, "Backup of %s taken (%d messages, %d images)");
+        setValue(L.MSG_SEARCH_NOTHING_FOUND, "Nothing found");
+        setValue(L.MSG_SEARCH_STOPPED, "Search stopped");
+        setValue(L.MSG_SEARCH_FOUND, "Found %d matches in %d items");
+        setValue(L.MSG_REPLACE_DONE, "Replaced %d matches in %d items");
+        setValue(L.MSG_REPLACE_SKIPPED, "%d items were changed since the search and were left as they are");
+        setValue(L.MSG_REPLACE_OUTDATED_SUMMARIES, "The replacement changes the text that %d summaries are based on and the search does not cover them (other branches, or summaries are not searched). They will be marked as outdated.\nContinue?");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
