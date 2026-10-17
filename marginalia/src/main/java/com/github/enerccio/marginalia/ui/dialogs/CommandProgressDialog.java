@@ -29,6 +29,8 @@ public class CommandProgressDialog extends Dialog {
 
     private final Div status = new Div();
     private final Div subStatus = new Div();
+    private Button stop;
+    private boolean stopRequested;
 
     /**
      * @param commandName the name of the command for the user
@@ -50,8 +52,9 @@ public class CommandProgressDialog extends Dialog {
         progress.setIndeterminate(true);
         progress.setWidthFull();
 
-        Button stop = new Button(loc.getValue(L.LABEL_STOP));
+        stop = new Button(loc.getValue(L.LABEL_STOP));
         stop.addClickListener(_ -> {
+            stopRequested = true;
             stop.setEnabled(false);
             onStop.run();
         });
@@ -80,6 +83,14 @@ public class CommandProgressDialog extends Dialog {
      */
     public void setSubStatus(String text) {
         show(subStatus, text);
+    }
+
+    /**
+     * Enables or disables the Stop button: the command can't be stopped while it does something it has to finish.
+     * Once the user has pressed it stays disabled. Call it with the UI lock.
+     */
+    public void setStopEnabled(boolean enabled) {
+        stop.setEnabled(enabled && !stopRequested);
     }
 
     private static void show(Div line, String text) {

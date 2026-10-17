@@ -85,7 +85,17 @@ public interface CommandService {
      * @return the run, a future of the value the command set with {@link CommandContext#setReturn} (null if it set
      * none); it also holds the status the command reports, see {@link CommandRun}
      */
-    CommandRun execute(String commandName, Map<String, Object> arguments);
+    default CommandRun execute(String commandName, Map<String, Object> arguments) {
+        return execute(commandName, arguments, false);
+    }
+
+    /**
+     * Like {@link #execute(String, Map)}, but with {@code uninterruptable} the run starts as uninterruptable and stays so:
+     * cancelling its future does nothing, the Stop button of its progress window is disabled, and the command can't
+     * lift it with {@link CommandContext#setUninterruptable(boolean)}. For a command that is uninterruptable itself and
+     * starts another asynchronous command: the nested one must not be abandoned half way either.
+     */
+    CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable);
 
     /**
      * Runs the command with the arguments by position (any objects, text from a command line included). The overload
@@ -95,13 +105,29 @@ public interface CommandService {
      * command that declares no signature takes any arguments, they are in {@link CommandContext#getPositional()}.
      * Otherwise like {@link #execute(String, Map)}.
      */
-    CommandRun executePositional(String commandName, List<Object> arguments);
+    default CommandRun executePositional(String commandName, List<Object> arguments) {
+        return executePositional(commandName, arguments, false);
+    }
+
+    /**
+     * Like {@link #executePositional(String, List)}, with the {@code uninterruptable} flag of
+     * {@link #execute(String, Map, boolean)}.
+     */
+    CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable);
 
     /**
      * Runs a command typed as text, {@code /command-name argument argument}, see
      * {@link com.github.enerccio.marginalia.domain.service.command.CommandLine}; the arguments are text. Fails with
      * {@link IllegalArgumentException} when the text does not start with a slash.
      */
-    CommandRun executeLine(String line);
+    default CommandRun executeLine(String line) {
+        return executeLine(line, false);
+    }
+
+    /**
+     * Like {@link #executeLine(String)}, with the {@code uninterruptable} flag of
+     * {@link #execute(String, Map, boolean)}.
+     */
+    CommandRun executeLine(String line, boolean uninterruptable);
 
 }

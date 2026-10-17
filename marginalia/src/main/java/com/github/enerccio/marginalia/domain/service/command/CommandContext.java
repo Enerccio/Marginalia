@@ -60,6 +60,21 @@ public interface CommandContext {
     void setSubStatus(String subStatus);
 
     /**
+     * Declares that the run can't be stopped now (or, with {@code false}, that it can be again): the Stop button of the
+     * progress window is disabled and cancelling the run does nothing while it is set. For the part of an {@code async}
+     * command that can't be abandoned half way, a change that is being written, which it has to finish. The command
+     * should not stay uninterruptable longer than it needs. Can be called from any thread; ignored when the run is over.
+     */
+    void setUninterruptable(boolean uninterruptable);
+
+    /**
+     * Whether the run is uninterruptable now, because the command set it or because the caller started it so (which the
+     * command can't undo). A command that starts another asynchronous one while it is uninterruptable passes this to
+     * {@link com.github.enerccio.marginalia.domain.service.CommandService#execute(String, java.util.Map, boolean)}.
+     */
+    boolean isUninterruptable();
+
+    /**
      * Sets what the command returns. A command that is not {@code async} must call this before its method returns, or
      * the caller gets {@code null}; later calls are ignored. An {@code async} command finishes with the first call, from
      * any thread, and the calls after it are ignored.

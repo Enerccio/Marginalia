@@ -17,6 +17,8 @@ class CommandContextImpl implements CommandContext {
     private final List<Object> positional;
     private final boolean async;
     private final CommandRunImpl result;
+    /** The caller started the run as uninterruptable, the command can't undo it. */
+    private final boolean forcedUninterruptable;
 
     private Object value;
     private boolean closed;
@@ -24,13 +26,17 @@ class CommandContextImpl implements CommandContext {
     private String subStatus;
 
     CommandContextImpl(String commandName, Map<String, Object> arguments, List<Object> positional, boolean async,
-                       CommandRunImpl result) {
+                       CommandRunImpl result, boolean forcedUninterruptable) {
         this.commandName = commandName;
         // LinkedHashMap and ArrayList, not Map.copyOf: arguments may be null
         this.arguments = arguments == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(arguments));
         this.positional = positional == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(positional));
         this.async = async;
         this.result = result;
+        this.forcedUninterruptable = forcedUninterruptable;
+        if (forcedUninterruptable) {
+            result.uninterruptable(true);
+        }
     }
 
     @Override
@@ -80,6 +86,19 @@ class CommandContextImpl implements CommandContext {
     @Override
     public void setSubStatus(String subStatus) {
         update(null, blankToNull(subStatus), false);
+    }
+
+    @Override
+    public synchronized void setUninterruptable(boolean uninterruptable) {
+        if (closed || result.isDone()) {
+            return;
+        }
+        result.uninterruptable(uninterruptable || forcedUninterruptable);
+    }
+
+    @Override
+    public boolean isUninterruptable() {
+        return result.isUninterruptable();
     }
 
     /**

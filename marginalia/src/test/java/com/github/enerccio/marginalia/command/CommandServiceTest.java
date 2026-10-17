@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -103,6 +104,34 @@ class CommandServiceTest {
             context.setSubStatus("Detail 1");
             release.join();
             context.setStatus("  ");
+            context.setReturn("done");
+        }
+    }
+
+    public static class Locking {
+        public final CompletableFuture<Void> release = new CompletableFuture<>();
+        public final boolean lockItself;
+        public final boolean unlockItself;
+        volatile CommandContext kept;
+        /** The command did what it does with the flag. */
+        volatile boolean ready;
+
+        public Locking(boolean lockItself, boolean unlockItself) {
+            this.lockItself = lockItself;
+            this.unlockItself = unlockItself;
+        }
+
+        @Command(commandName = "locking", humanName = "Locking", async = true)
+        public void run(CommandContext context) {
+            kept = context;
+            if (lockItself) {
+                context.setUninterruptable(true);
+            }
+            if (unlockItself) {
+                context.setUninterruptable(false);
+            }
+            ready = true;
+            release.join();
             context.setReturn("done");
         }
     }
@@ -386,6 +415,81 @@ class CommandServiceTest {
         reporting.kept.setStatus("after stop");
 
         assertThat(run.getStatus()).isEqualTo("Step 1");
+    }
+
+    private static void waitForContext(Locking locking) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (!locking.ready && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+        }
+    }
+
+    @Test
+    void cancelDoesNothingWhileTheCommandIsUninterruptable() throws Exception {
+        Locking locking = new Locking(true, false);
+        commands.registerCommands(locking);
+
+        CommandRun run = commands.execute("locking", Map.of());
+        waitForContext(locking);
+        List<Boolean> seen = new CopyOnWriteArrayList<>();
+        run.addUninterruptableListener(seen::add);
+
+        assertThat(run.isUninterruptable()).isTrue();
+        assertThat(locking.kept.isUninterruptable()).isTrue();
+        assertThat(run.cancel(true)).isFalse();
+        assertThat(run).isNotDone();
+        assertThat(locking.kept.isTerminated()).isFalse();
+
+        // lifted: it can be stopped again
+        locking.kept.setUninterruptable(false);
+        assertThat(seen).containsExactly(false);
+        assertThat(run.cancel(true)).isTrue();
+        assertThat(run).isCancelled();
+    }
+
+    @Test
+    void anUninterruptableCommandStillFinishesNormally() throws Exception {
+        Locking locking = new Locking(true, false);
+        commands.registerCommands(locking);
+
+        CommandRun run = commands.execute("locking", Map.of());
+        waitForContext(locking);
+        run.cancel(true);
+        locking.release.complete(null);
+
+        assertThat(run.get(5, TimeUnit.SECONDS)).isEqualTo("done");
+    }
+
+    @Test
+    void aRunStartedUninterruptableStaysSoWhateverTheCommandDoes() throws Exception {
+        Locking locking = new Locking(false, true);
+        commands.registerCommands(locking);
+
+        CommandRun run = commands.execute("locking", Map.of(), true);
+        waitForContext(locking);
+
+        assertThat(run.isUninterruptable()).isTrue();
+        assertThat(locking.kept.isUninterruptable()).isTrue();
+        locking.kept.setUninterruptable(false);
+        assertThat(run.cancel(true)).isFalse();
+        assertThat(run).isNotDone();
+
+        locking.release.complete(null);
+        assertThat(run.get(5, TimeUnit.SECONDS)).isEqualTo("done");
+    }
+
+    @Test
+    void positionalAndLineRunsCanBeStartedUninterruptableToo() throws Exception {
+        Locking locking = new Locking(false, false);
+        commands.registerCommands(locking);
+
+        CommandRun line = commands.executeLine("/locking", true);
+        CommandRun positional = commands.executePositional("locking", List.of(), true);
+
+        assertThat(line.isUninterruptable()).isTrue();
+        assertThat(positional.isUninterruptable()).isTrue();
+        assertThat(commands.executeLine("/locking").isUninterruptable()).isFalse();
+        locking.release.complete(null);
     }
 
 }

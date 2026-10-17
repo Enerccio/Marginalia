@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasEnabled;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -27,6 +28,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -226,6 +228,15 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         replaceField = new TextField(loc.getValue(L.LABEL_REPLACE_WITH));
         replaceField.setWidthFull();
         replaceField.setClearButtonVisible(true);
+        // Enter in a field searches; the value has to be current when the key arrives, so the fields send it as it is typed
+        for (TextField field : List.of(searchField, replaceField)) {
+            field.setValueChangeMode(ValueChangeMode.EAGER);
+            field.addKeyDownListener(Key.ENTER, _ -> {
+                if (state == State.INPUT) {
+                    onSearchButton();
+                }
+            });
+        }
         regexBox = new Checkbox(loc.getValue(L.LABEL_SEARCH_BY_REGEX), false);
         caseSensitiveBox = new Checkbox(loc.getValue(L.LABEL_CASE_SENSITIVE), true);
         // a regular expression says itself whether the case matters, with (?i)

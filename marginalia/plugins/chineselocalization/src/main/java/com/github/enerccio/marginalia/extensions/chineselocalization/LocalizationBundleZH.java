@@ -478,6 +478,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_NO_BOOK_OPEN, "没有打开的书。请先打开要操作的书。");
         setValue(L.ERROR_INVALID_REGEX, "正则表达式无效：%s");
         setValue(L.ERROR_INVALID_REPLACEMENT, "替换内容无效：%s");
+        setValue(L.ERROR_SEARCH_TEXT_EMPTY, "没有要搜索的内容");
+        setValue(L.ERROR_COMMAND_NO_LOREBOOK, "打开的书没有世界书。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -588,6 +590,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_REPLACE_DONE, "已替换 %d 处，涉及 %d 项");
         setValue(L.MSG_REPLACE_SKIPPED, "有 %d 项在搜索后被修改，已保持原样");
         setValue(L.MSG_REPLACE_OUTDATED_SUMMARIES, "此次替换会修改 %d 条摘要所依据的文本，而搜索未覆盖这些摘要（其他分支，或未搜索摘要）。这些摘要将被标记为已过时。\n是否继续？");
+        setValue(L.MSG_COMMAND_SEARCHING, "正在搜索");
+        setValue(L.MSG_COMMAND_REPLACING, "正在替换");
+        setValue(L.MSG_COMMAND_REPLACE_CONFIRM, "要替换 %d 处匹配（共 %d 项）吗？\n\"%s\" -> \"%s\"\n没有预览，且更改无法撤销。");
+        setValue(L.MSG_COMMAND_REPLACE_CANCELLED, "已取消替换，未做任何更改");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

@@ -11,4 +11,8 @@ class CommandRunImpl extends CommandRun {
         publishStatus(status, subStatus);
     }
 
+    void uninterruptable(boolean uninterruptable) {
+        publishUninterruptable(uninterruptable);
+    }
+
 }

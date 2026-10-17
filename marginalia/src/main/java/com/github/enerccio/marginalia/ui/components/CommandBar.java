@@ -356,7 +356,19 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
                 log.debug("The UI of command {} is gone", parsed.name(), e);
             }
         });
-        // what was set before the listener was added
+        future.addUninterruptableListener(uninterruptable -> {
+            try {
+                ui.access(() -> {
+                    dialog.setStopEnabled(!uninterruptable);
+                    UIPushGuard.push(ui);
+                });
+            } catch (RuntimeException e) {
+                // the UI is gone
+                log.debug("The UI of command {} is gone", parsed.name(), e);
+            }
+        });
+        // what was set before the listeners were added
+        dialog.setStopEnabled(!future.isUninterruptable());
         dialog.setStatus(future.getStatus());
         dialog.setSubStatus(future.getSubStatus());
         future.whenComplete((_, _) -> {

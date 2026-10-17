@@ -3,15 +3,25 @@ package com.github.enerccio.marginalia.utils;
 import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.command.CommandContext;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
+import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
+import com.vaadin.flow.component.UI;
 import jakarta.servlet.ServletContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * What a {@link com.github.enerccio.marginalia.domain.traits.Command} needs to know about what the user is looking at,
@@ -83,6 +93,70 @@ public final class CommandUtils {
     public static AI getCurrentAI() {
         ManuscriptWindow window = getManuscriptWindow();
         return window == null ? null : window.getAi();
+    }
+
+    /**
+     * Asks the user a yes/no question from a command that runs on a worker thread, and waits for the answer. The dialog
+     * opens in the UI of the book window, on top of the progress window of the command (so it covers its Stop button).
+     * Gives {@code false} when the user answers no, when the run is terminated meanwhile (the dialog is closed then) and
+     * when there is no window to ask in.
+     *
+     * @param context the context of the command that asks, to see whether it was stopped
+     */
+    public static boolean confirm(CommandContext context, String message) throws InterruptedException {
+        ManuscriptWindow window = getManuscriptWindow();
+        UI ui = window == null ? null : window.asDialog().getUI().orElse(null);
+        if (ui == null) {
+            return false;
+        }
+        CompletableFuture<Boolean> answer = new CompletableFuture<>();
+        AtomicReference<ConfirmDialog> shown = new AtomicReference<>();
+        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        ui.access(() -> {
+            try (ThreadCopyRequestAttributes.InRequestScope _ = new ThreadCopyRequestAttributes.InRequestScope(attributes)) {
+                shown.set(ConfirmDialog.open(message, () -> answer.complete(true), () -> answer.complete(false)));
+            }
+            UIPushGuard.push(ui);
+        });
+        while (true) {
+            try {
+                return answer.get(100, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException e) {
+                if (context.isTerminated()) {
+                    ui.access(() -> {
+                        ConfirmDialog dialog = shown.get();
+                        if (dialog != null) {
+                            dialog.close();
+                        }
+                        UIPushGuard.push(ui);
+                    });
+                    return false;
+                }
+            } catch (java.util.concurrent.ExecutionException e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Shows the book window again from the database, after a command changed the book from a worker thread. Does
+     * nothing when no book is open.
+     */
+    public static void reloadManuscriptWindow() {
+        ManuscriptWindow window = getManuscriptWindow();
+        UI ui = window == null ? null : window.asDialog().getUI().orElse(null);
+        if (ui == null) {
+            return;
+        }
+        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        ui.access(() -> {
+            try (ThreadCopyRequestAttributes.InRequestScope _ = new ThreadCopyRequestAttributes.InRequestScope(attributes)) {
+                window.reload();
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+            UIPushGuard.push(ui);
+        });
     }
 
 }
