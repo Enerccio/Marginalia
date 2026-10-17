@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845543711469">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549030524">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,7 +24,7 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/lorebooks/entries/">
     <meta property="og:title" content="Entries & activation">
     <meta property="og:description" content="Each row of the lorebook editor is one entry:">
-    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/lorebook-entry.png">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/lorebook-search-replace.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Entries & activation">
@@ -36,7 +36,7 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/lorebooks/entries/">
     <meta name="twitter:title" content="Entries & activation">
     <meta name="twitter:description" content="Each row of the lorebook editor is one entry:">
-    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/lorebook-entry.png">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/lorebook-search-replace.png">
     <meta name="twitter:image:alt" content="Entries & activation">
 
     <!-- Alternate Markdown -->
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845543711469" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845549030524" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845543711469" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845549030524" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -227,6 +227,12 @@ without the options for summaries and branches: <strong>Search</strong> lists th
 the matches in them as they are and as they will be, <strong>Replace</strong> changes the entries. It has the options <strong>Search by regex</strong> and <strong>Case sensitive</strong> (on by default; locked while the regex is on, which
 can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that are disabled are searched too. On the phone the button (an icon next to the
 <em>Enabled</em> check box) opens the same window in the phone layout.</p>
+<figure class="content-center">
+    <img src="../../../images/lorebook-search-replace.png" alt="The Search and replace window of a lorebook, the matches in one entry opened" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="792" />
+    <figcaption class="caption">The Search and replace window of a lorebook, the matches in one entry opened</figcaption>
+</figure>
+<p>The command line of the story editor has <code translate="no" v-pre>/search-replace-lore-entries</code> for the lorebook of the open book, see
+<a href="../../commands/#commands-that-come-with-marginalia">Commands</a>.</p>
 <h2 id="entry-details">Entry details</h2>
 <p>The ⌄ button opens the details:</p>
 <figure class="content-center">

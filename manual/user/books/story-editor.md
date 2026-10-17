@@ -229,6 +229,10 @@ while. The command line is only in the story tab of the desktop layout so far.
 The settings menu (⚙) also has **Search and replace**, which changes a word, a name or a phrase in the whole story at
 once. The window has a **Search for** and a **Replace with** field and these options:
 
+![The settings menu with Search and replace](../../images/story-settings-menu.png)
+
+![The Search and replace window with a search typed in](../../images/search-replace-dialog.png)
+
 | Option | Default | Meaning |
 |---|---|---|
 | **Search by regex** | off | The search text is a [regular expression](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/regex/Pattern.html) and the replacement can use its groups (`$1`). Otherwise the text is searched as typed. |
@@ -244,6 +248,8 @@ next to it interrupts it. Nothing is changed by a search.
 The table lists every part of the story and every summary that has a match, with its type and id. Open a row to see the
 matches in it: the text around the match as it is and as it will be after the replacement. A match or a replacement that
 is too long to show is written as *[searched text]* or *[replace text]*.
+
+![The matches of a search, the first part opened](../../images/search-replace-found.png)
 
 Pressing **Enter** in the **Search for** or **Replace with** field does the same as **Search**.
 
@@ -263,8 +269,13 @@ branches that are not searched, which share their earlier parts with the active 
 not searched) become outdated. If there are such summaries, Marginalia tells you how many and asks whether to go on. A
 summary that was outdated already stays so.
 
+![The warning about summaries that would become outdated](../../images/search-replace-warning.png)
+
 In the [phone layout](../phone.md) the same window has the fields and buttons below each other, and the table has one
 column that shows the type and id, and below them the match and the replacement.
+
+The same search and replace can be run from the [command line](../commands/index.md#commands-that-come-with-marginalia)
+with `/search-replace-parts`; it asks before it replaces.
 
 ## Exporting the story
 

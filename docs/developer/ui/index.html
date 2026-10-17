@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845543711469">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549030524">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845543711469" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845549030524" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845543711469" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845549030524" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -851,7 +851,7 @@ filters are stacked over the whole width, the description is behind an info butt
 table (<code translate="no" v-pre>createDescription()</code>), and the table has only the check box column and one content column that
 shows name, type, owner (<code translate="no" v-pre>allUsers</code>), delete time and the <em>Extended Content</em> link below each other.</p>
 <p>Generic dialogs: <code translate="no" v-pre>ConfirmDialog.show(message, onYes)</code>, <code translate="no" v-pre>TextInputDialog.Builder</code>, <code translate="no" v-pre>ListSelectDialog</code>,
-<code translate="no" v-pre>ErrorDialog</code> (message and expandable stack trace), <code translate="no" v-pre>ProgressBarDialog</code>, <code translate="no" v-pre>SearchReplaceDialog</code>. <code translate="no" v-pre>ExtensionLogDialog.show(bundle, name)</code> is the
+<code translate="no" v-pre>ErrorDialog</code> (message and expandable stack trace), <code translate="no" v-pre>ProgressBarDialog</code>, <code translate="no" v-pre>SearchReplaceDialog</code>. <code translate="no" v-pre>DialogFocus.onOpen(dialog, field)</code> (<code translate="no" v-pre>ui.widgets</code>) puts the cursor into the field a dialog is about every time it opens, so the user can type at once; the form dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>AILimitEditDialog</code>, <code translate="no" v-pre>SearchReplaceDialog</code>) call it. <code translate="no" v-pre>ExtensionLogDialog.show(bundle, name)</code> is the
 read-only, monospace view of an extension&#x27;s log. <code translate="no" v-pre>UsageDialog.show()</code> is the read-only table of every user&#x27;s <code translate="no" v-pre>Usage</code> (administrators). <code translate="no" v-pre>AILimitsDialog.show(ai)</code> is the table of the limits of a shared AI with add / edit (<code translate="no" v-pre>AILimitEditDialog</code>) / delete, <code translate="no" v-pre>AILimitInfoDialog.show(ai)</code> the current user&#x27;s limit and usage of it.</p>
 <p><code translate="no" v-pre>SearchReplaceDialog</code> (<code translate="no" v-pre>ui.dialogs.search</code>) is the search and replace window without any knowledge of what it searches.
 A subclass supplies the title, its own options (<code translate="no" v-pre>createOptions()</code>, shown next to the regex option and locked with it)
@@ -864,6 +864,14 @@ runs on a <code translate="no" v-pre>ThreadAccessDialog</code> thread and report
 selects the layout (the fields and buttons below each other, one column in the table), so one class serves both
 layouts. <code translate="no" v-pre>ManuscriptSearchReplaceDialog</code> adds the summaries and all branches options and calls <code translate="no" v-pre>ManuscriptReplaceService</code>;
 the story parts of both layouts open it from the settings menu and show the story again when <code translate="no" v-pre>onReplaced</code> fires. <code translate="no" v-pre>LorebookSearchReplaceDialog</code> is the second subclass, for the entries of a lorebook (no extra options, <code translate="no" v-pre>getIdColumnHeader()</code> makes the table show entry names); <code translate="no" v-pre>LorebookView</code> has a button for it after <em>Add Entry</em> and <code translate="no" v-pre>PhoneLorebookView</code> an icon button.</p>
+<figure class="content-center">
+    <img src="../../images/search-replace-found.png" alt="The ManuscriptSearchReplaceDialog with a part opened" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="792" />
+    <figcaption class="caption">The ManuscriptSearchReplaceDialog with a part opened</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../images/phone-search-replace.png" alt="The same dialog in the phone layout" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
+    <figcaption class="caption">The same dialog in the phone layout</figcaption>
+</figure>
 <h2 id="conventions">Conventions</h2>
 <h3 id="text">Text</h3>
 <p>Never hard-code user-visible text. Add a key to <code translate="no" v-pre>loc/L.java</code> and the text to <code translate="no" v-pre>LocalizationBundleEN</code> (and <code translate="no" v-pre>LocalizationBundleJP</code>), and use

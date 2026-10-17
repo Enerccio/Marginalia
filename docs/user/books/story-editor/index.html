@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845543711469">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549030524">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845543711469" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845549030524" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -555,6 +555,14 @@ while. The command line is only in the story tab of the desktop layout so far.</
 <h2 id="search-and-replace">Search and replace</h2>
 <p>The settings menu (⚙) also has <strong>Search and replace</strong>, which changes a word, a name or a phrase in the whole story at
 once. The window has a <strong>Search for</strong> and a <strong>Replace with</strong> field and these options:</p>
+<figure class="content-center">
+    <img src="../../../images/story-settings-menu.png" alt="The settings menu with Search and replace" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="520" height="330" />
+    <figcaption class="caption">The settings menu with Search and replace</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/search-replace-dialog.png" alt="The Search and replace window with a search typed in" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="792" />
+    <figcaption class="caption">The Search and replace window with a search typed in</figcaption>
+</figure>
 <retype-table copy-text="| Option | Default | Meaning |
 |---|---|---|
 | **Search by regex** | off | The search text is a [regular expression](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/regex/Pattern.html) and the replacement can use its groups (`$1`). Otherwise the text is searched as typed. |
@@ -607,6 +615,10 @@ next to it interrupts it. Nothing is changed by a search.</p>
 <p>The table lists every part of the story and every summary that has a match, with its type and id. Open a row to see the
 matches in it: the text around the match as it is and as it will be after the replacement. A match or a replacement that
 is too long to show is written as <em>[searched text]</em> or <em>[replace text]</em>.</p>
+<figure class="content-center">
+    <img src="../../../images/search-replace-found.png" alt="The matches of a search, the first part opened" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="792" />
+    <figcaption class="caption">The matches of a search, the first part opened</figcaption>
+</figure>
 <p>Pressing <strong>Enter</strong> in the <strong>Search for</strong> or <strong>Replace with</strong> field does the same as <strong>Search</strong>.</p>
 <p>When the search is done, the fields and options are locked and the <strong>Replace</strong> button is enabled. <strong>Search again</strong> forgets
 what was found and unlocks the window, so you can change the search. <strong>Replace</strong> changes the story: the window is frozen
@@ -621,8 +633,14 @@ summaries still say the right thing.</p>
 branches that are not searched, which share their earlier parts with the active branch; or all of them when summaries are
 not searched) become outdated. If there are such summaries, Marginalia tells you how many and asks whether to go on. A
 summary that was outdated already stays so.</p>
+<figure class="content-center">
+    <img src="../../../images/search-replace-warning.png" alt="The warning about summaries that would become outdated" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">The warning about summaries that would become outdated</figcaption>
+</figure>
 <p>In the <a href="../../phone/">phone layout</a> the same window has the fields and buttons below each other, and the table has one
 column that shows the type and id, and below them the match and the replacement.</p>
+<p>The same search and replace can be run from the <a href="../../commands/#commands-that-come-with-marginalia">command line</a>
+with <code translate="no" v-pre>/search-replace-parts</code>; it asks before it replaces.</p>
 <h2 id="exporting-the-story">Exporting the story</h2>
 <p>The settings menu (⚙) also has <strong>Export story</strong>, which saves the active branch as a text, Markdown, HTML, Word, PDF or EPUB
 file. See <a href="../export/">Exporting a book</a>.</p>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845543711469">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549030524">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/commands/writing-commands/">
     <meta property="og:title" content="Writing commands">
     <meta property="og:description" content="This page shows how to add commands, in the application and in a plugin. Read Commands first for the model.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/command-confirm.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Writing commands">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,18 +36,20 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/commands/writing-commands/">
     <meta name="twitter:title" content="Writing commands">
     <meta name="twitter:description" content="This page shows how to add commands, in the application and in a plugin. Read Commands first for the model.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/command-confirm.png">
+    <meta name="twitter:image:alt" content="Writing commands">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/commands/writing-commands.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845543711469" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845549030524" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845543711469" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845549030524" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -388,6 +394,10 @@ the UI of the book window, on top of the progress window (so over its Stop butto
 <code translate="no" v-pre>false</code> for no, when the run is stopped meanwhile or when there is no window. Declare the command uninterruptable
 only after the answer. <code translate="no" v-pre>/search-replace-parts</code> and <code translate="no" v-pre>/search-replace-lore-entries</code> (<code translate="no" v-pre>SearchReplaceChatMessageCommand</code>,
 <code translate="no" v-pre>SearchReplaceLoreEntryCommand</code>) are the examples; their <code translate="no" v-pre>confirm</code> method is a hook that tests override.</p>
+<figure class="content-center">
+    <img src="../../../images/command-confirm.png" alt="The question of /search-replace-parts" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="800" height="320" />
+    <figcaption class="caption">The question of /search-replace-parts</figcaption>
+</figure>
 <h2 id="checklist">Checklist</h2>
 <ul class="contains-task-list">
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> Each form has <code translate="no" v-pre>description</code>, <code translate="no" v-pre>llmDescription</code> (as <code translate="no" v-pre>L</code> keys when the texts are translated), <code translate="no" v-pre>signature</code>, <code translate="no" v-pre>returns</code>.</li>

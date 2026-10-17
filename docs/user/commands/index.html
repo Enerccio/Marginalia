@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845543711469">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549030524">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/commands/">
     <meta property="og:title" content="Commands">
     <meta property="og:description" content="Commands are small actions you run by typing them, instead of clicking through menus. Marginalia itself comes with only a couple of example commands; the real use of the command line is that extensions can add commands of their own, for example to look something up, change the book or start a task.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/command-list.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Commands">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/commands/">
     <meta name="twitter:title" content="Commands">
     <meta name="twitter:description" content="Commands are small actions you run by typing them, instead of clicking through menus. Marginalia itself comes with only a couple of example commands; the real use of the command line is that extensions can add commands of their own, for example to look something up, change the book or start a task.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/command-list.png">
+    <meta name="twitter:image:alt" content="Commands">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/commands/index.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845543711469" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845549030524" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -178,7 +184,12 @@ description. Typing more narrows the list: the filter looks at the name of the c
 </li>
 <li>
 <p>Pick the command with the mouse, or with the arrow keys and <strong>Enter</strong>. A command that needs nothing runs at once; for
-one that takes arguments, <code translate="no" v-pre>/name </code> is written into the field and you continue with the arguments.</p>
+one that takes arguments, <code translate="no" v-pre>/name </code> is written into the field and you continue with the arguments.
+<figure class="content-center">
+    <img src="../../images/command-list.png" alt="The list of commands, opened by typing a slash" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The list of commands, opened by typing a slash</figcaption>
+</figure>
+</p>
 </li>
 <li>
 <p>Type the arguments and press <strong>Enter</strong>, or click the play button next to the field, to run it. The field is emptied
@@ -205,6 +216,10 @@ are typing now highlighted and its description,</p>
 <p>a hint when you have typed more arguments than the command takes, or when no command has that name.</p>
 </li>
 </ul>
+<figure class="content-center">
+    <img src="../../images/command-help.png" alt="The help of /search-replace-lore-entries while its second argument is typed" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The help of /search-replace-lore-entries while its second argument is typed</figcaption>
+</figure>
 <p>While you are still typing the name, the list of commands is the help.</p>
 <h2 id="arguments">Arguments</h2>
 <p>Arguments are separated by spaces, and repeated spaces count as one. To put a space <em>inside</em> an argument, you have
@@ -287,12 +302,28 @@ forms it does have.</p>
 <p>When a command returns something, it is shown in a window above the command line. Close it with the cross, with <strong>Esc</strong>,
 or just carry on: it disappears when you type something new or run another command. A command that returns nothing shows
 no window.</p>
+<figure class="content-center">
+    <img src="../../images/command-result.png" alt="The result of /take-backup above the command line" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The result of /take-backup above the command line</figcaption>
+</figure>
 <p>If a command fails, or there is no such command, you get a notification with the reason.</p>
 <h2 id="commands-that-take-time">Commands that take time</h2>
 <p>Most commands answer at once. A command that needs time shows a window with an animated bar and a <strong>Stop</strong> button, and
 the story is locked until the command is done. Under the bar the command can say what it is doing now and, in smaller
 letters, the detail of the step. <strong>Stop</strong> cancels the command; it should return immediately. You can try it with
 <code translate="no" v-pre>/hello-world-async</code>.</p>
+<figure class="content-center">
+    <img src="../../images/command-running.png" alt="The window of a command that is running" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The window of a command that is running</figcaption>
+</figure>
+<h2 id="commands-that-ask-first">Commands that ask first</h2>
+<p>A command that changes a lot can ask before it does. The search and replace commands have no preview, so after the
+search they show how many matches they found in how many items and what would be replaced by what, and only <strong>Yes</strong>
+changes the book; <strong>No</strong> leaves everything as it was. The question stays until you answer it.</p>
+<figure class="content-center">
+    <img src="../../images/command-confirm.png" alt="The question of /search-replace-parts" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="800" height="320" />
+    <figcaption class="caption">The question of /search-replace-parts</figcaption>
+</figure>
 <h2 id="commands-that-come-with-marginalia">Commands that come with Marginalia</h2>
 <retype-table copy-text="| Command                              | What it does                                                                       |
 |--------------------------------------|------------------------------------------------------------------------------------|

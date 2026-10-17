@@ -30,6 +30,11 @@ the matches in them as they are and as they will be, **Replace** changes the ent
 can use `(?i)` to ignore the case). Entries that are disabled are searched too. On the phone the button (an icon next to the
 *Enabled* check box) opens the same window in the phone layout.
 
+![The Search and replace window of a lorebook, the matches in one entry opened](../../images/lorebook-search-replace.png)
+
+The command line of the story editor has `/search-replace-lore-entries` for the lorebook of the open book, see
+[Commands](../commands/index.md#commands-that-come-with-marginalia).
+
 ## Entry details
 
 The ⌄ button opens the details:

@@ -52,6 +52,11 @@ The same reduced editor is used in the *Lorebook* tab of a book.
 
 ![A lorebook on a phone](../images/phone-lorebook.png)
 
+The button next to the *Enabled* check box opens **Search and replace** for the entries of the lorebook, see
+[Entries](lorebooks/entries.md#search-and-replace).
+
+![Search and replace of a lorebook on a phone](../images/phone-lorebook-search-replace.png)
+
 ### Settings, protocols, providers, resources, trash
 
 - **Settings** are the same as on the desktop, only laid out in a narrow column. The one thing missing is
@@ -84,6 +89,10 @@ The story tab is one column of parts. The differences from the [story editor](bo
 - The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace* and *Export story*) are in the top bar, not
   at the bottom.
 - The **+** button for a new part is at the bottom.
+- **Search and replace** opens the same window as on the desktop, with the fields and buttons below each other:
+
+  ![Search and replace of the story on a phone](../images/phone-search-replace.png)
+
 - A part is only its text under one small line with two icons. The first is the part's **menu** (edit, regenerate,
   swipe, branch, show prompt, images, summary, delete); the second opens a **popup** with what the desktop shows in the
   column on the right of a part: the ids, model, protocol, tokens, words and the turn details.

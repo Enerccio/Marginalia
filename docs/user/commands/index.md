@@ -13,6 +13,8 @@ The **command line** is the field next to the menu below the story, in the [stor
    description. Typing more narrows the list: the filter looks at the name of the command, its title and its description.
 2. Pick the command with the mouse, or with the arrow keys and **Enter**. A command that needs nothing runs at once; for
    one that takes arguments, `/name ` is written into the field and you continue with the arguments.
+![The list of commands, opened by typing a slash](../../images/command-list.png)
+
 3. Type the arguments and press **Enter**, or click the play button next to the field, to run it. The field is emptied
    as soon as the command starts; a text that is not a command stays, so you can correct it.
 
@@ -29,6 +31,8 @@ you leave the field or run the command. It shows:
   are typing now highlighted and its description,
 - what the command returns,
 - a hint when you have typed more arguments than the command takes, or when no command has that name.
+
+![The help of /search-replace-lore-entries while its second argument is typed](../../images/command-help.png)
 
 While you are still typing the name, the list of commands is the help.
 
@@ -70,6 +74,8 @@ When a command returns something, it is shown in a window above the command line
 or just carry on: it disappears when you type something new or run another command. A command that returns nothing shows
 no window.
 
+![The result of /take-backup above the command line](../../images/command-result.png)
+
 If a command fails, or there is no such command, you get a notification with the reason.
 
 ## Commands that take time
@@ -78,6 +84,16 @@ Most commands answer at once. A command that needs time shows a window with an a
 the story is locked until the command is done. Under the bar the command can say what it is doing now and, in smaller
 letters, the detail of the step. **Stop** cancels the command; it should return immediately. You can try it with
 `/hello-world-async`.
+
+![The window of a command that is running](../../images/command-running.png)
+
+## Commands that ask first
+
+A command that changes a lot can ask before it does. The search and replace commands have no preview, so after the
+search they show how many matches they found in how many items and what would be replaced by what, and only **Yes**
+changes the book; **No** leaves everything as it was. The question stays until you answer it.
+
+![The question of /search-replace-parts](../../images/command-confirm.png)
 
 ## Commands that come with Marginalia
 

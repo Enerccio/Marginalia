@@ -12,7 +12,7 @@ screenshots/
   SCREENSHOTS.md      this file
   package.json        playwright-core (the browser is the installed Google Chrome, nothing is downloaded)
   bin/                shell scripts: env.sh, start-app.sh, stop-app.sh, start-llm.sh, stop-llm.sh,
-                      snapshot.sh, restore.sh, rebuild.sh (+ chain.txt), shoot-all.sh, publish.sh,
+                      snapshot.sh, restore.sh, refresh-plugins.sh, rebuild.sh (+ chain.txt), shoot-all.sh, publish.sh,
                       make-broken-plugin.py, list-images.py
   flows/              the Playwright scripts (NN-name.mjs = a step of the setup, shoot-*.mjs = only pictures)
   lib/                shot.mjs (browser, login, dialogs, snap helpers), story.mjs (story editor helpers)
@@ -82,10 +82,15 @@ bin/shoot-all.sh                                  # all pictures that the chain 
 bin/publish.sh --dry ; bin/publish.sh             # compare / copy out/*.png to manual/images/
 bin/restore.sh 13-db-backup                       # go back to a step (stops the app, replaces the data folder, starts the app)
 bin/snapshot.sh <name>                            # save the current data folder as steps/<name>.tar.gz (stops and starts the app)
+bin/refresh-plugins.sh                            # swap the plugin JARs of the data folder for the freshly built ones (app stopped: restore.sh <step> --no-start first)
 bin/start-app.sh | bin/stop-app.sh | bin/start-llm.sh | bin/stop-llm.sh
 node flows/shoot-book.mjs --only turn-details     # one part of a shooting script
 python3 bin/list-images.py                        # the table of all pictures below
 ```
+
+The step snapshots keep the plugin JARs of the day the step was made, which are older than the build after any plugin change
+(the plugin pictures then show old screens). `bin/shoot-all.sh` (after every restore) and `bin/rebuild.sh` (after the first one)
+therefore run `bin/refresh-plugins.sh`, which replaces them by `marginalia/plugins/*/target/<name>-<version>.jar`; build the plugins first.
 
 `bin/snapshot.sh` and `bin/restore.sh` stop the application first, because SQLite keeps a write-ahead log: a copy of the folder
 of a running application is not consistent.
@@ -141,9 +146,11 @@ characters... would show in the outline, the prompt and the token numbers of the
 | `shoot-book` | `13-db-backup` | the book window: About, Prompts, the story (hero, turn details, prompt, token usage, highlight), Branch view, Backups |
 | `shoot-book-extra` | `13-db-backup` | the reasoning of a part, the backup dialogs, export dialogs (PDF), import of a backup as a new book |
 | `shoot-lorebook-tab` | `13-db-backup` | the read only *Lorebook* tab of the story editor with two entries opened: `story-lorebook-tab` |
-| `shoot-phone` | `13-db-backup` | the phone layout (Chrome as a phone: 402x874, touch, mobile user agent) and the viewer |
+| `shoot-phone` | `13-db-backup` | the phone layout (Chrome as a phone: 402x874, touch, mobile user agent), the search and replace windows of the story and of the lorebook, and the viewer |
 | `shoot-extra --only <part>` | a **copy** of `13-db-backup`, discarded | `language` (selector, Japanese), `quick-start` (a new book, an error of the model), `context-warning`, `verification` (a patched plugin, a stopped one) |
 | `shoot-plugin-characters` | `21-chaptermarker` | Character Tracker: list, dialog, the question when a changed dialog is cancelled, map (2x pixel ratio), import dialog |
+| `shoot-commands` | a **copy** of `13-db-backup`, discarded | the command line of the story editor: the list of commands, the help of one, the result of `/take-backup` (which adds a backup to the book, hence the copy), the Stop window of `/hello-world-async`, the question of `/search-replace-parts` (answered with No): `command-list`, `command-help`, `command-result`, `command-running`, `command-confirm` |
+| `shoot-search-replace` | a **copy** of `13-db-backup`, discarded | the settings menu with *Search and replace*, the window of the story (empty, with a row opened, the warning about summaries that would become outdated) and of a lorebook; nothing is replaced, but the workspace is left on the Lorebooks tab (the phone flow needs it on Books): `story-settings-menu`, `search-replace-dialog`, `search-replace-found`, `search-replace-warning`, `lorebook-search-replace` |
 | `shoot-help` | a **copy** of `13-db-backup`, discarded | the help assistant (it is off in all other pictures, so the robot button is not in them): its Admin tab with the model chosen, the chat panel with an answer queued in the fake model, then a second question for which the fake model calls `get_ui_state` and `interact_with_ui` (queued `toolCalls`) so that the assistant really opens the Admin page and a tab, then a third one over the *New Inference Provider* dialog (the assistant stays usable above a dialog): the fake model reads the form with `get_ui_state` and explains the empty required field: `admin-help-assistant`, `help-assistant`, `help-assistant-navigate`, `help-assistant-form` |
 | `plugin-googlegenai` | a **copy** of `13-db-backup`, discarded | installs the Google Gemini JAR, adds a provider of the type *Extension* (nothing is sent to Google): `plugin-googlegenai-type`, `plugin-googlegenai`, `plugin-googlegenai-list` |
 | `shoot-invalid-extensions` | a **copy** of `13-db-backup`, discarded | the Author's Note JAR is replaced by the broken one (`bin/make-broken-plugin.py`) and its `.valid` report deleted before the start (the block in `bin/shoot-all.sh`): the red bar, `invalid-extensions-warning` |

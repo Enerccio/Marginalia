@@ -1,10 +1,10 @@
 // Phone screenshots (Chrome with a phone profile: 402x874, touch, mobile user agent). Run on the final state; changes nothing.
-import {goto, idle, login, main, section, sleep, snap, users} from '../lib/shot.mjs';
+import {closeDialog, fill, goto, idle, login, main, section, sleep, snap, snapDialog, users} from '../lib/shot.mjs';
 
 const drawer = async (page, item) => {
   await page.mouse.click(28, 27);                           // the burger of the top bar
   await sleep(600);
-  if (item) { await page.getByText(item, { exact: true }).first().click(); await idle(page, 900); }
+  if (item) { await page.getByText(item, { exact: true }).last().click(); await idle(page, 900); }
 };
 
 await main(async ({ page }) => {
@@ -31,6 +31,19 @@ await main(async ({ page }) => {
     await page.evaluate(() => { const p = document.querySelector('.story-scroll-panel'); if (p) p.scrollTop = p.scrollHeight; });
     await sleep(500);
     await snap(page, 'phone-book-story');
+    // the search and replace window of the story, in the phone layout (nothing is replaced)
+    await page.mouse.click(349, 173);
+    await sleep(500);
+    await page.getByText('Search and replace', { exact: true }).click();
+    await idle(page, 800);
+    await fill(page, 'Search for', 'Draconia');
+    await fill(page, 'Replace with', 'Dracona');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
+    await idle(page, 1200);
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await snap(page, 'phone-search-replace');
+    await closeDialog(page);
     await page.mouse.click(349, 62);                         // the close button of the dialog
     await sleep(1000);
   });
@@ -39,6 +52,17 @@ await main(async ({ page }) => {
     await drawer(page, 'Lorebooks');
     await sleep(500);
     await snap(page, 'phone-lorebook');
+    // the search and replace window of the lorebook (the icon button next to the Enabled check box)
+    await page.mouse.click(227, 171);                        // the button next to the Enabled check box
+    await idle(page, 800);
+    await fill(page, 'Search for', 'Draconia');
+    await fill(page, 'Replace with', 'Dracona');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
+    await idle(page, 1200);
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await snap(page, 'phone-lorebook-search-replace');
+    await closeDialog(page);
   });
 
   await section(page, 'trash', async () => {

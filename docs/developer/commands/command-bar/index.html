@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845543711469">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549030524">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/commands/command-bar/">
     <meta property="og:title" content="The command bar">
     <meta property="og:description" content="CommandBar (package ui.components) is the input line for commands, a CompositeHorizontalLayout with a ComboBox and a run button. It is a separate component: it can be placed anywhere (a dialog, a sidebar, a toolbar).">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/command-list.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="The command bar">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,18 +36,20 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/commands/command-bar/">
     <meta name="twitter:title" content="The command bar">
     <meta name="twitter:description" content="CommandBar (package ui.components) is the input line for commands, a CompositeHorizontalLayout with a ComboBox and a run button. It is a separate component: it can be placed anywhere (a dialog, a sidebar, a toolbar).">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/command-list.png">
+    <meta name="twitter:image:alt" content="The command bar">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/commands/command-bar.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845543711469" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845549030524" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845543711469" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549030524" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845549030524" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -178,6 +184,15 @@ of the book window places it next to the menu bar; the bar knows nothing about t
     bar --&gt;|async| prog[&quot;CommandProgressDialog&lt;br/&gt;(Stop)&quot;]
     bar --&gt;|onCommandResult| target[&quot;CommandResultTarget&quot;]
     target -.-&gt; view[&quot;CommandResultView&lt;br/&gt;popover above the bar&quot;]</pre></div>
+<p>The list the bar shows when <code translate="no" v-pre>/</code> is typed, and the help popover of a command while its arguments are typed:</p>
+<figure class="content-center">
+    <img src="../../../images/command-list.png" alt="The list of commands" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The list of commands</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/command-help.png" alt="The help of a command" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The help of a command</figcaption>
+</figure>
 <h2 id="using-it">Using it</h2>
 <div id="using-it-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">CommandBar bar = new CommandBar();
@@ -277,6 +292,10 @@ of the button from <code translate="no" v-pre>addUninterruptableListener</code> 
 the future completes, <code translate="no" v-pre>ui.access(...)</code> (with the request scope and <code translate="no" v-pre>UIPushGuard.push</code>) closes the dialog and delivers the
 result, or shows a notification for a stop, a <code translate="no" v-pre>CommandException</code> or an <code translate="no" v-pre>IllegalArgumentException</code>. This is why an <code translate="no" v-pre>async</code>
 command <strong>must</strong> react to <code translate="no" v-pre>isTerminated()</code>: Stop only cancels the future.</p>
+<figure class="content-center">
+    <img src="../../../images/command-running.png" alt="The CommandProgressDialog of an asynchronous command" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
+    <figcaption class="caption">The CommandProgressDialog of an asynchronous command</figcaption>
+</figure>
 <h2 id="adding-the-bar-elsewhere">Adding the bar elsewhere</h2>
 <ol>
 <li>
