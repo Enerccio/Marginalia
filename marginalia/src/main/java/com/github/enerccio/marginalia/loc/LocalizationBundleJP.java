@@ -452,6 +452,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_UNKNOWN, "コマンド %s はありません");
         setValue(L.ERROR_COMMAND_ARGUMENTS, "コマンド %s はこれらの引数を受け付けません");
         setValue(L.ERROR_COMMAND_FAILED, "コマンド %s は失敗しました：%s");
+        setValue(L.ERROR_COMMAND_NO_BOOK_OPEN, "開いている本がありません。先に対象の本を開いてください。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -553,6 +554,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_HELP_LIMITS_APPLY, "このモデルでのあなたの制限が適用されます。質問は使用量に計上され、上限に達すると拒否されることがあります。");
         setValue(L.MSG_HELP_WELCOME, "Marginaliaの使い方を質問してください。回答はマニュアルに基づきますが、AIが作成しているため誤りを含む場合があります。");
         setValue(L.MSG_COMMAND_STOPPED, "コマンド %s を停止しました");
+        setValue(L.MSG_COMMAND_BACKUP_TAKING, "%s のバックアップを作成中");
+        setValue(L.MSG_COMMAND_BACKUP_WRITING, "本の内容を収集し、バックアップファイルを書き込み中");
+        setValue(L.MSG_COMMAND_BACKUP_TAKEN, "%s のバックアップを作成しました（メッセージ %d 件、画像 %d 点）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

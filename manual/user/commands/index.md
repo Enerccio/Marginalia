@@ -19,7 +19,8 @@ The **command line** is the field next to the menu below the story, in the [stor
    description. Typing more narrows the list: the filter looks at the name of the command, its title and its description.
 2. Pick the command with the mouse, or with the arrow keys and **Enter**. A command that needs nothing runs at once; for
    one that takes arguments, `/name ` is written into the field and you continue with the arguments.
-3. Type the arguments and press **Enter**, or click the play button next to the field, to run it.
+3. Type the arguments and press **Enter**, or click the play button next to the field, to run it. The field is emptied
+   as soon as the command starts; a text that is not a command stays, so you can correct it.
 
 Text that does not start with `/` is not a command, and nothing is run. Clicking away from the field or pressing **Esc**
 never runs anything, so you cannot start a command by accident.
@@ -80,8 +81,9 @@ If a command fails, or there is no such command, you get a notification with the
 ## Commands that take time
 
 Most commands answer at once. A command that needs time shows a window with an animated bar and a **Stop** button, and
-the story is locked until the command is done. **Stop** cancels the command; it should return immediately. You can
-try it with `/hello-world-async`.
+the story is locked until the command is done. Under the bar the command can say what it is doing now and, in smaller
+letters, the detail of the step. **Stop** cancels the command; it should return immediately. You can try it with
+`/hello-world-async`.
 
 ## Commands that come with Marginalia
 
@@ -90,6 +92,7 @@ try it with `/hello-world-async`.
 | `/hello-world`                       | Returns *Hello world*.                                                             |
 | `/hello-world <message>`             | Returns the message it was given.                                                  |
 | `/hello-world-async [<message>]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
+| `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
 
 Commands from extensions are listed in the documentation of the extension, and you see them in the list as long as the
 extension is loaded.

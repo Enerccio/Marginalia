@@ -7,6 +7,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandContextImpl.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandRunImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/CommandValues.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/Command.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits/CommandParameter.java
@@ -40,8 +41,8 @@ flowchart LR
 | **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents, a `signature`, a return declaration and `async`.   |
 | **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and each its own `signature`. One `CommandDefinition` exists per form.          |
 | **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is "any arguments".    |
-| **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`) and `isTerminated()`. It belongs to one run.                                                      |
-| **Run**             | One call, which returns a `CompletableFuture<Object>` that completes with the value given to `setReturn`.                                                                                  |
+| **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`), the two lines of status (`setStatus`, `setSubStatus`) and `isTerminated()`. It belongs to one run. |
+| **Run**             | One call, which returns a `CommandRun` (a `CompletableFuture<Object>`) that completes with the value given to `setReturn` and holds the status the command reports.                       |
 
 ## The context
 
@@ -55,6 +56,7 @@ A command never receives its arguments as Java parameters; it reads them from th
 | `has(name)`, `getArguments()`   | Whether an argument was passed, and all of them (read only).                                                                                 |
 | `setReturn(value)`              | The answer. A form with `async = false` must call it before its method returns, otherwise the result is `null`. Later calls are ignored.     |
 | `fail(error)`                   | Ends the run with a `CommandException` (for `async` commands that report from another thread; a synchronous command can throw).             |
+| `setStatus(text)`, `setSubStatus(text)` | Two lines of progress for the user: what the command is doing now, and the detail of that step. They are independent, `null` or blank clears one. Any thread; ignored once the run is over. |
 | `isTerminated()`                | True when the run is over for the caller: the command answered or failed, or the caller cancelled the future. Never true while a synchronous command runs. |
 
 ## Arguments and dispatch
@@ -107,6 +109,15 @@ A caller can cancel the future (the **Stop** button of the progress window does)
 worker thread is interrupted, and a command that has not started yet does not start. A long-running `async` command must
 cooperate: look at `isTerminated()` (and the interrupt flag) between the steps of its work and return at once. What it
 sets afterwards is ignored. `/hello-world-async` (`HelloWorldCommands`) is the model of such a loop.
+
+### Status
+
+A command that takes time tells the user what it is doing with `setStatus` (the main line, "Taking a backup of Dune") and
+`setSubStatus` (the detail, "Chapter 3 of 12"). The lines are kept in the `CommandRun` that `execute*` returns
+(`getStatus()`, `getSubStatus()`); `addStatusListener((status, subStatus) -> ...)` is called on the thread of the command on
+each change, so a view must hop to its own thread (the progress window of the command bar does with `ui.access`). A
+listener does not get what was set before it was added: read the getters after adding it. A listener that throws is
+ignored. `/take-backup` (`BackupCommands`) is an example.
 
 ## Failures
 

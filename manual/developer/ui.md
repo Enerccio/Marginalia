@@ -185,7 +185,7 @@ the help is a `Popover` above the bar (it covers what is above and moves nothing
 picking a command writes `/name ` into the field, or runs it when it takes no arguments. The bar shows no results: it hands them to its
 `CommandResultTarget` (`setResultTarget`), an interface (`onCommandResult`, and `clearCommandResult` when the user types or runs something else) that each place implements as it needs; the story tab (`ManuscriptStoryPart.createCommandBox()`, next to
 the menu bar) uses `CommandResultView`, a popover above the bar with a close button, and other places can consume the value differently. An `async` command opens
-`CommandProgressDialog` (modal, Stop cancels the future); failures and stops are shown by the bar. Not on the phone story tab yet.
+`CommandProgressDialog` (modal, the two status lines of the command, Stop cancels the future); failures and stops are shown by the bar. Not on the phone story tab yet.
 
 Opening a book on a phone shows the `PhoneManuscriptDialog` (package `ui.dialogs.phone`) instead of `ManuscriptDialog`;
 *Add Book* (`NewBookAction`) creates the book and hands it to `openManuscript` of the list, which opens the window of its layout and remembers it. It is a separate class, not a subclass, so extensions know

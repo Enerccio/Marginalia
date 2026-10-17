@@ -47,6 +47,19 @@ public interface CommandContext {
     boolean isTerminated();
 
     /**
+     * Sets the main line of status of the run, shown to the user in the progress window while an {@code async} command
+     * runs (what the command is doing now, "Taking backup"). Replaces the previous one; {@code null} or blank clears it.
+     * Can be called from any thread; ignored when the run is over.
+     */
+    void setStatus(String status);
+
+    /**
+     * Sets the second line of status, under the main one: the detail of the step ("Chapter 3 of 12"). Replaces the
+     * previous one; {@code null} or blank clears it. Can be called from any thread; ignored when the run is over.
+     */
+    void setSubStatus(String subStatus);
+
+    /**
      * Sets what the command returns. A command that is not {@code async} must call this before its method returns, or
      * the caller gets {@code null}; later calls are ignored. An {@code async} command finishes with the first call, from
      * any thread, and the calls after it are ignored.

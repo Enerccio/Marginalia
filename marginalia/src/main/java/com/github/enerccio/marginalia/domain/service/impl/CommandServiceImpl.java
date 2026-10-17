@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.*;
+import com.github.enerccio.marginalia.domain.service.impl.commands.BackupCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.HelloWorldCommands;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
@@ -16,7 +17,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -52,6 +52,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
     @Override
     public void afterPropertiesSet() {
         registerCommands(new HelloWorldCommands());
+        registerCommands(new BackupCommands());
     }
 
     @Override
@@ -202,7 +203,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
     }
 
     @Override
-    public CompletableFuture<Object> execute(String commandName, Map<String, Object> arguments) {
+    public CommandRun execute(String commandName, Map<String, Object> arguments) {
         List<Registered> overloads = overloadsOf(commandName);
         if (overloads.isEmpty()) {
             return noSuchCommand(commandName);
@@ -216,14 +217,14 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             }
         }
         if (best == null) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException(
+            return failedRun(new IllegalArgumentException(
                     "No form of command " + commandName + " takes the arguments " + named.keySet()));
         }
         return run(commandName, best);
     }
 
     @Override
-    public CompletableFuture<Object> executePositional(String commandName, List<Object> arguments) {
+    public CommandRun executePositional(String commandName, List<Object> arguments) {
         List<Registered> overloads = overloadsOf(commandName);
         if (overloads.isEmpty()) {
             return noSuchCommand(commandName);
@@ -237,23 +238,29 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             }
         }
         if (best == null) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException(
+            return failedRun(new IllegalArgumentException(
                     "No form of command " + commandName + " takes " + positional.size() + " such argument(s)"));
         }
         return run(commandName, best);
     }
 
     @Override
-    public CompletableFuture<Object> executeLine(String line) {
+    public CommandRun executeLine(String line) {
         CommandLine parsed = CommandLine.parse(line);
         if (!parsed.command()) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException("A command starts with a slash: " + line));
+            return failedRun(new IllegalArgumentException("A command starts with a slash: " + line));
         }
         return executePositional(parsed.name(), new ArrayList<>(parsed.arguments()));
     }
 
-    private static CompletableFuture<Object> noSuchCommand(String commandName) {
-        return CompletableFuture.failedFuture(new IllegalArgumentException("No command " + commandName));
+    private static CommandRun failedRun(Throwable error) {
+        CommandRunImpl run = new CommandRunImpl();
+        run.completeExceptionally(error);
+        return run;
+    }
+
+    private static CommandRun noSuchCommand(String commandName) {
+        return failedRun(new IllegalArgumentException("No command " + commandName));
     }
 
     private static Binding bindNamed(Registered registered, Map<String, Object> named) {
@@ -305,9 +312,9 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         return new Binding(registered, converted, positional, cost);
     }
 
-    private CompletableFuture<Object> run(String commandName, Binding binding) {
+    private CommandRun run(String commandName, Binding binding) {
         Registered registered = binding.registered();
-        CompletableFuture<Object> result = new CompletableFuture<>();
+        CommandRunImpl result = new CommandRunImpl();
         CommandContextImpl context = new CommandContextImpl(commandName, binding.arguments(), binding.positional(),
                 registered.definition().async(), result);
         if (!registered.definition().async()) {

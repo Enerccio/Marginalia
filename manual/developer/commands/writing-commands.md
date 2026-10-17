@@ -102,6 +102,10 @@ public void slow(CommandContext context) {
 }
 ```
 
+Tell the user what is going on with `context.setStatus("Taking a backup of Dune")` (the main line) and
+`context.setSubStatus("Chapter 3 of 12")` (the detail under it); they appear in the progress window. Set them as the work
+advances, `null` clears a line.
+
 Blocking calls (`Thread.sleep`, a network call) are interrupted when the run is cancelled; let the `InterruptedException`
 end the command or set the interrupt flag again and return. A command that is stopped should not call `setReturn`; if it
 does, the call is ignored.
@@ -116,7 +120,8 @@ Add the suite in `CommandServiceImpl.afterPropertiesSet`:
 registerCommands(new HelloWorldCommands());
 ```
 
-The application's suites are plain objects, not Spring beans, and are created with `new`. Keep the logic in services and
+The application's suites are plain objects, not Spring beans, and are created with `new`; one that needs services is
+`@Configurable` and gets them `@Autowired`, like the UI classes (`BackupCommands`). Keep the logic in services and
 make the command a thin adapter that reads the current state through `CommandUtils`.
 
 ### A plugin
@@ -153,7 +158,7 @@ loader of the unloaded bundle alive. `registerCommands` throws when a name is ta
 ## Running a command from code
 
 ```java
-CompletableFuture<Object> result = commandService.executeLine("/roll 20");
+CommandRun result = commandService.executeLine("/roll 20");   // a CompletableFuture<Object>; also getStatus()
 Object value = result.get();                         // blocks; fine for a synchronous command
 commandService.execute("roll", Map.of("sides", 20)); // by name
 commandService.executePositional("roll", List.of(20));
