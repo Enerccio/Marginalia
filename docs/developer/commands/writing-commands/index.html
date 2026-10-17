@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549064987">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549891845">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845549064987" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845549891845" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845549064987" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845549891845" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -181,6 +181,7 @@
     @Command(commandName = &quot;roll&quot;, humanNameText = &quot;Roll a die&quot;,
             descriptionText = &quot;Rolls a die with the given number of sides (6 when omitted).&quot;,
             llmDescriptionText = &quot;Returns a random integer from 1 to the number of sides. No side effects.&quot;,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature(
                     @CommandParameter(name = &quot;sides&quot;, type = Integer.class, descriptionText = &quot;Number of sides&quot;)),
             returns = @CommandReturn(name = &quot;result&quot;, type = Integer.class, descriptionText = &quot;The number rolled&quot;))
@@ -192,6 +193,7 @@
     @Command(commandName = &quot;roll&quot;, humanNameText = &quot;Roll a die&quot;,
             descriptionText = &quot;Rolls a die with the given number of sides (6 when omitted).&quot;,
             llmDescriptionText = &quot;Returns a random integer from 1 to the number of sides. No side effects.&quot;,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = &quot;result&quot;, type = Integer.class, descriptionText = &quot;The number rolled&quot;))
     public void rollSix(CommandContext context) {
@@ -213,6 +215,10 @@ when to use it, whether it has side effects). See <doc-anchor-trigger to="#texts
 </li>
 <li>
 <p>Declare <code translate="no" v-pre>returns</code>. The help shows it. <code translate="no" v-pre>void.class</code> is the default.</p>
+</li>
+<li>
+<p>Declare <code translate="no" v-pre>dataSeverity</code>, see <doc-anchor-trigger to="#data-severity">Data severity</doc-anchor-trigger>. The default is <code translate="no" v-pre>DESTRUCTIVE</code>; a command that does not change
+or remove anything that exists says <code translate="no" v-pre>NON_DESTRUCTIVE</code>.</p>
 </li>
 <li>
 <p>No signature means <strong>any arguments</strong>: the objects are in <code translate="no" v-pre>context.getPositional()</code>. Use it for commands like echo, or when
@@ -282,6 +288,29 @@ alone: <code translate="no" v-pre>humanName = L.LABEL_X</code>, <code translate=
 attributes of a pair, more than one element, or none for the human name make <code translate="no" v-pre>registerCommands</code> throw <code translate="no" v-pre>IllegalArgumentException</code> that names the
 method and the attribute. The registry keeps each as a <code translate="no" v-pre>CommandText</code> (<code translate="no" v-pre>key()</code> or <code translate="no" v-pre>text()</code>, <code translate="no" v-pre>isEmpty()</code>, <code translate="no" v-pre>get(...)</code>); an
 annotation attribute needs an enum constant, so use <code translate="no" v-pre>L.X</code> directly there, not a constant that holds it.</p>
+<h2 id="data-severity">Data severity</h2>
+<p><code translate="no" v-pre>dataSeverity</code> tells the user, and later an agent, whether the command changes or removes data that exists:
+<code translate="no" v-pre>CommandDataSeverity.DESTRUCTIVE</code> (the default, also for a command that says nothing) or <code translate="no" v-pre>NON_DESTRUCTIVE</code>.</p>
+<ul>
+<li>
+<p>Use <code translate="no" v-pre>NON_DESTRUCTIVE</code> for commands that read, compute or only <strong>add</strong> (a backup, a new entry). Nothing that was there
+before changes.</p>
+</li>
+<li>
+<p>Leave <code translate="no" v-pre>DESTRUCTIVE</code> for everything that replaces, deletes, overwrites or moves existing data (search and replace, delete,
+restore, import over a book). When in doubt it is destructive: the safe assumption costs only a red label.</p>
+</li>
+<li>
+<p>All forms of one command share the value; <code translate="no" v-pre>registerCommands</code> throws when they differ.</p>
+</li>
+<li>
+<p>It is information. The service does not ask or refuse because of it, so a destructive command that has no preview still
+asks itself, see <doc-anchor-trigger to="#asking-the-user">Asking the user</doc-anchor-trigger>.</p>
+</li>
+</ul>
+<p>The label is shown by the command bar in the list and in the help, with an explanation as its tooltip; the texts are the keys
+<code translate="no" v-pre>LABEL_COMMAND_DESTRUCTIVE</code>, <code translate="no" v-pre>LABEL_COMMAND_NON_DESTRUCTIVE</code>, <code translate="no" v-pre>HELP_COMMAND_DESTRUCTIVE</code> and <code translate="no" v-pre>HELP_COMMAND_NON_DESTRUCTIVE</code>,
+carried by <code translate="no" v-pre>CommandDataSeverity.getLabel()</code>/<code translate="no" v-pre>getDescription()</code>.</p>
 <h2 id="reading-the-current-state">Reading the current state</h2>
 <div id="reading-the-current-state-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">@Command(commandName = &quot;book-title&quot;, humanNameText = &quot;Title of the open book&quot;, returns = @CommandReturn(name = &quot;title&quot;, type = String.class))
@@ -401,6 +430,7 @@ only after the answer. <code translate="no" v-pre>/search-replace-parts</code> a
 <h2 id="checklist">Checklist</h2>
 <ul class="contains-task-list">
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> Each form has <code translate="no" v-pre>description</code>, <code translate="no" v-pre>llmDescription</code> (as <code translate="no" v-pre>L</code> keys when the texts are translated), <code translate="no" v-pre>signature</code>, <code translate="no" v-pre>returns</code>.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Each command declares <code translate="no" v-pre>dataSeverity</code> (<code translate="no" v-pre>NON_DESTRUCTIVE</code> only when nothing that exists is changed or removed).</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> The suite has no state of a run or a user in fields.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> <code translate="no" v-pre>async</code> commands look at <code translate="no" v-pre>isTerminated()</code>.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> A plugin unregisters its suites in <code translate="no" v-pre>onExtensionUnload</code>.</li>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549064987">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549891845">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845549064987" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845549891845" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -316,6 +316,22 @@ letters, the detail of the step. <strong>Stop</strong> cancels the command; it s
     <img src="../../images/command-running.png" alt="The window of a command that is running" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1500" height="520" />
     <figcaption class="caption">The window of a command that is running</figcaption>
 </figure>
+<h2 id="commands-that-change-data">Commands that change data</h2>
+<p>Every command says what it does to the data that already exists, and the command bar shows it as a small label next to
+the command, in the list and in the help:</p>
+<ul>
+<li>
+<p><strong>Destructive</strong> (red) - the command changes or removes data that exists, like the search and replace commands that
+rewrite the book. Point at the label to see the explanation.</p>
+</li>
+<li>
+<p><strong>Non-destructive</strong> (green) - the command only reads data or adds new data, like <code translate="no" v-pre>/take-backup</code>, which adds a backup and
+changes nothing else.</p>
+</li>
+</ul>
+<p>The label is information for you; it does not stop the command. In the future an assistant that runs commands on its
+own will use it to ask you before it runs a destructive one. A command that asks for confirmation by itself is described
+below.</p>
 <h2 id="commands-that-ask-first">Commands that ask first</h2>
 <p>A command that changes a lot can ask before it does. The search and replace commands have no preview, so after the
 search they show how many matches they found in how many items and what would be replaced by what, and only <strong>Yes</strong>
@@ -330,7 +346,7 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 | `/hello-world`                       | Returns *Hello world*.                                                             |
 | `/hello-world &lt;message&gt;`             | Returns the message it was given.                                                  |
 | `/hello-world-async [&lt;message&gt;]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
-| `/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window (regex no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
+| `/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
 | `/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
 | `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -356,7 +372,7 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 </tr>
 <tr>
 <td><code translate="no" v-pre>/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]</code></td>
-<td>Search and replace in the story of the open book, like the <strong>Search and replace</strong> window of the story tab. The options are <code translate="no" v-pre>true</code>/<code translate="no" v-pre>false</code>, in this order, and each one you leave out has the default of that window (regex no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only <strong>Yes</strong> changes the book. The replace cannot be stopped.</td>
+<td>Search and replace in the story of the open book, like the <strong>Search and replace</strong> window of the story tab. The options are <code translate="no" v-pre>true</code>/<code translate="no" v-pre>false</code>, in this order, and each one you leave out has the default of that window (<a href="../regular-expressions/">regex</a> no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only <strong>Yes</strong> changes the book. The replace cannot be stopped.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive]</code></td>

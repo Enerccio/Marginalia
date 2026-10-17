@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch.InvalidSearchException;
 import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
@@ -45,6 +46,7 @@ public class SearchReplaceLoreEntryCommand {
     private Localization loc;
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+            dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
@@ -55,6 +57,7 @@ public class SearchReplaceLoreEntryCommand {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+            dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
@@ -66,6 +69,7 @@ public class SearchReplaceLoreEntryCommand {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+            dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),

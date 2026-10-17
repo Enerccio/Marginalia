@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.command;
 
+import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
+
 import java.util.List;
 
 /**
@@ -12,6 +14,7 @@ import java.util.List;
  * @param description    what the command does, for the user, may be empty
  * @param llmDescription what the command does, for an agent, may be empty
  * @param async          whether the command runs on a worker thread and answers when it likes
+ * @param dataSeverity   whether the command changes or removes the data that exists, the same for all the overloads
  * @param instance       the registered suite object, the one that has the method
  * @param anyArguments   whether the command takes any arguments (it declares no signature); then {@code parameters} is
  *                       empty
@@ -19,7 +22,7 @@ import java.util.List;
  * @param returns        what the command returns
  */
 public record CommandDefinition(String commandName, CommandText humanName, CommandText description, CommandText llmDescription,
-                                boolean async, Object instance, boolean anyArguments,
+                                boolean async, CommandDataSeverity dataSeverity, Object instance, boolean anyArguments,
                                 List<CommandParameterDefinition> parameters, CommandReturnDefinition returns) {
 
 }

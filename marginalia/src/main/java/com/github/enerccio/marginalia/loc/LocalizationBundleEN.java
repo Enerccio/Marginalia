@@ -380,6 +380,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_TAKE_BACKUP, "Take backup");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_STORY, "Search and replace in the story");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "Search and replace in the lorebook");
+        setValue(L.LABEL_COMMAND_DESTRUCTIVE, "Destructive");
+        setValue(L.LABEL_COMMAND_NON_DESTRUCTIVE, "Non-destructive");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -612,6 +614,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_TYPE_SLASH, "Type / and the name of a command. Separate arguments with spaces; put \\ before a space or a backslash that belongs to an argument, or wrap the argument in \"double quotes\".");
         setValue(L.HELP_COMMAND_NO_MATCH, "No command matches.");
         setValue(L.HELP_COMMAND_TOO_MANY_ARGUMENTS, "More arguments than the command takes.");
+        setValue(L.HELP_COMMAND_DESTRUCTIVE, "This command changes or removes data that exists.");
+        setValue(L.HELP_COMMAND_NON_DESTRUCTIVE, "This command only reads data or adds new data; it changes nothing that exists.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

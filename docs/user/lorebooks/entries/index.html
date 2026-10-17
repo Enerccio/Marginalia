@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549064987">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549891845">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845549064987" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845549891845" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845549064987" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845549891845" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -224,7 +224,7 @@
 <p><strong>Search and replace</strong> (right of <strong>Add Entry</strong>) changes a word, a name or a phrase in the name, the text and the comment of
 all the entries of the lorebook at once. It works like the <a href="../../books/story-editor/#search-and-replace">search and replace of the story</a>,
 without the options for summaries and branches: <strong>Search</strong> lists the entries with matches (the table shows their names) and
-the matches in them as they are and as they will be, <strong>Replace</strong> changes the entries. It has the options <strong>Search by regex</strong> and <strong>Case sensitive</strong> (on by default; locked while the regex is on, which
+the matches in them as they are and as they will be, <strong>Replace</strong> changes the entries. It has the options <strong>Search by regex</strong> (see <a href="../../regular-expressions/">Regular expressions</a>) and <strong>Case sensitive</strong> (on by default; locked while the regex is on, which
 can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that are disabled are searched too. On the phone the button (an icon next to the
 <em>Enabled</em> check box) opens the same window in the phone layout.</p>
 <figure class="content-center">
@@ -358,7 +358,7 @@ from files can carry them). They then count as tags of each of its entries.</p>
 <retype-table copy-text="| Mode | Matches when |
 |---|---|
 | **Text** | The text appears anywhere in the request, ignoring upper and lower case. `varro` matches *Captain Varro*. |
-| **Regex** | The [regular expression](https://regex101.com/) matches anywhere in the request, ignoring case, across lines. |">
+| **Regex** | The [regular expression](../regular-expressions.md#in-a-lorebook-entry-filter) matches anywhere in the request, ignoring case, across lines. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -374,7 +374,7 @@ from files can carry them). They then count as tags of each of its entries.</p>
 </tr>
 <tr>
 <td><strong>Regex</strong></td>
-<td>The <a href="https://regex101.com/">regular expression</a> matches anywhere in the request, ignoring case, across lines.</td>
+<td>The <a href="../../regular-expressions/#in-a-lorebook-entry-filter">regular expression</a> matches anywhere in the request, ignoring case, across lines.</td>
 </tr>
 </tbody>
 </table>

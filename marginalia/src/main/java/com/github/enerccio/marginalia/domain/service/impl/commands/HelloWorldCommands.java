@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl.commands;
 
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
@@ -22,6 +23,7 @@ public class HelloWorldCommands {
     private static final long ASYNC_POLL_MILLIS = 50;
 
     @Command(commandName = "hello-world", humanName = L.LABEL_COMMAND_HELLO_WORLD, description = L.DESC_COMMAND_HELLO_WORLD,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             llmDescription = L.DESC_COMMAND_HELLO_WORLD_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "message", type = Object.class, description = L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN))
@@ -30,6 +32,7 @@ public class HelloWorldCommands {
     }
 
     @Command(commandName = "hello-world", humanName = L.LABEL_COMMAND_HELLO_WORLD, description = L.DESC_COMMAND_HELLO_WORLD,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             llmDescription = L.DESC_COMMAND_HELLO_WORLD_LLM,
             signature = @CommandParameterSignature(
                     @CommandParameter(name = "message", description = L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM)),
@@ -39,6 +42,7 @@ public class HelloWorldCommands {
     }
 
     @Command(commandName = "hello-world-async", humanName = L.LABEL_COMMAND_HELLO_WORLD_ASYNC, async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_HELLO_WORLD_ASYNC, llmDescription = L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "message", type = Object.class, description = L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN))
@@ -49,6 +53,7 @@ public class HelloWorldCommands {
     }
 
     @Command(commandName = "hello-world-async", humanName = L.LABEL_COMMAND_HELLO_WORLD_ASYNC, async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_HELLO_WORLD_ASYNC, llmDescription = L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM,
             signature = @CommandParameterSignature(
                     @CommandParameter(name = "message", description = L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM)),

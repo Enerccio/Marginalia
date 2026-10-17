@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.BackupService.ManuscriptBac
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
 import com.github.enerccio.marginalia.loc.L;
@@ -32,6 +33,7 @@ public class BackupCommands {
     private Localization loc;
 
     @Command(commandName = "take-backup", humanName = L.LABEL_COMMAND_TAKE_BACKUP, async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_TAKE_BACKUP, llmDescription = L.DESC_COMMAND_TAKE_BACKUP_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "message", type = String.class,

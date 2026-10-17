@@ -21,8 +21,8 @@ flowchart LR
 |---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Suite**           | Any object whose class has methods annotated with `@Command`. Registering the object registers all of them.                                                                                |
 | **Command method**  | `public void name(CommandContext context)`: the only parameter is the context, nothing is returned from the method itself.                                                                  |
-| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents (each as an `L` key or, for extensions, a plain `...Text`, see [Texts](writing-commands.md#texts)), a `signature`, a return declaration and `async`.   |
-| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and each its own `signature`. One `CommandDefinition` exists per form.          |
+| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents (each as an `L` key or, for extensions, a plain `...Text`, see [Texts](writing-commands.md#texts)), a `signature`, a return declaration, `async` and the `dataSeverity`.   |
+| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and `dataSeverity` and each its own `signature`. One `CommandDefinition` exists per form.          |
 | **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is "any arguments".    |
 | **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`), the two lines of status (`setStatus`, `setSubStatus`) and `isTerminated()`. It belongs to one run. |
 | **Run**             | One call, which returns a `CommandRun` (a `CompletableFuture<Object>`) that completes with the value given to `setReturn` and holds the status the command reports.                       |
@@ -118,6 +118,23 @@ A command that takes time tells the user what it is doing with `setStatus` (the 
 each change, so a view must hop to its own thread (the progress window of the command bar does with `ui.access`). A
 listener does not get what was set before it was added: read the getters after adding it. A listener that throws is
 ignored. `/take-backup` (`BackupCommands`) is an example.
+
+## Data severity
+
+`@Command(dataSeverity = ...)` says what the command does to the data that exists, as a `CommandDataSeverity`:
+
+| Value             | Means                                                                                                      |
+|-------------------|------------------------------------------------------------------------------------------------------------|
+| `DESTRUCTIVE`     | The command changes or removes data that exists (replaces text, deletes, overwrites). **The default.**     |
+| `NON_DESTRUCTIVE` | The command only reads data or adds new data; whatever exists stays as it is (`/take-backup`, `/hello-world`). |
+
+The default is the safe assumption: a command that does not say is treated as destructive, so a command that only reads or
+adds declares `NON_DESTRUCTIVE`. All forms of a command have the same severity (`registerCommands` throws
+`IllegalArgumentException` otherwise), and `CommandDefinition.dataSeverity()` returns it. The severity is for two readers:
+the [command bar](command-bar.md#the-help) shows it as a label next to the command for the user, and an agent that runs
+commands on its own is meant to ask the user before it runs a `DESTRUCTIVE` one. Nothing in the service enforces that
+today: the severity does not stop a run, and a command that must ask the user still does it itself, see
+[Asking the user](writing-commands.md#asking-the-user).
 
 ## Failures
 

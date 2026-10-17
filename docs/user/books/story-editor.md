@@ -230,7 +230,7 @@ once. The window has a **Search for** and a **Replace with** field and these opt
 
 | Option | Default | Meaning |
 |---|---|---|
-| **Search by regex** | off | The search text is a [regular expression](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/regex/Pattern.html) and the replacement can use its groups (`$1`). Otherwise the text is searched as typed. |
+| **Search by regex** | off | The search text is a [regular expression](../regular-expressions.md) and the replacement can use its groups (`$1`). Otherwise the text is searched as typed. |
 | **Case sensitive** | on | A text is found only in the case you typed it (*John* does not find *john*). Off: the case does not matter. Locked while **Search by regex** is on. |
 | **Search in summaries** | on | The [summaries](summaries.md) are searched and changed too. |
 | **Search in all branches** | off | All [branches](branches-and-story-tree.md) are searched, otherwise only the active one. |

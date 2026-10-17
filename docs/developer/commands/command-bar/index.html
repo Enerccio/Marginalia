@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549064987">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549891845">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845549064987" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845549891845" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845549064987" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845549891845" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -224,11 +224,11 @@ click outside.</p>
 <p>The help and the result are <strong>popovers</strong> over the target, so the bar is one row high and never changes the layout (an
 earlier version put the help under the field and misaligned its neighbours). Popovers are opened and closed from the
 server (<code translate="no" v-pre>setOpenOnClick/Focus/Hover(false)</code>, <code translate="no" v-pre>setModal(false)</code>). The CSS classes are in <code translate="no" v-pre>shared-styles.css</code> and <code translate="no" v-pre>CssStyles</code>
-(<code translate="no" v-pre>command-box</code>, <code translate="no" v-pre>command-bar</code>, <code translate="no" v-pre>command-help*</code>, <code translate="no" v-pre>command-item-*</code>, <code translate="no" v-pre>command-result*</code>).</p>
+(<code translate="no" v-pre>command-box</code>, <code translate="no" v-pre>command-bar</code>, <code translate="no" v-pre>command-help*</code>, <code translate="no" v-pre>command-item-*</code>, <code translate="no" v-pre>command-severity*</code>, <code translate="no" v-pre>command-result*</code>).</p>
 <h2 id="how-the-field-works">How the field works</h2>
 <retype-table copy-text="| Behavior                  | Implementation                                                                                                                                         |
 |---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The list                  | `ComboBox&lt;String&gt;` with allowed custom values; items are `&quot;/name&quot;` strings, computed lazily by `CommandHelp.matchingNames` (filter timeout 150 ms). The callback always applies `query.getOffset()/getLimit()`, also when the list is empty. Each row shows the name, the human name and the description. |
+| The list                  | `ComboBox&lt;String&gt;` with allowed custom values; items are `&quot;/name&quot;` strings, computed lazily by `CommandHelp.matchingNames` (filter timeout 150 ms). The callback always applies `query.getOffset()/getLimit()`, also when the list is empty. Each row shows the name, the human name, the data severity label and the description. |
 | The list is empty once the name is complete | Otherwise the open dropdown would intercept the click on the run button while the user types arguments.                                              |
 | Picking an item           | Writes `/name ` into the field, or runs the command at once when no form takes arguments. A `pickedByEnter` flag prevents Enter on a list item from also running the typed text. |
 | Enter                     | `Shortcuts.addShortcutListener(...).listenOn(input)`, registered through `ui.beforeClientResponse`; runs the typed text.                               |
@@ -246,7 +246,7 @@ server (<code translate="no" v-pre>setOpenOnClick/Focus/Hover(false)</code>, <co
 <tbody>
 <tr>
 <td>The list</td>
-<td><code translate="no" v-pre>ComboBox&lt;String&gt;</code> with allowed custom values; items are <code translate="no" v-pre>&quot;/name&quot;</code> strings, computed lazily by <code translate="no" v-pre>CommandHelp.matchingNames</code> (filter timeout 150 ms). The callback always applies <code translate="no" v-pre>query.getOffset()/getLimit()</code>, also when the list is empty. Each row shows the name, the human name and the description.</td>
+<td><code translate="no" v-pre>ComboBox&lt;String&gt;</code> with allowed custom values; items are <code translate="no" v-pre>&quot;/name&quot;</code> strings, computed lazily by <code translate="no" v-pre>CommandHelp.matchingNames</code> (filter timeout 150 ms). The callback always applies <code translate="no" v-pre>query.getOffset()/getLimit()</code>, also when the list is empty. Each row shows the name, the human name, the data severity label and the description.</td>
 </tr>
 <tr>
 <td>The list is empty once the name is complete</td>
@@ -279,9 +279,12 @@ server (<code translate="no" v-pre>setOpenOnClick/Focus/Hover(false)</code>, <co
 <h3 id="the-help">The help</h3>
 <p><code translate="no" v-pre>CommandHelp.of(allCommands, text, localizer)</code> is pure (no UI; the <code translate="no" v-pre>localizer</code> turns an <code translate="no" v-pre>L</code> key into the text of the user, the bar passes <code translate="no" v-pre>loc::getValue</code>) and returns the typed name, the command, its forms that fit what is
 typed, the index of the argument being typed and whether there are too many arguments. The bar renders: the description,
-the forms with the current parameter highlighted and its description, the return value, and an error line for too many
+the description with the data severity label, the forms with the current parameter highlighted and its description, the return value, and an error line for too many
 arguments, an unknown command or text without a slash. The texts are localization keys (<code translate="no" v-pre>LABEL_COMMAND_*</code>,
 <code translate="no" v-pre>HELP_COMMAND_*</code>, <code translate="no" v-pre>ERROR_COMMAND_*</code>); the Japanese and Chinese bundles carry them too.</p>
+<p>The label of the <a href="../#data-severity">data severity</a> is a <code translate="no" v-pre>Span</code> made by <code translate="no" v-pre>severityBadge</code>, in the list and in the help:
+red (<code translate="no" v-pre>command-severity-destructive</code>) for <code translate="no" v-pre>DESTRUCTIVE</code>, green (<code translate="no" v-pre>command-severity-non-destructive</code>) for <code translate="no" v-pre>NON_DESTRUCTIVE</code>, the
+explanation in its <code translate="no" v-pre>title</code>. The texts come from <code translate="no" v-pre>CommandDataSeverity.getLabel()</code> and <code translate="no" v-pre>getDescription()</code>.</p>
 <h2 id="running-and-asynchronous-commands">Running and asynchronous commands</h2>
 <p><code translate="no" v-pre>run(line)</code> closes the help, clears the result (<code translate="no" v-pre>clearCommandResult()</code>), empties the field (<code translate="no" v-pre>clearInput()</code>; text that is not a known command returns earlier and stays) and calls <code translate="no" v-pre>commandService.executeLine</code>. For a
 command that completed (synchronous) the result is delivered at once. For an <code translate="no" v-pre>async</code> command the bar opens a

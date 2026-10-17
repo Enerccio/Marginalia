@@ -70,13 +70,13 @@ click outside.
 The help and the result are **popovers** over the target, so the bar is one row high and never changes the layout (an
 earlier version put the help under the field and misaligned its neighbours). Popovers are opened and closed from the
 server (`setOpenOnClick/Focus/Hover(false)`, `setModal(false)`). The CSS classes are in `shared-styles.css` and `CssStyles`
-(`command-box`, `command-bar`, `command-help*`, `command-item-*`, `command-result*`).
+(`command-box`, `command-bar`, `command-help*`, `command-item-*`, `command-severity*`, `command-result*`).
 
 ## How the field works
 
 | Behavior                  | Implementation                                                                                                                                         |
 |---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The list                  | `ComboBox<String>` with allowed custom values; items are `"/name"` strings, computed lazily by `CommandHelp.matchingNames` (filter timeout 150 ms). The callback always applies `query.getOffset()/getLimit()`, also when the list is empty. Each row shows the name, the human name and the description. |
+| The list                  | `ComboBox<String>` with allowed custom values; items are `"/name"` strings, computed lazily by `CommandHelp.matchingNames` (filter timeout 150 ms). The callback always applies `query.getOffset()/getLimit()`, also when the list is empty. Each row shows the name, the human name, the data severity label and the description. |
 | The list is empty once the name is complete | Otherwise the open dropdown would intercept the click on the run button while the user types arguments.                                              |
 | Picking an item           | Writes `/name ` into the field, or runs the command at once when no form takes arguments. A `pickedByEnter` flag prevents Enter on a list item from also running the typed text. |
 | Enter                     | `Shortcuts.addShortcutListener(...).listenOn(input)`, registered through `ui.beforeClientResponse`; runs the typed text.                               |
@@ -88,9 +88,13 @@ server (`setOpenOnClick/Focus/Hover(false)`, `setModal(false)`). The CSS classes
 
 `CommandHelp.of(allCommands, text, localizer)` is pure (no UI; the `localizer` turns an `L` key into the text of the user, the bar passes `loc::getValue`) and returns the typed name, the command, its forms that fit what is
 typed, the index of the argument being typed and whether there are too many arguments. The bar renders: the description,
-the forms with the current parameter highlighted and its description, the return value, and an error line for too many
+the description with the data severity label, the forms with the current parameter highlighted and its description, the return value, and an error line for too many
 arguments, an unknown command or text without a slash. The texts are localization keys (`LABEL_COMMAND_*`,
 `HELP_COMMAND_*`, `ERROR_COMMAND_*`); the Japanese and Chinese bundles carry them too.
+
+The label of the [data severity](index.md#data-severity) is a `Span` made by `severityBadge`, in the list and in the help:
+red (`command-severity-destructive`) for `DESTRUCTIVE`, green (`command-severity-non-destructive`) for `NON_DESTRUCTIVE`, the
+explanation in its `title`. The texts come from `CommandDataSeverity.getLabel()` and `getDescription()`.
 
 ## Running and asynchronous commands
 

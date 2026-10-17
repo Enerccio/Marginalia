@@ -47,6 +47,7 @@
 - [Templates & macros](https://enerccio.github.io/Marginalia/user/templates/index.md): Everything Marginalia sends to the model is built from templates: texts with placeholders that are filled in for each generated part. You can change them all, from the frame of the prompt down to a single lorebook entry.
 - [Prompt templates](https://enerccio.github.io/Marginalia/user/templates/templates.md): Templates use Handlebars syntax, extended with SillyTavern macros. This page covers the variables each template gets and the Handlebars part of the syntax.
 - [Macro reference](https://enerccio.github.io/Marginalia/user/templates/macros.md): Marginalia understands the macros of SillyTavern, so prompts and world info written for SillyTavern work without changes. Macros work in every template: master template, user prompt, summary prompt and lorebook entries.
+- [Regular expressions](https://enerccio.github.io/Marginalia/user/regular-expressions.md): A regular expression (regex) is a short pattern that describes text instead of spelling it out: "the word Harry, but not Harrys", "any two words in quotes", "three or more spaces in a row".
 
 ### Extensions
 

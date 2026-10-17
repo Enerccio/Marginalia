@@ -20,7 +20,7 @@ Each row of the lorebook editor is one entry:
 **Search and replace** (right of **Add Entry**) changes a word, a name or a phrase in the name, the text and the comment of
 all the entries of the lorebook at once. It works like the [search and replace of the story](../books/story-editor.md#search-and-replace),
 without the options for summaries and branches: **Search** lists the entries with matches (the table shows their names) and
-the matches in them as they are and as they will be, **Replace** changes the entries. It has the options **Search by regex** and **Case sensitive** (on by default; locked while the regex is on, which
+the matches in them as they are and as they will be, **Replace** changes the entries. It has the options **Search by regex** (see [Regular expressions](../regular-expressions.md)) and **Case sensitive** (on by default; locked while the regex is on, which
 can use `(?i)` to ignore the case). Entries that are disabled are searched too. On the phone the button (an icon next to the
 *Enabled* check box) opens the same window in the phone layout.
 
@@ -88,7 +88,7 @@ A filter activates the entry only when the **request for the part** mentions it.
 | Mode | Matches when |
 |---|---|
 | **Text** | The text appears anywhere in the request, ignoring upper and lower case. `varro` matches *Captain Varro*. |
-| **Regex** | The [regular expression](https://regex101.com/) matches anywhere in the request, ignoring case, across lines. |
+| **Regex** | The [regular expression](../regular-expressions.md#in-a-lorebook-entry-filter) matches anywhere in the request, ignoring case, across lines. |
 
 For example, the regex `\b(varro|captain)\b` matches the whole word *Varro* or *Captain*, and
 `varro.*(harbor|docks)` matches only when Varro and the harbor or the docks are both mentioned, in that order.

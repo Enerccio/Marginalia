@@ -87,6 +87,20 @@ letters, the detail of the step. **Stop** cancels the command; it should return 
 
 ![The window of a command that is running](../../images/command-running.png)
 
+## Commands that change data
+
+Every command says what it does to the data that already exists, and the command bar shows it as a small label next to
+the command, in the list and in the help:
+
+- **Destructive** (red) - the command changes or removes data that exists, like the search and replace commands that
+  rewrite the book. Point at the label to see the explanation.
+- **Non-destructive** (green) - the command only reads data or adds new data, like `/take-backup`, which adds a backup and
+  changes nothing else.
+
+The label is information for you; it does not stop the command. In the future an assistant that runs commands on its
+own will use it to ask you before it runs a destructive one. A command that asks for confirmation by itself is described
+below.
+
 ## Commands that ask first
 
 A command that changes a lot can ask before it does. The search and replace commands have no preview, so after the
@@ -102,7 +116,7 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/hello-world`                       | Returns *Hello world*.                                                             |
 | `/hello-world <message>`             | Returns the message it was given.                                                  |
 | `/hello-world-async [<message>]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
-| `/search-replace-parts <search> <replace> [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window (regex no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
+| `/search-replace-parts <search> <replace> [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
 | `/search-replace-lore-entries <search> <replace> [regex] [caseSensitive]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
 | `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
 

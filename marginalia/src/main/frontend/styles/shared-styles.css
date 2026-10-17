@@ -839,6 +839,25 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     color: var(--lumo-secondary-text-color);
 }
 
+.command-severity {
+    margin-left: var(--lumo-space-s);
+    padding: 0 var(--lumo-space-xs);
+    border-radius: var(--lumo-border-radius-s);
+    font-size: var(--lumo-font-size-xxs);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.command-severity-destructive {
+    color: var(--lumo-error-text-color);
+    background-color: var(--lumo-error-color-10pct);
+}
+
+.command-severity-non-destructive {
+    color: var(--lumo-success-text-color);
+    background-color: var(--lumo-success-color-10pct);
+}
+
 .command-result {
     box-sizing: border-box;
     max-width: 36em;

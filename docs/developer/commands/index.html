@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549064987">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549891845">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845549064987" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845549891845" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845549064987" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845549891845" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -182,8 +182,8 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 |---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Suite**           | Any object whose class has methods annotated with `@Command`. Registering the object registers all of them.                                                                                |
 | **Command method**  | `public void name(CommandContext context)`: the only parameter is the context, nothing is returned from the method itself.                                                                  |
-| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents (each as an `L` key or, for extensions, a plain `...Text`, see [Texts](writing-commands.md#texts)), a `signature`, a return declaration and `async`.   |
-| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and each its own `signature`. One `CommandDefinition` exists per form.          |
+| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents (each as an `L` key or, for extensions, a plain `...Text`, see [Texts](writing-commands.md#texts)), a `signature`, a return declaration, `async` and the `dataSeverity`.   |
+| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and `dataSeverity` and each its own `signature`. One `CommandDefinition` exists per form.          |
 | **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is &quot;any arguments&quot;.    |
 | **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`), the two lines of status (`setStatus`, `setSubStatus`) and `isTerminated()`. It belongs to one run. |
 | **Run**             | One call, which returns a `CommandRun` (a `CompletableFuture&lt;Object&gt;`) that completes with the value given to `setReturn` and holds the status the command reports.                       |">
@@ -206,11 +206,11 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 </tr>
 <tr>
 <td><strong>Command</strong></td>
-<td>A name (<code translate="no" v-pre>commandName</code>: letters, digits, <code translate="no" v-pre>_</code>, <code translate="no" v-pre>-</code>, <code translate="no" v-pre>.</code>) with a <code translate="no" v-pre>humanName</code> for the user, a <code translate="no" v-pre>description</code>, an <code translate="no" v-pre>llmDescription</code> for agents (each as an <code translate="no" v-pre>L</code> key or, for extensions, a plain <code translate="no" v-pre>...Text</code>, see <a href="writing-commands/#texts">Texts</a>), a <code translate="no" v-pre>signature</code>, a return declaration and <code translate="no" v-pre>async</code>.</td>
+<td>A name (<code translate="no" v-pre>commandName</code>: letters, digits, <code translate="no" v-pre>_</code>, <code translate="no" v-pre>-</code>, <code translate="no" v-pre>.</code>) with a <code translate="no" v-pre>humanName</code> for the user, a <code translate="no" v-pre>description</code>, an <code translate="no" v-pre>llmDescription</code> for agents (each as an <code translate="no" v-pre>L</code> key or, for extensions, a plain <code translate="no" v-pre>...Text</code>, see <a href="writing-commands/#texts">Texts</a>), a <code translate="no" v-pre>signature</code>, a return declaration, <code translate="no" v-pre>async</code> and the <code translate="no" v-pre>dataSeverity</code>.</td>
 </tr>
 <tr>
 <td><strong>Form</strong> (overload)</td>
-<td>Methods of a suite that share a <code translate="no" v-pre>commandName</code> are forms of one command. They must have the same <code translate="no" v-pre>humanName</code> and each its own <code translate="no" v-pre>signature</code>. One <code translate="no" v-pre>CommandDefinition</code> exists per form.</td>
+<td>Methods of a suite that share a <code translate="no" v-pre>commandName</code> are forms of one command. They must have the same <code translate="no" v-pre>humanName</code> and <code translate="no" v-pre>dataSeverity</code> and each its own <code translate="no" v-pre>signature</code>. One <code translate="no" v-pre>CommandDefinition</code> exists per form.</td>
 </tr>
 <tr>
 <td><strong>Signature</strong></td>
@@ -408,6 +408,40 @@ abandoned either.</p>
 each change, so a view must hop to its own thread (the progress window of the command bar does with <code translate="no" v-pre>ui.access</code>). A
 listener does not get what was set before it was added: read the getters after adding it. A listener that throws is
 ignored. <code translate="no" v-pre>/take-backup</code> (<code translate="no" v-pre>BackupCommands</code>) is an example.</p>
+<h2 id="data-severity">Data severity</h2>
+<p><code translate="no" v-pre>@Command(dataSeverity = ...)</code> says what the command does to the data that exists, as a <code translate="no" v-pre>CommandDataSeverity</code>:</p>
+<retype-table copy-text="| Value             | Means                                                                                                      |
+|-------------------|------------------------------------------------------------------------------------------------------------|
+| `DESTRUCTIVE`     | The command changes or removes data that exists (replaces text, deletes, overwrites). **The default.**     |
+| `NON_DESTRUCTIVE` | The command only reads data or adds new data; whatever exists stays as it is (`/take-backup`, `/hello-world`). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Value</th>
+<th>Means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>DESTRUCTIVE</code></td>
+<td>The command changes or removes data that exists (replaces text, deletes, overwrites). <strong>The default.</strong></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>NON_DESTRUCTIVE</code></td>
+<td>The command only reads data or adds new data; whatever exists stays as it is (<code translate="no" v-pre>/take-backup</code>, <code translate="no" v-pre>/hello-world</code>).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The default is the safe assumption: a command that does not say is treated as destructive, so a command that only reads or
+adds declares <code translate="no" v-pre>NON_DESTRUCTIVE</code>. All forms of a command have the same severity (<code translate="no" v-pre>registerCommands</code> throws
+<code translate="no" v-pre>IllegalArgumentException</code> otherwise), and <code translate="no" v-pre>CommandDefinition.dataSeverity()</code> returns it. The severity is for two readers:
+the <a href="command-bar/#the-help">command bar</a> shows it as a label next to the command for the user, and an agent that runs
+commands on its own is meant to ask the user before it runs a <code translate="no" v-pre>DESTRUCTIVE</code> one. Nothing in the service enforces that
+today: the severity does not stop a run, and a command that must ask the user still does it itself, see
+<a href="writing-commands/#asking-the-user">Asking the user</a>.</p>
 <h2 id="failures">Failures</h2>
 <p>A future fails with:</p>
 <ul>

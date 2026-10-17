@@ -129,6 +129,9 @@ public final class CssStyles {
     public static final String COMMAND_HELP_ERROR = "command-help-error";
     public static final String COMMAND_ITEM_NAME = "command-item-name";
     public static final String COMMAND_ITEM_DESCRIPTION = "command-item-description";
+    public static final String COMMAND_SEVERITY = "command-severity";
+    public static final String COMMAND_SEVERITY_DESTRUCTIVE = "command-severity-destructive";
+    public static final String COMMAND_SEVERITY_NON_DESTRUCTIVE = "command-severity-non-destructive";
     public static final String COMMAND_RESULT = "command-result";
     public static final String COMMAND_RESULT_TEXT = "command-result-text";
 

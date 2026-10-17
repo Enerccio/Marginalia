@@ -12,6 +12,7 @@ public class DiceCommands {
     @Command(commandName = "roll", humanNameText = "Roll a die",
             descriptionText = "Rolls a die with the given number of sides (6 when omitted).",
             llmDescriptionText = "Returns a random integer from 1 to the number of sides. No side effects.",
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature(
                     @CommandParameter(name = "sides", type = Integer.class, descriptionText = "Number of sides")),
             returns = @CommandReturn(name = "result", type = Integer.class, descriptionText = "The number rolled"))
@@ -23,6 +24,7 @@ public class DiceCommands {
     @Command(commandName = "roll", humanNameText = "Roll a die",
             descriptionText = "Rolls a die with the given number of sides (6 when omitted).",
             llmDescriptionText = "Returns a random integer from 1 to the number of sides. No side effects.",
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = Integer.class, descriptionText = "The number rolled"))
     public void rollSix(CommandContext context) {
@@ -41,6 +43,8 @@ Rules to remember:
 - Fill in `description` (for the user, shown in the list and the help) and `llmDescription` (for an agent: what it does,
   when to use it, whether it has side effects). See [Texts](#texts) for how they are given.
 - Declare `returns`. The help shows it. `void.class` is the default.
+- Declare `dataSeverity`, see [Data severity](#data-severity). The default is `DESTRUCTIVE`; a command that does not change
+  or remove anything that exists says `NON_DESTRUCTIVE`.
 - No signature means **any arguments**: the objects are in `context.getPositional()`. Use it for commands like echo, or when
   the arguments are truly free-form. A declared signature that fits always wins over the any-form.
 - An argument of type `Object.class` is "any" and also accepts a list of objects, passed as one argument.
@@ -68,6 +72,23 @@ alone: `humanName = L.LABEL_X`, `humanNameText = "X"`. The human name needs one 
 attributes of a pair, more than one element, or none for the human name make `registerCommands` throw `IllegalArgumentException` that names the
 method and the attribute. The registry keeps each as a `CommandText` (`key()` or `text()`, `isEmpty()`, `get(...)`); an
 annotation attribute needs an enum constant, so use `L.X` directly there, not a constant that holds it.
+
+## Data severity
+
+`dataSeverity` tells the user, and later an agent, whether the command changes or removes data that exists:
+`CommandDataSeverity.DESTRUCTIVE` (the default, also for a command that says nothing) or `NON_DESTRUCTIVE`.
+
+- Use `NON_DESTRUCTIVE` for commands that read, compute or only **add** (a backup, a new entry). Nothing that was there
+  before changes.
+- Leave `DESTRUCTIVE` for everything that replaces, deletes, overwrites or moves existing data (search and replace, delete,
+  restore, import over a book). When in doubt it is destructive: the safe assumption costs only a red label.
+- All forms of one command share the value; `registerCommands` throws when they differ.
+- It is information. The service does not ask or refuse because of it, so a destructive command that has no preview still
+  asks itself, see [Asking the user](#asking-the-user).
+
+The label is shown by the command bar in the list and in the help, with an explanation as its tooltip; the texts are the keys
+`LABEL_COMMAND_DESTRUCTIVE`, `LABEL_COMMAND_NON_DESTRUCTIVE`, `HELP_COMMAND_DESTRUCTIVE` and `HELP_COMMAND_NON_DESTRUCTIVE`,
+carried by `CommandDataSeverity.getLabel()`/`getDescription()`.
 
 ## Reading the current state
 
@@ -215,6 +236,7 @@ only after the answer. `/search-replace-parts` and `/search-replace-lore-entries
 ## Checklist
 
 - [ ] Each form has `description`, `llmDescription` (as `L` keys when the texts are translated), `signature`, `returns`.
+- [ ] Each command declares `dataSeverity` (`NON_DESTRUCTIVE` only when nothing that exists is changed or removed).
 - [ ] The suite has no state of a run or a user in fields.
 - [ ] `async` commands look at `isTerminated()`.
 - [ ] A plugin unregisters its suites in `onExtensionUnload`.

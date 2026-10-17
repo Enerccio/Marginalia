@@ -380,6 +380,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_TAKE_BACKUP, "バックアップを作成");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_STORY, "ストーリー内を検索して置換");
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "ロアブック内を検索して置換");
+        setValue(L.LABEL_COMMAND_DESTRUCTIVE, "破壊的");
+        setValue(L.LABEL_COMMAND_NON_DESTRUCTIVE, "非破壊的");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -612,6 +614,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_TYPE_SLASH, "/ とコマンド名を入力します。引数はスペースで区切ります。引数に含まれるスペースやバックスラッシュの前には \\ を付けます。引数を \"二重引用符\" で囲むこともできます。");
         setValue(L.HELP_COMMAND_NO_MATCH, "一致するコマンドはありません。");
         setValue(L.HELP_COMMAND_TOO_MANY_ARGUMENTS, "コマンドが受け付ける数より多い引数です。");
+        setValue(L.HELP_COMMAND_DESTRUCTIVE, "このコマンドは既存のデータを変更または削除します。");
+        setValue(L.HELP_COMMAND_NON_DESTRUCTIVE, "このコマンドはデータの読み取りか新しいデータの追加だけを行い、既存のものは変更しません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
