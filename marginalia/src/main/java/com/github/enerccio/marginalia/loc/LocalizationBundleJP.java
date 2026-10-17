@@ -375,6 +375,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_REPLACE_TEXT_PLACEHOLDER, "[置換文字列]");
         setValue(L.LABEL_REVALIDATE_ALL_SUMMARIES, "すべての要約を再検証");
         setValue(L.LABEL_CASE_SENSITIVE, "大文字と小文字を区別");
+        setValue(L.LABEL_COMMAND_HELLO_WORLD, "ハローワールド");
+        setValue(L.LABEL_COMMAND_HELLO_WORLD_ASYNC, "ハローワールド（非同期）");
+        setValue(L.LABEL_COMMAND_TAKE_BACKUP, "バックアップを作成");
+        setValue(L.LABEL_COMMAND_SEARCH_REPLACE_STORY, "ストーリー内を検索して置換");
+        setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "ロアブック内を検索して置換");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -671,6 +676,29 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_VARIABLE_SHORTHAND, "変数の省略記法：. はローカル、$ はグローバル。演算子：= ++ -- += -= || ?? ||= ??= == != > >= < <=");
         setValue(L.DESC_MACRO_COMMENT, "コメント。出力からは取り除かれます。");
         setValue(L.DESC_TEMPLATE_SUMMARY_BLOCKS, "統合される要約（古い順）。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD, "渡された内容をそのまま返します。何も渡されない場合は挨拶を返します。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_LLM, "引数をそのまま返します。引数がない場合は「Hello world」を返します。副作用はありません。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC, "hello-world と同じですが、ワーカースレッドで10秒後に応答します。停止できます。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM, "10秒後に引数をそのまま返します。引数がない場合は「Hello world」を返します。非同期で、副作用はありません。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM, "何でも指定できます。そのまま返されます");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN, "挨拶（Hello world）");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN, "引数");
+        setValue(L.DESC_COMMAND_TAKE_BACKUP, "開いている本のバックアップを作成します。バックアップは本の「バックアップ」タブに表示されます。");
+        setValue(L.DESC_COMMAND_TAKE_BACKUP_LLM, "ユーザーが開いている本（メッセージ、パート、ロアブック、設定）をバックアップし、その本の他のバックアップと一緒に保存します。本が開かれていない場合は失敗します。本自体は変更されませんが、バックアップが1件追加され、その本の保存バックアップ数に含まれます。非同期です。");
+        setValue(L.DESC_COMMAND_TAKE_BACKUP_RETURN, "バックアップされた内容：本の名前と、メッセージ数および画像数");
+        setValue(L.DESC_COMMAND_SEARCH_PARAM, "検索するテキスト（regex 指定時は正規表現）");
+        setValue(L.DESC_COMMAND_REPLACE_PARAM, "置き換え後のテキスト（空でも可。regex 指定時は $1 などのグループを使用可能）");
+        setValue(L.DESC_COMMAND_REGEX_PARAM, "検索を正規表現として扱います。省略時は false");
+        setValue(L.DESC_COMMAND_CASE_SENSITIVE_PARAM, "大文字と小文字を区別します。省略時は true。regex 指定時は無効です");
+        setValue(L.DESC_COMMAND_SUMMARIES_PARAM, "要約も検索します。省略時は true");
+        setValue(L.DESC_COMMAND_ALL_BRANCHES_PARAM, "有効なブランチだけでなくすべてのブランチを検索します。省略時は false");
+        setValue(L.DESC_COMMAND_REVALIDATE_PARAM, "すべての要約のハッシュを再計算し、古い要約が出ないようにします。省略時は true");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_STORY, "開いている本のストーリーのパート（と要約）を検索し、確認後に一致箇所を置換します。置換テキストの後のオプションは、順に regex（false）、大文字小文字の区別（true）、要約の検索（true）、全ブランチの検索（false）、全要約の再検証（true）です。");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM, "ユーザーが開いている本のストーリーテキスト（ストーリーのパートと、必要に応じてその要約）を、有効なブランチまたはすべてのブランチで検索して置換します。本は変更されますが、先にユーザーに一致件数の確認が求められ、変更は元に戻せません。「いいえ」と答えると何も変更されません。本が開かれていない場合は失敗します。非同期です。任意の真偽値オプションは位置引数で、順に regex、caseSensitive、summaries、allBranches、revalidateSummaries です。");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN, "実行結果：置換された一致件数とパート数、または何も見つからなかった、もしくはユーザーが確認しなかったこと");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, "開いている本のロアブックのエントリー（名前、テキスト、コメント）を検索し、確認後に一致箇所を置換します。置換テキストの後のオプションは、順に regex（false）、大文字小文字の区別（true）です。");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM, "ユーザーが開いている本のロアブックのエントリーを検索して置換します。ロアブックは変更されますが、先にユーザーに一致件数の確認が求められ、変更は元に戻せません。「いいえ」と答えると何も変更されません。本が開かれていない場合、または本にロアブックがない場合は失敗します。非同期です。任意の真偽値オプションは位置引数で、順に regex、caseSensitive です。");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN, "実行結果：置換された一致件数とエントリー数、または何も見つからなかった、もしくはユーザーが確認しなかったこと");
     }
 
     @Override

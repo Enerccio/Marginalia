@@ -5,8 +5,13 @@ import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.command.CommandException;
 import com.github.enerccio.marginalia.domain.service.command.CommandRun;
+import com.github.enerccio.marginalia.domain.service.command.CommandText;
 import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
 import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.CommandParameter;
+import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
+import com.github.enerccio.marginalia.domain.traits.CommandReturn;
+import com.github.enerccio.marginalia.loc.L;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,12 +39,12 @@ class CommandServiceTest {
     }
 
     public static class Arithmetic {
-        @Command(commandName = "add", humanName = "Add", description = "Adds", llmDescription = "Adds two numbers")
+        @Command(commandName = "add", humanNameText = "Add", descriptionText = "Adds", llmDescriptionText = "Adds two numbers")
         public void add(CommandContext context) {
             context.setReturn(context.get("a", Integer.class) + context.get("b", Integer.class));
         }
 
-        @Command(commandName = "negate", humanName = "Negate")
+        @Command(commandName = "negate", humanNameText = "Negate")
         public void negate(CommandContext context) {
             context.setReturn(-context.get("a", Integer.class));
         }
@@ -50,7 +55,7 @@ class CommandServiceTest {
     }
 
     public static class Silent {
-        @Command(commandName = "silent", humanName = "Silent")
+        @Command(commandName = "silent", humanNameText = "Silent")
         public void run(CommandContext context) {
             // sets nothing
         }
@@ -59,7 +64,7 @@ class CommandServiceTest {
     public static class Late {
         CommandContext kept;
 
-        @Command(commandName = "late", humanName = "Late")
+        @Command(commandName = "late", humanNameText = "Late")
         public void run(CommandContext context) {
             kept = context;
             context.setReturn("first");
@@ -68,7 +73,7 @@ class CommandServiceTest {
     }
 
     public static class Boom {
-        @Command(commandName = "boom", humanName = "Boom")
+        @Command(commandName = "boom", humanNameText = "Boom")
         public void run(CommandContext context) {
             throw new IllegalStateException("bang");
         }
@@ -78,7 +83,7 @@ class CommandServiceTest {
         public final CompletableFuture<Void> release = new CompletableFuture<>();
         volatile String thread;
 
-        @Command(commandName = "later", humanName = "Later", async = true)
+        @Command(commandName = "later", humanNameText = "Later", async = true)
         public void run(CommandContext context) {
             thread = Thread.currentThread().getName();
             new Thread(() -> {
@@ -87,7 +92,7 @@ class CommandServiceTest {
             }).start();
         }
 
-        @Command(commandName = "later-fails", humanName = "Later fails", async = true)
+        @Command(commandName = "later-fails", humanNameText = "Later fails", async = true)
         public void fails(CommandContext context) {
             new Thread(() -> context.fail(new IllegalStateException("async bang"))).start();
         }
@@ -97,7 +102,7 @@ class CommandServiceTest {
         public final CompletableFuture<Void> release = new CompletableFuture<>();
         volatile CommandContext kept;
 
-        @Command(commandName = "reporting", humanName = "Reporting", async = true)
+        @Command(commandName = "reporting", humanNameText = "Reporting", async = true)
         public void run(CommandContext context) {
             kept = context;
             context.setStatus("Step 1");
@@ -121,7 +126,7 @@ class CommandServiceTest {
             this.unlockItself = unlockItself;
         }
 
-        @Command(commandName = "locking", humanName = "Locking", async = true)
+        @Command(commandName = "locking", humanNameText = "Locking", async = true)
         public void run(CommandContext context) {
             kept = context;
             if (lockItself) {
@@ -145,45 +150,95 @@ class CommandServiceTest {
     }
 
     public static class WrongSignature {
-        @Command(commandName = "ok", humanName = "Ok")
+        @Command(commandName = "ok", humanNameText = "Ok")
         public void ok(CommandContext context) {
         }
 
-        @Command(commandName = "wrong", humanName = "Wrong")
+        @Command(commandName = "wrong", humanNameText = "Wrong")
         public String wrong(CommandContext context) {
             return "x";
         }
     }
 
     public static class NotPublic {
-        @Command(commandName = "hidden", humanName = "Hidden")
+        @Command(commandName = "hidden", humanNameText = "Hidden")
         void hidden(CommandContext context) {
         }
     }
 
     public static class BadName {
-        @Command(commandName = "bad name!", humanName = "Bad")
+        @Command(commandName = "bad name!", humanNameText = "Bad")
         public void run(CommandContext context) {
         }
     }
 
     public static class Twice {
-        @Command(commandName = "same", humanName = "One")
+        @Command(commandName = "same", humanNameText = "One")
         public void one(CommandContext context) {
         }
 
-        @Command(commandName = "same", humanName = "Two")
+        @Command(commandName = "same", humanNameText = "Two")
         public void two(CommandContext context) {
         }
     }
 
     public static class AddAgain {
-        @Command(commandName = "fresh", humanName = "Fresh")
+        @Command(commandName = "fresh", humanNameText = "Fresh")
         public void fresh(CommandContext context) {
         }
 
-        @Command(commandName = "add", humanName = "Another add")
+        @Command(commandName = "add", humanNameText = "Another add")
         public void add(CommandContext context) {
+        }
+    }
+
+    public static class Localized {
+        @Command(commandName = "localized", humanName = L.LABEL_CASE_SENSITIVE, description = L.LABEL_CLOSE,
+                signature = @CommandParameterSignature(@CommandParameter(name = "x", description = L.LABEL_ID)),
+                returns = @CommandReturn(name = "r", type = String.class, description = L.LABEL_ID))
+        public void run(CommandContext context) {
+        }
+    }
+
+    public static class Unnamed {
+        @Command(commandName = "unnamed")
+        public void unnamed(CommandContext context) {
+        }
+    }
+
+    public static class BothTexts {
+        @Command(commandName = "both-texts", humanName = L.LABEL_ID, humanNameText = "Id")
+        public void run(CommandContext context) {
+        }
+    }
+
+    public static class TwoKeys {
+        @Command(commandName = "two-keys", humanNameText = "Two", description = {L.LABEL_ID, L.LABEL_CLOSE})
+        public void run(CommandContext context) {
+        }
+    }
+
+    public static class BothParameterTexts {
+        @Command(commandName = "both-parameter-texts", humanNameText = "Both",
+                signature = @CommandParameterSignature(@CommandParameter(name = "x", description = L.LABEL_ID, descriptionText = "x")))
+        public void run(CommandContext context) {
+        }
+    }
+
+    public static class BothReturnTexts {
+        @Command(commandName = "both-return-texts", humanNameText = "Both",
+                returns = @CommandReturn(name = "r", type = String.class, description = L.LABEL_ID, descriptionText = "r"))
+        public void run(CommandContext context) {
+        }
+    }
+
+    public static class DifferentKinds {
+        @Command(commandName = "kinds", humanName = L.LABEL_ID, signature = @CommandParameterSignature)
+        public void one(CommandContext context) {
+        }
+
+        @Command(commandName = "kinds", humanNameText = "Id", signature = @CommandParameterSignature(@CommandParameter(name = "x")))
+        public void two(CommandContext context) {
         }
     }
 
@@ -197,15 +252,51 @@ class CommandServiceTest {
     }
 
     @Test
+    void textsAreLocalizationKeysOrPlainTexts() {
+        commands.registerCommands(new Localized());
+
+        CommandDefinition localized = firstOf("localized");
+        assertThat(localized.humanName()).isEqualTo(CommandText.of(L.LABEL_CASE_SENSITIVE));
+        assertThat(localized.humanName().get(L::name)).isEqualTo("LABEL_CASE_SENSITIVE");
+        assertThat(localized.description().key()).isEqualTo(L.LABEL_CLOSE);
+        assertThat(localized.llmDescription().isEmpty()).isTrue();
+        assertThat(localized.llmDescription().get(L::name)).isEmpty();
+        assertThat(localized.parameters().getFirst().description().key()).isEqualTo(L.LABEL_ID);
+        assertThat(localized.returns().description().key()).isEqualTo(L.LABEL_ID);
+    }
+
+    @Test
+    void theHumanNameIsRequiredAsAKeyOrAText() {
+        assertThatThrownBy(() -> commands.registerCommands(new Unnamed()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("humanName is not given");
+        assertThat(commands.getCommands()).isEmpty();
+    }
+
+    @Test
+    void aTextGivenTwiceOrWithMoreValuesIsRefusedWhenTheSuiteIsRegistered() {
+        assertThatThrownBy(() -> commands.registerCommands(new BothTexts()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("humanName");
+        assertThatThrownBy(() -> commands.registerCommands(new TwoKeys()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("description");
+        assertThatThrownBy(() -> commands.registerCommands(new BothParameterTexts()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("parameter x");
+        assertThatThrownBy(() -> commands.registerCommands(new BothReturnTexts()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("return value");
+        assertThatThrownBy(() -> commands.registerCommands(new DifferentKinds()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("human names");
+        assertThat(commands.getCommands()).isEmpty();
+    }
+
+    @Test
     void registeringASuiteRegistersAllItsCommands() {
         Arithmetic suite = new Arithmetic();
         List<CommandDefinition> definitions = commands.registerCommands(suite);
 
         assertThat(definitions).extracting(CommandDefinition::commandName).containsExactly("add", "negate");
         CommandDefinition add = firstOf("add");
-        assertThat(add.humanName()).isEqualTo("Add");
-        assertThat(add.description()).isEqualTo("Adds");
-        assertThat(add.llmDescription()).isEqualTo("Adds two numbers");
+        assertThat(add.humanName()).isEqualTo(CommandText.ofText("Add"));
+        assertThat(add.description()).isEqualTo(CommandText.ofText("Adds"));
+        assertThat(add.llmDescription()).isEqualTo(CommandText.ofText("Adds two numbers"));
         assertThat(add.async()).isFalse();
         assertThat(add.instance()).isSameAs(suite);
         assertThat(commands.getCommands()).containsExactlyInAnyOrderElementsOf(definitions);
@@ -344,7 +435,7 @@ class CommandServiceTest {
     void argumentsAreReadOnlyAndMayBeMissing() throws Exception {
         CommandContext[] seen = new CommandContext[1];
         class Peek {
-            @Command(commandName = "peek", humanName = "Peek")
+            @Command(commandName = "peek", humanNameText = "Peek")
             public void run(CommandContext context) {
                 seen[0] = context;
             }

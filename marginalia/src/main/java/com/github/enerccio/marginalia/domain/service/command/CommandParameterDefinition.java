@@ -8,7 +8,7 @@ package com.github.enerccio.marginalia.domain.service.command;
  * @param type        the type of the argument, {@code Object.class} for any
  * @param description what the parameter means, may be empty
  */
-public record CommandParameterDefinition(String name, Class<?> type, String description) {
+public record CommandParameterDefinition(String name, Class<?> type, CommandText description) {
 
     /** The type for display: "any" for {@code Object}, otherwise the simple name of the class. */
     public String typeName() {

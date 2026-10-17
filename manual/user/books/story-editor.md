@@ -224,6 +224,48 @@ Next to the menu below the story there is a **command line**: type `/` to see th
 [Commands](../commands/index.md) for how to write arguments, what the help shows and how to stop a command that takes a
 while. The command line is only in the story tab of the desktop layout so far.
 
+## Search and replace
+
+The settings menu (⚙) also has **Search and replace**, which changes a word, a name or a phrase in the whole story at
+once. The window has a **Search for** and a **Replace with** field and these options:
+
+| Option | Default | Meaning |
+|---|---|---|
+| **Search by regex** | off | The search text is a [regular expression](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/regex/Pattern.html) and the replacement can use its groups (`$1`). Otherwise the text is searched as typed. |
+| **Case sensitive** | on | A text is found only in the case you typed it (*John* does not find *john*). Off: the case does not matter. Locked while **Search by regex** is on. |
+| **Search in summaries** | on | The [summaries](summaries.md) are searched and changed too. |
+| **Search in all branches** | off | All [branches](branches-and-story-tree.md) are searched, otherwise only the active one. |
+| **Revalidate all summaries** | on | After the replace every [summary](summaries.md) of the book is valid again, see below. |
+
+With a regular expression the case is always taken as typed, start it with `(?i)` to ignore it. Press **Search**
+(the button on the right of the fields; on the phone below them). The progress bar shows how far it is and **Stop**
+next to it interrupts it. Nothing is changed by a search.
+
+The table lists every part of the story and every summary that has a match, with its type and id. Open a row to see the
+matches in it: the text around the match as it is and as it will be after the replacement. A match or a replacement that
+is too long to show is written as *[searched text]* or *[replace text]*.
+
+Pressing **Enter** in the **Search for** or **Replace with** field does the same as **Search**.
+
+When the search is done, the fields and options are locked and the **Replace** button is enabled. **Search again** forgets
+what was found and unlocks the window, so you can change the search. **Replace** changes the story: the window is frozen
+completely (even **Stop** does not work) until it is done, and then it is empty again. Replaced parts are marked as
+edited, as if you had edited them yourself.
+
+A replace in the text a [summary](summaries.md#when-summaries-become-outdated) describes would make the summary outdated.
+With **Revalidate all summaries** on, Marginalia works out again the check value of every summary of the book (those of
+all branches too, those the replace did not touch, and those that were outdated before), so all of them are valid
+afterwards. That also turns an outdated summary valid without its text being looked at, so use it when you know the
+summaries still say the right thing.
+
+With the option off only the summaries the search covers are brought up to date. Those it does not cover (summaries of
+branches that are not searched, which share their earlier parts with the active branch; or all of them when summaries are
+not searched) become outdated. If there are such summaries, Marginalia tells you how many and asks whether to go on. A
+summary that was outdated already stays so.
+
+In the [phone layout](../phone.md) the same window has the fields and buttons below each other, and the table has one
+column that shows the type and id, and below them the match and the replacement.
+
 ## Exporting the story
 
 The settings menu (⚙) also has **Export story**, which saves the active branch as a text, Markdown, HTML, Word, PDF or EPUB

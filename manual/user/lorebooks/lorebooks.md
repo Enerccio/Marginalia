@@ -20,6 +20,7 @@ The toolbar:
 | Import (file icon) | **Import Marginalia Lorebook** or **Import from SillyTavern**, see [Import & export](import-export.md). |
 | Export (file icon) | Downloads the lorebook with its sub lorebooks, see [Import & export](import-export.md#exporting). |
 | **Add Entry** | Adds an entry to the lorebook, see [Entries & activation](entries.md). |
+| **Search and replace** | Changes a text in the name, text and comment of the entries of the lorebook, see [Search and replace](entries.md#search-and-replace). |
 | **Refresh** | Reloads the entries. |
 
 Below the toolbar are the settings of the selected lorebook:

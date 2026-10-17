@@ -8,7 +8,7 @@ import java.util.List;
  * share the {@code commandName}.
  *
  * @param commandName    unique name the command is run by
- * @param humanName      name shown to the user
+ * @param humanName      name shown to the user, the command name when the command gives none
  * @param description    what the command does, for the user, may be empty
  * @param llmDescription what the command does, for an agent, may be empty
  * @param async          whether the command runs on a worker thread and answers when it likes
@@ -18,7 +18,7 @@ import java.util.List;
  * @param parameters     the parameters of the signature in order
  * @param returns        what the command returns
  */
-public record CommandDefinition(String commandName, String humanName, String description, String llmDescription,
+public record CommandDefinition(String commandName, CommandText humanName, CommandText description, CommandText llmDescription,
                                 boolean async, Object instance, boolean anyArguments,
                                 List<CommandParameterDefinition> parameters, CommandReturnDefinition returns) {
 
