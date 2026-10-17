@@ -31,14 +31,11 @@ public class BackupCommands {
     @Autowired
     private Localization loc;
 
-    @Command(commandName = "take-backup", humanName = "Take backup", async = true,
-            description = "Takes a backup of the book that is open. The backup is listed in the Backups tab of the book.",
-            llmDescription = "Backs up the book the user has open (its messages, parts, lorebooks and settings) and keeps "
-                    + "the backup with the other backups of that book. Fails when no book is open. Changes nothing in "
-                    + "the book; it adds one backup, which counts against the book's stored backups. Asynchronous.",
+    @Command(commandName = "take-backup", humanName = L.LABEL_COMMAND_TAKE_BACKUP, async = true,
+            description = L.DESC_COMMAND_TAKE_BACKUP, llmDescription = L.DESC_COMMAND_TAKE_BACKUP_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "message", type = String.class,
-                    description = "What was backed up: the name of the book and how many messages and images it has"))
+                    description = L.DESC_COMMAND_TAKE_BACKUP_RETURN))
     public void takeBackup(CommandContext context) throws Exception {
         Manuscript open = CommandUtils.getCurrentManuscript();
         if (open == null) {

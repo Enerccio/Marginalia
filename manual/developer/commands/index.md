@@ -38,7 +38,7 @@ flowchart LR
 |---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Suite**           | Any object whose class has methods annotated with `@Command`. Registering the object registers all of them.                                                                                |
 | **Command method**  | `public void name(CommandContext context)`: the only parameter is the context, nothing is returned from the method itself.                                                                  |
-| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents, a `signature`, a return declaration and `async`.   |
+| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents (each as an `L` key or, for extensions, a plain `...Text`, see [Texts](writing-commands.md#texts)), a `signature`, a return declaration and `async`.   |
 | **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and each its own `signature`. One `CommandDefinition` exists per form.          |
 | **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is "any arguments".    |
 | **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`), the two lines of status (`setStatus`, `setSubStatus`) and `isTerminated()`. It belongs to one run. |
@@ -57,6 +57,7 @@ A command never receives its arguments as Java parameters; it reads them from th
 | `setReturn(value)`              | The answer. A form with `async = false` must call it before its method returns, otherwise the result is `null`. Later calls are ignored.     |
 | `fail(error)`                   | Ends the run with a `CommandException` (for `async` commands that report from another thread; a synchronous command can throw).             |
 | `setStatus(text)`, `setSubStatus(text)` | Two lines of progress for the user: what the command is doing now, and the detail of that step. They are independent, `null` or blank clears one. Any thread; ignored once the run is over. |
+| `setUninterruptable(flag)`, `isUninterruptable()` | Declares the run can't be stopped now (see [Uninterruptable runs](#uninterruptable-runs)). Any thread; ignored once the run is over. |
 | `isTerminated()`                | True when the run is over for the caller: the command answered or failed, or the caller cancelled the future. Never true while a synchronous command runs. |
 
 ## Arguments and dispatch
@@ -68,6 +69,8 @@ A call names the command and passes the arguments in one of three ways:
 | `execute(name, Map)`              | By name. The form whose parameter names are exactly the keys is called; a form that takes any arguments gets the map.   |
 | `executePositional(name, List)`   | By position. The form with as many parameters as there are arguments, all convertible, is called.                       |
 | `executeLine("/name a b")`        | A command typed as text; the arguments are strings, split by `CommandLine.parse` (see below).                            |
+
+Each of them also has a form with a last argument `boolean uninterruptable`, see [Uninterruptable runs](#uninterruptable-runs).
 
 When several forms fit, the closest types win. Each argument costs 0 when it already has the parameter's type, 1 for a
 parameter of type `Object` ("any"), 2 when text or a number has to be converted (to a number, boolean, character or
@@ -109,6 +112,20 @@ A caller can cancel the future (the **Stop** button of the progress window does)
 worker thread is interrupted, and a command that has not started yet does not start. A long-running `async` command must
 cooperate: look at `isTerminated()` (and the interrupt flag) between the steps of its work and return at once. What it
 sets afterwards is ignored. `/hello-world-async` (`HelloWorldCommands`) is the model of such a loop.
+
+### Uninterruptable runs
+
+Some work can't be abandoned half way, a change that is being written to the database. A command declares that with
+`context.setUninterruptable(true)` just before it, and `false` after it: meanwhile `CommandRun.cancel` does nothing (it
+returns `false`) and the progress window of the command bar disables its **Stop** button
+(`CommandRun.isUninterruptable()`, `addUninterruptableListener(...)`, called on the thread of the command like the status
+listener). The search and replace commands do so for the replace, after the user confirmed it.
+
+A caller can start a run that way too: every `execute*` has a form with a trailing `boolean uninterruptable`
+(`execute(name, Map, true)`, `executePositional(name, List, true)`, `executeLine(line, true)`). Such a run is
+uninterruptable from the start and the command can't lift it with `setUninterruptable(false)`. A command that is
+uninterruptable and starts another asynchronous command passes `context.isUninterruptable()`, so the nested one is not
+abandoned either.
 
 ### Status
 

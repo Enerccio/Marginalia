@@ -39,39 +39,39 @@ class CommandDispatchTest {
     }
 
     public static class Overloaded {
-        @Command(commandName = "show", humanName = "Show", signature = @CommandParameterSignature,
+        @Command(commandName = "show", humanNameText = "Show", signature = @CommandParameterSignature,
                 returns = @CommandReturn(name = "text", type = String.class))
         public void none(CommandContext context) {
             context.setReturn("none");
         }
 
-        @Command(commandName = "show", humanName = "Show",
+        @Command(commandName = "show", humanNameText = "Show",
                 signature = @CommandParameterSignature(@CommandParameter(name = "text", type = String.class)))
         public void text(CommandContext context) {
             context.setReturn("text " + context.get("text"));
         }
 
-        @Command(commandName = "show", humanName = "Show",
+        @Command(commandName = "show", humanNameText = "Show",
                 signature = @CommandParameterSignature(@CommandParameter(name = "count", type = Integer.class)))
         public void count(CommandContext context) {
             context.setReturn("count " + context.get("count"));
         }
 
-        @Command(commandName = "show", humanName = "Show",
+        @Command(commandName = "show", humanNameText = "Show",
                 signature = @CommandParameterSignature({@CommandParameter(name = "a", type = Integer.class),
                         @CommandParameter(name = "b", type = Boolean.class)}))
         public void two(CommandContext context) {
             context.setReturn("two " + context.get("a") + " " + context.get("b"));
         }
 
-        @Command(commandName = "show", humanName = "Show")
+        @Command(commandName = "show", humanNameText = "Show")
         public void anything(CommandContext context) {
             context.setReturn("any " + context.getPositional());
         }
     }
 
     public static class Echo {
-        @Command(commandName = "echo", humanName = "Echo",
+        @Command(commandName = "echo", humanNameText = "Echo",
                 signature = @CommandParameterSignature(@CommandParameter(name = "value")))
         public void echo(CommandContext context) {
             context.setReturn(context.get("value"));
@@ -143,35 +143,35 @@ class CommandDispatchTest {
     }
 
     public static class SameSignatureTwice {
-        @Command(commandName = "dup", humanName = "Dup", signature = @CommandParameterSignature)
+        @Command(commandName = "dup", humanNameText = "Dup", signature = @CommandParameterSignature)
         public void one(CommandContext context) {
         }
 
-        @Command(commandName = "dup", humanName = "Dup", signature = @CommandParameterSignature)
+        @Command(commandName = "dup", humanNameText = "Dup", signature = @CommandParameterSignature)
         public void two(CommandContext context) {
         }
     }
 
     public static class DifferentHumanNames {
-        @Command(commandName = "names", humanName = "One", signature = @CommandParameterSignature)
+        @Command(commandName = "names", humanNameText = "One", signature = @CommandParameterSignature)
         public void one(CommandContext context) {
         }
 
-        @Command(commandName = "names", humanName = "Two",
+        @Command(commandName = "names", humanNameText = "Two",
                 signature = @CommandParameterSignature(@CommandParameter(name = "x")))
         public void two(CommandContext context) {
         }
     }
 
     public static class ParametersAndAny {
-        @Command(commandName = "both", humanName = "Both",
+        @Command(commandName = "both", humanNameText = "Both",
                 signature = @CommandParameterSignature(value = @CommandParameter(name = "x"), any = true))
         public void run(CommandContext context) {
         }
     }
 
     public static class ParameterNameTwice {
-        @Command(commandName = "twice", humanName = "Twice",
+        @Command(commandName = "twice", humanNameText = "Twice",
                 signature = @CommandParameterSignature({@CommandParameter(name = "x"), @CommandParameter(name = "x")}))
         public void run(CommandContext context) {
         }
@@ -236,7 +236,7 @@ class CommandDispatchTest {
         final AtomicBoolean sawTerminated = new AtomicBoolean();
         final AtomicBoolean ran = new AtomicBoolean();
 
-        @Command(commandName = "slow", humanName = "Slow", async = true, signature = @CommandParameterSignature)
+        @Command(commandName = "slow", humanNameText = "Slow", async = true, signature = @CommandParameterSignature)
         public void run(CommandContext context) {
             ran.set(true);
             started.countDown();
@@ -268,7 +268,7 @@ class CommandDispatchTest {
     public static class Sync {
         boolean terminatedInside;
 
-        @Command(commandName = "sync", humanName = "Sync", signature = @CommandParameterSignature)
+        @Command(commandName = "sync", humanNameText = "Sync", signature = @CommandParameterSignature)
         public void run(CommandContext context) {
             terminatedInside = context.isTerminated();
             context.setReturn("done");

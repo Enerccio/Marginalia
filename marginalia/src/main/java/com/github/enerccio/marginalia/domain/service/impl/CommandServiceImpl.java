@@ -120,7 +120,9 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
                 throw new IllegalArgumentException(describe(method) + " has a parameter without a name or a name used twice: '"
                         + parameter.name() + "'");
             }
-            parameters.add(new CommandParameterDefinition(parameter.name(), parameter.type(), parameter.description()));
+            parameters.add(new CommandParameterDefinition(parameter.name(), parameter.type(),
+                    CommandText.of(describe(method), "description of parameter " + parameter.name(),
+                            parameter.description(), parameter.descriptionText(), false)));
         }
         CommandReturn returns = meta.returns();
         try {
@@ -129,9 +131,13 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         } catch (RuntimeException ignored) {
             // inaccessible module, the call fails with a clear message
         }
-        return new CommandDefinition(name, meta.humanName(), meta.description(), meta.llmDescription(), meta.async(),
+        String where = describe(method);
+        return new CommandDefinition(name, CommandText.of(where, "humanName", meta.humanName(), meta.humanNameText(), true),
+                CommandText.of(where, "description", meta.description(), meta.descriptionText(), false),
+                CommandText.of(where, "llmDescription", meta.llmDescription(), meta.llmDescriptionText(), false), meta.async(),
                 suite, signature.any(), List.copyOf(parameters),
-                new CommandReturnDefinition(returns.name(), returns.type(), returns.description()));
+                new CommandReturnDefinition(returns.name(), returns.type(),
+                        CommandText.of(where, "description of the return value", returns.description(), returns.descriptionText(), false)));
     }
 
     private static void validateOverloads(String name, List<Registered> overloads, Class<?> type) {

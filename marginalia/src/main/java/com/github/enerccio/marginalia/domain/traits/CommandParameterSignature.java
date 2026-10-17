@@ -11,10 +11,10 @@ import java.lang.annotation.Target;
  * number, each convertible to the type of its parameter; the closest types win, see
  * {@link com.github.enerccio.marginalia.domain.service.CommandService}).
  * <pre>
- * &#64;Command(commandName = "hello-world", humanName = "Hello world", signature = &#64;CommandParameterSignature)
+ * &#64;Command(commandName = "hello-world", humanNameText = "Hello world", signature = &#64;CommandParameterSignature)
  * public void hello(CommandContext context) { ... }   // no arguments
  *
- * &#64;Command(commandName = "hello-world", humanName = "Hello world",
+ * &#64;Command(commandName = "hello-world", humanNameText = "Hello world",
  *          signature = &#64;CommandParameterSignature(&#64;CommandParameter(name = "message")))
  * public void hello1(CommandContext context) { ... }  // one argument
  * </pre>

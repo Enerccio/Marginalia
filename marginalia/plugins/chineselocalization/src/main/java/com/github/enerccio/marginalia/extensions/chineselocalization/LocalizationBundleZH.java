@@ -383,6 +383,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_REPLACE_TEXT_PLACEHOLDER, "[替换内容]");
         setValue(L.LABEL_REVALIDATE_ALL_SUMMARIES, "重新验证所有摘要");
         setValue(L.LABEL_CASE_SENSITIVE, "区分大小写");
+        setValue(L.LABEL_COMMAND_HELLO_WORLD, "你好，世界");
+        setValue(L.LABEL_COMMAND_HELLO_WORLD_ASYNC, "你好，世界（异步）");
+        setValue(L.LABEL_COMMAND_TAKE_BACKUP, "创建备份");
+        setValue(L.LABEL_COMMAND_SEARCH_REPLACE_STORY, "在故事中查找并替换");
+        setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "在世界书中查找并替换");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -679,6 +684,29 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_VARIABLE_SHORTHAND, "变量简写：. 表示局部，$ 表示全局。运算符：= ++ -- += -= || ?? ||= ??= == != > >= < <=");
         setValue(L.DESC_MACRO_COMMENT, "注释，不会出现在输出中。");
         setValue(L.DESC_TEMPLATE_SUMMARY_BLOCKS, "正在合并的摘要，最早的在前。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD, "原样返回收到的内容；没有参数时返回问候语。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_LLM, "原样返回参数；没有参数时返回“Hello world”。没有副作用。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC, "与 hello-world 相同，但在工作线程中等待 10 秒后才应答。可以停止。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM, "10 秒后原样返回参数，没有参数时返回“Hello world”。异步，没有副作用。");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM, "任意内容，将原样返回");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN, "问候语 Hello world");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN, "参数");
+        setValue(L.DESC_COMMAND_TAKE_BACKUP, "为当前打开的书创建备份。备份会显示在该书的“备份”选项卡中。");
+        setValue(L.DESC_COMMAND_TAKE_BACKUP_LLM, "备份用户当前打开的书（其消息、部分、世界书和设置），并与该书的其他备份一起保存。没有打开的书时会失败。不会更改书本身；会增加一个备份，计入该书已保存的备份数量。异步。");
+        setValue(L.DESC_COMMAND_TAKE_BACKUP_RETURN, "备份的内容：书名以及其消息和图片的数量");
+        setValue(L.DESC_COMMAND_SEARCH_PARAM, "要查找的文本（使用 regex 时为正则表达式）");
+        setValue(L.DESC_COMMAND_REPLACE_PARAM, "用于替换的文本（可以为空；使用 regex 时可以使用 $1 等分组）");
+        setValue(L.DESC_COMMAND_REGEX_PARAM, "将查找内容视为正则表达式，省略时为 false");
+        setValue(L.DESC_COMMAND_CASE_SENSITIVE_PARAM, "区分大小写，省略时为 true；使用 regex 时无效");
+        setValue(L.DESC_COMMAND_SUMMARIES_PARAM, "同时在摘要中查找，省略时为 true");
+        setValue(L.DESC_COMMAND_ALL_BRANCHES_PARAM, "在所有分支中查找，而不只是当前分支；省略时为 false");
+        setValue(L.DESC_COMMAND_REVALIDATE_PARAM, "重新计算所有摘要的哈希值，使其不会过期；省略时为 true");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_STORY, "在打开的书的故事部分（及其摘要）中查找，并在你确认后替换匹配项。替换文本之后的选项依次为：regex（false）、区分大小写（true）、在摘要中查找（true）、在所有分支中查找（false）、重新验证所有摘要（true）。");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM, "在用户当前打开的书的故事文本中查找并替换：故事的各个部分，以及可选的摘要，范围为当前分支或所有分支。会更改书，但会先请用户确认匹配数量，且更改无法撤销；回答“否”则不会更改任何内容。没有打开的书时会失败。异步。可选的布尔值参数按位置依次为：regex、caseSensitive、summaries、allBranches、revalidateSummaries。");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN, "执行结果：替换了多少个部分中的多少处匹配，或者未找到任何内容、用户未确认");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, "在打开的书的世界书条目（名称、文本和注释）中查找，并在你确认后替换匹配项。替换文本之后的选项依次为：regex（false）、区分大小写（true）。");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM, "在用户当前打开的书的世界书条目中查找并替换。会更改世界书，但会先请用户确认匹配数量，且更改无法撤销；回答“否”则不会更改任何内容。没有打开的书或该书没有世界书时会失败。异步。可选的布尔值参数按位置依次为：regex、caseSensitive。");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN, "执行结果：替换了多少个条目中的多少处匹配，或者未找到任何内容、用户未确认");
     }
 
     @Override

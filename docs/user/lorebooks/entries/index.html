@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845507468760">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845543711469">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845507468760" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845543711469" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845507468760" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845543711469" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -220,6 +220,13 @@
 </div>
 </retype-table>
 <p><strong>Add Entry</strong> in the toolbar adds an entry with order <code translate="no" v-pre>100</code>. Changes are saved as you type.</p>
+<h2 id="search-and-replace">Search and replace</h2>
+<p><strong>Search and replace</strong> (right of <strong>Add Entry</strong>) changes a word, a name or a phrase in the name, the text and the comment of
+all the entries of the lorebook at once. It works like the <a href="../../books/story-editor/#search-and-replace">search and replace of the story</a>,
+without the options for summaries and branches: <strong>Search</strong> lists the entries with matches (the table shows their names) and
+the matches in them as they are and as they will be, <strong>Replace</strong> changes the entries. It has the options <strong>Search by regex</strong> and <strong>Case sensitive</strong> (on by default; locked while the regex is on, which
+can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that are disabled are searched too. On the phone the button (an icon next to the
+<em>Enabled</em> check box) opens the same window in the phone layout.</p>
 <h2 id="entry-details">Entry details</h2>
 <p>The ⌄ button opens the details:</p>
 <figure class="content-center">

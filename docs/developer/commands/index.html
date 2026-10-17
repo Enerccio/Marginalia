@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845507468760">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845543711469">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845507468760" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845543711469" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -182,7 +182,7 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 |---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Suite**           | Any object whose class has methods annotated with `@Command`. Registering the object registers all of them.                                                                                |
 | **Command method**  | `public void name(CommandContext context)`: the only parameter is the context, nothing is returned from the method itself.                                                                  |
-| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents, a `signature`, a return declaration and `async`.   |
+| **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents (each as an `L` key or, for extensions, a plain `...Text`, see [Texts](writing-commands.md#texts)), a `signature`, a return declaration and `async`.   |
 | **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and each its own `signature`. One `CommandDefinition` exists per form.          |
 | **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is &quot;any arguments&quot;.    |
 | **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`), the two lines of status (`setStatus`, `setSubStatus`) and `isTerminated()`. It belongs to one run. |
@@ -206,7 +206,7 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 </tr>
 <tr>
 <td><strong>Command</strong></td>
-<td>A name (<code translate="no" v-pre>commandName</code>: letters, digits, <code translate="no" v-pre>_</code>, <code translate="no" v-pre>-</code>, <code translate="no" v-pre>.</code>) with a <code translate="no" v-pre>humanName</code> for the user, a <code translate="no" v-pre>description</code>, an <code translate="no" v-pre>llmDescription</code> for agents, a <code translate="no" v-pre>signature</code>, a return declaration and <code translate="no" v-pre>async</code>.</td>
+<td>A name (<code translate="no" v-pre>commandName</code>: letters, digits, <code translate="no" v-pre>_</code>, <code translate="no" v-pre>-</code>, <code translate="no" v-pre>.</code>) with a <code translate="no" v-pre>humanName</code> for the user, a <code translate="no" v-pre>description</code>, an <code translate="no" v-pre>llmDescription</code> for agents (each as an <code translate="no" v-pre>L</code> key or, for extensions, a plain <code translate="no" v-pre>...Text</code>, see <a href="writing-commands/#texts">Texts</a>), a <code translate="no" v-pre>signature</code>, a return declaration and <code translate="no" v-pre>async</code>.</td>
 </tr>
 <tr>
 <td><strong>Form</strong> (overload)</td>
@@ -239,6 +239,7 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 | `setReturn(value)`              | The answer. A form with `async = false` must call it before its method returns, otherwise the result is `null`. Later calls are ignored.     |
 | `fail(error)`                   | Ends the run with a `CommandException` (for `async` commands that report from another thread; a synchronous command can throw).             |
 | `setStatus(text)`, `setSubStatus(text)` | Two lines of progress for the user: what the command is doing now, and the detail of that step. They are independent, `null` or blank clears one. Any thread; ignored once the run is over. |
+| `setUninterruptable(flag)`, `isUninterruptable()` | Declares the run can't be stopped now (see [Uninterruptable runs](#uninterruptable-runs)). Any thread; ignored once the run is over. |
 | `isTerminated()`                | True when the run is over for the caller: the command answered or failed, or the caller cancelled the future. Never true while a synchronous command runs. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -276,6 +277,10 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 <tr>
 <td><code translate="no" v-pre>setStatus(text)</code>, <code translate="no" v-pre>setSubStatus(text)</code></td>
 <td>Two lines of progress for the user: what the command is doing now, and the detail of that step. They are independent, <code translate="no" v-pre>null</code> or blank clears one. Any thread; ignored once the run is over.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>setUninterruptable(flag)</code>, <code translate="no" v-pre>isUninterruptable()</code></td>
+<td>Declares the run can&#x27;t be stopped now (see <doc-anchor-trigger to="#uninterruptable-runs">Uninterruptable runs</doc-anchor-trigger>). Any thread; ignored once the run is over.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>isTerminated()</code></td>
@@ -317,6 +322,7 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 </table>
 </div>
 </retype-table>
+<p>Each of them also has a form with a last argument <code translate="no" v-pre>boolean uninterruptable</code>, see <doc-anchor-trigger to="#uninterruptable-runs">Uninterruptable runs</doc-anchor-trigger>.</p>
 <p>When several forms fit, the closest types win. Each argument costs 0 when it already has the parameter&#x27;s type, 1 for a
 parameter of type <code translate="no" v-pre>Object</code> (&quot;any&quot;), 2 when text or a number has to be converted (to a number, boolean, character or
 enum); a form that takes any arguments costs 1000, so it is the last resort. The form with the lowest total is called,
@@ -384,6 +390,17 @@ for agents (the help shows it); the service does not check the value against it.
 worker thread is interrupted, and a command that has not started yet does not start. A long-running <code translate="no" v-pre>async</code> command must
 cooperate: look at <code translate="no" v-pre>isTerminated()</code> (and the interrupt flag) between the steps of its work and return at once. What it
 sets afterwards is ignored. <code translate="no" v-pre>/hello-world-async</code> (<code translate="no" v-pre>HelloWorldCommands</code>) is the model of such a loop.</p>
+<h3 id="uninterruptable-runs">Uninterruptable runs</h3>
+<p>Some work can&#x27;t be abandoned half way, a change that is being written to the database. A command declares that with
+<code translate="no" v-pre>context.setUninterruptable(true)</code> just before it, and <code translate="no" v-pre>false</code> after it: meanwhile <code translate="no" v-pre>CommandRun.cancel</code> does nothing (it
+returns <code translate="no" v-pre>false</code>) and the progress window of the command bar disables its <strong>Stop</strong> button
+(<code translate="no" v-pre>CommandRun.isUninterruptable()</code>, <code translate="no" v-pre>addUninterruptableListener(...)</code>, called on the thread of the command like the status
+listener). The search and replace commands do so for the replace, after the user confirmed it.</p>
+<p>A caller can start a run that way too: every <code translate="no" v-pre>execute*</code> has a form with a trailing <code translate="no" v-pre>boolean uninterruptable</code>
+(<code translate="no" v-pre>execute(name, Map, true)</code>, <code translate="no" v-pre>executePositional(name, List, true)</code>, <code translate="no" v-pre>executeLine(line, true)</code>). Such a run is
+uninterruptable from the start and the command can&#x27;t lift it with <code translate="no" v-pre>setUninterruptable(false)</code>. A command that is
+uninterruptable and starts another asynchronous command passes <code translate="no" v-pre>context.isUninterruptable()</code>, so the nested one is not
+abandoned either.</p>
 <h3 id="status">Status</h3>
 <p>A command that takes time tells the user what it is doing with <code translate="no" v-pre>setStatus</code> (the main line, &quot;Taking a backup of Dune&quot;) and
 <code translate="no" v-pre>setSubStatus</code> (the detail, &quot;Chapter 3 of 12&quot;). The lines are kept in the <code translate="no" v-pre>CommandRun</code> that <code translate="no" v-pre>execute*</code> returns

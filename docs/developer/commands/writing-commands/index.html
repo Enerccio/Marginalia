@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845507468760">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845543711469">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845507468760" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845543711469" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845507468760" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845507468760" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845543711469" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845543711469" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -172,22 +172,22 @@
 <div id="a-suite-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">public class DiceCommands {
 
-    @Command(commandName = &quot;roll&quot;, humanName = &quot;Roll a die&quot;,
-            description = &quot;Rolls a die with the given number of sides (6 when omitted).&quot;,
-            llmDescription = &quot;Returns a random integer from 1 to the number of sides. No side effects.&quot;,
+    @Command(commandName = &quot;roll&quot;, humanNameText = &quot;Roll a die&quot;,
+            descriptionText = &quot;Rolls a die with the given number of sides (6 when omitted).&quot;,
+            llmDescriptionText = &quot;Returns a random integer from 1 to the number of sides. No side effects.&quot;,
             signature = @CommandParameterSignature(
-                    @CommandParameter(name = &quot;sides&quot;, type = Integer.class, description = &quot;Number of sides&quot;)),
-            returns = @CommandReturn(name = &quot;result&quot;, type = Integer.class, description = &quot;The number rolled&quot;))
+                    @CommandParameter(name = &quot;sides&quot;, type = Integer.class, descriptionText = &quot;Number of sides&quot;)),
+            returns = @CommandReturn(name = &quot;result&quot;, type = Integer.class, descriptionText = &quot;The number rolled&quot;))
     public void roll(CommandContext context) {
         int sides = context.get(&quot;sides&quot;, Integer.class);
         context.setReturn(ThreadLocalRandom.current().nextInt(sides) + 1);
     }
 
-    @Command(commandName = &quot;roll&quot;, humanName = &quot;Roll a die&quot;,
-            description = &quot;Rolls a die with the given number of sides (6 when omitted).&quot;,
-            llmDescription = &quot;Returns a random integer from 1 to the number of sides. No side effects.&quot;,
+    @Command(commandName = &quot;roll&quot;, humanNameText = &quot;Roll a die&quot;,
+            descriptionText = &quot;Rolls a die with the given number of sides (6 when omitted).&quot;,
+            llmDescriptionText = &quot;Returns a random integer from 1 to the number of sides. No side effects.&quot;,
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = &quot;result&quot;, type = Integer.class, description = &quot;The number rolled&quot;))
+            returns = @CommandReturn(name = &quot;result&quot;, type = Integer.class, descriptionText = &quot;The number rolled&quot;))
     public void rollSix(CommandContext context) {
         context.setReturn(ThreadLocalRandom.current().nextInt(6) + 1);
     }
@@ -203,7 +203,7 @@ different signature. Typing <code translate="no" v-pre>/roll 20</code> is text; 
 </li>
 <li>
 <p>Fill in <code translate="no" v-pre>description</code> (for the user, shown in the list and the help) and <code translate="no" v-pre>llmDescription</code> (for an agent: what it does,
-when to use it, whether it has side effects).</p>
+when to use it, whether it has side effects). See <doc-anchor-trigger to="#texts">Texts</doc-anchor-trigger> for how they are given.</p>
 </li>
 <li>
 <p>Declare <code translate="no" v-pre>returns</code>. The help shows it. <code translate="no" v-pre>void.class</code> is the default.</p>
@@ -219,9 +219,66 @@ the arguments are truly free-form. A declared signature that fits always wins ov
 <p>The suite is <strong>stateless</strong>. Do not keep the book, the user or the result in a field. See <a href="../#statelessness">Statelessness</a>.</p>
 </li>
 </ul>
+<h2 id="texts">Texts</h2>
+<p>Every text a command shows is given in two ways, as a pair of attributes:</p>
+<retype-table copy-text="| Attribute (localized)                      | Attribute (plain text)                         | Used for                                                     |
+|--------------------------------------------|------------------------------------------------|--------------------------------------------------------------|
+| `@Command.humanName`                       | `@Command.humanNameText`                       | Name shown to the user (required: one of the two)            |
+| `@Command.description`                     | `@Command.descriptionText`                     | What the command does, for the user                          |
+| `@Command.llmDescription`                  | `@Command.llmDescriptionText`                  | What it does and when to use it, for an agent                |
+| `@CommandParameter.description`            | `@CommandParameter.descriptionText`            | What the parameter is, in the help                           |
+| `@CommandReturn.description`               | `@CommandReturn.descriptionText`               | What the returned value is, in the help                      |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Attribute (localized)</th>
+<th>Attribute (plain text)</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>@Command.humanName</code></td>
+<td><code translate="no" v-pre>@Command.humanNameText</code></td>
+<td>Name shown to the user (required: one of the two)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@Command.description</code></td>
+<td><code translate="no" v-pre>@Command.descriptionText</code></td>
+<td>What the command does, for the user</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@Command.llmDescription</code></td>
+<td><code translate="no" v-pre>@Command.llmDescriptionText</code></td>
+<td>What it does and when to use it, for an agent</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@CommandParameter.description</code></td>
+<td><code translate="no" v-pre>@CommandParameter.descriptionText</code></td>
+<td>What the parameter is, in the help</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@CommandReturn.description</code></td>
+<td><code translate="no" v-pre>@CommandReturn.descriptionText</code></td>
+<td>What the returned value is, in the help</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The localized one takes an <code translate="no" v-pre>L</code> key and is resolved in the language of the user every time it is shown (<code translate="no" v-pre>CommandText.get(loc)</code>),
+so the application&#x27;s own commands use it (<code translate="no" v-pre>humanName = L.LABEL_COMMAND_TAKE_BACKUP</code>; the key goes to <code translate="no" v-pre>L</code> and to the English,
+Japanese and Chinese bundles as usual). The plain one is for an extension that brings no translations and is shown as it is.
+The identifiers (<code translate="no" v-pre>commandName</code>, a parameter&#x27;s <code translate="no" v-pre>name</code>, the return <code translate="no" v-pre>name</code>) are not texts and stay strings.</p>
+<p>The attributes are arrays only so that &quot;not given&quot; can be told from &quot;given&quot; (the default is the empty array); write the value
+alone: <code translate="no" v-pre>humanName = L.LABEL_X</code>, <code translate="no" v-pre>humanNameText = &quot;X&quot;</code>. The human name needs one of the two; the other texts are optional. A pair may hold only one value: both
+attributes of a pair, more than one element, or none for the human name make <code translate="no" v-pre>registerCommands</code> throw <code translate="no" v-pre>IllegalArgumentException</code> that names the
+method and the attribute. The registry keeps each as a <code translate="no" v-pre>CommandText</code> (<code translate="no" v-pre>key()</code> or <code translate="no" v-pre>text()</code>, <code translate="no" v-pre>isEmpty()</code>, <code translate="no" v-pre>get(...)</code>); an
+annotation attribute needs an enum constant, so use <code translate="no" v-pre>L.X</code> directly there, not a constant that holds it.</p>
 <h2 id="reading-the-current-state">Reading the current state</h2>
 <div id="reading-the-current-state-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">@Command(commandName = &quot;book-title&quot;, humanName = &quot;Title of the open book&quot;, returns = @CommandReturn(name = &quot;title&quot;, type = String.class))
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Command(commandName = &quot;book-title&quot;, humanNameText = &quot;Title of the open book&quot;, returns = @CommandReturn(name = &quot;title&quot;, type = String.class))
 public void title(CommandContext context) {
     Manuscript book = CommandUtils.getCurrentManuscript();
     if (book == null) {
@@ -247,7 +304,7 @@ bar shows it in a notification.</p>
 <strong>Stop</strong> in the progress window.</li>
 </ul>
 <div id="asynchronous-commands-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">@Command(commandName = &quot;slow&quot;, humanName = &quot;Slow job&quot;, async = true)
+<pre translate="no" class="language-java"><code v-pre class="language-java">@Command(commandName = &quot;slow&quot;, humanNameText = &quot;Slow job&quot;, async = true)
 public void slow(CommandContext context) {
     for (int i = 0; i &lt; 100; i++) {
         if (context.isTerminated() || Thread.currentThread().isInterrupted()) {
@@ -258,6 +315,9 @@ public void slow(CommandContext context) {
     context.setReturn(&quot;done&quot;);
 }</code></pre>
 </doc-codeblock></div>
+<p>A part of the work that can&#x27;t be abandoned (a transaction that is being written) is marked with
+<code translate="no" v-pre>context.setUninterruptable(true)</code>; the <strong>Stop</strong> button is disabled and cancelling does nothing until you set it back to
+<code translate="no" v-pre>false</code>. See <a href="../#uninterruptable-runs">Uninterruptable runs</a>.</p>
 <p>Tell the user what is going on with <code translate="no" v-pre>context.setStatus(&quot;Taking a backup of Dune&quot;)</code> (the main line) and
 <code translate="no" v-pre>context.setSubStatus(&quot;Chapter 3 of 12&quot;)</code> (the detail under it); they appear in the progress window. Set them as the work
 advances, <code translate="no" v-pre>null</code> clears a line.</p>
@@ -307,6 +367,8 @@ Object value = result.get();                         // blocks; fine for a synch
 commandService.execute(&quot;roll&quot;, Map.of(&quot;sides&quot;, 20)); // by name
 commandService.executePositional(&quot;roll&quot;, List.of(20));</code></pre>
 </doc-codeblock></div>
+<p>Add <code translate="no" v-pre>true</code> as the last argument (<code translate="no" v-pre>executeLine(&quot;/x&quot;, true)</code>) to start the run uninterruptable; a command that is
+uninterruptable and calls another asynchronous one passes <code translate="no" v-pre>context.isUninterruptable()</code>.</p>
 <p>Do not block the UI thread on an <code translate="no" v-pre>async</code> command: use <code translate="no" v-pre>whenComplete</code> and <code translate="no" v-pre>ui.access(...)</code>. To stop it, cancel the future.</p>
 <h2 id="testing">Testing</h2>
 <p>Commands are plain classes, so they are tested without the application: create a <code translate="no" v-pre>CommandServiceImpl</code>, register the
@@ -320,9 +382,15 @@ commands.destroy();   // stops the worker pool</code></pre>
 <p>Test the dispatch (every form), the failure of a bad argument, and for an <code translate="no" v-pre>async</code> command that cancelling the future ends
 the work: assert <code translate="no" v-pre>isTerminated()</code> becomes true and the worker returns. <code translate="no" v-pre>CommandUtils</code> returns <code translate="no" v-pre>null</code> outside a session, so
 a test of a command that reads the workspace needs the request attributes (see <code translate="no" v-pre>CommandUtilsTest</code>).</p>
+<h2 id="asking-the-user">Asking the user</h2>
+<p>A command that changes data without a preview asks first. <code translate="no" v-pre>CommandUtils.confirm(context, question)</code> opens a yes/no dialog in
+the UI of the book window, on top of the progress window (so over its Stop button), waits on the worker thread and returns
+<code translate="no" v-pre>false</code> for no, when the run is stopped meanwhile or when there is no window. Declare the command uninterruptable
+only after the answer. <code translate="no" v-pre>/search-replace-parts</code> and <code translate="no" v-pre>/search-replace-lore-entries</code> (<code translate="no" v-pre>SearchReplaceChatMessageCommand</code>,
+<code translate="no" v-pre>SearchReplaceLoreEntryCommand</code>) are the examples; their <code translate="no" v-pre>confirm</code> method is a hook that tests override.</p>
 <h2 id="checklist">Checklist</h2>
 <ul class="contains-task-list">
-<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Each form has <code translate="no" v-pre>description</code>, <code translate="no" v-pre>llmDescription</code>, <code translate="no" v-pre>signature</code>, <code translate="no" v-pre>returns</code>.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Each form has <code translate="no" v-pre>description</code>, <code translate="no" v-pre>llmDescription</code> (as <code translate="no" v-pre>L</code> keys when the texts are translated), <code translate="no" v-pre>signature</code>, <code translate="no" v-pre>returns</code>.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> The suite has no state of a run or a user in fields.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> <code translate="no" v-pre>async</code> commands look at <code translate="no" v-pre>isTerminated()</code>.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> A plugin unregisters its suites in <code translate="no" v-pre>onExtensionUnload</code>.</li>

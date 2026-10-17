@@ -31,21 +31,6 @@ import java.util.concurrent.CancellationException;
 public class SearchReplaceLoreEntryCommand {
 
     static final String NAME = "search-replace-lore-entries";
-    static final String HUMAN_NAME = "Search and replace in the lorebook";
-    static final String DESCRIPTION = "Searches the entries (name, text and comment) of the lorebook of the open book "
-            + "and, after you confirm, replaces the matches. Options after the replacement, in this order: regex "
-            + "(false), case sensitive (true).";
-    static final String LLM_DESCRIPTION = "Search and replace in the lorebook entries of the book the user has open. "
-            + "Changes the lorebook, but the user is asked to confirm the number of matches first and the change can't "
-            + "be undone; answering no changes nothing. Fails when no book is open or the book has no lorebook. "
-            + "Asynchronous. Optional booleans, positional and in this order: regex, caseSensitive.";
-    static final String RETURN_DESCRIPTION = "What was done: how many matches in how many entries were replaced, or "
-            + "that nothing was found or the user did not confirm";
-
-    private static final String SEARCH = "The text to find (a regular expression with regex)";
-    private static final String REPLACE = "The text to put in its place (may be empty; with regex it can use $1 groups)";
-    private static final String REGEX = "Search is a regular expression, false when omitted";
-    private static final String CASE_SENSITIVE = "Match the case of the letters, true when omitted; has no effect with regex";
 
     @Autowired
     private LorebookReplaceService replaceService;
@@ -59,35 +44,35 @@ public class SearchReplaceLoreEntryCommand {
     @Autowired
     private Localization loc;
 
-    @Command(commandName = NAME, humanName = HUMAN_NAME, async = true, description = DESCRIPTION,
-            llmDescription = LLM_DESCRIPTION,
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = SEARCH),
-                    @CommandParameter(name = "replace", type = String.class, description = REPLACE)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = RETURN_DESCRIPTION))
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
     public void replace(CommandContext context) throws Exception {
         run(context, false, true);
     }
 
-    @Command(commandName = NAME, humanName = HUMAN_NAME, async = true, description = DESCRIPTION,
-            llmDescription = LLM_DESCRIPTION,
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = SEARCH),
-                    @CommandParameter(name = "replace", type = String.class, description = REPLACE),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = REGEX)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = RETURN_DESCRIPTION))
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
+                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
     public void replaceRegex(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), true);
     }
 
-    @Command(commandName = NAME, humanName = HUMAN_NAME, async = true, description = DESCRIPTION,
-            llmDescription = LLM_DESCRIPTION,
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = SEARCH),
-                    @CommandParameter(name = "replace", type = String.class, description = REPLACE),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = REGEX),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = CASE_SENSITIVE)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = RETURN_DESCRIPTION))
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
+                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
     public void replaceCase(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class));
     }

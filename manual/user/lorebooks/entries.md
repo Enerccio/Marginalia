@@ -20,6 +20,16 @@ Each row of the lorebook editor is one entry:
 
 **Add Entry** in the toolbar adds an entry with order `100`. Changes are saved as you type.
 
+
+## Search and replace
+
+**Search and replace** (right of **Add Entry**) changes a word, a name or a phrase in the name, the text and the comment of
+all the entries of the lorebook at once. It works like the [search and replace of the story](../books/story-editor.md#search-and-replace),
+without the options for summaries and branches: **Search** lists the entries with matches (the table shows their names) and
+the matches in them as they are and as they will be, **Replace** changes the entries. It has the options **Search by regex** and **Case sensitive** (on by default; locked while the regex is on, which
+can use `(?i)` to ignore the case). Entries that are disabled are searched too. On the phone the button (an icon next to the
+*Enabled* check box) opens the same window in the phone layout.
+
 ## Entry details
 
 The ⌄ button opens the details:

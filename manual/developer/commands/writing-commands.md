@@ -19,22 +19,22 @@ A suite is a plain class (no interface, no base class) with public methods annot
 ```java
 public class DiceCommands {
 
-    @Command(commandName = "roll", humanName = "Roll a die",
-            description = "Rolls a die with the given number of sides (6 when omitted).",
-            llmDescription = "Returns a random integer from 1 to the number of sides. No side effects.",
+    @Command(commandName = "roll", humanNameText = "Roll a die",
+            descriptionText = "Rolls a die with the given number of sides (6 when omitted).",
+            llmDescriptionText = "Returns a random integer from 1 to the number of sides. No side effects.",
             signature = @CommandParameterSignature(
-                    @CommandParameter(name = "sides", type = Integer.class, description = "Number of sides")),
-            returns = @CommandReturn(name = "result", type = Integer.class, description = "The number rolled"))
+                    @CommandParameter(name = "sides", type = Integer.class, descriptionText = "Number of sides")),
+            returns = @CommandReturn(name = "result", type = Integer.class, descriptionText = "The number rolled"))
     public void roll(CommandContext context) {
         int sides = context.get("sides", Integer.class);
         context.setReturn(ThreadLocalRandom.current().nextInt(sides) + 1);
     }
 
-    @Command(commandName = "roll", humanName = "Roll a die",
-            description = "Rolls a die with the given number of sides (6 when omitted).",
-            llmDescription = "Returns a random integer from 1 to the number of sides. No side effects.",
+    @Command(commandName = "roll", humanNameText = "Roll a die",
+            descriptionText = "Rolls a die with the given number of sides (6 when omitted).",
+            llmDescriptionText = "Returns a random integer from 1 to the number of sides. No side effects.",
             signature = @CommandParameterSignature,
-            returns = @CommandReturn(name = "result", type = Integer.class, description = "The number rolled"))
+            returns = @CommandReturn(name = "result", type = Integer.class, descriptionText = "The number rolled"))
     public void rollSix(CommandContext context) {
         context.setReturn(ThreadLocalRandom.current().nextInt(6) + 1);
     }
@@ -49,17 +49,40 @@ Rules to remember:
 
 - The method is `public void` and takes only the `CommandContext`. Anything else makes `registerCommands` throw.
 - Fill in `description` (for the user, shown in the list and the help) and `llmDescription` (for an agent: what it does,
-  when to use it, whether it has side effects).
+  when to use it, whether it has side effects). See [Texts](#texts) for how they are given.
 - Declare `returns`. The help shows it. `void.class` is the default.
 - No signature means **any arguments**: the objects are in `context.getPositional()`. Use it for commands like echo, or when
   the arguments are truly free-form. A declared signature that fits always wins over the any-form.
 - An argument of type `Object.class` is "any" and also accepts a list of objects, passed as one argument.
 - The suite is **stateless**. Do not keep the book, the user or the result in a field. See [Statelessness](index.md#statelessness).
 
+## Texts
+
+Every text a command shows is given in two ways, as a pair of attributes:
+
+| Attribute (localized)                      | Attribute (plain text)                         | Used for                                                     |
+|--------------------------------------------|------------------------------------------------|--------------------------------------------------------------|
+| `@Command.humanName`                       | `@Command.humanNameText`                       | Name shown to the user (required: one of the two)            |
+| `@Command.description`                     | `@Command.descriptionText`                     | What the command does, for the user                          |
+| `@Command.llmDescription`                  | `@Command.llmDescriptionText`                  | What it does and when to use it, for an agent                |
+| `@CommandParameter.description`            | `@CommandParameter.descriptionText`            | What the parameter is, in the help                           |
+| `@CommandReturn.description`               | `@CommandReturn.descriptionText`               | What the returned value is, in the help                      |
+
+The localized one takes an `L` key and is resolved in the language of the user every time it is shown (`CommandText.get(loc)`),
+so the application's own commands use it (`humanName = L.LABEL_COMMAND_TAKE_BACKUP`; the key goes to `L` and to the English,
+Japanese and Chinese bundles as usual). The plain one is for an extension that brings no translations and is shown as it is.
+The identifiers (`commandName`, a parameter's `name`, the return `name`) are not texts and stay strings.
+
+The attributes are arrays only so that "not given" can be told from "given" (the default is the empty array); write the value
+alone: `humanName = L.LABEL_X`, `humanNameText = "X"`. The human name needs one of the two; the other texts are optional. A pair may hold only one value: both
+attributes of a pair, more than one element, or none for the human name make `registerCommands` throw `IllegalArgumentException` that names the
+method and the attribute. The registry keeps each as a `CommandText` (`key()` or `text()`, `isEmpty()`, `get(...)`); an
+annotation attribute needs an enum constant, so use `L.X` directly there, not a constant that holds it.
+
 ## Reading the current state
 
 ```java
-@Command(commandName = "book-title", humanName = "Title of the open book", returns = @CommandReturn(name = "title", type = String.class))
+@Command(commandName = "book-title", humanNameText = "Title of the open book", returns = @CommandReturn(name = "title", type = String.class))
 public void title(CommandContext context) {
     Manuscript book = CommandUtils.getCurrentManuscript();
     if (book == null) {
@@ -90,7 +113,7 @@ Set `async = true` when the command takes time or waits for something. Such a co
   **Stop** in the progress window.
 
 ```java
-@Command(commandName = "slow", humanName = "Slow job", async = true)
+@Command(commandName = "slow", humanNameText = "Slow job", async = true)
 public void slow(CommandContext context) {
     for (int i = 0; i < 100; i++) {
         if (context.isTerminated() || Thread.currentThread().isInterrupted()) {
@@ -101,6 +124,10 @@ public void slow(CommandContext context) {
     context.setReturn("done");
 }
 ```
+
+A part of the work that can't be abandoned (a transaction that is being written) is marked with
+`context.setUninterruptable(true)`; the **Stop** button is disabled and cancelling does nothing until you set it back to
+`false`. See [Uninterruptable runs](index.md#uninterruptable-runs).
 
 Tell the user what is going on with `context.setStatus("Taking a backup of Dune")` (the main line) and
 `context.setSubStatus("Chapter 3 of 12")` (the detail under it); they appear in the progress window. Set them as the work
@@ -164,6 +191,9 @@ commandService.execute("roll", Map.of("sides", 20)); // by name
 commandService.executePositional("roll", List.of(20));
 ```
 
+Add `true` as the last argument (`executeLine("/x", true)`) to start the run uninterruptable; a command that is
+uninterruptable and calls another asynchronous one passes `context.isUninterruptable()`.
+
 Do not block the UI thread on an `async` command: use `whenComplete` and `ui.access(...)`. To stop it, cancel the future.
 
 ## Testing
@@ -182,9 +212,17 @@ Test the dispatch (every form), the failure of a bad argument, and for an `async
 the work: assert `isTerminated()` becomes true and the worker returns. `CommandUtils` returns `null` outside a session, so
 a test of a command that reads the workspace needs the request attributes (see `CommandUtilsTest`).
 
+## Asking the user
+
+A command that changes data without a preview asks first. `CommandUtils.confirm(context, question)` opens a yes/no dialog in
+the UI of the book window, on top of the progress window (so over its Stop button), waits on the worker thread and returns
+`false` for no, when the run is stopped meanwhile or when there is no window. Declare the command uninterruptable
+only after the answer. `/search-replace-parts` and `/search-replace-lore-entries` (`SearchReplaceChatMessageCommand`,
+`SearchReplaceLoreEntryCommand`) are the examples; their `confirm` method is a hook that tests override.
+
 ## Checklist
 
-- [ ] Each form has `description`, `llmDescription`, `signature`, `returns`.
+- [ ] Each form has `description`, `llmDescription` (as `L` keys when the texts are translated), `signature`, `returns`.
 - [ ] The suite has no state of a run or a user in fields.
 - [ ] `async` commands look at `isTerminated()`.
 - [ ] A plugin unregisters its suites in `onExtensionUnload`.

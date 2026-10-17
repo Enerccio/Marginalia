@@ -32,26 +32,6 @@ import java.util.concurrent.CancellationException;
 public class SearchReplaceChatMessageCommand {
 
     static final String NAME = "search-replace-parts";
-    static final String HUMAN_NAME = "Search and replace in the story";
-    static final String DESCRIPTION = "Searches the parts of the story (and their summaries) of the open book and, "
-            + "after you confirm, replaces the matches. Options after the replacement, in this order: regex (false), "
-            + "case sensitive (true), search in summaries (true), search in all branches (false), revalidate all "
-            + "summaries (true).";
-    static final String LLM_DESCRIPTION = "Search and replace in the story text of the book the user has open: the "
-            + "parts of the story and optionally their summaries, in the active branch or in all of them. Changes the "
-            + "book, but the user is asked to confirm the number of matches first and the change can't be undone; "
-            + "answering no changes nothing. Fails when no book is open. Asynchronous. Optional booleans, positional "
-            + "and in this order: regex, caseSensitive, summaries, allBranches, revalidateSummaries.";
-    static final String RETURN_DESCRIPTION = "What was done: how many matches in how many parts were replaced, or "
-            + "that nothing was found or the user did not confirm";
-
-    private static final String SEARCH = "The text to find (a regular expression with regex)";
-    private static final String REPLACE = "The text to put in its place (may be empty; with regex it can use $1 groups)";
-    private static final String REGEX = "Search is a regular expression, false when omitted";
-    private static final String CASE_SENSITIVE = "Match the case of the letters, true when omitted; has no effect with regex";
-    private static final String SUMMARIES = "Search in the summaries too, true when omitted";
-    private static final String ALL_BRANCHES = "Search in all the branches, not only the active one; false when omitted";
-    private static final String REVALIDATE = "Work out the hash of all the summaries again so none becomes outdated; true when omitted";
 
     @Autowired
     private ManuscriptReplaceService replaceService;
@@ -62,79 +42,79 @@ public class SearchReplaceChatMessageCommand {
     @Autowired
     private Localization loc;
 
-    @Command(commandName = NAME, humanName = HUMAN_NAME, async = true, description = DESCRIPTION,
-            llmDescription = LLM_DESCRIPTION,
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = SEARCH),
-                    @CommandParameter(name = "replace", type = String.class, description = REPLACE)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = RETURN_DESCRIPTION))
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
     public void replace(CommandContext context) throws Exception {
         run(context, false, true, true, false, true);
     }
 
-    @Command(commandName = NAME, humanName = HUMAN_NAME, async = true, description = DESCRIPTION,
-            llmDescription = LLM_DESCRIPTION,
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = SEARCH),
-                    @CommandParameter(name = "replace", type = String.class, description = REPLACE),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = REGEX)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = RETURN_DESCRIPTION))
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
+                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
     public void replaceRegex(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), true, true, false, true);
     }
 
-    @Command(commandName = NAME, humanName = HUMAN_NAME, async = true, description = DESCRIPTION,
-            llmDescription = LLM_DESCRIPTION,
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = SEARCH),
-                    @CommandParameter(name = "replace", type = String.class, description = REPLACE),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = REGEX),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = CASE_SENSITIVE)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = RETURN_DESCRIPTION))
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
+                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
     public void replaceCase(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), true, false, true);
     }
 
-    @Command(commandName = NAME, humanName = HUMAN_NAME, async = true, description = DESCRIPTION,
-            llmDescription = LLM_DESCRIPTION,
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = SEARCH),
-                    @CommandParameter(name = "replace", type = String.class, description = REPLACE),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = REGEX),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = CASE_SENSITIVE),
-                    @CommandParameter(name = "summaries", type = Boolean.class, description = SUMMARIES)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = RETURN_DESCRIPTION))
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
+                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @CommandParameter(name = "summaries", type = Boolean.class, description = L.DESC_COMMAND_SUMMARIES_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
     public void replaceSummaries(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("summaries", Boolean.class), false, true);
     }
 
-    @Command(commandName = NAME, humanName = HUMAN_NAME, async = true, description = DESCRIPTION,
-            llmDescription = LLM_DESCRIPTION,
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = SEARCH),
-                    @CommandParameter(name = "replace", type = String.class, description = REPLACE),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = REGEX),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = CASE_SENSITIVE),
-                    @CommandParameter(name = "summaries", type = Boolean.class, description = SUMMARIES),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, description = ALL_BRANCHES)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = RETURN_DESCRIPTION))
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
+                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @CommandParameter(name = "summaries", type = Boolean.class, description = L.DESC_COMMAND_SUMMARIES_PARAM),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, description = L.DESC_COMMAND_ALL_BRANCHES_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
     public void replaceBranches(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class), true);
     }
 
-    @Command(commandName = NAME, humanName = HUMAN_NAME, async = true, description = DESCRIPTION,
-            llmDescription = LLM_DESCRIPTION,
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_STORY, async = true,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_STORY, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "search", type = String.class, description = SEARCH),
-                    @CommandParameter(name = "replace", type = String.class, description = REPLACE),
-                    @CommandParameter(name = "regex", type = Boolean.class, description = REGEX),
-                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = CASE_SENSITIVE),
-                    @CommandParameter(name = "summaries", type = Boolean.class, description = SUMMARIES),
-                    @CommandParameter(name = "allBranches", type = Boolean.class, description = ALL_BRANCHES),
-                    @CommandParameter(name = "revalidateSummaries", type = Boolean.class, description = REVALIDATE)}),
-            returns = @CommandReturn(name = "message", type = String.class, description = RETURN_DESCRIPTION))
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
+                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @CommandParameter(name = "summaries", type = Boolean.class, description = L.DESC_COMMAND_SUMMARIES_PARAM),
+                    @CommandParameter(name = "allBranches", type = Boolean.class, description = L.DESC_COMMAND_ALL_BRANCHES_PARAM),
+                    @CommandParameter(name = "revalidateSummaries", type = Boolean.class, description = L.DESC_COMMAND_REVALIDATE_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN))
     public void replaceAll(CommandContext context) throws Exception {
         run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
                 context.get("summaries", Boolean.class), context.get("allBranches", Boolean.class),

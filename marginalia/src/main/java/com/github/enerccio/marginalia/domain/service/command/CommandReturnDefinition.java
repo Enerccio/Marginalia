@@ -8,7 +8,7 @@ package com.github.enerccio.marginalia.domain.service.command;
  *                    for any
  * @param description what the value is, may be empty
  */
-public record CommandReturnDefinition(String name, Class<?> type, String description) {
+public record CommandReturnDefinition(String name, Class<?> type, CommandText description) {
 
     /** Whether the command declares that it returns nothing. */
     public boolean isVoid() {

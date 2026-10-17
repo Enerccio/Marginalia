@@ -375,6 +375,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_REPLACE_TEXT_PLACEHOLDER, "[replace text]");
         setValue(L.LABEL_REVALIDATE_ALL_SUMMARIES, "Revalidate all summaries");
         setValue(L.LABEL_CASE_SENSITIVE, "Case sensitive");
+        setValue(L.LABEL_COMMAND_HELLO_WORLD, "Hello world");
+        setValue(L.LABEL_COMMAND_HELLO_WORLD_ASYNC, "Hello world (async)");
+        setValue(L.LABEL_COMMAND_TAKE_BACKUP, "Take backup");
+        setValue(L.LABEL_COMMAND_SEARCH_REPLACE_STORY, "Search and replace in the story");
+        setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "Search and replace in the lorebook");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -671,6 +676,29 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_VARIABLE_SHORTHAND, "Variable shorthands: . for local, $ for global. Operators: = ++ -- += -= || ?? ||= ??= == != > >= < <=");
         setValue(L.DESC_MACRO_COMMENT, "Comment, removed from the output.");
         setValue(L.DESC_TEMPLATE_SUMMARY_BLOCKS, "The summaries being merged, oldest first.");
+        setValue(L.DESC_COMMAND_HELLO_WORLD, "Returns what it is given, or a greeting when it is given nothing.");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_LLM, "Echoes the argument back. Without an argument answers 'Hello world'. Has no side effects.");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC, "Like hello-world, but answers after 10 seconds, on a worker thread. Can be stopped.");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_ASYNC_LLM, "Echoes the argument back after 10 seconds, without an argument answers 'Hello world'. Asynchronous, no side effects.");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_MESSAGE_PARAM, "Anything, it is returned as it is");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN, "The greeting, Hello world");
+        setValue(L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN, "The argument");
+        setValue(L.DESC_COMMAND_TAKE_BACKUP, "Takes a backup of the book that is open. The backup is listed in the Backups tab of the book.");
+        setValue(L.DESC_COMMAND_TAKE_BACKUP_LLM, "Backs up the book the user has open (its messages, parts, lorebooks and settings) and keeps the backup with the other backups of that book. Fails when no book is open. Changes nothing in the book; it adds one backup, which counts against the book's stored backups. Asynchronous.");
+        setValue(L.DESC_COMMAND_TAKE_BACKUP_RETURN, "What was backed up: the name of the book and how many messages and images it has");
+        setValue(L.DESC_COMMAND_SEARCH_PARAM, "The text to find (a regular expression with regex)");
+        setValue(L.DESC_COMMAND_REPLACE_PARAM, "The text to put in its place (may be empty; with regex it can use $1 groups)");
+        setValue(L.DESC_COMMAND_REGEX_PARAM, "Search is a regular expression, false when omitted");
+        setValue(L.DESC_COMMAND_CASE_SENSITIVE_PARAM, "Match the case of the letters, true when omitted; has no effect with regex");
+        setValue(L.DESC_COMMAND_SUMMARIES_PARAM, "Search in the summaries too, true when omitted");
+        setValue(L.DESC_COMMAND_ALL_BRANCHES_PARAM, "Search in all the branches, not only the active one; false when omitted");
+        setValue(L.DESC_COMMAND_REVALIDATE_PARAM, "Work out the hash of all the summaries again so none becomes outdated; true when omitted");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_STORY, "Searches the parts of the story (and their summaries) of the open book and, after you confirm, replaces the matches. Options after the replacement, in this order: regex (false), case sensitive (true), search in summaries (true), search in all branches (false), revalidate all summaries (true).");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_STORY_LLM, "Search and replace in the story text of the book the user has open: the parts of the story and optionally their summaries, in the active branch or in all of them. Changes the book, but the user is asked to confirm the number of matches first and the change can't be undone; answering no changes nothing. Fails when no book is open. Asynchronous. Optional booleans, positional and in this order: regex, caseSensitive, summaries, allBranches, revalidateSummaries.");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_STORY_RETURN, "What was done: how many matches in how many parts were replaced, or that nothing was found or the user did not confirm");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, "Searches the entries (name, text and comment) of the lorebook of the open book and, after you confirm, replaces the matches. Options after the replacement, in this order: regex (false), case sensitive (true).");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM, "Search and replace in the lorebook entries of the book the user has open. Changes the lorebook, but the user is asked to confirm the number of matches first and the change can't be undone; answering no changes nothing. Fails when no book is open or the book has no lorebook. Asynchronous. Optional booleans, positional and in this order: regex, caseSensitive.");
+        setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN, "What was done: how many matches in how many entries were replaced, or that nothing was found or the user did not confirm");
 
     }
 

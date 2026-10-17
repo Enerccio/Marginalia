@@ -1,6 +1,9 @@
 package com.github.enerccio.marginalia.domain.service.command;
 
+import com.github.enerccio.marginalia.loc.L;
+
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * What to tell the user who types a command: which command it is, which forms (overloads) of it fit what is typed so
@@ -17,9 +20,10 @@ public record CommandHelp(boolean typingName, String commandName, List<CommandDe
 
     /**
      * The names of the commands that match the text, best first: the names that start with the typed name, then the
-     * ones that contain it or have it in the human name or the description. All names when nothing is typed.
+     * ones that contain it or have it in the human name or the description. All names when nothing is typed. The texts
+     * are matched as the {@code localizer} gives them (the language of the user).
      */
-    public static List<String> matchingNames(List<CommandDefinition> all, String text) {
+    public static List<String> matchingNames(List<CommandDefinition> all, String text, Function<L, String> localizer) {
         String typed = CommandLine.parse(text).name().toLowerCase(Locale.ROOT);
         Map<String, List<CommandDefinition>> byName = byName(all);
         List<String> starts = new ArrayList<>();
@@ -30,8 +34,8 @@ public record CommandHelp(boolean typingName, String commandName, List<CommandDe
             if (name.toLowerCase(Locale.ROOT).startsWith(typed)) {
                 starts.add(name);
             } else if (name.toLowerCase(Locale.ROOT).contains(typed)
-                    || first.humanName().toLowerCase(Locale.ROOT).contains(typed)
-                    || entry.getValue().stream().anyMatch(d -> d.description().toLowerCase(Locale.ROOT).contains(typed))) {
+                    || first.humanName().get(localizer).toLowerCase(Locale.ROOT).contains(typed)
+                    || entry.getValue().stream().anyMatch(d -> d.description().get(localizer).toLowerCase(Locale.ROOT).contains(typed))) {
                 contains.add(name);
             }
         }
@@ -41,14 +45,14 @@ public record CommandHelp(boolean typingName, String commandName, List<CommandDe
         return starts;
     }
 
-    public static CommandHelp of(List<CommandDefinition> all, String text) {
+    public static CommandHelp of(List<CommandDefinition> all, String text, Function<L, String> localizer) {
         CommandLine line = CommandLine.parse(text);
         if (!line.command()) {
             return new CommandHelp(false, null, List.of(), -1, false);
         }
         Map<String, List<CommandDefinition>> byName = byName(all);
         if (line.typingName()) {
-            List<String> matches = matchingNames(all, line.name());
+            List<String> matches = matchingNames(all, line.name(), localizer);
             if (matches.isEmpty()) {
                 return new CommandHelp(true, null, List.of(), -1, false);
             }

@@ -99,7 +99,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             CommandLine line = CommandLine.parse(filter);
             // once the name is complete the user types arguments: no list to cover the help and the run button
             List<String> names = line.command() && !line.typingName() ? List.of()
-                    : CommandHelp.matchingNames(commandService.getCommands(), filter);
+                    : CommandHelp.matchingNames(commandService.getCommands(), filter, loc::getValue);
             // the data provider contract: the offset and the limit of the query are always applied
             return names.stream().map(name -> "/" + name).skip(query.getOffset()).limit(query.getLimit());
         });
@@ -164,9 +164,9 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
         nameSpan.addClassName(CssStyles.COMMAND_ITEM_NAME);
         row.add(nameSpan);
         if (!overloads.isEmpty()) {
-            Span humanName = new Span(" " + overloads.getFirst().humanName());
+            Span humanName = new Span(" " + overloads.getFirst().humanName().get(loc));
             row.add(humanName);
-            String description = overloads.stream().map(CommandDefinition::description).filter(d -> !d.isBlank())
+            String description = overloads.stream().map(d -> d.description().get(loc)).filter(d -> !d.isBlank())
                     .findFirst().orElse("");
             if (!description.isBlank()) {
                 Div descriptionDiv = new Div(description);
@@ -250,7 +250,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             helpPopover.setOpened(focused);
             return;
         }
-        CommandHelp info = CommandHelp.of(commandService.getCommands(), text);
+        CommandHelp info = CommandHelp.of(commandService.getCommands(), text, loc::getValue);
         if (info.commandName() == null) {
             help.add(new Div(loc.getValue(L.HELP_COMMAND_NO_MATCH)));
             helpPopover.setOpened(focused);
@@ -261,8 +261,8 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             return;
         }
 
-        String description = info.overloads().stream().map(CommandDefinition::description).filter(d -> !d.isBlank())
-                .findFirst().orElse(info.overloads().getFirst().humanName());
+        String description = info.overloads().stream().map(d -> d.description().get(loc)).filter(d -> !d.isBlank())
+                .findFirst().orElse(info.overloads().getFirst().humanName().get(loc));
         help.add(new Div(description));
 
         for (CommandDefinition overload : info.overloads()) {
@@ -285,15 +285,15 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             help.add(usage);
             if (info.argumentIndex() >= 0 && info.argumentIndex() < overload.parameters().size()) {
                 CommandParameterDefinition next = overload.parameters().get(info.argumentIndex());
-                if (!next.description().isBlank()) {
-                    help.add(new Div(next.name() + ": " + next.description()));
+                if (!next.description().isEmpty()) {
+                    help.add(new Div(next.name() + ": " + next.description().get(loc)));
                 }
             }
         }
 
         info.overloads().stream().map(CommandDefinition::returns).filter(r -> !r.isVoid()).findFirst().ifPresent(returns -> {
             String text = loc.getValue(L.LABEL_COMMAND_RETURNS) + ": " + returns.name() + " (" + returns.typeName() + ")";
-            help.add(new Div(returns.description().isBlank() ? text : text + " - " + returns.description()));
+            help.add(new Div(returns.description().isEmpty() ? text : text + " - " + returns.description().get(loc)));
         });
 
         if (info.tooManyArguments()) {
@@ -325,7 +325,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             Notification.error(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN), parsed.name()));
             return;
         }
-        String humanName = overloads.getFirst().humanName();
+        String humanName = overloads.getFirst().humanName().get(loc);
 
         helpPopover.close();
         if (resultTarget != null) {

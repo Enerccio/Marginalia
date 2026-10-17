@@ -92,6 +92,8 @@ letters, the detail of the step. **Stop** cancels the command; it should return 
 | `/hello-world`                       | Returns *Hello world*.                                                             |
 | `/hello-world <message>`             | Returns the message it was given.                                                  |
 | `/hello-world-async [<message>]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
+| `/search-replace-parts <search> <replace> [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window (regex no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
+| `/search-replace-lore-entries <search> <replace> [regex] [caseSensitive]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
 | `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
 
 Commands from extensions are listed in the documentation of the extension, and you see them in the list as long as the

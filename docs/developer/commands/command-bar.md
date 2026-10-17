@@ -65,7 +65,7 @@ server (`setOpenOnClick/Focus/Hover(false)`, `setModal(false)`). The CSS classes
 
 ### The help
 
-`CommandHelp.of(allCommands, text)` is pure (no UI) and returns the typed name, the command, its forms that fit what is
+`CommandHelp.of(allCommands, text, localizer)` is pure (no UI; the `localizer` turns an `L` key into the text of the user, the bar passes `loc::getValue`) and returns the typed name, the command, its forms that fit what is
 typed, the index of the argument being typed and whether there are too many arguments. The bar renders: the description,
 the forms with the current parameter highlighted and its description, the return value, and an error line for too many
 arguments, an unknown command or text without a slash. The texts are localization keys (`LABEL_COMMAND_*`,
@@ -77,7 +77,8 @@ arguments, an unknown command or text without a slash. The texts are localizatio
 command that completed (synchronous) the result is delivered at once. For an `async` command the bar opens a
 `CommandProgressDialog` – modal, an indeterminate `ProgressBar`, the two status lines of the command (`setStatus`,
 `setSubStatus`; a line that is empty is hidden) and a **Stop** button whose handler cancels the future. The bar feeds the
-lines from `CommandRun.addStatusListener` through `ui.access(...)`, after reading the status already set. When
+lines from `CommandRun.addStatusListener` through `ui.access(...)`, after reading the status already set, and the state
+of the button from `addUninterruptableListener` (disabled while the command is uninterruptable, `setStopEnabled`). When
 the future completes, `ui.access(...)` (with the request scope and `UIPushGuard.push`) closes the dialog and delivers the
 result, or shows a notification for a stop, a `CommandException` or an `IllegalArgumentException`. This is why an `async`
 command **must** react to `isTerminated()`: Stop only cancels the future.
