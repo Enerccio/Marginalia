@@ -242,6 +242,17 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
         return manuscript;
     }
 
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "refreshed", type = Manuscript.class),
+                    @APILocals(name = "part", type = ManuscriptDialogPart.class)})
+    public void reload() throws Exception {
+        Manuscript refreshed = refreshManuscript();
+        for (ManuscriptDialogPart part : parts) {
+            part.load(refreshed);
+        }
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Manuscript.class))
     public Manuscript refreshManuscript() throws Exception {

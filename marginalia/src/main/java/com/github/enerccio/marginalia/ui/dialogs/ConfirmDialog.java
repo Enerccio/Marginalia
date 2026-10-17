@@ -1,9 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -33,6 +33,15 @@ public class ConfirmDialog extends Dialog implements LLMInteract {
 	
 	public static void show(String message, Runnable yes, Runnable no) {
 		new ConfirmDialog(message, yes, no, false).create();
+	}
+
+	/**
+	 * Like {@link #show(String, Runnable, Runnable)}, but gives the dialog, so the caller can close it.
+	 */
+	public static ConfirmDialog open(String message, Runnable yes, Runnable no) {
+		ConfirmDialog dialog = new ConfirmDialog(message, yes, no, false);
+		dialog.create();
+		return dialog;
 	}
 
 	public static void show(String message, Runnable yes, Runnable no, boolean showCancel) {

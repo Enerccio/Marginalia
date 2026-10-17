@@ -470,6 +470,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_NO_BOOK_OPEN, "No book is open. Open the book you want to work with first.");
         setValue(L.ERROR_INVALID_REGEX, "Invalid regular expression: %s");
         setValue(L.ERROR_INVALID_REPLACEMENT, "Invalid replacement: %s");
+        setValue(L.ERROR_SEARCH_TEXT_EMPTY, "Nothing to search for");
+        setValue(L.ERROR_COMMAND_NO_LOREBOOK, "The open book has no lorebook.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -580,6 +582,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_REPLACE_DONE, "Replaced %d matches in %d items");
         setValue(L.MSG_REPLACE_SKIPPED, "%d items were changed since the search and were left as they are");
         setValue(L.MSG_REPLACE_OUTDATED_SUMMARIES, "The replacement changes the text that %d summaries are based on and the search does not cover them (other branches, or summaries are not searched). They will be marked as outdated.\nContinue?");
+        setValue(L.MSG_COMMAND_SEARCHING, "Searching");
+        setValue(L.MSG_COMMAND_REPLACING, "Replacing");
+        setValue(L.MSG_COMMAND_REPLACE_CONFIRM, "Replace %d matches in %d items?\n\"%s\" -> \"%s\"\nThere is no preview and the change cannot be undone.");
+        setValue(L.MSG_COMMAND_REPLACE_CANCELLED, "Replace cancelled, nothing was changed");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

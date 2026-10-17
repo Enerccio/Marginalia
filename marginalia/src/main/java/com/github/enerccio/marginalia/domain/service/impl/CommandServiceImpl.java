@@ -4,6 +4,8 @@ import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.BackupCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.HelloWorldCommands;
+import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceChatMessageCommand;
+import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
@@ -53,6 +55,8 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
     public void afterPropertiesSet() {
         registerCommands(new HelloWorldCommands());
         registerCommands(new BackupCommands());
+        registerCommands(new SearchReplaceChatMessageCommand());
+        registerCommands(new SearchReplaceLoreEntryCommand());
     }
 
     @Override
@@ -203,7 +207,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
     }
 
     @Override
-    public CommandRun execute(String commandName, Map<String, Object> arguments) {
+    public CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable) {
         List<Registered> overloads = overloadsOf(commandName);
         if (overloads.isEmpty()) {
             return noSuchCommand(commandName);
@@ -220,11 +224,11 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             return failedRun(new IllegalArgumentException(
                     "No form of command " + commandName + " takes the arguments " + named.keySet()));
         }
-        return run(commandName, best);
+        return run(commandName, best, uninterruptable);
     }
 
     @Override
-    public CommandRun executePositional(String commandName, List<Object> arguments) {
+    public CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable) {
         List<Registered> overloads = overloadsOf(commandName);
         if (overloads.isEmpty()) {
             return noSuchCommand(commandName);
@@ -241,16 +245,16 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             return failedRun(new IllegalArgumentException(
                     "No form of command " + commandName + " takes " + positional.size() + " such argument(s)"));
         }
-        return run(commandName, best);
+        return run(commandName, best, uninterruptable);
     }
 
     @Override
-    public CommandRun executeLine(String line) {
+    public CommandRun executeLine(String line, boolean uninterruptable) {
         CommandLine parsed = CommandLine.parse(line);
         if (!parsed.command()) {
             return failedRun(new IllegalArgumentException("A command starts with a slash: " + line));
         }
-        return executePositional(parsed.name(), new ArrayList<>(parsed.arguments()));
+        return executePositional(parsed.name(), new ArrayList<>(parsed.arguments()), uninterruptable);
     }
 
     private static CommandRun failedRun(Throwable error) {
@@ -312,11 +316,11 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         return new Binding(registered, converted, positional, cost);
     }
 
-    private CommandRun run(String commandName, Binding binding) {
+    private CommandRun run(String commandName, Binding binding, boolean uninterruptable) {
         Registered registered = binding.registered();
         CommandRunImpl result = new CommandRunImpl();
         CommandContextImpl context = new CommandContextImpl(commandName, binding.arguments(), binding.positional(),
-                registered.definition().async(), result);
+                registered.definition().async(), result, uninterruptable);
         if (!registered.definition().async()) {
             invoke(registered, context);
             context.finish();

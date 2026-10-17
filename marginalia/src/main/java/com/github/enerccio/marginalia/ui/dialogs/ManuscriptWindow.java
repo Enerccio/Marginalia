@@ -43,6 +43,12 @@ public interface ManuscriptWindow extends StoryHost, Restorable, LLMInteract {
     void selectStoryPart();
 
     /**
+     * Loads the book from the database and shows all its tabs again, for a change made behind the back of the window (a
+     * command that replaced text). Call it with the UI lock.
+     */
+    void reload() throws Exception;
+
+    /**
      * Switches to the story tab and scrolls to the part. The part has to be on the active branch.
      */
     void showMessage(Long messageId);

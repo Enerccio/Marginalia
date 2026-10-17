@@ -10,8 +10,7 @@ import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.SummaryService.BlockTexts;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.dialogs.search.SearchReplaceDialog.State;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.textfield.TextField;
@@ -234,6 +233,37 @@ class ManuscriptSearchReplaceDialogTest extends MarginaliaTestBase {
 
         assertThat(roots(dialog)).isEqualTo(4);
         assertThat(checkbox(dialog, "Case sensitive").isEnabled()).isFalse();
+    }
+
+    private static void pressEnter(TextField field) {
+        ComponentUtil.fireEvent(field, new KeyDownEvent(field, Key.ENTER.getKeys().getFirst()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void enterInAFieldStartsTheSearch(boolean phone) throws Exception {
+        ManuscriptSearchReplaceDialog dialog = dialog(phone);
+        field(dialog, "Search for").setValue("John");
+        field(dialog, "Replace with").setValue("Jon");
+
+        pressEnter(field(dialog, "Replace with"));
+        await(() -> dialog.getState() == State.PREPARED);
+
+        assertThat(roots(dialog)).isEqualTo(3);
+        // the inputs are locked now, Enter does not start over
+        pressEnter(field(dialog, "Search for"));
+        assertThat(dialog.getState()).isEqualTo(State.PREPARED);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void enterInTheEmptySearchFieldIsRefusedLikeTheButton(boolean phone) {
+        ManuscriptSearchReplaceDialog dialog = dialog(phone);
+
+        pressEnter(field(dialog, "Search for"));
+
+        assertThat(field(dialog, "Search for").isInvalid()).isTrue();
+        assertThat(dialog.getState()).isEqualTo(State.INPUT);
     }
 
     @ParameterizedTest

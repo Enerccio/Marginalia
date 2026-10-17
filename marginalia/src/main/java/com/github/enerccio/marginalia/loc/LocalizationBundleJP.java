@@ -470,6 +470,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_NO_BOOK_OPEN, "開いている本がありません。先に対象の本を開いてください。");
         setValue(L.ERROR_INVALID_REGEX, "正規表現が正しくありません: %s");
         setValue(L.ERROR_INVALID_REPLACEMENT, "置換文字列が正しくありません: %s");
+        setValue(L.ERROR_SEARCH_TEXT_EMPTY, "検索する文字列がありません");
+        setValue(L.ERROR_COMMAND_NO_LOREBOOK, "開いている本にはロアブックがありません。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -580,6 +582,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_REPLACE_DONE, "%d 件の一致を %d 件の項目で置換しました");
         setValue(L.MSG_REPLACE_SKIPPED, "検索後に変更された項目が %d 件あり、そのままにしました");
         setValue(L.MSG_REPLACE_OUTDATED_SUMMARIES, "この置換により、検索対象外（他のブランチ、または要約を検索しない設定）の %d 件の要約の元になっているテキストが変わります。それらの要約は古いものとして扱われます。\n続行しますか？");
+        setValue(L.MSG_COMMAND_SEARCHING, "検索中");
+        setValue(L.MSG_COMMAND_REPLACING, "置換中");
+        setValue(L.MSG_COMMAND_REPLACE_CONFIRM, "%d 件の一致（%d 項目）を置換しますか？\n\"%s\" -> \"%s\"\nプレビューはなく、変更は元に戻せません。");
+        setValue(L.MSG_COMMAND_REPLACE_CANCELLED, "置換を中止しました。何も変更されていません");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
