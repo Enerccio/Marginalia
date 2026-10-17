@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.extensions.sidequery.model.SideQuerySettin
 import com.github.enerccio.marginalia.extensions.sidequery.model.SideQuerySettings;
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -209,6 +210,7 @@ public class SideQuerySettingsForm extends VerticalLayout {
 
         TextField nameField = new TextField("Profile Name");
         nameField.setWidthFull();
+        DialogFocus.onOpen(dialog, nameField);
 
         VerticalLayout dialogLayout = new VerticalLayout(nameField);
         dialogLayout.setPadding(false);
@@ -258,6 +260,7 @@ public class SideQuerySettingsForm extends VerticalLayout {
 
         TextField nameField = new TextField("New Profile Name");
         nameField.setWidthFull();
+        DialogFocus.onOpen(dialog, nameField);
         nameField.setValue(currentProfileName != null ? currentProfileName : "");
 
         VerticalLayout dialogLayout = new VerticalLayout(nameField);

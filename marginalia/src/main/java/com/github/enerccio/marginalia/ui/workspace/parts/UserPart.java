@@ -1,8 +1,5 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
-import com.vaadin.flow.component.tabs.Tab;
-import com.github.enerccio.marginalia.ui.LLMInteraction;
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
@@ -15,6 +12,8 @@ import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
 import com.github.enerccio.marginalia.ui.widgets.*;
@@ -34,6 +33,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -661,6 +661,7 @@ public class UserPart implements WorkspaceComponent {
 
         layout.add(nameField, upload);
         dialog.add(layout);
+        DialogFocus.onOpen(dialog, nameField);
 
         Button cancelBtn = new Button(loc.getValue(L.LABEL_CANCEL), event -> dialog.close());
         dialog.getFooter().add(cancelBtn);

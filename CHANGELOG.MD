@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - The command bar empties its field when a command starts.
+- **Focus in dialogs.** Dialogs put the cursor into the field they are about when they open (name of an AI, a model protocol, a user, a new manuscript from a backup, a profile or a tab; the file name of an export; the search text of search and replace; the text of the input and selection dialogs; and the same in the arc-outline, character-tracker, lore-generator, reviewer and sidequery plugins). The new-turn popover of the story tab (desktop and phone) puts it into the instructions. New `DialogFocus.onOpen(dialog, field)` helper (`ui.widgets`) and `NewTurnForm.focusInstructions()` (plugin API from 1.4.0).
 
 ### Fixed
 

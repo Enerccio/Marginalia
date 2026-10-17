@@ -104,6 +104,17 @@ public class NewTurnForm implements Restorable {
     }
 
     /**
+     * Puts the cursor into the instructions, the field the user fills most often.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
+    public void focusInstructions() {
+        if (instructionsField != null) {
+            instructionsField.focus();
+        }
+    }
+
+    /**
      * Fills the fields from the last part of the branch, unless the user typed something that is not generated yet.
      */
     @PublicAPI(from = "1.2.0",

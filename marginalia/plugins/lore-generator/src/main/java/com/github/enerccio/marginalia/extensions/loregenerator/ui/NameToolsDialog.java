@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.loregenerator.ui;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -45,6 +46,7 @@ public class NameToolsDialog extends Dialog {
 
         filter.setPlaceholder("Filter categories");
         filter.setClearButtonVisible(true);
+        DialogFocus.onOpen(this, filter);
         filter.setPrefixComponent(VaadinIcon.SEARCH.create());
         filter.setValueChangeMode(ValueChangeMode.LAZY);
         filter.addClassName(CssStyles.FULL_WIDTH);

@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
 import com.github.enerccio.marginalia.extensions.arcoutline.model.OutlineNode;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.OutlineState;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -42,6 +43,7 @@ public class OutlineNodeDialog extends Dialog {
 
         title.setRequiredIndicatorVisible(true);
         title.setWidthFull();
+        DialogFocus.onOpen(this, title);
         title.setValue(StringUtils.defaultString(node.getTitle()));
 
         description.setWidthFull();

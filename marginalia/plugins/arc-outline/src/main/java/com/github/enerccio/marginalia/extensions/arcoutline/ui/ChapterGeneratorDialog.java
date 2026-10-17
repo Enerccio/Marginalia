@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.structured.StructuredOutput
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
@@ -88,6 +89,7 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
 
         generalSpecification = new TextArea("What you want from the chapters in general");
         generalSpecification.setWidthFull();
+        DialogFocus.onOpen(this, generalSpecification);
         generalSpecification.setMinHeight("100px");
         generalSpecification.setMaxHeight("25vh");
         generalSpecification.setPlaceholder("The pace, the tone, what must happen, what must not...");

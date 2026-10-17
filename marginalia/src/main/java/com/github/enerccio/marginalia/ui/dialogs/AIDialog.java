@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
@@ -15,6 +14,8 @@ import com.github.enerccio.marginalia.extensions.ExtensionAIFactory;
 import com.github.enerccio.marginalia.extensions.ExtensionAIForm;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -251,6 +252,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setRequired(true);
         nameField.setWidthFull();
+        DialogFocus.onOpen(this, nameField);
 
         typeCombo = new ComboBox<>(loc.getValue(L.LABEL_TYPE));
         // the type Extension is offered when some extension provides an AI (or the AI being edited is one)

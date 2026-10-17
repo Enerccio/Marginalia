@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.extensions.sidequery.model.SideQueryData;
 import com.github.enerccio.marginalia.extensions.sidequery.model.SideQuerySession;
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
@@ -191,6 +192,7 @@ public class SideQueryView extends VerticalLayout {
 
         TextField nameField = new TextField("Tab Name");
         nameField.setWidthFull();
+        DialogFocus.onOpen(dialog, nameField);
         nameField.setValue(session.getName());
 
         Button saveBtn = new Button("Save", e -> {

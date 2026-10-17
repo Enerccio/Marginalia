@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ThreadAccessDialog;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -221,6 +222,7 @@ public abstract class SearchReplaceDialog extends ThreadAccessDialog {
         searchField.setWidthFull();
         searchField.setClearButtonVisible(true);
         searchField.addValueChangeListener(_ -> searchField.setInvalid(false));
+        DialogFocus.onOpen(this, searchField);
         replaceField = new TextField(loc.getValue(L.LABEL_REPLACE_WITH));
         replaceField.setWidthFull();
         replaceField.setClearButtonVisible(true);
