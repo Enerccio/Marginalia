@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.time.Duration;
 import java.util.*;
@@ -262,7 +263,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         final Outcome outcome;
         final CancellationToken token = new CancellationToken();
         // the request ends on other threads, the user it counts for is the one who started it
-        final ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        final RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         // read in the thread that starts the request: it is not metered inside an UnmeteredScope (the help assistant)
         final boolean metered = !UnmeteredScope.isActive();
         final String id = UUID.randomUUID().toString();
@@ -556,7 +557,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
      * Google reported, otherwise our count of the contents and of the text that arrived (a stopped request has no
      * report).
      */
-    private void recordUsage(ThreadCopyRequestAttributes attributes, List<Content> contents, TokenUsage reported, String generated) {
+    private void recordUsage(RequestAttributes attributes, List<Content> contents, TokenUsage reported, String generated) {
         try (InRequestScope _ = new InRequestScope(attributes)) {
             long prefill;
             long generatedTokens;

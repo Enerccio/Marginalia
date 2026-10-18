@@ -29,12 +29,23 @@ public class Lorebook extends ExtendableEntity {
 
     private boolean enabled = true;
 
+    // the working copy of an agent, never listed with the books of the user
+    private boolean agentic = false;
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isAgentic() {
+        return agentic;
+    }
+
+    public void setAgentic(boolean agentic) {
+        this.agentic = agentic;
     }
 
     public boolean isEnabled() {

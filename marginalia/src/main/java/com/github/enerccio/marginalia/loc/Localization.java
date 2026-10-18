@@ -45,6 +45,10 @@ public interface Localization {
     L getLorebookDecision(LorebookDecision t);
     L getPermissionType(PermissionType t);
 
+    L getAgentRunStatus(AgentRunStatus t);
+
+    L getDestructiveCommandMode(DestructiveCommandMode t);
+
     /**
      * Localized name of the kind of object an entity class stands for (book, lorebook...), subclasses use the name of
      * their closest known superclass.

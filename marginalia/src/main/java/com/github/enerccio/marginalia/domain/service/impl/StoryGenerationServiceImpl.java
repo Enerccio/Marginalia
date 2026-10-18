@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.*;
@@ -43,6 +45,10 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
 
     @Autowired
     private Configuration configuration;
+
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
 
     private List<GenerationStep> installedSteps;
     private final Map<GenerationStepType, GenerationStep> steps = new LinkedHashMap<>();
@@ -67,6 +73,15 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
     @NoTx
     public CancellationToken generateNextTurn(Manuscript manuscript, TurnInput input, GenerationRequest generationRequest, GenerationListener listener, GenerationOptions options) {
         CancellationToken token = new CancellationToken();
+
+        try {
+            // a book an agent works on is not continued
+            agentRunService.checkNotLocked(manuscript);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
 
         RequestAttributes attributes = options.context() != null ? options.context() : ThreadCopyRequestAttributes.create();
         if (attributes == null) {

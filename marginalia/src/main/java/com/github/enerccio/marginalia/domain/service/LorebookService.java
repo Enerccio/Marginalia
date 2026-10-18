@@ -10,6 +10,16 @@ import java.util.Map;
 
 public interface LorebookService extends ExtendableService<Lorebook, LorebookRepository> {
 
+    /**
+     * @return the lorebooks of the current user that are not working copies of agents; what the UI lists
+     */
+    List<Lorebook> findAllRegularForUser() throws Exception;
+
+    /**
+     * @return the lorebooks of the current user that are working copies of agents
+     */
+    List<Lorebook> findAllAgenticForUser() throws Exception;
+
     List<Lorebook> getSubbooks(Lorebook lorebook) throws Exception;
 
     Lorebook fillEntries(Lorebook book) throws Exception;
@@ -35,6 +45,21 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
      * lorebook exists with same uuid). Returns resolved lorebooks keyed by marshalled uuid.
      */
     Map<String, Lorebook> importLorebooks(JsonArray lorebooks, Map<String, LorebookDecision> decisions) throws Exception;
+
+    /**
+     * Makes new working copies of marshalled lorebooks for an agent: every one of them is created again (nothing is
+     * linked to the lorebooks of the user, not even by name), with a new uuid, hidden from the user's lists
+     * ({@link Lorebook#isAgentic()}), the subbook structure and the entries kept. Returns the copies keyed by the
+     * marshalled uuid.
+     */
+    Map<String, Lorebook> copyLorebooks(JsonArray lorebooks) throws Exception;
+
+    /**
+     * Deletes for good the working copy of an agent, the lorebook and its subbooks with their entries and tags.
+     *
+     * @throws IllegalArgumentException when the lorebook, or one of its subbooks, is not a working copy of an agent
+     */
+    void deleteAgenticCopy(Lorebook root) throws Exception;
 
     enum LorebookMatch {
         EXISTING,

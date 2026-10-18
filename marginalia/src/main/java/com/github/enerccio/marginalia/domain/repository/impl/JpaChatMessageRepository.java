@@ -174,6 +174,13 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     }
 
     @Override
+    public List<ChatMessage> getAllMessagesIncludingDeleted(Manuscript manuscript) throws Exception {
+        return getEntityManager().createQuery("SELECT m FROM ChatMessage m WHERE m.parentScript = ?1 ORDER BY m.id", ChatMessage.class)
+                .setParameter(1, manuscript)
+                .getResultList();
+    }
+
+    @Override
     public List<Object[]> findFulltexts(Manuscript manuscript, List<List<String>> likePatterns) throws Exception {
         StringBuilder query = new StringBuilder("SELECT m.id, m._fulltext FROM ChatMessage m WHERE m.parentScript = :manuscript AND m.deleted = false");
         Map<String, Object> parameters = new HashMap<>();

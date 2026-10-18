@@ -1,0 +1,104 @@
+package com.github.enerccio.marginalia.domain.service.impl;
+
+import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
+import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.repository.AgentMessageRepository;
+import com.github.enerccio.marginalia.domain.service.AgentMessageService;
+import com.github.enerccio.marginalia.domain.service.AgentRunService;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.traits.CommonTx;
+import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage, AgentMessageRepository> implements AgentMessageService {
+
+    // how far back the last answer of the model is looked for
+    private static final int LATEST_ROWS = 50;
+
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
+
+    @Override
+    @CommonTx
+    public List<AgentMessage> append(AgentRun run, List<LLMChatMessage> messages) throws Exception {
+        AgentRun stored = ownRun(run);
+        int ordinal = getRepository().countByRun(stored);
+        List<AgentMessage> saved = new ArrayList<>();
+        for (LLMChatMessage chatMessage : messages) {
+            AgentMessage message = new AgentMessage();
+            message.setRun(stored);
+            message.setOrdinal(ordinal++);
+            message.setChatMessage(chatMessage);
+            saved.add(save(message));
+        }
+        return saved;
+    }
+
+    @Override
+    @CommonTx
+    public AgentMessage appendAnswer(AgentRun run, LLMChatMessage answer, long contextTokens, String reasoning) throws Exception {
+        AgentRun stored = ownRun(run);
+        AgentMessage message = new AgentMessage();
+        message.setRun(stored);
+        message.setOrdinal(getRepository().countByRun(stored));
+        message.setChatMessage(answer);
+        message.setContextTokens(contextTokens);
+        message.setReasoning(reasoning);
+        return save(message);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<AgentMessage> messages(AgentRun run) throws Exception {
+        return getRepository().findAllByRun(ownRun(run));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public long getContextTokens(AgentRun run) throws Exception {
+        // the answers of the model are the latest rows but for the results of the calls of the last round
+        for (AgentMessage message : getRepository().findLatestByRun(ownRun(run), LATEST_ROWS)) {
+            if (message.getContextTokens() != null) {
+                return message.getContextTokens();
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<LLMChatMessage> transcript(AgentRun run) throws Exception {
+        List<LLMChatMessage> messages = new ArrayList<>();
+        for (AgentMessage message : getRepository().findAllByRun(ownRun(run))) {
+            messages.add(message.toChatMessage());
+        }
+        return messages;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public int count(AgentRun run) throws Exception {
+        return getRepository().countByRun(ownRun(run));
+    }
+
+    @Override
+    @CommonTx
+    public void deleteForRun(AgentRun run, boolean hard) throws Exception {
+        for (AgentMessage message : getRepository().findAllByRun(run)) {
+            delete(message, hard);
+        }
+    }
+
+    private AgentRun ownRun(AgentRun run) throws Exception {
+        AgentRun stored = run == null ? null : agentRunService.findForUser(run.getUuid());
+        if (stored == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        return stored;
+    }
+}

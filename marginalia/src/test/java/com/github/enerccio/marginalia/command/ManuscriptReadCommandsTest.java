@@ -11,6 +11,8 @@ import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.test.AgenticRequestAttributes;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
+import com.github.enerccio.marginalia.utils.RegexTimeoutException;
+import com.github.enerccio.marginalia.utils.TimeSafeText;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -77,6 +79,20 @@ class ManuscriptReadCommandsTest extends GenerationTestBase {
 
     private JsonObject run(String line) throws Exception {
         return JsonParser.parseString((String) commands.executeLine(line).get(30, TimeUnit.SECONDS)).getAsJsonObject();
+    }
+
+    @Test
+    void aPatternThatBacktracksIsStopped() throws Exception {
+        add(other, "a".repeat(40) + "c");
+        System.setProperty(TimeSafeText.TIMEOUT_PROPERTY, "300");
+        try {
+            long start = System.nanoTime();
+            assertThatThrownBy(() -> run("/find-occurrences \"(a+)+\\\\1b\" true false false true")).isInstanceOf(ExecutionException.class)
+                    .hasRootCauseInstanceOf(RegexTimeoutException.class);
+            assertThat(System.nanoTime() - start).as("stopped, not finished").isLessThan(TimeUnit.SECONDS.toNanos(10));
+        } finally {
+            System.clearProperty(TimeSafeText.TIMEOUT_PROPERTY);
+        }
     }
 
     @Test

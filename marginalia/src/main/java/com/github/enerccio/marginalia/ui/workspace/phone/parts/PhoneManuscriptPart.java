@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
+import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
@@ -263,7 +264,9 @@ public class PhoneManuscriptPart implements ManuscriptSection {
 
         Button editButton = new Button(Solid.PENCIL.create(), _ -> {
             try {
-                openManuscript(wrapper.getManuscript());
+                if (!new AgentLockCheck().refuses(wrapper.getManuscript())) {
+                    openManuscript(wrapper.getManuscript());
+                }
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -308,7 +311,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             return;
         }
         try {
-            List<Long> ids = manuscriptService.searchManuscripts(filterValues,
+            List<Long> ids = manuscriptService.searchRegularManuscripts(filterValues,
                     Sorter.sorter(currentSortField, currentSortOrdering));
             grid.setItems(new ManuscriptBackendProvider(ids));
         } catch (Exception e) {
@@ -416,7 +419,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             String manuscriptUuid = RestorableState.string(dialogState, "manuscript");
             if (manuscriptUuid != null && grid != null) {
                 Manuscript manuscript = manuscriptService.findForUser(manuscriptUuid);
-                if (manuscript != null) {
+                if (manuscript != null && !new AgentLockCheck().refuses(manuscript)) {
                     openManuscript(manuscript).restoreState(dialogState);
                 }
             }

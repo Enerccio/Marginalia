@@ -7,12 +7,13 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dialog.Dialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 public abstract class ThreadAccessDialog extends Dialog implements LLMInteract {
 	private static final Logger log = LoggerFactory.getLogger(ThreadAccessDialog.class);
 
-	private ThreadCopyRequestAttributes attributes;
+	private RequestAttributes attributes;
 	protected UI ui;
 	private final String threadName;
 	protected final boolean push;

@@ -129,6 +129,40 @@
         <property name="repository" ref="summaryRepository" />
     </bean>
 
+    <bean id="agentRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentServiceImpl">
+        <property name="repository" ref="agentRepository" />
+    </bean>
+
+    <bean id="agentRunRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRunRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunServiceImpl">
+        <property name="repository" ref="agentRunRepository" />
+    </bean>
+
+    <bean id="agentMessageRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentMessageRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentMessageServiceImpl">
+        <property name="repository" ref="agentMessageRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentApprovalServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentAttentionServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunnerImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentVirtualFileSystemServiceImpl">
+        <property name="entityManager" ref="em" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptReplaceServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.LorebookReplaceServiceImpl" />

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.workspace;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -41,6 +42,9 @@ public class DesktopWorkspace implements Workspace {
     @Autowired
     private User currentUser;
 
+    @Autowired
+    private AgentService agentService;
+
     private HTabSheet tabs;
 
     private final Map<Tab, WorkspaceComponent> tabToComponent = new HashMap<>();
@@ -59,6 +63,10 @@ public class DesktopWorkspace implements Workspace {
 
     private final AIPart aiPart = new AIPart(this);
     private Component aiPartComponent;
+
+    // the tab exists only for users who may use agents
+    private final AgentPart agentPart = new AgentPart(this);
+    private Component agentPartComponent;
 
     private final ResourcesPart resourcesPart = new ResourcesPart(this);
     private Component resourcesPartComponent;
@@ -112,6 +120,8 @@ public class DesktopWorkspace implements Workspace {
                     @APILocals(name = "aiTabHeader", type = HorizontalLayout.class),
                     @APILocals(name = "connNameSpan", type = Span.class),
                     @APILocals(name = "aiTab", type = Tab.class),
+                    @APILocals(name = "agentsTabHeader", type = HorizontalLayout.class),
+                    @APILocals(name = "agentsTab", type = Tab.class),
                     @APILocals(name = "resourcesTabHeader", type = HorizontalLayout.class),
                     @APILocals(name = "resourcesTab", type = Tab.class),
                     @APILocals(name = "trashTabHeader", type = HorizontalLayout.class),
@@ -133,6 +143,10 @@ public class DesktopWorkspace implements Workspace {
         userPartComponent = userPart.create();
         protocolPartComponent = protocolPart.create();
         aiPartComponent = aiPart.create();
+        boolean agentsAllowed = agentService.isAllowed();
+        if (agentsAllowed) {
+            agentPartComponent = agentPart.create();
+        }
         resourcesPartComponent = resourcesPart.create();
         trashPartComponent = trashPart.create();
         adminPartComponent = adminPart.create();
@@ -181,6 +195,17 @@ public class DesktopWorkspace implements Workspace {
 
         Tab aiTab = tabs.add(aiTabHeader, aiPartComponent);
         tabToComponent.put(aiTab, aiPart);
+
+        if (agentsAllowed) {
+            HorizontalLayout agentsTabHeader = new HorizontalLayout();
+            agentsTabHeader.setAlignItems(Alignment.CENTER);
+            agentsTabHeader.setSpacing(true);
+            agentsTabHeader.add(new Span(loc.getValue(L.LABEL_AGENTS)), agentPart.getAttentionBadge());
+
+            Tab agentsTab = tabs.add(agentsTabHeader, agentPartComponent);
+            tabToComponent.put(agentsTab, agentPart);
+            partsByKey.put("agents", agentPart);
+        }
 
         HorizontalLayout resourcesTabHeader = new HorizontalLayout();
         resourcesTabHeader.setAlignItems(Alignment.CENTER);
@@ -274,6 +299,9 @@ public class DesktopWorkspace implements Workspace {
         parts.put(userPart, userPartComponent);
         parts.put(protocolPart, protocolPartComponent);
         parts.put(aiPart, aiPartComponent);
+        if (agentPartComponent != null) {
+            parts.put(agentPart, agentPartComponent);
+        }
         parts.put(resourcesPart, resourcesPartComponent);
         parts.put(trashPart, trashPartComponent);
         if (adminButton != null) {
@@ -430,6 +458,9 @@ public class DesktopWorkspace implements Workspace {
         userPart.refresh();
         protocolPart.refresh();
         aiPart.refresh();
+        if (agentPartComponent != null) {
+            agentPart.refresh();
+        }
         resourcesPart.refresh();
         trashPart.refresh();
         // the admin part (backups, cleanup) refuses anybody but administrators; only they get the button

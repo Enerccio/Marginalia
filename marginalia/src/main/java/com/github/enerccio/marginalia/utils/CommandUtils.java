@@ -121,7 +121,7 @@ public final class CommandUtils {
         }
         CompletableFuture<Boolean> answer = new CompletableFuture<>();
         AtomicReference<ConfirmDialog> shown = new AtomicReference<>();
-        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         ui.access(() -> {
             try (ThreadCopyRequestAttributes.InRequestScope _ = new ThreadCopyRequestAttributes.InRequestScope(attributes)) {
                 shown.set(ConfirmDialog.open(message, () -> answer.complete(true), () -> answer.complete(false)));
@@ -158,7 +158,7 @@ public final class CommandUtils {
         if (ui == null) {
             return;
         }
-        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         ui.access(() -> {
             try (ThreadCopyRequestAttributes.InRequestScope _ = new ThreadCopyRequestAttributes.InRequestScope(attributes)) {
                 window.reload();

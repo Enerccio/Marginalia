@@ -15,6 +15,26 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     List<Long> searchManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception;
 
     /**
+     * The same search over the books of the user only, the working copies of agents are left out. What the UI lists.
+     */
+    List<Long> searchRegularManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception;
+
+    /**
+     * The same search over the working copies of agents only.
+     */
+    List<Long> searchAgenticManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception;
+
+    /**
+     * @return the manuscripts of the current user that are not working copies of agents; what the UI lists
+     */
+    List<Manuscript> findAllRegularForUser() throws Exception;
+
+    /**
+     * @return the manuscripts of the current user that are working copies of agents
+     */
+    List<Manuscript> findAllAgenticForUser() throws Exception;
+
+    /**
      * Finds manuscript by uuid if current user can view it (owns it or it is published), null otherwise.
      */
     Manuscript findViewable(String uuid) throws Exception;
@@ -34,6 +54,20 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     String getMetaSummaryPrompt(Manuscript manuscript) throws Exception;
     BackupStrategy getBackupStrategy(Manuscript manuscript) throws Exception;
     String getBackupStrategyValue(Manuscript manuscript) throws Exception;
+
+    /**
+     * Makes the working copy of a manuscript for the run of an agent: a new hidden book ({@link Manuscript#isAgentic()})
+     * with the messages, summaries, tags and settings of the original and its own copy of the lorebooks. Nothing of
+     * the copy is shared with the original, so whatever happens to it, the original is not touched.
+     */
+    Manuscript createAgenticCopy(Manuscript original) throws Exception;
+
+    /**
+     * Deletes for good the working copy of an agent, with its messages and its own lorebooks.
+     *
+     * @throws IllegalArgumentException when the manuscript is not a working copy of an agent
+     */
+    void deleteAgenticCopy(Manuscript copy) throws Exception;
 
     JsonObject createBackup(Manuscript manuscript) throws Exception;
     Manuscript cloneFromBackup(JsonObject backup) throws Exception;

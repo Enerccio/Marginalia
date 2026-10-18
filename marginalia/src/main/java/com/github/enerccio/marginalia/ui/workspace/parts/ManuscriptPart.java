@@ -21,6 +21,7 @@ import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
+import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableItem;
 import com.github.enerccio.marginalia.ui.widgets.BackendTableProviderBase;
 import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
@@ -185,7 +186,10 @@ public class ManuscriptPart implements ManuscriptSection {
 
             Button editButton = new Button(Solid.PENCIL.create(), _ -> {
                 try {
-                    openManuscript(manuscriptWrapper.getManuscript());
+                    // a book an agent works on can't be changed, so there is nothing to do in its window
+                    if (!new AgentLockCheck().refuses(manuscriptWrapper.getManuscript())) {
+                        openManuscript(manuscriptWrapper.getManuscript());
+                    }
                 } catch (Exception e) {
                     UIUtils.internalServerError(loc, e);
                 }
@@ -254,7 +258,7 @@ public class ManuscriptPart implements ManuscriptSection {
                         .forEach(so -> sortInfos.add(Sorter.sorter(so.getSorted(),
                                 so.getDirection().equals(SortDirection.ASCENDING) ? Ordering.ASC : Ordering.DESC)));
             }
-            List<Long> ids = manuscriptService.searchManuscripts(filterValues, sortInfos.toArray(Sorter[]::new));
+            List<Long> ids = manuscriptService.searchRegularManuscripts(filterValues, sortInfos.toArray(Sorter[]::new));
             grid.setItems(new ManuscriptBackendProvider(ids));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -361,7 +365,7 @@ public class ManuscriptPart implements ManuscriptSection {
             String manuscriptUuid = RestorableState.string(dialogState, "manuscript");
             if (manuscriptUuid != null && grid != null) {
                 Manuscript manuscript = manuscriptService.findForUser(manuscriptUuid);
-                if (manuscript != null) {
+                if (manuscript != null && !new AgentLockCheck().refuses(manuscript)) {
                     openManuscript(manuscript).restoreState(dialogState);
                 }
             }

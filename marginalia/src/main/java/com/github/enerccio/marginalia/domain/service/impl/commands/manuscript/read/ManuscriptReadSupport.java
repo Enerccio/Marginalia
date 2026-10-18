@@ -30,17 +30,17 @@ import java.util.*;
 public abstract class ManuscriptReadSupport {
 
     /** The page size of a list when {@code limit} is left out, and the most that can be asked for. */
-    static final int DEFAULT_LIMIT = 50;
-    static final int MAX_LIMIT = 200;
+    protected static final int DEFAULT_LIMIT = 50;
+    protected static final int MAX_LIMIT = 200;
 
     /** The size of a slice of a text when {@code length} is left out, and the most that can be asked for. */
-    static final int DEFAULT_SLICE = 4000;
-    static final int MAX_SLICE = 20000;
+    protected static final int DEFAULT_SLICE = 4000;
+    protected static final int MAX_SLICE = 20000;
 
     /** How much of a part the lists show. */
-    static final int PREVIEW_LENGTH = 120;
+    protected static final int PREVIEW_LENGTH = 120;
 
-    static final Gson GSON = new Gson();
+    protected static final Gson GSON = new Gson();
 
     @Autowired
     protected ManuscriptService manuscriptService;
@@ -64,12 +64,12 @@ public abstract class ManuscriptReadSupport {
      * The book the command reads, loaded again (the copy of the window can be older than the stored book), with the
      * tree of its parts loaded when a command needs the other branches.
      */
-    final class Book {
+    protected final class Book {
 
-        final Manuscript manuscript;
+        public final Manuscript manuscript;
         private StoryTree tree;
 
-        Book() throws Exception {
+        public Book() throws Exception {
             Manuscript open = CommandUtils.getCurrentManuscript();
             Manuscript fresh = open == null ? null : manuscriptService.findForUser(open.getUuid());
             if (fresh == null) {
@@ -138,14 +138,14 @@ public abstract class ManuscriptReadSupport {
         return Boolean.FALSE.equals(valid.get(message.getId())) ? "outdated" : "valid";
     }
 
-    static int limit(Integer limit) {
+    protected static int limit(Integer limit) {
         return limit == null ? DEFAULT_LIMIT : Math.min(Math.max(limit, 1), MAX_LIMIT);
     }
 
     /**
      * Puts a slice of the text and where it is in the text into the answer.
      */
-    static void slice(JsonObject result, String text, Integer offset, Integer length) {
+    protected static void slice(JsonObject result, String text, Integer offset, Integer length) {
         String content = text == null ? "" : text;
         int start = Math.min(Math.max(offset == null ? 0 : offset, 0), content.length());
         int end = Math.min(content.length(), start + Math.min(Math.max(length == null ? DEFAULT_SLICE : length, 1), MAX_SLICE));
@@ -163,7 +163,7 @@ public abstract class ManuscriptReadSupport {
         result.addProperty("truncated", end < content.length());
     }
 
-    static String preview(String text, int length) {
+    protected static String preview(String text, int length) {
         if (text == null) {
             return "";
         }
@@ -178,7 +178,7 @@ public abstract class ManuscriptReadSupport {
         return line.substring(0, end) + "…";
     }
 
-    static void answer(CommandContext context, JsonObject result) {
+    protected static void answer(CommandContext context, JsonObject result) {
         context.setReturn(GSON.toJson(result));
     }
 }

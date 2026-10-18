@@ -401,6 +401,54 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_GET_SUMMARY, "Read a summary");
         setValue(L.LABEL_COMMAND_CHECK_SUMMARIES, "Check summaries");
         setValue(L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES, "Template variables");
+        setValue(L.LABEL_AGENTS, "Agents");
+        setValue(L.LABEL_AGENT_ID, "Agent ID");
+        setValue(L.LABEL_NEW_AGENT, "New agent");
+        setValue(L.LABEL_EDIT_AGENT, "Edit agent");
+        setValue(L.LABEL_CLONE_AGENT, "Clone agent");
+        setValue(L.LABEL_PAUSE, "Pause");
+        setValue(L.LABEL_RESUME, "Resume");
+        setValue(L.LABEL_STOP_AND_KEEP, "Stop and keep the result");
+        setValue(L.LABEL_STOP_AND_DISCARD, "Stop and discard the result");
+        setValue(L.LABEL_AGENT_NO_RUN, "Not running");
+        setValue(L.LABEL_AGENT_DISABLED, "Disabled");
+        setValue(L.LABEL_AGENT_SYSTEM_PROMPT, "System prompt");
+        setValue(L.LABEL_AGENT_INSTRUCTIONS, "Instructions (agents.md)");
+        setValue(L.LABEL_RESTORE_DEFAULT, "Restore default");
+        setValue(L.LABEL_DESTRUCTIVE_COMMANDS, "Destructive commands");
+        setValue(L.LABEL_MAX_ROUNDS, "Most rounds");
+        setValue(L.LABEL_RUN_TOKEN_BUDGET, "Token budget of a run");
+        setValue(L.LABEL_CONTEXT_LIMIT, "Context limit (tokens)");
+        setValue(L.LABEL_ALLOWED_COMMANDS, "Allowed commands");
+        setValue(L.LABEL_COMMAND_SELECTION, "Selection");
+        setValue(L.LABEL_COMMAND_SELECTION_CUSTOM, "Custom");
+        setValue(L.LABEL_COMMAND, "Command");
+        setValue(L.LABEL_COMMAND_EFFECT, "Effect");
+        setValue(L.LABEL_MAX_AGENTS, "Most agents");
+        setValue(L.LABEL_MAX_CONCURRENT_RUNS, "Concurrent runs");
+        setValue(L.LABEL_COMMAND_LIST_LOREBOOKS, "List lorebooks");
+        setValue(L.LABEL_COMMAND_LIST_LORE_ENTRIES, "List lore entries");
+        setValue(L.LABEL_COMMAND_GET_LORE_ENTRY, "Lore entry");
+        setValue(L.LABEL_COMMAND_SEARCH_LORE, "Search lore");
+        setValue(L.LABEL_AGENT_CONSOLE, "Console");
+        setValue(L.LABEL_AGENT_RUN, "Run");
+        setValue(L.LABEL_AGENT_WORKSPACE, "Workspace");
+        setValue(L.LABEL_ROUNDS, "Rounds");
+        setValue(L.LABEL_YOU, "You");
+        setValue(L.LABEL_RESULT, "Result");
+        setValue(L.LABEL_AGENT_REPORT, "Report of the agent");
+        setValue(L.LABEL_AGENT_WAITS, "The agent waits for you");
+        setValue(L.LABEL_UP, "Up");
+        setValue(L.LABEL_AGENT_APPROVAL, "The agent asks for approval");
+        setValue(L.LABEL_APPROVE, "Approve");
+        setValue(L.LABEL_DENY, "Deny");
+        setValue(L.LABEL_ARGUMENTS, "Arguments");
+        setValue(L.LABEL_OPEN, "Open");
+        setValue(L.LABEL_START_IMMEDIATELY, "Start immediately");
+        setValue(L.LABEL_START_IN_CONSOLE, "Start in console");
+        setValue(L.LABEL_FINISH, "Finish");
+        setValue(L.LABEL_AGENT_RUNS, "Runs");
+        setValue(L.LABEL_REASONING, "Reasoning");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -450,6 +498,26 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_AI_TYPE_EXTENSION, "Extension");
         setValue(L.ENUM_PERMISSION_HELPER, "Help assistant");
         setValue(L.ENUM_PERMISSION_CREATE_AI, "Create own models");
+        setValue(L.ENUM_PERMISSION_AGENTS, "Agents");
+        setValue(L.ENUM_DOMAIN_AGENT, "Agent");
+        setValue(L.ENUM_DOMAIN_AGENT_RUN, "Agent run");
+        setValue(L.ENUM_AGENT_RUN_RUNNING, "Running");
+        setValue(L.ENUM_AGENT_RUN_IDLE, "Waiting for you");
+        setValue(L.ENUM_AGENT_RUN_WAITING_APPROVAL, "Waiting for approval");
+        setValue(L.ENUM_AGENT_RUN_PAUSING, "Pausing");
+        setValue(L.ENUM_AGENT_RUN_PAUSED, "Paused");
+        setValue(L.ENUM_AGENT_RUN_STOPPING, "Stopping");
+        setValue(L.ENUM_AGENT_RUN_STOPPED_KEPT, "Stopped, result kept");
+        setValue(L.ENUM_AGENT_RUN_STOPPED_DISCARDED, "Stopped, result discarded");
+        setValue(L.ENUM_AGENT_RUN_DONE, "Done, waits for the review");
+        setValue(L.ENUM_AGENT_RUN_FAILED, "Failed");
+        setValue(L.ENUM_AGENT_RUN_APPLIED, "Applied");
+        setValue(L.ENUM_DESTRUCTIVE_MODE_AUTO, "Run them");
+        setValue(L.ENUM_DESTRUCTIVE_MODE_ASK, "Ask first");
+        setValue(L.ENUM_DESTRUCTIVE_MODE_DENY, "Refuse them");
+        setValue(L.ENUM_COMMAND_PRESET_ALL, "All");
+        setValue(L.ENUM_COMMAND_PRESET_NONE, "None");
+        setValue(L.ENUM_COMMAND_PRESET_NON_DESTRUCTIVE, "All non-destructive");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -507,6 +575,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_UNKNOWN_SCOPE, "Unknown scope '%s', use global or part.");
         setValue(L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "The part has no original text: it was not generated, or it was generated before the original was kept.");
         setValue(L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "The texts are too large to compare.");
+        setValue(L.ERROR_BOOK_LOCKED, "The book is locked by the agent \"%s\". Pause or stop its run to change the book.");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "The agent action failed: %s");
+        setValue(L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "There is no lorebook %s, the book has %s lorebooks (see list-lorebooks).");
+        setValue(L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "Lorebook %s has no entry %s, it has %s entries.");
+        setValue(L.ERROR_REGEX_TIMEOUT, "The regular expression took longer than %s seconds and was stopped. Use a simpler one.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -622,6 +695,25 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_REPLACE_CONFIRM, "Replace %d matches in %d items?\n\"%s\" -> \"%s\"\nThere is no preview and the change cannot be undone.");
         setValue(L.MSG_COMMAND_REPLACE_CANCELLED, "Replace cancelled, nothing was changed");
         setValue(L.MSG_UNSAVED_CHANGES_EXIT, "There are unsaved changes. Exit without saving them?");
+        setValue(L.MSG_AGENT_NO_FREE_BOOK, "Every book already has an agent (a book has at most one) or there is no book yet.");
+        setValue(L.MSG_AGENT_LIMIT_REACHED, "You have all the agents you are allowed to have.");
+        setValue(L.MSG_CONFIRM_STOP_RUN, "How should the run of the agent \"%s\" end?");
+        setValue(L.MSG_AGENT_BOOK_LOCKED, "This book is locked by the agent \"%s\". Pause or stop its run first.");
+        setValue(L.MSG_AGENT_NO_RUN_YET, "The agent has not run yet. Start it in the Agents tab.");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "The workspace is empty.");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d files, %s of %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "Delete all the files in the workspace of the agent? The notes the agent keeps there are lost.");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "This file is not text. Download it to see it.");
+        setValue(L.MSG_AGENT_FILE_CUT, "The file is longer, only the beginning is shown.");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "The agent is working. Pause it to change its files.");
+        setValue(L.MSG_AGENT_APPROVAL_QUESTION, "The agent \"%s\" wants to run the command %s, which changes or removes data. It works on its own copy of the book, nothing outside it is touched.");
+        setValue(L.MSG_AGENT_NOTICE_IDLE, "The agent \"%s\" waits for you.");
+        setValue(L.MSG_AGENT_NOTICE_APPROVAL, "The agent \"%s\" asks for the approval of the command %s.");
+        setValue(L.MSG_AGENT_NOTICE_DONE, "The agent \"%s\" has finished.");
+        setValue(L.MSG_AGENT_NOTICE_FAILED, "The run of the agent \"%s\" failed.");
+        setValue(L.MSG_AGENT_NOTICE_PAUSED, "The run of the agent \"%s\" was paused: %s");
+        setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "Delete this run? Its steps and its report go to the trash.");
+        setValue(L.MSG_AGENT_RUN_BUSY, "The run is going on, pause or stop it first.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -645,6 +737,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_TOO_MANY_ARGUMENTS, "More arguments than the command takes.");
         setValue(L.HELP_COMMAND_DESTRUCTIVE, "This command changes or removes data that exists.");
         setValue(L.HELP_COMMAND_NON_DESTRUCTIVE, "This command only reads data or adds new data; it changes nothing that exists.");
+        setValue(L.HELP_AGENTS_MAX_AGENTS, "How many agents the user can have, clones included. Empty is five, zero lets the user keep and run their agents but not create or clone another one.");
+        setValue(L.HELP_AGENTS_MAX_CONCURRENT_RUNS, "How many runs of the user can work at once. Empty is one.");
+        setValue(L.HELP_AGENTS_RUN_TOKEN_BUDGET, "Most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit.");
+        setValue(L.HELP_AGENT_SYSTEM_PROMPT, "What the agent is told to be, before your instructions. A new agent starts with the default.");
+        setValue(L.HELP_AGENT_INSTRUCTIONS, "Your instructions for the agent, added to its prompt in every run. The agent can read them but not change them.");
+        setValue(L.HELP_AGENT_DESTRUCTIVE, "What happens when the agent wants to run a command that changes or removes data.");
+        setValue(L.HELP_AGENT_MAX_ROUNDS, "Most requests to the model in one run. Empty is no limit of the agent.");
+        setValue(L.HELP_AGENT_TOKEN_BUDGET, "Most tokens one run can spend. Empty or zero is no limit of the agent; the limit your administrator gave you applies anyway.");
+        setValue(L.HELP_AGENT_CONTEXT_LIMIT, "Limit of the context of the model in tokens, lower than the context of the model itself; older rounds are summarized near it. Empty is the context of the model.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
@@ -793,6 +894,22 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, "Shows the template variables of the book or of a part.");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM, "The variables prompt templates set with setvar: the global ones of the book (scope global), or the ones on a part, which follow its branch (scope part; the last part of the branch when no position is given). Parts are addressed by position (the first part of the story is 1) on a branch: the active branch unless a branch number from list-branches is given. Reads only. Options are positional and optional, in the order listed.");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN, "JSON with the variables and their values");
+        setValue(L.DESC_COMMAND_LOREBOOK_PARAM, "Number of the lorebook from list-lorebooks; the root lorebook (1) when omitted");
+        setValue(L.DESC_COMMAND_LORE_ENTRY_PARAM, "Number of the entry in its lorebook, the first entry is 1");
+        setValue(L.DESC_COMMAND_LORE_FILTER_PARAM, "Only the entries whose name or tag contains this text (case does not matter)");
+        setValue(L.DESC_COMMAND_LORE_QUERY_PARAM, "The text to look for in the name, text and comment of the entries (case does not matter)");
+        setValue(L.DESC_COMMAND_LIST_LOREBOOKS, "Lists the lorebooks of the open book with their entries and subbooks.");
+        setValue(L.DESC_COMMAND_LIST_LOREBOOKS_LLM, "Lists the lorebooks of the book: the root lorebook and the tree of its subbooks, each with its number (the root is 1), name, whether it is enabled, how many entries it has (and how many are enabled), its tags and the numbers of its subbooks. Other lorebooks of the user are not reachable. Lorebooks are addressed by this number, entries by their number in the lorebook. Reads only.");
+        setValue(L.DESC_COMMAND_LIST_LOREBOOKS_RETURN, "JSON with the lorebooks: number, name, enabled, entries, enabledEntries, tags, subbooks");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES, "Lists the entries of a lorebook with their settings and a preview.");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM, "Lists the entries of a lorebook (the root lorebook unless a lorebook number from list-lorebooks is given): the number of the entry in the lorebook, name, whether it is enabled, its order, insertion mode, filtering mode (TEXT keys or a REGEX), tags, the length of its text and a short preview. A filter keeps the entries whose name or tag contains it; the numbers stay those of the whole lorebook. Paged: offset and limit. Entries are addressed by their number in the lorebook (the first is 1). Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN, "JSON with the entries of the page: entry, name, enabled, order, insertion, filtering, tags, payloadLength, preview");
+        setValue(L.DESC_COMMAND_GET_LORE_ENTRY, "Shows one lorebook entry with its settings and text.");
+        setValue(L.DESC_COMMAND_GET_LORE_ENTRY_LLM, "Reads one entry of a lorebook (the root lorebook unless a lorebook number from list-lorebooks is given): name, whether it is enabled, order, insertion mode, filtering mode and its keys (the text or regular expression that activates it), tags and negative tags, the comment and a slice of the text with its offset and total length (offset and length page through a long text). The entry is addressed by its number in the lorebook (the first is 1, see list-lore-entries). Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_GET_LORE_ENTRY_RETURN, "JSON with the entry: name, enabled, order, insertion, filtering, keys, tags, negativeTags, comment and a slice of the payload");
+        setValue(L.DESC_COMMAND_SEARCH_LORE, "Searches the names, texts and comments of the lorebook entries.");
+        setValue(L.DESC_COMMAND_SEARCH_LORE_LLM, "Finds the entries of all the lorebooks of the book whose name, text or comment contain the query (case does not matter; with regex the query is a regular expression). Each hit gives the lorebook number, the entry number, the name, which of name, text and comment match and a snippet around the first match; found is the number of entries that match, hits is limited. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_SEARCH_LORE_RETURN, "JSON with found and the hits: lorebook, entry, name, matchedIn, snippet");
 
     }
 

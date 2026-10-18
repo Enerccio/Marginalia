@@ -54,6 +54,18 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
 
     @Override
     @CommonTxReadOnly
+    public List<Lorebook> findAllRegularForUser() throws Exception {
+        return getRepository().findAllByAgentic(false, currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Lorebook> findAllAgenticForUser() throws Exception {
+        return getRepository().findAllByAgentic(true, currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
     public List<Lorebook> getSubbooks(Lorebook lorebook) throws Exception {
         Lorebook refresh = find(lorebook);
         List<Lorebook> subbooks = new ArrayList<>();
@@ -282,7 +294,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         if (lorebooks == null) {
             return candidates;
         }
-        List<Lorebook> userLorebooks = findAllForUser();
+        // the working copies of agents are not the user's, never matched by name
+        List<Lorebook> userLorebooks = findAllRegularForUser();
         for (JsonElement element : lorebooks) {
             if (!element.isJsonObject()) {
                 continue;
@@ -318,6 +331,68 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     @Override
     @CommonTx
     public Map<String, Lorebook> importLorebooks(JsonArray lorebooks, Map<String, LorebookDecision> decisions) throws Exception {
+        return importLorebooks(lorebooks, decisions, false);
+    }
+
+    @Override
+    @CommonTx
+    public Map<String, Lorebook> copyLorebooks(JsonArray lorebooks) throws Exception {
+        Map<String, LorebookDecision> decisions = new HashMap<>();
+        if (lorebooks != null) {
+            for (JsonElement element : lorebooks) {
+                String uuid = element.isJsonObject() ? getString(element.getAsJsonObject(), "uuid") : null;
+                if (uuid != null) {
+                    decisions.put(uuid, LorebookDecision.CREATE);
+                }
+            }
+        }
+        return importLorebooks(lorebooks, decisions, true);
+    }
+
+    @Override
+    @CommonTx
+    public void deleteAgenticCopy(Lorebook root) throws Exception {
+        Lorebook rootBook = root == null ? null : find(root);
+        if (rootBook == null) {
+            return;
+        }
+        // the tree first, nothing is deleted before every book of it is known to be a copy
+        Map<Long, Lorebook> tree = new LinkedHashMap<>();
+        Deque<Lorebook> queue = new ArrayDeque<>();
+        queue.add(rootBook);
+        while (!queue.isEmpty()) {
+            Lorebook book = queue.remove();
+            if (tree.containsKey(book.getId())) {
+                continue;
+            }
+            if (!book.isAgentic()) {
+                throw new IllegalArgumentException("The lorebook " + book.getUuid() + " is not a working copy of an agent");
+            }
+            tree.put(book.getId(), book);
+            if (book.getSubbooks() != null) {
+                for (Lorebook subbook : book.getSubbooks()) {
+                    Lorebook found = find(subbook);
+                    if (found != null) {
+                        queue.add(found);
+                    }
+                }
+            }
+        }
+        for (Lorebook book : tree.values()) {
+            book.setSubbooks(new ArrayList<>());
+            save(book);
+        }
+        for (Lorebook book : tree.values()) {
+            for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book)) {
+                tagRelationService.deleteForObject(entry, true);
+                lorebookEntryService.delete(entry, true);
+            }
+            tagRelationService.deleteForObject(book, true);
+            delete(book, true);
+        }
+    }
+
+    private Map<String, Lorebook> importLorebooks(JsonArray lorebooks, Map<String, LorebookDecision> decisions, boolean agentic) throws Exception {
         Map<String, Lorebook> resolved = new HashMap<>();
         if (lorebooks == null) {
             return resolved;
@@ -354,8 +429,9 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             Lorebook lorebook = new Lorebook();
             lorebook.setName(StringUtils.defaultIfBlank(getString(bookObj, "name"), "Imported Lorebook"));
             lorebook.setEnabled(getBoolean(bookObj, "enabled", true));
-            // keep original uuid when free, so later restores link to this copy
-            if (find(uuid) == null) {
+            lorebook.setAgentic(agentic);
+            // keep original uuid when free, so later restores link to this copy; a working copy is always new
+            if (!agentic && find(uuid) == null) {
                 lorebook.setUuid(uuid);
             }
             lorebook = save(lorebook);

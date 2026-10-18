@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -62,6 +63,10 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     @Autowired
     private TemplateService templateService;
 
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
+
     @Override
     @CommonTx
     public CancellationToken createSummary(Manuscript manuscript, ChatMessage from, AsyncCallback callback) throws Exception {
@@ -82,6 +87,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     private CancellationToken createSummary(Manuscript manuscript, ChatMessage from, ChatMessage to, AsyncCallback callback) throws Exception {
         if (manuscript == null || from == null || callback == null || manuscript.getAi() == null)
             return null;
+        agentRunService.checkNotLocked(manuscript);
 
         AI ai = aiService.find(manuscript.getAi());
         Protocol protocol = protocolService.find(manuscript.getProtocol());
@@ -108,7 +114,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
             Summary summary = finalSummary;
             long lastSave = System.currentTimeMillis();
-            final ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+            final RequestAttributes attributes = ThreadCopyRequestAttributes.create();
 
             @Override
             public void onChunk(InferenceAsyncController controller, ChunkType chunkType, String text) throws Exception {
@@ -217,6 +223,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     @CommonTx
     public Summary attachMetaSummary(Summary metaSummary, ChatMessage message) throws Exception {
         message = chatMessageService.find(message);
+        agentRunService.checkNotLocked(message.getParentScript());
         Summary replaced = message.getSummary() == null ? null : find(message.getSummary());
         if (replaced != null) {
             extendableListener.serialize(replaced);
@@ -252,6 +259,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         if (message == null || message.getSummary() == null) {
             return message;
         }
+        agentRunService.checkNotLocked(message.getParentScript());
         Summary summary = find(message.getSummary());
         Summary restored = null;
         if (unwind && summary != null && summary.getSummaryType() == SummaryType.META_SUMMARY
@@ -289,6 +297,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     @Override
     @CommonTx
     public Summary updateSummaryText(Manuscript manuscript, Summary summary, String text) throws Exception {
+        agentRunService.checkNotLocked(manuscript);
         summary = find(summary);
         summary.setSummary(text);
         InferenceService inferenceService = inferenceServices.forAI(aiService.find(manuscript.getAi()));

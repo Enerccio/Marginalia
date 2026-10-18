@@ -141,7 +141,7 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
 
         loading = true;
         try {
-            List<Lorebook> lorebooks = lorebookService.findAllForUser();
+            List<Lorebook> lorebooks = lorebookService.findAllRegularForUser();
             lorebooks.sort(Comparator.comparing(Lorebook::getName));
             activeLorebookCombo.setItems(lorebooks);
 

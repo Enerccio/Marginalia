@@ -364,7 +364,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                 sorters.add(Sorter.sorter("modification", currentSortOrdering));
             }
 
-            List<Long> ids = manuscriptService.searchManuscripts(filterValues, sorters.toArray(Sorter[]::new));
+            List<Long> ids = manuscriptService.searchRegularManuscripts(filterValues, sorters.toArray(Sorter[]::new));
             grid.setItems(new ManuscriptBackendProvider(ids));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

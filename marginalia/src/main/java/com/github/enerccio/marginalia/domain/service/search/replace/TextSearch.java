@@ -1,7 +1,10 @@
 package com.github.enerccio.marginalia.domain.service.search.replace;
 
+import com.github.enerccio.marginalia.utils.TimeSafeText;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -12,7 +15,8 @@ import java.util.regex.PatternSyntaxException;
  * regular expression is the one of
  * {@link Matcher#appendReplacement}: {@code $1} is a group, {@code \$} a dollar sign.
  * <p>
- * Matches of zero length (a regular expression like {@code a*}) are ignored.
+ * Matches of zero length (a regular expression like {@code a*}) are ignored. A regular expression gets
+ * {@link TimeSafeText#timeoutMillis()} for each text and then fails with {@link com.github.enerccio.marginalia.utils.RegexTimeoutException}.
  */
 public final class TextSearch {
 
@@ -140,13 +144,21 @@ public final class TextSearch {
      * @return whether the text has a match, without building the hits
      */
     public boolean matches(String text) {
+        return matches(text, TimeSafeText.view());
+    }
+
+    /**
+     * @param view the text as the regular expression reads it, a text of the same characters; a caller that can't let
+     *             a pattern run for long gives one that throws when its time is over
+     */
+    public boolean matches(String text, Function<String, CharSequence> view) {
         if (text == null || text.isEmpty()) {
             return false;
         }
         if (pattern == null) {
             return text.contains(search);
         }
-        Matcher matcher = pattern.matcher(text);
+        Matcher matcher = pattern.matcher(view.apply(text));
         while (matcher.find()) {
             if (matcher.end() > matcher.start()) {
                 return true;
@@ -178,6 +190,13 @@ public final class TextSearch {
      * @param field name of the field the text is from, put into the hits
      */
     public Result apply(String field, String text) {
+        return apply(field, text, TimeSafeText.view());
+    }
+
+    /**
+     * @param view the text as the regular expression reads it, see {@link #matches(String, Function)}
+     */
+    public Result apply(String field, String text, Function<String, CharSequence> view) {
         List<TextHit> hits = new ArrayList<>();
         if (text == null || text.isEmpty()) {
             return new Result(hits, text);
@@ -191,7 +210,7 @@ public final class TextSearch {
                 copied = at + search.length();
             }
         } else {
-            Matcher matcher = pattern.matcher(text);
+            Matcher matcher = pattern.matcher(view.apply(text));
             while (matcher.find()) {
                 if (matcher.end() == matcher.start()) {
                     continue;

@@ -59,6 +59,10 @@ Rules to remember:
 - No signature means **any arguments**: the objects are in `context.getPositional()`. Use it for commands like echo, or when
   the arguments are truly free-form. A declared signature that fits always wins over the any-form.
 - An argument of type `Object.class` is "any" and also accepts a list of objects, passed as one argument.
+- A parameter can say more for an agent (it is the schema of the function, see [Commands as functions](../services.md#commands-as-functions)):
+  `optional = true` (it may be left out), `defaultValue = "0"` (text, converted to the type) and `allowed = {"short", "long"}` (an enum type needs
+  none, its constants are the values). Without `optional` a parameter is required when every form of the command has it, so with a ladder of forms
+  that each add a parameter only the first ones are required. The command line ignores all three.
 - The suite is **stateless**. Do not keep the book, the user or the result in a field. See [Statelessness](index.md#statelessness).
 
 ## Texts
@@ -116,7 +120,10 @@ public void title(CommandContext context) {
 ```
 
 `CommandUtils` returns `null` when nothing is open (no workspace yet, no book). The same code works in the desktop and in
-the phone layout, because `getManuscriptWindow()` returns the `ManuscriptWindow` interface. Use the services for data;
+the phone layout, because `getManuscriptWindow()` returns the `ManuscriptWindow` interface, and for an agent, whose
+`AgenticSessionPoint` holds the book directly (`CommandUtils.getCurrentManuscript()` delegates to
+`SessionPoint.getCurrentManuscript()`); a command that must work for agents asks `CommandUtils` for the book and does not go
+through the workspace itself. Use the services for data;
 they check ownership of the current user.
 
 ## Failing

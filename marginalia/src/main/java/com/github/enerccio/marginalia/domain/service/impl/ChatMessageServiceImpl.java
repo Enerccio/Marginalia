@@ -2,7 +2,9 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
+import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
@@ -12,6 +14,7 @@ import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -26,6 +29,20 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
     @Autowired
     private SummaryService summaryService;
+
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
+
+    /**
+     * A part of a book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
+     */
+    @Override
+    @CommonTx
+    public ChatMessage save(ChatMessage message) throws Exception {
+        agentRunService.checkNotLocked(message.getParentScript());
+        return super.save(message);
+    }
 
     @Override
     @CommonTx
@@ -254,6 +271,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @Override
     @CommonTx
     public ChatMessage delete(ChatMessage message, boolean hard) throws Exception {
+        if (message != null) {
+            agentRunService.checkNotLocked(message.getParentScript());
+        }
         if (!hard && message != null && message.getId() != null) {
             List<Long> deleted = getRepository().findDescendantIds(message);
             getRepository().softDeleteByIds(deleted);
@@ -261,6 +281,23 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             summaryService.softDeleteForMessages(deleted);
         }
         return super.delete(message, hard);
+    }
+
+    @Override
+    @CommonTx
+    public void hardDeleteForManuscript(Manuscript manuscript) throws Exception {
+        List<ChatMessage> messages = new ArrayList<>(getRepository().getAllMessagesIncludingDeleted(manuscript));
+        // a child is always newer than its parent
+        messages.sort(Comparator.comparing(ChatMessage::getId).reversed());
+        for (ChatMessage message : messages) {
+            Summary summary = message.getSummary() == null ? null : summaryService.find(message.getSummary());
+            if (summary != null) {
+                message.setSummary(null);
+                saveWithoutEvent(message);
+                summaryService.delete(summary, true);
+            }
+            delete(message, true);
+        }
     }
 
     @Override

@@ -238,7 +238,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 Set<Lorebook> newSelection = e.getValue();
                 if (newSelection != null && !newSelection.isEmpty()) {
                     try {
-                        List<Lorebook> allUserLorebooks = lorebookService.findAllForUser();
+                        List<Lorebook> allUserLorebooks = lorebookService.findAllRegularForUser();
                         Map<Long, Lorebook> lorebookMap = allUserLorebooks.stream()
                                 .filter(l -> l.getId() != null)
                                 .collect(Collectors.toMap(BaseEntity::getId, l -> l, (a, b) -> a));
@@ -677,7 +677,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                     @APILocals(name = "e", type = Exception.class)})
     private void loadLorebooks() {
         try {
-            List<Lorebook> lorebooks = lorebookService.findAllForUser();
+            List<Lorebook> lorebooks = lorebookService.findAllRegularForUser();
             lorebooks.sort(Comparator.comparing(Lorebook::getName));
             lorebookCombo.setItems(lorebooks);
             if (currentLorebook == null && !lorebooks.isEmpty()) {
@@ -718,7 +718,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             lorebookEnabledCheckbox.setValue(currentLorebook.isEnabled());
 
             try {
-                List<Lorebook> allLorebooks = lorebookService.findAllForUser();
+                List<Lorebook> allLorebooks = lorebookService.findAllRegularForUser();
                 List<Lorebook> availableLorebooks = allLorebooks.stream()
                         .filter(l -> l.getId() != null && !l.getId().equals(currentLorebook.getId()))
                         .sorted(Comparator.comparing(Lorebook::getName))
