@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.components.BuildInfoFooter;
 import com.github.enerccio.marginalia.ui.components.HelpAssistantWidget;
 import com.github.enerccio.marginalia.ui.workspace.DesktopWorkspace;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
@@ -130,6 +131,7 @@ public class Main extends LoginCheckRoute implements LLMInteract {
             workspace.setOnLogout(this::logout);
             add(workspace.create());
             add(new HelpAssistantWidget());
+            add(new BuildInfoFooter());
             workspace.refresh();
             workspace.restoreAutosaved();
         } catch (Exception e) {

@@ -939,3 +939,15 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
 .search-hit-placeholder {
     font-style: italic;
 }
+
+/* Version footer (ui.components.BuildInfoFooter): tiny text fixed in the bottom left corner, outside the layout */
+.build-info-footer {
+    position: fixed;
+    left: var(--lumo-space-s);
+    bottom: 2px;
+    z-index: 1;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--lumo-secondary-text-color);
+    opacity: 0.6;
+}

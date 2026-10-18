@@ -305,7 +305,7 @@ the first time it is pushed; make it public in the package settings on GitHub so
    requires a version of the form `x.y.z` with `x` ≥ 1.
 2. **Database.** If the release changes the schema, check that the migrations upgrade a database of the previous
    release (keep a copy of one around) - `FlywayMigrationTest` covers only the migrations themselves.
-3. **Manual.** Update the manual for user-visible changes, run `retype build`, commit `docs/`.
+3. **Manual.** Update the manual for user-visible changes, run `tools/retype_build.sh`, commit `docs/`.
 4. **Test.** `mvn test`, and `mvn package -Pdesktop` on at least your own platform; start the app and generate a part
    against a real model.
 5. **Tag.** Commit, then create and push the tag:

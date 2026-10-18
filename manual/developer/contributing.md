@@ -141,7 +141,7 @@ See the [checklist for a new test](testing.md#checklist-for-a-new-test).
 
 The manual you are reading is in `manual/` (Markdown for [Retype](https://retype.com)); `docs/` is the generated site.
 
-- Change the Markdown in `manual/`, then run `retype build` and commit `docs/` in the same pull request. Never edit
+- Change the Markdown in `manual/`, then run `tools/retype_build.sh` (`retype build` with the project version and commit in the site) and commit `docs/` in the same pull request. Never edit
   files in `docs/` by hand.
 - Preview with `retype start`.
 - Write for the reader of that part: the [User guide](../user/index.md) talks about what users see and click (UI
