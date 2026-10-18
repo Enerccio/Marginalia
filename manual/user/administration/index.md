@@ -19,10 +19,10 @@ Administrators have an **Admin** button at the bottom of the workspace. It is on
 
 | Tab | |
 |---|---|
-| **Users** | Creating, editing and deleting accounts. See [Users](users.md). |
+| **Users** | Creating, editing and deleting accounts, and giving users [permissions](permissions.md). See [Users](users.md). |
 | **Database Backups** | Backups of the whole database, on demand or on a schedule, and restoring them. See [Database backups](database-backups.md). |
 | **Cleanup** | Permanently removing deleted data. See [Cleanup](cleanup.md). |
-| **Help assistant** | The chat that answers questions from the manual: on or off, the model and who pays for it. See [Help assistant](help-assistant.md). |
+| **Help assistant** | The chat that answers questions from the manual: the model, the prompts and who pays for it. See [Help assistant](help-assistant.md). |
 | **Extensions** | Installing and removing extensions. See [Managing extensions](extensions.md). |
 
 ## The data folder

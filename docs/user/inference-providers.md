@@ -7,6 +7,10 @@ local one for experiments, and switch a book between them at any time.
 Providers belong to your account. Other users don't see them or their API keys. API keys are stored encrypted (see
 [The data folder](administration/index.md#the-data-folder)).
 
+Adding a provider needs the permission **Create own models**, which an administrator gives you (administrators always
+have it, see [Permissions](administration/permissions.md)). Without it you can only use the providers the
+administrators [share](#shared-providers) with you; the **Add Inference Provider** button is not shown.
+
 ![The Inference Providers tab](../images/inference-providers-list.png)
 
 ## Supported APIs

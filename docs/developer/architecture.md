@@ -374,6 +374,8 @@ sequenceDiagram
   waits for the dispatch, not for the queued `access` tasks. The `skipCurrent` overload leaves out the caller's own
   Vaadin session. `UserServiceImpl.changePassword` / `clearPassword` use it to invalidate the other sessions of the
   user whose password changed - a user changing their own password stays logged in in the current session.
+  `reloadUser(user)` reloads the page of every UI of the sessions of a user the same way (`runForUsers` with the main UI's
+  `Page.reload()`): the permissions dialog uses it after it changed the permissions of another user.
 - **The help chat.** `SessionPoint` (the session-scoped bean with the language and the workspace of the page) also keeps the conversation with the help
   assistant (`getHelpChat()`, a synchronized list of messages) and the problems the user was shown (`getProblems()`, see
   [What went wrong](ui.md#what-went-wrong-the-problem-log)); `Main` attaches that log to the Vaadin session after login so that code on

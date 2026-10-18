@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845643259432">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845648986013">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845643259432" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845648986013" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845648986013" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845643259432" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845648986013" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845648986013" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -744,7 +744,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 | `LanguageSelector` | The language combo box of the workspace footers: saves the choice in `UserSetting.language`, sets `SessionPoint.language` and reloads every page of the user ([Localization](architecture.md#localization)). |
 | `TagsView` (`ui.components`) | The Tags tab of `UserPart`: a grid of the tags with their relation counts, rename (a name that exists asks to merge) and delete. It acts at once and is not tracked as an unsaved setting. |
 | `LLMInteract` / `LLMSnapshot` (`ui`) | What the help assistant's model can read of the screen, see [Letting the help assistant see the UI](#letting-the-help-assistant-see-the-ui). |
-| `BuildInfoFooter` | The version text (`Marginalia 1.4.0 (93ec118)`) as a `Span` fixed in the bottom left corner (`CssStyles.BUILD_INFO_FOOTER`, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to `Main` after the workspace (the phone layout has it too). The login overlay shows the same text as `LoginI18n.additionalInformation` (`LoginCheckRoute.getLoginI18n`). The values come from `utils.BuildInfo`, see [Building](building.md#what-a-build-does). |
+| `BuildInfoFooter` | The version text (`Marginalia 1.4.0 (93ec118)`) as a `Span` fixed in the bottom left corner (`CssStyles.BUILD_INFO_FOOTER`, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to `Main` after the workspace (the phone layout has it too). The login overlay shows the same text as `LoginI18n.additionalInformation` (`LoginCheckRoute.getLoginI18n`). The values come from `utils.BuildInfo`, see [Building](building.md#building-the-application). |
 | `HelpAssistantWidget` | The help chat: a round robot `Button` fixed in the bottom right corner (`CssStyles.HELP_FAB`) opening a fixed panel above it (`HELP_PANEL`: header with clear and close, which AI answers, a warning when `Info.metered()`, the messages, an input row whose send button turns into stop). Added to `Main` after the workspace, so the phone layout has it too; hidden unless `HelpAssistantService.isAvailable()` when the page is built, the panel reads `getInfo()` at each opening. Answers stream into a `Markdown` card with `ui.access` + `UIPushGuard.push`; the conversation is `SessionPoint.getHelpChat()` (the widget keeps the list, the callbacks have no session). A request that fails or is refused (limit) takes the question back into the input field and shows the reason in the card. Reasoning chunks are not shown. |
 | `LorebookPreview` | The read only *Lorebook* tab of the desktop story editor: a tree grid of the lorebook (optionally with its sub lorebooks as top level rows) and its entries, opening to the content and the text activation. `create()`, then `refresh(lorebook)`. |
 | `TagMultiComboBox` | Tag selection with lazy search (`TagService.searchTagsForUser`) and creation of new tags. |
@@ -784,7 +784,7 @@ page (<code translate="no" v-pre>service.find(id)</code>) and wraps them in a <c
 </tr>
 <tr>
 <td><code translate="no" v-pre>BuildInfoFooter</code></td>
-<td>The version text (<code translate="no" v-pre>Marginalia 1.4.0 (93ec118)</code>) as a <code translate="no" v-pre>Span</code> fixed in the bottom left corner (<code translate="no" v-pre>CssStyles.BUILD_INFO_FOOTER</code>, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to <code translate="no" v-pre>Main</code> after the workspace (the phone layout has it too). The login overlay shows the same text as <code translate="no" v-pre>LoginI18n.additionalInformation</code> (<code translate="no" v-pre>LoginCheckRoute.getLoginI18n</code>). The values come from <code translate="no" v-pre>utils.BuildInfo</code>, see <a href="../building/#what-a-build-does">Building</a>.</td>
+<td>The version text (<code translate="no" v-pre>Marginalia 1.4.0 (93ec118)</code>) as a <code translate="no" v-pre>Span</code> fixed in the bottom left corner (<code translate="no" v-pre>CssStyles.BUILD_INFO_FOOTER</code>, 10 px, faded, outside the layout); the tooltip has the full commit id, the commit time and the build time. Added to <code translate="no" v-pre>Main</code> after the workspace (the phone layout has it too). The login overlay shows the same text as <code translate="no" v-pre>LoginI18n.additionalInformation</code> (<code translate="no" v-pre>LoginCheckRoute.getLoginI18n</code>). The values come from <code translate="no" v-pre>utils.BuildInfo</code>, see <a href="../building/#building-the-application">Building</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>HelpAssistantWidget</code></td>
@@ -1140,7 +1140,7 @@ function is <code translate="no" v-pre>HelpTools.getUiState</code>, bound with t
 <p><code translate="no" v-pre>PermissionsDialog</code> (<code translate="no" v-pre>ui.dialogs.permissions</code>, opened by <code translate="no" v-pre>AdminPart.openPermissionsDialog</code> from the key button of the user list) edits
 the <code translate="no" v-pre>Permission</code>s of a user: a modal dialog (<code translate="no" v-pre>ModalityMode.STRICT</code>, no close on Esc or outside click) with a grid of the permissions
 (name from <code translate="no" v-pre>Localization.getPermissionType</code>, a <em>Granted</em> checkbox, a delete button), a combo box of the types the user has none of with
-<strong>Add permission</strong>, and <strong>Exit</strong> / <strong>Save</strong> in the footer. The columns have fixed widths (name takes the rest, <code translate="no" v-pre>Granted</code> <code translate="no" v-pre>TOOL_COLUMN_SIZE_LARGE</code>, delete <code translate="no" v-pre>TOOL_COLUMN_SIZE</code>); the settings component of a permission is the detail row of the grid, folded by the arrow button in front of the name (<code translate="no" v-pre>expanded</code>, a set of types that survives re-reading the rows; a row without settings has the <code translate="no" v-pre>fold-spacer</code> class in its place, a new permission is unfolded). It edits a copy in memory: <strong>Save</strong> is on only when something differs
+<strong>Add permission</strong>, and <strong>Exit</strong> / <strong>Save</strong> in the footer. The columns have fixed widths (name takes the rest, <code translate="no" v-pre>Granted</code> and the delete button <code translate="no" v-pre>TOOL_COLUMN_SIZE_LARGE</code>: an icon button does not fit the narrower <code translate="no" v-pre>TOOL_COLUMN_SIZE</code>; the rows are kept in the order of <code translate="no" v-pre>PermissionType</code>); the settings component of a permission is the detail row of the grid, folded by the arrow button in front of the name (<code translate="no" v-pre>expanded</code>, a set of types that survives re-reading the rows; a row without settings has the <code translate="no" v-pre>fold-spacer</code> class in its place, a new permission is unfolded). It edits a copy in memory: <strong>Save</strong> is on only when something differs
 (<code translate="no" v-pre>isDirty</code>: a new permission, a changed <code translate="no" v-pre>granted</code>, an edited settings component or a deleted permission), <strong>Exit</strong> asks with
 <code translate="no" v-pre>MSG_UNSAVED_CHANGES_EXIT</code> when it is, and a delete is a hard delete (<code translate="no" v-pre>PermissionService.delete(permission, true)</code>) done by <strong>Save</strong>, before the
 saves. After the save the rows are read again and, unless the user is the current one, <code translate="no" v-pre>SessionManager.reloadUser</code> reloads their pages
@@ -1265,7 +1265,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (940baf6b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (98cf49b4).</p></div>
             </footer>
         </div>
     </div>

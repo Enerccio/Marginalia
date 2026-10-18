@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845643259432">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845648986013">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845643259432" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845648986013" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845648986013" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845643259432" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845648986013" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845648986013" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -822,7 +822,9 @@ free, and changes are pushed when the lock is released. The sessions are process
 (<code translate="no" v-pre>ThreadUtils.executeInThread</code>), so the caller&#x27;s Vaadin and request thread locals don&#x27;t leak into them; the call
 waits for the dispatch, not for the queued <code translate="no" v-pre>access</code> tasks. The <code translate="no" v-pre>skipCurrent</code> overload leaves out the caller&#x27;s own
 Vaadin session. <code translate="no" v-pre>UserServiceImpl.changePassword</code> / <code translate="no" v-pre>clearPassword</code> use it to invalidate the other sessions of the
-user whose password changed - a user changing their own password stays logged in in the current session.</p>
+user whose password changed - a user changing their own password stays logged in in the current session.
+<code translate="no" v-pre>reloadUser(user)</code> reloads the page of every UI of the sessions of a user the same way (<code translate="no" v-pre>runForUsers</code> with the main UI&#x27;s
+<code translate="no" v-pre>Page.reload()</code>): the permissions dialog uses it after it changed the permissions of another user.</p>
 </li>
 <li>
 <p><strong>The help chat.</strong> <code translate="no" v-pre>SessionPoint</code> (the session-scoped bean with the language and the workspace of the page) also keeps the conversation with the help
@@ -1053,7 +1055,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (940baf6b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (98cf49b4).</p></div>
             </footer>
         </div>
     </div>

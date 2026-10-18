@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845643259432">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845648986013">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845643259432" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845648986013" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845648986013" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845643259432" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845648986013" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845648986013" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -184,7 +184,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
 | `User` | `users` | User |
-| `Permission` | `permissions` | What an administrator allowed a user to do (not shown yet) |
+| `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
 | `Resource` | `resources` | Resources tab, image attachments of a part (story editor, exports) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -249,7 +249,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <tr>
 <td><code translate="no" v-pre>Permission</code></td>
 <td><code translate="no" v-pre>permissions</code></td>
-<td>What an administrator allowed a user to do (not shown yet)</td>
+<td>What an administrator allowed a user to do, see <doc-anchor-trigger to="#permission-what-a-user-was-allowed">Permission</doc-anchor-trigger></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Resource</code></td>
@@ -1226,7 +1226,7 @@ set, sent plus generated below the total (the total could never be reached).</p>
 values are extended attributes.</p>
 <retype-table copy-text="| Class | Owner | Contains |
 |---|---|---|
-| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpApplyLimits`, `helpInteractions` (may it move through the interface), `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` are replaced by the permissions `CREATE_AI` and `HELPER` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
+| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
 | `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1241,7 +1241,7 @@ values are extended attributes.</p>
 <tr>
 <td><code translate="no" v-pre>AppSettings</code></td>
 <td>none (one per installation)</td>
-<td>Data versions (<code translate="no" v-pre>dbVersion</code>, <code translate="no" v-pre>appVersion</code>), the database backup schedule (<code translate="no" v-pre>backupScheduleEnabled</code>, <code translate="no" v-pre>backupSchedule</code>, <code translate="no" v-pre>backupKeep</code>, <code translate="no" v-pre>lastScheduledBackup</code>, <code translate="no" v-pre>backupScheduleChanged</code>), the help assistant (<code translate="no" v-pre>helpAiUuid</code>, <code translate="no" v-pre>helpApplyLimits</code>, <code translate="no" v-pre>helpInteractions</code> (may it move through the interface), <code translate="no" v-pre>helpAdminData</code> (may it read the data of the Admin page for an administrator), and the prompts <code translate="no" v-pre>helpPromptAdmin</code> / <code translate="no" v-pre>helpPromptUser</code>, null = the default; the uuid, not the id; written only by <code translate="no" v-pre>HelpAssistantService.saveSettings</code>). The switches <code translate="no" v-pre>userAisAllowed</code> and <code translate="no" v-pre>helpEnabled</code> are replaced by the permissions <code translate="no" v-pre>CREATE_AI</code> and <code translate="no" v-pre>HELPER</code> (V15 / app version 5); the fields stay, deprecated, only for <code translate="no" v-pre>PermissionsMigration</code>.</td>
+<td>Data versions (<code translate="no" v-pre>dbVersion</code>, <code translate="no" v-pre>appVersion</code>), the database backup schedule (<code translate="no" v-pre>backupScheduleEnabled</code>, <code translate="no" v-pre>backupSchedule</code>, <code translate="no" v-pre>backupKeep</code>, <code translate="no" v-pre>lastScheduledBackup</code>, <code translate="no" v-pre>backupScheduleChanged</code>), the help assistant (<code translate="no" v-pre>helpAiUuid</code>, <code translate="no" v-pre>helpAdminData</code> (may it read the data of the Admin page for an administrator), and the prompts <code translate="no" v-pre>helpPromptAdmin</code> / <code translate="no" v-pre>helpPromptUser</code>, null = the default; the uuid, not the id; written only by <code translate="no" v-pre>HelpAssistantService.saveSettings</code>). The switches <code translate="no" v-pre>userAisAllowed</code> and <code translate="no" v-pre>helpEnabled</code> and the settings <code translate="no" v-pre>helpApplyLimits</code> and <code translate="no" v-pre>helpInteractions</code> are replaced by the permissions <code translate="no" v-pre>CREATE_AI</code> and <code translate="no" v-pre>HELPER</code> with the attributes <code translate="no" v-pre>helperApplyLimits</code> and <code translate="no" v-pre>helperInteractions</code> (V15 / app version 5); the fields stay, deprecated, only for <code translate="no" v-pre>PermissionsMigration</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>
@@ -1308,7 +1308,7 @@ default (<code translate="no" v-pre>UserSetting.masterTemplate</code>...), else 
 which holds a copy of the logged-in user&#x27;s id, login and name - load the entity through <code translate="no" v-pre>UserService</code> when you need
 more.</p>
 <h3 id="permission-what-a-user-was-allowed"><code translate="no" v-pre>Permission</code> (what a user was allowed)</h3>
-<p><code translate="no" v-pre>Permission</code> (<code translate="no" v-pre>domain.security.permissions</code>, table <code translate="no" v-pre>permissions</code>, V15) extends <code translate="no" v-pre>ExtendableEntity</code>. There is at most one live row per
+<p><code translate="no" v-pre>Permission</code> (<code translate="no" v-pre>domain.security.model</code>, with <code translate="no" v-pre>PermissionType</code> in <code translate="no" v-pre>domain.security.permissions</code>; table <code translate="no" v-pre>permissions</code>, V15) extends <code translate="no" v-pre>ExtendableEntity</code>. There is at most one live row per
 holder and <code translate="no" v-pre>PermissionType</code>; a user without one does not have the permission.</p>
 <retype-table copy-text="| Field | |
 |---|---|
@@ -1592,7 +1592,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (940baf6b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (98cf49b4).</p></div>
             </footer>
         </div>
     </div>
