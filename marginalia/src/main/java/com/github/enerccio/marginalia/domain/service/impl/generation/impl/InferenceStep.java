@@ -29,7 +29,7 @@ public class InferenceStep extends GenerationStepBase {
     @Override
     protected void onStep(GenerationController controller) throws Exception {
         controller.emitEvent(Events.BEFORE_INFERENCE, () -> {
-            InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getManuscript().getAi());
+            InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getAi());
 
             long promptTokens = inferenceService.countTokens(gson.toJson(controller.getPayload()));
             controller.getMessage().setPromptTokens(promptTokens);
@@ -37,7 +37,7 @@ public class InferenceStep extends GenerationStepBase {
             warnIfOverflowing(controller, promptTokens);
 
             Pointer<Long> lastChunkReceived = new Pointer<>(System.currentTimeMillis());
-            inferenceService.stream(controller.getPayload(), controller.getManuscript().getProtocol(), new InferenceAsyncCallback() {
+            inferenceService.stream(controller.getPayload(), controller.getProtocol(), new InferenceAsyncCallback() {
 
                 @Override
                 public void onChunk(InferenceAsyncController inferenceController, ChunkType chunkType, String text) throws Exception {
@@ -162,8 +162,8 @@ public class InferenceStep extends GenerationStepBase {
      * still push it over: the provider would reject or cut it.
      */
     private void warnIfOverflowing(GenerationController controller, long promptTokens) {
-        int context = TokenLimits.contextTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol());
-        int response = TokenLimits.responseTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol());
+        int context = TokenLimits.contextTokens(controller.getAi(), controller.getProtocol());
+        int response = TokenLimits.responseTokens(controller.getAi(), controller.getProtocol());
         if (context > 0 && promptTokens + response > context) {
             log.warn("Prompt of {} tokens and response of {} exceed the context of {}", promptTokens, response, context);
             controller.getUIListener().onWarning(String.format(loc.getValue(L.MSG_PROMPT_MAY_OVERFLOW), promptTokens, response, context));

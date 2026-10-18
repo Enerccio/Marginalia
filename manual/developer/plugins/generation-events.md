@@ -134,7 +134,7 @@ private void reserveAuthorsNote(GenerationControllerEvent event, EventChain chai
 }
 ```
 
-`countTokens` counts the note with the book's model (`inferenceServices.forAI(manuscript.getAi()).countTokens(...)`)
+`countTokens` counts the note with the model of the generation (`inferenceServices.forAI(event.getAi()).countTokens(...)`, which is not always the book's model)
 and adds 100 tokens for the message headers, like the budget does for every story part. 0 when the note is off.
 
 - **Add, don't overwrite.** Several extensions may reserve tokens in one generation:

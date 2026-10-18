@@ -1,8 +1,10 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation;
 
 import com.github.enerccio.marginalia.domain.components.TurnInput;
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
@@ -14,6 +16,18 @@ public interface GenerationControllerEvent {
 
     Manuscript getManuscript();
     void setManuscript(Manuscript manuscript);
+
+    /**
+     * AI the generation really uses, which is not always the manuscript's (see {@link GenerationOptions}): count tokens
+     * and read limits with this one.
+     */
+    AI getAi();
+
+    /**
+     * Protocol the generation really uses, see {@link #getAi()}.
+     */
+    Protocol getProtocol();
+
     /**
      * Message being generated, available from {@link Events#AFTER_GENERATE_NEW_MESSAGE}.
      */

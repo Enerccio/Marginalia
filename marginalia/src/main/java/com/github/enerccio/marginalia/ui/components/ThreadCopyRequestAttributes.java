@@ -43,10 +43,10 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 
 	public static class InRequestScope implements AutoCloseable {
 
-		private final ThreadCopyRequestAttributes attributes;
+		private final RequestAttributes attributes;
 		private final RequestAttributes oldAttributes;
 
-		public InRequestScope(ThreadCopyRequestAttributes attributes) {
+		public InRequestScope(RequestAttributes attributes) {
 			this.attributes = attributes;
 			oldAttributes = RequestContextHolder.getRequestAttributes();
 			if (attributes == null)
