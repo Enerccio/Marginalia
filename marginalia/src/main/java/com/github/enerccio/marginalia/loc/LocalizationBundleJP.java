@@ -382,6 +382,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "ロアブック内を検索して置換");
         setValue(L.LABEL_COMMAND_DESTRUCTIVE, "破壊的");
         setValue(L.LABEL_COMMAND_NON_DESTRUCTIVE, "非破壊的");
+        setValue(L.LABEL_PERMISSIONS, "権限");
+        setValue(L.LABEL_PERMISSION, "権限");
+        setValue(L.LABEL_GRANTED, "付与");
+        setValue(L.LABEL_ADD_PERMISSION, "権限を追加");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -429,6 +433,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_RESET_WEEKLY, "毎週（月曜日から）");
         setValue(L.ENUM_RESET_MONTHLY, "毎月");
         setValue(L.ENUM_AI_TYPE_EXTENSION, "拡張機能");
+        setValue(L.ENUM_PERMISSION_HELPER, "ヘルプアシスタント");
+        setValue(L.ENUM_PERMISSION_CREATE_AI, "独自のモデルの作成");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -593,6 +599,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_REPLACING, "置換中");
         setValue(L.MSG_COMMAND_REPLACE_CONFIRM, "%d 件の一致（%d 項目）を置換しますか？\n\"%s\" -> \"%s\"\nプレビューはなく、変更は元に戻せません。");
         setValue(L.MSG_COMMAND_REPLACE_CANCELLED, "置換を中止しました。何も変更されていません");
+        setValue(L.MSG_UNSAVED_CHANGES_EXIT, "未保存の変更があります。保存せずに終了しますか？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

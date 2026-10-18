@@ -13,6 +13,14 @@
         <property name="repository" ref="userRepository" />
     </bean>
 
+    <bean id="permissionRepository" class="com.github.enerccio.marginalia.domain.security.repository.impl.JpaPermissionRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.security.service.impl.PermissionServiceImpl">
+        <property name="repository" ref="permissionRepository" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.InferenceServicesImpl">
         <property name="inferenceProviders">
             <list>

@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ExtensionLogDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
+import com.github.enerccio.marginalia.ui.dialogs.permissions.PermissionsDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.ui.workspace.parts.admin.CleanupPanel;
@@ -27,7 +28,6 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -48,11 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.List;
+import java.util.*;
 
 @Configurable
 @Extendable
@@ -177,12 +173,11 @@ public class AdminPart implements WorkspaceComponent {
         return LLMInteract.options(all, selected == null ? null : adminPanels.get(selected), deep);
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "layout", type = VerticalLayout.class),
                     @APILocals(name = "toolbar", type = HorizontalLayout.class),
-                    @APILocals(name = "addUserButton", type = Button.class),
-                    @APILocals(name = "userAisCheckbox", type = Checkbox.class)})
+                    @APILocals(name = "addUserButton", type = Button.class)})
     private Component createUsersTab() throws Exception {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
@@ -194,21 +189,6 @@ public class AdminPart implements WorkspaceComponent {
         Button addUserButton = new Button(loc.getValue(L.LABEL_ADD_USER), Solid.PLUS_CIRCLE.create(), e -> openUserDialog(new User()));
         addUserButton.setThemeName("primary");
         toolbar.add(addUserButton);
-
-        // when off, users can only use the AIs the administrators share (the ones they already have keep working)
-        Checkbox userAisCheckbox = new Checkbox(loc.getValue(L.LABEL_USERS_CAN_CREATE_AIS), aiService.isUserCreationAllowed());
-        userAisCheckbox.addValueChangeListener(e -> {
-            if (!e.isFromClient()) {
-                return;
-            }
-            try {
-                aiService.setUserCreationAllowed(e.getValue());
-            } catch (Exception ex) {
-                userAisCheckbox.setValue(e.getOldValue());
-                UIUtils.internalServerError(loc, ex);
-            }
-        });
-        toolbar.add(userAisCheckbox);
 
         usersGrid = new Grid<>(User.class, false);
         usersGrid.setSizeFull();
@@ -232,16 +212,19 @@ public class AdminPart implements WorkspaceComponent {
 
                     Button editButton = new Button(Solid.PEN.create(), e -> openUserDialog(user));
 
+                    Button permissionsButton = new Button(Solid.KEY.create(), e -> openPermissionsDialog(user));
+                    permissionsButton.setTooltipText(loc.getValue(L.LABEL_PERMISSIONS));
+
                     Button deleteButton = new Button(Solid.TRASH.create(), e -> deleteUser(user));
                     deleteButton.setThemeName("error tertiary");
                     deleteButton.setEnabled(!user.getId().equals(currentUser.getId()));
 
-                    actions.add(editButton, deleteButton);
+                    actions.add(editButton, permissionsButton, deleteButton);
                     return actions;
                 })
                 .setHeader("")
                 .setFlexGrow(0)
-                .setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
+                .setWidth(UIConstants.TOOL_COLUMN_SIZE_GIANT);
 
         layout.add(toolbar, usersGrid);
         layout.setFlexGrow(1, usersGrid);
@@ -257,6 +240,16 @@ public class AdminPart implements WorkspaceComponent {
     private void openUserDialog(User user) {
         UserDialog dialog = new UserDialog(user, false);
         dialog.setOnSave(this::refreshUsersGrid);
+        dialog.create();
+        dialog.open();
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "user", type = User.class)},
+            locals = {@APILocals(name = "dialog", type = PermissionsDialog.class)})
+    private void openPermissionsDialog(User user) {
+        PermissionsDialog dialog = new PermissionsDialog(user);
         dialog.create();
         dialog.open();
     }

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.loc;
 
 import com.github.enerccio.marginalia.domain.collections.*;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
@@ -42,6 +43,7 @@ public interface Localization {
     L getCleanupPolicy(CleanupReference.Policy t);
     L getLorebookMatch(LorebookMatch t);
     L getLorebookDecision(LorebookDecision t);
+    L getPermissionType(PermissionType t);
 
     /**
      * Localized name of the kind of object an entity class stands for (book, lorebook...), subclasses use the name of

@@ -390,6 +390,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "在世界书中查找并替换");
         setValue(L.LABEL_COMMAND_DESTRUCTIVE, "破坏性");
         setValue(L.LABEL_COMMAND_NON_DESTRUCTIVE, "非破坏性");
+        setValue(L.LABEL_PERMISSIONS, "权限");
+        setValue(L.LABEL_PERMISSION, "权限");
+        setValue(L.LABEL_GRANTED, "已授予");
+        setValue(L.LABEL_ADD_PERMISSION, "添加权限");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -437,6 +441,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_RESET_WEEKLY, "每周（从周一开始）");
         setValue(L.ENUM_RESET_MONTHLY, "每月");
         setValue(L.ENUM_AI_TYPE_EXTENSION, "扩展");
+        setValue(L.ENUM_PERMISSION_HELPER, "帮助助手");
+        setValue(L.ENUM_PERMISSION_CREATE_AI, "创建自己的模型");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -601,6 +607,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_REPLACING, "正在替换");
         setValue(L.MSG_COMMAND_REPLACE_CONFIRM, "要替换 %d 处匹配（共 %d 项）吗？\n\"%s\" -> \"%s\"\n没有预览，且更改无法撤销。");
         setValue(L.MSG_COMMAND_REPLACE_CANCELLED, "已取消替换，未做任何更改");
+        setValue(L.MSG_UNSAVED_CHANGES_EXIT, "有未保存的更改。不保存就退出吗？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

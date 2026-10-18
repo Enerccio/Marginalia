@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.model.Setting;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookMatch;
@@ -41,6 +42,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<CleanupReference.Policy, L> cleanupPolicies = new HashMap<>();
     private final Map<LorebookMatch, L> lorebookMatches = new HashMap<>();
     private final Map<LorebookDecision, L> lorebookDecisions = new HashMap<>();
+    private final Map<PermissionType, L> permissionTypes = new HashMap<>();
     private final Map<Class<?>, L> domainObjects = new HashMap<>();
 
     public LocalizationImpl() {
@@ -87,6 +89,9 @@ public class LocalizationImpl implements Localization, InitializingBean {
         limitStrategies.put(LimitStrategy.UNLIMITED, L.ENUM_LIMIT_UNLIMITED);
         limitStrategies.put(LimitStrategy.TOKEN_LIMIT, L.ENUM_LIMIT_TOKEN_LIMIT);
         limitStrategies.put(LimitStrategy.NOT_AVAILABLE, L.ENUM_LIMIT_NOT_AVAILABLE);
+
+        permissionTypes.put(PermissionType.HELPER, L.ENUM_PERMISSION_HELPER);
+        permissionTypes.put(PermissionType.CREATE_AI, L.ENUM_PERMISSION_CREATE_AI);
 
         resetStrategies.put(ResetStrategy.DAILY, L.ENUM_RESET_DAILY);
         resetStrategies.put(ResetStrategy.WEEKLY, L.ENUM_RESET_WEEKLY);
@@ -290,6 +295,11 @@ public class LocalizationImpl implements Localization, InitializingBean {
     @Override
     public L getLimitStrategy(LimitStrategy type) {
         return limitStrategies.get(type);
+    }
+
+    @Override
+    public L getPermissionType(PermissionType type) {
+        return permissionTypes.get(type);
     }
 
     @Override

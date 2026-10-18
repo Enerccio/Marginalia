@@ -951,3 +951,8 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     color: var(--lumo-secondary-text-color);
     opacity: 0.6;
 }
+
+.fold-spacer {
+    display: inline-block;
+    width: var(--lumo-size-s);
+}

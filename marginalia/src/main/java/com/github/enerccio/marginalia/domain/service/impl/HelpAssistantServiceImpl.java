@@ -5,7 +5,10 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
+import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
+import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.InferenceException.Type;
@@ -13,20 +16,11 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceA
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
-import com.github.enerccio.marginalia.domain.service.manual.AdminDataSource;
-import com.github.enerccio.marginalia.domain.service.manual.AdminHelpTools;
-import com.github.enerccio.marginalia.domain.service.manual.AdminHelpToolsImpl;
-import com.github.enerccio.marginalia.domain.service.manual.ManualPage;
-import com.github.enerccio.marginalia.domain.service.manual.HelpPrompts;
-import com.github.enerccio.marginalia.domain.service.manual.HelpTools;
-import com.github.enerccio.marginalia.domain.service.manual.HelpToolsImpl;
-import com.github.enerccio.marginalia.domain.service.manual.InteractiveHelpTools;
-import com.github.enerccio.marginalia.domain.service.manual.InteractiveHelpToolsImpl;
-import com.github.enerccio.marginalia.domain.service.manual.UiStateSource;
-import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.domain.service.manual.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,6 +42,9 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PermissionService permissionService;
 
     @Autowired
     private InferenceServices inferenceServices;
@@ -76,8 +73,7 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
     public Settings getSettings() throws Exception {
         adminGuard.requireAdmin();
         AppSettings app = settingService.getOrCreateApp(AppSettings.class);
-        return new Settings(app.getHelpEnabled(), app.getHelpAiUuid(), app.getHelpApplyLimits(),
-                app.getHelpPromptAdmin(), app.getHelpPromptUser(), app.getHelpInteractions(), app.getHelpAdminData());
+        return new Settings(app.getHelpAiUuid(), app.getHelpPromptAdmin(), app.getHelpPromptUser(), app.getHelpAdminData());
     }
 
     @Override
@@ -88,14 +84,8 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
         if (aiUuid != null && !isOwnedByCurrentUser(load(aiService, aiUuid))) {
             throw new IllegalArgumentException("The help AI has to be your own AI");
         }
-        if (settings.enabled() && aiUuid == null) {
-            throw new IllegalArgumentException("The help assistant needs an AI");
-        }
         AppSettings app = settingService.getOrCreateApp(AppSettings.class);
-        app.setHelpEnabled(settings.enabled());
         app.setHelpAiUuid(aiUuid);
-        app.setHelpApplyLimits(settings.applyLimits());
-        app.setHelpInteractions(settings.interactions());
         app.setHelpAdminData(settings.adminData());
         app.setHelpPromptAdmin(promptOrNull(settings.adminPrompt(), HelpPrompts.ADMIN));
         app.setHelpPromptUser(promptOrNull(settings.userPrompt(), HelpPrompts.USER));
@@ -141,7 +131,8 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
             throws Exception {
         // only with a screen to move through: a request that does not come from a page has nothing to interact with
         AppSettings app = settingService.getOrCreateApp(AppSettings.class);
-        boolean interactive = uiState != null && app.getHelpInteractions();
+        Permission helper = helperPermission();
+        boolean interactive = uiState != null && helper != null && helper.getHelperInteractions();
         // the data of the Admin page: only for an administrator, and only when an administrator allowed it
         boolean adminData = app.getHelpAdminData() && adminGuard.isAdmin();
         List<LLMChatMessage> payload = new ArrayList<>();
@@ -190,16 +181,27 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
         return sb.toString().stripTrailing();
     }
 
+    /**
+     * The permission {@code HELPER} of the current user, null when they do not have it (an administrator may ask
+     * without it, then the settings of the permission have their defaults: the limits do not apply and the model does
+     * not move through the interface).
+     */
+    private Permission helperPermission() throws Exception {
+        Permission permission = permissionService.getPermission(currentUser, PermissionType.HELPER);
+        return permission != null && permission.isGranted() ? permission : null;
+    }
+
     private Optional<Target> target() throws Exception {
         AppSettings app = settingService.getOrCreateApp(AppSettings.class);
-        if (!app.getHelpEnabled()) {
+        Permission helper = helperPermission();
+        if (helper == null && !adminGuard.isAdmin()) {
             return Optional.empty();
         }
         AI ai = load(aiService, app.getHelpAiUuid());
         if (!ownedByAdministrator(ai)) {
             return Optional.empty();
         }
-        return Optional.of(new Target(ai, ai.isShared() && app.getHelpApplyLimits()));
+        return Optional.of(new Target(ai, ai.isShared() && helper != null && helper.getHelperApplyLimits()));
     }
 
     /**
