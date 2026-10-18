@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845649012580">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845649012580" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845649012580" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845678350344" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -228,6 +228,12 @@ the arguments are truly free-form. A declared signature that fits always wins ov
 <p>An argument of type <code translate="no" v-pre>Object.class</code> is &quot;any&quot; and also accepts a list of objects, passed as one argument.</p>
 </li>
 <li>
+<p>A parameter can say more for an agent (it is the schema of the function, see <a href="../../services/#commands-as-functions">Commands as functions</a>):
+<code translate="no" v-pre>optional = true</code> (it may be left out), <code translate="no" v-pre>defaultValue = &quot;0&quot;</code> (text, converted to the type) and <code translate="no" v-pre>allowed = {&quot;short&quot;, &quot;long&quot;}</code> (an enum type needs
+none, its constants are the values). Without <code translate="no" v-pre>optional</code> a parameter is required when every form of the command has it, so with a ladder of forms
+that each add a parameter only the first ones are required. The command line ignores all three.</p>
+</li>
+<li>
 <p>The suite is <strong>stateless</strong>. Do not keep the book, the user or the result in a field. See <a href="../#statelessness">Statelessness</a>.</p>
 </li>
 </ul>
@@ -324,7 +330,10 @@ public void title(CommandContext context) {
 }</code></pre>
 </doc-codeblock></div>
 <p><code translate="no" v-pre>CommandUtils</code> returns <code translate="no" v-pre>null</code> when nothing is open (no workspace yet, no book). The same code works in the desktop and in
-the phone layout, because <code translate="no" v-pre>getManuscriptWindow()</code> returns the <code translate="no" v-pre>ManuscriptWindow</code> interface. Use the services for data;
+the phone layout, because <code translate="no" v-pre>getManuscriptWindow()</code> returns the <code translate="no" v-pre>ManuscriptWindow</code> interface, and for an agent, whose
+<code translate="no" v-pre>AgenticSessionPoint</code> holds the book directly (<code translate="no" v-pre>CommandUtils.getCurrentManuscript()</code> delegates to
+<code translate="no" v-pre>SessionPoint.getCurrentManuscript()</code>); a command that must work for agents asks <code translate="no" v-pre>CommandUtils</code> for the book and does not go
+through the workspace itself. Use the services for data;
 they check ownership of the current user.</p>
 <h2 id="failing">Failing</h2>
 <p>A synchronous command can throw; the caller gets a <code translate="no" v-pre>CommandException</code> with the exception as its cause. <code translate="no" v-pre>fail</code> does the same
@@ -474,7 +483,7 @@ only after the answer. <code translate="no" v-pre>/search-replace-parts</code> a
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (cec2a331).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
             </footer>
         </div>
     </div>

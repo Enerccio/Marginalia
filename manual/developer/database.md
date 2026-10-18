@@ -128,6 +128,7 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V13 | `V13__usage_ai_nullable.sql` | `usages.ai_id` allows NULL (table rebuilt, SQLite cannot drop NOT NULL): the cleanup nulls the reference to an AI before it purges it, which failed for an AI with usage rows. |
 | V14 | `V14__extension_ai.sql` | New table `ais_extension` (`extensionId`, `id`): the subclass `ExtensionAI` of `AI`, an AI provided by an extension. The settings of the provider are not columns, they are in the attributes of the AI. |
 | V15 | `V15__permissions.sql` | New table `permissions` (`permissionType`, `holder_id`, `granted`, owner `userId`, extended content) and its `permissions_SEQ`, the index `(holder_id, permissionType, is_deleted)`: the entity `Permission`. See [`Permission`](domain-model.md#permission-what-a-user-was-allowed). |
+| V16 | `V16__agents.sql` | New tables `agents` (`name`, `enabled`, `manuscript_id`, owner `userId`, extended content), `agent_runs` (`agent_id`, `status`, `statusReason`, `workingCopy_id`, `prefillTokens`, `generatedTokens`, `rounds`, `startedAt`, `finishedAt`) and `agent_messages` (`run_id`, `ordinal`: the transcript of a run) with their `_SEQ` tables and indexes: the entities `Agent`, `AgentRun` and `AgentMessage`; the column `agentic` of `manuscripts` and `lorebooks` (a working copy of an agent). `manuscript_id`, `agent_id` are nullable (the cleanup nulls an `OWNED_BY` reference before the purge). A partial unique index `ux_agent_runs_unfinished` keeps one run per agent that is not over (the statuses are listed in the index, a new status that is not terminal needs a new migration). See [`Agent`](domain-model.md#agent-and-agentrun-agents). |
 
 ### Rules
 
@@ -320,6 +321,7 @@ means the index is used. `FlywayMigrationTest.tagRelationLookupsUseIndexes` does
 | DDL in transactions | SQLite supports transactional DDL, so a failing migration is rolled back completely. |
 | No `VACUUM` inside a transaction | `VACUUM INTO` for backups runs with `@NoTx`. |
 | Dynamic typing | A column accepts any value; the entity mapping is what keeps types consistent. |
+| 500 terms in a compound SELECT | The driver answers `getColumns` of all tables with one compound SELECT, so the columns of all tables together would be limited to 500 (the validation after the migrations hit it with `V16`). `persistence.xml` therefore sets `hibernate.hbm2ddl.jdbc_metadata_extraction_strategy` to `individually`, validate table by table - keep it. |
 
 ## Database backups and restores
 

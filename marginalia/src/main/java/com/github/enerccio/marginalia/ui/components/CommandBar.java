@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -355,7 +356,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
 
         // an asynchronous command: block the UI with a window that can stop it
         UI ui = UI.getCurrent();
-        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         CommandProgressDialog dialog = new CommandProgressDialog(humanName, () -> future.cancel(true));
         dialog.create();
         dialog.open();

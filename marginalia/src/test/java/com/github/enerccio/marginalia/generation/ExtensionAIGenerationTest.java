@@ -19,6 +19,7 @@ import com.vaadin.flow.component.Component;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -141,7 +142,7 @@ class ExtensionAIGenerationTest extends GenerationTestBase {
 
         @Override
         public CancellationToken stream(List<LLMChatMessage> payload, Protocol protocol, InferenceAsyncCallback callback) {
-            ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+            RequestAttributes attributes = ThreadCopyRequestAttributes.create();
             InferenceAsyncController controller = new InferenceAsyncController() {
                 @Override
                 public void continueInference() {
@@ -160,7 +161,7 @@ class ExtensionAIGenerationTest extends GenerationTestBase {
             void run() throws Exception;
         }
 
-        private static void run(ThreadCopyRequestAttributes attributes, Action action) {
+        private static void run(RequestAttributes attributes, Action action) {
             CompletableFuture.runAsync(() -> {
                 try (InRequestScope _ = new InRequestScope(attributes)) {
                     action.run();

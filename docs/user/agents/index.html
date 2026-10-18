@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Agents</title>
+    <meta name="title" content="Agents">
+    <meta name="description" content="An agent is a model that works on one of your books on its own, for a long time, calling the commands you allow it as its tools: it can read the story, check it against the lorebook and report to you.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/agents/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/agents/">
+    <meta property="og:title" content="Agents">
+    <meta property="og:description" content="An agent is a model that works on one of your books on its own, for a long time, calling the commands you allow it as its tools: it can read the story, check it against the lorebook and report to you.">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/agents/">
+    <meta name="twitter:title" content="Agents">
+    <meta name="twitter:description" content="An agent is a model that works on one of your books on its own, for a long time, calling the commands you allow it as its tools: it can read the story, check it against the lorebook and report to you.">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/agents.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="agents">Agents</h1>
+<p>An <strong>agent</strong> is a model that works on one of your books on its own, for a long time, calling the <a href="../commands/">commands</a>
+you allow it as its tools: it can read the story, check it against the lorebook and report to you. The <strong>Agents</strong> tab is
+where you create them, set what each may do, start and stop their runs, talk to them in the <doc-anchor-trigger to="#the-console">console</doc-anchor-trigger> and clone them.</p>
+<div class="flex mb-6">
+    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
+    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
+        <div class="flex items-center ml-4 h-7">
+            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+                <g fill="currentColor"><g>
+                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
+                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                </g></g>
+            </svg>
+        </div>
+        <div class="pr-5 ml-3 w-full">
+            <h5>What this version can do</h5>
+<p><strong>Start</strong> now runs the agent: it works in the background, one round at a time, calling the commands you allowed and its own file tools, until it
+finishes, asks you something, reaches a limit or you pause or stop it (see <doc-anchor-trigger to="#a-run">A run</doc-anchor-trigger>). It works on a hidden <doc-anchor-trigger to="#the-working-copy">copy</doc-anchor-trigger> of the
+book, so your book is never touched; the book itself is <doc-anchor-trigger to="#the-book-is-locked">locked</doc-anchor-trigger> while it works. Bringing the changes of the agent back
+into your book (the review) is not in this version yet, so use it to read the book and the lorebooks and to keep notes in its files.</p>
+        </div>
+    </div>
+</div>
+<p>The tab is there only if an administrator gave you the <strong>Agents</strong> <a href="../administration/permissions/">permission</a> (administrators always
+have it). It is not in the phone layout yet.</p>
+<h2 id="the-table">The table</h2>
+<retype-table copy-text="| Column | |
+|---|---|
+| **Agent ID** | The identifier of the agent. |
+| **Name** | The name you gave it. |
+| **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Column</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Agent ID</strong></td>
+<td>The identifier of the agent.</td>
+</tr>
+<tr>
+<td><strong>Name</strong></td>
+<td>The name you gave it.</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>What its run is doing: <em>Running</em>, <em>Waiting for you</em>, <em>Waiting for approval</em>, <em>Pausing</em>, <em>Paused</em>, <em>Stopping</em>, <em>Stopped, result kept</em>, <em>Done, waits for the review</em>. An agent without a run says <em>Not running</em>, or <em>Disabled</em> when it is switched off.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The buttons at the end of a row depend on the run:</p>
+<retype-table copy-text="| Button | |
+|---|---|
+| **Start** | Opens a menu. **Start immediately**: the agent works on its task (its instructions) on its own and you hear of it when it asks or finishes. **Start in console**: opens the [console](#the-console) and tells the agent not to work yet but to ask you at once what you want it to do; the run is then a [conversation](#a-run) that goes on until you press **Finish**. |
+| **Resume** | Goes on with a paused or stopped run (shown instead of **Start**). |
+| **Pause** | Pauses a run that works or waits for you. |
+| **Console** | Opens the [console](#the-console) of the agent. |
+| **Stop** | Asks whether to **keep the result** (the run can be resumed later) or **discard** it. |
+| **Edit** | Opens the agent. |
+| **Clone** | Copies the agent, see [Cloning](#cloning). |
+| **Delete** | Moves the agent, with its runs, to the [trash](trash.md). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Button</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Start</strong></td>
+<td>Opens a menu. <strong>Start immediately</strong>: the agent works on its task (its instructions) on its own and you hear of it when it asks or finishes. <strong>Start in console</strong>: opens the <doc-anchor-trigger to="#the-console">console</doc-anchor-trigger> and tells the agent not to work yet but to ask you at once what you want it to do; the run is then a <doc-anchor-trigger to="#a-run">conversation</doc-anchor-trigger> that goes on until you press <strong>Finish</strong>.</td>
+</tr>
+<tr>
+<td><strong>Resume</strong></td>
+<td>Goes on with a paused or stopped run (shown instead of <strong>Start</strong>).</td>
+</tr>
+<tr>
+<td><strong>Pause</strong></td>
+<td>Pauses a run that works or waits for you.</td>
+</tr>
+<tr>
+<td><strong>Console</strong></td>
+<td>Opens the <doc-anchor-trigger to="#the-console">console</doc-anchor-trigger> of the agent.</td>
+</tr>
+<tr>
+<td><strong>Stop</strong></td>
+<td>Asks whether to <strong>keep the result</strong> (the run can be resumed later) or <strong>discard</strong> it.</td>
+</tr>
+<tr>
+<td><strong>Edit</strong></td>
+<td>Opens the agent.</td>
+</tr>
+<tr>
+<td><strong>Clone</strong></td>
+<td>Copies the agent, see <doc-anchor-trigger to="#cloning">Cloning</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Delete</strong></td>
+<td>Moves the agent, with its runs, to the <a href="../trash/">trash</a>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Starting is refused, with the reason, when the agent is disabled, has no model, or you have all the runs you may work at once.</p>
+<p>An agent has at most one run that is not over, and a book has at most one agent.</p>
+<h2 id="a-run">A run</h2>
+<p>A run is the job of the agent. It works in rounds: the model is asked once, it answers with text and/or calls to its tools, the results go back, and so on.
+Every round is saved, so a run can be paused and go on later, even after the server was restarted. The agent has the commands you allowed and
+these of its own:</p>
+<retype-table copy-text="| Tool | |
+|---|---|
+| Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `delete_file` in its own workspace (notes it keeps between runs). |
+| `@file:/path` | Not a tool but a way to call one: a text argument of a command that is exactly `@file:/notes/chapter.md` is replaced by the contents of that file of the agent's workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). `write_file` and `append_file` take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way. |
+| `update_plan` | Its to-do list. |
+| `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
+| `ask_user` | A question for you. The run waits (*Waiting for you*). |
+| `finish` | Its report: the run is *Done*. The report is shown as the reason of the status. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Tool</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Files</td>
+<td><code translate="no" v-pre>list_files</code>, <code translate="no" v-pre>read_file</code>, <code translate="no" v-pre>write_file</code>, <code translate="no" v-pre>append_file</code>, <code translate="no" v-pre>replace_in_file</code>, <code translate="no" v-pre>regex_replace_in_file</code>, <code translate="no" v-pre>grep_files</code>, <code translate="no" v-pre>move_file</code>, <code translate="no" v-pre>delete_file</code> in its own workspace (notes it keeps between runs).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@file:/path</code></td>
+<td>Not a tool but a way to call one: a text argument of a command that is exactly <code translate="no" v-pre>@file:/notes/chapter.md</code> is replaced by the contents of that file of the agent&#x27;s workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). <code translate="no" v-pre>write_file</code> and <code translate="no" v-pre>append_file</code> take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>update_plan</code></td>
+<td>Its to-do list.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>get_run_status</code></td>
+<td>How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ask_user</code></td>
+<td>A question for you. The run waits (<em>Waiting for you</em>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>finish</code></td>
+<td>Its report: the run is <em>Done</em>. The report is shown as the reason of the status.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>How a run ends a stretch of work:</p>
+<ul>
+<li>
+<p><strong>Waiting for you:</strong> the agent answered without a tool call, or asked you something. Answer it in the <doc-anchor-trigger to="#the-console">console</doc-anchor-trigger>.</p>
+</li>
+<li>
+<p><strong>Done:</strong> the agent called <code translate="no" v-pre>finish</code> (in a run you started <em>immediately</em>). A run you started <em>in the console</em> is a conversation: the report of the agent comes to you like a question, the run waits for your next message, and only <strong>Finish</strong> in the console (or <strong>Stop</strong>) ends it.</p>
+</li>
+<li>
+<p><strong>Paused</strong>, with the reason: the limit of rounds, the token budget or the context limit is reached, the model could not be asked (an error of
+the provider, your limit on the AI), or the server was restarted. <strong>Resume</strong> goes on from the last complete round; a call that was in the air when the
+server stopped is reported to the model as &quot;outcome unknown&quot;.</p>
+</li>
+<li>
+<p><strong>Failed:</strong> the runner itself broke; the reason says what.</p>
+</li>
+</ul>
+<p><strong>Pause</strong> and <strong>Stop</strong> take effect between two rounds: the model request and the calls that are going on finish first.</p>
+<h2 id="the-console">The console</h2>
+<p><strong>Console</strong> opens a window for the latest run of the agent, with three tabs.</p>
+<p><strong>Run</strong> shows the <em>transcript</em>: what you told the agent, what it said (both as <a href="https://commonmark.org/help/">Markdown</a>, so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
+arguments (click it to see them and the result, shown as plain text). When the model sends its <strong>reasoning</strong> (what it thought before it answered), a folded <em>Reasoning</em> block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. The state of the run, the <strong>context</strong> (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
+is one) stay above it and the box for your message under it, while the transcript scrolls. The last bubble of the transcript is what the agent waits for:</p>
+<ul>
+<li>when the run is <em>Waiting for you</em>, the question of the agent; write the answer in the box and press <strong>Send</strong> (or <strong>Ctrl+Enter</strong>), and the agent goes on;</li>
+<li>when the run is <em>Done</em>, the report of the agent.</li>
+</ul>
+<p>The buttons at the bottom are <strong>Pause</strong>, <strong>Resume</strong> and <strong>Stop</strong>, which do what they do in the table, and <strong>Finish</strong>, which ends a run that waits for you (its work is over, <em>Done</em>).</p>
+<p>The window looks at the run every two seconds while it is open; <strong>Refresh</strong> does it at once. The <strong>Run</strong> tab shows the latest run that was not discarded, so a run that finished or failed can still be read there until the agent starts a new run; older runs are in <strong>Runs</strong>.</p>
+<p><strong>Runs</strong> is the history of the agent: every run it had, the latest first, with its date, status, rounds, tokens and result. Use the eye to <strong>open</strong> a
+run in the <strong>Run</strong> tab and read its steps and its report again (the run you open stays there until you open another one), the arrow to
+<strong>download</strong> its transcript as a Markdown file (what was said, every command with its arguments and result, the report), and the bin to <strong>delete</strong> it.
+A deleted run goes to the <a href="../trash/">trash</a>. A run that is going on can&#x27;t be deleted, stop it first. Runs you stopped and <strong>discarded</strong> are in the list
+too, so you can read what they did or delete them; the <strong>Run</strong> tab shows them only when you open them.</p>
+<p><strong>Workspace</strong> shows the files of the agent: its notes and reports, which it keeps between runs. Click a folder to go in (<strong>Up</strong> goes back), click a
+text file to read it, use the arrows to download a file or the bin to delete it, and <strong>Clear</strong> deletes everything (stale notes mislead a fresh run).
+Files can&#x27;t be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files; the line
+under the table says how much is used.</p>
+<h2 id="asking-you">Asking you</h2>
+<p>When the agent needs you, you are told wherever you are in the app:</p>
+<ul>
+<li>a <strong>number on the Agents tab</strong> counts the agents that wait for you, and the <strong>Console</strong> button of such an agent is highlighted;</li>
+<li>a <strong>notice</strong> pops up with an <strong>Open</strong> button that opens the console of that agent.</li>
+</ul>
+<p>The agent needs you when it <em>asks you something or waits for your next message</em>, asks you to <strong>approve a command</strong>, <em>finished</em>, <em>failed</em>, or
+was <em>paused by itself</em> (a limit is reached, the model could not be asked, the server was restarted). A pause you asked for does not count.</p>
+<p>Agents work while you are away, so this does not depend on the app being open: the number is there when you log in again, and every browser
+window you have open gets the notice. Opening the console of the agent clears it (the other windows update).</p>
+<p>When the agent is set to <strong>Ask first</strong> and wants a command that changes or removes data, the run stops in <em>Waiting for approval</em> and a window
+pops up over the console with the command and its arguments. <strong>Approve</strong> lets it run, <strong>Deny</strong> tells the agent that you refused and it goes on.
+Pausing or stopping the run refuses the command too. The command still works on the <doc-anchor-trigger to="#the-working-copy">copy</doc-anchor-trigger> of the book. If the console is
+closed, the window is there as soon as you open it.</p>
+<h2 id="the-working-copy">The working copy</h2>
+<p>Every run works on a <strong>copy of your book</strong> and of its lorebooks that the app makes when the run starts: the messages, summaries, tags and settings
+as they are at that moment, and the lorebook with its sub-lorebooks. The copy is hidden: it is not in the lists of books and lorebooks. Whatever the
+agent does, it does to the copy; your book stays as it was.</p>
+<p>A paused run keeps its copy and works on it again when you resume it. When the run ends (it is <em>Done</em>, <em>Failed</em> or you stop it and discard the result)
+the copy is deleted for good, and the next run makes a new one from the book as it is then. Nothing brings the changes of the copy back into your
+book yet.</p>
+<h2 id="creating-and-editing-an-agent">Creating and editing an agent</h2>
+<p><strong>New agent</strong> opens the same window as <strong>Edit</strong>:</p>
+<retype-table copy-text="| Field | |
+|---|---|
+| **Name** | Required. |
+| **Enabled** | A disabled agent can't be started; its runs that exist are not touched. |
+| **Book** | The book the agent works on, required. Only books that have no agent are offered, and the book of an agent can't be changed later. |
+| **Model**, **Protocols** | The model and the protocol the agent talks with. Both, or neither; an agent without them can't be started. |
+| **Destructive commands** | What happens when the agent wants a command that changes or removes data: *Run them*, *Ask first* (a [window](#asking-you) asks you to approve it) or *Refuse them*. |
+| **Most rounds**, **Token budget of a run**, **Context limit** | Optional limits of one run. The limit your administrator gave you applies in any case. |
+| **System prompt** | What the agent is told to be. A new agent starts with the default one; **Restore default** puts it back. |
+| **Instructions (agents.md)** | Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. |
+| **Allowed commands** | See below. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Name</strong></td>
+<td>Required.</td>
+</tr>
+<tr>
+<td><strong>Enabled</strong></td>
+<td>A disabled agent can&#x27;t be started; its runs that exist are not touched.</td>
+</tr>
+<tr>
+<td><strong>Book</strong></td>
+<td>The book the agent works on, required. Only books that have no agent are offered, and the book of an agent can&#x27;t be changed later.</td>
+</tr>
+<tr>
+<td><strong>Model</strong>, <strong>Protocols</strong></td>
+<td>The model and the protocol the agent talks with. Both, or neither; an agent without them can&#x27;t be started.</td>
+</tr>
+<tr>
+<td><strong>Destructive commands</strong></td>
+<td>What happens when the agent wants a command that changes or removes data: <em>Run them</em>, <em>Ask first</em> (a <doc-anchor-trigger to="#asking-you">window</doc-anchor-trigger> asks you to approve it) or <em>Refuse them</em>.</td>
+</tr>
+<tr>
+<td><strong>Most rounds</strong>, <strong>Token budget of a run</strong>, <strong>Context limit</strong></td>
+<td>Optional limits of one run. The limit your administrator gave you applies in any case.</td>
+</tr>
+<tr>
+<td><strong>System prompt</strong></td>
+<td>What the agent is told to be. A new agent starts with the default one; <strong>Restore default</strong> puts it back.</td>
+</tr>
+<tr>
+<td><strong>Instructions (agents.md)</strong></td>
+<td>Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them.</td>
+</tr>
+<tr>
+<td><strong>Allowed commands</strong></td>
+<td>See below.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="allowed-commands">Allowed commands</h3>
+<p>The agent is offered only the commands you tick. The table lists every command with its effect (<em>Destructive</em> changes or removes
+data, <em>Non-destructive</em> only reads or adds). The <strong>Selection</strong> box ticks many at once: <strong>All</strong>, <strong>None</strong> or <strong>All non-destructive</strong>
+(the default for a new agent); ticking a command yourself makes the selection <em>Custom</em>. Commands that an extension brings stay allowed
+when the extension is not loaded, you just don&#x27;t see them.</p>
+<h2 id="cloning">Cloning</h2>
+<p><strong>Clone</strong> asks for a name and a book that has no agent, and copies the definition of the agent and its files (not its runs) to a new
+agent of that book. You can have as many agents, clones included, as your administrator allows (five unless they set another number);
+at the limit <strong>New agent</strong> and <strong>Clone</strong> are off and say why.</p>
+<h2 id="the-book-is-locked">The book is locked</h2>
+<p>While a run of an agent works or waits for you, <strong>its book is locked</strong>: you can read it, but nothing changes it, so the agent never
+works on text that moves under it. The book list does not open a locked book, it tells you which agent holds it, and
+generating, editing, search and replace, summaries and deleting the book are refused. <strong>Pause</strong> or <strong>Stop</strong> the run to edit the book again;
+a paused, stopped or finished run does not lock it.</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../user/resources/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Resources</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../user/trash/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Trash</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Agents", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/agents.md" }</script>
+</body>
+</html>

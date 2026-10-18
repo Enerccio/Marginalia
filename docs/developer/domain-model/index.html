@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845649012580">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845649012580" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845649012580" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845678350344" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -185,6 +185,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
 | `User` | `users` | User |
 | `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
+| `Agent`, `AgentRun`, `AgentMessage` | `agents`, `agent_runs`, `agent_messages` | Agents, see [Agent and AgentRun](#agent-and-agentrun-agents) |
 | `Resource` | `resources` | Resources tab, image attachments of a part (story editor, exports) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -250,6 +251,11 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <td><code translate="no" v-pre>Permission</code></td>
 <td><code translate="no" v-pre>permissions</code></td>
 <td>What an administrator allowed a user to do, see <doc-anchor-trigger to="#permission-what-a-user-was-allowed">Permission</doc-anchor-trigger></td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Agent</code>, <code translate="no" v-pre>AgentRun</code>, <code translate="no" v-pre>AgentMessage</code></td>
+<td><code translate="no" v-pre>agents</code>, <code translate="no" v-pre>agent_runs</code>, <code translate="no" v-pre>agent_messages</code></td>
+<td>Agents, see <doc-anchor-trigger to="#agent-and-agentrun-agents">Agent and AgentRun</doc-anchor-trigger></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Resource</code></td>
@@ -589,6 +595,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 | `lorebook` | FK column | The book's lorebook (with its sub-lorebooks). |
 | `activeLeaf` | FK column | The last part of the branch currently shown and continued. |
 | `published` | column | Readable by everyone at `/view/&lt;uuid&gt;`. |
+| `agentic` | column | The working copy of an agent. The lists of the UI leave these books out (`ManuscriptService.findAllRegularForUser`, `searchRegularManuscripts`); `findAllAgenticForUser` and `searchAgenticManuscripts` return only them, `findAllForUser` and `searchManuscripts` both kinds. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
 | `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
 | `language` | JSON | Language of the story (`Language`, English when not set): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
@@ -633,6 +640,11 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <td><code translate="no" v-pre>published</code></td>
 <td>column</td>
 <td>Readable by everyone at <code translate="no" v-pre>/view/&lt;uuid&gt;</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>agentic</code></td>
+<td>column</td>
+<td>The working copy of an agent. The lists of the UI leave these books out (<code translate="no" v-pre>ManuscriptService.findAllRegularForUser</code>, <code translate="no" v-pre>searchRegularManuscripts</code>); <code translate="no" v-pre>findAllAgenticForUser</code> and <code translate="no" v-pre>searchAgenticManuscripts</code> return only them, <code translate="no" v-pre>findAllForUser</code> and <code translate="no" v-pre>searchManuscripts</code> both kinds.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>lastOpened</code></td>
@@ -890,6 +902,7 @@ the <code translate="no" v-pre>nextSummaryUuid</code> of the restored meta summa
 <retype-table copy-text="| Field | |
 |---|---|
 | `name`, `enabled` | Columns. A disabled lorebook contributes nothing. |
+| `agentic` | Column. The working copy of an agent; the lists of the UI use `LorebookService.findAllRegularForUser`, `findAllAgenticForUser` returns only these books, `findAllForUser` both kinds. |
 | `subbooks` | Other lorebooks included in this one (join table `lorebooks_lorebooks`). A lorebook can be a sub-lorebook of several lorebooks. |
 | `cachedEntries` | Transient; filled by `LorebookService.fillEntries` for generation and the editor. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -904,6 +917,10 @@ the <code translate="no" v-pre>nextSummaryUuid</code> of the restored meta summa
 <tr>
 <td><code translate="no" v-pre>name</code>, <code translate="no" v-pre>enabled</code></td>
 <td>Columns. A disabled lorebook contributes nothing.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>agentic</code></td>
+<td>Column. The working copy of an agent; the lists of the UI use <code translate="no" v-pre>LorebookService.findAllRegularForUser</code>, <code translate="no" v-pre>findAllAgenticForUser</code> returns only these books, <code translate="no" v-pre>findAllForUser</code> both kinds.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>subbooks</code></td>
@@ -1312,10 +1329,11 @@ more.</p>
 holder and <code translate="no" v-pre>PermissionType</code>; a user without one does not have the permission.</p>
 <retype-table copy-text="| Field | |
 |---|---|
-| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs). Never rename a constant. |
+| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents). Never rename a constant. |
 | `permissionHolder` | Column `holder_id`, the `User` who has (or has not) the permission. `@CleanupReference(OWNED_BY)`: purged with the user; nullable because the cleanup nulls the reference before it purges the user. |
 | `granted` | Whether it is given; `false` keeps the row as an explicit refusal. |
 | `helperApplyLimits`, `helperInteractions` | Extended attributes of the type `HELPER` (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in `PermissionsDialog`. |
+| `agentsMaxConcurrentRuns`, `agentsRunTokenBudget`, `agentsMaxAgents` | Extended attributes of the type `AGENTS`: how many runs of the user can work at once (1 when not set), the most tokens one run can spend (none or 0 is no limit) and how many agents the user can have, clones included (5 when not set). Read by `AgentService.getGrant`; `AgentsPermissionComponent` edits them in the permissions dialog. |
 | `owner` | Inherited from `OwnedEntity`: the administrator who gave it, `null` for the ones the migration created. It plays no part when a permission is looked up, see [Permissions](services.md#permissions). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1328,7 +1346,7 @@ holder and <code translate="no" v-pre>PermissionType</code>; a user without one 
 <tbody>
 <tr>
 <td><code translate="no" v-pre>permissionType</code></td>
-<td><code translate="no" v-pre>PermissionType</code>, stored by name (<code translate="no" v-pre>@Enumerated(STRING)</code>): <code translate="no" v-pre>HELPER</code> (use the help assistant), <code translate="no" v-pre>CREATE_AI</code> (create their own AIs). Never rename a constant.</td>
+<td><code translate="no" v-pre>PermissionType</code>, stored by name (<code translate="no" v-pre>@Enumerated(STRING)</code>): <code translate="no" v-pre>HELPER</code> (use the help assistant), <code translate="no" v-pre>CREATE_AI</code> (create their own AIs), <code translate="no" v-pre>AGENTS</code> (create and run agents). Never rename a constant.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>permissionHolder</code></td>
@@ -1343,6 +1361,10 @@ holder and <code translate="no" v-pre>PermissionType</code>; a user without one 
 <td>Extended attributes of the type <code translate="no" v-pre>HELPER</code> (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in <code translate="no" v-pre>PermissionsDialog</code>.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>agentsMaxConcurrentRuns</code>, <code translate="no" v-pre>agentsRunTokenBudget</code>, <code translate="no" v-pre>agentsMaxAgents</code></td>
+<td>Extended attributes of the type <code translate="no" v-pre>AGENTS</code>: how many runs of the user can work at once (1 when not set), the most tokens one run can spend (none or 0 is no limit) and how many agents the user can have, clones included (5 when not set). Read by <code translate="no" v-pre>AgentService.getGrant</code>; <code translate="no" v-pre>AgentsPermissionComponent</code> edits them in the permissions dialog.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>owner</code></td>
 <td>Inherited from <code translate="no" v-pre>OwnedEntity</code>: the administrator who gave it, <code translate="no" v-pre>null</code> for the ones the migration created. It plays no part when a permission is looked up, see <a href="../services/#permissions">Permissions</a>.</td>
 </tr>
@@ -1350,6 +1372,122 @@ holder and <code translate="no" v-pre>PermissionType</code>; a user without one 
 </table>
 </div>
 </retype-table>
+<h2 id="agents">Agents</h2>
+<p>An agent is an LLM that works on one manuscript on its own and calls commands as its tools; what it does is a run. Both
+extend <code translate="no" v-pre>ExtendableEntity</code>. The services are in <a href="../services/#agents">Services</a>.</p>
+<h3 id="agent-and-agentrun-agents"><code translate="no" v-pre>Agent</code> and <code translate="no" v-pre>AgentRun</code> (agents)</h3>
+<p><code translate="no" v-pre>Agent</code> (table <code translate="no" v-pre>agents</code>, V16) is the definition.</p>
+<retype-table copy-text="| Field | |
+|---|---|
+| `name`, `enabled` | Real columns. A disabled agent can't start a run. |
+| `manuscript` | Column `manuscript_id`, `@CleanupReference(OWNED_BY)` and nullable (the cleanup nulls it before the purge). A manuscript has at most one agent (checked by `AgentService.save`) and the manuscript of an agent is not changed. |
+| `modelProfiles` | Extended attribute (a JSON array, `inject`): `AgentModelProfile` (`role`, `aiUuid`, `protocolUuid`, `description`, `tools`, `contextCap`, `concurrency`). The first one is the main model, the others are what it can delegate to. The AI and protocol are named by uuid and looked up when the agent runs (`AgentService.resolveProfile`, only the AIs and protocols the user can use), nothing keeps an AI from being purged while a profile names it. |
+| `systemPrompt`, `instructions` | Extended attributes. The instructions (&quot;agents.md&quot;) are written by the user and are capped (`AgentService.MAX_INSTRUCTIONS_LENGTH`). |
+| `allowedCommands` | Extended attribute: the names of the commands the agent is offered, nothing else. |
+| `destructiveMode` | `DestructiveCommandMode` (`AUTO`, `ASK`, `DENY`), `ASK` when not set. |
+| `maxRounds`, `tokenBudget`, `contextCap` | Extended attributes, limits of a run; `null` is no limit of the agent. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>name</code>, <code translate="no" v-pre>enabled</code></td>
+<td>Real columns. A disabled agent can&#x27;t start a run.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>manuscript</code></td>
+<td>Column <code translate="no" v-pre>manuscript_id</code>, <code translate="no" v-pre>@CleanupReference(OWNED_BY)</code> and nullable (the cleanup nulls it before the purge). A manuscript has at most one agent (checked by <code translate="no" v-pre>AgentService.save</code>) and the manuscript of an agent is not changed.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>modelProfiles</code></td>
+<td>Extended attribute (a JSON array, <code translate="no" v-pre>inject</code>): <code translate="no" v-pre>AgentModelProfile</code> (<code translate="no" v-pre>role</code>, <code translate="no" v-pre>aiUuid</code>, <code translate="no" v-pre>protocolUuid</code>, <code translate="no" v-pre>description</code>, <code translate="no" v-pre>tools</code>, <code translate="no" v-pre>contextCap</code>, <code translate="no" v-pre>concurrency</code>). The first one is the main model, the others are what it can delegate to. The AI and protocol are named by uuid and looked up when the agent runs (<code translate="no" v-pre>AgentService.resolveProfile</code>, only the AIs and protocols the user can use), nothing keeps an AI from being purged while a profile names it.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>systemPrompt</code>, <code translate="no" v-pre>instructions</code></td>
+<td>Extended attributes. The instructions (&quot;agents.md&quot;) are written by the user and are capped (<code translate="no" v-pre>AgentService.MAX_INSTRUCTIONS_LENGTH</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>allowedCommands</code></td>
+<td>Extended attribute: the names of the commands the agent is offered, nothing else.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>destructiveMode</code></td>
+<td><code translate="no" v-pre>DestructiveCommandMode</code> (<code translate="no" v-pre>AUTO</code>, <code translate="no" v-pre>ASK</code>, <code translate="no" v-pre>DENY</code>), <code translate="no" v-pre>ASK</code> when not set.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>maxRounds</code>, <code translate="no" v-pre>tokenBudget</code>, <code translate="no" v-pre>contextCap</code></td>
+<td>Extended attributes, limits of a run; <code translate="no" v-pre>null</code> is no limit of the agent.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>AgentRun</code> (table <code translate="no" v-pre>agent_runs</code>, V16) is one execution, the whole job.</p>
+<retype-table copy-text="| Field | |
+|---|---|
+| `agent` | Column `agent_id`, `OWNED_BY`, nullable like the one above. |
+| `status`, `statusReason` | `AgentRunStatus`, stored by name; `AgentRunStatus.next()` is the table of the allowed changes, `isActive()` (a runner is busy), `isTerminal()`, `isUnfinished()` (blocks the agent), `isResumable()`, `holdsLock()` (the manuscript of the agent is locked, see [Services](services.md#agents)). |
+| `workingCopy` | Column `workingCopy_id`, the hidden copy of the manuscript the agent works on, `@CleanupReference(OWNS)`: deleted for good when the run ends (`DONE`, `FAILED`, `STOPPED_DISCARDED`, `APPLIED`) and purged with the run. Eager (the runner takes the book from it on its own threads). Made by `AgentRunService.start`; null only after it ended or before a resumed old run gets one. |
+| `prefillTokens`, `generatedTokens`, `rounds` | What the run spent, all its threads. |
+| `startedAt`, `finishedAt` | `finishedAt` is set when the run stops working (done, stopped, failed) and cleared when it is resumed. |
+| `language`, `interactive`, `uuidPairs` | Extended attributes: the language of the texts the agent sees (the language of the book when the run started), whether the run is a conversation (`AgentRunService.start(agent, true)`, from the console: `finish` makes the run `IDLE` with the report, only `AgentRunService.finish` ends it), and the uuid of every item of the working copy to the uuid of the item of the original. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>agent</code></td>
+<td>Column <code translate="no" v-pre>agent_id</code>, <code translate="no" v-pre>OWNED_BY</code>, nullable like the one above.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>status</code>, <code translate="no" v-pre>statusReason</code></td>
+<td><code translate="no" v-pre>AgentRunStatus</code>, stored by name; <code translate="no" v-pre>AgentRunStatus.next()</code> is the table of the allowed changes, <code translate="no" v-pre>isActive()</code> (a runner is busy), <code translate="no" v-pre>isTerminal()</code>, <code translate="no" v-pre>isUnfinished()</code> (blocks the agent), <code translate="no" v-pre>isResumable()</code>, <code translate="no" v-pre>holdsLock()</code> (the manuscript of the agent is locked, see <a href="../services/#agents">Services</a>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>workingCopy</code></td>
+<td>Column <code translate="no" v-pre>workingCopy_id</code>, the hidden copy of the manuscript the agent works on, <code translate="no" v-pre>@CleanupReference(OWNS)</code>: deleted for good when the run ends (<code translate="no" v-pre>DONE</code>, <code translate="no" v-pre>FAILED</code>, <code translate="no" v-pre>STOPPED_DISCARDED</code>, <code translate="no" v-pre>APPLIED</code>) and purged with the run. Eager (the runner takes the book from it on its own threads). Made by <code translate="no" v-pre>AgentRunService.start</code>; null only after it ended or before a resumed old run gets one.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>prefillTokens</code>, <code translate="no" v-pre>generatedTokens</code>, <code translate="no" v-pre>rounds</code></td>
+<td>What the run spent, all its threads.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>startedAt</code>, <code translate="no" v-pre>finishedAt</code></td>
+<td><code translate="no" v-pre>finishedAt</code> is set when the run stops working (done, stopped, failed) and cleared when it is resumed.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>language</code>, <code translate="no" v-pre>interactive</code>, <code translate="no" v-pre>uuidPairs</code></td>
+<td>Extended attributes: the language of the texts the agent sees (the language of the book when the run started), whether the run is a conversation (<code translate="no" v-pre>AgentRunService.start(agent, true)</code>, from the console: <code translate="no" v-pre>finish</code> makes the run <code translate="no" v-pre>IDLE</code> with the report, only <code translate="no" v-pre>AgentRunService.finish</code> ends it), and the uuid of every item of the working copy to the uuid of the item of the original.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The columns <code translate="no" v-pre>status</code>, <code translate="no" v-pre>statusReason</code>, the counters and <code translate="no" v-pre>finishedAt</code> are <strong>not <code translate="no" v-pre>updatable</code></strong> in the mapping: they are changed
+only by the SQL updates of <code translate="no" v-pre>AgentRunRepository</code> (through <code translate="no" v-pre>AgentRunService</code>), so a <code translate="no" v-pre>save</code> of a stale copy of the run (what a
+runner thread or the UI holds) never writes them back. Their setters work for a new run only. The run folder on the disk
+is derived from the uuid (<code translate="no" v-pre>&lt;application folder&gt;/agent-runs/&lt;uuid&gt;</code>), no path is stored. One partial unique index keeps at most one run
+per agent that is not over, see <a href="../database/#migrations">Database</a>.</p>
+<p><code translate="no" v-pre>AgentMessage</code> (table <code translate="no" v-pre>agent_messages</code>, V16) is a row of the transcript of a run: <code translate="no" v-pre>run</code> (column <code translate="no" v-pre>run_id</code>, <code translate="no" v-pre>OWNED_BY</code>), <code translate="no" v-pre>ordinal</code> (the place in the transcript) and the
+<code translate="no" v-pre>LLMChatMessage</code> as JSON in the extended attribute <code translate="no" v-pre>message</code> (<code translate="no" v-pre>toChatMessage</code>/<code translate="no" v-pre>setChatMessage</code>). Rows are only appended; the system prompt is not stored. The answer of the model also
+carries the extended attribute <code translate="no" v-pre>contextTokens</code> (the tokens of the request and the answer, <code translate="no" v-pre>AgentMessageService.appendAnswer</code>); and <code translate="no" v-pre>reasoning</code> (what the provider sent as the reasoning of the round, kept beside the answer for the console and the download, never sent back to the model); the last <code translate="no" v-pre>contextTokens</code> is the current context of the run
+(<code translate="no" v-pre>getContextTokens</code>, shown by the console), kept on the row and not on the run because an extended attribute of a row that is never updated needs no SQL update and no migration.</p>
+<p>A soft deleted manuscript takes its agent with it, and a soft deleted agent its runs (<code translate="no" v-pre>ManuscriptService.delete</code>,
+<code translate="no" v-pre>AgentService.delete</code>); a run that is deleted while it is not over is discarded first. All three are in the trash and
+restored together.</p>
+<p>Besides the rows an agent has files: its <strong>workspace</strong> (<code translate="no" v-pre>&lt;application folder&gt;/agent-workspaces/&lt;agent uuid&gt;</code>, notes that stay between the runs)
+and, for each run, a folder (<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;</code>). They are not rows and not in the backups of the database; the cleanup, deleting
+for good and cloning an agent take care of them, see <a href="../services/#files-of-an-agent">Files of an agent</a>.</p>
 <h2 id="resources">Resources</h2>
 <p><code translate="no" v-pre>Resource</code> (<code translate="no" v-pre>resources</code>, an <code translate="no" v-pre>OwnedEntity</code>) is an uploaded file; today the files are the images attached to parts
 (<code translate="no" v-pre>ChatMessage.getImages()</code>, see <doc-anchor-trigger to="#extendableentity---extended-attributes">Extended attributes</doc-anchor-trigger>).</p>
@@ -1592,7 +1730,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (cec2a331).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
             </footer>
         </div>
     </div>

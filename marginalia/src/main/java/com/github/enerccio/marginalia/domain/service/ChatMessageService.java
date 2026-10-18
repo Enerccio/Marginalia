@@ -28,6 +28,12 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception;
 
     /**
+     * Deletes for good every message of the manuscript (the soft deleted ones too) with their summaries, the children
+     * before their parents. For the working copy of an agent, whose manuscript is deleted for good right after.
+     */
+    void hardDeleteForManuscript(Manuscript manuscript) throws Exception;
+
+    /**
      * Full-text search over the parts of all branches of the book, oldest first.
      *
      * @see FulltextQuery

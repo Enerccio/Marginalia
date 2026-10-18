@@ -27,6 +27,25 @@ public @interface CommandParameter {
     Class<?> type() default Object.class;
 
     /**
+     * Whether the caller may leave the argument out (it is then null, or {@link #defaultValue()}). Without it a
+     * parameter is required for an agent when every overload of the command has it: the form with the fewest parameters
+     * says what is needed, the longer ones (the ladder of overloads) only add options.
+     */
+    boolean optional() default false;
+
+    /**
+     * The value used when the caller leaves the argument out, as text (converted to the type of the parameter); empty is
+     * none. Shown to an agent, the command still gets null from the forms that do not take the parameter.
+     */
+    String defaultValue() default "";
+
+    /**
+     * The values the argument may have, as text; empty is no restriction. An enum type needs none, its constants are
+     * the values. For an agent only, the command line does not check it.
+     */
+    String[] allowed() default {};
+
+    /**
      * What the parameter means, shown to the user while they type it, the key of its text; may be left out (see
      * {@link Command} for the pairs of texts).
      */

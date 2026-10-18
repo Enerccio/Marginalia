@@ -409,6 +409,54 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_GET_SUMMARY, "读取摘要");
         setValue(L.LABEL_COMMAND_CHECK_SUMMARIES, "检查摘要");
         setValue(L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES, "模板变量");
+        setValue(L.LABEL_AGENTS, "智能体");
+        setValue(L.LABEL_AGENT_ID, "智能体 ID");
+        setValue(L.LABEL_NEW_AGENT, "新建智能体");
+        setValue(L.LABEL_EDIT_AGENT, "编辑智能体");
+        setValue(L.LABEL_CLONE_AGENT, "克隆智能体");
+        setValue(L.LABEL_PAUSE, "暂停");
+        setValue(L.LABEL_RESUME, "继续");
+        setValue(L.LABEL_STOP_AND_KEEP, "停止并保留结果");
+        setValue(L.LABEL_STOP_AND_DISCARD, "停止并丢弃结果");
+        setValue(L.LABEL_AGENT_NO_RUN, "未运行");
+        setValue(L.LABEL_AGENT_DISABLED, "已禁用");
+        setValue(L.LABEL_AGENT_SYSTEM_PROMPT, "系统提示词");
+        setValue(L.LABEL_AGENT_INSTRUCTIONS, "指令 (agents.md)");
+        setValue(L.LABEL_RESTORE_DEFAULT, "恢复默认");
+        setValue(L.LABEL_DESTRUCTIVE_COMMANDS, "破坏性命令");
+        setValue(L.LABEL_MAX_ROUNDS, "最大轮数");
+        setValue(L.LABEL_RUN_TOKEN_BUDGET, "单次运行的令牌预算");
+        setValue(L.LABEL_CONTEXT_LIMIT, "上下文上限（令牌）");
+        setValue(L.LABEL_ALLOWED_COMMANDS, "允许的命令");
+        setValue(L.LABEL_COMMAND_SELECTION, "选择");
+        setValue(L.LABEL_COMMAND_SELECTION_CUSTOM, "自定义");
+        setValue(L.LABEL_COMMAND, "命令");
+        setValue(L.LABEL_COMMAND_EFFECT, "影响");
+        setValue(L.LABEL_MAX_AGENTS, "智能体数量上限");
+        setValue(L.LABEL_MAX_CONCURRENT_RUNS, "同时运行数");
+        setValue(L.LABEL_COMMAND_LIST_LOREBOOKS, "列出世界书");
+        setValue(L.LABEL_COMMAND_LIST_LORE_ENTRIES, "列出世界书条目");
+        setValue(L.LABEL_COMMAND_GET_LORE_ENTRY, "世界书条目");
+        setValue(L.LABEL_COMMAND_SEARCH_LORE, "搜索世界书");
+        setValue(L.LABEL_AGENT_CONSOLE, "控制台");
+        setValue(L.LABEL_AGENT_RUN, "运行");
+        setValue(L.LABEL_AGENT_WORKSPACE, "工作区");
+        setValue(L.LABEL_ROUNDS, "轮次");
+        setValue(L.LABEL_YOU, "你");
+        setValue(L.LABEL_RESULT, "结果");
+        setValue(L.LABEL_AGENT_REPORT, "智能体的报告");
+        setValue(L.LABEL_AGENT_WAITS, "智能体正在等待你");
+        setValue(L.LABEL_UP, "上一级");
+        setValue(L.LABEL_AGENT_APPROVAL, "智能体请求批准");
+        setValue(L.LABEL_APPROVE, "批准");
+        setValue(L.LABEL_DENY, "拒绝");
+        setValue(L.LABEL_ARGUMENTS, "参数");
+        setValue(L.LABEL_OPEN, "打开");
+        setValue(L.LABEL_START_IMMEDIATELY, "立即开始");
+        setValue(L.LABEL_START_IN_CONSOLE, "在控制台中开始");
+        setValue(L.LABEL_FINISH, "完成");
+        setValue(L.LABEL_AGENT_RUNS, "运行记录");
+        setValue(L.LABEL_REASONING, "推理");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -458,6 +506,26 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_AI_TYPE_EXTENSION, "扩展");
         setValue(L.ENUM_PERMISSION_HELPER, "帮助助手");
         setValue(L.ENUM_PERMISSION_CREATE_AI, "创建自己的模型");
+        setValue(L.ENUM_PERMISSION_AGENTS, "智能体");
+        setValue(L.ENUM_DOMAIN_AGENT, "智能体");
+        setValue(L.ENUM_DOMAIN_AGENT_RUN, "智能体运行");
+        setValue(L.ENUM_AGENT_RUN_RUNNING, "运行中");
+        setValue(L.ENUM_AGENT_RUN_IDLE, "等待您的回复");
+        setValue(L.ENUM_AGENT_RUN_WAITING_APPROVAL, "等待批准");
+        setValue(L.ENUM_AGENT_RUN_PAUSING, "正在暂停");
+        setValue(L.ENUM_AGENT_RUN_PAUSED, "已暂停");
+        setValue(L.ENUM_AGENT_RUN_STOPPING, "正在停止");
+        setValue(L.ENUM_AGENT_RUN_STOPPED_KEPT, "已停止，结果已保留");
+        setValue(L.ENUM_AGENT_RUN_STOPPED_DISCARDED, "已停止，结果已丢弃");
+        setValue(L.ENUM_AGENT_RUN_DONE, "已完成，等待审阅");
+        setValue(L.ENUM_AGENT_RUN_FAILED, "失败");
+        setValue(L.ENUM_AGENT_RUN_APPLIED, "已应用");
+        setValue(L.ENUM_DESTRUCTIVE_MODE_AUTO, "直接运行");
+        setValue(L.ENUM_DESTRUCTIVE_MODE_ASK, "先询问");
+        setValue(L.ENUM_DESTRUCTIVE_MODE_DENY, "拒绝");
+        setValue(L.ENUM_COMMAND_PRESET_ALL, "全部");
+        setValue(L.ENUM_COMMAND_PRESET_NONE, "无");
+        setValue(L.ENUM_COMMAND_PRESET_NON_DESTRUCTIVE, "所有非破坏性命令");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -515,6 +583,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_UNKNOWN_SCOPE, "未知范围“%s”，请使用 global 或 part。");
         setValue(L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "该部分没有原始文本：它不是生成的，或是在保存原始文本之前生成的。");
         setValue(L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "文本过大，无法比较。");
+        setValue(L.ERROR_BOOK_LOCKED, "该书已被智能体“%s”锁定。请先暂停或停止其运行，再修改此书。");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "智能体操作失败：%s");
+        setValue(L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "没有编号为 %s 的世界书，本书有 %s 个世界书（见 list-lorebooks）。");
+        setValue(L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "世界书 %s 中没有条目 %s，它有 %s 个条目。");
+        setValue(L.ERROR_REGEX_TIMEOUT, "正则表达式的处理时间超过 %s 秒，已被停止。请使用更简单的表达式。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -630,6 +703,25 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_REPLACE_CONFIRM, "要替换 %d 处匹配（共 %d 项）吗？\n\"%s\" -> \"%s\"\n没有预览，且更改无法撤销。");
         setValue(L.MSG_COMMAND_REPLACE_CANCELLED, "已取消替换，未做任何更改");
         setValue(L.MSG_UNSAVED_CHANGES_EXIT, "有未保存的更改。不保存就退出吗？");
+        setValue(L.MSG_AGENT_NO_FREE_BOOK, "每本书都已有智能体（每本书最多一个），或者还没有书。");
+        setValue(L.MSG_AGENT_LIMIT_REACHED, "您已达到允许的智能体数量上限。");
+        setValue(L.MSG_CONFIRM_STOP_RUN, "智能体“%s”的运行应如何结束？");
+        setValue(L.MSG_AGENT_BOOK_LOCKED, "该书已被智能体“%s”锁定。请先暂停或停止其运行。");
+        setValue(L.MSG_AGENT_NO_RUN_YET, "智能体尚未运行。请在“智能体”标签页中启动它。");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "工作区为空。");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d 个文件，%s / %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "要删除智能体工作区中的所有文件吗？智能体保存在其中的笔记将会丢失。");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "该文件不是文本。请下载后查看。");
+        setValue(L.MSG_AGENT_FILE_CUT, "文件较长，仅显示开头部分。");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "智能体正在工作。请先暂停它再修改其文件。");
+        setValue(L.MSG_AGENT_APPROVAL_QUESTION, "智能体“%s”想运行命令 %s，该命令会更改或删除数据。它在书的副本上工作，不会影响副本之外的内容。");
+        setValue(L.MSG_AGENT_NOTICE_IDLE, "智能体“%s”正在等待你。");
+        setValue(L.MSG_AGENT_NOTICE_APPROVAL, "智能体“%s”请求批准命令 %s。");
+        setValue(L.MSG_AGENT_NOTICE_DONE, "智能体“%s”已完成。");
+        setValue(L.MSG_AGENT_NOTICE_FAILED, "智能体“%s”的运行失败。");
+        setValue(L.MSG_AGENT_NOTICE_PAUSED, "智能体“%s”的运行已暂停：%s");
+        setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "要删除此次运行吗？其步骤和报告将移入回收站。");
+        setValue(L.MSG_AGENT_RUN_BUSY, "运行仍在进行，请先暂停或停止。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -653,6 +745,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_TOO_MANY_ARGUMENTS, "参数多于命令所接受的数量。");
         setValue(L.HELP_COMMAND_DESTRUCTIVE, "此命令会修改或删除已有的数据。");
         setValue(L.HELP_COMMAND_NON_DESTRUCTIVE, "此命令只读取数据或添加新数据，不会修改任何已有的内容。");
+        setValue(L.HELP_AGENTS_MAX_AGENTS, "用户可拥有的智能体数量（含克隆）。留空为五个；为零则只能保留并运行现有智能体，不能新建或克隆。");
+        setValue(L.HELP_AGENTS_MAX_CONCURRENT_RUNS, "用户可同时运行的次数。留空为一次。");
+        setValue(L.HELP_AGENTS_RUN_TOKEN_BUDGET, "用户单次运行最多可消耗的令牌数（发送与生成）。留空或为零表示不限制。");
+        setValue(L.HELP_AGENT_SYSTEM_PROMPT, "在您的指令之前告诉智能体它的角色。新建的智能体以默认内容开始。");
+        setValue(L.HELP_AGENT_INSTRUCTIONS, "给智能体的指令，会加入每次运行的提示词。智能体可以读取但不能修改。");
+        setValue(L.HELP_AGENT_DESTRUCTIVE, "智能体要运行会修改或删除数据的命令时如何处理。");
+        setValue(L.HELP_AGENT_MAX_ROUNDS, "单次运行向模型发出的最大请求数。留空表示智能体不设限。");
+        setValue(L.HELP_AGENT_TOKEN_BUDGET, "单次运行最多可消耗的令牌数。留空或为零表示智能体不设限；管理员给您的上限始终有效。");
+        setValue(L.HELP_AGENT_CONTEXT_LIMIT, "模型上下文的上限（令牌），可低于模型自身的上下文；接近时较早的轮次会被概括。留空则使用模型的上下文。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -801,6 +902,22 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, "显示书籍或部分的模板变量。");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM, "提示词模板通过 setvar 设置的变量：书籍的全局变量（scope 为 global），或随分支变化的部分上的变量（scope 为 part；未给出位置时为分支的最后一个部分）。部分通过其在分支上的位置来指定（故事的第一个部分为 1）；除非给出 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN, "包含变量及其值的 JSON");
+        setValue(L.DESC_COMMAND_LOREBOOK_PARAM, "list-lorebooks 给出的世界书编号；省略时为根世界书（1）");
+        setValue(L.DESC_COMMAND_LORE_ENTRY_PARAM, "条目在其世界书中的编号，第一个条目为 1");
+        setValue(L.DESC_COMMAND_LORE_FILTER_PARAM, "仅列出名称或标签包含此文本的条目（不区分大小写）");
+        setValue(L.DESC_COMMAND_LORE_QUERY_PARAM, "在条目的名称、正文和备注中查找的文本（不区分大小写）");
+        setValue(L.DESC_COMMAND_LIST_LOREBOOKS, "列出当前书的世界书及其条目和子世界书。");
+        setValue(L.DESC_COMMAND_LIST_LOREBOOKS_LLM, "列出本书的世界书：根世界书及其子世界书树，每个都有编号（根为 1）、名称、是否启用、条目数（及启用的条目数）、标签和子世界书的编号。无法访问用户的其他世界书。世界书用此编号指定，条目用其在世界书中的编号指定。只读。");
+        setValue(L.DESC_COMMAND_LIST_LOREBOOKS_RETURN, "包含世界书的 JSON：编号、名称、是否启用、条目数、启用条目数、标签、子世界书");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES, "列出世界书的条目及其设置和预览。");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM, "列出世界书的条目（除非给出 list-lorebooks 的世界书编号，否则为根世界书）：条目在世界书中的编号、名称、是否启用、顺序、插入模式、过滤模式（TEXT 关键词或 REGEX）、标签、正文长度和简短预览。过滤文本保留名称或标签包含它的条目；编号仍是整个世界书中的编号。分页：offset 和 limit。条目用其在世界书中的编号指定（第一个为 1）。只读。选项为位置参数，可省略，按所列顺序。");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN, "包含本页条目的 JSON：条目、名称、是否启用、顺序、插入、过滤、标签、正文长度、预览");
+        setValue(L.DESC_COMMAND_GET_LORE_ENTRY, "显示一个世界书条目及其设置和正文。");
+        setValue(L.DESC_COMMAND_GET_LORE_ENTRY_LLM, "读取世界书的一个条目（除非给出 list-lorebooks 的世界书编号，否则为根世界书）：名称、是否启用、顺序、插入模式、过滤模式及其关键词（激活它的文本或正则表达式）、标签和否定标签、备注，以及带偏移量和总长度的正文片段（用 offset 和 length 翻阅长文本）。条目用其在世界书中的编号指定（第一个为 1，见 list-lore-entries）。只读。选项为位置参数，可省略，按所列顺序。");
+        setValue(L.DESC_COMMAND_GET_LORE_ENTRY_RETURN, "包含条目的 JSON：名称、是否启用、顺序、插入、过滤、关键词、标签、否定标签、备注和正文片段");
+        setValue(L.DESC_COMMAND_SEARCH_LORE, "搜索世界书条目的名称、正文和备注。");
+        setValue(L.DESC_COMMAND_SEARCH_LORE_LLM, "在本书所有世界书中查找名称、正文或备注包含查询文本的条目（不区分大小写；指定 regex 时查询为正则表达式）。每个命中包含世界书编号、条目编号、名称、名称/正文/备注中哪些匹配，以及首个匹配周围的片段；found 为匹配的条目数，hits 有数量限制。只读。选项为位置参数，可省略，按所列顺序。");
+        setValue(L.DESC_COMMAND_SEARCH_LORE_RETURN, "包含 found 和命中的 JSON：世界书、条目、名称、匹配位置、片段");
     }
 
     @Override

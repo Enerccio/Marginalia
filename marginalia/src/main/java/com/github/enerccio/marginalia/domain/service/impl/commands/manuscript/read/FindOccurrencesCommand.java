@@ -6,6 +6,8 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService.SummaryF
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.utils.RegexTimeoutException;
+import com.github.enerccio.marginalia.utils.TimeSafeText;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -102,6 +104,17 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
 
     private void findOccurrences(CommandContext context, Object terms, Boolean regex, Boolean caseSensitive,
                                  Boolean summaries, Boolean allBranches, Integer limit) throws Exception {
+        // one time for the whole search, a pattern that backtracks is stopped instead of holding the thread
+        long deadline = TimeSafeText.deadlineIn(TimeSafeText.timeoutMillis());
+        try {
+            find(context, terms, regex, caseSensitive, summaries, allBranches, limit, deadline);
+        } catch (RegexTimeoutException e) {
+            throw new IllegalStateException(String.format(loc.getValue(L.ERROR_REGEX_TIMEOUT), TimeSafeText.timeoutMillis() / 1000), e);
+        }
+    }
+
+    private void find(CommandContext context, Object terms, Boolean regex, Boolean caseSensitive,
+                      Boolean summaries, Boolean allBranches, Integer limit, long deadline) throws Exception {
         List<String> words = new ArrayList<>();
         if (terms instanceof Collection<?> collection) {
             collection.forEach(term -> words.add(String.valueOf(term)));
@@ -157,7 +170,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
             int occurrences = 0;
             for (MessageFulltext text : texts) {
                 Integer position = positions.get(text.messageId());
-                Match match = position == null ? null : match(patterns.get(t), text.fulltext());
+                Match match = position == null ? null : match(patterns.get(t), text.fulltext(), deadline);
                 if (match == null) {
                     continue;
                 }
@@ -175,7 +188,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
                 int summariesFound = 0;
                 for (SummaryFulltext text : summaryTexts) {
                     Integer position = positions.get(text.messageId());
-                    Match match = position == null ? null : match(patterns.get(t), text.fulltext());
+                    Match match = position == null ? null : match(patterns.get(t), text.fulltext(), deadline);
                     if (match == null) {
                         continue;
                     }
@@ -197,11 +210,11 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
     private record Match(int count, String snippet) {
     }
 
-    private static Match match(Pattern pattern, String text) {
+    private static Match match(Pattern pattern, String text, long deadline) {
         if (text == null) {
             return null;
         }
-        Matcher matcher = pattern.matcher(text);
+        Matcher matcher = TimeSafeText.matcher(pattern, text, deadline);
         int count = 0;
         String snippet = null;
         while (matcher.find()) {

@@ -42,6 +42,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
@@ -192,6 +193,64 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         return request.cancellationToken();
     }
 
+    @Override
+    public CancellationToken round(List<LLMChatMessage> payload, Protocol protocol, FunctionSet functions,
+                                   InferenceRoundCallback callback) throws Exception {
+        boolean metered = !UnmeteredScope.isActive();
+        if (metered) {
+            limitService.check(ai, approximatePromptTokens(payload), TokenLimits.responseTokens(ai, protocol));
+        }
+        boolean functionsOffered = functions != null && !functions.isEmpty();
+        OpenAIClient client = openClient();
+        CancellationToken token = new CancellationToken();
+        RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        List<LLMChatMessage> conversation = new ArrayList<>(payload);
+        ChatCompletionCreateParams params = buildParams(protocol, conversation, functionsOffered ? functions : null,
+                false, false, null).build();
+
+        AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
+        CompletableFuture.runAsync(() -> {
+            try {
+                wrapper.run(() -> {
+                    if (callback.isDead() || token.isCancelled()) {
+                        callback.onCancel();
+                        return;
+                    }
+                    ChatCompletion completion = client.chat().completions().create(params);
+                    ChatCompletionMessage message = completion.choices().stream().findFirst()
+                            .map(ChatCompletion.Choice::message).orElse(null);
+                    String text = message == null ? "" : message.content().orElse("");
+                    String reasoning = message == null ? null : reasoningOf(message);
+                    TokenUsage reported = completion.usage()
+                            .map(usage -> new TokenUsage(usage.promptTokens(), usage.completionTokens())).orElse(null);
+                    TokenUsage counted = recordUsage(attributes, conversation, reported, text, metered);
+
+                    List<LLMToolCall> calls = new ArrayList<>();
+                    if (functionsOffered && message != null) {
+                        message.toolCalls().orElse(List.of()).forEach(toolCall -> toolCall.function().ifPresent(
+                                function -> calls.add(LLMToolCall.of(
+                                        StringUtils.defaultIfEmpty(function.id(), "call_" + UUID.randomUUID().toString().replace("-", "")),
+                                        function.function().name(),
+                                        StringUtils.defaultIfEmpty(function.function().arguments(), "{}")))));
+                    }
+                    if (callback.isDead() || token.isCancelled()) {
+                        callback.onCancel();
+                    } else {
+                        callback.onRound(text, reasoning, calls, new RoundUsage(counted.promptTokens(), counted.completionTokens()));
+                    }
+                });
+            } catch (Throwable e) {
+                log.error("Failed to ask for a round: {}", e.getMessage(), e);
+                try {
+                    callback.onError(translate(e));
+                } catch (Exception ex) {
+                    log.error("Error during callback.onError", ex);
+                }
+            }
+        });
+        return token;
+    }
+
     /**
      * One request of {@link #infer}. Building it fails here, in the caller's thread, for the first round; the rest runs
      * asynchronously.
@@ -255,7 +314,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * {@code metered}: whether the limits apply and the usage is counted, see {@link UnmeteredScope}.
      */
     private record Request(OpenAIClient client, Protocol protocol, FunctionSet functions, InferenceAsyncCallback callback,
-                           CancellationToken cancellationToken, ThreadCopyRequestAttributes attributes, JsonNode schema,
+                           CancellationToken cancellationToken, RequestAttributes attributes, JsonNode schema,
                            boolean metered) {
 
         /** The part of the callback the function calls need, the same for a stream and for infer. */
@@ -643,7 +702,29 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * the provider reported, otherwise our count of the payload and of the text that arrived (a stopped request has no
      * report).
      */
-    private void recordUsage(ThreadCopyRequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported, String generated) {
+    private void recordUsage(RequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported, String generated) {
+        recordUsage(attributes, payload, reported, generated, true);
+    }
+
+    /**
+     * @param metered whether the usage is recorded for the user, the counts are returned either way (zeros when they
+     *                could not be made)
+     */
+    /**
+     * What a non-streaming answer carries as its reasoning: the field {@code reasoning_content} or {@code reasoning} of the
+     * message (the same two a streamed chunk is read for), null when there is none or it is empty.
+     */
+    private static String reasoningOf(ChatCompletionMessage message) {
+        com.openai.core.JsonValue value = message._additionalProperties().get("reasoning_content");
+        if (value == null || value.isNull()) {
+            value = message._additionalProperties().get("reasoning");
+        }
+        String reasoning = value == null || value.isNull() ? null : (String) value.asString().orElse((String) null);
+        return StringUtils.isBlank(reasoning) ? null : reasoning;
+    }
+
+    private TokenUsage recordUsage(RequestAttributes attributes, List<LLMChatMessage> payload, TokenUsage reported,
+                                   String generated, boolean metered) {
         try (InRequestScope _ = new InRequestScope(attributes)) {
             long prefill;
             long generatedTokens;
@@ -654,9 +735,13 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 prefill = approximatePromptTokens(payload);
                 generatedTokens = tokenizerService.countTokensApprox(generated);
             }
-            usageService.record(ai, prefill, generatedTokens);
+            if (metered) {
+                usageService.record(ai, prefill, generatedTokens);
+            }
+            return new TokenUsage(prefill, generatedTokens);
         } catch (Exception e) {
             log.warn("Failed to count the usage of AI {}", ai.getId(), e);
+            return reported != null ? reported : new TokenUsage(0, 0);
         }
     }
 

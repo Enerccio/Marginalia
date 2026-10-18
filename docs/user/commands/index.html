@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845649012580">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845649012580" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -348,7 +348,26 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 | `/hello-world-async [&lt;message&gt;]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
 | `/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
 | `/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
-| `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |">
+| `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
+| `/get-book-info` | The name, settings, model, totals (parts, words, tokens) and tags of the open book. |
+| `/list-parts [branch] [offset] [limit]` | The parts of a branch: position, size, swipes, summary state and a short preview. |
+| `/get-part &lt;part&gt; [branch] [offset] [length] [field]` | The text of a part in slices (or its `instructions`, `scene`, `pov`, `present` or `reasoning`) and what it was made from. |
+| `/list-swipes &lt;part&gt; [branch]` | The alternatives (swipes) of a part, with the branch number that shows each. |
+| `/list-branches [offset] [limit]` | The branches of the book, numbered, with where each parts from the others. |
+| `/get-part-metrics &lt;part&gt; [branch]` | Tokens, timings, model and protocol of a part. |
+| `/show-prompt &lt;part&gt; [branch] [offset] [length]` | The prompt a generated part was made from, as it was stored. |
+| `/search-parts &lt;query&gt; [limit]` | Full-text search in the parts of all branches, with snippets. |
+| `/find-occurrences &lt;terms&gt; [regex] [caseSensitive] [summaries] [allBranches] [limit]` | How often and where names or words occur (defaults: no regex, case insensitive, parts only, active branch). |
+| `/compare-parts &lt;a&gt; &lt;b&gt; [branchA] [branchB]` | The sentences that differ between two parts; `0` as `b` compares part `a` with the text the model produced first. |
+| `/count-tokens &lt;text&gt;`, `/count-tokens &lt;part&gt; [branch]` | Tokens (with the tokenizer of the book's model), words and characters of a text or of a part. |
+| `/list-summaries [branch]` | The summaries of a branch, the parts they cover and whether they are still valid. |
+| `/get-summary &lt;part&gt; [branch]` | The summary of a part. |
+| `/check-summaries [branch]` | The outdated summaries and the edited parts that made them so. |
+| `/get-template-variables &lt;scope&gt; [part] [branch]` | The template variables of the book (`global`) or of a part (`part`). |
+| `/list-lorebooks` | The lorebooks of the open book (the root and its subbooks) with their numbers, entry counts, tags and subbooks. |
+| `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
+| `/get-lore-entry &lt;entry&gt; [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
+| `/search-lore &lt;query&gt; [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -382,10 +401,97 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 <td><code translate="no" v-pre>/take-backup</code></td>
 <td>Takes a backup of the book that is open; it appears in the <strong>Backups</strong> tab of the book. Says no book is open when there is none.</td>
 </tr>
+<tr>
+<td><code translate="no" v-pre>/get-book-info</code></td>
+<td>The name, settings, model, totals (parts, words, tokens) and tags of the open book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-parts [branch] [offset] [limit]</code></td>
+<td>The parts of a branch: position, size, swipes, summary state and a short preview.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-part &lt;part&gt; [branch] [offset] [length] [field]</code></td>
+<td>The text of a part in slices (or its <code translate="no" v-pre>instructions</code>, <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>present</code> or <code translate="no" v-pre>reasoning</code>) and what it was made from.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-swipes &lt;part&gt; [branch]</code></td>
+<td>The alternatives (swipes) of a part, with the branch number that shows each.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-branches [offset] [limit]</code></td>
+<td>The branches of the book, numbered, with where each parts from the others.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-part-metrics &lt;part&gt; [branch]</code></td>
+<td>Tokens, timings, model and protocol of a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/show-prompt &lt;part&gt; [branch] [offset] [length]</code></td>
+<td>The prompt a generated part was made from, as it was stored.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/search-parts &lt;query&gt; [limit]</code></td>
+<td>Full-text search in the parts of all branches, with snippets.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/find-occurrences &lt;terms&gt; [regex] [caseSensitive] [summaries] [allBranches] [limit]</code></td>
+<td>How often and where names or words occur (defaults: no regex, case insensitive, parts only, active branch).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/compare-parts &lt;a&gt; &lt;b&gt; [branchA] [branchB]</code></td>
+<td>The sentences that differ between two parts; <code translate="no" v-pre>0</code> as <code translate="no" v-pre>b</code> compares part <code translate="no" v-pre>a</code> with the text the model produced first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/count-tokens &lt;text&gt;</code>, <code translate="no" v-pre>/count-tokens &lt;part&gt; [branch]</code></td>
+<td>Tokens (with the tokenizer of the book&#x27;s model), words and characters of a text or of a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-summaries [branch]</code></td>
+<td>The summaries of a branch, the parts they cover and whether they are still valid.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-summary &lt;part&gt; [branch]</code></td>
+<td>The summary of a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/check-summaries [branch]</code></td>
+<td>The outdated summaries and the edited parts that made them so.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-template-variables &lt;scope&gt; [part] [branch]</code></td>
+<td>The template variables of the book (<code translate="no" v-pre>global</code>) or of a part (<code translate="no" v-pre>part</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-lorebooks</code></td>
+<td>The lorebooks of the open book (the root and its subbooks) with their numbers, entry counts, tags and subbooks.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-lore-entries [lorebook] [filter] [offset] [limit]</code></td>
+<td>The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-lore-entry &lt;entry&gt; [lorebook] [offset] [length]</code></td>
+<td>One entry: settings, keys, tags, comment and its text in slices.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/search-lore &lt;query&gt; [regex] [limit]</code></td>
+<td>The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets.</td>
+</tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<h3 id="reading-the-story">Reading the story</h3>
+<p>The commands above that read the book (<code translate="no" v-pre>/get-book-info</code> to <code translate="no" v-pre>/get-template-variables</code>) change nothing; they answer in JSON text,
+so an agent can use them as well. They never show ids: a part is its <strong>position</strong> on a branch, the first part of the story being
+<code translate="no" v-pre>1</code>, and a branch is its <strong>number</strong> from <code translate="no" v-pre>/list-branches</code> (the numbers follow the creation of the ends of the branches, so they
+change when a branch is added or deleted). Without a branch number the commands work on the active branch. Lists are paged with
+<code translate="no" v-pre>offset</code> and <code translate="no" v-pre>limit</code>, long texts are cut into slices (<code translate="no" v-pre>offset</code>, <code translate="no" v-pre>length</code>) and the answer says the total length. As with the other
+commands the options are positional: to set one, give those before it too.</p>
+<p>The commands that read the lorebooks (<code translate="no" v-pre>/list-lorebooks</code> to <code translate="no" v-pre>/search-lore</code>) work the same way and reach only the lorebooks of the open
+book: the root lorebook and its subbooks. A lorebook is its <strong>number</strong> from <code translate="no" v-pre>/list-lorebooks</code> (the root is <code translate="no" v-pre>1</code>), an entry its
+<strong>number in the lorebook</strong>, in the order of the lorebook (the first entry is <code translate="no" v-pre>1</code>); the numbers change when entries or subbooks are
+added or removed. Without a lorebook number the root lorebook is used.</p>
 <p>Commands from extensions are listed in the documentation of the extension, and you see them in the list as long as the
 extension is loaded.</p>
 <h2 id="limits">Limits</h2>
@@ -430,7 +536,7 @@ extension is loaded.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (cec2a331).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
             </footer>
         </div>
     </div>

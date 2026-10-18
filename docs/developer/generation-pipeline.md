@@ -39,9 +39,22 @@ CancellationToken token = storyGenerationService.generateNextTurn(
 ```
 
 `generateNextTurn` is `@NoTx` and returns immediately with a `CancellationToken`; `token.cancel()` stops the
-generation. It must be called on a thread with a request (the UI thread): it captures the session in
+generation. By default it must be called on a thread with a request (the UI thread): it captures the session in
 `ThreadCopyRequestAttributes` so the steps run as the user who started the generation (see
 [The current user](services.md#the-current-user)).
+
+### Generation options
+
+The form above is a shortcut for `generateNextTurn(manuscript, input, request, listener, GenerationOptions.defaults())`.
+`GenerationOptions(ai, protocol, context)` lets a caller that is not the book window decide three things, each
+optional (`null` = the default):
+
+| Option | Default | Use |
+|---|---|---|
+| `ai`, `protocol` | The book's | Generate with another model, e.g. a specialist model of an agent. Only this generation uses them, the book is never changed (and the steps' saves persist nothing about them). `withModel(ai, protocol)`. |
+| `context` | `ThreadCopyRequestAttributes.create()`, a copy of the calling thread's session | A `RequestAttributes` that resolves the session scoped beans (the user) for a caller without an HTTP request, such as a background run. `withContext(attributes)`. |
+
+If there is neither a request nor a `context`, the call throws `IllegalStateException`.
 
 | `GenerationRequest` | `requestType` | Meaning |
 |---|---|---|
@@ -61,6 +74,8 @@ a cached thread pool (threads named `Generation thread NNN`). Each call creates 
 | Controller member | |
 |---|---|
 | `getManuscript()` / `setManuscript()` | The book; steps replace it with the saved copy after changes. |
+| `getAi()`, `getProtocol()` | The model of **this** generation: from the `GenerationOptions`, else the book's. Steps and listeners read the model here, never from `getManuscript()`; `PREPARE_GENERATION` loads both again from the database. |
+| `getRequestAttributes()` | The request context the threads of the generation run in (a `RequestAttributes`). |
 | `getInput()`, `getRequest()` | The `TurnInput` and `GenerationRequest`. |
 | `getPrePromptData()` | `PrePromptData` - the prompts collected so far (see [Prompt data](#prompt-data)). |
 | `getPayload()` | The chat messages sent to the model (from `PREPARE_PAYLOAD`). |

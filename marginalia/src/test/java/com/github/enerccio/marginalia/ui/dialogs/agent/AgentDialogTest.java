@@ -1,0 +1,280 @@
+package com.github.enerccio.marginalia.ui.dialogs.agent;
+
+import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
+import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
+import com.github.enerccio.marginalia.domain.model.impl.Agent;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
+import com.github.enerccio.marginalia.domain.service.AgentService;
+import com.github.enerccio.marginalia.domain.service.CommandService;
+import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
+import com.github.enerccio.marginalia.test.AgentTestBase;
+import com.vaadin.flow.component.UI;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.github.enerccio.marginalia.test.ComponentTree.button;
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * The dialog an agent is created and edited in: a new agent starts with the default prompt, picks a book that has no
+ * agent, and the allowed commands are chosen with the check boxes or a preset.
+ */
+class AgentDialogTest extends AgentTestBase {
+
+    @Autowired
+    private CommandService commandService;
+
+    // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
+    private UI ui;
+    private User user;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        ui = new UI();
+        UI.setCurrent(ui);
+        user = loginAgentUser();
+    }
+
+    @AfterEach
+    void noCurrentUI() {
+        UI.setCurrent(null);
+        ui = null;
+    }
+
+    private AgentDialog dialog(Agent agent) {
+        AgentDialog dialog = new AgentDialog(agent);
+        dialog.create();
+        dialog.open();
+        return dialog;
+    }
+
+    private List<String> commandNames() {
+        return commandService.getCommands().stream().map(CommandDefinition::commandName).distinct().toList();
+    }
+
+    private List<String> readOnlyCommandNames() {
+        return commandService.getCommands().stream().filter(c -> !c.dataSeverity().isDestructive())
+                .map(CommandDefinition::commandName).distinct().toList();
+    }
+
+    @Test
+    void aNewAgentStartsWithTheDefaultPromptAndTheCommandsThatOnlyRead() throws Exception {
+        manuscript();
+
+        AgentDialog dialog = dialog(null);
+
+        assertThat(dialog.getSystemPromptField().getValue()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+        assertThat(dialog.getDestructiveCombo().getValue()).isEqualTo(DestructiveCommandMode.ASK);
+        assertThat(dialog.getEnabledCheckbox().getValue()).isTrue();
+        assertThat(dialog.getCommandsEditor().getPreset()).isEqualTo(AgentCommandPreset.NON_DESTRUCTIVE);
+        assertThat(dialog.getCommandsEditor().getAllowed()).containsExactlyInAnyOrderElementsOf(readOnlyCommandNames());
+    }
+
+    @Test
+    void theNewAgentOffersOnlyTheBooksWithoutAnAgent() throws Exception {
+        Manuscript free = manuscript();
+        Manuscript taken = manuscript();
+        agentService.save(newAgent(taken));
+
+        AgentDialog dialog = dialog(null);
+
+        assertThat(dialog.getManuscriptCombo().getListDataView().getItems().toList())
+                .extracting(Manuscript::getId).contains(free.getId()).doesNotContain(taken.getId());
+    }
+
+    @Test
+    void savingCreatesTheAgentWithWhatTheDialogHolds() throws Exception {
+        Manuscript book = manuscript();
+        OpenAICompatible ai = createAI();
+        Protocol protocol = protocol();
+        AgentDialog dialog = dialog(null);
+        boolean[] saved = {false};
+        dialog.setOnSave(() -> saved[0] = true);
+
+        dialog.getNameField().setValue("Continuity checker");
+        dialog.getManuscriptCombo().setValue(dialog.getManuscriptCombo().getListDataView().getItems()
+                .filter(m -> m.getId().equals(book.getId())).findFirst().orElseThrow());
+        dialog.getModelPicker().setSelection(ai, protocol);
+        dialog.getDestructiveCombo().setValue(DestructiveCommandMode.DENY);
+        dialog.getMaxRoundsField().setValue(40);
+        dialog.getTokenBudgetField().setValue(200_000);
+        dialog.getContextLimitField().setValue(8000);
+        dialog.getInstructionsField().setValue("Check the names.");
+        dialog.getCommandsEditor().select(AgentCommandPreset.NONE);
+        button(dialog, "OK").click();
+
+        assertThat(saved[0]).isTrue();
+        assertThat(dialog.isOpened()).isFalse();
+        Agent agent = agentService.findForManuscript(book);
+        assertThat(agent.getName()).isEqualTo("Continuity checker");
+        assertThat(agent.getMainProfile().getAiUuid()).isEqualTo(ai.getUuid());
+        assertThat(agent.getMainProfile().getProtocolUuid()).isEqualTo(protocol.getUuid());
+        assertThat(agent.getDestructiveMode()).isEqualTo(DestructiveCommandMode.DENY);
+        assertThat(agent.getMaxRounds()).isEqualTo(40);
+        assertThat(agent.getTokenBudget()).isEqualTo(200_000L);
+        assertThat(agent.getContextCap()).isEqualTo(8000);
+        assertThat(agent.getInstructions()).isEqualTo("Check the names.");
+        assertThat(agent.getSystemPrompt()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+        assertThat(agent.getAllowedCommands()).isEmpty();
+    }
+
+    @Test
+    void savingNeedsANameAndABook() throws Exception {
+        manuscript();
+        AgentDialog dialog = dialog(null);
+
+        button(dialog, "OK").click();
+
+        assertThat(dialog.isOpened()).as("not saved, still open").isTrue();
+        assertThat(agentService.findAllForUser()).isEmpty();
+    }
+
+    @Test
+    void aModelNeedsItsProtocolToo() throws Exception {
+        Manuscript book = manuscript();
+        AgentDialog dialog = dialog(null);
+        dialog.getNameField().setValue("half");
+        dialog.getManuscriptCombo().setValue(dialog.getManuscriptCombo().getListDataView().getItems().findFirst().orElseThrow());
+        dialog.getModelPicker().setSelection(createAI(), null);
+
+        button(dialog, "OK").click();
+
+        assertThat(dialog.isOpened()).isTrue();
+        assertThat(agentService.findForManuscript(book)).isNull();
+    }
+
+    @Test
+    void theLimitOfTheAdministratorStopsASave() throws Exception {
+        manuscript();
+        updatePermission(user, PermissionType.AGENTS, permission -> permission.setAgentsMaxAgents(0));
+        AgentDialog dialog = dialog(null);
+        dialog.getNameField().setValue("one too many");
+        dialog.getManuscriptCombo().setValue(dialog.getManuscriptCombo().getListDataView().getItems().findFirst().orElseThrow());
+
+        button(dialog, "OK").click();
+
+        assertThat(dialog.isOpened()).as("refused by the service").isTrue();
+        assertThat(agentService.findAllForUser()).isEmpty();
+    }
+
+    @Test
+    void editingShowsTheAgentAndKeepsItsBookAndTheOtherModels() throws Exception {
+        Agent agent = newAgent(manuscript());
+        agent.setSystemPrompt("my prompt");
+        agent.setInstructions("my instructions");
+        agent.setDestructiveMode(DestructiveCommandMode.AUTO);
+        agent.setMaxRounds(12);
+        agent.setAllowedCommands(List.of(commandNames().getFirst(), "gone-command"));
+        AgentModelProfile helper = profile("helper");
+        agent.getModelProfiles().add(helper);
+        Agent saved = agentService.save(agent);
+
+        AgentDialog dialog = dialog(saved);
+
+        assertThat(dialog.getNameField().getValue()).isEqualTo(saved.getName());
+        assertThat(dialog.getManuscriptCombo().getValue().getId()).isEqualTo(saved.getManuscript().getId());
+        assertThat(dialog.getManuscriptCombo().isReadOnly()).as("the book of an agent is not changed").isTrue();
+        assertThat(dialog.getSystemPromptField().getValue()).isEqualTo("my prompt");
+        assertThat(dialog.getInstructionsField().getValue()).isEqualTo("my instructions");
+        assertThat(dialog.getDestructiveCombo().getValue()).isEqualTo(DestructiveCommandMode.AUTO);
+        assertThat(dialog.getMaxRoundsField().getValue()).isEqualTo(12);
+        assertThat(dialog.getModelPicker().getAi().getUuid()).isEqualTo(saved.getMainProfile().getAiUuid());
+        assertThat(dialog.getCommandsEditor().isSelected(commandNames().getFirst())).isTrue();
+
+        dialog.getNameField().setValue("renamed");
+        dialog.getEnabledCheckbox().setValue(false);
+        dialog.getMaxRoundsField().clear();
+        button(dialog, "OK").click();
+
+        Agent after = agentService.find(saved.getId());
+        assertThat(after.getName()).isEqualTo("renamed");
+        assertThat(after.isEnabled()).isFalse();
+        assertThat(after.getMaxRounds()).isNull();
+        assertThat(after.getModelProfiles()).as("the other model stays").hasSize(2).contains(helper);
+        assertThat(after.getAllowedCommands()).as("an allowed command of an extension that is not loaded stays")
+                .contains("gone-command", commandNames().getFirst());
+    }
+
+    @Test
+    void resettingTheSystemPromptRestoresTheDefault() throws Exception {
+        manuscript();
+        AgentDialog dialog = dialog(null);
+        dialog.getSystemPromptField().setValue("something else");
+
+        button(dialog, "Restore default").click();
+
+        assertThat(dialog.getSystemPromptField().getValue()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+    }
+
+    @Test
+    void thePresetsTickTheCommandsAndATickOfYourOwnIsCustom() throws Exception {
+        manuscript();
+        AgentCommandsEditor editor = dialog(null).getCommandsEditor();
+        String first = editor.getCommandNames().getFirst();
+
+        editor.select(AgentCommandPreset.ALL);
+        assertThat(editor.getAllowed()).containsExactlyInAnyOrderElementsOf(commandNames());
+        assertThat(editor.getPreset()).isEqualTo(AgentCommandPreset.ALL);
+
+        editor.select(AgentCommandPreset.NONE);
+        assertThat(editor.getAllowed()).isEmpty();
+        assertThat(editor.getPreset()).isEqualTo(AgentCommandPreset.NONE);
+
+        editor.select(AgentCommandPreset.NON_DESTRUCTIVE);
+        assertThat(editor.getAllowed()).containsExactlyInAnyOrderElementsOf(readOnlyCommandNames());
+
+        editor.select(AgentCommandPreset.NONE);
+        editor.setSelected(first, true);
+        assertThat(editor.getAllowed()).containsExactly(first);
+        assertThat(editor.getPreset()).as("a selection of your own").isIn(null, AgentCommandPreset.NON_DESTRUCTIVE, AgentCommandPreset.ALL);
+
+        List<String> destructive = commandService.getCommands().stream().filter(c -> c.dataSeverity().isDestructive())
+                .map(CommandDefinition::commandName).collect(Collectors.toList());
+        if (!destructive.isEmpty()) {
+            editor.select(AgentCommandPreset.NON_DESTRUCTIVE);
+            editor.setSelected(destructive.getFirst(), true);
+            assertThat(editor.getPreset()).as("one destructive command more than the preset").isNotEqualTo(AgentCommandPreset.NON_DESTRUCTIVE);
+        }
+    }
+
+    @Test
+    void changesOfTheSelectionAreReported() throws Exception {
+        manuscript();
+        AgentCommandsEditor editor = dialog(null).getCommandsEditor();
+        int[] changes = {0};
+        editor.onChange(() -> changes[0]++);
+
+        editor.select(AgentCommandPreset.ALL);
+        editor.setSelected(editor.getCommandNames().getFirst(), false);
+        editor.setAllowed(List.of());
+
+        assertThat(changes[0]).as("setting the model into the editor is no edit").isEqualTo(2);
+    }
+
+    @Test
+    void anUnknownCommandCanNotBeTicked() throws Exception {
+        manuscript();
+        AgentCommandsEditor editor = dialog(null).getCommandsEditor();
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> editor.setSelected("no-such-command", true))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void theInstructionsAreCappedAtTheLimitOfTheService() throws Exception {
+        manuscript();
+        AgentDialog dialog = dialog(null);
+
+        assertThat(dialog.getInstructionsField().getMaxLength()).isEqualTo(AgentService.MAX_INSTRUCTIONS_LENGTH);
+    }
+}

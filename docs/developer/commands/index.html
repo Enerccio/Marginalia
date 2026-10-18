@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845649012580">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845649012580" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -458,7 +458,7 @@ name another object already holds. It returns the <code translate="no" v-pre>Com
 <p><code translate="no" v-pre>unregisterCommands(Object suite)</code> removes the suite, <code translate="no" v-pre>unregisterCommand(String)</code> one command with all its forms. The
 service does not know which bundle a suite came from: <strong>an extension unregisters its suites in <code translate="no" v-pre>onExtensionUnload</code></strong>.
 Runs in progress are not interrupted by unregistering.</p>
-<p>The application registers its own suites in <code translate="no" v-pre>CommandServiceImpl.afterPropertiesSet</code> (today <code translate="no" v-pre>HelloWorldCommands</code>).</p>
+<p>The application registers its own suites in <code translate="no" v-pre>CommandServiceImpl.afterPropertiesSet</code> (<code translate="no" v-pre>HelloWorldCommands</code>, <code translate="no" v-pre>BackupCommands</code>, the two search and replace commands and the <doc-anchor-trigger to="#commands-that-read-the-book">commands that read the book</doc-anchor-trigger>).</p>
 <h2 id="statelessness">Statelessness</h2>
 <p>A suite is one object shared by all users and runs in parallel, so it must be <strong>stateless</strong>: no fields that hold what a
 run or a user did. What a command needs to know about the current state it reads when it runs:</p>
@@ -468,15 +468,18 @@ run or a user did. What a command needs to know about the current state it reads
 </ul>
 <p><code translate="no" v-pre>CommandUtils</code> (package <code translate="no" v-pre>utils</code>) reads the session of the caller – also on the worker thread of an <code translate="no" v-pre>async</code> command, which
 gets the request attributes – and returns <code translate="no" v-pre>null</code> when there is nothing to return (no session, no workspace yet, no book
-open), so a command checks its results:</p>
+open), so a command checks its results. The book-related methods only delegate to the <code translate="no" v-pre>SessionPoint</code>, which knows where the
+book comes from: for a user the <code translate="no" v-pre>SessionPoint</code> reads it from the open window of the workspace, for an agent the
+<code translate="no" v-pre>AgenticSessionPoint</code> (a <code translate="no" v-pre>SessionPoint</code> without workspace and window) holds the book directly, so the same command runs for
+both:</p>
 <retype-table copy-text="| Method                    | Returns                                                                       |
 |---------------------------|-------------------------------------------------------------------------------|
-| `getSessionPoint()`       | The `SessionPoint` of the session.                                            |
-| `getWorkspace()`          | The user's `Workspace` (desktop or phone).                                    |
-| `getManuscriptSection()`  | The part of the workspace that holds book windows (`ManuscriptSection`).      |
-| `getManuscriptWindow()`   | The open book window (`ManuscriptWindow`, the same interface on the desktop and the phone). |
-| `getCurrentManuscript()`  | The open book (`Manuscript`).                                                 |
-| `getCurrentAI()`          | The AI of the open book.                                                      |">
+| `getSessionPoint()`       | The `SessionPoint` of the session: the bean of the servlet session, or for other request attributes (an agent run) the `AgenticSessionPoint` kept under `AgenticSessionPoint.SCOPED_TARGET_NAME` in their session scope. |
+| `getWorkspace()`          | The user's `Workspace` (desktop or phone); `null` for an agent.               |
+| `getManuscriptSection()`  | The part of the workspace that holds book windows (`ManuscriptSection`); `null` for an agent. |
+| `getManuscriptWindow()`   | The open book window (`ManuscriptWindow`, the same interface on the desktop and the phone); `null` for an agent. |
+| `getCurrentManuscript()`  | The book the command works on: the open book (`SessionPoint.getCurrentManuscript()`) or the book of the agent session. |
+| `getCurrentAI()`          | The AI of that book.                                                          |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -488,34 +491,85 @@ open), so a command checks its results:</p>
 <tbody>
 <tr>
 <td><code translate="no" v-pre>getSessionPoint()</code></td>
-<td>The <code translate="no" v-pre>SessionPoint</code> of the session.</td>
+<td>The <code translate="no" v-pre>SessionPoint</code> of the session: the bean of the servlet session, or for other request attributes (an agent run) the <code translate="no" v-pre>AgenticSessionPoint</code> kept under <code translate="no" v-pre>AgenticSessionPoint.SCOPED_TARGET_NAME</code> in their session scope.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>getWorkspace()</code></td>
-<td>The user&#x27;s <code translate="no" v-pre>Workspace</code> (desktop or phone).</td>
+<td>The user&#x27;s <code translate="no" v-pre>Workspace</code> (desktop or phone); <code translate="no" v-pre>null</code> for an agent.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>getManuscriptSection()</code></td>
-<td>The part of the workspace that holds book windows (<code translate="no" v-pre>ManuscriptSection</code>).</td>
+<td>The part of the workspace that holds book windows (<code translate="no" v-pre>ManuscriptSection</code>); <code translate="no" v-pre>null</code> for an agent.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>getManuscriptWindow()</code></td>
-<td>The open book window (<code translate="no" v-pre>ManuscriptWindow</code>, the same interface on the desktop and the phone).</td>
+<td>The open book window (<code translate="no" v-pre>ManuscriptWindow</code>, the same interface on the desktop and the phone); <code translate="no" v-pre>null</code> for an agent.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>getCurrentManuscript()</code></td>
-<td>The open book (<code translate="no" v-pre>Manuscript</code>).</td>
+<td>The book the command works on: the open book (<code translate="no" v-pre>SessionPoint.getCurrentManuscript()</code>) or the book of the agent session.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>getCurrentAI()</code></td>
-<td>The AI of the open book.</td>
+<td>The AI of that book.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<p><code translate="no" v-pre>confirm</code> and <code translate="no" v-pre>reloadManuscriptWindow</code> talk to the window, so in a session without one they answer <em>no</em> and do nothing.</p>
 <p>A command that changes the UI does it on the UI thread: from a synchronous command that is the calling thread, from an
 <code translate="no" v-pre>async</code> one use <code translate="no" v-pre>ui.access(...)</code> (see <a href="../plugins/ui-extensions/#threads">UI extensions → Threads</a>).</p>
+<h2 id="commands-that-read-the-book">Commands that read the book</h2>
+<p>The package <code translate="no" v-pre>domain.service.impl.commands.manuscript.read</code> holds one class per command (<code translate="no" v-pre>GetBookInfoCommand</code>, <code translate="no" v-pre>ListPartsCommand</code>,
+<code translate="no" v-pre>GetPartCommand</code>, <code translate="no" v-pre>ListSwipesCommand</code>, <code translate="no" v-pre>ListBranchesCommand</code>, <code translate="no" v-pre>GetPartMetricsCommand</code>, <code translate="no" v-pre>ShowPromptCommand</code>, <code translate="no" v-pre>SearchPartsCommand</code>,
+<code translate="no" v-pre>FindOccurrencesCommand</code>, <code translate="no" v-pre>ComparePartsCommand</code>, <code translate="no" v-pre>CountTokensCommand</code>, <code translate="no" v-pre>ListSummariesCommand</code>, <code translate="no" v-pre>GetSummaryCommand</code>,
+<code translate="no" v-pre>CheckSummariesCommand</code>, <code translate="no" v-pre>GetTemplateVariablesCommand</code>), each a <code translate="no" v-pre>@Configurable</code> suite registered by <code translate="no" v-pre>CommandServiceImpl</code>. They share
+<code translate="no" v-pre>ManuscriptReadSupport</code> (the services, the <code translate="no" v-pre>Book</code> loaded again from the current manuscript, the JSON helpers) and <code translate="no" v-pre>StoryTree</code> (the
+parts as a tree, with the numbers of the branches). All are <code translate="no" v-pre>NON_DESTRUCTIVE</code>, synchronous and answer JSON text.</p>
+<ul>
+<li>
+<p><strong>No ids.</strong> A part is addressed by its <em>position</em> (depth on a branch, the first part is 1) and a branch by its <em>number</em>: the
+ends of the branches (parts without children) ordered by creation, the oldest is 1; <code translate="no" v-pre>list-branches</code> gives the numbers and
+<code translate="no" v-pre>list-swipes</code>, <code translate="no" v-pre>search-parts</code> and <code translate="no" v-pre>find-occurrences</code> say the branch that shows a part that is not on the active branch. No
+command gives out or accepts a uuid. Without a branch the active branch (<code translate="no" v-pre>getBranchFromLeaf</code>, the root first) is used; the other
+branches need the whole tree (<code translate="no" v-pre>ChatMessageService.getAllMessages</code>, one query), so a command loads it only when asked for one.</p>
+</li>
+<li>
+<p><strong>Time limited patterns.</strong> The regular expressions of <code translate="no" v-pre>find-occurrences</code> (and <code translate="no" v-pre>search-lore</code>) run over <code translate="no" v-pre>utils.TimeSafeText</code>: the text is wrapped in a
+<code translate="no" v-pre>CharSequence</code> whose <code translate="no" v-pre>charAt</code> checks the clock and throws <code translate="no" v-pre>RegexTimeoutException</code> after 30 seconds for the whole command (the system property
+<code translate="no" v-pre>marginalia.regexTimeoutMillis</code> changes it), which the command turns into an error with <code translate="no" v-pre>ERROR_REGEX_TIMEOUT</code>. A pattern the JDK can&#x27;t optimise, such as
+one with a back reference (<code translate="no" v-pre>(a+)+\1b</code>), can run for hours otherwise; <code translate="no" v-pre>TextSearch</code> uses the same wrapper for each text.</p>
+</li>
+<li>
+<p><strong>Bounded answers.</strong> Lists take <code translate="no" v-pre>offset</code> and <code translate="no" v-pre>limit</code> (50, at most 200); texts come in slices (<code translate="no" v-pre>offset</code>, <code translate="no" v-pre>length</code>, 4000 characters,
+at most 20000) with <code translate="no" v-pre>totalLength</code> and <code translate="no" v-pre>truncated</code>.</p>
+</li>
+<li>
+<p><strong>Forms.</strong> The options are the usual ladder of overloads (every prefix of the parameter list is a form), so a command can be
+called by name only with a prefix of its parameters.</p>
+</li>
+<li>
+<p><strong>Summaries.</strong> The state of a summary (<code translate="no" v-pre>valid</code>, <code translate="no" v-pre>outdated</code>) comes from <code translate="no" v-pre>SummaryService.collectBlocks</code>; the &quot;covers&quot; range of a block
+runs from the part after the previous block to the part that holds the summary.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>compare-parts</code> uses <code translate="no" v-pre>utils.TextDiff</code>, a longest common subsequence of the sentences (a line break ends a sentence too), refused
+above 4 million cells.</p>
+</li>
+</ul>
+<p>Tests: <code translate="no" v-pre>ManuscriptReadCommandsTest</code> runs them in an agent session (<code translate="no" v-pre>AgenticRequestAttributes</code> in the test sources puts an
+<code translate="no" v-pre>AgenticSessionPoint</code> into the session scope of the logged in test user).</p>
+<h3 id="commands-that-read-the-lorebooks">Commands that read the lorebooks</h3>
+<p>The package <code translate="no" v-pre>domain.service.impl.commands.lorebook.read</code> has <code translate="no" v-pre>ListLorebooksCommand</code>, <code translate="no" v-pre>ListLoreEntriesCommand</code>, <code translate="no" v-pre>GetLoreEntryCommand</code> and
+<code translate="no" v-pre>SearchLoreCommand</code> on <code translate="no" v-pre>LorebookReadSupport</code>, which extends <code translate="no" v-pre>ManuscriptReadSupport</code> (so the <code translate="no" v-pre>Book</code>, the paging and the slices are the same).
+Its <code translate="no" v-pre>Lore</code> is the lorebook tree of the open book: the root lorebook of the manuscript, then the subbooks level by level, each once
+(<code translate="no" v-pre>LorebookService.getSubbooks</code> skips the deleted ones). A lorebook is its <strong>number</strong> in that order (the root is 1), an entry its <strong>number in
+the lorebook</strong> (<code translate="no" v-pre>LorebookEntryService.getEntriesForLorebook</code>: by <code translate="no" v-pre>ordinal</code>, then by id, deleted ones left out). Nothing outside the tree is
+reachable, so an agent never sees the other lorebooks of the user, and no uuid is given out or accepted. <code translate="no" v-pre>list-lore-entries</code> filters by
+name and tag in Java and keeps the numbers of the whole lorebook; <code translate="no" v-pre>search-lore</code> scans name, text and comment case-insensitively
+(plain text or a regular expression) and reports one hit per entry with the fields that match.</p>
+<p>Tests: <code translate="no" v-pre>LorebookReadCommandsTest</code>, the same way, with a lorebook tree, a lorebook the book does not use and a deleted entry.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -553,7 +607,7 @@ open), so a command checks its results:</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (cec2a331).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
             </footer>
         </div>
     </div>

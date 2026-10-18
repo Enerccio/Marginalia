@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845649012580">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845649012580" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845649012580" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845678350344" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -444,7 +444,9 @@ by <code translate="no" v-pre>ManuscriptDialog</code> and <code translate="no" v
 <code translate="no" v-pre>ManuscriptSection</code> (package <code translate="no" v-pre>ui.workspace</code>, implemented by <code translate="no" v-pre>ManuscriptPart</code> and <code translate="no" v-pre>PhoneManuscriptPart</code>: <code translate="no" v-pre>getOpenWindow()</code>, the window of
 the book that is open or <code translate="no" v-pre>null</code>) and <code translate="no" v-pre>Workspace.getManuscriptSection()</code> / <code translate="no" v-pre>getOpenManuscriptWindow()</code>. The session&#x27;s <code translate="no" v-pre>SessionPoint</code> holds the
 workspace, and <code translate="no" v-pre>CommandUtils</code> (package <code translate="no" v-pre>utils</code>) reads it for commands: <code translate="no" v-pre>getWorkspace()</code>, <code translate="no" v-pre>getManuscriptSection()</code>, <code translate="no" v-pre>getManuscriptWindow()</code>,
-<code translate="no" v-pre>getCurrentManuscript()</code> and <code translate="no" v-pre>getCurrentAI()</code> return <code translate="no" v-pre>null</code> when there is no session, workspace or open book.</p>
+<code translate="no" v-pre>getCurrentManuscript()</code> and <code translate="no" v-pre>getCurrentAI()</code> return <code translate="no" v-pre>null</code> when there is no session, workspace or open book. The book-related methods delegate to
+<code translate="no" v-pre>SessionPoint</code> (<code translate="no" v-pre>getManuscriptWindow()</code>, <code translate="no" v-pre>getCurrentManuscript()</code>, <code translate="no" v-pre>getCurrentAI()</code>), which <code translate="no" v-pre>AgenticSessionPoint</code> overrides for a session without
+a browser: the book is held directly and there is no window.</p>
 <p><strong>Command bar</strong> (see <a href="../commands/command-bar/">The command bar</a>). <code translate="no" v-pre>CommandBar</code> (package <code translate="no" v-pre>ui.components</code>, a <code translate="no" v-pre>Composite</code>) is the input line for the commands of <code translate="no" v-pre>CommandService</code>, to be placed anywhere:
 a <code translate="no" v-pre>ComboBox</code> with custom values, where the user types <code translate="no" v-pre>/name arg arg</code>, plus a run button. The list is filled lazily from the registry (<code translate="no" v-pre>CommandHelp.matchingNames</code>),
 the help is a <code translate="no" v-pre>Popover</code> above the bar (it covers what is above and moves nothing in the layout), rebuilt as the text changes (description, the forms that fit, the next parameter highlighted, the return value, &quot;too many arguments&quot;); it opens for the arguments, for text that is not a command and for a name nothing matches, and while the name is typed the list (with the descriptions) is the help;
@@ -474,6 +476,51 @@ extension, the buttons <em>Stop</em> / <em>Start</em> (<code translate="no" v-pr
 (<code translate="no" v-pre>ExtensionLogDialog</code>: the end of the extension&#x27;s log with refresh and clear) and <em>Unload</em>). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call <code translate="no" v-pre>AdminGuard.requireAdmin()</code> themselves (see
 <a href="../services/#administration">Services</a>).</p>
+<h3 id="the-agents-tab">The agents tab</h3>
+<p><code translate="no" v-pre>AgentPart</code> (<code translate="no" v-pre>ui.workspace.parts</code>, a <code translate="no" v-pre>WorkspaceComponent</code> like the others) is a table of the agents of the user: the uuid, the name and the
+status of the unfinished run (<code translate="no" v-pre>Localization.getAgentRunStatus</code>), and a row of buttons whose visibility follows the status of the run
+(<code translate="no" v-pre>Start</code> / <code translate="no" v-pre>Resume</code>, <code translate="no" v-pre>Pause</code> for <code translate="no" v-pre>RUNNING</code>, <code translate="no" v-pre>IDLE</code> and <code translate="no" v-pre>WAITING_APPROVAL</code>, <code translate="no" v-pre>Stop</code> for the statuses that are not over or stopping). They call
+<code translate="no" v-pre>AgentRunService</code> (<code translate="no" v-pre>start</code>, <code translate="no" v-pre>resume</code>, <code translate="no" v-pre>pause</code>, <code translate="no" v-pre>stop</code>); the refusals of the service (<code translate="no" v-pre>IllegalStateException</code>, <code translate="no" v-pre>SecurityException</code>,
+<code translate="no" v-pre>IllegalArgumentException</code>) are shown as a warning with the text of the exception, everything else as an internal error, and the table
+is read again after every action. <code translate="no" v-pre>DesktopWorkspace.create</code> builds the tab only when <code translate="no" v-pre>AgentService.isAllowed()</code>, once per login (a
+permission given or taken later shows after the next login); the phone layout has none. <strong>New agent</strong> and <strong>Clone</strong> are off when
+<code translate="no" v-pre>AgentService.canCreate()</code> is false. The dialogs are in <code translate="no" v-pre>ui.dialogs.agent</code>:</p>
+<retype-table copy-text="| Class | |
+|---|---|
+| `AgentDialog` | Creates and edits an agent. A new agent gets `Defaults.DEFAULT_AGENT_PROMPT` as its system prompt and the `NON_DESTRUCTIVE` command preset; the book is offered from the books without an agent and is read only on an existing agent. It edits the main model profile only (the first one, role `overseer` for a new agent) and leaves the others as they are; AI and protocol are both set or both empty. A refusal of `AgentService.save` is a notification, the dialog stays. |
+| `AgentCommandsEditor` | The allowed commands: a grid of the commands of `CommandService` (one row per command name, the severity and the `llmDescription`) with a check box column, and a combo box with the `AgentCommandPreset`s (`ALL`, `NONE`, `NON_DESTRUCTIVE`) that ticks them at once; a manual change shows the combo box as *Custom* (empty). The names allowed that no command has now (an extension that is not loaded) are kept and returned by `getAllowed()`. |
+| `AgentCloneDialog`, `AgentStopDialog` | Name and book for `AgentService.cloneAgent`; keep or discard the result for `AgentRunService.stop`. |
+| `AgentLockCheck` | `refuses(manuscript)`: whether a run locks the book, with the notification naming the agent. The book lists (`ManuscriptPart`, `PhoneManuscriptPart`) call it before they open a book (also when the stored state of the workspace is restored). `UIUtils.internalServerError` shows a `ManuscriptLockedException` anywhere else as a warning, not as an error window. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>AgentDialog</code></td>
+<td>Creates and edits an agent. A new agent gets <code translate="no" v-pre>Defaults.DEFAULT_AGENT_PROMPT</code> as its system prompt and the <code translate="no" v-pre>NON_DESTRUCTIVE</code> command preset; the book is offered from the books without an agent and is read only on an existing agent. It edits the main model profile only (the first one, role <code translate="no" v-pre>overseer</code> for a new agent) and leaves the others as they are; AI and protocol are both set or both empty. A refusal of <code translate="no" v-pre>AgentService.save</code> is a notification, the dialog stays.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentCommandsEditor</code></td>
+<td>The allowed commands: a grid of the commands of <code translate="no" v-pre>CommandService</code> (one row per command name, the severity and the <code translate="no" v-pre>llmDescription</code>) with a check box column, and a combo box with the <code translate="no" v-pre>AgentCommandPreset</code>s (<code translate="no" v-pre>ALL</code>, <code translate="no" v-pre>NONE</code>, <code translate="no" v-pre>NON_DESTRUCTIVE</code>) that ticks them at once; a manual change shows the combo box as <em>Custom</em> (empty). The names allowed that no command has now (an extension that is not loaded) are kept and returned by <code translate="no" v-pre>getAllowed()</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentCloneDialog</code>, <code translate="no" v-pre>AgentStopDialog</code></td>
+<td>Name and book for <code translate="no" v-pre>AgentService.cloneAgent</code>; keep or discard the result for <code translate="no" v-pre>AgentRunService.stop</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentLockCheck</code></td>
+<td><code translate="no" v-pre>refuses(manuscript)</code>: whether a run locks the book, with the notification naming the agent. The book lists (<code translate="no" v-pre>ManuscriptPart</code>, <code translate="no" v-pre>PhoneManuscriptPart</code>) call it before they open a book (also when the stored state of the workspace is restored). <code translate="no" v-pre>UIUtils.internalServerError</code> shows a <code translate="no" v-pre>ManuscriptLockedException</code> anywhere else as a warning, not as an error window.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The settings of the <code translate="no" v-pre>AGENTS</code> permission are edited by <code translate="no" v-pre>AgentsPermissionComponent</code>, see <doc-anchor-trigger to="#permissions-dialog">Permissions dialog</doc-anchor-trigger>.</p>
 <h3 id="remembering-where-the-user-was">Remembering where the user was</h3>
 <p>The workspace is autosaved so the next login opens it where it was left. Everything that has state worth coming back
 to implements <code translate="no" v-pre>Restorable</code> (<code translate="no" v-pre>ui</code>): <code translate="no" v-pre>JsonObject storeState()</code> serializes the state the class needs into a new object and
@@ -1265,7 +1312,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (cec2a331).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
             </footer>
         </div>
     </div>

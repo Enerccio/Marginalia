@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -55,15 +56,36 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Autowired
     private LorebookService lorebookService;
 
+    @Autowired
+    @Lazy
+    private AgentService agentService;
+
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
+
     /**
-     * A soft deleted manuscript takes its messages (with their summaries) and its tags with it.
+     * A book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
+     */
+    @Override
+    @CommonTx
+    public Manuscript save(Manuscript manuscript) throws Exception {
+        agentRunService.checkNotLocked(manuscript);
+        return super.save(manuscript);
+    }
+
+    /**
+     * A soft deleted manuscript takes its messages (with their summaries), its tags and its agent (with the runs of
+     * the agent) with it.
      */
     @Override
     @CommonTx
     public Manuscript delete(Manuscript manuscript, boolean hard) throws Exception {
+        agentRunService.checkNotLocked(manuscript);
         if (!hard && manuscript != null && manuscript.getId() != null) {
             chatMessageService.softDeleteForManuscript(manuscript);
             tagRelationService.deleteForObject(manuscript, false);
+            agentService.deleteForManuscript(manuscript, false);
         }
         return super.delete(manuscript, hard);
     }
@@ -78,6 +100,30 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @CommonTxReadOnly
     public List<Long> searchManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
         return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Long> searchRegularManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
+        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Long> searchAgenticManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
+        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, true);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Manuscript> findAllRegularForUser() throws Exception {
+        return getRepository().findAllByAgentic(false, currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Manuscript> findAllAgenticForUser() throws Exception {
+        return getRepository().findAllByAgentic(true, currentUser);
     }
 
     @Override
@@ -336,6 +382,58 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Override
     @CommonTx
+    public Manuscript createAgenticCopy(Manuscript original) throws Exception {
+        Manuscript source = original == null ? null : find(original);
+        if (source == null || source.isDeleted()) {
+            throw new IllegalArgumentException("The manuscript does not exist");
+        }
+        if (source.isAgentic()) {
+            throw new IllegalArgumentException("A working copy of an agent is not copied");
+        }
+        JsonObject backup = createBackup(source);
+        JsonObject lorebookRef = backup.has("lorebook") && backup.get("lorebook").isJsonObject() ? backup.getAsJsonObject("lorebook") : null;
+        JsonArray lorebooks = backup.has("lorebooks") && backup.get("lorebooks").isJsonArray() ? backup.getAsJsonArray("lorebooks") : null;
+        // the clone would link the lorebook of the user, the copy gets its own
+        backup.remove("lorebook");
+        backup.addProperty("published", false);
+
+        Manuscript copy = cloneFromBackup(backup);
+        copy.setAgentic(true);
+        if (lorebookRef != null && lorebooks != null && lorebookRef.has("uuid") && !lorebookRef.get("uuid").isJsonNull()) {
+            copy.setLorebook(lorebookService.copyLorebooks(lorebooks).get(lorebookRef.get("uuid").getAsString()));
+        }
+        return saveWithoutEvent(copy);
+    }
+
+    @Override
+    @CommonTx
+    public void deleteAgenticCopy(Manuscript copy) throws Exception {
+        Manuscript stored = copy == null ? null : find(copy);
+        if (stored == null) {
+            return;
+        }
+        if (!stored.isAgentic()) {
+            throw new IllegalArgumentException("The manuscript " + stored.getUuid() + " is not a working copy of an agent");
+        }
+        Lorebook lorebook = stored.getLorebook() == null ? null : lorebookService.find(stored.getLorebook());
+        if (lorebook != null && !lorebook.isAgentic()) {
+            // not the copy's own, never deleted here
+            lorebook = null;
+        }
+        stored.setActiveLeaf(null);
+        stored.setLorebook(null);
+        stored = saveWithoutEvent(stored);
+
+        chatMessageService.hardDeleteForManuscript(stored);
+        tagRelationService.deleteForObject(stored, true);
+        delete(stored, true);
+        if (lorebook != null) {
+            lorebookService.deleteAgenticCopy(lorebook);
+        }
+    }
+
+    @Override
+    @CommonTx
     public Manuscript cloneFromBackup(JsonObject backup) throws Exception {
         if (backup == null) {
             return null;
@@ -409,6 +507,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (m == null || backup == null) {
             return m;
         }
+        agentRunService.checkNotLocked(m);
 
         // 1. Store all current messages in that manuscript
         List<ChatMessage> oldMessages = chatMessageService.getAllMessages(m);

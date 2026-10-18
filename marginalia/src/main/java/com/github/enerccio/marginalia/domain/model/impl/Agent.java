@@ -1,0 +1,195 @@
+package com.github.enerccio.marginalia.domain.model.impl;
+
+import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
+import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
+import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
+import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * The definition of an agent: an LLM that works on one manuscript on its own for a long time and calls commands as its
+ * tools. An agent belongs to one manuscript (and the manuscript has at most one agent), what it does is an
+ * {@link AgentRun}.
+ * <p>
+ * The manuscript is a real column, the rest is configuration read only by whoever starts or shows the agent, so it is
+ * stored as extended attributes.
+ */
+@Entity
+@Table(name = "agents")
+public class Agent extends ExtendableEntity {
+
+    @Column(nullable = false)
+    private String name;
+
+    /**
+     * Whether the agent can be started; the runs it already has are not affected.
+     */
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+    // a soft deleted manuscript takes its agent with it
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "manuscript_id")
+    @CleanupReference(Policy.OWNED_BY)
+    private Manuscript manuscript;
+
+    /**
+     * Models of the agent, the first one is the main one. At least the main one is needed to start a run.
+     */
+    @Transient
+    @ExtendedAttribute(inject = true, injectPrefix = "modelProfiles")
+    private List<AgentModelProfile> modelProfiles = new ArrayList<>();
+
+    /**
+     * What the agent is told to be, before the instructions.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String systemPrompt;
+
+    /**
+     * The instructions of the user for the agent ("agents.md", markdown), added to the system prompt of every run and
+     * every thread of it. Written by the user only, the agent can't change them; the size is capped
+     * ({@code AgentService#MAX_INSTRUCTIONS_LENGTH}).
+     */
+    @Transient
+    @ExtendedAttribute
+    private String instructions;
+
+    /**
+     * Names of the commands the agent can call, nothing else is offered to it.
+     */
+    @Transient
+    @ExtendedAttribute(inject = true, injectPrefix = "allowedCommands")
+    private List<String> allowedCommands = new ArrayList<>();
+
+    /**
+     * What happens with a {@code DESTRUCTIVE} command, {@link DestructiveCommandMode#ASK} when not set.
+     */
+    @Transient
+    @ExtendedAttribute
+    private DestructiveCommandMode destructiveMode;
+
+    /**
+     * Most requests (rounds) of one run, null is no limit of the agent.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer maxRounds;
+
+    /**
+     * Most tokens (sent and generated) one run can spend, null or zero is no limit of the agent. The limit given by
+     * the administrator applies too, see {@code AgentGrant}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Long tokenBudget;
+
+    /**
+     * Limit of the context of the main model in tokens, lower than the context of the AI; older rounds are
+     * summarized when the transcript gets near it. Null is the context of the AI.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer contextCap;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public Manuscript getManuscript() {
+        return manuscript;
+    }
+
+    public void setManuscript(Manuscript manuscript) {
+        this.manuscript = manuscript;
+    }
+
+    public List<AgentModelProfile> getModelProfiles() {
+        return modelProfiles;
+    }
+
+    public void setModelProfiles(List<AgentModelProfile> modelProfiles) {
+        this.modelProfiles = modelProfiles == null ? new ArrayList<>() : modelProfiles;
+    }
+
+    /**
+     * The main profile (the overseer), null when the agent has no model yet.
+     */
+    public AgentModelProfile getMainProfile() {
+        return modelProfiles.isEmpty() ? null : modelProfiles.getFirst();
+    }
+
+    public String getSystemPrompt() {
+        return systemPrompt;
+    }
+
+    public void setSystemPrompt(String systemPrompt) {
+        this.systemPrompt = systemPrompt;
+    }
+
+    public String getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
+    }
+
+    public List<String> getAllowedCommands() {
+        return allowedCommands;
+    }
+
+    public void setAllowedCommands(List<String> allowedCommands) {
+        this.allowedCommands = allowedCommands == null ? new ArrayList<>() : allowedCommands;
+    }
+
+    public DestructiveCommandMode getDestructiveMode() {
+        return destructiveMode == null ? DestructiveCommandMode.ASK : destructiveMode;
+    }
+
+    public void setDestructiveMode(DestructiveCommandMode destructiveMode) {
+        this.destructiveMode = destructiveMode;
+    }
+
+    public Integer getMaxRounds() {
+        return maxRounds;
+    }
+
+    public void setMaxRounds(Integer maxRounds) {
+        this.maxRounds = maxRounds;
+    }
+
+    public Long getTokenBudget() {
+        return tokenBudget;
+    }
+
+    public void setTokenBudget(Long tokenBudget) {
+        this.tokenBudget = tokenBudget;
+    }
+
+    public Integer getContextCap() {
+        return contextCap;
+    }
+
+    public void setContextCap(Integer contextCap) {
+        this.contextCap = contextCap;
+    }
+}

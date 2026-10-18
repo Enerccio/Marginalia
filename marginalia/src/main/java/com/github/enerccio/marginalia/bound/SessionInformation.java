@@ -1,11 +1,11 @@
 package com.github.enerccio.marginalia.bound;
 
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinSession;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,7 +16,7 @@ public class SessionInformation {
 	public volatile HttpSession boundSession;
 	public volatile VaadinSession boundVaadinSession;
 	public volatile User boundUser;
-	public volatile ThreadCopyRequestAttributes accessAttributes;
+	public volatile RequestAttributes accessAttributes;
 	public volatile boolean initialized = false;
 	public final Set<SessionCloseListener> sessionCloseListeners = ConcurrentHashMap.newKeySet();
 

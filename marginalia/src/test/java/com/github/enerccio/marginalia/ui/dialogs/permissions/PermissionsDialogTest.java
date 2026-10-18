@@ -10,6 +10,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.textfield.IntegerField;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,8 +87,8 @@ class PermissionsDialogTest extends MarginaliaTestBase {
 
         // the test user was given CREATE_AI
         assertThat(dialog.getTypes()).containsExactlyInAnyOrder(PermissionType.HELPER, PermissionType.CREATE_AI);
-        assertThat(dialog.getAvailableTypes()).isEmpty();
-        assertThat(combo(dialog).isEnabled()).isFalse();
+        assertThat(dialog.getAvailableTypes()).containsExactly(PermissionType.AGENTS);
+        assertThat(combo(dialog).isEnabled()).isTrue();
         assertThat(button(dialog, "Save").isEnabled()).isFalse();
         assertThat(dialog.isDirty()).isFalse();
         assertThat(dialog.getSettings(PermissionType.CREATE_AI)).as("no settings of its own").isNull();
@@ -142,7 +143,7 @@ class PermissionsDialogTest extends MarginaliaTestBase {
     @Test
     void addingOffersOnlyTheTypesTheUserHasNoneOf() throws Exception {
         PermissionsDialog dialog = dialog();
-        assertThat(dialog.getAvailableTypes()).containsExactly(PermissionType.HELPER);
+        assertThat(dialog.getAvailableTypes()).containsExactlyInAnyOrder(PermissionType.HELPER, PermissionType.AGENTS);
         assertThat(button(dialog, "Add permission").isEnabled()).isFalse();
 
         combo(dialog).setValue(PermissionType.HELPER);
@@ -150,7 +151,7 @@ class PermissionsDialogTest extends MarginaliaTestBase {
         button(dialog, "Add permission").click();
 
         assertThat(dialog.getTypes()).contains(PermissionType.HELPER);
-        assertThat(dialog.getAvailableTypes()).isEmpty();
+        assertThat(dialog.getAvailableTypes()).containsExactly(PermissionType.AGENTS);
         assertThat(button(dialog, "Save").isEnabled()).isTrue();
         assertThat(permissionService.getPermission(user, PermissionType.HELPER)).as("not stored yet").isNull();
 
@@ -181,6 +182,36 @@ class PermissionsDialogTest extends MarginaliaTestBase {
 
         assertThat(permissionService.getPermission(user, PermissionType.HELPER).getHelperApplyLimits()).isTrue();
         assertThat(permissionService.getPermission(user, PermissionType.HELPER).getHelperInteractions()).isFalse();
+    }
+
+    @Test
+    void settingsOfTheAgentsPermissionAreTheLimitsOfTheUser() throws Exception {
+        permissionService.setGranted(user, PermissionType.AGENTS, true);
+        PermissionsDialog dialog = dialog();
+        dialog.setExpanded(PermissionType.AGENTS, true);
+        AgentsPermissionComponent settings = (AgentsPermissionComponent) dialog.getSettings(PermissionType.AGENTS);
+        IntegerField maxAgents = field(settings, "Most agents");
+        IntegerField runs = field(settings, "Concurrent runs");
+        IntegerField budget = field(settings, "Token budget of a run");
+        assertThat(maxAgents.getValue()).as("empty is the default").isNull();
+        assertThat(dialog.isDirty()).isFalse();
+
+        maxAgents.setValue(2);
+        runs.setValue(3);
+        budget.setValue(100_000);
+
+        assertThat(button(dialog, "Save").isEnabled()).isTrue();
+        button(dialog, "Save").click();
+
+        Permission stored = permissionService.getPermission(user, PermissionType.AGENTS);
+        assertThat(stored.getAgentsMaxAgents()).isEqualTo(2);
+        assertThat(stored.getAgentsMaxConcurrentRuns()).isEqualTo(3);
+        assertThat(stored.getAgentsRunTokenBudget()).isEqualTo(100_000L);
+    }
+
+    private static IntegerField field(AgentsPermissionComponent settings, String label) {
+        return all(settings.getComponent()).filter(IntegerField.class::isInstance).map(IntegerField.class::cast)
+                .filter(f -> label.equals(f.getLabel())).findFirst().orElseThrow();
     }
 
     @Test

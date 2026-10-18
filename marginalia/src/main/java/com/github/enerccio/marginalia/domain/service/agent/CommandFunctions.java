@@ -1,0 +1,498 @@
+package com.github.enerccio.marginalia.domain.service.agent;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
+import com.github.enerccio.marginalia.domain.model.impl.Agent;
+import com.github.enerccio.marginalia.domain.service.CommandService;
+import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
+import com.github.enerccio.marginalia.domain.service.command.CommandException;
+import com.github.enerccio.marginalia.domain.service.command.CommandParameterDefinition;
+import com.github.enerccio.marginalia.domain.service.command.CommandRun;
+import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
+import com.github.enerccio.marginalia.domain.service.function.FunctionCallException.Kind;
+import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
+import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.loc.L;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+
+/**
+ * The commands an agent may call, as functions of the model: one function per command, with the parameters of all its
+ * forms (the overloads) as one schema.
+ * <ul>
+ * <li><b>Name</b>: a command name that is a valid function name is the name of the function. Any other ({@code .} is legal
+ * in a command, not in a function) is written with '_' for each character that is not allowed and a suffix of six
+ * hexadecimal digits of the hash of the command name, cut so that the whole is at most 64 characters. The rule depends on
+ * the name only, never on what else is registered or in which order, so a name in a stored transcript means the same
+ * command after a restart.</li>
+ * <li><b>Parameters</b>: the union of the parameters of the forms, in the order of the ladder. A parameter is required
+ * when every form with a declared signature has it and none declares it
+ * {@link com.github.enerccio.marginalia.domain.traits.CommandParameter#optional() optional}. A call goes to the form with
+ * the fewest parameters that has all the arguments the model passed; the parameters of that form it left out are null
+ * (or the declared default), so the model never has to know the ladder. A command without a declared signature takes
+ * any arguments.</li>
+ * <li><b>Result</b>: text as it is, anything else as JSON, nothing as "OK"; longer than {@link #MAX_RESULT_LENGTH} it is
+ * cut with a note. A failure is the message of what went wrong (the inference service writes it to the model as
+ * {@code Error: <message>}).</li>
+ * <li><b>Files</b>: a text argument that is exactly {@code @file:/path} is replaced, before the command runs, by the text of
+ * that file of the agent's own file system (when the caller gave a reader), so a long text goes through the model once, in
+ * the file, and the call stays short. The call keeps the reference, so what a file held is read when the call is made.</li>
+ * <li><b>Policy</b>: only the allowed commands exist for the model. A destructive one follows the
+ * {@link DestructiveCommandMode} of the agent: {@code DENY} leaves it out, {@code ASK} waits for the {@link Approval}
+ * (refused when there is none), {@code AUTO} runs it.</li>
+ * </ul>
+ * The commands run as whoever the calling thread is: the functions are called with the request context of the run
+ * ({@link com.github.enerccio.marginalia.bound.AgentRequestAttributes}), which the command service hands on to the
+ * commands that run on a worker thread.
+ */
+public final class CommandFunctions {
+
+    private static final Logger log = LoggerFactory.getLogger(CommandFunctions.class);
+
+    /** The longest result given to the model, in characters. */
+    public static final int MAX_RESULT_LENGTH = 20_000;
+
+    /** A text argument that starts with this is a reference to a file, see the class description. */
+    public static final String FILE_PREFIX = "@file:";
+
+    private static final int MAX_NAME_LENGTH = 64;
+    private static final int SUFFIX_LENGTH = 6;
+    private static final ObjectMapper JSON = new ObjectMapper();
+
+    /**
+     * The decision of the user about a destructive command, asked when the agent is in the {@code ASK} mode.
+     */
+    @FunctionalInterface
+    public interface Approval {
+
+        /**
+         * @param commandName the command the agent wants to run
+         * @param arguments   what it passes, by parameter name
+         * @return whether the user agrees; completes when they decide (the run waits for it)
+         */
+        CompletableFuture<Boolean> approve(String commandName, Map<String, Object> arguments);
+
+    }
+
+    private CommandFunctions() {
+    }
+
+    /**
+     * The name of the function of a command, see the class description.
+     */
+    public static String functionName(String commandName) {
+        String clean = commandName.replaceAll("[^a-zA-Z0-9_-]", "_");
+        if (clean.equals(commandName) && commandName.length() <= MAX_NAME_LENGTH) {
+            return commandName;
+        }
+        String suffix = hash(commandName);
+        String base = clean.length() > MAX_NAME_LENGTH - SUFFIX_LENGTH - 1 ? clean.substring(0, MAX_NAME_LENGTH - SUFFIX_LENGTH - 1) : clean;
+        return base + "_" + suffix;
+    }
+
+    private static String hash(String text) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest).substring(0, SUFFIX_LENGTH);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * The commands the agent is allowed, as functions; its destructive mode decides about the destructive ones.
+     *
+     * @param approval who decides in the {@code ASK} mode, null when nobody can
+     */
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval) {
+        return forAgent(commands, agent, lookup, approval, null);
+    }
+
+    /**
+     * As {@link #forAgent(CommandService, Agent, Function, Approval)}, with the files of the agent: a text argument
+     * {@code @file:/path} is the contents of that file.
+     *
+     * @param files reads the text of a file of the agent by its path and fails with the reason (the message goes to the
+     *              model); null when the agent has no files, the arguments are then passed as they are
+     */
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
+                                       Function<String, String> files) {
+        return create(commands, agent.getAllowedCommands(), agent.getDestructiveMode(), lookup, approval, files);
+    }
+
+    /**
+     * @param allowed  names of the commands to offer; those that are not registered are skipped
+     * @param mode     what happens with a destructive command
+     * @param lookup   the texts of the commands (the descriptions are for the model, so in the language of the run)
+     * @param approval who decides in the {@code ASK} mode, null when nobody can
+     */
+    public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
+                                     Function<L, String> lookup, Approval approval) {
+        return create(commands, allowed, mode, lookup, approval, null);
+    }
+
+    /**
+     * @param files reads the text of a file by its path, null when there are no files; see
+     *              {@link #forAgent(CommandService, Agent, Function, Approval, Function)}
+     */
+    public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
+                                     Function<L, String> lookup, Approval approval, Function<String, String> files) {
+        Set<String> names = new HashSet<>(allowed);
+        Map<String, List<CommandDefinition>> byName = new TreeMap<>();
+        for (CommandDefinition definition : commands.getCommands()) {
+            if (names.contains(definition.commandName())) {
+                byName.computeIfAbsent(definition.commandName(), _ -> new ArrayList<>()).add(definition);
+            }
+        }
+
+        Map<String, FunctionDefinition> functions = new LinkedHashMap<>();
+        for (Map.Entry<String, List<CommandDefinition>> entry : byName.entrySet()) {
+            List<CommandDefinition> forms = entry.getValue();
+            boolean destructive = forms.getFirst().dataSeverity().isDestructive();
+            if (destructive && mode == DestructiveCommandMode.DENY) {
+                continue;
+            }
+            String functionName = functionName(entry.getKey());
+            FunctionDefinition definition = FunctionDefinition.dynamic(functionName, describe(forms, lookup), schema(forms, lookup, files != null),
+                    (continuation, arguments) -> call(commands, entry.getKey(), destructive ? mode : DestructiveCommandMode.AUTO,
+                            approval, files, continuation, arguments));
+            if (functions.putIfAbsent(functionName, definition) != null) {
+                // two names with the same hash, which is not going to happen; the first (by name) wins
+                log.warn("Command {} has the function name {} of another command, it is not offered", entry.getKey(), functionName);
+            }
+        }
+        return FunctionSet.bind(functions.values(), null);
+    }
+
+    private static String describe(List<CommandDefinition> forms, Function<L, String> lookup) {
+        CommandDefinition first = forms.getFirst();
+        String text = first.llmDescription().get(lookup);
+        if (text.isBlank()) {
+            text = first.description().get(lookup);
+        }
+        if (text.isBlank()) {
+            text = first.humanName().get(lookup);
+        }
+        String returns = first.returns().isVoid() ? "" : first.returns().description().get(lookup);
+        return returns.isBlank() ? text : text + "\nReturns: " + returns;
+    }
+
+    // --- the schema ---
+
+    private static List<CommandDefinition> declared(List<CommandDefinition> forms) {
+        return forms.stream().filter(form -> !form.anyArguments()).toList();
+    }
+
+    /** The parameters of all the forms by name, in the order they first appear. */
+    private static Map<String, List<CommandParameterDefinition>> parametersOf(List<CommandDefinition> forms) {
+        Map<String, List<CommandParameterDefinition>> parameters = new LinkedHashMap<>();
+        for (CommandDefinition form : declared(forms)) {
+            for (CommandParameterDefinition parameter : form.parameters()) {
+                parameters.computeIfAbsent(parameter.name(), _ -> new ArrayList<>()).add(parameter);
+            }
+        }
+        return parameters;
+    }
+
+    private static Set<String> requiredOf(List<CommandDefinition> forms) {
+        List<CommandDefinition> declared = declared(forms);
+        Set<String> required = new LinkedHashSet<>();
+        parametersOf(forms).forEach((name, parameters) -> {
+            if (parameters.size() == declared.size() && parameters.stream().noneMatch(CommandParameterDefinition::optional)) {
+                required.add(name);
+            }
+        });
+        return required;
+    }
+
+    private static ObjectNode schema(List<CommandDefinition> forms, Function<L, String> lookup, boolean files) {
+        ObjectNode properties = JSON.createObjectNode();
+        parametersOf(forms).forEach((name, parameters) -> properties.set(name, parameterSchema(parameters, lookup, files)));
+        ObjectNode root = JSON.createObjectNode();
+        root.put("type", "object");
+        root.set("properties", properties);
+        ArrayNode required = JSON.createArrayNode();
+        requiredOf(forms).forEach(required::add);
+        if (!required.isEmpty()) {
+            root.set("required", required);
+        }
+        root.put("additionalProperties", forms.stream().anyMatch(CommandDefinition::anyArguments));
+        return root;
+    }
+
+    private static ObjectNode parameterSchema(List<CommandParameterDefinition> forms, Function<L, String> lookup, boolean files) {
+        CommandParameterDefinition first = forms.getFirst();
+        // forms that disagree about the type take anything
+        Class<?> type = forms.stream().allMatch(p -> p.type() == first.type()) ? first.type() : Object.class;
+        ObjectNode schema = typeSchema(type);
+        forms.stream().map(p -> p.description().get(lookup)).filter(text -> !text.isBlank()).findFirst()
+                .ifPresent(text -> schema.put("description", text));
+        List<String> allowed = forms.stream().map(CommandParameterDefinition::allowed).filter(a -> !a.isEmpty()).findFirst().orElse(List.of());
+        if (files && allowed.isEmpty() && isText(forms)) {
+            String text = schema.path("description").asText("");
+            schema.put("description", (text.isEmpty() ? "" : text + " ") + Defaults.AGENT_FILE_ARGUMENT_HINT);
+        }
+        if (!allowed.isEmpty()) {
+            ArrayNode values = JSON.createArrayNode();
+            allowed.forEach(value -> values.add(valueNode(type, value)));
+            schema.set("enum", values);
+        }
+        forms.stream().map(CommandParameterDefinition::defaultValue).filter(value -> !value.isEmpty()).findFirst()
+                .ifPresent(value -> schema.set("default", valueNode(type, value)));
+        return schema;
+    }
+
+    /** Whether the parameter is a text in every form that has it. */
+    private static boolean isText(List<CommandParameterDefinition> forms) {
+        return forms.stream().allMatch(p -> CharSequence.class.isAssignableFrom(boxed(p.type())));
+    }
+
+    private static ObjectNode typeSchema(Class<?> type) {
+        ObjectNode schema = JSON.createObjectNode();
+        Class<?> boxed = boxed(type);
+        if (boxed == Object.class) {
+            // any value
+            return schema;
+        }
+        if (CharSequence.class.isAssignableFrom(boxed)) {
+            schema.put("type", "string");
+        } else if (boxed == Character.class) {
+            schema.put("type", "string");
+            schema.put("minLength", 1);
+            schema.put("maxLength", 1);
+        } else if (boxed == Boolean.class) {
+            schema.put("type", "boolean");
+        } else if (boxed == Integer.class || boxed == Long.class || boxed == Short.class || boxed == Byte.class
+                || boxed == BigInteger.class) {
+            schema.put("type", "integer");
+        } else if (Number.class.isAssignableFrom(boxed)) {
+            schema.put("type", "number");
+        } else if (boxed.isEnum()) {
+            schema.put("type", "string");
+            ArrayNode values = JSON.createArrayNode();
+            for (Object constant : boxed.getEnumConstants()) {
+                values.add(((Enum<?>) constant).name());
+            }
+            schema.set("enum", values);
+        } else if (Collection.class.isAssignableFrom(boxed) || boxed.isArray()) {
+            schema.put("type", "array");
+        } else if (Map.class.isAssignableFrom(boxed)) {
+            schema.put("type", "object");
+        }
+        return schema;
+    }
+
+    private static Class<?> boxed(Class<?> type) {
+        if (!type.isPrimitive()) {
+            return type;
+        }
+        return switch (type.getName()) {
+            case "int" -> Integer.class;
+            case "long" -> Long.class;
+            case "double" -> Double.class;
+            case "float" -> Float.class;
+            case "short" -> Short.class;
+            case "byte" -> Byte.class;
+            case "boolean" -> Boolean.class;
+            case "char" -> Character.class;
+            default -> type;
+        };
+    }
+
+    /** The text of a default or an allowed value as the JSON of the type, text when it does not fit. */
+    private static JsonNode valueNode(Class<?> type, String text) {
+        Class<?> boxed = boxed(type);
+        try {
+            if (boxed == Integer.class || boxed == Long.class || boxed == Short.class || boxed == Byte.class) {
+                return JSON.getNodeFactory().numberNode(Long.parseLong(text.trim()));
+            }
+            if (boxed == Double.class || boxed == Float.class || boxed == BigDecimal.class) {
+                return JSON.getNodeFactory().numberNode(Double.parseDouble(text.trim()));
+            }
+        } catch (NumberFormatException e) {
+            // the author wrote a text for a number, the model gets it as written
+        }
+        if (boxed == Boolean.class && (text.equalsIgnoreCase("true") || text.equalsIgnoreCase("false"))) {
+            return JSON.getNodeFactory().booleanNode(Boolean.parseBoolean(text));
+        }
+        return JSON.getNodeFactory().textNode(text);
+    }
+
+    // --- the call ---
+
+    private static void call(CommandService commands, String commandName, DestructiveCommandMode mode, Approval approval,
+                             Function<String, String> files, FunctionContinuation<Object> continuation, Map<String, Object> passed) {
+        try {
+            List<CommandDefinition> forms = commands.getCommands(commandName);
+            if (forms.isEmpty()) {
+                throw new FunctionCallException(Kind.FAILED, "The command " + commandName + " is not available now");
+            }
+            Map<String, Object> arguments = new LinkedHashMap<>();
+            passed.forEach((name, value) -> {
+                if (value != null) {
+                    arguments.put(name, value);
+                }
+            });
+            if (files != null) {
+                readFiles(forms, arguments, files);
+            }
+            Map<String, Object> complete = complete(forms, arguments);
+
+            if (mode == DestructiveCommandMode.DENY) {
+                throw new FunctionCallException(Kind.FAILED, "The command " + commandName + " changes or removes data and is not allowed");
+            }
+            if (mode == DestructiveCommandMode.ASK) {
+                if (approval == null) {
+                    throw new FunctionCallException(Kind.FAILED, "The command " + commandName
+                            + " changes or removes data and needs the approval of the user, which can not be asked now");
+                }
+                approval.approve(commandName, complete).whenComplete((approved, error) -> {
+                    if (error != null) {
+                        continuation.fail(new FunctionCallException(Kind.FAILED, messageOf(error), error));
+                    } else if (!Boolean.TRUE.equals(approved)) {
+                        continuation.fail(new FunctionCallException(Kind.FAILED, "The user did not approve the command " + commandName));
+                    } else {
+                        run(commands, commandName, complete, continuation);
+                    }
+                });
+                return;
+            }
+            run(commands, commandName, complete, continuation);
+        } catch (RuntimeException e) {
+            continuation.fail(e);
+        }
+    }
+
+    /**
+     * Puts the contents of the file in the place of a text argument that is {@code @file:/path}. Anything else, an
+     * argument that is not a text parameter too, is left as the model wrote it.
+     *
+     * @throws FunctionCallException with the reason when a file can't be read, the model corrects the call
+     */
+    private static void readFiles(List<CommandDefinition> forms, Map<String, Object> arguments, Function<String, String> files) {
+        Map<String, List<CommandParameterDefinition>> parameters = parametersOf(forms);
+        for (Map.Entry<String, Object> argument : arguments.entrySet()) {
+            if (!(argument.getValue() instanceof String text) || !text.startsWith(FILE_PREFIX)) {
+                continue;
+            }
+            List<CommandParameterDefinition> declared = parameters.get(argument.getKey());
+            if (declared == null || !isText(declared)) {
+                continue;
+            }
+            try {
+                argument.setValue(files.apply(text.substring(FILE_PREFIX.length()).strip()));
+            } catch (RuntimeException e) {
+                throw new FunctionCallException(Kind.FAILED, "The argument " + argument.getKey() + ": " + messageOf(e), e);
+            }
+        }
+    }
+
+    /**
+     * The arguments for the form that fits what the model passed: the one with the fewest parameters that has them all,
+     * the other parameters of it null or their default.
+     */
+    private static Map<String, Object> complete(List<CommandDefinition> forms, Map<String, Object> arguments) {
+        List<CommandDefinition> declared = declared(forms);
+        if (declared.isEmpty()) {
+            return arguments;
+        }
+        for (String name : requiredOf(forms)) {
+            if (!arguments.containsKey(name)) {
+                throw new FunctionCallException(Kind.INVALID_ARGUMENTS, "Missing required parameter '" + name + "'");
+            }
+        }
+        CommandDefinition best = null;
+        for (CommandDefinition form : declared) {
+            Set<String> names = new HashSet<>();
+            form.parameters().forEach(p -> names.add(p.name()));
+            if (names.containsAll(arguments.keySet()) && (best == null || form.parameters().size() < best.parameters().size())) {
+                best = form;
+            }
+        }
+        if (best == null) {
+            if (forms.stream().anyMatch(CommandDefinition::anyArguments)) {
+                return arguments;
+            }
+            Set<String> known = parametersOf(forms).keySet();
+            Set<String> unknown = new LinkedHashSet<>(arguments.keySet());
+            unknown.removeAll(known);
+            throw new FunctionCallException(Kind.INVALID_ARGUMENTS, unknown.isEmpty()
+                    ? "No form of the command takes the parameters " + arguments.keySet() + " together"
+                    : "Unknown parameter(s) " + unknown + ", the parameters are " + known);
+        }
+        Map<String, Object> complete = new LinkedHashMap<>();
+        for (CommandParameterDefinition parameter : best.parameters()) {
+            Object value = arguments.get(parameter.name());
+            if (value == null && !parameter.defaultValue().isEmpty()) {
+                value = parameter.defaultValue();
+            }
+            if (value != null && !parameter.allowed().isEmpty() && !parameter.allowed().contains(String.valueOf(value))) {
+                throw new FunctionCallException(Kind.INVALID_ARGUMENTS, "Parameter '" + parameter.name() + "' must be one of "
+                        + parameter.allowed());
+            }
+            complete.put(parameter.name(), value);
+        }
+        return complete;
+    }
+
+    private static void run(CommandService commands, String commandName, Map<String, Object> arguments,
+                            FunctionContinuation<Object> continuation) {
+        CommandRun run = commands.execute(commandName, arguments);
+        run.whenComplete((value, error) -> {
+            if (error != null) {
+                continuation.fail(new FunctionCallException(Kind.FAILED, messageOf(error), error));
+                return;
+            }
+            try {
+                continuation.complete(bound(FunctionDefinition.render(value)));
+            } catch (RuntimeException e) {
+                continuation.fail(e);
+            }
+        });
+    }
+
+    /** What went wrong, from the cause of the command for the model: no class names, no "Command x failed". */
+    private static String messageOf(Throwable error) {
+        Throwable cause = error;
+        while ((cause instanceof CommandException || cause instanceof java.util.concurrent.CompletionException
+                || cause instanceof java.util.concurrent.ExecutionException) && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        if (cause instanceof java.util.concurrent.CancellationException) {
+            return "The command was stopped";
+        }
+        String message = cause.getMessage();
+        if (message == null || message.isBlank()) {
+            return cause.getClass().getSimpleName();
+        }
+        return message;
+    }
+
+    /** The result cut at the end of a line within {@link #MAX_RESULT_LENGTH}, with a note of how much there was. */
+    static String bound(String text) {
+        if (text.length() <= MAX_RESULT_LENGTH) {
+            return text;
+        }
+        int cut = text.lastIndexOf('\n', MAX_RESULT_LENGTH);
+        if (cut < MAX_RESULT_LENGTH / 2) {
+            cut = MAX_RESULT_LENGTH;
+        }
+        return text.substring(0, cut) + "\n[cut: " + cut + " of " + text.length()
+                + " characters; ask for less (a smaller page, a narrower search)]";
+    }
+
+}

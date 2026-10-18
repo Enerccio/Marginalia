@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.utils;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
+import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -84,6 +85,13 @@ public class UIUtils {
     }
 
     public static void internalServerError(Localization loc, Throwable cause) {
+        for (Throwable t = cause; t != null && t.getCause() != t; t = t.getCause()) {
+            if (t instanceof ManuscriptLockedException locked) {
+                // not a fault: the book is worked on by an agent, the user has to pause or stop it
+                Notification.warning(String.format(loc.getValue(L.ERROR_BOOK_LOCKED), locked.getAgentName()));
+                return;
+            }
+        }
         log.error(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
         UiProblems.exception(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
 

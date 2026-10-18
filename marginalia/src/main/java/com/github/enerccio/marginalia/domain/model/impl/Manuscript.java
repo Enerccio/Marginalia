@@ -36,6 +36,9 @@ public class Manuscript extends ExtendableEntity {
 
     private boolean published = false;
 
+    // the working copy of an agent, never listed with the books of the user
+    private boolean agentic = false;
+
     // touched only by the owner opening the book from UI, keeps modification for content changes
     @SuppressWarnings("deprecation")
     @Temporal(TemporalType.TIMESTAMP)
@@ -183,6 +186,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setLorebook(Lorebook lorebook) {
         this.lorebook = lorebook;
+    }
+
+    public boolean isAgentic() {
+        return agentic;
+    }
+
+    public void setAgentic(boolean agentic) {
+        this.agentic = agentic;
     }
 
     public boolean isPublished() {

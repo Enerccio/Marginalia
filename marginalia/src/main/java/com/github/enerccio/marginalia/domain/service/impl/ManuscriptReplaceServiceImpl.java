@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.*;
 
@@ -35,6 +36,10 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
 
     @Autowired
     private InferenceServices inferenceServices;
+
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
 
     /**
      * A part or a summary to change.
@@ -227,6 +232,7 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
     @CommonTx
     public Result apply(Manuscript manuscript, Plan plan, TaskProgress progress) throws Exception {
         Manuscript owned = owned(manuscript);
+        agentRunService.checkNotLocked(owned);
         PlanImpl planned = (PlanImpl) plan;
         if (!Objects.equals(planned.manuscriptId(), owned.getId())) {
             throw new IllegalArgumentException("The plan is of another book");

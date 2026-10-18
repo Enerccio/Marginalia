@@ -401,6 +401,54 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_GET_SUMMARY, "要約を読む");
         setValue(L.LABEL_COMMAND_CHECK_SUMMARIES, "要約を確認");
         setValue(L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES, "テンプレート変数");
+        setValue(L.LABEL_AGENTS, "エージェント");
+        setValue(L.LABEL_AGENT_ID, "エージェントID");
+        setValue(L.LABEL_NEW_AGENT, "新しいエージェント");
+        setValue(L.LABEL_EDIT_AGENT, "エージェントを編集");
+        setValue(L.LABEL_CLONE_AGENT, "エージェントを複製");
+        setValue(L.LABEL_PAUSE, "一時停止");
+        setValue(L.LABEL_RESUME, "再開");
+        setValue(L.LABEL_STOP_AND_KEEP, "停止して結果を残す");
+        setValue(L.LABEL_STOP_AND_DISCARD, "停止して結果を破棄");
+        setValue(L.LABEL_AGENT_NO_RUN, "未実行");
+        setValue(L.LABEL_AGENT_DISABLED, "無効");
+        setValue(L.LABEL_AGENT_SYSTEM_PROMPT, "システムプロンプト");
+        setValue(L.LABEL_AGENT_INSTRUCTIONS, "指示 (agents.md)");
+        setValue(L.LABEL_RESTORE_DEFAULT, "既定に戻す");
+        setValue(L.LABEL_DESTRUCTIVE_COMMANDS, "破壊的コマンド");
+        setValue(L.LABEL_MAX_ROUNDS, "最大ラウンド数");
+        setValue(L.LABEL_RUN_TOKEN_BUDGET, "実行あたりのトークン予算");
+        setValue(L.LABEL_CONTEXT_LIMIT, "コンテキスト上限（トークン）");
+        setValue(L.LABEL_ALLOWED_COMMANDS, "許可するコマンド");
+        setValue(L.LABEL_COMMAND_SELECTION, "選択");
+        setValue(L.LABEL_COMMAND_SELECTION_CUSTOM, "カスタム");
+        setValue(L.LABEL_COMMAND, "コマンド");
+        setValue(L.LABEL_COMMAND_EFFECT, "影響");
+        setValue(L.LABEL_MAX_AGENTS, "エージェントの最大数");
+        setValue(L.LABEL_MAX_CONCURRENT_RUNS, "同時実行数");
+        setValue(L.LABEL_COMMAND_LIST_LOREBOOKS, "ロアブックの一覧");
+        setValue(L.LABEL_COMMAND_LIST_LORE_ENTRIES, "ロアエントリの一覧");
+        setValue(L.LABEL_COMMAND_GET_LORE_ENTRY, "ロアエントリ");
+        setValue(L.LABEL_COMMAND_SEARCH_LORE, "ロアを検索");
+        setValue(L.LABEL_AGENT_CONSOLE, "コンソール");
+        setValue(L.LABEL_AGENT_RUN, "実行");
+        setValue(L.LABEL_AGENT_WORKSPACE, "ワークスペース");
+        setValue(L.LABEL_ROUNDS, "ラウンド");
+        setValue(L.LABEL_YOU, "あなた");
+        setValue(L.LABEL_RESULT, "結果");
+        setValue(L.LABEL_AGENT_REPORT, "エージェントの報告");
+        setValue(L.LABEL_AGENT_WAITS, "エージェントはあなたの返信を待っています");
+        setValue(L.LABEL_UP, "上へ");
+        setValue(L.LABEL_AGENT_APPROVAL, "エージェントが承認を求めています");
+        setValue(L.LABEL_APPROVE, "承認");
+        setValue(L.LABEL_DENY, "拒否");
+        setValue(L.LABEL_ARGUMENTS, "引数");
+        setValue(L.LABEL_OPEN, "開く");
+        setValue(L.LABEL_START_IMMEDIATELY, "すぐに開始");
+        setValue(L.LABEL_START_IN_CONSOLE, "コンソールで開始");
+        setValue(L.LABEL_FINISH, "終了");
+        setValue(L.LABEL_AGENT_RUNS, "実行履歴");
+        setValue(L.LABEL_REASONING, "推論");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -450,6 +498,26 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_AI_TYPE_EXTENSION, "拡張機能");
         setValue(L.ENUM_PERMISSION_HELPER, "ヘルプアシスタント");
         setValue(L.ENUM_PERMISSION_CREATE_AI, "独自のモデルの作成");
+        setValue(L.ENUM_PERMISSION_AGENTS, "エージェント");
+        setValue(L.ENUM_DOMAIN_AGENT, "エージェント");
+        setValue(L.ENUM_DOMAIN_AGENT_RUN, "エージェントの実行");
+        setValue(L.ENUM_AGENT_RUN_RUNNING, "実行中");
+        setValue(L.ENUM_AGENT_RUN_IDLE, "あなたの入力待ち");
+        setValue(L.ENUM_AGENT_RUN_WAITING_APPROVAL, "承認待ち");
+        setValue(L.ENUM_AGENT_RUN_PAUSING, "一時停止中");
+        setValue(L.ENUM_AGENT_RUN_PAUSED, "一時停止");
+        setValue(L.ENUM_AGENT_RUN_STOPPING, "停止中");
+        setValue(L.ENUM_AGENT_RUN_STOPPED_KEPT, "停止（結果を保持）");
+        setValue(L.ENUM_AGENT_RUN_STOPPED_DISCARDED, "停止（結果を破棄）");
+        setValue(L.ENUM_AGENT_RUN_DONE, "完了（確認待ち）");
+        setValue(L.ENUM_AGENT_RUN_FAILED, "失敗");
+        setValue(L.ENUM_AGENT_RUN_APPLIED, "適用済み");
+        setValue(L.ENUM_DESTRUCTIVE_MODE_AUTO, "実行する");
+        setValue(L.ENUM_DESTRUCTIVE_MODE_ASK, "先に確認する");
+        setValue(L.ENUM_DESTRUCTIVE_MODE_DENY, "拒否する");
+        setValue(L.ENUM_COMMAND_PRESET_ALL, "すべて");
+        setValue(L.ENUM_COMMAND_PRESET_NONE, "なし");
+        setValue(L.ENUM_COMMAND_PRESET_NON_DESTRUCTIVE, "破壊的でないものすべて");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -507,6 +575,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_UNKNOWN_SCOPE, "不明なスコープ '%s' です。global または part を指定してください。");
         setValue(L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "このパートには元のテキストがありません。生成されたものではないか、元のテキストが保存される前に生成されました。");
         setValue(L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "テキストが大きすぎて比較できません。");
+        setValue(L.ERROR_BOOK_LOCKED, "この本はエージェント「%s」によってロックされています。変更するには実行を一時停止または停止してください。");
+        setValue(L.ERROR_AGENT_ACTION_FAILED, "エージェントの操作に失敗しました: %s");
+        setValue(L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "ロアブック %s はありません。この本には %s 個のロアブックがあります（list-lorebooks を参照）。");
+        setValue(L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "ロアブック %s にエントリ %s はありません。エントリは %s 個です。");
+        setValue(L.ERROR_REGEX_TIMEOUT, "正規表現の処理が %s 秒を超えたため停止しました。より単純な式を使ってください。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -622,6 +695,25 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_REPLACE_CONFIRM, "%d 件の一致（%d 項目）を置換しますか？\n\"%s\" -> \"%s\"\nプレビューはなく、変更は元に戻せません。");
         setValue(L.MSG_COMMAND_REPLACE_CANCELLED, "置換を中止しました。何も変更されていません");
         setValue(L.MSG_UNSAVED_CHANGES_EXIT, "未保存の変更があります。保存せずに終了しますか？");
+        setValue(L.MSG_AGENT_NO_FREE_BOOK, "すべての本にすでにエージェントがあります（1冊につき1つまで）。または本がまだありません。");
+        setValue(L.MSG_AGENT_LIMIT_REACHED, "許可されているエージェントの数に達しました。");
+        setValue(L.MSG_CONFIRM_STOP_RUN, "エージェント「%s」の実行をどのように終了しますか？");
+        setValue(L.MSG_AGENT_BOOK_LOCKED, "この本はエージェント「%s」によってロックされています。先に実行を一時停止または停止してください。");
+        setValue(L.MSG_AGENT_NO_RUN_YET, "エージェントはまだ実行されていません。エージェントのタブで開始してください。");
+        setValue(L.MSG_AGENT_WORKSPACE_EMPTY, "ワークスペースは空です。");
+        setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d 個のファイル、%s / %s");
+        setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "エージェントのワークスペースのすべてのファイルを削除しますか？エージェントがそこに保存したメモは失われます。");
+        setValue(L.MSG_AGENT_FILE_NOT_TEXT, "このファイルはテキストではありません。ダウンロードして確認してください。");
+        setValue(L.MSG_AGENT_FILE_CUT, "ファイルが長いため、先頭のみ表示しています。");
+        setValue(L.MSG_AGENT_WORKSPACE_BUSY, "エージェントが作業中です。ファイルを変更するには一時停止してください。");
+        setValue(L.MSG_AGENT_APPROVAL_QUESTION, "エージェント「%s」がデータを変更または削除するコマンド %s を実行しようとしています。エージェントは本のコピー上で作業しており、それ以外には影響しません。");
+        setValue(L.MSG_AGENT_NOTICE_IDLE, "エージェント「%s」があなたを待っています。");
+        setValue(L.MSG_AGENT_NOTICE_APPROVAL, "エージェント「%s」がコマンド %s の承認を求めています。");
+        setValue(L.MSG_AGENT_NOTICE_DONE, "エージェント「%s」が完了しました。");
+        setValue(L.MSG_AGENT_NOTICE_FAILED, "エージェント「%s」の実行が失敗しました。");
+        setValue(L.MSG_AGENT_NOTICE_PAUSED, "エージェント「%s」の実行が一時停止されました: %s");
+        setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "この実行を削除しますか？ステップとレポートはゴミ箱に移動します。");
+        setValue(L.MSG_AGENT_RUN_BUSY, "実行中です。先に一時停止または停止してください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -645,6 +737,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_COMMAND_TOO_MANY_ARGUMENTS, "コマンドが受け付ける数より多い引数です。");
         setValue(L.HELP_COMMAND_DESTRUCTIVE, "このコマンドは既存のデータを変更または削除します。");
         setValue(L.HELP_COMMAND_NON_DESTRUCTIVE, "このコマンドはデータの読み取りか新しいデータの追加だけを行い、既存のものは変更しません。");
+        setValue(L.HELP_AGENTS_MAX_AGENTS, "ユーザーが持てるエージェントの数（複製を含む）。空欄は5、0は既存のエージェントの保持と実行のみ可能で、新規作成や複製はできません。");
+        setValue(L.HELP_AGENTS_MAX_CONCURRENT_RUNS, "ユーザーの実行を同時に動かせる数。空欄は1です。");
+        setValue(L.HELP_AGENTS_RUN_TOKEN_BUDGET, "ユーザーの1回の実行で使えるトークン（送信と生成）の上限。空欄または0は無制限です。");
+        setValue(L.HELP_AGENT_SYSTEM_PROMPT, "指示の前にエージェントに伝える役割。新しいエージェントは既定の内容で始まります。");
+        setValue(L.HELP_AGENT_INSTRUCTIONS, "エージェントへの指示。毎回の実行でプロンプトに追加されます。エージェントは読めますが変更できません。");
+        setValue(L.HELP_AGENT_DESTRUCTIVE, "エージェントがデータを変更・削除するコマンドを実行しようとしたときの動作。");
+        setValue(L.HELP_AGENT_MAX_ROUNDS, "1回の実行でのモデルへのリクエストの最大数。空欄はエージェント側の制限なしです。");
+        setValue(L.HELP_AGENT_TOKEN_BUDGET, "1回の実行で使えるトークンの上限。空欄または0はエージェント側の制限なし。管理者が設定した上限は常に適用されます。");
+        setValue(L.HELP_AGENT_CONTEXT_LIMIT, "モデルのコンテキスト上限（トークン）。モデル自体より小さく設定でき、近づくと古いラウンドが要約されます。空欄はモデルのコンテキストです。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
@@ -793,6 +894,22 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, "本またはパートのテンプレート変数を表示します。");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM, "プロンプトテンプレートが setvar で設定する変数：本全体のグローバル変数（scope が global）、またはブランチに従うパート上の変数（scope が part。位置を省略するとブランチの最後のパート）。パートはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN, "変数とその値を含む JSON");
+        setValue(L.DESC_COMMAND_LOREBOOK_PARAM, "list-lorebooks のロアブック番号。省略するとルートのロアブック（1）");
+        setValue(L.DESC_COMMAND_LORE_ENTRY_PARAM, "ロアブック内のエントリ番号。最初のエントリは 1");
+        setValue(L.DESC_COMMAND_LORE_FILTER_PARAM, "名前またはタグにこのテキストを含むエントリのみ（大文字小文字は区別しません）");
+        setValue(L.DESC_COMMAND_LORE_QUERY_PARAM, "エントリの名前、本文、コメントから探すテキスト（大文字小文字は区別しません）");
+        setValue(L.DESC_COMMAND_LIST_LOREBOOKS, "開いている本のロアブックを、エントリとサブブックとともに一覧表示します。");
+        setValue(L.DESC_COMMAND_LIST_LOREBOOKS_LLM, "この本のロアブックを一覧表示します。ルートのロアブックとそのサブブックのツリーについて、番号（ルートは 1）、名前、有効かどうか、エントリ数（有効なエントリ数も）、タグ、サブブックの番号を返します。ユーザーの他のロアブックにはアクセスできません。ロアブックはこの番号で、エントリはロアブック内の番号で指定します。読み取りのみ。");
+        setValue(L.DESC_COMMAND_LIST_LOREBOOKS_RETURN, "ロアブックを含む JSON：番号、名前、有効、エントリ数、有効エントリ数、タグ、サブブック");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES, "ロアブックのエントリを、設定とプレビューとともに一覧表示します。");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM, "ロアブックのエントリを一覧表示します（list-lorebooks のロアブック番号を指定しない場合はルートのロアブック）。ロアブック内のエントリ番号、名前、有効かどうか、順序、挿入モード、フィルタリングモード（TEXT のキーまたは REGEX）、タグ、本文の長さ、短いプレビューを返します。フィルタを指定すると、名前またはタグにそのテキストを含むエントリのみ残りますが、番号はロアブック全体のままです。ページング：offset と limit。エントリはロアブック内の番号（最初は 1）で指定します。読み取りのみ。オプションは位置引数で、省略可能、記載順です。");
+        setValue(L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN, "ページのエントリを含む JSON：エントリ、名前、有効、順序、挿入、フィルタリング、タグ、本文の長さ、プレビュー");
+        setValue(L.DESC_COMMAND_GET_LORE_ENTRY, "ロアブックのエントリ 1 件を、設定と本文とともに表示します。");
+        setValue(L.DESC_COMMAND_GET_LORE_ENTRY_LLM, "ロアブックのエントリ 1 件を読み取ります（list-lorebooks のロアブック番号を指定しない場合はルートのロアブック）。名前、有効かどうか、順序、挿入モード、フィルタリングモードとキー（有効にするテキストまたは正規表現）、タグと否定タグ、コメント、オフセットと全長付きの本文の一部（長い本文は offset と length でページ送り）を返します。エントリはロアブック内の番号（最初は 1、list-lore-entries を参照）で指定します。読み取りのみ。オプションは位置引数で、省略可能、記載順です。");
+        setValue(L.DESC_COMMAND_GET_LORE_ENTRY_RETURN, "エントリを含む JSON：名前、有効、順序、挿入、フィルタリング、キー、タグ、否定タグ、コメント、本文の一部");
+        setValue(L.DESC_COMMAND_SEARCH_LORE, "ロアブックエントリの名前、本文、コメントを検索します。");
+        setValue(L.DESC_COMMAND_SEARCH_LORE_LLM, "この本のすべてのロアブックから、名前、本文、コメントにクエリを含むエントリを探します（大文字小文字は区別しません。regex を指定するとクエリは正規表現）。各ヒットにはロアブック番号、エントリ番号、名前、名前・本文・コメントのどれが一致したか、最初の一致の前後のスニペットが含まれます。found は一致したエントリ数で、hits は件数が制限されます。読み取りのみ。オプションは位置引数で、省略可能、記載順です。");
+        setValue(L.DESC_COMMAND_SEARCH_LORE_RETURN, "found とヒットを含む JSON：ロアブック、エントリ、名前、一致箇所、スニペット");
     }
 
     @Override

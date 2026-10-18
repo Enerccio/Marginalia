@@ -156,7 +156,7 @@ name another object already holds. It returns the `CommandDefinition`s. Register
 service does not know which bundle a suite came from: **an extension unregisters its suites in `onExtensionUnload`**.
 Runs in progress are not interrupted by unregistering.
 
-The application registers its own suites in `CommandServiceImpl.afterPropertiesSet` (today `HelloWorldCommands`).
+The application registers its own suites in `CommandServiceImpl.afterPropertiesSet` (`HelloWorldCommands`, `BackupCommands`, the two search and replace commands and the [commands that read the book](#commands-that-read-the-book)).
 
 ## Statelessness
 
@@ -168,16 +168,64 @@ run or a user did. What a command needs to know about the current state it reads
 
 `CommandUtils` (package `utils`) reads the session of the caller – also on the worker thread of an `async` command, which
 gets the request attributes – and returns `null` when there is nothing to return (no session, no workspace yet, no book
-open), so a command checks its results:
+open), so a command checks its results. The book-related methods only delegate to the `SessionPoint`, which knows where the
+book comes from: for a user the `SessionPoint` reads it from the open window of the workspace, for an agent the
+`AgenticSessionPoint` (a `SessionPoint` without workspace and window) holds the book directly, so the same command runs for
+both:
 
 | Method                    | Returns                                                                       |
 |---------------------------|-------------------------------------------------------------------------------|
-| `getSessionPoint()`       | The `SessionPoint` of the session.                                            |
-| `getWorkspace()`          | The user's `Workspace` (desktop or phone).                                    |
-| `getManuscriptSection()`  | The part of the workspace that holds book windows (`ManuscriptSection`).      |
-| `getManuscriptWindow()`   | The open book window (`ManuscriptWindow`, the same interface on the desktop and the phone). |
-| `getCurrentManuscript()`  | The open book (`Manuscript`).                                                 |
-| `getCurrentAI()`          | The AI of the open book.                                                      |
+| `getSessionPoint()`       | The `SessionPoint` of the session: the bean of the servlet session, or for other request attributes (an agent run) the `AgenticSessionPoint` kept under `AgenticSessionPoint.SCOPED_TARGET_NAME` in their session scope. |
+| `getWorkspace()`          | The user's `Workspace` (desktop or phone); `null` for an agent.               |
+| `getManuscriptSection()`  | The part of the workspace that holds book windows (`ManuscriptSection`); `null` for an agent. |
+| `getManuscriptWindow()`   | The open book window (`ManuscriptWindow`, the same interface on the desktop and the phone); `null` for an agent. |
+| `getCurrentManuscript()`  | The book the command works on: the open book (`SessionPoint.getCurrentManuscript()`) or the book of the agent session. |
+| `getCurrentAI()`          | The AI of that book.                                                          |
+
+`confirm` and `reloadManuscriptWindow` talk to the window, so in a session without one they answer *no* and do nothing.
 
 A command that changes the UI does it on the UI thread: from a synchronous command that is the calling thread, from an
 `async` one use `ui.access(...)` (see [UI extensions → Threads](../plugins/ui-extensions.md#threads)).
+
+## Commands that read the book
+
+The package `domain.service.impl.commands.manuscript.read` holds one class per command (`GetBookInfoCommand`, `ListPartsCommand`,
+`GetPartCommand`, `ListSwipesCommand`, `ListBranchesCommand`, `GetPartMetricsCommand`, `ShowPromptCommand`, `SearchPartsCommand`,
+`FindOccurrencesCommand`, `ComparePartsCommand`, `CountTokensCommand`, `ListSummariesCommand`, `GetSummaryCommand`,
+`CheckSummariesCommand`, `GetTemplateVariablesCommand`), each a `@Configurable` suite registered by `CommandServiceImpl`. They share
+`ManuscriptReadSupport` (the services, the `Book` loaded again from the current manuscript, the JSON helpers) and `StoryTree` (the
+parts as a tree, with the numbers of the branches). All are `NON_DESTRUCTIVE`, synchronous and answer JSON text.
+
+- **No ids.** A part is addressed by its *position* (depth on a branch, the first part is 1) and a branch by its *number*: the
+  ends of the branches (parts without children) ordered by creation, the oldest is 1; `list-branches` gives the numbers and
+  `list-swipes`, `search-parts` and `find-occurrences` say the branch that shows a part that is not on the active branch. No
+  command gives out or accepts a uuid. Without a branch the active branch (`getBranchFromLeaf`, the root first) is used; the other
+  branches need the whole tree (`ChatMessageService.getAllMessages`, one query), so a command loads it only when asked for one.
+- **Time limited patterns.** The regular expressions of `find-occurrences` (and `search-lore`) run over `utils.TimeSafeText`: the text is wrapped in a
+  `CharSequence` whose `charAt` checks the clock and throws `RegexTimeoutException` after 30 seconds for the whole command (the system property
+  `marginalia.regexTimeoutMillis` changes it), which the command turns into an error with `ERROR_REGEX_TIMEOUT`. A pattern the JDK can't optimise, such as
+  one with a back reference (`(a+)+\1b`), can run for hours otherwise; `TextSearch` uses the same wrapper for each text.
+- **Bounded answers.** Lists take `offset` and `limit` (50, at most 200); texts come in slices (`offset`, `length`, 4000 characters,
+  at most 20000) with `totalLength` and `truncated`.
+- **Forms.** The options are the usual ladder of overloads (every prefix of the parameter list is a form), so a command can be
+  called by name only with a prefix of its parameters.
+- **Summaries.** The state of a summary (`valid`, `outdated`) comes from `SummaryService.collectBlocks`; the "covers" range of a block
+  runs from the part after the previous block to the part that holds the summary.
+- `compare-parts` uses `utils.TextDiff`, a longest common subsequence of the sentences (a line break ends a sentence too), refused
+  above 4 million cells.
+
+Tests: `ManuscriptReadCommandsTest` runs them in an agent session (`AgenticRequestAttributes` in the test sources puts an
+`AgenticSessionPoint` into the session scope of the logged in test user).
+
+### Commands that read the lorebooks
+
+The package `domain.service.impl.commands.lorebook.read` has `ListLorebooksCommand`, `ListLoreEntriesCommand`, `GetLoreEntryCommand` and
+`SearchLoreCommand` on `LorebookReadSupport`, which extends `ManuscriptReadSupport` (so the `Book`, the paging and the slices are the same).
+Its `Lore` is the lorebook tree of the open book: the root lorebook of the manuscript, then the subbooks level by level, each once
+(`LorebookService.getSubbooks` skips the deleted ones). A lorebook is its **number** in that order (the root is 1), an entry its **number in
+the lorebook** (`LorebookEntryService.getEntriesForLorebook`: by `ordinal`, then by id, deleted ones left out). Nothing outside the tree is
+reachable, so an agent never sees the other lorebooks of the user, and no uuid is given out or accepted. `list-lore-entries` filters by
+name and tag in Java and keeps the numbers of the whole lorebook; `search-lore` scans name, text and comment case-insensitively
+(plain text or a regular expression) and reports one hit per entry with the fields that match.
+
+Tests: `LorebookReadCommandsTest`, the same way, with a lorebook tree, a lorebook the book does not use and a deleted entry.

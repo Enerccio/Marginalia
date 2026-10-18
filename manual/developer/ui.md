@@ -177,7 +177,9 @@ by `ManuscriptDialog` and `PhoneManuscriptDialog`: the book, its model, open/clo
 `ManuscriptSection` (package `ui.workspace`, implemented by `ManuscriptPart` and `PhoneManuscriptPart`: `getOpenWindow()`, the window of
 the book that is open or `null`) and `Workspace.getManuscriptSection()` / `getOpenManuscriptWindow()`. The session's `SessionPoint` holds the
 workspace, and `CommandUtils` (package `utils`) reads it for commands: `getWorkspace()`, `getManuscriptSection()`, `getManuscriptWindow()`,
-`getCurrentManuscript()` and `getCurrentAI()` return `null` when there is no session, workspace or open book.
+`getCurrentManuscript()` and `getCurrentAI()` return `null` when there is no session, workspace or open book. The book-related methods delegate to
+`SessionPoint` (`getManuscriptWindow()`, `getCurrentManuscript()`, `getCurrentAI()`), which `AgenticSessionPoint` overrides for a session without
+a browser: the book is held directly and there is no window.
 
 **Command bar** (see [The command bar](commands/command-bar.md)). `CommandBar` (package `ui.components`, a `Composite`) is the input line for the commands of `CommandService`, to be placed anywhere:
 a `ComboBox` with custom values, where the user types `/name arg arg`, plus a run button. The list is filled lazily from the registry (`CommandHelp.matchingNames`),
@@ -210,6 +212,26 @@ extension, the buttons *Stop* / *Start* (`OsgiService.stopExtension` / `startExt
 (`ExtensionLogDialog`: the end of the extension's log with refresh and clear) and *Unload*). Note that the admin UI being hidden is not a permission
 check - the administrator-only services call `AdminGuard.requireAdmin()` themselves (see
 [Services](services.md#administration)).
+
+### The agents tab
+
+`AgentPart` (`ui.workspace.parts`, a `WorkspaceComponent` like the others) is a table of the agents of the user: the uuid, the name and the
+status of the unfinished run (`Localization.getAgentRunStatus`), and a row of buttons whose visibility follows the status of the run
+(`Start` / `Resume`, `Pause` for `RUNNING`, `IDLE` and `WAITING_APPROVAL`, `Stop` for the statuses that are not over or stopping). They call
+`AgentRunService` (`start`, `resume`, `pause`, `stop`); the refusals of the service (`IllegalStateException`, `SecurityException`,
+`IllegalArgumentException`) are shown as a warning with the text of the exception, everything else as an internal error, and the table
+is read again after every action. `DesktopWorkspace.create` builds the tab only when `AgentService.isAllowed()`, once per login (a
+permission given or taken later shows after the next login); the phone layout has none. **New agent** and **Clone** are off when
+`AgentService.canCreate()` is false. The dialogs are in `ui.dialogs.agent`:
+
+| Class | |
+|---|---|
+| `AgentDialog` | Creates and edits an agent. A new agent gets `Defaults.DEFAULT_AGENT_PROMPT` as its system prompt and the `NON_DESTRUCTIVE` command preset; the book is offered from the books without an agent and is read only on an existing agent. It edits the main model profile only (the first one, role `overseer` for a new agent) and leaves the others as they are; AI and protocol are both set or both empty. A refusal of `AgentService.save` is a notification, the dialog stays. |
+| `AgentCommandsEditor` | The allowed commands: a grid of the commands of `CommandService` (one row per command name, the severity and the `llmDescription`) with a check box column, and a combo box with the `AgentCommandPreset`s (`ALL`, `NONE`, `NON_DESTRUCTIVE`) that ticks them at once; a manual change shows the combo box as *Custom* (empty). The names allowed that no command has now (an extension that is not loaded) are kept and returned by `getAllowed()`. |
+| `AgentCloneDialog`, `AgentStopDialog` | Name and book for `AgentService.cloneAgent`; keep or discard the result for `AgentRunService.stop`. |
+| `AgentLockCheck` | `refuses(manuscript)`: whether a run locks the book, with the notification naming the agent. The book lists (`ManuscriptPart`, `PhoneManuscriptPart`) call it before they open a book (also when the stored state of the workspace is restored). `UIUtils.internalServerError` shows a `ManuscriptLockedException` anywhere else as a warning, not as an error window. |
+
+The settings of the `AGENTS` permission are edited by `AgentsPermissionComponent`, see [Permissions dialog](#permissions-dialog).
 
 ### Remembering where the user was
 

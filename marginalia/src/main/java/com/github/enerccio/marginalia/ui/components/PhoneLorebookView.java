@@ -416,7 +416,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             return;
         }
         try {
-            List<Lorebook> lorebooks = lorebookService.findAllForUser();
+            List<Lorebook> lorebooks = lorebookService.findAllRegularForUser();
             lorebooks.sort(Comparator.comparing(Lorebook::getName));
             lorebookCombo.setItems(lorebooks);
             if (currentLorebook == null && !lorebooks.isEmpty()) {

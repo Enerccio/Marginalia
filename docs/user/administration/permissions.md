@@ -8,6 +8,7 @@ administrators [share](../inference-providers.md#shared-providers)).
 |---|---|---|
 | **Create own models** | Adding [inference providers](../inference-providers.md): without it the user can only use the providers the administrators share, the providers they already have keep working and can still be edited. | |
 | **Help assistant** | Asking the [help assistant](help-assistant.md), the chat that answers from the manual. | **Apply limits** and **Allow navigating the interface**, see [Settings of a permission](#settings-of-a-permission). |
+| **Agents** | The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs** and **Token budget of a run**, see [Settings of a permission](#settings-of-a-permission). |
 
 Administrators always have every permission, they need none, so there is nothing to give them (the buttons and sections
 of an administrator never depend on a permission). New users have no permission: give them what they need right after
@@ -50,12 +51,20 @@ nothing and does not count as an unsaved change.
 
 ![The settings of the Help assistant permission](../../images/permissions-settings.png)
 
-At the moment only **Help assistant** has them:
+**Help assistant** and **Agents** have them. The ones of the help assistant:
 
 | Setting | |
 |---|---|
 | **Apply limits** | For a shared model, whether the questions of the user count against their limit and usage like any other request, see [Who pays](help-assistant.md#who-pays). Off by default. |
 | **Allow navigating the interface** | Lets the assistant open a section, select a tab or open the dialog to add something when the user asks it to show them the way, see [Showing the way](help-assistant.md#showing-the-way). Off by default. |
+
+The ones of the agents; an empty field is the default:
+
+| Setting | |
+|---|---|
+| **Most agents** | How many agents the user can have, the clones of an agent included. Five when empty. Zero lets the user keep and run their agents, but not create or clone another one. A deleted agent frees its place. |
+| **Concurrent runs** | How many runs of the user can work at the same time. One when empty. |
+| **Token budget of a run** | The most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit. |
 
 ## When permissions were introduced
 

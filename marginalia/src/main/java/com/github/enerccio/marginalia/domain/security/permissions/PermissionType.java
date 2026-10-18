@@ -18,4 +18,10 @@ public enum PermissionType {
      */
     CREATE_AI,
 
+    /**
+     * Creating agents and running them. The limits (concurrent runs, tokens of a run) are the settings of the
+     * permission, see {@code AgentService#getGrant}.
+     */
+    AGENTS,
+
 }

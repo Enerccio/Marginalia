@@ -25,6 +25,11 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
     List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception;
 
     /**
+     * Every message of the manuscript, the soft deleted ones too, for deleting the manuscript for good.
+     */
+    List<ChatMessage> getAllMessagesIncludingDeleted(Manuscript manuscript) throws Exception;
+
+    /**
      * Id and {@code _fulltext} ({@code Object[]{Long, String}}) of the messages of the manuscript that are not deleted
      * and match the query, oldest first. The rest of the message, including {@code extendedContent}, is not read.
      *

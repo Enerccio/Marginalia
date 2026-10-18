@@ -119,6 +119,39 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/search-replace-parts <search> <replace> [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
 | `/search-replace-lore-entries <search> <replace> [regex] [caseSensitive]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
 | `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
+| `/get-book-info` | The name, settings, model, totals (parts, words, tokens) and tags of the open book. |
+| `/list-parts [branch] [offset] [limit]` | The parts of a branch: position, size, swipes, summary state and a short preview. |
+| `/get-part <part> [branch] [offset] [length] [field]` | The text of a part in slices (or its `instructions`, `scene`, `pov`, `present` or `reasoning`) and what it was made from. |
+| `/list-swipes <part> [branch]` | The alternatives (swipes) of a part, with the branch number that shows each. |
+| `/list-branches [offset] [limit]` | The branches of the book, numbered, with where each parts from the others. |
+| `/get-part-metrics <part> [branch]` | Tokens, timings, model and protocol of a part. |
+| `/show-prompt <part> [branch] [offset] [length]` | The prompt a generated part was made from, as it was stored. |
+| `/search-parts <query> [limit]` | Full-text search in the parts of all branches, with snippets. |
+| `/find-occurrences <terms> [regex] [caseSensitive] [summaries] [allBranches] [limit]` | How often and where names or words occur (defaults: no regex, case insensitive, parts only, active branch). |
+| `/compare-parts <a> <b> [branchA] [branchB]` | The sentences that differ between two parts; `0` as `b` compares part `a` with the text the model produced first. |
+| `/count-tokens <text>`, `/count-tokens <part> [branch]` | Tokens (with the tokenizer of the book's model), words and characters of a text or of a part. |
+| `/list-summaries [branch]` | The summaries of a branch, the parts they cover and whether they are still valid. |
+| `/get-summary <part> [branch]` | The summary of a part. |
+| `/check-summaries [branch]` | The outdated summaries and the edited parts that made them so. |
+| `/get-template-variables <scope> [part] [branch]` | The template variables of the book (`global`) or of a part (`part`). |
+| `/list-lorebooks` | The lorebooks of the open book (the root and its subbooks) with their numbers, entry counts, tags and subbooks. |
+| `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
+| `/get-lore-entry <entry> [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
+| `/search-lore <query> [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
+
+### Reading the story
+
+The commands above that read the book (`/get-book-info` to `/get-template-variables`) change nothing; they answer in JSON text,
+so an agent can use them as well. They never show ids: a part is its **position** on a branch, the first part of the story being
+`1`, and a branch is its **number** from `/list-branches` (the numbers follow the creation of the ends of the branches, so they
+change when a branch is added or deleted). Without a branch number the commands work on the active branch. Lists are paged with
+`offset` and `limit`, long texts are cut into slices (`offset`, `length`) and the answer says the total length. As with the other
+commands the options are positional: to set one, give those before it too.
+
+The commands that read the lorebooks (`/list-lorebooks` to `/search-lore`) work the same way and reach only the lorebooks of the open
+book: the root lorebook and its subbooks. A lorebook is its **number** from `/list-lorebooks` (the root is `1`), an entry its
+**number in the lorebook**, in the order of the lorebook (the first entry is `1`); the numbers change when entries or subbooks are
+added or removed. Without a lorebook number the root lorebook is used.
 
 Commands from extensions are listed in the documentation of the extension, and you see them in the list as long as the
 extension is loaded.

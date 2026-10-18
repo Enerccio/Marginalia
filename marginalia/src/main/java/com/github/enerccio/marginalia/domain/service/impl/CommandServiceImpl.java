@@ -6,6 +6,10 @@ import com.github.enerccio.marginalia.domain.service.impl.commands.BackupCommand
 import com.github.enerccio.marginalia.domain.service.impl.commands.HelloWorldCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceChatMessageCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
+import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.GetLoreEntryCommand;
+import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.ListLoreEntriesCommand;
+import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.ListLorebooksCommand;
+import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.SearchLoreCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
@@ -15,6 +19,7 @@ import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -59,6 +64,14 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         registerCommands(new SearchReplaceChatMessageCommand());
         registerCommands(new SearchReplaceLoreEntryCommand());
         registerManuscriptReadCommands();
+        registerLorebookReadCommands();
+    }
+
+    private void registerLorebookReadCommands() {
+        registerCommands(new ListLorebooksCommand());
+        registerCommands(new ListLoreEntriesCommand());
+        registerCommands(new GetLoreEntryCommand());
+        registerCommands(new SearchLoreCommand());
     }
 
     private void registerManuscriptReadCommands() {
@@ -142,7 +155,8 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             }
             parameters.add(new CommandParameterDefinition(parameter.name(), parameter.type(),
                     CommandText.of(describe(method), "description of parameter " + parameter.name(),
-                            parameter.description(), parameter.descriptionText(), false)));
+                            parameter.description(), parameter.descriptionText(), false),
+                    parameter.optional(), parameter.defaultValue(), List.of(parameter.allowed())));
         }
         CommandReturn returns = meta.returns();
         try {
@@ -358,7 +372,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             return result;
         }
 
-        ThreadCopyRequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         try {
             Future<?> worker = workers.submit(() -> {
                 if (result.isDone()) {

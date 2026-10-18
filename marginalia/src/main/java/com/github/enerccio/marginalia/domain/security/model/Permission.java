@@ -49,6 +49,30 @@ public class Permission extends ExtendableEntity {
     @ExtendedAttribute
     private Boolean helperInteractions = false;
 
+    /**
+     * {@link PermissionType#AGENTS}: how many runs of the user can work at once (running, waiting for an approval,
+     * pausing or stopping; a run that waits for the user to write to it is not counted). One when not set.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer agentsMaxConcurrentRuns;
+
+    /**
+     * {@link PermissionType#AGENTS}: most tokens (sent and generated) one run of the user can spend; none or zero is
+     * no limit.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Long agentsRunTokenBudget;
+
+    /**
+     * {@link PermissionType#AGENTS}: how many agents the user can have, the clones of an agent included; five when not
+     * set, zero lets the user keep their agents and run them but not create or clone another.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer agentsMaxAgents;
+
     public PermissionType getPermissionType() {
         return permissionType;
     }
@@ -87,5 +111,29 @@ public class Permission extends ExtendableEntity {
 
     public void setHelperInteractions(boolean helperInteractions) {
         this.helperInteractions = helperInteractions;
+    }
+
+    public Integer getAgentsMaxConcurrentRuns() {
+        return agentsMaxConcurrentRuns;
+    }
+
+    public void setAgentsMaxConcurrentRuns(Integer agentsMaxConcurrentRuns) {
+        this.agentsMaxConcurrentRuns = agentsMaxConcurrentRuns;
+    }
+
+    public Integer getAgentsMaxAgents() {
+        return agentsMaxAgents;
+    }
+
+    public void setAgentsMaxAgents(Integer agentsMaxAgents) {
+        this.agentsMaxAgents = agentsMaxAgents;
+    }
+
+    public Long getAgentsRunTokenBudget() {
+        return agentsRunTokenBudget;
+    }
+
+    public void setAgentsRunTokenBudget(Long agentsRunTokenBudget) {
+        this.agentsRunTokenBudget = agentsRunTokenBudget;
     }
 }

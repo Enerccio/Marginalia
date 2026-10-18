@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845649012580">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845649012580" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845649012580" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -177,7 +177,8 @@ administrators <a href="../../inference-providers/#shared-providers">share</a>).
 <retype-table copy-text="| Permission | What it allows | Settings |
 |---|---|---|
 | **Create own models** | Adding [inference providers](../inference-providers.md): without it the user can only use the providers the administrators share, the providers they already have keep working and can still be edited. | |
-| **Help assistant** | Asking the [help assistant](help-assistant.md), the chat that answers from the manual. | **Apply limits** and **Allow navigating the interface**, see [Settings of a permission](#settings-of-a-permission). |">
+| **Help assistant** | Asking the [help assistant](help-assistant.md), the chat that answers from the manual. | **Apply limits** and **Allow navigating the interface**, see [Settings of a permission](#settings-of-a-permission). |
+| **Agents** | The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs** and **Token budget of a run**, see [Settings of a permission](#settings-of-a-permission). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -197,6 +198,11 @@ administrators <a href="../../inference-providers/#shared-providers">share</a>).
 <td><strong>Help assistant</strong></td>
 <td>Asking the <a href="../help-assistant/">help assistant</a>, the chat that answers from the manual.</td>
 <td><strong>Apply limits</strong> and <strong>Allow navigating the interface</strong>, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Agents</strong></td>
+<td>The <a href="../../agents/">Agents</a> tab: creating agents, cloning them and running them on a book.</td>
+<td><strong>Most agents</strong>, <strong>Concurrent runs</strong> and <strong>Token budget of a run</strong>, see <doc-anchor-trigger to="#settings-of-a-permission">Settings of a permission</doc-anchor-trigger>.</td>
 </tr>
 </tbody>
 </table>
@@ -272,7 +278,7 @@ nothing and does not count as an unsaved change.</p>
     <img src="../../../images/permissions-settings.png" alt="The settings of the Help assistant permission" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="720" height="659" />
     <figcaption class="caption">The settings of the Help assistant permission</figcaption>
 </figure>
-<p>At the moment only <strong>Help assistant</strong> has them:</p>
+<p><strong>Help assistant</strong> and <strong>Agents</strong> have them. The ones of the help assistant:</p>
 <retype-table copy-text="| Setting | |
 |---|---|
 | **Apply limits** | For a shared model, whether the questions of the user count against their limit and usage like any other request, see [Who pays](help-assistant.md#who-pays). Off by default. |
@@ -293,6 +299,37 @@ nothing and does not count as an unsaved change.</p>
 <tr>
 <td><strong>Allow navigating the interface</strong></td>
 <td>Lets the assistant open a section, select a tab or open the dialog to add something when the user asks it to show them the way, see <a href="../help-assistant/#showing-the-way">Showing the way</a>. Off by default.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The ones of the agents; an empty field is the default:</p>
+<retype-table copy-text="| Setting | |
+|---|---|
+| **Most agents** | How many agents the user can have, the clones of an agent included. Five when empty. Zero lets the user keep and run their agents, but not create or clone another one. A deleted agent frees its place. |
+| **Concurrent runs** | How many runs of the user can work at the same time. One when empty. |
+| **Token budget of a run** | The most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Setting</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Most agents</strong></td>
+<td>How many agents the user can have, the clones of an agent included. Five when empty. Zero lets the user keep and run their agents, but not create or clone another one. A deleted agent frees its place.</td>
+</tr>
+<tr>
+<td><strong>Concurrent runs</strong></td>
+<td>How many runs of the user can work at the same time. One when empty.</td>
+</tr>
+<tr>
+<td><strong>Token budget of a run</strong></td>
+<td>The most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit.</td>
 </tr>
 </tbody>
 </table>
@@ -341,7 +378,7 @@ changes for them until you change it; users you add from now on start with no pe
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (cec2a331).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
             </footer>
         </div>
     </div>

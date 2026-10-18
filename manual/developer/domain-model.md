@@ -35,6 +35,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
 | `User` | `users` | User |
 | `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
+| `Agent`, `AgentRun`, `AgentMessage` | `agents`, `agent_runs`, `agent_messages` | Agents, see [Agent and AgentRun](#agent-and-agentrun-agents) |
 | `Resource` | `resources` | Resources tab, image attachments of a part (story editor, exports) |
 
 ## Overview
@@ -258,6 +259,7 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `lorebook` | FK column | The book's lorebook (with its sub-lorebooks). |
 | `activeLeaf` | FK column | The last part of the branch currently shown and continued. |
 | `published` | column | Readable by everyone at `/view/<uuid>`. |
+| `agentic` | column | The working copy of an agent. The lists of the UI leave these books out (`ManuscriptService.findAllRegularForUser`, `searchRegularManuscripts`); `findAllAgenticForUser` and `searchAgenticManuscripts` return only them, `findAllForUser` and `searchManuscripts` both kinds. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
 | `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
 | `language` | JSON | Language of the story (`Language`, English when not set): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
@@ -355,6 +357,7 @@ the `nextSummaryUuid` of the restored meta summaries (also inside `replacedSumma
 | Field | |
 |---|---|
 | `name`, `enabled` | Columns. A disabled lorebook contributes nothing. |
+| `agentic` | Column. The working copy of an agent; the lists of the UI use `LorebookService.findAllRegularForUser`, `findAllAgenticForUser` returns only these books, `findAllForUser` both kinds. |
 | `subbooks` | Other lorebooks included in this one (join table `lorebooks_lorebooks`). A lorebook can be a sub-lorebook of several lorebooks. |
 | `cachedEntries` | Transient; filled by `LorebookService.fillEntries` for generation and the editor. |
 
@@ -504,11 +507,61 @@ holder and `PermissionType`; a user without one does not have the permission.
 
 | Field | |
 |---|---|
-| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs). Never rename a constant. |
+| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs), `AGENTS` (create and run agents). Never rename a constant. |
 | `permissionHolder` | Column `holder_id`, the `User` who has (or has not) the permission. `@CleanupReference(OWNED_BY)`: purged with the user; nullable because the cleanup nulls the reference before it purges the user. |
 | `granted` | Whether it is given; `false` keeps the row as an explicit refusal. |
 | `helperApplyLimits`, `helperInteractions` | Extended attributes of the type `HELPER` (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in `PermissionsDialog`. |
+| `agentsMaxConcurrentRuns`, `agentsRunTokenBudget`, `agentsMaxAgents` | Extended attributes of the type `AGENTS`: how many runs of the user can work at once (1 when not set), the most tokens one run can spend (none or 0 is no limit) and how many agents the user can have, clones included (5 when not set). Read by `AgentService.getGrant`; `AgentsPermissionComponent` edits them in the permissions dialog. |
 | `owner` | Inherited from `OwnedEntity`: the administrator who gave it, `null` for the ones the migration created. It plays no part when a permission is looked up, see [Permissions](services.md#permissions). |
+
+## Agents
+
+An agent is an LLM that works on one manuscript on its own and calls commands as its tools; what it does is a run. Both
+extend `ExtendableEntity`. The services are in [Services](services.md#agents).
+
+### `Agent` and `AgentRun` (agents)
+
+`Agent` (table `agents`, V16) is the definition.
+
+| Field | |
+|---|---|
+| `name`, `enabled` | Real columns. A disabled agent can't start a run. |
+| `manuscript` | Column `manuscript_id`, `@CleanupReference(OWNED_BY)` and nullable (the cleanup nulls it before the purge). A manuscript has at most one agent (checked by `AgentService.save`) and the manuscript of an agent is not changed. |
+| `modelProfiles` | Extended attribute (a JSON array, `inject`): `AgentModelProfile` (`role`, `aiUuid`, `protocolUuid`, `description`, `tools`, `contextCap`, `concurrency`). The first one is the main model, the others are what it can delegate to. The AI and protocol are named by uuid and looked up when the agent runs (`AgentService.resolveProfile`, only the AIs and protocols the user can use), nothing keeps an AI from being purged while a profile names it. |
+| `systemPrompt`, `instructions` | Extended attributes. The instructions ("agents.md") are written by the user and are capped (`AgentService.MAX_INSTRUCTIONS_LENGTH`). |
+| `allowedCommands` | Extended attribute: the names of the commands the agent is offered, nothing else. |
+| `destructiveMode` | `DestructiveCommandMode` (`AUTO`, `ASK`, `DENY`), `ASK` when not set. |
+| `maxRounds`, `tokenBudget`, `contextCap` | Extended attributes, limits of a run; `null` is no limit of the agent. |
+
+`AgentRun` (table `agent_runs`, V16) is one execution, the whole job.
+
+| Field | |
+|---|---|
+| `agent` | Column `agent_id`, `OWNED_BY`, nullable like the one above. |
+| `status`, `statusReason` | `AgentRunStatus`, stored by name; `AgentRunStatus.next()` is the table of the allowed changes, `isActive()` (a runner is busy), `isTerminal()`, `isUnfinished()` (blocks the agent), `isResumable()`, `holdsLock()` (the manuscript of the agent is locked, see [Services](services.md#agents)). |
+| `workingCopy` | Column `workingCopy_id`, the hidden copy of the manuscript the agent works on, `@CleanupReference(OWNS)`: deleted for good when the run ends (`DONE`, `FAILED`, `STOPPED_DISCARDED`, `APPLIED`) and purged with the run. Eager (the runner takes the book from it on its own threads). Made by `AgentRunService.start`; null only after it ended or before a resumed old run gets one. |
+| `prefillTokens`, `generatedTokens`, `rounds` | What the run spent, all its threads. |
+| `startedAt`, `finishedAt` | `finishedAt` is set when the run stops working (done, stopped, failed) and cleared when it is resumed. |
+| `language`, `interactive`, `uuidPairs` | Extended attributes: the language of the texts the agent sees (the language of the book when the run started), whether the run is a conversation (`AgentRunService.start(agent, true)`, from the console: `finish` makes the run `IDLE` with the report, only `AgentRunService.finish` ends it), and the uuid of every item of the working copy to the uuid of the item of the original. |
+
+The columns `status`, `statusReason`, the counters and `finishedAt` are **not `updatable`** in the mapping: they are changed
+only by the SQL updates of `AgentRunRepository` (through `AgentRunService`), so a `save` of a stale copy of the run (what a
+runner thread or the UI holds) never writes them back. Their setters work for a new run only. The run folder on the disk
+is derived from the uuid (`<application folder>/agent-runs/<uuid>`), no path is stored. One partial unique index keeps at most one run
+per agent that is not over, see [Database](database.md#migrations).
+
+`AgentMessage` (table `agent_messages`, V16) is a row of the transcript of a run: `run` (column `run_id`, `OWNED_BY`), `ordinal` (the place in the transcript) and the
+`LLMChatMessage` as JSON in the extended attribute `message` (`toChatMessage`/`setChatMessage`). Rows are only appended; the system prompt is not stored. The answer of the model also
+carries the extended attribute `contextTokens` (the tokens of the request and the answer, `AgentMessageService.appendAnswer`); and `reasoning` (what the provider sent as the reasoning of the round, kept beside the answer for the console and the download, never sent back to the model); the last `contextTokens` is the current context of the run
+(`getContextTokens`, shown by the console), kept on the row and not on the run because an extended attribute of a row that is never updated needs no SQL update and no migration.
+
+A soft deleted manuscript takes its agent with it, and a soft deleted agent its runs (`ManuscriptService.delete`,
+`AgentService.delete`); a run that is deleted while it is not over is discarded first. All three are in the trash and
+restored together.
+
+Besides the rows an agent has files: its **workspace** (`<application folder>/agent-workspaces/<agent uuid>`, notes that stay between the runs)
+and, for each run, a folder (`agent-runs/<run uuid>`). They are not rows and not in the backups of the database; the cleanup, deleting
+for good and cloning an agent take care of them, see [Files of an agent](services.md#files-of-an-agent).
 
 ## Resources
 
