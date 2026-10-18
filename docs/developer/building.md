@@ -36,7 +36,10 @@ mvn install -DskipTests -Dvaadin.skip=true   # plugins only need the classes JAR
 
 What a build does, in order:
 
-1. `git-commit-id-plugin` writes `git.properties` (commit id, time, closest tag) into the classes. The resources
+1. `git-commit-id-plugin` writes `git.properties` (commit id, time, closest tag) into the classes. `utils.BuildInfo` reads
+   it together with `META-INF/build-info/build-info.properties` (version and build time, filtered only when the WAR is
+   packaged, so a run from `target/classes` has the placeholder and reports the version `dev`) for the footer of the page
+   and the login screen. The resources
    step also copies the Markdown pages of the user manual (`../manual/user/**/*.md`, unfiltered) to `classpath:/manual/`
    for the [help assistant](services.md#the-help-assistant); the folder is outside `marginalia/`, see
    [Packaging](packaging.md).
@@ -306,7 +309,7 @@ repository root, and the generated site is written to `docs/` and served by GitH
 ```sh
 npm install --global retypeapp     # or: dotnet tool install retypeapp --global
 retype start                       # live preview at http://localhost:5000
-retype build                       # writes docs/
+tools/retype_build.sh              # writes docs/; plain `retype build` works too, without the version in the site
 ```
 
 Commit `docs/` together with the changed sources. Images go into `manual/images/`; most are taken by the scripts in

@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.PermissiveLoginOverlay;
+import com.github.enerccio.marginalia.utils.BuildInfo;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
@@ -315,6 +316,7 @@ public abstract class LoginCheckRoute extends Div implements ApplicationEntryPoi
         i18n.getForm().setSubmit(loc.getValue(L.LABEL_LOGIN));
 
         i18n.getForm().setForgotPassword(loc.getValue(L.LABEL_FORGOT_PASSWORD));
+        i18n.setAdditionalInformation("Marginalia " + BuildInfo.current().getShortText());
         i18n.getErrorMessage().setTitle(loc.getValue(L.LABEL_AUTHENTICATION_FAILED));
         i18n.getErrorMessage().setMessage(loc.getValue(L.MSG_AUTHENTICATION_FAILED_INFO));
 

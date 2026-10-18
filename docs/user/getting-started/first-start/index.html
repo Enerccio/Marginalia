@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845549907636">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845552611410">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845549907636" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845552611410" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845549907636" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845549907636" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -236,6 +236,8 @@ over HTTPS or on <code translate="no" v-pre>127.0.0.1</code> with the desktop ap
     <img src="../../../images/login.png" alt="The login screen" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="364" height="527" />
     <figcaption class="caption">The login screen</figcaption>
 </figure>
+<p>The version of Marginalia and the short id of the Git commit it was built from (for example <code translate="no" v-pre>Marginalia 1.4.0 (93ec118)</code>) are
+shown under the login form.</p>
 <h2 id="the-workspace">The workspace</h2>
 <p>After logging in you see the workspace. The tabs on the left are:</p>
 <retype-table copy-text="| Tab | |
@@ -294,6 +296,9 @@ over HTTPS or on <code translate="no" v-pre>127.0.0.1</code> with the desktop ap
     <img src="../../../images/workspace.png" alt="The workspace after the first login" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
     <figcaption class="caption">The workspace after the first login</figcaption>
 </figure>
+<p>The same version text, in tiny letters, is in the bottom left corner of the page; hover over it for the full commit id and
+the time of the commit and of the build. Say it when you report a problem. A build run from a development checkout
+(<code translate="no" v-pre>mvn jetty:run</code>) shows <code translate="no" v-pre>dev</code> instead of the version.</p>
 <p>Marginalia remembers where you were. The next time you log in (on any device) it opens the same tab, with the same
 filters of the book list, the same lorebook and open lorebook entries and, if you left a book open, that book on the
 same tab - with the scene, POV character, present characters and instructions you had typed for the next part. What
@@ -336,7 +341,7 @@ no longer exists (a deleted book, lorebook or tag) is skipped; a book that was d
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License.</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b2b7bf83).</p></div>
             </footer>
         </div>
     </div>
