@@ -386,6 +386,21 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_PERMISSION, "Permission");
         setValue(L.LABEL_GRANTED, "Granted");
         setValue(L.LABEL_ADD_PERMISSION, "Add permission");
+        setValue(L.LABEL_COMMAND_GET_BOOK_INFO, "Book info");
+        setValue(L.LABEL_COMMAND_LIST_PARTS, "List parts");
+        setValue(L.LABEL_COMMAND_GET_PART, "Read a part");
+        setValue(L.LABEL_COMMAND_LIST_SWIPES, "List swipes of a part");
+        setValue(L.LABEL_COMMAND_LIST_BRANCHES, "List branches");
+        setValue(L.LABEL_COMMAND_GET_PART_METRICS, "Part metrics");
+        setValue(L.LABEL_COMMAND_SHOW_PROMPT, "Show the prompt of a part");
+        setValue(L.LABEL_COMMAND_SEARCH_PARTS, "Search the parts");
+        setValue(L.LABEL_COMMAND_FIND_OCCURRENCES, "Find occurrences");
+        setValue(L.LABEL_COMMAND_COMPARE_PARTS, "Compare parts");
+        setValue(L.LABEL_COMMAND_COUNT_TOKENS, "Count tokens");
+        setValue(L.LABEL_COMMAND_LIST_SUMMARIES, "List summaries");
+        setValue(L.LABEL_COMMAND_GET_SUMMARY, "Read a summary");
+        setValue(L.LABEL_COMMAND_CHECK_SUMMARIES, "Check summaries");
+        setValue(L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES, "Template variables");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -485,6 +500,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_INVALID_REPLACEMENT, "Invalid replacement: %s");
         setValue(L.ERROR_SEARCH_TEXT_EMPTY, "Nothing to search for");
         setValue(L.ERROR_COMMAND_NO_LOREBOOK, "The open book has no lorebook.");
+        setValue(L.ERROR_COMMAND_NO_STORY, "The book has no story yet.");
+        setValue(L.ERROR_COMMAND_NO_SUCH_PART, "There is no part %s on this branch, it has %s parts.");
+        setValue(L.ERROR_COMMAND_NO_SUCH_BRANCH, "There is no branch %s, the book has %s branches (see list-branches).");
+        setValue(L.ERROR_COMMAND_UNKNOWN_FIELD, "Unknown field '%s', use one of: %s.");
+        setValue(L.ERROR_COMMAND_UNKNOWN_SCOPE, "Unknown scope '%s', use global or part.");
+        setValue(L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "The part has no original text: it was not generated, or it was generated before the original was kept.");
+        setValue(L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "The texts are too large to compare.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -710,6 +732,67 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, "Searches the entries (name, text and comment) of the lorebook of the open book and, after you confirm, replaces the matches. Options after the replacement, in this order: regex (false), case sensitive (true).");
         setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM, "Search and replace in the lorebook entries of the book the user has open. Changes the lorebook, but the user is asked to confirm the number of matches first and the change can't be undone; answering no changes nothing. Fails when no book is open or the book has no lorebook. Asynchronous. Optional booleans, positional and in this order: regex, caseSensitive.");
         setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN, "What was done: how many matches in how many entries were replaced, or that nothing was found or the user did not confirm");
+        setValue(L.DESC_COMMAND_PART_PARAM, "Position of the part on the branch, the first part of the story is 1");
+        setValue(L.DESC_COMMAND_BRANCH_PARAM, "Number of the branch from list-branches; the active branch when omitted");
+        setValue(L.DESC_COMMAND_OFFSET_PARAM, "How many items to skip, 0 when omitted");
+        setValue(L.DESC_COMMAND_LIMIT_PARAM, "The most items to return, 50 when omitted (200 at most)");
+        setValue(L.DESC_COMMAND_LENGTH_PARAM, "Length of the slice of the text in characters, 4000 when omitted (20000 at most)");
+        setValue(L.DESC_COMMAND_FIELD_PARAM, "What to read: response (default), instructions, scene, pov, present or reasoning");
+        setValue(L.DESC_COMMAND_QUERY_PARAM, "The words that must all be in the part; a phrase in double quotes, * matches any characters");
+        setValue(L.DESC_COMMAND_TERMS_PARAM, "The names or words to count: one text or a list of them (a name and its variants)");
+        setValue(L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM, "Match the case of the letters, false when omitted; has no effect with regex");
+        setValue(L.DESC_COMMAND_FIND_SUMMARIES_PARAM, "Look in the summaries too, false when omitted");
+        setValue(L.DESC_COMMAND_TEXT_PARAM, "The text to count");
+        setValue(L.DESC_COMMAND_SCOPE_PARAM, "global (the variables of the book) or part (the variables on a part)");
+        setValue(L.DESC_COMMAND_PART_A_PARAM, "Position of the first part, the first part of the story is 1");
+        setValue(L.DESC_COMMAND_PART_B_PARAM, "Position of the second part; 0 compares the first part with the text the model produced first");
+        setValue(L.DESC_COMMAND_BRANCH_A_PARAM, "Branch number of the first part; the active branch when omitted");
+        setValue(L.DESC_COMMAND_BRANCH_B_PARAM, "Branch number of the second part; the branch of the first part when omitted");
+        setValue(L.DESC_COMMAND_GET_BOOK_INFO, "Shows the name, settings, model, totals and tags of the open book.");
+        setValue(L.DESC_COMMAND_GET_BOOK_INFO_LLM, "The overview of the book: name, description, language, point of view, tense, style, the model and protocol, how many parts, words and tokens the active branch and the whole book have, the tags and the backup strategy. Reads only. Call it first to learn what the book is.");
+        setValue(L.DESC_COMMAND_GET_BOOK_INFO_RETURN, "JSON with the settings and the totals of the book");
+        setValue(L.DESC_COMMAND_LIST_PARTS, "Lists the parts of a branch with their position, size, swipes and a preview.");
+        setValue(L.DESC_COMMAND_LIST_PARTS_LLM, "Lists the parts of a branch, from the first part of the story: position, number of swipes (alternatives), words, tokens, whether the author edited it, the state of its summary (none, valid, outdated) and a short preview. Paged: offset and limit. Parts are addressed by position (the first part of the story is 1) on a branch: the active branch unless a branch number from list-branches is given. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_LIST_PARTS_RETURN, "JSON with the parts of the page: position, swipes, words, tokens, edited, summary state, preview");
+        setValue(L.DESC_COMMAND_GET_PART, "Reads the text of a part, or one of its other fields, in slices.");
+        setValue(L.DESC_COMMAND_GET_PART_LLM, "Reads a part: a slice of its text (offset, length; the answer says the total length and whether more follows) and the data it was made from (instructions, scene, point of view, present characters), its size, whether it was edited and the model used. The field option reads instead: instructions, scene, pov, present or reasoning. Parts are addressed by position (the first part of the story is 1) on a branch: the active branch unless a branch number from list-branches is given. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_GET_PART_RETURN, "JSON with a slice of the text, its offset and the total length, and the data of the part");
+        setValue(L.DESC_COMMAND_LIST_SWIPES, "Lists the alternatives (swipes) of a part.");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_LLM, "Lists the swipes of a part: the alternatives generated for the same place of the story. Each has its number, whether it is the one shown, words, whether it was edited, a preview and the branch number that shows it, to read it with get-part. Parts are addressed by position (the first part of the story is 1) on a branch: the active branch unless a branch number from list-branches is given. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_RETURN, "JSON with the swipes: number, shown, words, edited, preview, branch");
+        setValue(L.DESC_COMMAND_LIST_BRANCHES, "Lists the branches of the book with their numbers.");
+        setValue(L.DESC_COMMAND_LIST_BRANCHES_LLM, "Lists the branches of the story, a branch being a way from the first part to one of the ends. Each has its number (to pass as the branch of other commands; the numbers follow the creation of the ends and change when a branch is added or deleted), whether it is the active one, parts, words, the position after which it parts from the others and a preview of its end. Paged: offset and limit. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_LIST_BRANCHES_RETURN, "JSON with the branches: number, active, parts, words, forkPosition, created, endPreview");
+        setValue(L.DESC_COMMAND_GET_PART_METRICS, "Shows the tokens, timings, model and protocol of a part.");
+        setValue(L.DESC_COMMAND_GET_PART_METRICS_LLM, "The numbers of a generated part: its tokens and words, prompt and reasoning tokens, the model and protocol that wrote it, the time to the first token and the time of reasoning. Parts are addressed by position (the first part of the story is 1) on a branch: the active branch unless a branch number from list-branches is given. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_GET_PART_METRICS_RETURN, "JSON with the metrics of the part");
+        setValue(L.DESC_COMMAND_SHOW_PROMPT, "Shows the prompt a generated part was made from.");
+        setValue(L.DESC_COMMAND_SHOW_PROMPT_LLM, "The prompt as it was sent when the part was generated, stored with it: a slice of its text (offset, length), the tokens it had, the breakdown of the tokens by section and the background lore that was added. Parts that were not generated, or were generated before the prompt was stored, have none. Parts are addressed by position (the first part of the story is 1) on a branch: the active branch unless a branch number from list-branches is given. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_SHOW_PROMPT_RETURN, "JSON with a slice of the prompt, its tokens and the token breakdown");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS, "Searches the parts of all branches for words.");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS_LLM, "Full-text search over the parts of all branches: every word of the query must be in the part (a phrase in double quotes, * matches any characters). Each hit has the position of the part, the branch number when it is not on the active branch, and a snippet around the match. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS_RETURN, "JSON with the hits: position, branch and snippet");
+        setValue(L.DESC_COMMAND_FIND_OCCURRENCES, "Counts where names or words occur in the story.");
+        setValue(L.DESC_COMMAND_FIND_OCCURRENCES_LLM, "Continuity check done in code, not in tokens: for each term (a name and its variants) how many parts and occurrences it has and the first parts with a snippet. Searches the active branch unless allBranches is true, and the summaries too when summaries is true. Options in this order: regex (false), caseSensitive (false), summaries (false), allBranches (false), limit (the most parts listed per term, 50). Reads only.");
+        setValue(L.DESC_COMMAND_FIND_OCCURRENCES_RETURN, "JSON per term: the parts and occurrences found and where");
+        setValue(L.DESC_COMMAND_COMPARE_PARTS, "Shows the sentences that differ between two parts.");
+        setValue(L.DESC_COMMAND_COMPARE_PARTS_LLM, "Compares two parts sentence by sentence and lists the sentences only one of them has (- from the first, + from the second), up to 200. To compare two swipes give their positions (the same) and their branch numbers from list-swipes. As the second position, 0 compares the first part with the text the model produced first, to see what the author edited. Positions are on a branch (the active one unless a branch number is given). Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_COMPARE_PARTS_RETURN, "JSON with the counts and the sentences that differ");
+        setValue(L.DESC_COMMAND_COUNT_TOKENS, "Counts the tokens and words of a text or of a part.");
+        setValue(L.DESC_COMMAND_COUNT_TOKENS_LLM, "Counts the tokens of a text, or of the text of a part given by position (and branch), with the tokenizer of the model of the book (a generic one when it has none), and its words and characters. Use it to plan how much text fits. Parts are addressed by position (the first part of the story is 1) on a branch: the active branch unless a branch number from list-branches is given. Reads only.");
+        setValue(L.DESC_COMMAND_COUNT_TOKENS_RETURN, "JSON with the tokens, words and characters");
+        setValue(L.DESC_COMMAND_LIST_SUMMARIES, "Lists the summaries of a branch and whether they are valid.");
+        setValue(L.DESC_COMMAND_LIST_SUMMARIES_LLM, "Lists the summaries generation uses on a branch, from the first: the position of the part that has it, the parts it covers, regular or meta summary, tokens, whether it still describes the story (valid) and how many summaries a meta summary replaces, then how many parts at the end have no summary. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_LIST_SUMMARIES_RETURN, "JSON with the summaries: position, covers, type, tokens, valid");
+        setValue(L.DESC_COMMAND_GET_SUMMARY, "Reads the summary of a part.");
+        setValue(L.DESC_COMMAND_GET_SUMMARY_LLM, "The summary stored on a part: its text, tokens, type and whether it still describes the story. A summary is stored on the last part of the parts it covers, so most parts have none (hasSummary false). Parts are addressed by position (the first part of the story is 1) on a branch: the active branch unless a branch number from list-branches is given. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_GET_SUMMARY_RETURN, "JSON with the summary of the part");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES, "Finds the summaries that no longer match the story.");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_LLM, "Finds the outdated summaries of a branch (generation drops them): where they are, which parts they cover and which of those parts were edited, which is what made them outdated. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_RETURN, "JSON with the number of summaries and the outdated ones with the edited parts");
+        setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, "Shows the template variables of the book or of a part.");
+        setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM, "The variables prompt templates set with setvar: the global ones of the book (scope global), or the ones on a part, which follow its branch (scope part; the last part of the branch when no position is given). Parts are addressed by position (the first part of the story is 1) on a branch: the active branch unless a branch number from list-branches is given. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN, "JSON with the variables and their values");
 
     }
 

@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,12 +46,18 @@ class BuiltInCommandTextsTest extends MarginaliaTestBase {
 
     @Test
     void theBuiltInCommandsSayWhatTheyDoToTheData() {
-        Map<String, CommandDataSeverity> expected = Map.of(
+        Map<String, CommandDataSeverity> expected = new HashMap<>(Map.of(
                 "hello-world", CommandDataSeverity.NON_DESTRUCTIVE,
                 "hello-world-async", CommandDataSeverity.NON_DESTRUCTIVE,
                 "take-backup", CommandDataSeverity.NON_DESTRUCTIVE,
                 "search-replace-parts", CommandDataSeverity.DESTRUCTIVE,
-                "search-replace-lore-entries", CommandDataSeverity.DESTRUCTIVE);
+                "search-replace-lore-entries", CommandDataSeverity.DESTRUCTIVE));
+        // the commands that read the book change nothing
+        for (String name : List.of("get-book-info", "list-parts", "get-part", "list-swipes", "list-branches",
+                "get-part-metrics", "show-prompt", "search-parts", "find-occurrences", "compare-parts", "count-tokens",
+                "list-summaries", "get-summary", "check-summaries", "get-template-variables")) {
+            expected.put(name, CommandDataSeverity.NON_DESTRUCTIVE);
+        }
         for (CommandDefinition definition : commandService.getCommands()) {
             assertThat(expected).as("a built-in command with a declared severity").containsKey(definition.commandName());
             assertThat(definition.dataSeverity()).as("severity of %s", definition.commandName())

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.utils;
 
+import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
 import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -26,7 +27,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * What a {@link com.github.enerccio.marginalia.domain.traits.Command} needs to know about what the user is looking at,
  * read from the {@link SessionPoint} of the session the command runs in (the session of the caller, also on the worker
- * thread of an {@code async} command). A command suite is stateless, so it asks here every time it runs.
+ * thread of an {@code async} command); the methods only delegate to it, the session point knows where the book comes
+ * from (the open window for the user, the working copy for an {@link AgenticSessionPoint}). A command suite is stateless, so it asks here every time it runs.
  * <p>
  * The methods work on the desktop and the phone workspace alike: the book window is the {@link ManuscriptWindow}
  * interface, not the dialog of one of them. All of them return {@code null} when there is nothing to return - no
@@ -43,16 +45,22 @@ public final class CommandUtils {
     }
 
     /**
-     * The session scoped {@link SessionPoint}, null when the thread has no session.
+     * The session scoped {@link SessionPoint}, null when the thread has no session. For a browser session it is the
+     * bean of the servlet session; for any other request attributes (the run of an agent) the
+     * {@link AgenticSessionPoint} they hold.
      */
     public static SessionPoint getSessionPoint() {
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-        if (!(attributes instanceof ServletRequestAttributes servlet)) {
-            return null;
+        if (attributes instanceof ServletRequestAttributes servlet) {
+            ServletContext servletContext = servlet.getRequest().getServletContext();
+            WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(servletContext);
+            return context == null ? null : context.getBean(SessionPoint.class);
         }
-        ServletContext servletContext = servlet.getRequest().getServletContext();
-        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(servletContext);
-        return context == null ? null : context.getBean(SessionPoint.class);
+        if (attributes != null && attributes.getAttribute(AgenticSessionPoint.SCOPED_TARGET_NAME,
+                RequestAttributes.SCOPE_SESSION) instanceof SessionPoint sessionPoint) {
+            return sessionPoint;
+        }
+        return null;
     }
 
     /**
@@ -67,32 +75,34 @@ public final class CommandUtils {
      * The book list of the workspace.
      */
     public static ManuscriptSection getManuscriptSection() {
-        Workspace workspace = getWorkspace();
-        return workspace == null ? null : workspace.getManuscriptSection();
+        SessionPoint sessionPoint = getSessionPoint();
+        return sessionPoint == null ? null : sessionPoint.getManuscriptSection();
     }
 
     /**
-     * The window of the book that is open, the {@code ManuscriptDialog} or the {@code PhoneManuscriptDialog}.
+     * The window of the book that is open, the {@code ManuscriptDialog} or the {@code PhoneManuscriptDialog}; null in a
+     * session without windows.
      */
     public static ManuscriptWindow getManuscriptWindow() {
-        Workspace workspace = getWorkspace();
-        return workspace == null ? null : workspace.getOpenManuscriptWindow();
+        SessionPoint sessionPoint = getSessionPoint();
+        return sessionPoint == null ? null : sessionPoint.getManuscriptWindow();
     }
 
     /**
-     * The book that is open. It is the window's own copy of the book, see {@link ManuscriptWindow#getManuscript()}.
+     * The book the command works on: the book that is open (the window's own copy of it, see
+     * {@link ManuscriptWindow#getManuscript()}), or the book of the agent's session.
      */
     public static Manuscript getCurrentManuscript() {
-        ManuscriptWindow window = getManuscriptWindow();
-        return window == null ? null : window.getManuscript();
+        SessionPoint sessionPoint = getSessionPoint();
+        return sessionPoint == null ? null : sessionPoint.getCurrentManuscript();
     }
 
     /**
-     * The model of the book that is open; null when no book is open or the book has no model.
+     * The model of the book; null when there is no book or the book has no model.
      */
     public static AI getCurrentAI() {
-        ManuscriptWindow window = getManuscriptWindow();
-        return window == null ? null : window.getAi();
+        SessionPoint sessionPoint = getSessionPoint();
+        return sessionPoint == null ? null : sessionPoint.getCurrentAI();
     }
 
     /**
