@@ -7,7 +7,7 @@ order: 60
 
 The help assistant is a chat that answers questions about Marginalia from its manual. An administrator chooses which
 model it uses and gives the permission **Help assistant** to the users who can ask it, in their
-[permissions](users.md#permissions) (administrators always can); they need no model of their own. Users that existed
+[permissions](permissions.md) (administrators always can); they need no model of their own. Users that existed
 when the permissions were introduced got it if the assistant was on at the time; new users have none.
 
 Once a user can use it, they see a round robot button in the bottom right corner of the window. It opens the chat; the
@@ -37,7 +37,7 @@ Open **Admin → Help assistant**:
 | **Allow reading administration data** | Lets the assistant read the state of the extensions and their logs, the database backups and the other data of the Admin page *for an administrator who asks it*, see [Administration data](#administration-data). Off by default. |
 | **Prompt for administrators**, **Prompt for other users** | The instructions the model gets with every question; see [Prompts](#prompts). |
 
-Two settings depend on the user and are in their **Help assistant** [permission](users.md#permissions) (open it with the
+Two settings depend on the user and are in their **Help assistant** [permission](permissions.md#settings-of-a-permission) (open it with the
 key button in **Admin → Users**; both are off by default):
 
 | Setting of the permission | |

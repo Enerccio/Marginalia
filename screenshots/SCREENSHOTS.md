@@ -46,7 +46,7 @@ and the user's `~/.m2/settings.xml` is passed with `-s`, because the real home f
 | What | Value |
 |---|---|
 | Administrator | `admin` / `marginalia` (full name *Administrator*) |
-| Regular user | `ginny` / `marginalia` (*Ginny W.*), has the shared provider and a token limit |
+| Regular user | `ginny` / `marginalia` (*Ginny W.*), has the shared provider, a token limit and the permission *Create own models* (the Add button of her Inference Providers tab) |
 | Providers (admin) | **Local LLM** (shared, `http://localhost:8098/v1`, model `marginalia-demo-12b`), **Local Reasoner** (reasoning, `marginalia-demo-reasoner`), **Featherless.ai** (a hosted service, only listed) |
 | Protocols | *Chat Completion* and *Creative Protocol*; defaults in *Settings*: Local LLM + Chat Completion, *No Backups* |
 | Lorebook | *Harry Potter - Half-Blood Prince* (11 entries, tag `genderbend`), imported from `dataset/lorebook.mjs`; *Bestiary* is created and deleted for the trash |
@@ -96,7 +96,7 @@ therefore run `bin/refresh-plugins.sh`, which replaces them by `marginalia/plugi
 of a running application is not consistent.
 
 Every flow starts a fresh browser, logs in and works through the real UI. Pictures are written to `out/<name>.png`; names
-starting with `_` are scratch files. `SHOT_TOASTS=1` shows the toasts (they are hidden in all pictures, except the ones that
+starting with `_` are scratch files. The version text in the bottom left corner (`BuildInfoFooter`) is hidden in all pictures. `SHOT_TOASTS=1` shows the toasts (they are hidden in all pictures, except the ones that
 are about a toast).
 
 ## The setup chain (`bin/chain.txt`)
@@ -119,7 +119,7 @@ A flow may also take pictures on the way (names in the last column).
 | `08-images` | `07-images` | uploads the photograph, caption, a second unused upload (Resources) | `images-dialog` |
 | `09r-reasoning` | `reasoning` | a branch from #4 written by Local Reasoner, then back to the main branch | |
 | `09a-backup` | `backup-b` | per-book backup strategy and a second backup (with the picture) | |
-| `10-users` | `09-users` | user `ginny`, her protocol and defaults, her book *Quidditch Tryouts* | |
+| `10-users` | `09-users` | user `ginny` (and her permission *Create own models*, given in her permissions window), her protocol and defaults, her book *Quidditch Tryouts* | |
 | `11-limits` | `10-limits` | a token limit for her, usage, her info dialog, a second part by her | `provider-limit*`, `provider-usage`, `provider-shared-user` |
 | `12-trash` | `trash` | imports *Bestiary* and deletes it, creates and deletes *Scratch book* | |
 | `13-db-backup` | `db-backup` | a manual database backup (**the state of all core pictures**) | |
@@ -151,7 +151,8 @@ characters... would show in the outline, the prompt and the token numbers of the
 | `shoot-plugin-characters` | `21-chaptermarker` | Character Tracker: list, dialog, the question when a changed dialog is cancelled, map (2x pixel ratio), import dialog |
 | `shoot-commands` | a **copy** of `13-db-backup`, discarded | the command line of the story editor: the list of commands, the help of one, the result of `/take-backup` (which adds a backup to the book, hence the copy), the Stop window of `/hello-world-async`, the question of `/search-replace-parts` (answered with No): `command-list`, `command-help`, `command-result`, `command-running`, `command-confirm` |
 | `shoot-search-replace` | a **copy** of `13-db-backup`, discarded | the settings menu with *Search and replace*, the window of the story (empty, with a row opened, the warning about summaries that would become outdated) and of a lorebook; nothing is replaced, but the workspace is left on the Lorebooks tab (the phone flow needs it on Books): `story-settings-menu`, `search-replace-dialog`, `search-replace-found`, `search-replace-warning`, `lorebook-search-replace` |
-| `shoot-help` | a **copy** of `13-db-backup`, discarded | the help assistant (it is off in all other pictures, so the robot button is not in them): its Admin tab with the model chosen, the chat panel with an answer queued in the fake model, then a second question for which the fake model calls `get_ui_state` and `interact_with_ui` (queued `toolCalls`) so that the assistant really opens the Admin page and a tab, then a third one over the *New Inference Provider* dialog (the assistant stays usable above a dialog): the fake model reads the form with `get_ui_state` and explains the empty required field: `admin-help-assistant`, `help-assistant`, `help-assistant-navigate`, `help-assistant-form` |
+| `shoot-help` | a **copy** of `13-db-backup`, discarded | the help assistant (nobody has the permission in the other pictures, so the robot button is not in them): its Admin tab with the model chosen, then the *Help assistant* permission of the administrator with *Allow navigating the interface* (the assistant moves through the interface only for a user whose permission allows it), the chat panel with an answer queued in the fake model, then a second question for which the fake model calls `get_ui_state` and `interact_with_ui` (queued `toolCalls`) so that the assistant really opens the Admin page and a tab, then a third one over the *New Inference Provider* dialog (the assistant stays usable above a dialog): the fake model reads the form with `get_ui_state` and explains the empty required field: `admin-help-assistant`, `help-assistant`, `help-assistant-navigate`, `help-assistant-form` |
+| `shoot-permissions` | a **copy** of `13-db-backup`, discarded | the permissions window of `ginny` (key button of *Admin → Users*; the application gave her *Create own models* when it migrated the old data): the list of the permissions to add, the *Help assistant* permission added with its settings unfolded, saved and folded: `permissions-add`, `permissions-settings`, `permissions-dialog` |
 | `plugin-googlegenai` | a **copy** of `13-db-backup`, discarded | installs the Google Gemini JAR, adds a provider of the type *Extension* (nothing is sent to Google): `plugin-googlegenai-type`, `plugin-googlegenai`, `plugin-googlegenai-list` |
 | `shoot-invalid-extensions` | a **copy** of `13-db-backup`, discarded | the Author's Note JAR is replaced by the broken one (`bin/make-broken-plugin.py`) and its `.valid` report deleted before the start (the block in `bin/shoot-all.sh`): the red bar, `invalid-extensions-warning` |
 | `shoot-tabs` | a **copy** of `22-arcoutline`, discarded | drags *Side Query* under the other tabs and *Characters* into a column of its own (the arrangement is saved with the book): `story-editor-tabs` |

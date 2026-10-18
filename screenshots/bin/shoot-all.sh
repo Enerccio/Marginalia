@@ -30,7 +30,9 @@ run shoot-commands.mjs                           # /take-backup adds a backup to
 on 13-db-backup
 run shoot-search-replace.mjs                     # looks only, but leaves the workspace on the Lorebooks tab: a copy, discarded
 on 13-db-backup
-run shoot-help.mjs                               # turns the help assistant on (installation wide): a copy, discarded
+run shoot-help.mjs                               # chooses the model of the help assistant (installation wide), a permission for the administrator: a copy, discarded
+on 13-db-backup
+run shoot-permissions.mjs                        # changes the permissions of ginny: a copy, discarded
 on 13-db-backup
 run plugin-googlegenai.mjs                       # installs the Gemini plugin: a copy, discarded
 on 22-arcoutline

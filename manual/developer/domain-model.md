@@ -34,7 +34,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
 | `User` | `users` | User |
-| `Permission` | `permissions` | What an administrator allowed a user to do (not shown yet) |
+| `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
 | `Resource` | `resources` | Resources tab, image attachments of a part (story editor, exports) |
 
 ## Overview
@@ -470,7 +470,7 @@ values are extended attributes.
 
 | Class | Owner | Contains |
 |---|---|---|
-| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpApplyLimits`, `helpInteractions` (may it move through the interface), `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` are replaced by the permissions `CREATE_AI` and `HELPER` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
+| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
 | `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |
 
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;
@@ -499,7 +499,7 @@ more.
 
 ### `Permission` (what a user was allowed)
 
-`Permission` (`domain.security.permissions`, table `permissions`, V15) extends `ExtendableEntity`. There is at most one live row per
+`Permission` (`domain.security.model`, with `PermissionType` in `domain.security.permissions`; table `permissions`, V15) extends `ExtendableEntity`. There is at most one live row per
 holder and `PermissionType`; a user without one does not have the permission.
 
 | Field | |
