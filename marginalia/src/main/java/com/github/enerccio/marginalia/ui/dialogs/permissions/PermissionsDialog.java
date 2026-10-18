@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -103,6 +104,7 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
 
         typeCombo = new ComboBox<>(loc.getValue(L.LABEL_PERMISSION));
         typeCombo.setItemLabelGenerator(type -> loc.getValue(loc.getPermissionType(type)));
+        typeCombo.setWidth("16em");
         typeCombo.addValueChangeListener(e -> addButton.setEnabled(e.getValue() != null));
         addButton = new Button(loc.getValue(L.LABEL_ADD_PERMISSION), Solid.PLUS.create(), e -> addPermission());
         addButton.setThemeName("primary");
@@ -146,13 +148,13 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
                 .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
         grid.addComponentColumn(row -> {
                     Button delete = new Button(Solid.TRASH.create(), e -> remove(row));
-                    delete.setThemeName("error tertiary");
+                    delete.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
                     return delete;
                 })
                 .setHeader("")
                 .setAutoWidth(false)
                 .setFlexGrow(0)
-                .setWidth(UIConstants.TOOL_COLUMN_SIZE);
+                .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(row -> row.component == null ? new Span() : row.component.getComponent()));
 
         VerticalLayout content = new VerticalLayout(toolbar, grid);
@@ -181,7 +183,6 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
             for (Permission permission : permissionService.getPermissions(user)) {
                 rows.add(createRow(permission));
             }
-            rows.sort((a, b) -> a.permission.getPermissionType().compareTo(b.permission.getPermissionType()));
             refresh();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -206,6 +207,7 @@ public class PermissionsDialog extends Dialog implements LLMInteract {
      * has none of.
      */
     private void refresh() {
+        rows.sort((a, b) -> a.permission.getPermissionType().compareTo(b.permission.getPermissionType()));
         dataProvider.refreshAll();
         rows.forEach(row -> grid.setDetailsVisible(row, isExpanded(row)));
         List<PermissionType> available = Arrays.stream(PermissionType.values())
