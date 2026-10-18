@@ -621,7 +621,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_LIMIT_EMPTY_UNLIMITED, "留空表示不限制。最先达到的上限会让用户在下次重置前无法使用。");
         setValue(L.HELP_LIMITS_OTHERS_UNLIMITED, "此处没有限制的用户不受限制。");
         setValue(L.HELP_LIMIT_GENERATED_HARD, "生成令牌的硬性上限会在请求预留的回复（最大回复大小）超出剩余额度时拒绝该请求；否则最后一次回复可能超出上限。");
-        setValue(L.HELP_ASSISTANT, "根据手册回答有关 Marginalia 的问题的聊天，面向所有用户。请选择您自己的模型；用户无需自己的模型。");
+        setValue(L.HELP_ASSISTANT, "根据手册回答有关 Marginalia 的问题的聊天，面向拥有“帮助助手”权限的用户。请选择您自己的模型；用户无需自己的模型。");
         setValue(L.HELP_ASSISTANT_APPLY_LIMITS, "仅适用于共享模型：提问会像对模型的其他请求一样计入每个用户的限额和用量。未启用或模型未共享时，由模型的所有者承担费用：不设限额，也不为用户计数。");
         setValue(L.HELP_ASSISTANT_PROMPT, "每次提问时发送给模型的指令。{{manualIndex}} 会被替换为手册页面列表。为空或与默认相同的提示词即为默认值，会随新版本的更新而更新。");
         setValue(L.HELP_ASSISTANT_INTERACTIONS, "当用户请求带路时，助手可以在界面中移动：打开某个版块、选择某个标签页或打开用于添加内容的对话框（仅打开，不会创建任何内容）。仅限于此：它不能点击其他按钮、输入、保存、删除或生成任何内容。模型还会获得屏幕上各元素的名称及其可执行的操作。");
