@@ -106,7 +106,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
                 AuthorsNoteData data = authorsNoteService.loadCurrent(manuscript);
                 // the same note is inserted later, even if the user edits it during the generation
                 event.getProperties().put(AuthorsNoteData.KEY, data);
-                long tokens = authorsNoteService.countTokens(manuscript, data);
+                long tokens = authorsNoteService.countTokens(event.getAi(), data);
                 event.getPrePromptData().setReservedTokens(event.getPrePromptData().getReservedTokens() + tokens);
             }
         } catch (Exception e) {

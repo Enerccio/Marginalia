@@ -31,7 +31,7 @@ public class ProcessLorebookStep extends GenerationStepBase {
             Lorebook lorebook = lorebookService.find(controller.getManuscript().getLorebook());
             if (lorebook != null) {
                 List<String> manuscriptTags = tagRelationService.getTagsForObject(controller.getManuscript()).stream().map(Tag::getValue).toList();
-                InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getManuscript().getAi());
+                InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getAi());
 
                 Set<Long> processedLorebooks = new HashSet<>();
                 Stack<Lorebook> lorebookStack = new Stack<>();

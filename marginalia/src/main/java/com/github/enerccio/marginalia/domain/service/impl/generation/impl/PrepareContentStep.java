@@ -32,7 +32,7 @@ public class PrepareContentStep extends GenerationStepBase {
         controller.emitEvent(Events.BEFORE_PREPARE_CONTENT, () -> {
             ChatMessage activeMessage = chatMessageService.find(controller.getManuscript().getActiveLeaf());
 
-            InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getManuscript().getAi());
+            InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getAi());
             PrePromptData data = controller.getPrePromptData();
             List<ChatMessage> fromRoot = null;
             List<ChatMessage> invalidatedSummaries = new ArrayList<>();
@@ -54,7 +54,7 @@ public class PrepareContentStep extends GenerationStepBase {
             FromEventCallback callback = () -> {
                 controller.emitEvent(Events.BEFORE_SUMMARIES, () -> {
                     // room for the response is reserved, the prompt gets the rest of the context
-                    int limit = TokenLimits.promptTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol());
+                    int limit = TokenLimits.promptTokens(controller.getAi(), controller.getProtocol());
                     PromptTokenBreakdown breakdown = createBreakdown(controller, data);
                     controller.getProperties().put(GenerationProperties.TOKEN_BREAKDOWN, breakdown);
 
@@ -174,9 +174,9 @@ public class PrepareContentStep extends GenerationStepBase {
      */
     private PromptTokenBreakdown createBreakdown(GenerationController controller, PrePromptData data) {
         PromptTokenBreakdown breakdown = new PromptTokenBreakdown();
-        breakdown.setContextTokens(TokenLimits.contextTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol()));
-        breakdown.setResponseTokens(TokenLimits.responseTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol()));
-        breakdown.setPromptLimitTokens(TokenLimits.promptTokens(controller.getManuscript().getAi(), controller.getManuscript().getProtocol()));
+        breakdown.setContextTokens(TokenLimits.contextTokens(controller.getAi(), controller.getProtocol()));
+        breakdown.setResponseTokens(TokenLimits.responseTokens(controller.getAi(), controller.getProtocol()));
+        breakdown.setPromptLimitTokens(TokenLimits.promptTokens(controller.getAi(), controller.getProtocol()));
         breakdown.setJailbreakTokens(data.getJailbreakTokens());
         breakdown.setLoreTokens(data.getBackgroundLoreTokens());
         breakdown.setUserLoreTokens(data.getBackgroundUserLoreTokens());
