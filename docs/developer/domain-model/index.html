@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845552611410">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845643259432">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845552611410" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845643259432" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845552611410" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845643259432" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -184,6 +184,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
 | `User` | `users` | User |
+| `Permission` | `permissions` | What an administrator allowed a user to do (not shown yet) |
 | `Resource` | `resources` | Resources tab, image attachments of a part (story editor, exports) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -244,6 +245,11 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <td><code translate="no" v-pre>User</code></td>
 <td><code translate="no" v-pre>users</code></td>
 <td>User</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Permission</code></td>
+<td><code translate="no" v-pre>permissions</code></td>
+<td>What an administrator allowed a user to do (not shown yet)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Resource</code></td>
@@ -1220,7 +1226,7 @@ set, sent plus generated below the total (the total could never be reached).</p>
 values are extended attributes.</p>
 <retype-table copy-text="| Class | Owner | Contains |
 |---|---|---|
-| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), `userAisAllowed` (users who are not administrators can create AIs, default and `null` = yes; `AIService.setUserCreationAllowed`, checked in `AIServiceImpl.save` for new AIs only, existing ones stay editable), the help assistant (`helpEnabled`, `helpAiUuid`, `helpApplyLimits`, `helpInteractions` (may it move through the interface), `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). |
+| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpApplyLimits`, `helpInteractions` (may it move through the interface), `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` are replaced by the permissions `CREATE_AI` and `HELPER` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
 | `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1235,7 +1241,7 @@ values are extended attributes.</p>
 <tr>
 <td><code translate="no" v-pre>AppSettings</code></td>
 <td>none (one per installation)</td>
-<td>Data versions (<code translate="no" v-pre>dbVersion</code>, <code translate="no" v-pre>appVersion</code>), the database backup schedule (<code translate="no" v-pre>backupScheduleEnabled</code>, <code translate="no" v-pre>backupSchedule</code>, <code translate="no" v-pre>backupKeep</code>, <code translate="no" v-pre>lastScheduledBackup</code>, <code translate="no" v-pre>backupScheduleChanged</code>), <code translate="no" v-pre>userAisAllowed</code> (users who are not administrators can create AIs, default and <code translate="no" v-pre>null</code> = yes; <code translate="no" v-pre>AIService.setUserCreationAllowed</code>, checked in <code translate="no" v-pre>AIServiceImpl.save</code> for new AIs only, existing ones stay editable), the help assistant (<code translate="no" v-pre>helpEnabled</code>, <code translate="no" v-pre>helpAiUuid</code>, <code translate="no" v-pre>helpApplyLimits</code>, <code translate="no" v-pre>helpInteractions</code> (may it move through the interface), <code translate="no" v-pre>helpAdminData</code> (may it read the data of the Admin page for an administrator), and the prompts <code translate="no" v-pre>helpPromptAdmin</code> / <code translate="no" v-pre>helpPromptUser</code>, null = the default; the uuid, not the id; written only by <code translate="no" v-pre>HelpAssistantService.saveSettings</code>).</td>
+<td>Data versions (<code translate="no" v-pre>dbVersion</code>, <code translate="no" v-pre>appVersion</code>), the database backup schedule (<code translate="no" v-pre>backupScheduleEnabled</code>, <code translate="no" v-pre>backupSchedule</code>, <code translate="no" v-pre>backupKeep</code>, <code translate="no" v-pre>lastScheduledBackup</code>, <code translate="no" v-pre>backupScheduleChanged</code>), the help assistant (<code translate="no" v-pre>helpAiUuid</code>, <code translate="no" v-pre>helpApplyLimits</code>, <code translate="no" v-pre>helpInteractions</code> (may it move through the interface), <code translate="no" v-pre>helpAdminData</code> (may it read the data of the Admin page for an administrator), and the prompts <code translate="no" v-pre>helpPromptAdmin</code> / <code translate="no" v-pre>helpPromptUser</code>, null = the default; the uuid, not the id; written only by <code translate="no" v-pre>HelpAssistantService.saveSettings</code>). The switches <code translate="no" v-pre>userAisAllowed</code> and <code translate="no" v-pre>helpEnabled</code> are replaced by the permissions <code translate="no" v-pre>CREATE_AI</code> and <code translate="no" v-pre>HELPER</code> (V15 / app version 5); the fields stay, deprecated, only for <code translate="no" v-pre>PermissionsMigration</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>
@@ -1301,6 +1307,49 @@ default (<code translate="no" v-pre>UserSetting.masterTemplate</code>...), else 
 <p>The current user of a session is the session-scoped <code translate="no" v-pre>user</code> bean (see <a href="../architecture/#spring-wiring">Architecture</a>),
 which holds a copy of the logged-in user&#x27;s id, login and name - load the entity through <code translate="no" v-pre>UserService</code> when you need
 more.</p>
+<h3 id="permission-what-a-user-was-allowed"><code translate="no" v-pre>Permission</code> (what a user was allowed)</h3>
+<p><code translate="no" v-pre>Permission</code> (<code translate="no" v-pre>domain.security.permissions</code>, table <code translate="no" v-pre>permissions</code>, V15) extends <code translate="no" v-pre>ExtendableEntity</code>. There is at most one live row per
+holder and <code translate="no" v-pre>PermissionType</code>; a user without one does not have the permission.</p>
+<retype-table copy-text="| Field | |
+|---|---|
+| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs). Never rename a constant. |
+| `permissionHolder` | Column `holder_id`, the `User` who has (or has not) the permission. `@CleanupReference(OWNED_BY)`: purged with the user; nullable because the cleanup nulls the reference before it purges the user. |
+| `granted` | Whether it is given; `false` keeps the row as an explicit refusal. |
+| `helperApplyLimits`, `helperInteractions` | Extended attributes of the type `HELPER` (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in `PermissionsDialog`. |
+| `owner` | Inherited from `OwnedEntity`: the administrator who gave it, `null` for the ones the migration created. It plays no part when a permission is looked up, see [Permissions](services.md#permissions). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Field</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>permissionType</code></td>
+<td><code translate="no" v-pre>PermissionType</code>, stored by name (<code translate="no" v-pre>@Enumerated(STRING)</code>): <code translate="no" v-pre>HELPER</code> (use the help assistant), <code translate="no" v-pre>CREATE_AI</code> (create their own AIs). Never rename a constant.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>permissionHolder</code></td>
+<td>Column <code translate="no" v-pre>holder_id</code>, the <code translate="no" v-pre>User</code> who has (or has not) the permission. <code translate="no" v-pre>@CleanupReference(OWNED_BY)</code>: purged with the user; nullable because the cleanup nulls the reference before it purges the user.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>granted</code></td>
+<td>Whether it is given; <code translate="no" v-pre>false</code> keeps the row as an explicit refusal.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>helperApplyLimits</code>, <code translate="no" v-pre>helperInteractions</code></td>
+<td>Extended attributes of the type <code translate="no" v-pre>HELPER</code> (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in <code translate="no" v-pre>PermissionsDialog</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>owner</code></td>
+<td>Inherited from <code translate="no" v-pre>OwnedEntity</code>: the administrator who gave it, <code translate="no" v-pre>null</code> for the ones the migration created. It plays no part when a permission is looked up, see <a href="../services/#permissions">Permissions</a>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
 <h2 id="resources">Resources</h2>
 <p><code translate="no" v-pre>Resource</code> (<code translate="no" v-pre>resources</code>, an <code translate="no" v-pre>OwnedEntity</code>) is an uploaded file; today the files are the images attached to parts
 (<code translate="no" v-pre>ChatMessage.getImages()</code>, see <doc-anchor-trigger to="#extendableentity---extended-attributes">Extended attributes</doc-anchor-trigger>).</p>
@@ -1543,7 +1592,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b2b7bf83).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (940baf6b).</p></div>
             </footer>
         </div>
     </div>

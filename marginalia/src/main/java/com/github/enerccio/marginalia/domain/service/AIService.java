@@ -10,17 +10,8 @@ import com.github.enerccio.marginalia.domain.repository.AIRepository;
 public interface AIService extends ExtendableService<AI, AIRepository> {
 
     /**
-     * Whether users who are not administrators can create their own AIs (application setting, on by default).
-     */
-    boolean isUserCreationAllowed() throws Exception;
-
-    /**
-     * Changes {@link #isUserCreationAllowed()}, administrators only.
-     */
-    void setUserCreationAllowed(boolean allowed) throws Exception;
-
-    /**
-     * Whether the current user can create a new AI: administrators always, others when {@link #isUserCreationAllowed()}.
+     * Whether the current user can create a new AI: administrators always, others with the permission
+     * {@link com.github.enerccio.marginalia.domain.security.permissions.PermissionType#CREATE_AI}.
      */
     boolean canCreate() throws Exception;
 

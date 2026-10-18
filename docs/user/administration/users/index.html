@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845552611410">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845643259432">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845552611410" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845643259432" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -243,10 +243,48 @@ the password only when the user can log in right away.</p>
 </div>
 <p>The last administrator can&#x27;t lose the administrator flag: <em>The last administrator cannot be deleted or demoted.</em></p>
 <h2 id="users-and-providers">Users and providers</h2>
-<p>By default every user adds their own <a href="../../inference-providers/">inference providers</a>. Uncheck <strong>Users can create
-their own models</strong> above the user list to stop that: users can then only use the providers the administrators
+<p>Adding an <a href="../../inference-providers/">inference provider</a> needs the permission <strong>Create own models</strong>; administrators
+always have it. A user without it can only use the providers the administrators
 <a href="../../inference-providers/#shared-providers">share</a>. The providers a user already has keep working and can still be
-edited; administrators can always add providers.</p>
+edited. See <doc-anchor-trigger to="#permissions">Permissions</doc-anchor-trigger>.</p>
+<h2 id="permissions">Permissions</h2>
+<p>The key button in the user list opens the permissions of the user. The window is a table of the permissions the user
+has: the name, a <strong>Granted</strong> checkbox (a permission that is not granted is the same as none, but is kept) and a button
+to delete it. <strong>Add permission</strong> offers the permissions the user has none of. Nothing is stored until <strong>Save</strong> (a
+deleted permission is deleted for good then); a permission with settings of its own has an arrow in front of its name that folds and unfolds them (folded at first, a permission you add is unfolded); <strong>Save</strong> is off while there is nothing to save, and <strong>Exit</strong> asks before
+it throws away changes. After saving, the page of the user (when they are logged in) is reloaded, so the buttons and
+sections that depend on the permissions appear or go away; your own page is not reloaded.</p>
+<retype-table copy-text="| Permission | What it allows | Settings |
+|---|---|---|
+| **Create own models** | Adding [inference providers](../inference-providers.md). | |
+| **Help assistant** | Asking the [help assistant](help-assistant.md). | **Apply limits** and **Allow navigating the interface** of that user, see the assistant's page. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Permission</th>
+<th>What it allows</th>
+<th>Settings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Create own models</strong></td>
+<td>Adding <a href="../../inference-providers/">inference providers</a>.</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>Help assistant</strong></td>
+<td>Asking the <a href="../help-assistant/">help assistant</a>.</td>
+<td><strong>Apply limits</strong> and <strong>Allow navigating the interface</strong> of that user, see the assistant&#x27;s page.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Administrators always have every permission, they need none. Users that existed when the permissions were introduced
+got the ones whose application wide setting was on (everybody could create models by default; the help assistant was on
+or off for all, with its settings, which are copied into the permission); new users have none.</p>
 <h2 id="deleting-a-user">Deleting a user</h2>
 <p>The trash button deletes the account after confirming. You can&#x27;t delete your own account or the last administrator.</p>
 <p>The user can no longer log in, saved logins on their devices stop working, and the user name becomes free for a new
@@ -294,7 +332,7 @@ an empty folder. Delete the renamed folder by hand once you don&#x27;t need it.<
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b2b7bf83).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (940baf6b).</p></div>
             </footer>
         </div>
     </div>

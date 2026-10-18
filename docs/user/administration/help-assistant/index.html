@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845552611410">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845643259432">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Help assistant</title>
     <meta name="title" content="Help assistant">
-    <meta name="description" content="The help assistant is a chat that answers questions about Marginalia from its manual. An administrator turns it on and chooses which model it uses; after that every user can ask it, without a model of their own.">
+    <meta name="description" content="The help assistant is a chat that answers questions about Marginalia from its manual. An administrator chooses which model it uses and gives the permission Help assistant to the users who can ask it, in their permissions (administrators always can); they need no model of their own.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/administration/help-assistant/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/administration/help-assistant/">
     <meta property="og:title" content="Help assistant">
-    <meta property="og:description" content="The help assistant is a chat that answers questions about Marginalia from its manual. An administrator turns it on and chooses which model it uses; after that every user can ask it, without a model of their own.">
+    <meta property="og:description" content="The help assistant is a chat that answers questions about Marginalia from its manual. An administrator chooses which model it uses and gives the permission Help assistant to the users who can ask it, in their permissions (administrators always can); they need no model of their own.">
     <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/help-assistant.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -35,7 +35,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/administration/help-assistant/">
     <meta name="twitter:title" content="Help assistant">
-    <meta name="twitter:description" content="The help assistant is a chat that answers questions about Marginalia from its manual. An administrator turns it on and chooses which model it uses; after that every user can ask it, without a model of their own.">
+    <meta name="twitter:description" content="The help assistant is a chat that answers questions about Marginalia from its manual. An administrator chooses which model it uses and gives the permission Help assistant to the users who can ask it, in their permissions (administrators always can); they need no model of their own.">
     <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/help-assistant.png">
     <meta name="twitter:image:alt" content="Help assistant">
 
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845552611410" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845643259432" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -171,9 +171,11 @@
 
                 <!-- Page content  -->
 <h1 id="help-assistant">Help assistant</h1>
-<p>The help assistant is a chat that answers questions about Marginalia from its manual. An administrator turns it on
-and chooses which model it uses; after that every user can ask it, without a model of their own.</p>
-<p>Once it is on, every user sees a round robot button in the bottom right corner of the window. It opens the chat; the
+<p>The help assistant is a chat that answers questions about Marginalia from its manual. An administrator chooses which
+model it uses and gives the permission <strong>Help assistant</strong> to the users who can ask it, in their
+<a href="../users/#permissions">permissions</a> (administrators always can); they need no model of their own. Users that existed
+when the permissions were introduced got it if the assistant was on at the time; new users have none.</p>
+<p>Once a user can use it, they see a round robot button in the bottom right corner of the window. It opens the chat; the
 panel says which model answers and warns when the user&#x27;s limit applies (see <doc-anchor-trigger to="#who-pays">Who pays</doc-anchor-trigger>). The model looks
 the answers up in the manual (it can search it and read its pages), names the pages it used as links to the
 <a href="https://enerccio.github.io/Marginalia/">published manual</a> (they open in a new tab), and explains: it
@@ -186,8 +188,8 @@ or reloading the page keeps it), the broom button clears it.</p>
     <figcaption class="caption">The help assistant answering a question</figcaption>
 </figure>
 <p>The button appears when a user opens Marginalia, and the model and the limit warning are read each time the panel
-is opened; if you turn the assistant off, users who already have the page open lose the button when they reload it
-(or when they open the panel).</p>
+is opened; if you take the permission away or remove the model, users who already have the page open lose the button when
+they reload it (or when they open the panel).</p>
 <h2 id="settings">Settings</h2>
 <p>Open <strong>Admin → Help assistant</strong>:</p>
 <figure class="content-center">
@@ -196,10 +198,7 @@ is opened; if you turn the assistant off, users who already have the page open l
 </figure>
 <retype-table copy-text="| Setting | |
 |---|---|
-| **Enabled** | Turns the assistant on for all users. Off by default. Needs a model. |
 | **Model** | One of *your own* [models](../inference-providers.md), shared with the users or not. Models that other administrators share are not in the list. |
-| **Apply limits** | Only for a shared model, see below. |
-| **Allow navigating the interface** | Lets the assistant open a section, select a tab or open the dialog to add something when a user asks it to show them where something is, see [Showing the way](#showing-the-way). Off by default. |
 | **Allow reading administration data** | Lets the assistant read the state of the extensions and their logs, the database backups and the other data of the Admin page *for an administrator who asks it*, see [Administration data](#administration-data). Off by default. |
 | **Prompt for administrators**, **Prompt for other users** | The instructions the model gets with every question; see [Prompts](#prompts). |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -212,20 +211,8 @@ is opened; if you turn the assistant off, users who already have the page open l
 </thead>
 <tbody>
 <tr>
-<td><strong>Enabled</strong></td>
-<td>Turns the assistant on for all users. Off by default. Needs a model.</td>
-</tr>
-<tr>
 <td><strong>Model</strong></td>
 <td>One of <em>your own</em> <a href="../../inference-providers/">models</a>, shared with the users or not. Models that other administrators share are not in the list.</td>
-</tr>
-<tr>
-<td><strong>Apply limits</strong></td>
-<td>Only for a shared model, see below.</td>
-</tr>
-<tr>
-<td><strong>Allow navigating the interface</strong></td>
-<td>Lets the assistant open a section, select a tab or open the dialog to add something when a user asks it to show them where something is, see <doc-anchor-trigger to="#showing-the-way">Showing the way</doc-anchor-trigger>. Off by default.</td>
 </tr>
 <tr>
 <td><strong>Allow reading administration data</strong></td>
@@ -239,6 +226,34 @@ is opened; if you turn the assistant off, users who already have the page open l
 </table>
 </div>
 </retype-table>
+<p>Two settings depend on the user and are in their <strong>Help assistant</strong> <a href="../users/#permissions">permission</a> (open it with the
+key button in <strong>Admin → Users</strong>; both are off by default):</p>
+<retype-table copy-text="| Setting of the permission | |
+|---|---|
+| **Apply limits** | Only for a shared model, see [Who pays](#who-pays). |
+| **Allow navigating the interface** | Lets the assistant open a section, select a tab or open the dialog to add something when a user asks it to show them where something is, see [Showing the way](#showing-the-way). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Setting of the permission</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Apply limits</strong></td>
+<td>Only for a shared model, see <doc-anchor-trigger to="#who-pays">Who pays</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Allow navigating the interface</strong></td>
+<td>Lets the assistant open a section, select a tab or open the dialog to add something when a user asks it to show them where something is, see <doc-anchor-trigger to="#showing-the-way">Showing the way</doc-anchor-trigger>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>An administrator who has no such permission is answered with both off.</p>
 <p>The settings are saved with <strong>Save</strong>. The assistant asks the model without a <a href="../../protocols/">protocol</a>, so the settings of the model itself apply. It stops working by itself when the model is deleted,
 or when its owner is no longer an administrator, so a model that belongs to an ordinary user is never handed to
 everybody.</p>
@@ -273,7 +288,7 @@ Each text is cut at 400 characters and what looks like a key, a token or a passw
 can still contain a part of what a provider or the system said, for example the answer of a provider to a request. The model that answers is the one you chose, which may
 be an external provider: keep that in mind when you <doc-anchor-trigger to="#settings">choose it</doc-anchor-trigger>.</p>
 <h2 id="showing-the-way">Showing the way</h2>
-<p>With <strong>Allow navigating the interface</strong> on, the assistant can do a few things in the window itself when a user asks it
+<p>With <strong>Allow navigating the interface</strong> on in the permission of the user, the assistant can do a few things in the window itself when a user asks it
 (&quot;show me where the lorebooks are&quot;, &quot;take me to the backups&quot;, &quot;how do I add a model?&quot;): open a section (Books, Lorebooks, Settings, ...), the Admin page
 (only administrators have it), select a tab of the Settings, of the Admin page or of the story editor, or press the button that
 opens the dialog to add a book, a model or a protocol (the dialog only opens, nothing is created until the user fills it in
@@ -352,7 +367,7 @@ for the tools that read errors, move through the interface and read the administ
 Marginalia (you do not have to keep them in it), and only for the tools that are allowed.</p>
 <h2 id="who-pays">Who pays</h2>
 <p>The users never see the model or its API key; their questions go through the application.</p>
-<retype-table copy-text="| Model | **Apply limits** | What happens |
+<retype-table copy-text="| Model | **Apply limits** (permission of the user) | What happens |
 |---|---|---|
 | Shared | on | A question is a request like any other to the shared model: the [limit](../inference-providers.md#limits-of-shared-providers) you set for the user is checked and the tokens are added to the user's usage. A user whose limit is reached (or who may not use the model) gets no answer. |
 | Shared | off | The model's owner pays. The user's limit is ignored and nothing is counted for the user. |
@@ -362,7 +377,7 @@ Marginalia (you do not have to keep them in it), and only for the tools that are
 <thead>
 <tr>
 <th>Model</th>
-<th><strong>Apply limits</strong></th>
+<th><strong>Apply limits</strong> (permission of the user)</th>
 <th>What happens</th>
 </tr>
 </thead>
@@ -424,7 +439,7 @@ Marginalia (you do not have to keep them in it), and only for the tools that are
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b2b7bf83).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (940baf6b).</p></div>
             </footer>
         </div>
     </div>

@@ -20,6 +20,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
 | `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
 | `User` | `users` | User |
+| `Permission` | `permissions` | What an administrator allowed a user to do (not shown yet) |
 | `Resource` | `resources` | Resources tab, image attachments of a part (story editor, exports) |
 
 ## Overview
@@ -455,7 +456,7 @@ values are extended attributes.
 
 | Class | Owner | Contains |
 |---|---|---|
-| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), `userAisAllowed` (users who are not administrators can create AIs, default and `null` = yes; `AIService.setUserCreationAllowed`, checked in `AIServiceImpl.save` for new AIs only, existing ones stay editable), the help assistant (`helpEnabled`, `helpAiUuid`, `helpApplyLimits`, `helpInteractions` (may it move through the interface), `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). |
+| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpApplyLimits`, `helpInteractions` (may it move through the interface), `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` are replaced by the permissions `CREATE_AI` and `HELPER` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
 | `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`), default book backup strategy, the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |
 
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;
@@ -481,6 +482,19 @@ default (`UserSetting.masterTemplate`...), else the built-in default (`Defaults`
 The current user of a session is the session-scoped `user` bean (see [Architecture](architecture.md#spring-wiring)),
 which holds a copy of the logged-in user's id, login and name - load the entity through `UserService` when you need
 more.
+
+### `Permission` (what a user was allowed)
+
+`Permission` (`domain.security.permissions`, table `permissions`, V15) extends `ExtendableEntity`. There is at most one live row per
+holder and `PermissionType`; a user without one does not have the permission.
+
+| Field | |
+|---|---|
+| `permissionType` | `PermissionType`, stored by name (`@Enumerated(STRING)`): `HELPER` (use the help assistant), `CREATE_AI` (create their own AIs). Never rename a constant. |
+| `permissionHolder` | Column `holder_id`, the `User` who has (or has not) the permission. `@CleanupReference(OWNED_BY)`: purged with the user; nullable because the cleanup nulls the reference before it purges the user. |
+| `granted` | Whether it is given; `false` keeps the row as an explicit refusal. |
+| `helperApplyLimits`, `helperInteractions` | Extended attributes of the type `HELPER` (booleans, off by default): do the limits of the user apply to their questions to the help assistant, may the assistant move through the interface for them (they were application settings before). Edited in `PermissionsDialog`. |
+| `owner` | Inherited from `OwnedEntity`: the administrator who gave it, `null` for the ones the migration created. It plays no part when a permission is looked up, see [Permissions](services.md#permissions). |
 
 ## Resources
 

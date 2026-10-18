@@ -2,11 +2,11 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
-import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
 import com.github.enerccio.marginalia.domain.repository.AIRepository;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
+import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.service.AIService;
-import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
@@ -20,30 +20,15 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
     private AdminGuard adminGuard;
 
     @Autowired
-    private SettingService settingService;
+    private PermissionService permissionService;
 
     @Autowired
     private UsageService usageService;
 
     @Override
     @CommonTxReadOnly
-    public boolean isUserCreationAllowed() throws Exception {
-        return settingService.getOrCreateApp(AppSettings.class).getUserAisAllowed();
-    }
-
-    @Override
-    @CommonTx
-    public void setUserCreationAllowed(boolean allowed) throws Exception {
-        adminGuard.requireAdmin();
-        AppSettings settings = settingService.getOrCreateApp(AppSettings.class);
-        settings.setUserAisAllowed(allowed);
-        settingService.save(settings);
-    }
-
-    @Override
-    @CommonTxReadOnly
     public boolean canCreate() throws Exception {
-        return adminGuard.isAdmin() || isUserCreationAllowed();
+        return adminGuard.isAdmin() || permissionService.checkPermissions(currentUser, PermissionType.CREATE_AI);
     }
 
     @Override
@@ -82,7 +67,7 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
             throw new SecurityException("Only administrators can share an AI");
         }
         if (ai.getId() == null) {
-            if (!admin && !isUserCreationAllowed()) {
+            if (!admin && !permissionService.checkPermissions(currentUser, PermissionType.CREATE_AI)) {
                 throw new SecurityException("Creating AIs is disabled, use the shared ones");
             }
         } else {

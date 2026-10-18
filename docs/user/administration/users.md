@@ -53,10 +53,28 @@ The last administrator can't lose the administrator flag: *The last administrato
 
 ## Users and providers
 
-By default every user adds their own [inference providers](../inference-providers.md). Uncheck **Users can create
-their own models** above the user list to stop that: users can then only use the providers the administrators
+Adding an [inference provider](../inference-providers.md) needs the permission **Create own models**; administrators
+always have it. A user without it can only use the providers the administrators
 [share](../inference-providers.md#shared-providers). The providers a user already has keep working and can still be
-edited; administrators can always add providers.
+edited. See [Permissions](#permissions).
+
+## Permissions
+
+The key button in the user list opens the permissions of the user. The window is a table of the permissions the user
+has: the name, a **Granted** checkbox (a permission that is not granted is the same as none, but is kept) and a button
+to delete it. **Add permission** offers the permissions the user has none of. Nothing is stored until **Save** (a
+deleted permission is deleted for good then); a permission with settings of its own has an arrow in front of its name that folds and unfolds them (folded at first, a permission you add is unfolded); **Save** is off while there is nothing to save, and **Exit** asks before
+it throws away changes. After saving, the page of the user (when they are logged in) is reloaded, so the buttons and
+sections that depend on the permissions appear or go away; your own page is not reloaded.
+
+| Permission | What it allows | Settings |
+|---|---|---|
+| **Create own models** | Adding [inference providers](../inference-providers.md). | |
+| **Help assistant** | Asking the [help assistant](help-assistant.md). | **Apply limits** and **Allow navigating the interface** of that user, see the assistant's page. |
+
+Administrators always have every permission, they need none. Users that existed when the permissions were introduced
+got the ones whose application wide setting was on (everybody could create models by default; the help assistant was on
+or off for all, with its settings, which are copied into the permission); new users have none.
 
 ## Deleting a user
 

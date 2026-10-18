@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845552611410">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845643259432">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845552611410" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845643259432" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -284,7 +284,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <h3 id="bound---startup-and-sessions"><code translate="no" v-pre>bound</code> - startup and sessions</h3>
 <retype-table copy-text="| File | |
 |---|---|
-| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `OriginalResponseMigration`, see [Database &amp; migrations](database.md)). |
+| `ApplicationInitializer.java` | Runs registered `Migration`s when the stored `AppSettings` versions are behind (`bound/migration`: `EncryptApiKeysMigration`, `FulltextMigration`, `OriginalResponseMigration`, `PermissionsMigration`, see [Database &amp; migrations](database.md)). |
 | `Migration.java` | Interface of data migrations in Java (schema migrations are Flyway SQL). |
 | `SessionManager.java` | The `sessionManager` bean: registry of all HTTP sessions, binds the logged-in user to them, runs code in other users' sessions (`runForUsers`) and closes dead UIs and sessions on its watcher thread. See [Sessions](architecture.md#sessions). |
 | `SessionTrackingListener.java` | `HttpSessionListener` registered by `WebappApplicationInitializer`; forwards session creation and destruction to `SessionManager`. |
@@ -304,7 +304,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 <tbody>
 <tr>
 <td><code translate="no" v-pre>ApplicationInitializer.java</code></td>
-<td>Runs registered <code translate="no" v-pre>Migration</code>s when the stored <code translate="no" v-pre>AppSettings</code> versions are behind (<code translate="no" v-pre>bound/migration</code>: <code translate="no" v-pre>EncryptApiKeysMigration</code>, <code translate="no" v-pre>FulltextMigration</code>, <code translate="no" v-pre>OriginalResponseMigration</code>, see <a href="../database/">Database &amp; migrations</a>).</td>
+<td>Runs registered <code translate="no" v-pre>Migration</code>s when the stored <code translate="no" v-pre>AppSettings</code> versions are behind (<code translate="no" v-pre>bound/migration</code>: <code translate="no" v-pre>EncryptApiKeysMigration</code>, <code translate="no" v-pre>FulltextMigration</code>, <code translate="no" v-pre>OriginalResponseMigration</code>, <code translate="no" v-pre>PermissionsMigration</code>, see <a href="../database/">Database &amp; migrations</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Migration.java</code></td>
@@ -494,7 +494,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 </table>
 </div>
 </retype-table>
-<p><code translate="no" v-pre>User</code> is in <code translate="no" v-pre>domain.security.model</code>. Every entity must also be listed in <code translate="no" v-pre>src/main/webapp/config/persistence.xml</code>.
+<p><code translate="no" v-pre>User</code> is in <code translate="no" v-pre>domain.security.model</code>, <code translate="no" v-pre>Permission</code> and <code translate="no" v-pre>PermissionType</code> in <code translate="no" v-pre>domain.security.permissions</code>. Every entity must also be listed in <code translate="no" v-pre>src/main/webapp/config/persistence.xml</code>.
 See <a href="../domain-model/">Domain model</a>.</p>
 <h3 id="domainrepository---data-access"><code translate="no" v-pre>domain.repository</code> - data access</h3>
 <p>One interface and one JPA implementation (<code translate="no" v-pre>impl/Jpa*Repository</code>) per entity, built on <code translate="no" v-pre>BaseRepository</code> →
@@ -886,7 +886,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `.../spring/container-config.xml` | Localization, configuration, `applicationPoint`, `sessionManager`, session beans, application initializer. |
 | `.../spring/datasources-config.xml` | Data source, Flyway, JPA, transaction manager. |
 | `.../spring/services-config.xml` | Repositories, services, generation steps, extensions. |
-| `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V13__usage_ai_nullable`. |
+| `src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql` | Flyway migrations - currently `V1__initial` to `V15__permissions`. |
 | `src/main/resources/log4j.properties` | Logging for development (IDE, `mvn jetty:run`) - `DEBUG`. |
 | `src/main/resources-release/log4j.properties` | Logging packaged into the WAR instead - `INFO` (see [Packaging &amp; releases](packaging.md#the-war)). |
 | `src/main/resources/META-INF/build-info/build-info.properties` | Version and build time, filtered by Maven. |
@@ -921,7 +921,7 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/migration/V&lt;n&gt;__&lt;name&gt;.sql</code></td>
-<td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V13__usage_ai_nullable</code>.</td>
+<td>Flyway migrations - currently <code translate="no" v-pre>V1__initial</code> to <code translate="no" v-pre>V15__permissions</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>src/main/resources/log4j.properties</code></td>
@@ -1385,7 +1385,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b2b7bf83).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (940baf6b).</p></div>
             </footer>
         </div>
     </div>

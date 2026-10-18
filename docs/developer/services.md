@@ -194,7 +194,7 @@ with `java.util.zip`.
 
 | Service | Responsible for |
 |---|---|
-| `AIService` | CRUD of inference providers with rules in the service: the user's AIs are their own and the shared ones (`AI.shared`); `save` / `delete` accept only the owner (`SecurityException` otherwise) and `shared = true` only from an administrator (`AdminGuard`); a new AI needs `canCreate()` (administrators, or anybody while `AppSettings.userAisAllowed`, set by `setUserCreationAllowed`, administrators only). `delete(ai, false)` also soft deletes the usages of the AI. `isOwnedByCurrentUser(ai)` and `isAdministrator()` are for the UI; the latter reads the flag from the database, because the session's `User` bean is filled with id, login and name only, so `currentUser.isAdmin()` is always false in UI code. |
+| `AIService` | CRUD of inference providers with rules in the service: the user's AIs are their own and the shared ones (`AI.shared`); `save` / `delete` accept only the owner (`SecurityException` otherwise) and `shared = true` only from an administrator (`AdminGuard`); a new AI needs `canCreate()` (administrators, or a user with the permission `PermissionType.CREATE_AI`, see `PermissionService`). `delete(ai, false)` also soft deletes the usages of the AI. `isOwnedByCurrentUser(ai)` and `isAdministrator()` are for the UI; the latter reads the flag from the database, because the session's `User` bean is filled with id, login and name only, so `currentUser.isAdmin()` is always false in UI code. |
 | `ProtocolService` | Plain CRUD of protocols (not shared). |
 | `UsageService` | `record(ai, prefill, generated)` adds a request to the current user's `Usage` of the AI (never throws, see [Usage](domain-model.md#usage-tokens-used-with-an-ai)); `findForUser(ai)`, `findAllForAI(ai)` (owner of the AI or administrator), `findAllUsages()` (administrator). Called by `OpenAICompatibleInferenceService`, not by the callers of `stream`. |
 | `AILimitService` | Limits of the users of a shared AI, see [Limits](domain-model.md#limits-of-the-users-of-a-shared-ai). `findLimits`, `setLimit` (shared AIs only, validated by `AILimit.validate()`), `removeLimit`: the administrator who owns the AI only. `getLimit(ai)` / `getStatus(ai)` (`LimitStatus`: limit, tokens used in the period, next reset) are for the current user; the session's `User` has no uuid, so the service loads it. `check(ai, promptTokens, reservedTokens)` (the prompt must fit into the sent and total limits; the generated tokens only count once reached, or with a hard limit together with the reserved response) throws `InferenceException` `NOT_AVAILABLE` or `LIMIT_REACHED`; `OpenAICompatibleInferenceService.stream` calls it first, so every request is covered. |
@@ -255,8 +255,25 @@ functions rejects a non-empty `FunctionSet` with `UnsupportedOperationException`
 | Service | Responsible for |
 |---|---|
 | `UserService` | Users: `authenticate` (PBKDF2-HMAC-SHA256 hashes, constant-time compare and the same amount of work for an unknown user, a missing password or a locked account; the first 10 consecutive failures are free, then the account is locked for 1 s, 2 s, 4 s... up to 15 minutes, tracked in `User.failedLogins` / `lockedUntil`; a locked account refuses even the right password; `authenticate(username, password, clientAddress)` also throttles per client address, in memory only: the first 30 consecutive failures from an address are free, then it is blocked with the same 1 s ... 15 minutes back-off for every user name, blocked attempts are not counted against the user, a successful login does not clear the address (otherwise any account holder could reset the count between batches of guesses), entries are forgotten after an hour without failures, the table keeps at most 10,000 addresses (least recently used dropped first) and a restart clears everything; every failure and the moment of a block are logged; see [Login throttling](#login-throttling)), `unlock` (an administrator's *Unlock account* checkbox in `UserDialog`, shown while the user has failures on record: forgets the failures and the lock), `changePassword` (also resets the lock, drops all saved logins and invalidates the user's other open sessions through `SessionManager.runForUsers` - the caller's own session is kept; the current password is checked by `UserDialog` for self edits), `clearPassword` (removes the password, resets the lock, removes saved logins and invalidates the user's sessions except the caller's, an administrator's reset), `isLoginAvailable`, `isLastAdmin` (the last administrator can't be removed or demoted), `deleteUser` (soft delete, frees the login by renaming it to `<login>#<uuid>`, drops saved logins, renames the data folder to `<login>-deleted`; owned data is purged with the user by cleanup), saved logins (`generateNewPersistentInfo`; `authenticateFromCookie` hashes the secret once and compares it with every saved login in constant time, a null user takes the same path; a matched login is rotated). |
+| `PermissionService` | What users were allowed to do (`PermissionType`), see [Permissions](#permissions). |
 | `SettingService` | `getOrCreate(UserSetting.class)` for the current user, `getOrCreate(cls, user)`, `getOrCreateApp(AppSettings.class)` for the installation. |
 | `ResourceService` | Files stored by hash in the user's `resources` (or `images`) folder. `uploadImage` stores an attachment (format detected from the content, WebP converted to PNG, 10 MB and 50 megapixel limits), `findImage(uuid)` finds the current user's image. `link` / `unlink` / `describeLink` keep the loose `clazz` + `objectId` note (class name and id of the object using the resource, like `TagRelation`; not a cleanup reference, `describeLink` only checks that the entity exists and is not deleted). `findPageForUser` / `countForUser` serve the lazy table of the Resources tab, `replace` writes a new file and points the resource at it, `softDelete(uuids)` marks resources of the current user deleted (cleanup purges them; files are never deleted). |
+
+### Permissions
+
+`PermissionService` (`domain.security.service`) answers what an administrator allowed a user to do, see
+[`Permission`](domain-model.md#permission-what-a-user-was-allowed). `checkPermissions(user, type)` is false when the user has no
+`Permission` of the type or it is not `granted`; `getPermission(user, type)` returns the object (null when there is none, a
+deleted one does not count); `getPermissions(user)` lists them. The permission is found by its holder, **not** by its owner (the
+owner is only the administrator who gave it), and the user is loaded again through `UserService` first - the session's `user` bean
+is a scoped proxy with an id, login and name only (an unknown or deleted user has nothing). Administrators are not special here,
+callers that let them do everything check `AdminGuard.isAdmin()` too (`AIService.canCreate`, `HelpAssistantService`). Changing
+permissions is for administrators: `save`, `saveWithoutEvent`, `delete` and `setGranted(user, type, granted)` (changes the existing
+permission or creates one owned by the current administrator) call `AdminGuard.requireAdmin()`. The migration that created the first ones
+(`PermissionsMigration`) does not go through the service, it runs without a user.
+
+The dialog behind the key button of the user list is `ui.dialogs.permissions.PermissionsDialog` (see [UI](ui.md#permissions-dialog)); the
+services it uses are `PermissionService` and `SessionManager.reloadUser`.
 
 ### Login throttling
 
@@ -317,13 +334,14 @@ support for Japanese or Chinese text). `getPage` tolerates a leading slash, an `
 ### The help assistant
 
 `HelpAssistantService` is the model behind the help chat (`ui.components.HelpAssistantWidget`). `getSettings` / `saveSettings` are for
-administrators (`AdminGuard`) and keep `Settings(enabled, aiUuid, applyLimits, ...prompts, interactions, adminData)` in `AppSettings`;
-`saveSettings` accepts only an AI the administrator owns (`IllegalArgumentException` otherwise) and an enabled
-assistant needs one; requests are made without a protocol. `isAvailable()` and `stream(payload, functions, callback)` are for every user. The
+administrators (`AdminGuard`) and keep `Settings(aiUuid, ...prompts, adminData)` in `AppSettings` (what depends on the user is in their `HELPER` permission: `Permission.helperApplyLimits` and `helperInteractions`; an administrator without the permission has both off);
+`saveSettings` accepts only an AI the administrator owns (`IllegalArgumentException` otherwise); requests are made without a protocol.
+`isAvailable()` and `stream(payload, functions, callback)` are for administrators and the users with the permission `PermissionType.HELPER`
+(`target()` checks it at every request). The
 AI is loaded by uuid whoever owns it (the user could not see it), and only while it is not deleted and its owner is
 still an administrator, which is checked at each request, so a demoted administrator's
 AI is never handed to everybody. A request is **metered** (the normal path, `AILimitService.check` and
-`UsageService.record` for the current user) only for a shared AI with `applyLimits`; any other request runs in an
+`UsageService.record` for the current user) only for a shared AI when the permission has `helperApplyLimits`; any other request runs in an
 `UnmeteredScope`: a thread-local, opened by the caller around the call that starts the request, that an inference
 service reads once when the request starts (before it moves to other threads) and then skips the limit check and
 does not count the usage. `OpenAICompatibleInferenceService` and the `google-genai` plugin do this; an extension AI
@@ -336,7 +354,7 @@ and calls `stream`. `HelpTools` are `ManualTools` (`search_manual` over `ManualS
 `getPage`; read only, answers cut to a size a small model can use) and `get_ui_state(path, deep)`, which asks the
 `UiStateSource` (the page the question comes from; null when there is none, the function then fails with a message the
 model can read), see [Letting the help assistant see the UI](ui.md#letting-the-help-assistant-see-the-ui). When the
-administrator allowed interactions (`Settings.interactions`, `AppSettings.helpInteractions`) and there is a `UiStateSource`,
+the permission has `helperInteractions` and there is a `UiStateSource`,
 `ask` binds `InteractiveHelpTools` instead (adds `interact_with_ui(path, interactions)`, which calls `UiStateSource.interact`)
 and appends `HelpPrompts.INTERACTIVE` to the instructions; see [Interactions](ui.md#interactions). `HelpTools` also has
 `read_last_errors(count)` (what the user was shown that went wrong, read through `UiStateSource.readProblems`, see [What went

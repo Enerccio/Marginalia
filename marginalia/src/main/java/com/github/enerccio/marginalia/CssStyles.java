@@ -23,6 +23,8 @@ public final class CssStyles {
     public static final String TEXT_MONOSPACE_LUMO = "text-monospace-lumo";
     public static final String TEXT_SECONDARY = "text-secondary";
     public static final String TEXT_ERROR = "text-error";
+    /** Takes the place of the fold button in a row that has nothing to fold. */
+    public static final String FOLD_SPACER = "fold-spacer";
     public static final String TEXT_DANGER = "text-danger";
     public static final String TEXT_SUCCESS = "text-success";
     public static final String TEXT_PRIMARY = "text-primary";

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845552611410">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845643259432">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845552611410" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845643259432" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845552611410" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845643259432" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -467,7 +467,7 @@ toggle in the navbar, which also holds the summaries/settings menu bar), the new
 and a popover with the metadata of the inference (ids, model, protocol, tokens, words) and the turn details (the
 right-hand column of the desktop card). Its summaries item opens <code translate="no" v-pre>PhoneSummariesDialog</code>, the <code translate="no" v-pre>SummariesDialog</code> with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
 <code translate="no" v-pre>AppLayout</code> are kept inside the dialog by the <code translate="no" v-pre>phone-story-layout</code> class.</p>
-<p>On the desktop the <em>Admin</em> button is only added for administrators; <code translate="no" v-pre>AdminPart</code> shows the users grid (with the <em>Users can create their own models</em> checkbox, <code translate="no" v-pre>AIService.setUserCreationAllowed</code>) and the
+<p>On the desktop the <em>Admin</em> button is only added for administrators; <code translate="no" v-pre>AdminPart</code> shows the users grid and the
 <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code> and extensions tab (with the SHA-256 of each JAR behind a <code translate="no" v-pre>#</code> button next to the version - tooltip, click copies it with
 <code translate="no" v-pre>JavascriptLibrary.copyToClipboard</code> - the verification report of each extension and, per
 extension, the buttons <em>Stop</em> / <em>Start</em> (<code translate="no" v-pre>OsgiService.stopExtension</code> / <code translate="no" v-pre>startExtension</code>, state <em>Stopped</em>), <em>Log</em>
@@ -1136,9 +1136,24 @@ open one.</p>
 page appear next to <code translate="no" v-pre>Main</code>; <code translate="no" v-pre>Main</code> reports the workspace of its UI (from <code translate="no" v-pre>ApplicationPoint</code>) as its only child. The
 function is <code translate="no" v-pre>HelpTools.getUiState</code>, bound with the manual tools by <code translate="no" v-pre>HelpAssistantService.ask(history, uiState, callback)</code>;
 <code translate="no" v-pre>UiStateSource</code> is how the widget answers it.</p>
+<h3 id="permissions-dialog">Permissions dialog</h3>
+<p><code translate="no" v-pre>PermissionsDialog</code> (<code translate="no" v-pre>ui.dialogs.permissions</code>, opened by <code translate="no" v-pre>AdminPart.openPermissionsDialog</code> from the key button of the user list) edits
+the <code translate="no" v-pre>Permission</code>s of a user: a modal dialog (<code translate="no" v-pre>ModalityMode.STRICT</code>, no close on Esc or outside click) with a grid of the permissions
+(name from <code translate="no" v-pre>Localization.getPermissionType</code>, a <em>Granted</em> checkbox, a delete button), a combo box of the types the user has none of with
+<strong>Add permission</strong>, and <strong>Exit</strong> / <strong>Save</strong> in the footer. The columns have fixed widths (name takes the rest, <code translate="no" v-pre>Granted</code> <code translate="no" v-pre>TOOL_COLUMN_SIZE_LARGE</code>, delete <code translate="no" v-pre>TOOL_COLUMN_SIZE</code>); the settings component of a permission is the detail row of the grid, folded by the arrow button in front of the name (<code translate="no" v-pre>expanded</code>, a set of types that survives re-reading the rows; a row without settings has the <code translate="no" v-pre>fold-spacer</code> class in its place, a new permission is unfolded). It edits a copy in memory: <strong>Save</strong> is on only when something differs
+(<code translate="no" v-pre>isDirty</code>: a new permission, a changed <code translate="no" v-pre>granted</code>, an edited settings component or a deleted permission), <strong>Exit</strong> asks with
+<code translate="no" v-pre>MSG_UNSAVED_CHANGES_EXIT</code> when it is, and a delete is a hard delete (<code translate="no" v-pre>PermissionService.delete(permission, true)</code>) done by <strong>Save</strong>, before the
+saves. After the save the rows are read again and, unless the user is the current one, <code translate="no" v-pre>SessionManager.reloadUser</code> reloads their pages
+(<code translate="no" v-pre>Page.reload</code> in each live session, the caller&#x27;s own session is skipped).</p>
+<p>A permission type with settings of its own has a <code translate="no" v-pre>PermissionUIComponent</code> that <code translate="no" v-pre>PermissionUIFactory.createComponent(type)</code> returns
+(<code translate="no" v-pre>null</code> for a type without; the implementation is <code translate="no" v-pre>PermissionUIFactoryImpl</code>, a switch on the type): <code translate="no" v-pre>getComponent()</code> is shown in the detail
+row of the grid, <code translate="no" v-pre>model2component</code> / <code translate="no" v-pre>component2model</code> copy the settings between the component and the <code translate="no" v-pre>Permission</code> (they are extended
+attributes of <code translate="no" v-pre>Permission</code>, <code translate="no" v-pre>helperApplyLimits</code> / <code translate="no" v-pre>helperInteractions</code>; <code translate="no" v-pre>HelperPermissionComponent</code> for <code translate="no" v-pre>HELPER</code>), <code translate="no" v-pre>onChange</code> tells the
+dialog the user edited it (not fired by <code translate="no" v-pre>model2component</code>). To add a type: a constant in <code translate="no" v-pre>PermissionType</code>, <code translate="no" v-pre>ENUM_PERMISSION_*</code> in <code translate="no" v-pre>L</code>
+and the bundles and the map of <code translate="no" v-pre>LocalizationImpl</code>, and, if it has settings, an <code translate="no" v-pre>@ExtendedAttribute</code> field in <code translate="no" v-pre>Permission</code> and a component.</p>
 <h3 id="interactions">Interactions</h3>
-<p>When an administrator allows it (<strong>Allow navigating the interface</strong> in the <em>Help assistant</em> tab, <code translate="no" v-pre>AppSettings.helpInteractions</code>,
-off by default) the model can also move through the UI for the user, with a second function, <code translate="no" v-pre>interact_with_ui(path, interactions)</code> (<code translate="no" v-pre>InteractiveHelpTools</code>, bound instead of <code translate="no" v-pre>HelpTools</code> only when the setting is on <strong>and</strong> the question comes
+<p>When the permission <code translate="no" v-pre>HELPER</code> of the user allows it (<strong>Allow navigating the interface</strong> in their permissions, <code translate="no" v-pre>Permission.helperInteractions</code>,
+off by default) the model can also move through the UI for the user, with a second function, <code translate="no" v-pre>interact_with_ui(path, interactions)</code> (<code translate="no" v-pre>InteractiveHelpTools</code>, bound instead of <code translate="no" v-pre>HelpTools</code> only when the permission setting is on <strong>and</strong> the question comes
 from a page). An element offers interactions by overriding <code translate="no" v-pre>getInteraction()</code>: a map from a key to an <code translate="no" v-pre>LLMInteraction</code>
 (<code translate="no" v-pre>description</code> for the model, <code translate="no" v-pre>action</code> a <code translate="no" v-pre>Runnable</code>). The map is what is possible <em>now</em>: the section that is open is not
 offered again, nothing while the navigation is locked, no disabled tab. <code translate="no" v-pre>applyInteraction(key)</code> and
@@ -1250,7 +1265,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b2b7bf83).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (940baf6b).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845552611410">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845643259432">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845552611410" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845643259432" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845552611410" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845552611410" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845643259432" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845643259432" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -318,7 +318,8 @@ migration is written for one version step and ignores the others.</p>
 |---|---|---|---|
 | APP | 1 → 2 | `bound/migration/EncryptApiKeysMigration` | Encrypts the plain text `ais_openaicompat.apiKey` values, see [Encrypted columns](#encrypted-columns). |
 | APP | 2 → 3 | `bound/migration/FulltextMigration` | Fills `_fulltext` (added by V9) of the existing rows of every entity with `@Fulltextable` fields, deleted rows included: walks the table by id in batches of 200, one transaction per batch, and calls `ExtendableEntityListener.updateFulltext` on the loaded entity, so `extendedContent` and `modification` stay as they are. Repeating it is harmless. See [Full-text column](domain-model.md#full-text-column). |
-| APP | 3 → 4 | `bound/migration/OriginalResponseMigration` | Copies `response` of every `ChatMessage` (deleted ones too) into the extended attribute `originalResponse` when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with `ExtendableEntityListener.serialize`, `modification` stays as it is. Repeating it is harmless. |">
+| APP | 3 → 4 | `bound/migration/OriginalResponseMigration` | Copies `response` of every `ChatMessage` (deleted ones too) into the extended attribute `originalResponse` when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with `ExtendableEntityListener.serialize`, `modification` stays as it is. Repeating it is harmless. |
+| APP | 4 → 5 | `bound/migration/PermissionsMigration` | Gives the permissions `CREATE_AI` and `HELPER` to every existing (not deleted) user when the switches they replace (`AppSettings.userAisAllowed`, `helpEnabled`) were on; the permission has no owner. The new `HELPER` permissions also get `helperApplyLimits` and `helperInteractions` from `AppSettings.helpApplyLimits` / `helpInteractions`. Users that already have the permission are skipped (repeatable). Reads in one session and writes in another: the id generator updates its sequence table on a second connection and SQLite locks it out while the first holds a read lock. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -348,6 +349,12 @@ migration is written for one version step and ignores the others.</p>
 <td><code translate="no" v-pre>bound/migration/OriginalResponseMigration</code></td>
 <td>Copies <code translate="no" v-pre>response</code> of every <code translate="no" v-pre>ChatMessage</code> (deleted ones too) into the extended attribute <code translate="no" v-pre>originalResponse</code> when it has none: batches of 200 by id, one transaction per batch, the entity is re-serialized with <code translate="no" v-pre>ExtendableEntityListener.serialize</code>, <code translate="no" v-pre>modification</code> stays as it is. Repeating it is harmless.</td>
 </tr>
+<tr>
+<td>APP</td>
+<td>4 → 5</td>
+<td><code translate="no" v-pre>bound/migration/PermissionsMigration</code></td>
+<td>Gives the permissions <code translate="no" v-pre>CREATE_AI</code> and <code translate="no" v-pre>HELPER</code> to every existing (not deleted) user when the switches they replace (<code translate="no" v-pre>AppSettings.userAisAllowed</code>, <code translate="no" v-pre>helpEnabled</code>) were on; the permission has no owner. The new <code translate="no" v-pre>HELPER</code> permissions also get <code translate="no" v-pre>helperApplyLimits</code> and <code translate="no" v-pre>helperInteractions</code> from <code translate="no" v-pre>AppSettings.helpApplyLimits</code> / <code translate="no" v-pre>helpInteractions</code>. Users that already have the permission are skipped (repeatable). Reads in one session and writes in another: the id generator updates its sequence table on a second connection and SQLite locks it out while the first holds a read lock.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -370,7 +377,8 @@ migration is written for one version step and ignores the others.</p>
 | V11 | `V11__usages.sql` | The `usages` table (tokens a user used with an AI, one row per AI and user, unique `(ai_id, userId)`), its `usages_SEQ` id table and the index of the owner lookup. See [`Usage`](domain-model.md#usage-tokens-used-with-an-ai). |
 | V12 | `V12__usage_limit_period.sql` | `usages.periodPrefillTokens` and `usages.periodGeneratedTokens` (`bigint not null default 0`): the tokens a user used since the last reset of their token limit on a shared AI. The limits themselves are not columns, they are the extended attribute `AI.limits`. See [Limits of the users of a shared AI](domain-model.md#limits-of-the-users-of-a-shared-ai). |
 | V13 | `V13__usage_ai_nullable.sql` | `usages.ai_id` allows NULL (table rebuilt, SQLite cannot drop NOT NULL): the cleanup nulls the reference to an AI before it purges it, which failed for an AI with usage rows. |
-| V14 | `V14__extension_ai.sql` | New table `ais_extension` (`extensionId`, `id`): the subclass `ExtensionAI` of `AI`, an AI provided by an extension. The settings of the provider are not columns, they are in the attributes of the AI. |">
+| V14 | `V14__extension_ai.sql` | New table `ais_extension` (`extensionId`, `id`): the subclass `ExtensionAI` of `AI`, an AI provided by an extension. The settings of the provider are not columns, they are in the attributes of the AI. |
+| V15 | `V15__permissions.sql` | New table `permissions` (`permissionType`, `holder_id`, `granted`, owner `userId`, extended content) and its `permissions_SEQ`, the index `(holder_id, permissionType, is_deleted)`: the entity `Permission`. See [`Permission`](domain-model.md#permission-what-a-user-was-allowed). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -450,6 +458,11 @@ migration is written for one version step and ignores the others.</p>
 <td>V14</td>
 <td><code translate="no" v-pre>V14__extension_ai.sql</code></td>
 <td>New table <code translate="no" v-pre>ais_extension</code> (<code translate="no" v-pre>extensionId</code>, <code translate="no" v-pre>id</code>): the subclass <code translate="no" v-pre>ExtensionAI</code> of <code translate="no" v-pre>AI</code>, an AI provided by an extension. The settings of the provider are not columns, they are in the attributes of the AI.</td>
+</tr>
+<tr>
+<td>V15</td>
+<td><code translate="no" v-pre>V15__permissions.sql</code></td>
+<td>New table <code translate="no" v-pre>permissions</code> (<code translate="no" v-pre>permissionType</code>, <code translate="no" v-pre>holder_id</code>, <code translate="no" v-pre>granted</code>, owner <code translate="no" v-pre>userId</code>, extended content) and its <code translate="no" v-pre>permissions_SEQ</code>, the index <code translate="no" v-pre>(holder_id, permissionType, is_deleted)</code>: the entity <code translate="no" v-pre>Permission</code>. See <a href="../domain-model/#permission-what-a-user-was-allowed"><code translate="no" v-pre>Permission</code></a>.</td>
 </tr>
 </tbody>
 </table>
@@ -817,7 +830,7 @@ A backup restored on another installation loses them unless <code translate="no"
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b2b7bf83).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (940baf6b).</p></div>
             </footer>
         </div>
     </div>

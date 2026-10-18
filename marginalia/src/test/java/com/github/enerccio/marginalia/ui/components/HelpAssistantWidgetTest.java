@@ -6,19 +6,20 @@ import com.github.enerccio.marginalia.domain.collections.LimitStrategy;
 import com.github.enerccio.marginalia.domain.components.AILimit;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.AILimitService;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService;
 import com.github.enerccio.marginalia.domain.service.HelpAssistantService.Settings;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,13 +49,27 @@ class HelpAssistantWidgetTest extends MarginaliaTestBase {
     private UI ui;
     private OpenAICompatible ai;
 
+    /** Whether the limits apply to the users created from now on, see {@link #enable}. */
+    private boolean applyLimits;
+
+    /** Everybody the help is asked by has the permission, {@code MarginaliaTestBase#setPermission} takes it away. */
+    @Override
+    protected User createUser() throws Exception {
+        User user = super.createUser();
+        updatePermission(user, PermissionType.HELPER, permission -> {
+            permission.setGranted(true);
+            permission.setHelperApplyLimits(applyLimits);
+        });
+        return user;
+    }
+
     @BeforeEach
     void setUp() throws Exception {
         ui = new UI();
         UI.setCurrent(ui);
         // the settings belong to the installation and outlive the test
         loginAdmin();
-        helpService.saveSettings(new Settings(false, null, false));
+        helpService.saveSettings(new Settings(null));
     }
 
     @AfterEach
@@ -63,11 +78,12 @@ class HelpAssistantWidgetTest extends MarginaliaTestBase {
     }
 
     private void enable(boolean shared, boolean applyLimits) throws Exception {
+        this.applyLimits = applyLimits;
         loginAdmin();
         ai = createAI();
         ai.setShared(shared);
         ai = (OpenAICompatible) aiService.save(ai);
-        helpService.saveSettings(new Settings(true, ai.getUuid(), applyLimits));
+        helpService.saveSettings(new Settings(ai.getUuid()));
     }
 
     private static Stream<Component> descendants(Component root) {

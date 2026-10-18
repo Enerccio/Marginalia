@@ -3,24 +3,18 @@ package com.github.enerccio.marginalia.domain;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * AIs shared by an administrator, and the application setting that stops users from creating their own.
+ * AIs shared by an administrator, and the permission {@code CREATE_AI} users need to create their own (the test users
+ * have it, see {@code MarginaliaTestBase#createUser}).
  */
 class AISharingTest extends MarginaliaTestBase {
-
-    @AfterEach
-    void allowUserAisAgain() throws Exception {
-        // the application settings are shared by all tests
-        loginAdmin();
-        aiService.setUserCreationAllowed(true);
-    }
 
     private OpenAICompatible shareNewAI() throws Exception {
         OpenAICompatible ai = createAI();
@@ -103,15 +97,12 @@ class AISharingTest extends MarginaliaTestBase {
     }
 
     @Test
-    void creatingAiCanBeDisabledForUsersButNotForAdministrators() throws Exception {
+    void creatingAiNeedsThePermissionForUsersButNotForAdministrators() throws Exception {
         User user = login();
-        assertThat(aiService.isUserCreationAllowed()).isTrue();
         assertThat(aiService.canCreate()).isTrue();
 
         loginAdmin();
-        aiService.setUserCreationAllowed(false);
-
-        assertThat(aiService.isUserCreationAllowed()).isFalse();
+        setPermission(user, PermissionType.CREATE_AI, false);
         assertThat(aiService.canCreate()).as("administrators always can").isTrue();
         createAI();
 
@@ -119,34 +110,35 @@ class AISharingTest extends MarginaliaTestBase {
         assertThat(aiService.canCreate()).isFalse();
         assertThatThrownBy(this::createAI).isInstanceOf(SecurityException.class);
 
-        loginAdmin();
-        aiService.setUserCreationAllowed(true);
-        loginAs(user);
+        setPermission(user, PermissionType.CREATE_AI, true);
         assertThat(aiService.canCreate()).isTrue();
         createAI();
     }
 
     @Test
-    void disablingCreationKeepsTheExistingAisOfUsers() throws Exception {
+    void userWithoutAnyPermissionCannotCreateAi() throws Exception {
+        User user = loginAs(createUser());
+        loginAdmin();
+        permissionService.delete(permissionService.getPermission(user, PermissionType.CREATE_AI), true);
+
+        loginAs(user);
+        assertThat(aiService.canCreate()).isFalse();
+        assertThatThrownBy(this::createAI).isInstanceOf(SecurityException.class);
+    }
+
+    @Test
+    void takingTheCreationAwayKeepsTheExistingAisOfUsers() throws Exception {
         User user = login();
         OpenAICompatible own = createAI();
 
         loginAdmin();
         OpenAICompatible shared = shareNewAI();
-        aiService.setUserCreationAllowed(false);
+        setPermission(user, PermissionType.CREATE_AI, false);
 
         loginAs(user);
         assertThat(aiService.findAllForUser()).extracting(AI::getId).contains(own.getId(), shared.getId());
         own.setName("renamed");
         assertThat(aiService.save(own).getName()).isEqualTo("renamed");
         aiService.delete(own, false);
-    }
-
-    @Test
-    void onlyAdministratorsChangeTheSetting() throws Exception {
-        login();
-
-        assertThatThrownBy(() -> aiService.setUserCreationAllowed(false)).isInstanceOf(SecurityException.class);
-        assertThat(aiService.isUserCreationAllowed()).isTrue();
     }
 }

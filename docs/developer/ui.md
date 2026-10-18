@@ -195,7 +195,7 @@ and a popover with the metadata of the inference (ids, model, protocol, tokens, 
 right-hand column of the desktop card). Its summaries item opens `PhoneSummariesDialog`, the `SummariesDialog` with a fixed 640 px, taller content column (the grid scrolls sideways anyway, so the summaries stay readable and editable). The fixed navbar and drawer of the
 `AppLayout` are kept inside the dialog by the `phone-story-layout` class.
 
-On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid (with the *Users can create their own models* checkbox, `AIService.setUserCreationAllowed`) and the
+On the desktop the *Admin* button is only added for administrators; `AdminPart` shows the users grid and the
 `DatabaseBackupPanel`, `CleanupPanel` and extensions tab (with the SHA-256 of each JAR behind a `#` button next to the version - tooltip, click copies it with
 `JavascriptLibrary.copyToClipboard` - the verification report of each extension and, per
 extension, the buttons *Stop* / *Start* (`OsgiService.stopExtension` / `startExtension`, state *Stopped*), *Log*
@@ -611,11 +611,29 @@ page appear next to `Main`; `Main` reports the workspace of its UI (from `Applic
 function is `HelpTools.getUiState`, bound with the manual tools by `HelpAssistantService.ask(history, uiState, callback)`;
 `UiStateSource` is how the widget answers it.
 
+### Permissions dialog
+
+`PermissionsDialog` (`ui.dialogs.permissions`, opened by `AdminPart.openPermissionsDialog` from the key button of the user list) edits
+the `Permission`s of a user: a modal dialog (`ModalityMode.STRICT`, no close on Esc or outside click) with a grid of the permissions
+(name from `Localization.getPermissionType`, a *Granted* checkbox, a delete button), a combo box of the types the user has none of with
+**Add permission**, and **Exit** / **Save** in the footer. The columns have fixed widths (name takes the rest, `Granted` `TOOL_COLUMN_SIZE_LARGE`, delete `TOOL_COLUMN_SIZE`); the settings component of a permission is the detail row of the grid, folded by the arrow button in front of the name (`expanded`, a set of types that survives re-reading the rows; a row without settings has the `fold-spacer` class in its place, a new permission is unfolded). It edits a copy in memory: **Save** is on only when something differs
+(`isDirty`: a new permission, a changed `granted`, an edited settings component or a deleted permission), **Exit** asks with
+`MSG_UNSAVED_CHANGES_EXIT` when it is, and a delete is a hard delete (`PermissionService.delete(permission, true)`) done by **Save**, before the
+saves. After the save the rows are read again and, unless the user is the current one, `SessionManager.reloadUser` reloads their pages
+(`Page.reload` in each live session, the caller's own session is skipped).
+
+A permission type with settings of its own has a `PermissionUIComponent` that `PermissionUIFactory.createComponent(type)` returns
+(`null` for a type without; the implementation is `PermissionUIFactoryImpl`, a switch on the type): `getComponent()` is shown in the detail
+row of the grid, `model2component` / `component2model` copy the settings between the component and the `Permission` (they are extended
+attributes of `Permission`, `helperApplyLimits` / `helperInteractions`; `HelperPermissionComponent` for `HELPER`), `onChange` tells the
+dialog the user edited it (not fired by `model2component`). To add a type: a constant in `PermissionType`, `ENUM_PERMISSION_*` in `L`
+and the bundles and the map of `LocalizationImpl`, and, if it has settings, an `@ExtendedAttribute` field in `Permission` and a component.
+
 ### Interactions
 
-When an administrator allows it (**Allow navigating the interface** in the *Help assistant* tab, `AppSettings.helpInteractions`,
+When the permission `HELPER` of the user allows it (**Allow navigating the interface** in their permissions, `Permission.helperInteractions`,
 off by default) the model can also move through the UI for the user, with a second function, `interact_with_ui(path,
-interactions)` (`InteractiveHelpTools`, bound instead of `HelpTools` only when the setting is on **and** the question comes
+interactions)` (`InteractiveHelpTools`, bound instead of `HelpTools` only when the permission setting is on **and** the question comes
 from a page). An element offers interactions by overriding `getInteraction()`: a map from a key to an `LLMInteraction`
 (`description` for the model, `action` a `Runnable`). The map is what is possible *now*: the section that is open is not
 offered again, nothing while the navigation is locked, no disabled tab. `applyInteraction(key)` and

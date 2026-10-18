@@ -382,6 +382,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, "Search and replace in the lorebook");
         setValue(L.LABEL_COMMAND_DESTRUCTIVE, "Destructive");
         setValue(L.LABEL_COMMAND_NON_DESTRUCTIVE, "Non-destructive");
+        setValue(L.LABEL_PERMISSIONS, "Permissions");
+        setValue(L.LABEL_PERMISSION, "Permission");
+        setValue(L.LABEL_GRANTED, "Granted");
+        setValue(L.LABEL_ADD_PERMISSION, "Add permission");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -429,6 +433,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_RESET_WEEKLY, "Weekly (from Monday)");
         setValue(L.ENUM_RESET_MONTHLY, "Monthly");
         setValue(L.ENUM_AI_TYPE_EXTENSION, "Extension");
+        setValue(L.ENUM_PERMISSION_HELPER, "Help assistant");
+        setValue(L.ENUM_PERMISSION_CREATE_AI, "Create own models");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -593,6 +599,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_REPLACING, "Replacing");
         setValue(L.MSG_COMMAND_REPLACE_CONFIRM, "Replace %d matches in %d items?\n\"%s\" -> \"%s\"\nThere is no preview and the change cannot be undone.");
         setValue(L.MSG_COMMAND_REPLACE_CANCELLED, "Replace cancelled, nothing was changed");
+        setValue(L.MSG_UNSAVED_CHANGES_EXIT, "There are unsaved changes. Exit without saving them?");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
