@@ -386,6 +386,21 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_PERMISSION, "権限");
         setValue(L.LABEL_GRANTED, "付与");
         setValue(L.LABEL_ADD_PERMISSION, "権限を追加");
+        setValue(L.LABEL_COMMAND_GET_BOOK_INFO, "本の情報");
+        setValue(L.LABEL_COMMAND_LIST_PARTS, "パート一覧");
+        setValue(L.LABEL_COMMAND_GET_PART, "パートを読む");
+        setValue(L.LABEL_COMMAND_LIST_SWIPES, "パートのスワイプ一覧");
+        setValue(L.LABEL_COMMAND_LIST_BRANCHES, "ブランチ一覧");
+        setValue(L.LABEL_COMMAND_GET_PART_METRICS, "パートの指標");
+        setValue(L.LABEL_COMMAND_SHOW_PROMPT, "パートのプロンプトを表示");
+        setValue(L.LABEL_COMMAND_SEARCH_PARTS, "パートを検索");
+        setValue(L.LABEL_COMMAND_FIND_OCCURRENCES, "出現箇所を探す");
+        setValue(L.LABEL_COMMAND_COMPARE_PARTS, "パートを比較");
+        setValue(L.LABEL_COMMAND_COUNT_TOKENS, "トークン数を数える");
+        setValue(L.LABEL_COMMAND_LIST_SUMMARIES, "要約一覧");
+        setValue(L.LABEL_COMMAND_GET_SUMMARY, "要約を読む");
+        setValue(L.LABEL_COMMAND_CHECK_SUMMARIES, "要約を確認");
+        setValue(L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES, "テンプレート変数");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -485,6 +500,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_INVALID_REPLACEMENT, "置換文字列が正しくありません: %s");
         setValue(L.ERROR_SEARCH_TEXT_EMPTY, "検索する文字列がありません");
         setValue(L.ERROR_COMMAND_NO_LOREBOOK, "開いている本にはロアブックがありません。");
+        setValue(L.ERROR_COMMAND_NO_STORY, "この本にはまだストーリーがありません。");
+        setValue(L.ERROR_COMMAND_NO_SUCH_PART, "このブランチにパート %s はありません。パート数は %s です。");
+        setValue(L.ERROR_COMMAND_NO_SUCH_BRANCH, "ブランチ %s はありません。この本のブランチ数は %s です（list-branches を参照）。");
+        setValue(L.ERROR_COMMAND_UNKNOWN_FIELD, "不明なフィールド '%s' です。次のいずれかを指定してください：%s。");
+        setValue(L.ERROR_COMMAND_UNKNOWN_SCOPE, "不明なスコープ '%s' です。global または part を指定してください。");
+        setValue(L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "このパートには元のテキストがありません。生成されたものではないか、元のテキストが保存される前に生成されました。");
+        setValue(L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "テキストが大きすぎて比較できません。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -710,6 +732,67 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, "開いている本のロアブックのエントリー（名前、テキスト、コメント）を検索し、確認後に一致箇所を置換します。置換テキストの後のオプションは、順に regex（false）、大文字小文字の区別（true）です。");
         setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM, "ユーザーが開いている本のロアブックのエントリーを検索して置換します。ロアブックは変更されますが、先にユーザーに一致件数の確認が求められ、変更は元に戻せません。「いいえ」と答えると何も変更されません。本が開かれていない場合、または本にロアブックがない場合は失敗します。非同期です。任意の真偽値オプションは位置引数で、順に regex、caseSensitive です。");
         setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN, "実行結果：置換された一致件数とエントリー数、または何も見つからなかった、もしくはユーザーが確認しなかったこと");
+        setValue(L.DESC_COMMAND_PART_PARAM, "ブランチ上のパートの位置。ストーリーの最初のパートが1");
+        setValue(L.DESC_COMMAND_BRANCH_PARAM, "list-branches のブランチ番号。省略時は有効なブランチ");
+        setValue(L.DESC_COMMAND_OFFSET_PARAM, "スキップする件数。省略時は 0");
+        setValue(L.DESC_COMMAND_LIMIT_PARAM, "返す最大件数。省略時は 50（最大 200）");
+        setValue(L.DESC_COMMAND_LENGTH_PARAM, "テキストの切り出し長（文字数）。省略時は 4000（最大 20000）");
+        setValue(L.DESC_COMMAND_FIELD_PARAM, "読む内容：response（既定）、instructions、scene、pov、present、reasoning");
+        setValue(L.DESC_COMMAND_QUERY_PARAM, "パートに全て含まれるべき単語。フレーズは二重引用符で囲み、* は任意の文字に一致");
+        setValue(L.DESC_COMMAND_TERMS_PARAM, "数える名前や単語。1つのテキスト、またはそのリスト（名前とその別表記）");
+        setValue(L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM, "大文字小文字を区別します。省略時は false。regex では無効");
+        setValue(L.DESC_COMMAND_FIND_SUMMARIES_PARAM, "要約も検索します。省略時は false");
+        setValue(L.DESC_COMMAND_TEXT_PARAM, "数える対象のテキスト");
+        setValue(L.DESC_COMMAND_SCOPE_PARAM, "global（本の変数）または part（パートの変数）");
+        setValue(L.DESC_COMMAND_PART_A_PARAM, "1つ目のパートの位置。ストーリーの最初のパートが1");
+        setValue(L.DESC_COMMAND_PART_B_PARAM, "2つ目のパートの位置。0 を指定すると、1つ目のパートをモデルが最初に生成したテキストと比較");
+        setValue(L.DESC_COMMAND_BRANCH_A_PARAM, "1つ目のパートのブランチ番号。省略時は有効なブランチ");
+        setValue(L.DESC_COMMAND_BRANCH_B_PARAM, "2つ目のパートのブランチ番号。省略時は1つ目と同じブランチ");
+        setValue(L.DESC_COMMAND_GET_BOOK_INFO, "開いている本の名前、設定、モデル、合計、タグを表示します。");
+        setValue(L.DESC_COMMAND_GET_BOOK_INFO_LLM, "本の概要：名前、説明、言語、視点、時制、文体、モデルとプロトコル、有効なブランチと本全体のパート数・単語数・トークン数、タグ、バックアップ方式。読み取り専用。まず本の内容を知るために呼び出します。");
+        setValue(L.DESC_COMMAND_GET_BOOK_INFO_RETURN, "本の設定と合計を含む JSON");
+        setValue(L.DESC_COMMAND_LIST_PARTS, "ブランチのパートを位置、サイズ、スワイプ、プレビュー付きで一覧表示します。");
+        setValue(L.DESC_COMMAND_LIST_PARTS_LLM, "ブランチのパートをストーリーの最初から一覧表示します：位置、スワイプ（代替案）の数、単語数、トークン数、著者が編集したか、要約の状態（none、valid、outdated）、短いプレビュー。ページ送り：offset と limit。パートはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_LIST_PARTS_RETURN, "ページ内のパートを含む JSON：位置、スワイプ、単語数、トークン数、編集済み、要約の状態、プレビュー");
+        setValue(L.DESC_COMMAND_GET_PART, "パートのテキスト、または他のフィールドをスライスで読みます。");
+        setValue(L.DESC_COMMAND_GET_PART_LLM, "パートを読みます：テキストの一部（offset、length。全長と続きがあるかが返されます）と、生成の元になったデータ（指示、シーン、視点、登場人物）、サイズ、編集済みか、使用モデル。field オプションで instructions、scene、pov、present、reasoning を代わりに読めます。パートはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_GET_PART_RETURN, "テキストの一部とそのオフセット・全長、パートのデータを含む JSON");
+        setValue(L.DESC_COMMAND_LIST_SWIPES, "パートの代替案（スワイプ）を一覧表示します。");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_LLM, "パートのスワイプ（ストーリーの同じ位置に生成された代替案）を一覧表示します。それぞれ番号、表示中か、単語数、編集済みか、プレビュー、それを表示するブランチ番号（get-part で読むため）が返されます。パートはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_RETURN, "スワイプを含む JSON：番号、表示中、単語数、編集済み、プレビュー、ブランチ");
+        setValue(L.DESC_COMMAND_LIST_BRANCHES, "本のブランチを番号付きで一覧表示します。");
+        setValue(L.DESC_COMMAND_LIST_BRANCHES_LLM, "ストーリーのブランチ（最初のパートからいずれかの末端までの道筋）を一覧表示します。それぞれ番号（他のコマンドの branch に渡す。番号は末端の作成順で、ブランチの追加・削除で変わります）、有効かどうか、パート数、単語数、他のブランチと分かれる位置、末端のプレビューが返されます。ページ送り：offset と limit。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_LIST_BRANCHES_RETURN, "ブランチを含む JSON：番号、有効、パート数、単語数、分岐位置、作成日時、末端のプレビュー");
+        setValue(L.DESC_COMMAND_GET_PART_METRICS, "パートのトークン数、所要時間、モデル、プロトコルを表示します。");
+        setValue(L.DESC_COMMAND_GET_PART_METRICS_LLM, "生成されたパートの数値：トークン数と単語数、プロンプトと推論のトークン数、生成したモデルとプロトコル、最初のトークンまでの時間、推論の時間。パートはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_GET_PART_METRICS_RETURN, "パートの指標を含む JSON");
+        setValue(L.DESC_COMMAND_SHOW_PROMPT, "生成されたパートの元になったプロンプトを表示します。");
+        setValue(L.DESC_COMMAND_SHOW_PROMPT_LLM, "パート生成時に送信されたプロンプト（パートと共に保存）：テキストの一部（offset、length）、トークン数、セクション別のトークン内訳、追加された背景ロア。生成されていないパートや、プロンプトが保存される前に生成されたパートにはありません。パートはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_SHOW_PROMPT_RETURN, "プロンプトの一部、トークン数、トークン内訳を含む JSON");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS, "全ブランチのパートから単語を検索します。");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS_LLM, "全ブランチのパートに対する全文検索です。クエリの全ての単語がパートに含まれる必要があります（フレーズは二重引用符、* は任意の文字）。各ヒットにはパートの位置、有効なブランチ上にない場合はブランチ番号、一致箇所周辺のスニペットが含まれます。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS_RETURN, "ヒットを含む JSON：位置、ブランチ、スニペット");
+        setValue(L.DESC_COMMAND_FIND_OCCURRENCES, "ストーリー内で名前や単語がどこに出現するかを数えます。");
+        setValue(L.DESC_COMMAND_FIND_OCCURRENCES_LLM, "連続性の確認をトークンではなくコードで行います：各語（名前とその別表記）について、パート数と出現回数、最初の数パートとスニペットを返します。allBranches が true でない限り有効なブランチを検索し、summaries が true なら要約も検索します。オプションは順に regex（false）、caseSensitive（false）、summaries（false）、allBranches（false）、limit（語ごとに一覧するパートの最大数、50）。読み取り専用。");
+        setValue(L.DESC_COMMAND_FIND_OCCURRENCES_RETURN, "語ごとの JSON：見つかったパートと出現回数、その位置");
+        setValue(L.DESC_COMMAND_COMPARE_PARTS, "2つのパートで異なる文を表示します。");
+        setValue(L.DESC_COMMAND_COMPARE_PARTS_LLM, "2つのパートを文単位で比較し、片方にしかない文を最大200件一覧表示します（- は1つ目、+ は2つ目）。2つのスワイプを比較するには、同じ位置と、list-swipes のブランチ番号を指定します。2つ目の位置に 0 を指定すると、1つ目のパートをモデルが最初に生成したテキストと比較し、著者の編集箇所が分かります。位置はブランチ上のもので、ブランチ番号がなければ有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_COMPARE_PARTS_RETURN, "件数と異なる文を含む JSON");
+        setValue(L.DESC_COMMAND_COUNT_TOKENS, "テキストまたはパートのトークン数と単語数を数えます。");
+        setValue(L.DESC_COMMAND_COUNT_TOKENS_LLM, "テキスト、または位置（とブランチ）で指定したパートのテキストのトークン数を、本のモデルのトークナイザー（なければ汎用のもの）で数え、単語数と文字数も返します。どれだけのテキストが収まるかの見積もりに使います。パートはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、list-branches の番号を指定しない限り有効なブランチです。読み取り専用。");
+        setValue(L.DESC_COMMAND_COUNT_TOKENS_RETURN, "トークン数、単語数、文字数を含む JSON");
+        setValue(L.DESC_COMMAND_LIST_SUMMARIES, "ブランチの要約と、それが有効かどうかを一覧表示します。");
+        setValue(L.DESC_COMMAND_LIST_SUMMARIES_LLM, "ブランチで生成に使われる要約を最初から一覧表示します：要約を持つパートの位置、カバーするパート、通常要約かメタ要約か、トークン数、まだストーリーを正しく表しているか（valid）、メタ要約が置き換える要約の数、そして末尾の要約のないパート数。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_LIST_SUMMARIES_RETURN, "要約を含む JSON：位置、対象範囲、種類、トークン数、有効か");
+        setValue(L.DESC_COMMAND_GET_SUMMARY, "パートの要約を読みます。");
+        setValue(L.DESC_COMMAND_GET_SUMMARY_LLM, "パートに保存されている要約：テキスト、トークン数、種類、ストーリーを正しく表しているか。要約はカバーする最後のパートに保存されるため、ほとんどのパートには要約がありません（hasSummary が false）。パートはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_GET_SUMMARY_RETURN, "パートの要約を含む JSON");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES, "ストーリーと一致しなくなった要約を探します。");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_LLM, "ブランチの古くなった要約（生成時に破棄されます）を探します：その位置、カバーするパート、そのうち編集されたパート（古くなった原因）。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_RETURN, "要約の数と、古くなった要約および編集されたパートを含む JSON");
+        setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, "本またはパートのテンプレート変数を表示します。");
+        setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM, "プロンプトテンプレートが setvar で設定する変数：本全体のグローバル変数（scope が global）、またはブランチに従うパート上の変数（scope が part。位置を省略するとブランチの最後のパート）。パートはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN, "変数とその値を含む JSON");
     }
 
     @Override

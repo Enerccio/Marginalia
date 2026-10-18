@@ -1,8 +1,10 @@
 package com.github.enerccio.marginalia.utils;
 
+import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
 import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.test.AgenticRequestAttributes;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
@@ -143,5 +145,38 @@ class CommandUtilsTest extends MarginaliaTestBase {
         CommandUtils.getManuscriptWindow().getOnClose().run();
 
         assertThat(CommandUtils.getCurrentManuscript()).isNull();
+    }
+
+    @Test
+    void anAgentSessionHandsOutTheBookItHoldsAndNoWindow() throws Exception {
+        login();
+        Manuscript manuscript = manuscript();
+        AgenticSessionPoint agentic = new AgenticSessionPoint(manuscript);
+        try (AgenticRequestAttributes _ = AgenticRequestAttributes.install(agentic)) {
+            assertThat(CommandUtils.getSessionPoint()).isSameAs(agentic);
+            assertThat(CommandUtils.getCurrentManuscript()).isSameAs(manuscript);
+            assertThat(CommandUtils.getCurrentAI()).isNull();
+            assertThat(CommandUtils.getWorkspace()).isNull();
+            assertThat(CommandUtils.getManuscriptSection()).isNull();
+            assertThat(CommandUtils.getManuscriptWindow()).isNull();
+
+            Manuscript other = manuscript();
+            agentic.setManuscript(other);
+            assertThat(CommandUtils.getCurrentManuscript()).isSameAs(other);
+        }
+        // the session of the user again
+        assertThat(CommandUtils.getSessionPoint()).isNotSameAs(agentic);
+        assertThat(CommandUtils.getCurrentManuscript()).isNull();
+    }
+
+    @Test
+    void requestAttributesWithoutASessionPointGiveNothing() {
+        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+        try (AgenticRequestAttributes _ = AgenticRequestAttributes.install(null)) {
+            // the attributes answer null for the session point
+            assertThat(CommandUtils.getSessionPoint()).isNull();
+            assertThat(CommandUtils.getCurrentManuscript()).isNull();
+        }
+        assertThat(RequestContextHolder.getRequestAttributes()).isSameAs(attributes);
     }
 }

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.impl.commands.BackupCommand
 import com.github.enerccio.marginalia.domain.service.impl.commands.HelloWorldCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceChatMessageCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
+import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
@@ -57,6 +58,25 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         registerCommands(new BackupCommands());
         registerCommands(new SearchReplaceChatMessageCommand());
         registerCommands(new SearchReplaceLoreEntryCommand());
+        registerManuscriptReadCommands();
+    }
+
+    private void registerManuscriptReadCommands() {
+        registerCommands(new GetBookInfoCommand());
+        registerCommands(new ListPartsCommand());
+        registerCommands(new GetPartCommand());
+        registerCommands(new ListSwipesCommand());
+        registerCommands(new ListBranchesCommand());
+        registerCommands(new GetPartMetricsCommand());
+        registerCommands(new ShowPromptCommand());
+        registerCommands(new SearchPartsCommand());
+        registerCommands(new FindOccurrencesCommand());
+        registerCommands(new ComparePartsCommand());
+        registerCommands(new CountTokensCommand());
+        registerCommands(new ListSummariesCommand());
+        registerCommands(new GetSummaryCommand());
+        registerCommands(new CheckSummariesCommand());
+        registerCommands(new GetTemplateVariablesCommand());
     }
 
     @Override

@@ -394,6 +394,21 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_PERMISSION, "权限");
         setValue(L.LABEL_GRANTED, "已授予");
         setValue(L.LABEL_ADD_PERMISSION, "添加权限");
+        setValue(L.LABEL_COMMAND_GET_BOOK_INFO, "书籍信息");
+        setValue(L.LABEL_COMMAND_LIST_PARTS, "列出部分");
+        setValue(L.LABEL_COMMAND_GET_PART, "读取部分");
+        setValue(L.LABEL_COMMAND_LIST_SWIPES, "列出部分的备选");
+        setValue(L.LABEL_COMMAND_LIST_BRANCHES, "列出分支");
+        setValue(L.LABEL_COMMAND_GET_PART_METRICS, "部分的指标");
+        setValue(L.LABEL_COMMAND_SHOW_PROMPT, "显示部分的提示词");
+        setValue(L.LABEL_COMMAND_SEARCH_PARTS, "搜索部分");
+        setValue(L.LABEL_COMMAND_FIND_OCCURRENCES, "查找出现位置");
+        setValue(L.LABEL_COMMAND_COMPARE_PARTS, "比较部分");
+        setValue(L.LABEL_COMMAND_COUNT_TOKENS, "统计令牌数");
+        setValue(L.LABEL_COMMAND_LIST_SUMMARIES, "列出摘要");
+        setValue(L.LABEL_COMMAND_GET_SUMMARY, "读取摘要");
+        setValue(L.LABEL_COMMAND_CHECK_SUMMARIES, "检查摘要");
+        setValue(L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES, "模板变量");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -493,6 +508,13 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_INVALID_REPLACEMENT, "替换内容无效：%s");
         setValue(L.ERROR_SEARCH_TEXT_EMPTY, "没有要搜索的内容");
         setValue(L.ERROR_COMMAND_NO_LOREBOOK, "打开的书没有世界书。");
+        setValue(L.ERROR_COMMAND_NO_STORY, "这本书还没有故事。");
+        setValue(L.ERROR_COMMAND_NO_SUCH_PART, "此分支上没有第 %s 部分，它共有 %s 个部分。");
+        setValue(L.ERROR_COMMAND_NO_SUCH_BRANCH, "没有分支 %s，这本书共有 %s 个分支（见 list-branches）。");
+        setValue(L.ERROR_COMMAND_UNKNOWN_FIELD, "未知字段“%s”，请使用：%s。");
+        setValue(L.ERROR_COMMAND_UNKNOWN_SCOPE, "未知范围“%s”，请使用 global 或 part。");
+        setValue(L.ERROR_COMMAND_NO_ORIGINAL_RESPONSE, "该部分没有原始文本：它不是生成的，或是在保存原始文本之前生成的。");
+        setValue(L.ERROR_COMMAND_TOO_LARGE_TO_COMPARE, "文本过大，无法比较。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -718,6 +740,67 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, "在打开的书的世界书条目（名称、文本和注释）中查找，并在你确认后替换匹配项。替换文本之后的选项依次为：regex（false）、区分大小写（true）。");
         setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM, "在用户当前打开的书的世界书条目中查找并替换。会更改世界书，但会先请用户确认匹配数量，且更改无法撤销；回答“否”则不会更改任何内容。没有打开的书或该书没有世界书时会失败。异步。可选的布尔值参数按位置依次为：regex、caseSensitive。");
         setValue(L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN, "执行结果：替换了多少个条目中的多少处匹配，或者未找到任何内容、用户未确认");
+        setValue(L.DESC_COMMAND_PART_PARAM, "部分在分支上的位置，故事的第一个部分为 1");
+        setValue(L.DESC_COMMAND_BRANCH_PARAM, "list-branches 中的分支编号；省略时为当前分支");
+        setValue(L.DESC_COMMAND_OFFSET_PARAM, "要跳过的条目数；省略时为 0");
+        setValue(L.DESC_COMMAND_LIMIT_PARAM, "最多返回的条目数；省略时为 50（最多 200）");
+        setValue(L.DESC_COMMAND_LENGTH_PARAM, "文本片段的长度（字符数）；省略时为 4000（最多 20000）");
+        setValue(L.DESC_COMMAND_FIELD_PARAM, "要读取的内容：response（默认）、instructions、scene、pov、present 或 reasoning");
+        setValue(L.DESC_COMMAND_QUERY_PARAM, "部分中必须全部出现的词；短语用双引号括起，* 匹配任意字符");
+        setValue(L.DESC_COMMAND_TERMS_PARAM, "要统计的名称或词：一个文本或一个列表（名称及其变体）");
+        setValue(L.DESC_COMMAND_FIND_CASE_SENSITIVE_PARAM, "区分大小写；省略时为 false；对 regex 无效");
+        setValue(L.DESC_COMMAND_FIND_SUMMARIES_PARAM, "同时在摘要中查找；省略时为 false");
+        setValue(L.DESC_COMMAND_TEXT_PARAM, "要统计的文本");
+        setValue(L.DESC_COMMAND_SCOPE_PARAM, "global（书籍的变量）或 part（部分上的变量）");
+        setValue(L.DESC_COMMAND_PART_A_PARAM, "第一个部分的位置，故事的第一个部分为 1");
+        setValue(L.DESC_COMMAND_PART_B_PARAM, "第二个部分的位置；0 表示将第一个部分与模型最初生成的文本比较");
+        setValue(L.DESC_COMMAND_BRANCH_A_PARAM, "第一个部分的分支编号；省略时为当前分支");
+        setValue(L.DESC_COMMAND_BRANCH_B_PARAM, "第二个部分的分支编号；省略时与第一个部分相同");
+        setValue(L.DESC_COMMAND_GET_BOOK_INFO, "显示打开的书的名称、设置、模型、总计和标签。");
+        setValue(L.DESC_COMMAND_GET_BOOK_INFO_LLM, "书籍概览：名称、简介、语言、视角、时态、文风、模型和协议、当前分支及整本书的部分数、词数和令牌数、标签以及备份策略。只读。首先调用它来了解这本书。");
+        setValue(L.DESC_COMMAND_GET_BOOK_INFO_RETURN, "包含书籍设置和总计的 JSON");
+        setValue(L.DESC_COMMAND_LIST_PARTS, "列出分支的各个部分及其位置、大小、备选数和预览。");
+        setValue(L.DESC_COMMAND_LIST_PARTS_LLM, "从故事的第一个部分起列出分支的各个部分：位置、备选（swipe）数、词数、令牌数、作者是否编辑过、摘要状态（none、valid、outdated）和简短预览。分页：offset 和 limit。部分通过其在分支上的位置来指定（故事的第一个部分为 1）；除非给出 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_LIST_PARTS_RETURN, "包含该页各部分的 JSON：位置、备选数、词数、令牌数、是否编辑、摘要状态、预览");
+        setValue(L.DESC_COMMAND_GET_PART, "分段读取部分的文本或其他字段。");
+        setValue(L.DESC_COMMAND_GET_PART_LLM, "读取一个部分：文本的一个片段（offset、length；返回总长度以及后面是否还有内容）、生成它所用的数据（指示、场景、视角、在场角色）、大小、是否被编辑以及使用的模型。field 选项可改为读取 instructions、scene、pov、present 或 reasoning。部分通过其在分支上的位置来指定（故事的第一个部分为 1）；除非给出 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_GET_PART_RETURN, "包含文本片段、偏移量、总长度以及该部分数据的 JSON");
+        setValue(L.DESC_COMMAND_LIST_SWIPES, "列出部分的备选（swipe）。");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_LLM, "列出部分的备选（为故事同一位置生成的不同版本）。每项包含编号、是否为当前显示的、词数、是否被编辑、预览以及显示它的分支编号（用于 get-part 读取）。部分通过其在分支上的位置来指定（故事的第一个部分为 1）；除非给出 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_RETURN, "包含各备选的 JSON：编号、是否显示、词数、是否编辑、预览、分支");
+        setValue(L.DESC_COMMAND_LIST_BRANCHES, "列出书籍的分支及其编号。");
+        setValue(L.DESC_COMMAND_LIST_BRANCHES_LLM, "列出故事的分支（从第一个部分到某个末端的路径）。每项包含编号（可作为其他命令的 branch 传入；编号按末端的创建顺序排列，增删分支后会变化）、是否为当前分支、部分数、词数、与其他分支分开的位置以及末端的预览。分页：offset 和 limit。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_LIST_BRANCHES_RETURN, "包含各分支的 JSON：编号、是否当前、部分数、词数、分叉位置、创建时间、末端预览");
+        setValue(L.DESC_COMMAND_GET_PART_METRICS, "显示部分的令牌数、耗时、模型和协议。");
+        setValue(L.DESC_COMMAND_GET_PART_METRICS_LLM, "已生成部分的数据：令牌数和词数、提示词和推理令牌数、生成它的模型和协议、首个令牌的耗时以及推理耗时。部分通过其在分支上的位置来指定（故事的第一个部分为 1）；除非给出 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_GET_PART_METRICS_RETURN, "包含该部分指标的 JSON");
+        setValue(L.DESC_COMMAND_SHOW_PROMPT, "显示生成该部分所用的提示词。");
+        setValue(L.DESC_COMMAND_SHOW_PROMPT_LLM, "生成该部分时发送的提示词（与该部分一起保存）：文本片段（offset、length）、令牌数、按段落划分的令牌明细以及添加的背景设定。非生成的部分或在保存提示词之前生成的部分没有它。部分通过其在分支上的位置来指定（故事的第一个部分为 1）；除非给出 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_SHOW_PROMPT_RETURN, "包含提示词片段、令牌数和令牌明细的 JSON");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS, "在所有分支的部分中搜索词。");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS_LLM, "对所有分支的部分进行全文搜索：查询中的每个词都必须出现在该部分中（短语用双引号，* 匹配任意字符）。每个结果包含部分的位置、不在当前分支时的分支编号以及匹配处周围的片段。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_SEARCH_PARTS_RETURN, "包含搜索结果的 JSON：位置、分支、片段");
+        setValue(L.DESC_COMMAND_FIND_OCCURRENCES, "统计名称或词在故事中的出现位置。");
+        setValue(L.DESC_COMMAND_FIND_OCCURRENCES_LLM, "连贯性检查由代码而非令牌完成：对每个词（名称及其变体）给出出现的部分数和次数，以及前几个部分和片段。除非 allBranches 为 true，否则只搜索当前分支；summaries 为 true 时也搜索摘要。选项依次为：regex（false）、caseSensitive（false）、summaries（false）、allBranches（false）、limit（每个词最多列出的部分数，50）。只读。");
+        setValue(L.DESC_COMMAND_FIND_OCCURRENCES_RETURN, "按词分组的 JSON：找到的部分数、出现次数及位置");
+        setValue(L.DESC_COMMAND_COMPARE_PARTS, "显示两个部分之间不同的句子。");
+        setValue(L.DESC_COMMAND_COMPARE_PARTS_LLM, "逐句比较两个部分，列出只有其中一个才有的句子（- 来自第一个，+ 来自第二个），最多 200 条。比较两个备选时，给出相同的位置以及 list-swipes 中的分支编号。第二个位置为 0 时，将第一个部分与模型最初生成的文本比较，以查看作者的修改。位置是分支上的位置（未给出分支编号时为当前分支）。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_COMPARE_PARTS_RETURN, "包含数量和不同句子的 JSON");
+        setValue(L.DESC_COMMAND_COUNT_TOKENS, "统计文本或部分的令牌数和词数。");
+        setValue(L.DESC_COMMAND_COUNT_TOKENS_LLM, "使用书籍模型的分词器（没有时使用通用分词器）统计文本或按位置（和分支）指定的部分的令牌数，并给出词数和字符数。用于估算能容纳多少文本。部分通过其在分支上的位置来指定（故事的第一个部分为 1）；除非给出 list-branches 中的分支编号，否则使用当前分支。只读。");
+        setValue(L.DESC_COMMAND_COUNT_TOKENS_RETURN, "包含令牌数、词数和字符数的 JSON");
+        setValue(L.DESC_COMMAND_LIST_SUMMARIES, "列出分支的摘要以及它们是否有效。");
+        setValue(L.DESC_COMMAND_LIST_SUMMARIES_LLM, "从头列出分支上生成时使用的摘要：拥有该摘要的部分位置、覆盖的部分、普通摘要或元摘要、令牌数、是否仍然描述故事（valid）、元摘要替代的摘要数，以及末尾没有摘要的部分数。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_LIST_SUMMARIES_RETURN, "包含各摘要的 JSON：位置、覆盖范围、类型、令牌数、是否有效");
+        setValue(L.DESC_COMMAND_GET_SUMMARY, "读取部分的摘要。");
+        setValue(L.DESC_COMMAND_GET_SUMMARY_LLM, "保存在部分上的摘要：文本、令牌数、类型以及是否仍然描述故事。摘要保存在其覆盖的最后一个部分上，因此大多数部分没有摘要（hasSummary 为 false）。部分通过其在分支上的位置来指定（故事的第一个部分为 1）；除非给出 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_GET_SUMMARY_RETURN, "包含该部分摘要的 JSON");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES, "查找不再与故事匹配的摘要。");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_LLM, "查找分支上过期的摘要（生成时会被丢弃）：它们的位置、覆盖的部分，以及其中被编辑过的部分（即导致过期的原因）。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_RETURN, "包含摘要数量以及过期摘要和被编辑部分的 JSON");
+        setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, "显示书籍或部分的模板变量。");
+        setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM, "提示词模板通过 setvar 设置的变量：书籍的全局变量（scope 为 global），或随分支变化的部分上的变量（scope 为 part；未给出位置时为分支的最后一个部分）。部分通过其在分支上的位置来指定（故事的第一个部分为 1）；除非给出 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN, "包含变量及其值的 JSON");
     }
 
     @Override
