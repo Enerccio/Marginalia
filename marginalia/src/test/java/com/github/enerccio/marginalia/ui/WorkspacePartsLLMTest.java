@@ -58,7 +58,10 @@ class WorkspacePartsLLMTest extends MarginaliaTestBase {
         login();
         AIPart part = (AIPart) created(new AIPart(null));
 
-        assertThat(part.getLLMState()).startsWith("A table of the user's models").contains("0 rows")
+        // the shared models of other tests are listed too, the context and its database are shared
+        int visible = aiService.findAllForUser().size();
+
+        assertThat(part.getLLMState()).startsWith("A table of the user's models").contains("(" + visible + " rows)")
                 .contains("\"" + loc.getValue(L.LABEL_ADD_MODEL) + "\" opens a dialog");
         assertThat(part.getInteraction()).containsOnlyKeys(add(L.LABEL_ADD_MODEL));
     }
