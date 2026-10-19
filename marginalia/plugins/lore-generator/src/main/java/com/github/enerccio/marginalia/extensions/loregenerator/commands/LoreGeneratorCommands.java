@@ -96,7 +96,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
 
     // --- list-lore-templates ---
 
-    @Command(commandName = LIST, humanNameText = "List lore templates", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, humanNameText = "List lore templates", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_LIST))
@@ -104,7 +104,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         list(context, null);
     }
 
-    @Command(commandName = LIST, humanNameText = "List lore templates", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, humanNameText = "List lore templates", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "template", type = String.class, descriptionText = PARAM_TEMPLATE_LIST)}),
@@ -140,7 +140,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     // --- generate-lore-entry ---
 
     @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT)}),
             returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
@@ -149,7 +149,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE)}),
@@ -159,7 +159,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
@@ -170,7 +170,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
@@ -182,7 +182,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
@@ -195,7 +195,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
@@ -210,7 +210,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
@@ -227,7 +227,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
@@ -283,7 +283,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     // --- compact-lore-entry ---
 
     @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT)}),
             returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
@@ -292,7 +292,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
                     @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK)}),
@@ -302,7 +302,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
                     @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
@@ -313,7 +313,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
                     @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
@@ -325,7 +325,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
                     @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
@@ -339,7 +339,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     @Command(commandName = COMPACT, humanNameText = "Compact lore entry", async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
                     @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),

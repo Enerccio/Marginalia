@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LoreEntryRevision;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.model.LoreEntryVCSData;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.service.LorebookVCSService;
@@ -24,7 +25,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Configurable
+// the constructor already reads the history and reports errors with loc, so the fields are injected before it runs
+@Configurable(preConstruction = true)
 public class LoreEntryRevisionPanel extends HorizontalLayout {
 
     @Autowired
@@ -136,6 +138,16 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
                 }
             });
             refreshDisplay();
+        } catch (ManuscriptLockedException locked) {
+            // an agent works on the lorebook: the history can be looked at, but opening an entry must not write to it
+            LoreEntryVCSData stored = vcsService.getVCSData(lorebook).getEntries().get(entry.getUuid());
+            entryVcsData = stored == null ? new LoreEntryVCSData() : stored;
+            refreshDisplay();
+            for (Button button : List.of(deleteBtn, prevBtn, nextBtn, addBtn)) {
+                button.setEnabled(false);
+            }
+            revSelectCombo.setEnabled(false);
+            addBtn.setTooltipText("The lorebook is worked on by an agent");
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -150,6 +162,8 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
         try {
             LoreEntryRevision liveState = vcsService.createSnapshot(entry);
             entryVcsData = vcsService.updateEntryData(lorebook, entry.getUuid(), data -> syncActive(data, liveState));
+        } catch (ManuscriptLockedException locked) {
+            // nothing of the entry could have changed while an agent has the lorebook
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
