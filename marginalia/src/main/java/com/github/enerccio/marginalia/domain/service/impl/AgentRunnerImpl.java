@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.bound.AgentRequestAttributes;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
+import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -13,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
@@ -44,6 +46,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     private static final long POLL_MILLIS = 1_000;
     // the status reason holds this much of the report of a finished run
     private static final int MAX_REASON = 2_000;
+    // images the model is shown at once: the newest ones; an older one is a note that view_image shows it again
+    static final int MAX_SHOWN_IMAGES = 4;
 
     @Autowired
     @Lazy
@@ -148,23 +152,59 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     }
 
     @Override
-    public AgentRun send(AgentRun run, String text) throws Exception {
+    public AgentRun send(AgentRun run, String text, List<String> images) throws Exception {
         if (run == null || run.getId() == null) {
             throw new IllegalArgumentException("The run does not exist");
         }
-        if (StringUtils.isBlank(text)) {
+        List<String> attached = images == null ? List.of() : images;
+        if (StringUtils.isBlank(text) && attached.isEmpty()) {
             throw new IllegalArgumentException("The message is empty");
         }
         if (run.getStatus() != AgentRunStatus.IDLE) {
             throw new IllegalStateException("A run that is " + run.getStatus() + " does not wait for a message");
         }
+        LLMChatMessage message = LLMChatMessage.of(LLMRole.USER, StringUtils.defaultString(text).strip());
+        if (!attached.isEmpty()) {
+            attach(run, message, attached);
+        }
         // the change first: when the run is no longer idle, the message is not written
         AgentRun running = runService.transition(run, AgentRunStatus.RUNNING, null);
         // only that there is a message, what the user writes is the story's business
-        log.info("Agent run {}: a message of the user ({} characters) goes to the agent", run.getUuid(), text.strip().length());
-        messageService.append(running, List.of(LLMChatMessage.of(LLMRole.USER, text.strip())));
+        log.info("Agent run {}: a message of the user ({} characters, {} image(s)) goes to the agent", run.getUuid(),
+                StringUtils.defaultString(text).strip().length(), attached.size());
+        messageService.append(running, List.of(message));
         run(running);
         return running;
+    }
+
+    /**
+     * Puts the images in the message as references to the files of the workspace, and says so in its text so that the
+     * transcript, and a model that does not see the pictures, know what was sent.
+     */
+    private void attach(AgentRun run, LLMChatMessage message, List<String> images) throws Exception {
+        if (images.size() > MAX_ATTACHED_IMAGES) {
+            throw new IllegalArgumentException("A message takes at most " + MAX_ATTACHED_IMAGES + " images");
+        }
+        AgentModelProfile main = agentService.findForUser(run.getAgent().getUuid()).getMainProfile();
+        if (main == null || !main.isImages()) {
+            throw new IllegalArgumentException("The model of this agent does not see images");
+        }
+        VirtualFileSystem files = fileSystemService.open(run);
+        List<VirtualPath> paths = new ArrayList<>();
+        try {
+            for (String image : images) {
+                VirtualPath path = VirtualPath.parse(image);
+                // checks that it is an image the model can be shown, the bytes are read again when a request is made
+                files.readImage(path);
+                paths.add(path);
+            }
+        } catch (VirtualFileException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+        String names = paths.stream().map(VirtualPath::toString).collect(java.util.stream.Collectors.joining(", "));
+        message.setContent((message.getContent().isEmpty() ? "" : message.getContent() + "\n\n")
+                + (paths.size() == 1 ? "Attached image: " : "Attached images, in this order: ") + names);
+        paths.forEach(path -> message.addAttachment(ImageFiles.reference(path)));
     }
 
     /**
@@ -217,6 +257,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private final Progress progress = new Progress();
         // made again when the run is loaded, it depends on whether the run is a conversation
         private RunToolsImpl runTools = new RunToolsImpl(progress::render);
+        // the files of the run, opened with the tools; the images the model asked to see in this round
+        private VirtualFileSystem files;
+        private final ShownImages shown = new ShownImages();
+        // whether the model of the run looks at images
+        private boolean seesImages;
 
         Worker(AgentRun run) {
             this.runId = run.getId();
@@ -258,6 +303,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 return;
             }
             InferenceService inference = inferenceServices.forAIOrThrow(profile.ai());
+            seesImages = profile.profile().isImages();
 
             List<LLMChatMessage> transcript = new ArrayList<>(messageService.transcript(run));
             prepare(transcript);
@@ -330,6 +376,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     results.add(LLMChatMessage.ofToolResult(call.getId(), result));
                 }
                 append(transcript, results.toArray(new LLMChatMessage[0]));
+                List<VirtualPath> looked = shown.take();
+                if (!looked.isEmpty()) {
+                    append(transcript, imagesMessage(looked));
+                }
 
                 if (runTools.getSummary() != null) {
                     // a conversation goes on after the report, only the user ends it
@@ -389,12 +439,69 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
         private FunctionSet tools() throws Exception {
             VirtualFileSystem files = fileSystemService.open(run);
+            this.files = files;
             // what the commands return, whole, for the tool that saves it to a file
             CommandResults commandResults = new CommandResults();
-            return CommandFunctions.forAgent(commandService, agent, l -> localization.getValue(l), this::approve,
-                            path -> files.readText(VirtualPath.parse(path)), commandResults)
+            // the commands that send images to their own model take them from the files, whether this model sees them or not
+            FunctionSet tools = CommandFunctions.forAgent(commandService, agent, l -> localization.getValue(l), this::approve,
+                            path -> files.readText(VirtualPath.parse(path)), commandResults,
+                            path -> files.readImage(VirtualPath.parse(path)).toAttachment(path))
                     .and(fileSystemService.getFileTools(files, commandResults))
                     .and(inferenceServices.getFunctionRegistry().bind(RunTools.class, runTools));
+            return seesImages ? tools.and(inferenceServices.getFunctionRegistry().bind(ImageTools.class, new ImageToolsImpl(files, shown)))
+                    : tools;
+        }
+
+        /**
+         * The message that shows the model the images it asked for: a tool result is text, so they come as a message of
+         * the user. It keeps the paths only, the images are read when a request is made ({@link #withImages}).
+         */
+        private LLMChatMessage imagesMessage(List<VirtualPath> looked) {
+            LLMChatMessage message = LLMChatMessage.of(LLMRole.USER, (looked.size() == 1 ? "The image you asked to look at: "
+                    : "The images you asked to look at, in this order: ")
+                    + looked.stream().map(VirtualPath::toString).collect(java.util.stream.Collectors.joining(", ")));
+            looked.forEach(path -> message.addAttachment(ImageFiles.reference(path)));
+            return message;
+        }
+
+        /**
+         * The transcript as the model is sent it: the images of the messages that name files of the workspace are read
+         * and scaled down now, the newest {@link #MAX_SHOWN_IMAGES} of them; an older one, one that is gone, and every one
+         * when the model does not see images, becomes a note in the text. The transcript itself stays as it is.
+         */
+        private List<LLMChatMessage> withImages(List<LLMChatMessage> transcript) {
+            int room = seesImages ? MAX_SHOWN_IMAGES : 0;
+            LLMChatMessage[] sent = new LLMChatMessage[transcript.size()];
+            for (int i = transcript.size() - 1; i >= 0; i--) {
+                LLMChatMessage message = transcript.get(i);
+                if (message.getAttachments().stream().noneMatch(ImageFiles::isReference)) {
+                    sent[i] = message;
+                    continue;
+                }
+                LLMChatMessage copy = LLMChatMessage.of(message.getRole(), message.getContent());
+                StringBuilder notes = new StringBuilder();
+                for (LLMAttachment attachment : message.getAttachments()) {
+                    if (!ImageFiles.isReference(attachment)) {
+                        copy.addAttachment(attachment);
+                    } else if (room > 0) {
+                        try {
+                            copy.addAttachment(files.readImage(VirtualPath.parse(attachment.getName())).toAttachment(attachment.getName()));
+                            room--;
+                        } catch (RuntimeException e) {
+                            notes.append("\n[").append(attachment.getName()).append(" can't be shown: ").append(messageOf(e)).append(']');
+                        }
+                    } else {
+                        notes.append("\n[").append(attachment.getName()).append(seesImages
+                                ? " is not shown any more, view_image shows it again]"
+                                : " is not shown, the model of this agent does not see images]");
+                    }
+                }
+                if (!notes.isEmpty()) {
+                    copy.setContent(StringUtils.defaultString(copy.getContent()) + notes);
+                }
+                sent[i] = copy;
+            }
+            return Arrays.asList(sent);
         }
 
         /**
@@ -472,7 +579,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             List<LLMChatMessage> payload = new ArrayList<>();
             payload.add(LLMChatMessage.of(LLMRole.SYSTEM, system.toString()));
-            payload.addAll(transcript);
+            payload.addAll(withImages(transcript));
             return payload;
         }
 

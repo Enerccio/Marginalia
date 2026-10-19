@@ -73,6 +73,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private Checkbox enabledCheckbox;
     private ComboBox<Manuscript> manuscriptCombo;
     private ModelProtocolPicker modelPicker;
+    private Checkbox imagesCheckbox;
     private ComboBox<DestructiveCommandMode> destructiveCombo;
     private IntegerField maxRoundsField;
     private IntegerField tokenBudgetField;
@@ -112,7 +113,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         FormLayout form = new FormLayout();
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
         form.setWidthFull();
-        form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker);
+        form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox);
         form.add(destructiveCombo, maxRoundsField, tokenBudgetField, contextLimitField);
         form.add(systemPromptField, createRestoreButton(), instructionsField, commandsEditor);
         add(form);
@@ -141,6 +142,9 @@ public class AgentDialog extends Dialog implements LLMInteract {
         manuscriptCombo.setWidthFull();
 
         modelPicker = new ModelProtocolPicker();
+
+        imagesCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_SEES_IMAGES));
+        imagesCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_SEES_IMAGES));
 
         destructiveCombo = new ComboBox<>(loc.getValue(L.LABEL_DESTRUCTIVE_COMMANDS));
         destructiveCombo.setItems(DestructiveCommandMode.values());
@@ -225,6 +229,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
                         .filter(candidate -> Objects.equals(candidate.getUuid(), main.getAiUuid())).findFirst().orElse(null);
                 Protocol protocol = main.getProtocolUuid() == null ? null : protocolService.findForUser(main.getProtocolUuid());
                 modelPicker.setSelection(ai, protocol);
+                imagesCheckbox.setValue(main.isImages());
             }
             destructiveCombo.setValue(agent.getDestructiveMode());
             maxRoundsField.setValue(agent.getMaxRounds());
@@ -297,6 +302,9 @@ public class AgentDialog extends Dialog implements LLMInteract {
             profiles.getFirst().setAiUuid(ai.getUuid());
             profiles.getFirst().setProtocolUuid(protocol.getUuid());
         }
+        if (!profiles.isEmpty()) {
+            profiles.getFirst().setImages(imagesCheckbox.getValue());
+        }
         agent.setModelProfiles(profiles);
     }
 
@@ -320,6 +328,10 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
     ModelProtocolPicker getModelPicker() {
         return modelPicker;
+    }
+
+    Checkbox getImagesCheckbox() {
+        return imagesCheckbox;
     }
 
     ComboBox<DestructiveCommandMode> getDestructiveCombo() {

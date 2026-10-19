@@ -15,6 +15,7 @@ public class AgentModelProfile {
     private String protocolUuid;
     private String description;
     private boolean tools = true;
+    private boolean images;
     private Integer contextCap;
     private Integer concurrency;
 
@@ -77,6 +78,18 @@ public class AgentModelProfile {
     }
 
     /**
+     * Whether the model can look at images (the author says so, the API of the model does not tell). The agent then gets
+     * the tool that shows it an image of its workspace; without it it never receives one.
+     */
+    public boolean isImages() {
+        return images;
+    }
+
+    public void setImages(boolean images) {
+        this.images = images;
+    }
+
+    /**
      * Limit of the context of the profile in tokens, lower than the context of the AI; null is no limit of its own.
      */
     public Integer getContextCap() {
@@ -101,13 +114,13 @@ public class AgentModelProfile {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof AgentModelProfile that)) return false;
-        return tools == that.tools && Objects.equals(role, that.role) && Objects.equals(aiUuid, that.aiUuid)
+        return tools == that.tools && images == that.images && Objects.equals(role, that.role) && Objects.equals(aiUuid, that.aiUuid)
                 && Objects.equals(protocolUuid, that.protocolUuid) && Objects.equals(description, that.description)
                 && Objects.equals(contextCap, that.contextCap) && Objects.equals(concurrency, that.concurrency);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(role, aiUuid, protocolUuid, description, tools, contextCap, concurrency);
+        return Objects.hash(role, aiUuid, protocolUuid, description, tools, images, contextCap, concurrency);
     }
 }

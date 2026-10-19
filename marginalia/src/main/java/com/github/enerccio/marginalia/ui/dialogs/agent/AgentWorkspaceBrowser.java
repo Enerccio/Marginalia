@@ -40,11 +40,11 @@ import java.util.function.BooleanSupplier;
 
 /**
  * Looks at the workspace of an agent, the files it keeps between its runs (its notes and reports): browse the folders,
- * read a text file, download a file, upload a text file, create a folder, delete a file or a folder, or clear the whole
- * workspace to get rid of stale notes. Goes through the same cage as the agent's own file tools, so there is nothing
- * here but the workspace, and the same limits and rules of names hold for what the user puts in (an uploaded file
- * has to be text, as the agent can only read text). Files can't be changed while the agent works, the run would lose
- * them under its hands.
+ * read a text file, download a file, upload a text file or an image, create a folder, delete a file or a folder, or
+ * clear the whole workspace to get rid of stale notes. Goes through the same cage as the agent's own file tools, so
+ * there is nothing here but the workspace, and the same limits and rules of names hold for what the user puts in (an
+ * uploaded file has to be text, as the agent can only read text, or an image the agent can be shown). Files can't be
+ * changed while the agent works, the run would lose them under its hands.
  */
 @Configurable
 public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract {
@@ -113,7 +113,8 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         Button uploadButton = new Button(loc.getValue(L.LABEL_UPLOAD_FILE), Solid.UPLOAD.create());
         uploadButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         upload = new Upload(new InMemoryUploadHandler((metadata, data) -> upload(metadata.fileName(), data)));
-        upload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, fileSystemService.getLimits().maxFileBytes()));
+        WorkspaceLimits limits = fileSystemService.getLimits();
+        upload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, Math.max(limits.maxFileBytes(), limits.maxImageBytes())));
         upload.setUploadButton(uploadButton);
         upload.setDropLabel(new Span());
         upload.addFileRejectedListener(event -> Notification.warning(
@@ -248,8 +249,8 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     }
 
     /**
-     * Puts an uploaded file in the open folder. It is text (what the agent reads) and within the limits of the
-     * workspace, a file of that name is not replaced.
+     * Puts an uploaded file in the open folder. It is text (what the agent reads) or an image (what it can be shown),
+     * within the limits of the workspace, and a file of that name is not replaced.
      */
     void upload(String fileName, byte[] content) {
         if (isBusy()) {
@@ -259,6 +260,10 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             VirtualPath target = folder.resolve(fileName);
             if (files.stat(target) != null) {
                 throw new VirtualFileException(target + " exists already; delete it first or rename the file");
+            }
+            if (ImageFiles.isImage(content)) {
+                files.writeImage(target, content);
+                return;
             }
             String text;
             try {

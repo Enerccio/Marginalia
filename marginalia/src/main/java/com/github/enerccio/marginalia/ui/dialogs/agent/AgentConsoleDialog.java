@@ -6,11 +6,12 @@ import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
-import com.github.enerccio.marginalia.domain.service.AgentApprovalService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService.PendingApproval;
-import com.github.enerccio.marginalia.domain.service.AgentMessageService;
-import com.github.enerccio.marginalia.domain.service.AgentRunService;
-import com.github.enerccio.marginalia.domain.service.AgentRunner;
+import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
+import com.github.enerccio.marginalia.domain.service.agent.VirtualFileException;
+import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
+import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.loc.L;
@@ -21,6 +22,7 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -32,16 +34,15 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.tabs.TabSheetVariant;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.shared.Registration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 /**
@@ -65,6 +66,17 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     private static final int SUMMARY_LIMIT = 80;
 
+    /**
+     * Where the images attached to a message are kept in the workspace, for the agent to look at.
+     */
+    static final String UPLOAD_FOLDER = "uploads";
+
+    /**
+     * An image the author attached to the message that is not sent yet.
+     */
+    private record PendingImage(String name, byte[] content) {
+    }
+
     private static final Set<AgentRunStatus> PAUSABLE = Set.of(AgentRunStatus.RUNNING, AgentRunStatus.IDLE,
             AgentRunStatus.WAITING_APPROVAL);
 
@@ -80,6 +92,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private AgentRunner agentRunner;
+
+    @Autowired
+    private AgentVirtualFileSystemService fileSystemService;
 
     @Autowired
     private AgentMessageService agentMessageService;
@@ -108,6 +123,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private VerticalLayout transcriptBox;
     private TextArea messageField;
     private Button sendButton;
+    private Upload imageUpload;
+    private HorizontalLayout pendingRow;
+    private final List<PendingImage> pendingImages = new ArrayList<>();
     private Button pauseButton;
     private Button resumeButton;
     private Button stopButton;
@@ -172,14 +190,30 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         sendButton.addClickShortcut(Key.ENTER, KeyModifier.CONTROL).listenOn(messageField);
         sendButton.addClickShortcut(Key.ENTER, KeyModifier.META).listenOn(messageField);
         sendButton.setTooltipText("Ctrl+Enter");
-        HorizontalLayout inputRow = new HorizontalLayout(messageField, sendButton);
+        // pictures can go with a message when the model of the agent sees them
+        Button attachButton = new Button(loc.getValue(L.LABEL_ATTACH_IMAGE), Solid.IMAGE.create());
+        imageUpload = new Upload(new InMemoryUploadHandler((metadata, data) -> attachImage(metadata.fileName(), data)));
+        imageUpload.setAcceptedFileTypes("image/png", "image/jpeg", "image/gif", "image/webp");
+        imageUpload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, fileSystemService.getLimits().maxImageBytes()));
+        imageUpload.setUploadButton(attachButton);
+        imageUpload.setDropLabel(new Span());
+        imageUpload.setVisible(seesImages());
+        if (seesImages()) {
+            JavascriptLibrary.forwardPastedImages(messageField.getElement(), imageUpload.getElement());
+        }
+        pendingRow = new HorizontalLayout();
+        pendingRow.setWidthFull();
+        pendingRow.setWrap(true);
+        pendingRow.setAlignItems(FlexComponent.Alignment.CENTER);
+        pendingRow.setVisible(false);
+        HorizontalLayout inputRow = new HorizontalLayout(messageField, imageUpload, sendButton);
         inputRow.setWidthFull();
         inputRow.setAlignItems(FlexComponent.Alignment.END);
         inputRow.expand(messageField);
 
         // the state and the box that answers stay where they are, the transcript between them scrolls; what the agent
         // waits for (its question, its report) is the last bubble of the transcript, see placeBanner
-        VerticalLayout runTab = new VerticalLayout(statusRow, transcriptBox, inputRow);
+        VerticalLayout runTab = new VerticalLayout(statusRow, transcriptBox, pendingRow, inputRow);
         runTab.setSizeFull();
         runTab.setPadding(false);
         runTab.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
@@ -333,6 +367,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         AgentRunStatus status = run == null ? null : run.getStatus();
         messageField.setEnabled(status == AgentRunStatus.IDLE);
         sendButton.setEnabled(status == AgentRunStatus.IDLE);
+        imageUpload.setEnabled(status == AgentRunStatus.IDLE && pendingImages.size() < AgentRunner.MAX_ATTACHED_IMAGES);
         pauseButton.setEnabled(status != null && PAUSABLE.contains(status));
         resumeButton.setEnabled(status != null && status.isResumable());
         finishButton.setEnabled(status == AgentRunStatus.IDLE);
@@ -493,14 +528,96 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     private void send() {
         String text = messageField.getValue();
-        if (StringUtils.isBlank(text) || run == null) {
+        if ((StringUtils.isBlank(text) && pendingImages.isEmpty()) || run == null) {
             return;
         }
         perform(() -> {
-            agentRunner.send(run, text);
+            agentRunner.send(run, text, storePendingImages());
             messageField.clear();
+            pendingImages.clear();
+            showPendingImages();
             return null;
         });
+    }
+
+    private boolean seesImages() {
+        return agent.getMainProfile() != null && agent.getMainProfile().isImages();
+    }
+
+    /**
+     * An image the author picked for the next message: kept until it is sent, and shown beside the message.
+     */
+    void attachImage(String fileName, byte[] content) {
+        imageUpload.clearFileList();
+        if (pendingImages.size() >= AgentRunner.MAX_ATTACHED_IMAGES) {
+            return;
+        }
+        if (!ImageFiles.isImage(content)) {
+            Notification.warning(String.format(loc.getValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE), fileName));
+            return;
+        }
+        pendingImages.add(new PendingImage(fileName, content));
+        showPendingImages();
+    }
+
+    private void showPendingImages() {
+        pendingRow.removeAll();
+        for (PendingImage image : pendingImages) {
+            Button remove = new Button(Solid.XMARK.create(), event -> {
+                pendingImages.remove(image);
+                showPendingImages();
+            });
+            remove.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            remove.setTooltipText(loc.getValue(L.LABEL_DELETE));
+            Span name = new Span(image.name());
+            name.addClassNames(CssStyles.HINT_TEXT, CssStyles.WRAP_ANYWHERE);
+            HorizontalLayout chip = new HorizontalLayout(Solid.IMAGE.create(), name, remove);
+            chip.setAlignItems(FlexComponent.Alignment.CENTER);
+            chip.setSpacing(false);
+            pendingRow.add(chip);
+        }
+        pendingRow.setVisible(!pendingImages.isEmpty());
+        imageUpload.setEnabled(sendButton.isEnabled() && pendingImages.size() < AgentRunner.MAX_ATTACHED_IMAGES);
+    }
+
+    /**
+     * Puts the images of the message in the workspace of the agent, in {@value #UPLOAD_FOLDER}, where the agent can
+     * look at them (the same limits and rules of names as for the agent's own files); a name that is taken gets a number.
+     *
+     * @return their paths
+     */
+    private List<String> storePendingImages() throws Exception {
+        List<String> paths = new ArrayList<>();
+        if (pendingImages.isEmpty()) {
+            return paths;
+        }
+        VirtualFileSystem files = fileSystemService.openWorkspace(agent);
+        try {
+            for (PendingImage image : pendingImages) {
+                VirtualPath path = uploadPath(files, image.name());
+                files.writeImage(path, image.content());
+                paths.add(path.toString());
+            }
+        } catch (VirtualFileException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+        return paths;
+    }
+
+    /**
+     * The path for an uploaded file in the uploads folder: its own name, or with {@code -2}, {@code -3}... before the
+     * extension when that name is taken.
+     */
+    static VirtualPath uploadPath(VirtualFileSystem files, String fileName) {
+        VirtualPath folder = VirtualPath.ROOT.resolve(UPLOAD_FOLDER);
+        int dot = fileName.lastIndexOf('.');
+        String base = dot > 0 ? fileName.substring(0, dot) : fileName;
+        String extension = dot > 0 ? fileName.substring(dot) : "";
+        VirtualPath path = folder.resolve(fileName);
+        for (int i = 2; files.stat(path) != null; i++) {
+            path = folder.resolve(base + "-" + i + extension);
+        }
+        return path;
     }
 
     private void perform(Callable<?> action) {
@@ -530,6 +647,14 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     Button getSendButton() {
         return sendButton;
+    }
+
+    Upload getImageUpload() {
+        return imageUpload;
+    }
+
+    int getPendingImages() {
+        return pendingImages.size();
     }
 
     Button getPauseButton() {

@@ -15,7 +15,7 @@ import jakarta.persistence.*;
  * stored, it is made from the agent at every request so that a change of the instructions applies on a resume.
  * <p>
  * The message is the JSON of the {@code LLMChatMessage} in an extended attribute, only the run and the place are
- * columns, since they are what is queried. No attachments: a row stays small.
+ * columns, since they are what is queried. An attachment is only a reference to an image of the workspace (its path, no bytes): a row stays small.
  */
 @Entity
 @Table(name = "agent_messages")

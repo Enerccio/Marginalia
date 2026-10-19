@@ -452,6 +452,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_UPLOAD_FILE, "Upload file");
         setValue(L.LABEL_NEW_FOLDER, "New folder");
         setValue(L.LABEL_FOLDER_NAME, "Folder name");
+        setValue(L.LABEL_AGENT_SEES_IMAGES, "The model sees images");
+        setValue(L.LABEL_ATTACH_IMAGE, "Attach image");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -717,7 +719,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NOTICE_PAUSED, "The run of the agent \"%s\" was paused: %s");
         setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "Delete this run? Its steps and its report go to the trash.");
         setValue(L.MSG_AGENT_RUN_BUSY, "The run is going on, pause or stop it first.");
-        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "The file %s is not a text file. The agent works with text only, so only text files (UTF-8) can be uploaded.");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "The file %s is not a text file. The agent works with text, so only text files (UTF-8) and images (PNG, JPEG, GIF, WebP) can be uploaded.");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE, "The file %s is not an image. Only PNG, JPEG, GIF and WebP images can be attached.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -750,6 +753,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MAX_ROUNDS, "Most requests to the model in one run. Empty is no limit of the agent.");
         setValue(L.HELP_AGENT_TOKEN_BUDGET, "Most tokens one run can spend. Empty or zero is no limit of the agent; the limit your administrator gave you applies anyway.");
         setValue(L.HELP_AGENT_CONTEXT_LIMIT, "Limit of the context of the model in tokens, lower than the context of the model itself; older rounds are summarized near it. Empty is the context of the model.");
+        setValue(L.HELP_AGENT_SEES_IMAGES, "Tick it when the model takes images. The agent then gets a tool that shows it the images of its workspace (you put them there with Upload). Commands that send images to a model of their own, like the Lore Generator, take images from the workspace whatever this says.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

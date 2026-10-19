@@ -128,17 +128,53 @@ public final class VirtualFileSystem {
         }
     }
 
+    /**
+     * The bytes of a file: a text file of at most {@link WorkspaceLimits#maxFileBytes()}, an image of at most
+     * {@link WorkspaceLimits#maxImageBytes()}.
+     */
     public byte[] read(VirtualPath file) {
-        return mountFor(file).read(file);
+        byte[] bytes = mountFor(file).read(file);
+        if (bytes.length > limits.maxFileBytes() && !ImageFiles.isImage(bytes)) {
+            throw new VirtualFileException("The file " + file + " is larger than the limit of " + limits.maxFileBytes() + " bytes");
+        }
+        return bytes;
     }
 
     /**
      * The file as text.
      *
-     * @throws VirtualFileException when it is not UTF-8 text
+     * @throws VirtualFileException when it is not UTF-8 text (an image says so)
      */
     public String readText(VirtualPath file) {
-        return decodeText(read(file), file);
+        byte[] bytes = read(file);
+        if (ImageFiles.isImage(bytes)) {
+            throw new VirtualFileException(file + " is an image, not a text file; view_image shows it to you");
+        }
+        return decodeText(bytes, file);
+    }
+
+    /**
+     * The image file, as what a model is sent of it ({@link ImageFiles#prepare}).
+     *
+     * @throws VirtualFileException when there is no such file or it is not an image
+     */
+    public ImageFiles.Prepared readImage(VirtualPath file) {
+        return ImageFiles.prepare(read(file), file);
+    }
+
+    /**
+     * Whether the path is a file that holds an image.
+     */
+    public boolean isImage(VirtualPath file) {
+        VirtualEntry entry = stat(file);
+        if (entry == null || entry.directory()) {
+            return false;
+        }
+        try {
+            return ImageFiles.isImage(read(file));
+        } catch (VirtualFileException e) {
+            return false;
+        }
     }
 
     /**
@@ -168,6 +204,17 @@ public final class VirtualFileSystem {
             throw new VirtualFileException("Only text can be written, the content has a NUL character");
         }
         writableMountFor(file).write(file, text.getBytes(StandardCharsets.UTF_8), append);
+    }
+
+    /**
+     * Creates an image file or replaces it, the bytes as they are. It counts against the total and the number of files
+     * like any file, the size it may have is {@link WorkspaceLimits#maxImageBytes()}.
+     *
+     * @throws VirtualFileException when the bytes are not a PNG, a JPEG, a GIF or a WebP, or have too many pixels
+     */
+    public void writeImage(VirtualPath file, byte[] content) {
+        ImageFiles.check(content, file);
+        writableMountFor(file).writeImage(file, content);
     }
 
     /**

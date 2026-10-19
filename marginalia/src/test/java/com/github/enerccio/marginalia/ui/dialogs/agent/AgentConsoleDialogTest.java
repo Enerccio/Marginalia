@@ -7,11 +7,14 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
+import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
+import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.ComponentTree;
+import com.github.enerccio.marginalia.test.TestImages;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -45,11 +48,15 @@ class AgentConsoleDialogTest extends AgentTestBase {
     @Autowired
     private AgentApprovalService approvals;
 
+    @Autowired
+    private AgentVirtualFileSystemService fileSystemService;
+
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
     private User user;
     private Agent agent;
     private final List<String> sent = new ArrayList<>();
+    private final List<List<String>> sentImages = new ArrayList<>();
     private final List<AgentRun> takenUp = new ArrayList<>();
     private boolean changed;
 
@@ -81,8 +88,9 @@ class AgentConsoleDialogTest extends AgentTestBase {
             }
 
             @Override
-            public AgentRun send(AgentRun run, String text) throws Exception {
+            public AgentRun send(AgentRun run, String text, List<String> images) throws Exception {
                 sent.add(text);
+                sentImages.add(images);
                 return agentRunService.transition(run, AgentRunStatus.RUNNING, null);
             }
 
@@ -405,11 +413,11 @@ class AgentConsoleDialogTest extends AgentTestBase {
 
         AgentConsoleDialog dialog = console();
 
-        // the state, the transcript that scrolls, the box that answers; what the agent waits for is the last bubble of the
-        // transcript, under the steps
+        // the state, the transcript that scrolls, the images waiting to be sent, the box that answers; what the agent waits
+        // for is the last bubble of the transcript, under the steps
         List<Component> tab = dialog.getTranscriptBox().getParent().orElseThrow().getChildren().toList();
         assertThat(tab.indexOf(dialog.getTranscriptBox())).isEqualTo(1);
-        assertThat(tab.indexOf(dialog.getMessageField().getParent().orElseThrow())).isEqualTo(2);
+        assertThat(tab.indexOf(dialog.getMessageField().getParent().orElseThrow())).isEqualTo(3);
         List<Component> bubbles = dialog.getTranscriptBox().getChildren().toList();
         assertThat(bubbles.getLast()).isSameAs(dialog.getBanner());
         assertThat(textOf(bubbles.getFirst())).contains("first");
@@ -604,5 +612,59 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(textOf(reasoning)).contains("my private thoughts");
         assertThat(textOf(bubbles.get(1))).contains("The answer");
         assertThat(ComponentTree.all(bubbles.get(2), Details.class)).isEmpty();
+    }
+
+    // --- images with the message ---
+
+    private void agentSeesImages() throws Exception {
+        agent.getMainProfile().setImages(true);
+        agent = agentService.save(agent);
+    }
+
+    @Test
+    void imagesCanBeAttachedOnlyWhenTheModelSeesThem() throws Exception {
+        assertThat(console().getImageUpload().isVisible()).isFalse();
+
+        agentSeesImages();
+
+        assertThat(console().getImageUpload().isVisible()).isTrue();
+    }
+
+    @Test
+    void anAttachedImageIsStoredInTheWorkspaceAndSentWithTheMessage() throws Exception {
+        agentSeesImages();
+        AgentRun run = startedRun();
+        agentRunService.transition(run, AgentRunStatus.IDLE, "Which one?");
+        AgentConsoleDialog dialog = console();
+        byte[] picture = TestImages.image(30, 20, "png");
+
+        dialog.attachImage("map.png", picture);
+        dialog.attachImage("notes.txt", "not an image at all".getBytes());
+        assertThat(dialog.getPendingImages()).isEqualTo(1);
+        dialog.getMessageField().setValue("This one.");
+        dialog.getSendButton().click();
+
+        assertThat(sent).containsExactly("This one.");
+        assertThat(sentImages).containsExactly(List.of("/uploads/map.png"));
+        assertThat(fileSystemService.openWorkspace(agent).read(VirtualPath.parse("/uploads/map.png"))).isEqualTo(picture);
+        assertThat(dialog.getPendingImages()).isZero();
+    }
+
+    @Test
+    void anImageAloneIsAMessageAndATakenNameGetsANumber() throws Exception {
+        agentSeesImages();
+        AgentRun run = startedRun();
+        agentRunService.transition(run, AgentRunStatus.IDLE, null);
+        AgentConsoleDialog dialog = console();
+        byte[] picture = TestImages.image(30, 20, "png");
+
+        dialog.attachImage("map.png", picture);
+        dialog.getSendButton().click();
+        agentRunService.transition(agentRunService.find(run.getId()), AgentRunStatus.IDLE, null);
+        dialog.refreshRun();
+        dialog.attachImage("map.png", picture);
+        dialog.getSendButton().click();
+
+        assertThat(sentImages).containsExactly(List.of("/uploads/map.png"), List.of("/uploads/map-2.png"));
     }
 }

@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionCallExcept
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.loc.L;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,10 @@ import java.util.function.Function;
  * <li><b>Results</b>: the same for {@code @result} (the newest result of the run) and {@code @result:3} (the result #3,
  * see {@link CommandResults}): the whole text of that result, before it was cut for the model, so the text of one command
  * goes into the next without passing through the model.</li>
+ * <li><b>Images</b>: a parameter of the type {@code LLMAttachment[]} (the images a command sends to its model) is
+ * offered to the model as a list of paths of image files of its workspace, which are read, scaled down and passed to the
+ * command as attachments, when the caller gave a reader of images; without one the parameter does not exist for the model.
+ * It is the model of the command that sees the images, so an agent whose own model can't see images may pass them too.</li>
  * <li><b>Policy</b>: only the allowed commands exist for the model. A destructive one follows the
  * {@link DestructiveCommandMode} of the agent: {@code DENY} leaves it out, {@code ASK} waits for the {@link Approval}
  * (refused when there is none), {@code AUTO} runs it.</li>
@@ -68,6 +73,9 @@ public final class CommandFunctions {
 
     /** The longest result given to the model, in characters. */
     public static final int MAX_RESULT_LENGTH = 20_000;
+
+    /** The most images the model passes to one call. */
+    public static final int MAX_IMAGES = 8;
 
     /** A text argument that starts with this is a reference to a file, see the class description. */
     public static final String FILE_PREFIX = "@file:";
@@ -145,7 +153,21 @@ public final class CommandFunctions {
      */
     public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
                                        Function<String, String> files, CommandResults commandResults) {
-        return create(commands, agent.getAllowedCommands(), agent.getDestructiveMode(), lookup, approval, files, commandResults);
+        return forAgent(commands, agent, lookup, approval, files, commandResults, null);
+    }
+
+    /**
+     * As {@link #forAgent(CommandService, Agent, Function, Approval, Function, CommandResults)}, and the commands that
+     * take images get them from the files of the agent.
+     *
+     * @param images reads an image file of the agent by its path as the attachment of a message and fails with the reason
+     *               (the message goes to the model); null when the agent has no files, the commands then have no
+     *               image parameters for the model
+     */
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
+                                       Function<String, String> files, CommandResults commandResults,
+                                       Function<String, LLMAttachment> images) {
+        return create(commands, agent.getAllowedCommands(), agent.getDestructiveMode(), lookup, approval, files, commandResults, images);
     }
 
     /**
@@ -175,6 +197,16 @@ public final class CommandFunctions {
     public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
                                      Function<L, String> lookup, Approval approval, Function<String, String> files,
                                      CommandResults commandResults) {
+        return create(commands, allowed, mode, lookup, approval, files, commandResults, null);
+    }
+
+    /**
+     * @param images reads an image file by its path, null when there are no files; see
+     *               {@link #forAgent(CommandService, Agent, Function, Approval, Function, CommandResults, Function)}
+     */
+    public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
+                                     Function<L, String> lookup, Approval approval, Function<String, String> files,
+                                     CommandResults commandResults, Function<String, LLMAttachment> images) {
         Set<String> names = new HashSet<>(allowed);
         Map<String, List<CommandDefinition>> byName = new TreeMap<>();
         for (CommandDefinition definition : commands.getCommands()) {
@@ -191,9 +223,9 @@ public final class CommandFunctions {
                 continue;
             }
             String functionName = functionName(entry.getKey());
-            FunctionDefinition definition = FunctionDefinition.dynamic(functionName, describe(forms, lookup), schema(forms, lookup, files != null, commandResults != null),
+            FunctionDefinition definition = FunctionDefinition.dynamic(functionName, describe(forms, lookup), schema(forms, lookup, files != null, commandResults != null, images != null),
                     (continuation, arguments) -> call(commands, entry.getKey(), destructive ? mode : DestructiveCommandMode.AUTO,
-                            approval, files, commandResults, continuation, arguments));
+                            approval, files, commandResults, images, continuation, arguments));
             if (functions.putIfAbsent(functionName, definition) != null) {
                 // two names with the same hash, which is not going to happen; the first (by name) wins
                 log.warn("Command {} has the function name {} of another command, it is not offered", entry.getKey(), functionName);
@@ -243,14 +275,23 @@ public final class CommandFunctions {
         return required;
     }
 
-    private static ObjectNode schema(List<CommandDefinition> forms, Function<L, String> lookup, boolean files, boolean results) {
+    private static ObjectNode schema(List<CommandDefinition> forms, Function<L, String> lookup, boolean files, boolean results,
+                                     boolean images) {
         ObjectNode properties = JSON.createObjectNode();
-        parametersOf(forms).forEach((name, parameters) -> properties.set(name, parameterSchema(parameters, lookup, files, results)));
+        parametersOf(forms).forEach((name, parameters) -> {
+            if (isImages(parameters)) {
+                if (images) {
+                    properties.set(name, imagesSchema(parameters, lookup));
+                }
+                return;
+            }
+            properties.set(name, parameterSchema(parameters, lookup, files, results));
+        });
         ObjectNode root = JSON.createObjectNode();
         root.put("type", "object");
         root.set("properties", properties);
         ArrayNode required = JSON.createArrayNode();
-        requiredOf(forms).forEach(required::add);
+        requiredOf(forms).stream().filter(name -> images || !isImages(parametersOf(forms).get(name))).forEach(required::add);
         if (!required.isEmpty()) {
             root.set("required", required);
         }
@@ -279,6 +320,20 @@ public final class CommandFunctions {
         }
         forms.stream().map(CommandParameterDefinition::defaultValue).filter(value -> !value.isEmpty()).findFirst()
                 .ifPresent(value -> schema.set("default", valueNode(type, value)));
+        return schema;
+    }
+
+    /** Whether the parameter takes images (in every form that has it), which the model names by paths of files. */
+    private static boolean isImages(List<CommandParameterDefinition> forms) {
+        return forms.stream().allMatch(p -> p.type() == LLMAttachment[].class);
+    }
+
+    private static ObjectNode imagesSchema(List<CommandParameterDefinition> forms, Function<L, String> lookup) {
+        ObjectNode schema = JSON.createObjectNode();
+        schema.put("type", "array");
+        schema.set("items", JSON.createObjectNode().put("type", "string"));
+        String text = forms.stream().map(p -> p.description().get(lookup)).filter(t -> !t.isBlank()).findFirst().orElse("");
+        schema.put("description", (text.isEmpty() ? "" : text + " ") + Defaults.AGENT_IMAGES_ARGUMENT_HINT);
         return schema;
     }
 
@@ -361,8 +416,8 @@ public final class CommandFunctions {
     // --- the call ---
 
     private static void call(CommandService commands, String commandName, DestructiveCommandMode mode, Approval approval,
-                             Function<String, String> files, CommandResults commandResults, FunctionContinuation<Object> continuation,
-                             Map<String, Object> passed) {
+                             Function<String, String> files, CommandResults commandResults, Function<String, LLMAttachment> images,
+                             FunctionContinuation<Object> continuation, Map<String, Object> passed) {
         try {
             List<CommandDefinition> forms = commands.getCommands(commandName);
             if (forms.isEmpty()) {
@@ -375,6 +430,7 @@ public final class CommandFunctions {
                 }
             });
             Map<String, String> references = readReferences(forms, arguments, files, commandResults);
+            references.putAll(readImages(forms, arguments, images));
             Map<String, Object> complete = complete(forms, arguments);
 
             if (mode == DestructiveCommandMode.DENY) {
@@ -439,6 +495,53 @@ public final class CommandFunctions {
             } catch (RuntimeException e) {
                 throw new FunctionCallException(Kind.FAILED, "The argument " + argument.getKey() + ": " + messageOf(e), e);
             }
+        }
+        return replaced;
+    }
+
+    /**
+     * Puts the images in the place of an argument that names image files of the agent: a path, or a list of paths, becomes
+     * the attachments (at most {@link #MAX_IMAGES}). An argument of a parameter that does not take images is left alone.
+     *
+     * @param images null when the agent has no files, the parameter is then not there and the argument fails
+     * @return the paths that were replaced, by the name of the argument
+     * @throws FunctionCallException with the reason when a path is not an image of the workspace
+     */
+    private static Map<String, String> readImages(List<CommandDefinition> forms, Map<String, Object> arguments,
+                                                  Function<String, LLMAttachment> images) {
+        Map<String, String> replaced = new LinkedHashMap<>();
+        Map<String, List<CommandParameterDefinition>> parameters = parametersOf(forms);
+        for (Map.Entry<String, Object> argument : arguments.entrySet()) {
+            List<CommandParameterDefinition> declared = parameters.get(argument.getKey());
+            if (declared == null || !isImages(declared)) {
+                continue;
+            }
+            if (images == null) {
+                throw new FunctionCallException(Kind.INVALID_ARGUMENTS, "The parameter " + argument.getKey() + " is not available");
+            }
+            List<String> paths = new ArrayList<>();
+            if (argument.getValue() instanceof Collection<?> list) {
+                list.forEach(item -> paths.add(String.valueOf(item).strip()));
+            } else if (argument.getValue() instanceof String text) {
+                paths.add(text.strip());
+            } else {
+                throw new FunctionCallException(Kind.INVALID_ARGUMENTS, "The argument " + argument.getKey()
+                        + " is a list of paths of image files of your workspace");
+            }
+            if (paths.size() > MAX_IMAGES) {
+                throw new FunctionCallException(Kind.INVALID_ARGUMENTS, "The argument " + argument.getKey() + " has "
+                        + paths.size() + " images, the most it takes is " + MAX_IMAGES);
+            }
+            List<LLMAttachment> attachments = new ArrayList<>();
+            for (String path : paths) {
+                try {
+                    attachments.add(images.apply(path));
+                } catch (RuntimeException e) {
+                    throw new FunctionCallException(Kind.FAILED, "The argument " + argument.getKey() + ": " + messageOf(e), e);
+                }
+            }
+            argument.setValue(attachments.toArray(new LLMAttachment[0]));
+            replaced.put(argument.getKey(), String.join(", ", paths));
         }
         return replaced;
     }

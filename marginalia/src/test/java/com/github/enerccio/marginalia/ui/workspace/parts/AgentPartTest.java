@@ -65,7 +65,7 @@ class AgentPartTest extends AgentTestBase {
             }
 
             @Override
-            public AgentRun send(AgentRun run, String text) {
+            public AgentRun send(AgentRun run, String text, java.util.List<String> images) {
                 throw new UnsupportedOperationException();
             }
 

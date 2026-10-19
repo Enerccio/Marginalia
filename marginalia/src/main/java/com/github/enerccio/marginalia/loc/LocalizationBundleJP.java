@@ -452,6 +452,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_UPLOAD_FILE, "ファイルをアップロード");
         setValue(L.LABEL_NEW_FOLDER, "新しいフォルダ");
         setValue(L.LABEL_FOLDER_NAME, "フォルダ名");
+        setValue(L.LABEL_AGENT_SEES_IMAGES, "モデルが画像を扱える");
+        setValue(L.LABEL_ATTACH_IMAGE, "画像を添付");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -717,7 +719,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NOTICE_PAUSED, "エージェント「%s」の実行が一時停止されました: %s");
         setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "この実行を削除しますか？ステップとレポートはゴミ箱に移動します。");
         setValue(L.MSG_AGENT_RUN_BUSY, "実行中です。先に一時停止または停止してください。");
-        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "ファイル %s はテキストファイルではありません。エージェントはテキストのみを扱うため、アップロードできるのはテキストファイル（UTF-8）だけです。");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "ファイル %s はテキストファイルではありません。エージェントはテキストを扱うため、アップロードできるのはテキストファイル（UTF-8）と画像（PNG、JPEG、GIF、WebP）だけです。");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE, "ファイル %s は画像ではありません。添付できるのは PNG、JPEG、GIF、WebP の画像だけです。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -750,6 +753,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MAX_ROUNDS, "1回の実行でのモデルへのリクエストの最大数。空欄はエージェント側の制限なしです。");
         setValue(L.HELP_AGENT_TOKEN_BUDGET, "1回の実行で使えるトークンの上限。空欄または0はエージェント側の制限なし。管理者が設定した上限は常に適用されます。");
         setValue(L.HELP_AGENT_CONTEXT_LIMIT, "モデルのコンテキスト上限（トークン）。モデル自体より小さく設定でき、近づくと古いラウンドが要約されます。空欄はモデルのコンテキストです。");
+        setValue(L.HELP_AGENT_SEES_IMAGES, "モデルが画像を受け取れる場合にチェックします。エージェントはワークスペースの画像（アップロードで置いたもの）を見るツールを使えるようになります。Lore Generator のように独自のモデルへ画像を送るコマンドは、この設定に関係なくワークスペースの画像を使えます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

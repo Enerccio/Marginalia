@@ -457,6 +457,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_FINISH, "完成");
         setValue(L.LABEL_AGENT_RUNS, "运行记录");
         setValue(L.LABEL_REASONING, "推理");
+        setValue(L.LABEL_UPLOAD_FILE, "上传文件");
+        setValue(L.LABEL_NEW_FOLDER, "新建文件夹");
+        setValue(L.LABEL_FOLDER_NAME, "文件夹名称");
+        setValue(L.LABEL_AGENT_SEES_IMAGES, "模型可以查看图片");
+        setValue(L.LABEL_ATTACH_IMAGE, "附加图片");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -722,6 +727,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NOTICE_PAUSED, "智能体“%s”的运行已暂停：%s");
         setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "要删除此次运行吗？其步骤和报告将移入回收站。");
         setValue(L.MSG_AGENT_RUN_BUSY, "运行仍在进行，请先暂停或停止。");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "文件 %s 不是文本文件。智能体处理文本，因此只能上传文本文件（UTF-8）和图片（PNG、JPEG、GIF、WebP）。");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE, "文件 %s 不是图片。只能附加 PNG、JPEG、GIF 和 WebP 图片。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -754,6 +761,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_MAX_ROUNDS, "单次运行向模型发出的最大请求数。留空表示智能体不设限。");
         setValue(L.HELP_AGENT_TOKEN_BUDGET, "单次运行最多可消耗的令牌数。留空或为零表示智能体不设限；管理员给您的上限始终有效。");
         setValue(L.HELP_AGENT_CONTEXT_LIMIT, "模型上下文的上限（令牌），可低于模型自身的上下文；接近时较早的轮次会被概括。留空则使用模型的上下文。");
+        setValue(L.HELP_AGENT_SEES_IMAGES, "当模型可以接收图片时勾选。智能体将获得一个工具，用来查看其工作区中的图片（通过上传放入）。像 Lore Generator 这样把图片发给自己模型的命令，无论此项如何设置，都可以使用工作区中的图片。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

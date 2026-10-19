@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
 import com.github.enerccio.marginalia.domain.service.agent.WorkspaceLimits;
 import com.github.enerccio.marginalia.test.AgentTestBase;
+import com.github.enerccio.marginalia.test.TestImages;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.data.provider.Query;
 import org.junit.jupiter.api.AfterEach;
@@ -212,6 +213,48 @@ class AgentWorkspaceBrowserTest extends AgentTestBase {
 
         assertThat(names(browser)).containsExactly("notes.md");
         assertThat(files.readText(VirtualPath.parse("/notes.md"))).isEqualTo("my notes");
+    }
+
+    @Test
+    void anUploadedImageLandsInTheOpenFolderAndCanBeShownToTheAgent() throws Exception {
+        AgentWorkspaceBrowser browser = browser();
+        browser.createFolder("refs");
+        browser.open(entry(browser, "refs"));
+        byte[] picture = TestImages.image(80, 60, "png");
+
+        browser.upload("map.png", picture);
+
+        assertThat(names(browser)).containsExactly("map.png");
+        assertThat(files.read(VirtualPath.parse("/refs/map.png"))).isEqualTo(picture);
+        assertThat(files.readImage(VirtualPath.parse("/refs/map.png")).width()).isEqualTo(80);
+    }
+
+    @Test
+    void somethingThatOnlyLooksLikeAnImageIsNotUploaded() {
+        AgentWorkspaceBrowser browser = browser();
+        byte[] fake = java.util.Arrays.copyOf(new byte[]{(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A}, 64);
+
+        browser.upload("fake.png", fake);
+        browser.upload("tool.bin", new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13});
+
+        assertThat(names(browser)).isEmpty();
+    }
+
+    @Test
+    void anImageKeepsTheLimitsOfTheAgentToo() throws Exception {
+        write("/notes.md", "x");
+        AgentWorkspaceBrowser browser = browser();
+        byte[] picture = TestImages.image(40, 40, "png");
+
+        // the workspace is full of the other files: an image counts like any file
+        WorkspaceLimits limits = fileSystemService.getLimits();
+        for (int i = 0; i < limits.maxFiles() - 1; i++) {
+            files.writeText(VirtualPath.parse("/f" + i + ".txt"), "x", false);
+        }
+        browser.upload("one-more.png", picture);
+
+        assertThat(files.stat(VirtualPath.parse("/one-more.png"))).isNull();
+        assertThat(files.getUsage().files()).isEqualTo(limits.maxFiles());
     }
 
     @Test

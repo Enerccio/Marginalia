@@ -129,6 +129,27 @@ class AgentDialogTest extends AgentTestBase {
     }
 
     @Test
+    void theAuthorSaysWhetherTheModelSeesImages() throws Exception {
+        Manuscript book = manuscript();
+        AgentDialog dialog = dialog(null);
+        dialog.getNameField().setValue("Looker");
+        dialog.getManuscriptCombo().setValue(dialog.getManuscriptCombo().getListDataView().getItems().findFirst().orElseThrow());
+        dialog.getModelPicker().setSelection(createAI(), protocol());
+        assertThat(dialog.getImagesCheckbox().getValue()).as("a model is not taken to see images").isFalse();
+
+        dialog.getImagesCheckbox().setValue(true);
+        button(dialog, "OK").click();
+
+        Agent saved = agentService.findForManuscript(book);
+        assertThat(saved.getMainProfile().isImages()).isTrue();
+        AgentDialog edit = dialog(saved);
+        assertThat(edit.getImagesCheckbox().getValue()).isTrue();
+        edit.getImagesCheckbox().setValue(false);
+        button(edit, "OK").click();
+        assertThat(agentService.findForManuscript(book).getMainProfile().isImages()).isFalse();
+    }
+
+    @Test
     void savingNeedsANameAndABook() throws Exception {
         manuscript();
         AgentDialog dialog = dialog(null);
