@@ -85,6 +85,12 @@ is one) stay above it and the box for your message under it, while the transcrip
 - when the run is *Waiting for you*, the question of the agent; write the answer in the box and press **Send** (or **Ctrl+Enter**), and the agent goes on;
 - when the run is *Done*, the report of the agent.
 
+In a conversation you can also write while the agent **works**. The message is **queued**: it appears as a dashed bubble at the end of the transcript and the agent
+reads it at the end of its current turn (instead of stopping to wait for you); several queued messages go together as one. When it should not wait, press the
+small **Send now** (lightning) button on the bubble: the agent drops the round it is in (the request to the model is canceled, a command that waited for your approval
+is refused, calls that were not made are marked as skipped) and reads your message next. Commands that already ran stay done. Queued messages are lost when the server restarts, and
+a run that is not a conversation (started *immediately*) does not take messages while it works.
+
 When the model of the agent sees images (see [Creating and editing an agent](#creating-and-editing-an-agent)), **Attach image** is next to **Send**: pick a PNG, JPEG, GIF or WebP file, or paste a picture from the clipboard
 into the message box (**Ctrl+V**), and it waits above the box (the cross takes it back) until you send. Up to eight images go with a message; the text may be empty.
 The images are saved in the **uploads** folder of the workspace (a name that is taken gets a number: `map-2.png`), within the limits and rules of the workspace,

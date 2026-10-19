@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845723551660">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845725078135">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845723551660" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845725078135" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845723551660" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845725078135" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845723551660" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845725078135" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -473,7 +473,15 @@ closes it (<code translate="no" v-pre>close()</code> runs the destruction callba
 <h2 id="the-runner">The runner</h2>
 <p><code translate="no" v-pre>AgentRunner</code> (<code translate="no" v-pre>AgentRunnerImpl</code>, <code translate="no" v-pre>domain.service</code>) is what makes a run do anything. <code translate="no" v-pre>run(run)</code> takes a <code translate="no" v-pre>RUNNING</code> run up (it throws for another status, and
 does nothing when a worker has it already): it registers the worker with <code translate="no" v-pre>workerStarted</code> before the thread starts, so a pause asked at once waits for it.
-<code translate="no" v-pre>send(run, text)</code> is the message of the user to an <code translate="no" v-pre>IDLE</code> run (<code translate="no" v-pre>IDLE</code> to <code translate="no" v-pre>RUNNING</code>, the message appended, a worker started). The UI calls <code translate="no" v-pre>run</code> after
+<code translate="no" v-pre>send(run, text)</code> is the message of the user to an <code translate="no" v-pre>IDLE</code> run (<code translate="no" v-pre>IDLE</code> to <code translate="no" v-pre>RUNNING</code>, the message appended, a worker started); to a <em>conversation</em>
+(<code translate="no" v-pre>run.isInteractive()</code>) that is <code translate="no" v-pre>RUNNING</code>, <code translate="no" v-pre>WAITING_APPROVAL</code> or <code translate="no" v-pre>PAUSING</code> it queues the message in the run&#x27;s <code translate="no" v-pre>Inbox</code> (in memory, by run id, like the approvals;
+<code translate="no" v-pre>queued(run)</code> lists them as <code translate="no" v-pre>QueuedMessage(id, text)</code>). The worker reads the queue where it would end the turn (<code translate="no" v-pre>endTurn</code>: no tool call, <code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>): under the
+lock of the <code translate="no" v-pre>Inbox</code> it either appends all queued messages as one <code translate="no" v-pre>USER</code> message and goes on, or moves the run to <code translate="no" v-pre>IDLE</code>; <code translate="no" v-pre>enqueue</code> takes the same lock and re-reads the status, so a
+message is never left queued on an <code translate="no" v-pre>IDLE</code> run (it is sent as usual there). A resumed run delivers them instead of the resume message (<code translate="no" v-pre>prepare</code>). <code translate="no" v-pre>force(run, id)</code> sets the
+wish in the <code translate="no" v-pre>Inbox</code> (or sends at once if the run is <code translate="no" v-pre>IDLE</code>): <code translate="no" v-pre>await</code> sees it every <code translate="no" v-pre>POLL_MILLIS</code> and throws <code translate="no" v-pre>Forced</code>, which cancels the request or the call; the calls of the round that
+were written to the transcript get <code translate="no" v-pre>AGENT_FORCED_CALL</code> (the one in flight) / <code translate="no" v-pre>AGENT_SKIPPED_CALL</code> results, <code translate="no" v-pre>rejectAll</code> refuses a waiting approval (the worker moves the run back to
+<code translate="no" v-pre>RUNNING</code> itself first: two writers of SQLite at once fail), and the messages up to the forced one are appended (<code translate="no" v-pre>deliverForced</code>). An answer of the model that was not complete is not
+written and not counted. A stopped or finished run drops its inbox (<code translate="no" v-pre>queued</code> and the worker&#x27;s end). The UI calls <code translate="no" v-pre>run</code> after
 <code translate="no" v-pre>start</code> and <code translate="no" v-pre>resume</code> (<code translate="no" v-pre>run(run, firstMessage)</code> appends that first message to the empty transcript of a run first, for the run started from the console, where the
 agent is told to ask the author at once). A worker (a daemon thread of a cached pool) does this, in <code translate="no" v-pre>InRequestScope</code> of the <code translate="no" v-pre>AgentRequestAttributes</code> of <code translate="no" v-pre>openSession</code>, which it closes at the end:</p>
 <ol>
@@ -778,7 +786,7 @@ runner&#x27;s internals.</p>
 | `AgentDialog`, `AgentCommandsEditor`, `AgentCommandPreset` | Create / edit an agent. The editor lists every registered command with its severity; the presets (all, none, non-destructive) tick them at once. An allowed command that is not registered now (its extension is not loaded) stays allowed when saved. |
 | `AgentCloneDialog` | Copies the definition and the workspace (not the runs) to a new agent of another book. |
 | `AgentStopDialog` | Keep or discard the result. |
-| `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. |
+| `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. Messages the author queued while the agent works (`AgentRunner.queued`) are dashed bubbles after the last row, each with a small **Send now** button (`AgentRunner.force`); they come off while the transcript grows and go back after it. In the **Workspace** tab the list and the viewer split the height (`flex 3 : 2`), so only they scroll. |
 | `AgentRunHistory` | The **Runs** tab: every run, open one in the Run tab, download it (`AgentTranscriptExport`, the transcript as Markdown, nothing cut), delete it. |
 | `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. **New folder** (`VirtualFileSystem.createFolder`, `WorkspaceMount.createFolder`) and **Upload file** (an `InMemoryUploadHandler`; a file that starts like an image goes to `writeImage`, anything else through `VirtualFileSystem.decodeText`, the same UTF-8 without NUL as `readText`, then `writeText`) keep the cage, the names and the limits of the agent's own writes; an existing file is not replaced, and both are refused while the agent works. |
 | `AgentApprovalDialog` | One pending command, Approve / Deny. |
@@ -810,7 +818,7 @@ runner&#x27;s internals.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AgentConsoleDialog</code></td>
-<td>The window of a run: three tabs (<strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>), the state above, the box and the buttons below. It <strong>polls</strong> (<code translate="no" v-pre>ui.setPollInterval(2000)</code> while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (<code translate="no" v-pre>shown</code>), so a long run costs no more than a short one; the model&#x27;s reasoning is a folded block, a command is a folded line that opens to its arguments and result.</td>
+<td>The window of a run: three tabs (<strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>), the state above, the box and the buttons below. It <strong>polls</strong> (<code translate="no" v-pre>ui.setPollInterval(2000)</code> while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (<code translate="no" v-pre>shown</code>), so a long run costs no more than a short one; the model&#x27;s reasoning is a folded block, a command is a folded line that opens to its arguments and result. Messages the author queued while the agent works (<code translate="no" v-pre>AgentRunner.queued</code>) are dashed bubbles after the last row, each with a small <strong>Send now</strong> button (<code translate="no" v-pre>AgentRunner.force</code>); they come off while the transcript grows and go back after it. In the <strong>Workspace</strong> tab the list and the viewer split the height (<code translate="no" v-pre>flex 3 : 2</code>), so only they scroll.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AgentRunHistory</code></td>
@@ -964,7 +972,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (52d45120).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (e2b1b419).</p></div>
             </footer>
         </div>
     </div>

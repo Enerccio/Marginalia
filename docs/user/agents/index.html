@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845723551660">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845725078135">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845723551660" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845725078135" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845723551660" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845725078135" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845723551660" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845725078135" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -370,6 +370,11 @@ is one) stay above it and the box for your message under it, while the transcrip
 <li>when the run is <em>Waiting for you</em>, the question of the agent; write the answer in the box and press <strong>Send</strong> (or <strong>Ctrl+Enter</strong>), and the agent goes on;</li>
 <li>when the run is <em>Done</em>, the report of the agent.</li>
 </ul>
+<p>In a conversation you can also write while the agent <strong>works</strong>. The message is <strong>queued</strong>: it appears as a dashed bubble at the end of the transcript and the agent
+reads it at the end of its current turn (instead of stopping to wait for you); several queued messages go together as one. When it should not wait, press the
+small <strong>Send now</strong> (lightning) button on the bubble: the agent drops the round it is in (the request to the model is canceled, a command that waited for your approval
+is refused, calls that were not made are marked as skipped) and reads your message next. Commands that already ran stay done. Queued messages are lost when the server restarts, and
+a run that is not a conversation (started <em>immediately</em>) does not take messages while it works.</p>
 <p>When the model of the agent sees images (see <doc-anchor-trigger to="#creating-and-editing-an-agent">Creating and editing an agent</doc-anchor-trigger>), <strong>Attach image</strong> is next to <strong>Send</strong>: pick a PNG, JPEG, GIF or WebP file, or paste a picture from the clipboard
 into the message box (<strong>Ctrl+V</strong>), and it waits above the box (the cross takes it back) until you send. Up to eight images go with a message; the text may be empty.
 The images are saved in the <strong>uploads</strong> folder of the workspace (a name that is taken gets a number: <code translate="no" v-pre>map-2.png</code>), within the limits and rules of the workspace,
@@ -529,7 +534,7 @@ a paused, stopped or finished run does not lock it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (52d45120).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (e2b1b419).</p></div>
             </footer>
         </div>
     </div>

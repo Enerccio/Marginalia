@@ -84,6 +84,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             AgentRunStatus.WAITING_APPROVAL, AgentRunStatus.PAUSING, AgentRunStatus.PAUSED, AgentRunStatus.STOPPED_KEPT,
             AgentRunStatus.DONE);
 
+    // a conversation in these statuses takes a message that waits for the agent to be ready to read it
+    private static final Set<AgentRunStatus> QUEUEING = Set.of(AgentRunStatus.RUNNING, AgentRunStatus.WAITING_APPROVAL,
+            AgentRunStatus.PAUSING);
+
     @Autowired
     private Localization loc;
 
@@ -112,6 +116,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private int shown;
     // the bodies of the folded commands by the id of the call, where their results go when they come
     private final Map<String, VerticalLayout> callBodies = new HashMap<>();
+    // the messages that wait for the agent: their bubbles are the last ones of the transcript, and the ids they show
+    private final List<Div> queuedBubbles = new ArrayList<>();
+    private List<String> shownQueued = List.of();
 
     private Span statusLabel;
     private Span usageLabel;
@@ -365,9 +372,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             bannerText.setContent(reason);
         }
         AgentRunStatus status = run == null ? null : run.getStatus();
-        messageField.setEnabled(status == AgentRunStatus.IDLE);
-        sendButton.setEnabled(status == AgentRunStatus.IDLE);
-        imageUpload.setEnabled(status == AgentRunStatus.IDLE && pendingImages.size() < AgentRunner.MAX_ATTACHED_IMAGES);
+        boolean queueing = run != null && run.isInteractive() && QUEUEING.contains(status);
+        boolean writable = status == AgentRunStatus.IDLE || queueing;
+        messageField.setEnabled(writable);
+        messageField.setHelperText(queueing ? loc.getValue(L.HELP_AGENT_MESSAGE_QUEUED) : null);
+        sendButton.setEnabled(writable);
+        imageUpload.setEnabled(writable && pendingImages.size() < AgentRunner.MAX_ATTACHED_IMAGES);
         pauseButton.setEnabled(status != null && PAUSABLE.contains(status));
         resumeButton.setEnabled(status != null && status.isResumable());
         finishButton.setEnabled(status == AgentRunStatus.IDLE);
@@ -406,7 +416,32 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             callBodies.clear();
             shown = 0;
             shownRunId = runId;
+            queuedBubbles.clear();
+            shownQueued = List.of();
         }
+        // the messages that wait stay the last bubbles: they come off while the transcript grows and go back after it
+        List<AgentRunner.QueuedMessage> queued = run == null ? List.of() : agentRunner.queued(run);
+        boolean queuedChanged = !queued.stream().map(AgentRunner.QueuedMessage::id).toList().equals(shownQueued)
+                || run != null && (agentMessageService.count(run) != shown || bannerWanted != banner.getParent().isPresent());
+        if (queuedChanged) {
+            queuedBubbles.forEach(transcriptBox::remove);
+            queuedBubbles.clear();
+        }
+        showMessages();
+        if (queuedChanged) {
+            for (AgentRunner.QueuedMessage message : queued) {
+                Div bubble = queuedBubble(message);
+                queuedBubbles.add(bubble);
+                transcriptBox.add(bubble);
+            }
+            shownQueued = queued.stream().map(AgentRunner.QueuedMessage::id).toList();
+            if (!queued.isEmpty()) {
+                JavascriptLibrary.scrollToBottomIfAtBottom(transcriptBox.getElement());
+            }
+        }
+    }
+
+    private void showMessages() throws Exception {
         if (run == null || agentMessageService.count(run) == shown) {
             if (placeBanner()) {
                 JavascriptLibrary.scrollToBottomIfAtBottom(transcriptBox.getElement());
@@ -434,8 +469,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * @return whether the banner is there as a new last bubble
      */
     private boolean placeBanner() {
-        boolean last = bannerWanted && transcriptBox.getComponentCount() > 0
-                && transcriptBox.getComponentAt(transcriptBox.getComponentCount() - 1) == banner;
+        // the bubbles of the queued messages come after it
+        int end = transcriptBox.getComponentCount() - 1 - queuedBubbles.size();
+        boolean last = bannerWanted && end >= 0 && transcriptBox.getComponentAt(end) == banner;
         if (last) {
             return false;
         }
@@ -474,6 +510,29 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
                 // the system message is made for every request and not part of the transcript
             }
         }
+    }
+
+    /**
+     * A message of the author that waits for the agent: a bubble marked as queued, with the small button that gives it to
+     * the agent now.
+     */
+    private Div queuedBubble(AgentRunner.QueuedMessage message) {
+        Button force = new Button(Solid.BOLT.create(), event -> perform(() -> {
+            agentRunner.force(run, message.id());
+            return null;
+        }));
+        force.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        force.setTooltipText(loc.getValue(L.LABEL_AGENT_SEND_NOW) + ": " + loc.getValue(L.HELP_AGENT_SEND_NOW));
+        force.setAriaLabel(loc.getValue(L.LABEL_AGENT_SEND_NOW));
+        Div heading = text(loc.getValue(L.LABEL_YOU) + " (" + loc.getValue(L.LABEL_AGENT_QUEUED) + ")", true);
+        HorizontalLayout header = new HorizontalLayout(heading, force);
+        header.setWidthFull();
+        header.setPadding(false);
+        header.setAlignItems(FlexComponent.Alignment.CENTER);
+        header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        Div bubble = new Div(header, new Markdown(StringUtils.defaultString(message.text())));
+        bubble.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER, CssStyles.HELP_MESSAGE_QUEUED);
+        return bubble;
     }
 
     private Div bubble(String who, String content, boolean user) {
@@ -671,6 +730,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     Button getStopButton() {
         return stopButton;
+    }
+
+    List<Div> getQueuedBubbles() {
+        return queuedBubbles;
     }
 
     Div getBanner() {

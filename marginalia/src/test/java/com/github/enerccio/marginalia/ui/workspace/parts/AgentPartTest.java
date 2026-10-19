@@ -70,6 +70,16 @@ class AgentPartTest extends AgentTestBase {
             }
 
             @Override
+            public java.util.List<QueuedMessage> queued(AgentRun run) {
+                return java.util.List.of();
+            }
+
+            @Override
+            public void force(AgentRun run, String id) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
             public boolean isWorking(AgentRun run) {
                 return false;
             }

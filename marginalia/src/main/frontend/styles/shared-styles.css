@@ -787,6 +787,12 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     white-space: pre-wrap;
 }
 
+.help-message-queued {
+    border: 1px dashed var(--lumo-primary-color-50pct);
+    background: var(--lumo-primary-color-10pct);
+    opacity: 0.8;
+}
+
 .help-message-error {
     background: var(--lumo-error-color-10pct);
     color: var(--lumo-error-text-color);
@@ -964,12 +970,17 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     font-size: var(--lumo-font-size-xs);
 }
 
+/* the list and the viewer split the height of the tab (3 : 2), so the tab itself has nothing to scroll */
 .workspace-browser vaadin-grid {
+    flex: 3 1 0;
+    min-height: 6rem;
     font-size: var(--lumo-font-size-xs);
     --lumo-font-size-m: var(--lumo-font-size-xs);
 }
 
 .workspace-browser vaadin-text-area {
+    flex: 2 1 0;
+    min-height: 6rem;
     padding: 0;
     --lumo-font-size-m: var(--lumo-font-size-xs);
 }

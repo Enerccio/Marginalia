@@ -239,6 +239,122 @@ class AgentRunnerTest extends AgentTestBase {
         assertThatThrownBy(() -> runner.send(run, " ")).isInstanceOf(IllegalArgumentException.class);
     }
 
+    private AgentRun startConversation(Agent agent) throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        runner.run(run);
+        return run;
+    }
+
+    @Test
+    void aMessageToAConversationThatWorksWaitsForTheEndOfTheTurn() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").waitFor(gate, Duration.ofSeconds(20)),
+                MockLLMResponse.text("Counted."), MockLLMResponse.text("Got your message."));
+        AgentRun run = startConversation(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+
+        AgentRun queued = runner.send(agentRunService.find(run.getId()), "Also count the chapters.");
+        runner.send(agentRunService.find(run.getId()), "And the lorebooks.");
+
+        assertThat(queued.getStatus()).isEqualTo(AgentRunStatus.RUNNING);
+        assertThat(runner.queued(run)).extracting(AgentRunner.QueuedMessage::text)
+                .containsExactly("Also count the chapters.", "And the lorebooks.");
+        assertThat(transcript(run)).as("nothing is written to the transcript yet").hasSize(1);
+
+        gate.countDown();
+        run = await(run);
+
+        // the turn ended with the text, the messages were read instead of waiting for them, as one message
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(runner.queued(run)).isEmpty();
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT,
+                LLMRole.TOOL, LLMRole.ASSISTANT, LLMRole.USER, LLMRole.ASSISTANT);
+        assertThat(transcript.get(4).getContent()).isEqualTo("Also count the chapters.\n\nAnd the lorebooks.");
+        assertThat(llm.getCompletionRequests()).hasSize(3);
+    }
+
+    @Test
+    void anAutonomousRunDoesNotQueueMessages() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("Done.").waitFor(gate, Duration.ofSeconds(20)));
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+
+        AgentRun working = agentRunService.find(run.getId());
+        assertThatThrownBy(() -> runner.send(working, "hello")).isInstanceOf(IllegalStateException.class);
+        assertThat(runner.queued(run)).isEmpty();
+        gate.countDown();
+        await(run);
+    }
+
+    @Test
+    void aForcedMessageThrowsAwayTheRequestInFlight() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("The answer nobody reads.").waitFor(gate, Duration.ofSeconds(20)),
+                MockLLMResponse.text("Switching to that."));
+        AgentRun run = startConversation(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        runner.send(agentRunService.find(run.getId()), "Stop, do this instead.");
+        AgentRunner.QueuedMessage message = runner.queued(run).getFirst();
+
+        runner.force(agentRunService.find(run.getId()), message.id());
+        run = await(run);
+        gate.countDown();
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(runner.queued(run)).isEmpty();
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.USER, LLMRole.ASSISTANT);
+        assertThat(transcript.get(1).getContent()).isEqualTo("Stop, do this instead.");
+        assertThat(transcript.getLast().getContent()).isEqualTo("Switching to that.");
+        assertThat(run.getRounds()).as("the thrown away round is not counted").isEqualTo(1);
+    }
+
+    @Test
+    void aForcedMessageRefusesTheCommandThatWaitsForAnApproval() throws Exception {
+        loginAgentUser();
+        Agent asking = newAgent(manuscript());
+        asking.setSystemPrompt("You are a test agent.");
+        asking.setAllowedCommands(List.of("search-replace-parts"));
+        asking.setDestructiveMode(DestructiveCommandMode.ASK);
+        Agent agent = agentService.save(asking);
+        llm.enqueue(MockLLMResponse.toolCall("search-replace-parts", "{\"search\":\"zzz\",\"replace\":\"y\"}")
+                        .andToolCall("get-book-info", "{}"),
+                MockLLMResponse.text("Understood."));
+        AgentRun run = startConversation(agent);
+        long end = System.currentTimeMillis() + 20_000;
+        while (agentRunService.find(run.getId()).getStatus() != AgentRunStatus.WAITING_APPROVAL && System.currentTimeMillis() < end) {
+            Thread.sleep(25);
+        }
+        runner.send(agentRunService.find(run.getId()), "Never mind that.");
+
+        runner.force(agentRunService.find(run.getId()), runner.queued(run).getFirst().id());
+        run = await(run, Set.of(AgentRunStatus.IDLE));
+
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT,
+                LLMRole.TOOL, LLMRole.TOOL, LLMRole.USER, LLMRole.ASSISTANT);
+        assertThat(transcript.get(2).getContent()).startsWith("Error:");
+        assertThat(transcript.get(3).getContent()).isEqualTo(Defaults.AGENT_SKIPPED_CALL);
+        assertThat(transcript.get(4).getContent()).isEqualTo("Never mind that.");
+    }
+
+    @Test
+    void aForcedMessageThatWasDeliveredMeanwhileIsNothing() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Hello.");
+        AgentRun run = await(startConversation(agent));
+
+        // nothing is queued, forcing is a no-op
+        runner.force(run, "no-such-message");
+
+        assertThat(agentRunService.find(run.getId()).getStatus()).isEqualTo(AgentRunStatus.IDLE);
+    }
+
     @Test
     void aPlanSurvivesInTheStatus() throws Exception {
         Agent agent = readingAgent();

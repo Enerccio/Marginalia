@@ -462,6 +462,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_FOLDER_NAME, "文件夹名称");
         setValue(L.LABEL_AGENT_SEES_IMAGES, "模型可以查看图片");
         setValue(L.LABEL_ATTACH_IMAGE, "附加图片");
+        setValue(L.LABEL_AGENT_QUEUED, "排队中");
+        setValue(L.LABEL_AGENT_SEND_NOW, "立即发送");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -762,6 +764,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_TOKEN_BUDGET, "单次运行最多可消耗的令牌数。留空或为零表示智能体不设限；管理员给您的上限始终有效。");
         setValue(L.HELP_AGENT_CONTEXT_LIMIT, "模型上下文的上限（令牌），可低于模型自身的上下文；接近时较早的轮次会被概括。留空则使用模型的上下文。");
         setValue(L.HELP_AGENT_SEES_IMAGES, "当模型可以接收图片时勾选。智能体将获得一个工具，用来查看其工作区中的图片（通过上传放入）。像 Lore Generator 这样把图片发给自己模型的命令，无论此项如何设置，都可以使用工作区中的图片。");
+        setValue(L.HELP_AGENT_MESSAGE_QUEUED, "智能体正在工作。你的消息会等到智能体可以读取时再送达。");
+        setValue(L.HELP_AGENT_SEND_NOW, "丢弃智能体在本轮正在做的工作，并立即发送这条消息。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
