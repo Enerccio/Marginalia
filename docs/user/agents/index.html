@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845717698101">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845719289684">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845717698101" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845719289684" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -287,6 +287,7 @@ these of its own:</p>
 |---|---|
 | Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `delete_file` in its own workspace (notes it keeps between runs). `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`). `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
 | `@file:/path` | Not a tool but a way to call one: a text argument of a command that is exactly `@file:/notes/chapter.md` is replaced by the contents of that file of the agent's workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). `write_file` and `append_file` take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way. |
+| `@result` | Like `@file:`, for the result of a command: a text argument that is exactly `@result` is replaced by the whole result of the last command the agent called, `@result:3` by the result with that number (`list_command_results` shows the numbers). A generated text goes from one command to the next, or into `write_file` and `append_file`, without the agent writing it out. |
 | `update_plan` | Its to-do list. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
@@ -307,6 +308,10 @@ these of its own:</p>
 <tr>
 <td><code translate="no" v-pre>@file:/path</code></td>
 <td>Not a tool but a way to call one: a text argument of a command that is exactly <code translate="no" v-pre>@file:/notes/chapter.md</code> is replaced by the contents of that file of the agent&#x27;s workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). <code translate="no" v-pre>write_file</code> and <code translate="no" v-pre>append_file</code> take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@result</code></td>
+<td>Like <code translate="no" v-pre>@file:</code>, for the result of a command: a text argument that is exactly <code translate="no" v-pre>@result</code> is replaced by the whole result of the last command the agent called, <code translate="no" v-pre>@result:3</code> by the result with that number (<code translate="no" v-pre>list_command_results</code> shows the numbers). A generated text goes from one command to the next, or into <code translate="no" v-pre>write_file</code> and <code translate="no" v-pre>append_file</code>, without the agent writing it out.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>update_plan</code></td>
@@ -500,7 +505,7 @@ a paused, stopped or finished run does not lock it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2303322d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (6f7c8538).</p></div>
             </footer>
         </div>
     </div>

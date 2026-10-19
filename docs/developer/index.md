@@ -74,6 +74,7 @@ the details.
 | [Database & migrations](database.md) | SQLite, Flyway migrations, adding an entity or a column. |
 | [Services](services.md) | Service and repository layer, transactions, the current user. |
 | [Generation pipeline](generation-pipeline.md) | How a story part is generated, step by step. |
+| [Agents](agents.md) | How agents work inside: runs and their states, the runner, the tools, references, the files, the screens. |
 | [Templating & macros](templating.md) | Prompt templates, template data, the macro translator. |
 | [User interface](ui.md) | Routes, workspace, dialogs, push and background threads. |
 | [Custom components](custom-components.md) | The components that draw with a JavaScript library (story tree, charts, graphs), how they work and how to add one. |

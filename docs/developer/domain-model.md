@@ -503,7 +503,7 @@ holder and `PermissionType`; a user without one does not have the permission.
 ## Agents
 
 An agent is an LLM that works on one manuscript on its own and calls commands as its tools; what it does is a run. Both
-extend `ExtendableEntity`. The services are in [Services](services.md#agents).
+extend `ExtendableEntity`. The services are in [Services](agents.md#the-services).
 
 ### `Agent` and `AgentRun` (agents)
 
@@ -524,7 +524,7 @@ extend `ExtendableEntity`. The services are in [Services](services.md#agents).
 | Field | |
 |---|---|
 | `agent` | Column `agent_id`, `OWNED_BY`, nullable like the one above. |
-| `status`, `statusReason` | `AgentRunStatus`, stored by name; `AgentRunStatus.next()` is the table of the allowed changes, `isActive()` (a runner is busy), `isTerminal()`, `isUnfinished()` (blocks the agent), `isResumable()`, `holdsLock()` (the manuscript of the agent is locked, see [Services](services.md#agents)). |
+| `status`, `statusReason` | `AgentRunStatus`, stored by name; `AgentRunStatus.next()` is the table of the allowed changes, `isActive()` (a runner is busy), `isTerminal()`, `isUnfinished()` (blocks the agent), `isResumable()`, `holdsLock()` (the manuscript of the agent is locked, see [Services](agents.md#the-services)). |
 | `workingCopy` | Column `workingCopy_id`, the hidden copy of the manuscript the agent works on, `@CleanupReference(OWNS)`: deleted for good when the run ends (`DONE`, `FAILED`, `STOPPED_DISCARDED`, `APPLIED`) and purged with the run. Eager (the runner takes the book from it on its own threads). Made by `AgentRunService.start`; null only after it ended or before a resumed old run gets one. |
 | `prefillTokens`, `generatedTokens`, `rounds` | What the run spent, all its threads. |
 | `startedAt`, `finishedAt` | `finishedAt` is set when the run stops working (done, stopped, failed) and cleared when it is resumed. |
@@ -547,7 +547,7 @@ restored together.
 
 Besides the rows an agent has files: its **workspace** (`<application folder>/agent-workspaces/<agent uuid>`, notes that stay between the runs)
 and, for each run, a folder (`agent-runs/<run uuid>`). They are not rows and not in the backups of the database; the cleanup, deleting
-for good and cloning an agent take care of them, see [Files of an agent](services.md#files-of-an-agent).
+for good and cloning an agent take care of them, see [Files of an agent](agents.md#files-of-an-agent).
 
 ## Resources
 

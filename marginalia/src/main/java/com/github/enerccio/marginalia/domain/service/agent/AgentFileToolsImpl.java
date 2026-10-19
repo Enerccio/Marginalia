@@ -175,12 +175,19 @@ public final class AgentFileToolsImpl implements AgentFileTools {
 
     /**
      * The text to write: the argument, or the text of the file when it is {@code @file:/path} (the same rule as for the
-     * arguments of the commands, see {@link CommandFunctions#FILE_PREFIX}), so a file is copied or added to another
+     * arguments of the commands, see {@link CommandFunctions#FILE_PREFIX}), or {@code @result}, so a file is copied or added to another
      * without the model writing it again.
      */
     private String textOf(String content) {
         if (content == null) {
             return "";
+        }
+        if (commandResults != null && CommandResults.isReference(content)) {
+            try {
+                return commandResults.resolve(content).text();
+            } catch (IllegalArgumentException e) {
+                throw new VirtualFileException("The argument content: " + e.getMessage(), e);
+            }
         }
         if (!content.startsWith(CommandFunctions.FILE_PREFIX)) {
             return content;

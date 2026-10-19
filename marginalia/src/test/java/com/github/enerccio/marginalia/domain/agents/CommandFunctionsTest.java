@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -573,5 +574,63 @@ class CommandFunctionsTest {
         commands.registerCommands(new Destructive());
         assertThat(definition(withFiles(DestructiveCommandMode.AUTO, null, FILES, "wipe"), "wipe").getParametersSchema().toString())
                 .contains("@file:/path");
+    }
+
+    // --- the results as arguments ---
+
+    private FunctionSet withResults(CommandResults results, Function<String, String> files) {
+        if (commands.getCommands("wipe").isEmpty()) {
+            commands.registerCommands(new Ladder());
+            commands.registerCommands(new Others());
+            commands.registerCommands(new Destructive());
+        }
+        return CommandFunctions.create(commands, List.of("list-things", "long", "wipe"), DestructiveCommandMode.AUTO, l -> l.name(), null,
+                files, results);
+    }
+
+    @Test
+    void aTextArgumentThatIsAResultReferenceIsTheWholeResult() throws Exception {
+        CommandResults results = new CommandResults();
+        FunctionSet set = withResults(results, null);
+
+        call(set, "list-things", "{\"branch\":2}");
+        call(set, "long", "{}");
+        call(set, "list-things", "{\"branch\":3}");
+
+        assertThat(call(set, "wipe", "{\"what\":\"@result\"}")).isEqualTo("wiped things branch=3 offset=null limit=null");
+        assertThat(call(set, "wipe", "{\"what\":\"@result:#1\"}")).isEqualTo("wiped things branch=2 offset=null limit=null");
+        assertThat(call(set, "wipe", "{\"what\":\"@result:2\"}")).contains("[cut: ");
+        assertThat(results.last().text()).as("whole, not cut").hasSize("wiped ".length() + 5_000 * "line of the text\n".length());
+        // anything else is the text it is
+        assertThat(call(set, "wipe", "{\"what\":\"see @result:1\"}")).isEqualTo("wiped see @result:1");
+        // the list shows the reference, not the text
+        assertThat(results.last().arguments()).isEqualTo("what=see @result:1");
+        assertThat(results.get(5).arguments()).isEqualTo("what=@result:#1");
+    }
+
+    @Test
+    void aResultThatIsNotThereIsAnErrorNamingTheArgument() throws Exception {
+        CommandResults results = new CommandResults();
+        FunctionSet set = withResults(results, null);
+
+        assertThat(failure(set, "wipe", "{\"what\":\"@result\"}").getMessage())
+                .isEqualTo("The argument what: There is no result to use yet: call a command first");
+        call(set, "list-things", "{\"branch\":2}");
+        assertThat(failure(set, "wipe", "{\"what\":\"@result:7\"}").getMessage())
+                .isEqualTo("The argument what: There is no result #7, list_command_results shows the ones that are kept");
+        assertThat(failure(set, "wipe", "{\"what\":\"@result:last\"}").getMessage()).contains("is not a reference to a result");
+    }
+
+    @Test
+    void withoutKeptResultsTheReferenceIsJustText() throws Exception {
+        commands.registerCommands(new Destructive());
+        FunctionSet set = functions(DestructiveCommandMode.AUTO, null, "wipe");
+
+        assertThat(call(set, "wipe", "{\"what\":\"@result\"}")).isEqualTo("wiped @result");
+        assertThat(definition(set, "wipe").getParametersSchema().toString()).doesNotContain("@result");
+        assertThat(definition(withResults(new CommandResults(), null), "wipe").getParametersSchema().toString()).contains("@result:3")
+                .doesNotContain("@file:");
+        assertThat(definition(withResults(new CommandResults(), FILES), "wipe").getParametersSchema().toString())
+                .contains("@file:/path").contains("@result:3");
     }
 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845717698101">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845719289684">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845717698101" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845719289684" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845717698101" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845719289684" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1374,7 +1374,7 @@ holder and <code translate="no" v-pre>PermissionType</code>; a user without one 
 </retype-table>
 <h2 id="agents">Agents</h2>
 <p>An agent is an LLM that works on one manuscript on its own and calls commands as its tools; what it does is a run. Both
-extend <code translate="no" v-pre>ExtendableEntity</code>. The services are in <a href="../services/#agents">Services</a>.</p>
+extend <code translate="no" v-pre>ExtendableEntity</code>. The services are in <a href="../agents/#the-services">Services</a>.</p>
 <h3 id="agent-and-agentrun-agents"><code translate="no" v-pre>Agent</code> and <code translate="no" v-pre>AgentRun</code> (agents)</h3>
 <p><code translate="no" v-pre>Agent</code> (table <code translate="no" v-pre>agents</code>, V16) is the definition.</p>
 <retype-table copy-text="| Field | |
@@ -1431,7 +1431,7 @@ extend <code translate="no" v-pre>ExtendableEntity</code>. The services are in <
 <retype-table copy-text="| Field | |
 |---|---|
 | `agent` | Column `agent_id`, `OWNED_BY`, nullable like the one above. |
-| `status`, `statusReason` | `AgentRunStatus`, stored by name; `AgentRunStatus.next()` is the table of the allowed changes, `isActive()` (a runner is busy), `isTerminal()`, `isUnfinished()` (blocks the agent), `isResumable()`, `holdsLock()` (the manuscript of the agent is locked, see [Services](services.md#agents)). |
+| `status`, `statusReason` | `AgentRunStatus`, stored by name; `AgentRunStatus.next()` is the table of the allowed changes, `isActive()` (a runner is busy), `isTerminal()`, `isUnfinished()` (blocks the agent), `isResumable()`, `holdsLock()` (the manuscript of the agent is locked, see [Services](agents.md#the-services)). |
 | `workingCopy` | Column `workingCopy_id`, the hidden copy of the manuscript the agent works on, `@CleanupReference(OWNS)`: deleted for good when the run ends (`DONE`, `FAILED`, `STOPPED_DISCARDED`, `APPLIED`) and purged with the run. Eager (the runner takes the book from it on its own threads). Made by `AgentRunService.start`; null only after it ended or before a resumed old run gets one. |
 | `prefillTokens`, `generatedTokens`, `rounds` | What the run spent, all its threads. |
 | `startedAt`, `finishedAt` | `finishedAt` is set when the run stops working (done, stopped, failed) and cleared when it is resumed. |
@@ -1451,7 +1451,7 @@ extend <code translate="no" v-pre>ExtendableEntity</code>. The services are in <
 </tr>
 <tr>
 <td><code translate="no" v-pre>status</code>, <code translate="no" v-pre>statusReason</code></td>
-<td><code translate="no" v-pre>AgentRunStatus</code>, stored by name; <code translate="no" v-pre>AgentRunStatus.next()</code> is the table of the allowed changes, <code translate="no" v-pre>isActive()</code> (a runner is busy), <code translate="no" v-pre>isTerminal()</code>, <code translate="no" v-pre>isUnfinished()</code> (blocks the agent), <code translate="no" v-pre>isResumable()</code>, <code translate="no" v-pre>holdsLock()</code> (the manuscript of the agent is locked, see <a href="../services/#agents">Services</a>).</td>
+<td><code translate="no" v-pre>AgentRunStatus</code>, stored by name; <code translate="no" v-pre>AgentRunStatus.next()</code> is the table of the allowed changes, <code translate="no" v-pre>isActive()</code> (a runner is busy), <code translate="no" v-pre>isTerminal()</code>, <code translate="no" v-pre>isUnfinished()</code> (blocks the agent), <code translate="no" v-pre>isResumable()</code>, <code translate="no" v-pre>holdsLock()</code> (the manuscript of the agent is locked, see <a href="../agents/#the-services">Services</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>workingCopy</code></td>
@@ -1487,7 +1487,7 @@ carries the extended attribute <code translate="no" v-pre>contextTokens</code> (
 restored together.</p>
 <p>Besides the rows an agent has files: its <strong>workspace</strong> (<code translate="no" v-pre>&lt;application folder&gt;/agent-workspaces/&lt;agent uuid&gt;</code>, notes that stay between the runs)
 and, for each run, a folder (<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;</code>). They are not rows and not in the backups of the database; the cleanup, deleting
-for good and cloning an agent take care of them, see <a href="../services/#files-of-an-agent">Files of an agent</a>.</p>
+for good and cloning an agent take care of them, see <a href="../agents/#files-of-an-agent">Files of an agent</a>.</p>
 <h2 id="resources">Resources</h2>
 <p><code translate="no" v-pre>Resource</code> (<code translate="no" v-pre>resources</code>, an <code translate="no" v-pre>OwnedEntity</code>) is an uploaded file; today the files are the images attached to parts
 (<code translate="no" v-pre>ChatMessage.getImages()</code>, see <doc-anchor-trigger to="#extendableentity---extended-attributes">Extended attributes</doc-anchor-trigger>).</p>
@@ -1730,7 +1730,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2303322d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (6f7c8538).</p></div>
             </footer>
         </div>
     </div>

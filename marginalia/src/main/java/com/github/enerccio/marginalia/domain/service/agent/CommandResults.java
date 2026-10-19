@@ -14,6 +14,9 @@ import java.util.List;
  */
 public final class CommandResults {
 
+    /** A text argument that is exactly this is the newest result, {@code @result:3} (this + ":" + a number) the result #3. */
+    public static final String REFERENCE = "@result";
+
     /** How many results are kept. */
     public static final int KEEP = 10;
     /** The longest text of the arguments of a call that is shown in the list, in characters. */
@@ -57,6 +60,47 @@ public final class CommandResults {
      */
     public synchronized Entry get(int id) {
         return kept.stream().filter(entry -> entry.id() == id).findFirst().orElse(null);
+    }
+
+    /**
+     * Whether a text is a reference to a result: {@value #REFERENCE} or {@value #REFERENCE}{@code :}number.
+     */
+    public static boolean isReference(String text) {
+        return text != null && (text.strip().equals(REFERENCE) || text.strip().startsWith(REFERENCE + ":"));
+    }
+
+    /**
+     * The result a reference ({@link #isReference}) points to: the newest one, or the one with the number.
+     *
+     * @throws IllegalArgumentException with the reason (it goes to the model) when the reference is not valid or the
+     *                                  result is not kept
+     */
+    public Entry resolve(String reference) {
+        String text = reference.strip();
+        Entry entry;
+        if (text.equals(REFERENCE)) {
+            entry = last();
+            if (entry == null) {
+                throw new IllegalArgumentException("There is no result to use yet: call a command first");
+            }
+            return entry;
+        }
+        String number = text.substring(REFERENCE.length() + 1).strip();
+        if (number.startsWith("#")) {
+            number = number.substring(1);
+        }
+        int id;
+        try {
+            id = Integer.parseInt(number);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("'" + text + "' is not a reference to a result, write " + REFERENCE
+                    + " (the newest) or " + REFERENCE + ":3 (the number from list_command_results)");
+        }
+        entry = get(id);
+        if (entry == null) {
+            throw new IllegalArgumentException("There is no result #" + id + ", list_command_results shows the ones that are kept");
+        }
+        return entry;
     }
 
     /**

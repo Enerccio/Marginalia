@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845719289684">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Agents</title>
+    <meta name="title" content="Agents">
+    <meta name="description" content="An agent is an LLM that works on one book on its own, for a long time, and calls commands as its tools; one execution of it is a run. This page is how it all works inside: the pieces, the life of a run, what the model sees and can call, how the user is brought in, and how to add to it.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/agents/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/agents/">
+    <meta property="og:title" content="Agents">
+    <meta property="og:description" content="An agent is an LLM that works on one book on its own, for a long time, and calls commands as its tools; one execution of it is a run. This page is how it all works inside: the pieces, the life of a run, what the model sees and can call, how the user is brought in, and how to add to it.">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/agents/">
+    <meta name="twitter:title" content="Agents">
+    <meta name="twitter:description" content="An agent is an LLM that works on one book on its own, for a long time, and calls commands as its tools; one execution of it is a run. This page is how it all works inside: the pieces, the life of a run, what the model sees and can call, how the user is brought in, and how to add to it.">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/agents.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../resources/css/retype.css?v=4.6.0.845719289684" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.4.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="agents">Agents</h1>
+<p>An <strong>agent</strong> is an LLM that works on one book on its own, for a long time, and calls <a href="../commands/">commands</a> as its tools; one
+execution of it is a <strong>run</strong>. This page is how it all works inside: the pieces, the life of a run, what the model sees and can call,
+how the user is brought in, and how to add to it. What the user sees is in the <a href="../../user/agents/">user guide</a>; the entities
+(<code translate="no" v-pre>Agent</code>, <code translate="no" v-pre>AgentRun</code>, <code translate="no" v-pre>AgentMessage</code>) are in the <a href="../domain-model/#agents">domain model</a>.</p>
+<p>The central idea: <strong>an agent is not a new kind of program but a loop around the things that already exist.</strong> The model is asked
+through the same <code translate="no" v-pre>InferenceService</code> as everything else, the tools are the same commands the command bar runs, and a run works on an
+ordinary (hidden) copy of a book in the same services. What an agent adds is a way to run all that without a browser: a request
+context made from the database, a state machine that can be paused and resumed, a workspace of files, and a transcript that is saved after every round.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    User[&quot;User&lt;br/&gt;(Agents tab, console)&quot;] --&gt;|start, pause, stop, message| RS[&quot;AgentRunService&lt;br/&gt;state of the run&quot;]
+    RS --&gt;|run| Runner[&quot;AgentRunnerImpl&lt;br/&gt;one worker thread per run&quot;]
+    Runner --&gt;|round: prompt + transcript + tools| Inf[&quot;InferenceService&quot;]
+    Inf --&gt;|text and tool calls| Runner
+    Runner --&gt;|calls| Tools[&quot;FunctionSet&quot;]
+    Tools --&gt; Cmd[&quot;CommandFunctions&lt;br/&gt;the allowed commands&quot;]
+    Tools --&gt; Files[&quot;AgentFileTools&lt;br/&gt;workspace files, results&quot;]
+    Tools --&gt; Run[&quot;RunTools&lt;br/&gt;finish, ask_user, plan, status&quot;]
+    Cmd --&gt; CS[&quot;CommandService&lt;br/&gt;the same commands as the command bar&quot;]
+    CS --&gt; Copy[&quot;Working copy of the book&lt;br/&gt;and its lorebooks&quot;]
+    Runner --&gt;|append| Msg[&quot;AgentMessage&lt;br/&gt;transcript&quot;]
+    Runner --&gt;|transition| RS
+    RS --&gt;|notice| Att[&quot;AgentAttentionService&quot;] --&gt; User</pre></div>
+<h2 id="the-pieces">The pieces</h2>
+<retype-table copy-text="| Piece | Where | What it does |
+|---|---|---|
+| `Agent`, `AgentRun`, `AgentMessage` | `domain.model.impl` | The definition, one execution, one row of the transcript. |
+| `AgentService` | `domain.service` | CRUD of the definitions, the grant of the user (`AGENTS` permission), cloning, resolving the model profile. |
+| `AgentRunService` | `domain.service` | The state of a run: start, `transition`, pause, stop, resume, the working copy, the lock of the book, the request context. |
+| `AgentRunner` | `domain.service` | Makes a `RUNNING` run do work: the loop, one worker thread per run. |
+| `AgentMessageService` | `domain.service` | The transcript, append only. |
+| `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. |
+| `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
+| `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `get_run_status`. |
+| `CommandResults` | `domain.service.agent` | The last 10 results of the commands of a run, whole. |
+| `AgentApprovalService`, `AgentAttentionService` | `domain.service` | Bring the user in: approve a command, a notice that a run needs them. |
+| `AgentRequestAttributes`, `AgenticSessionPoint`, `AgentSession` | `bound` | The request context of a run (no browser) and where it finds its book. |
+| `AgentPart`, `AgentConsoleDialog`, `AgentDialog`, ... | `ui.workspace.parts`, `ui.dialogs.agent` | The screens, see [The screens](#the-screens). |
+| `Defaults.DEFAULT_AGENT_PROMPT`, `AGENT_*` | `Defaults` | The texts the model is told, see [What the model is told](#what-the-model-is-told). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Piece</th>
+<th>Where</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>Agent</code>, <code translate="no" v-pre>AgentRun</code>, <code translate="no" v-pre>AgentMessage</code></td>
+<td><code translate="no" v-pre>domain.model.impl</code></td>
+<td>The definition, one execution, one row of the transcript.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentService</code></td>
+<td><code translate="no" v-pre>domain.service</code></td>
+<td>CRUD of the definitions, the grant of the user (<code translate="no" v-pre>AGENTS</code> permission), cloning, resolving the model profile.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentRunService</code></td>
+<td><code translate="no" v-pre>domain.service</code></td>
+<td>The state of a run: start, <code translate="no" v-pre>transition</code>, pause, stop, resume, the working copy, the lock of the book, the request context.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentRunner</code></td>
+<td><code translate="no" v-pre>domain.service</code></td>
+<td>Makes a <code translate="no" v-pre>RUNNING</code> run do work: the loop, one worker thread per run.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentMessageService</code></td>
+<td><code translate="no" v-pre>domain.service</code></td>
+<td>The transcript, append only.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>CommandFunctions</code></td>
+<td><code translate="no" v-pre>domain.service.agent</code></td>
+<td>Turns the allowed commands into functions for the model.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentFileTools</code>, <code translate="no" v-pre>AgentVirtualFileSystemService</code></td>
+<td><code translate="no" v-pre>domain.service.agent</code>, <code translate="no" v-pre>domain.service</code></td>
+<td>The workspace and the file tools; paths are virtual.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>RunTools</code></td>
+<td><code translate="no" v-pre>domain.service.agent</code></td>
+<td><code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>update_plan</code>, <code translate="no" v-pre>get_run_status</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>CommandResults</code></td>
+<td><code translate="no" v-pre>domain.service.agent</code></td>
+<td>The last 10 results of the commands of a run, whole.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentApprovalService</code>, <code translate="no" v-pre>AgentAttentionService</code></td>
+<td><code translate="no" v-pre>domain.service</code></td>
+<td>Bring the user in: approve a command, a notice that a run needs them.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentRequestAttributes</code>, <code translate="no" v-pre>AgenticSessionPoint</code>, <code translate="no" v-pre>AgentSession</code></td>
+<td><code translate="no" v-pre>bound</code></td>
+<td>The request context of a run (no browser) and where it finds its book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentPart</code>, <code translate="no" v-pre>AgentConsoleDialog</code>, <code translate="no" v-pre>AgentDialog</code>, ...</td>
+<td><code translate="no" v-pre>ui.workspace.parts</code>, <code translate="no" v-pre>ui.dialogs.agent</code></td>
+<td>The screens, see <doc-anchor-trigger to="#the-screens">The screens</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Defaults.DEFAULT_AGENT_PROMPT</code>, <code translate="no" v-pre>AGENT_*</code></td>
+<td><code translate="no" v-pre>Defaults</code></td>
+<td>The texts the model is told, see <doc-anchor-trigger to="#what-the-model-is-told">What the model is told</doc-anchor-trigger>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The permission is <code translate="no" v-pre>PermissionType.AGENTS</code>; the limits of it (concurrent runs, token budget, number of agents) are read by
+<code translate="no" v-pre>AgentService.getGrant</code>.</p>
+<h2 id="the-life-of-a-run">The life of a run</h2>
+<p>A run is a row (<code translate="no" v-pre>AgentRun</code>) with a <strong>status</strong> (<code translate="no" v-pre>AgentRunStatus</code>, stored by name). Everything else about it, the transcript, the
+counters, the working copy, hangs on that status, and <strong>only <code translate="no" v-pre>AgentRunService</code> changes it</strong>, with a conditional SQL update (the caller says
+which status it believes the run has; an out of date caller gets an <code translate="no" v-pre>IllegalStateException</code> and looks again).</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">stateDiagram-v2
+    [*] --&gt; RUNNING: start
+    RUNNING --&gt; IDLE: the model answers in text, or ask_user
+    IDLE --&gt; RUNNING: the user writes
+    RUNNING --&gt; WAITING_APPROVAL: a command of an ASK agent
+    WAITING_APPROVAL --&gt; RUNNING: decided
+    RUNNING --&gt; PAUSING: pause, a limit
+    PAUSING --&gt; PAUSED
+    IDLE --&gt; PAUSED
+    WAITING_APPROVAL --&gt; PAUSED
+    PAUSED --&gt; RUNNING: resume
+    RUNNING --&gt; STOPPING: stop
+    STOPPING --&gt; STOPPED_KEPT
+    STOPPING --&gt; STOPPED_DISCARDED
+    PAUSED --&gt; STOPPED_KEPT
+    STOPPED_KEPT --&gt; RUNNING: resume
+    RUNNING --&gt; DONE: finish
+    IDLE --&gt; DONE: Finish in the console
+    RUNNING --&gt; FAILED: the runner broke
+    DONE --&gt; APPLIED: the review (not built yet)</pre></div>
+<p>(The complete table of the allowed changes is <code translate="no" v-pre>AgentRunStatus.next()</code>; the diagram leaves out the discards.)</p>
+<p>Three questions are asked of a status, each a method of the enum:</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>isActive()</code>: a runner is (supposed to be) busy: <code translate="no" v-pre>RUNNING</code>, <code translate="no" v-pre>WAITING_APPROVAL</code>, <code translate="no" v-pre>PAUSING</code>, <code translate="no" v-pre>STOPPING</code>. After a restart of the server a run found in
+one of these was interrupted (<code translate="no" v-pre>recoverInterrupted</code>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>holdsLock()</code>: the book of the agent is locked, see <doc-anchor-trigger to="#the-working-copy-and-the-lock">The working copy and the lock</doc-anchor-trigger>. <code translate="no" v-pre>IDLE</code> holds it too: the
+user is in the middle of a conversation.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>needsAttention(reason)</code>: the user should hear of it, see <doc-anchor-trigger to="#bringing-the-user-in">Bringing the user in</doc-anchor-trigger>.</p>
+</li>
+</ul>
+<p><strong>Pause and stop are requests, not interruptions.</strong> The user&#x27;s button moves a <code translate="no" v-pre>RUNNING</code> run to <code translate="no" v-pre>PAUSING</code> / <code translate="no" v-pre>STOPPING</code>; the worker looks at the
+status at the top of every round (the <em>stable point</em>) and ends the change there. A model request or a command that is going on finishes first. A
+run that waits for the user (<code translate="no" v-pre>IDLE</code>, <code translate="no" v-pre>WAITING_APPROVAL</code>) is paused at once, and when no worker is registered for a run the service finishes the
+change itself, so nothing ever waits for a thread that does not exist. A run that is thrown away (deleted, discarded) is the exception:
+the worker polls for that while it waits and cancels the request.</p>
+<p><strong>A run survives a restart.</strong> Every round is appended to <code translate="no" v-pre>agent_messages</code> before the next request, the status is in the database, and the working
+copy and the workspace are on disk. A resumed run reads its transcript back, repairs its end (calls nobody answered get &quot;interrupted&quot;, a transcript
+that ends with a plain reply gets the resume message, see <code translate="no" v-pre>AgentRunnerImpl.Worker.prepare</code>) and goes on. What is <em>not</em> kept: the
+<code translate="no" v-pre>CommandResults</code> (they live as long as one worker) and the plan is restored from the last <code translate="no" v-pre>update_plan</code> call.</p>
+<h2 id="the-request-context-of-a-run">The request context of a run</h2>
+<p>The commands, the services and <code translate="no" v-pre>Localization</code> find the user and the open book through <strong>session scoped beans</strong> (<code translate="no" v-pre>user</code>, <code translate="no" v-pre>sessionPoint</code>),
+which resolve against the request attributes of the thread. A run has no browser, so <code translate="no" v-pre>AgentRunService.openSession(run)</code> builds the context from
+the database at every start and resume:</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>AgentSession(userUuid, language)</code> is all a run stores of its session: the owner, and the language of the <em>book</em> (not the interface language of
+the user: the agent sees one fixed language, English where the book&#x27;s has no bundle).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>AgentRequestAttributes</code> implements <code translate="no" v-pre>RequestAttributes</code> over two maps in memory (session and request scope). It starts with the <code translate="no" v-pre>user</code>
+bean (a copy of the owner, as the login makes it) and an <code translate="no" v-pre>AgenticSessionPoint</code>. Any other session bean is created on first use, empty.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>AgenticSessionPoint</code> is a <code translate="no" v-pre>SessionPoint</code> that holds the <strong>working copy</strong> directly. <code translate="no" v-pre>CommandUtils.getSessionPoint()</code> returns it for these attributes
+(and the bean of the servlet session for a browser), so <strong>the same command works at the command bar and for an agent</strong>: it asks <code translate="no" v-pre>CommandUtils</code>
+for the book and never knows who is asking. This is why a command must never keep the book in a field or reach for <code translate="no" v-pre>Workspace</code>.</p>
+</li>
+<li>
+<p>The worker enters it with <code translate="no" v-pre>InRequestScope</code>; every thread that works for the run does the same. <code translate="no" v-pre>ThreadCopyRequestAttributes.create()</code> hands
+the <code translate="no" v-pre>AgentRequestAttributes</code> on as it is (a browser session is copied, these are shared), so a command that starts a worker thread (<code translate="no" v-pre>async = true</code>,
+or the generation of a story turn) keeps the context. A test wrapper that is not an <code translate="no" v-pre>AgentRequestAttributes</code> is <em>not</em> handed on: in tests of an
+<code translate="no" v-pre>async</code> command use the real class.</p>
+</li>
+</ul>
+<p>The context checks nothing and is for the runner; whoever builds one (tests, <code translate="no" v-pre>AgenticRequestAttributes</code> in the test sources) must pass a user that
+owns the book.</p>
+<h2 id="the-working-copy-and-the-lock">The working copy and the lock</h2>
+<p>A run never touches the book of the user. <code translate="no" v-pre>AgentRunService.start</code> makes a hidden <strong>working copy</strong> (<code translate="no" v-pre>ManuscriptService.createAgenticCopy</code>: the
+book through its backup JSON, with its own copy of the lorebook tree; everything has <code translate="no" v-pre>agentic = true</code>, new uuids, nothing shared) and stores
+it as <code translate="no" v-pre>AgentRun.workingCopy</code>. The lists of the UI leave the <code translate="no" v-pre>agentic</code> books out (<code translate="no" v-pre>findAllRegular...</code>), the services that delete a copy refuse a book that is not
+<code translate="no" v-pre>agentic</code>, so a path that deletes the book of a user does not exist. <code translate="no" v-pre>DONE</code>, <code translate="no" v-pre>FAILED</code> and a discarded stop delete the copy for good; a pause or a kept stop
+keeps it. Bringing the changes back into the book (the review, <code translate="no" v-pre>APPLIED</code>) is not built yet.</p>
+<p>While a run <code translate="no" v-pre>holdsLock()</code> the <strong>original book is locked</strong>: <code translate="no" v-pre>AgentRunService.checkNotLocked(manuscript)</code> throws <code translate="no" v-pre>ManuscriptLockedException</code>, and the services
+that change a book call it (<code translate="no" v-pre>ManuscriptService.save/delete/restoreBackup</code>, <code translate="no" v-pre>ChatMessageService</code>, <code translate="no" v-pre>SummaryService</code>, <code translate="no" v-pre>ManuscriptReplaceService.apply</code>,
+<code translate="no" v-pre>StoryGenerationService.generateNextTurn</code>). Reading is free, lorebooks are not locked. The screens that open a book ask <code translate="no" v-pre>AgentLockCheck</code> first
+so the user is told which agent holds it instead of getting an error later. A change that a service does not route through these methods is not locked.</p>
+<h2 id="the-services">The services</h2>
+<p><code translate="no" v-pre>AgentService</code> and <code translate="no" v-pre>AgentRunService</code> (<code translate="no" v-pre>domain.service</code>) manage the definitions of agents and their runs, see
+<a href="../domain-model/#agent-and-agentrun-agents"><code translate="no" v-pre>Agent</code> and <code translate="no" v-pre>AgentRun</code></a>. <code translate="no" v-pre>AgentRunner</code> works a started run, see <doc-anchor-trigger to="#the-runner">The runner</doc-anchor-trigger>. This is the reference of what the services do; <doc-anchor-trigger to="#the-life-of-a-run">The life of a run</doc-anchor-trigger> is the overview.</p>
+<p><code translate="no" v-pre>AgentService</code> extends <code translate="no" v-pre>ExtendableService</code>. <code translate="no" v-pre>save</code> checks that a new agent is allowed (<code translate="no" v-pre>getGrant(user).allowed()</code>: administrators,
+or a user with the granted permission <code translate="no" v-pre>AGENTS</code>), the manuscript exists and is the user&#x27;s own, a manuscript has no other agent and the
+manuscript of an existing agent is not changed, the instructions are at most <code translate="no" v-pre>MAX_INSTRUCTIONS_LENGTH</code>, there are at most
+<code translate="no" v-pre>MAX_MODEL_PROFILES</code> profiles with unique non-blank roles and positive limits; names, roles and the allowed commands are trimmed (commands
+also de-duplicated). It does not check that the AI and protocol of a profile exist: <code translate="no" v-pre>resolveProfile(profile)</code> does, when the agent is used.
+An existing agent can be edited after the permission was taken away, it can&#x27;t run. <code translate="no" v-pre>getGrant(user)</code> is an <code translate="no" v-pre>AgentGrant(allowed, maxConcurrentRuns, runTokenBudget, maxAgents)</code>: everything for an administrator, else the settings of the <code translate="no" v-pre>AGENTS</code> permission (1 run, no budget,
+<code translate="no" v-pre>DEFAULT_MAX_AGENTS</code> = 5 agents when not set). <code translate="no" v-pre>save</code> of a <strong>new</strong> agent (so <code translate="no" v-pre>cloneAgent</code> too) refuses with an <code translate="no" v-pre>IllegalStateException</code> when the user already
+has <code translate="no" v-pre>maxAgents</code> agents (the deleted ones don&#x27;t count); <code translate="no" v-pre>canCreate()</code> is the same rule for the UI. <code translate="no" v-pre>cloneAgent(source, name, manuscript)</code> copies the definition to another manuscript of the user, <code translate="no" v-pre>findForManuscript</code>,
+<code translate="no" v-pre>deleteForManuscript(manuscript, hard)</code> (called by <code translate="no" v-pre>ManuscriptService.delete</code>) and <code translate="no" v-pre>delete</code>, which deletes the runs first.</p>
+<p><code translate="no" v-pre>AgentRunService</code> extends <code translate="no" v-pre>ExtendableService</code>. The status and the counters change only here, by SQL updates (<code translate="no" v-pre>AgentRunRepository</code>):</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>start(agent)</code> creates a run in <code translate="no" v-pre>RUNNING</code> (the language of the book). It refuses (<code translate="no" v-pre>SecurityException</code>, <code translate="no" v-pre>IllegalArgumentException</code> for an agent
+that is not the user&#x27;s, <code translate="no" v-pre>IllegalStateException</code> otherwise) when the user is not allowed, the agent is disabled, has no main model or the main model
+can&#x27;t be resolved, the agent has an unfinished run, or the user has all the concurrent runs of the grant (<code translate="no" v-pre>RUNNING</code>, <code translate="no" v-pre>WAITING_APPROVAL</code>,
+<code translate="no" v-pre>PAUSING</code>, <code translate="no" v-pre>STOPPING</code>; a run waiting for the user in <code translate="no" v-pre>IDLE</code> is not counted).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>transition(run, to, reason)</code> changes the status along <code translate="no" v-pre>AgentRunStatus.next()</code>. The status of the <code translate="no" v-pre>run</code> argument is the one the caller
+believes the run has: the update is conditional on it (and on the owner), so a runner whose run was paused by the user in between gets
+an <code translate="no" v-pre>IllegalStateException</code> and has to look again. The update comes first and nothing is read before it: in WAL mode SQLite fails a
+transaction that reads and then writes when another transaction wrote in between, at once and without waiting. It returns the run as it is now.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>addUsage(run, prefill, generated)</code> adds to the counters and counts a round, safe for the parallel threads of a run;
+<code translate="no" v-pre>getTokenBudget(run)</code> is the smaller of the agent&#x27;s budget and the grant&#x27;s (0 is none), <code translate="no" v-pre>isBudgetExceeded(run)</code>.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>start</code> makes the <strong>working copy</strong> of the run before it saves it (<code translate="no" v-pre>ManuscriptService.createAgenticCopy</code>: the book through its backup JSON without the
+lorebook link, plus its own copy of the lorebook tree from <code translate="no" v-pre>LorebookService.copyLorebooks</code>; every copy has <code translate="no" v-pre>agentic = true</code>, new uuids and nothing
+shared with the original) and stores it as <code translate="no" v-pre>AgentRun.workingCopy</code>. <code translate="no" v-pre>transition</code> to <code translate="no" v-pre>DONE</code>, <code translate="no" v-pre>FAILED</code>, <code translate="no" v-pre>STOPPED_DISCARDED</code> or <code translate="no" v-pre>APPLIED</code> (the
+<code translate="no" v-pre>COPY_ENDING</code> statuses) deletes the copy for good and sets the column to null (<code translate="no" v-pre>AgentRunRepository.updateWorkingCopy</code>, an SQL update first, the
+run lets go of it before the copy is deleted: <code translate="no" v-pre>ManuscriptService.deleteAgenticCopy</code> hard deletes the messages with their summaries
+(<code translate="no" v-pre>ChatMessageService.hardDeleteForManuscript</code>, the soft deleted ones too, children first), the tags and the copy&#x27;s lorebooks
+(<code translate="no" v-pre>LorebookService.deleteAgenticCopy</code>: the tree, its entries and tags); both refuse anything whose <code translate="no" v-pre>agentic</code> is false, so a book of the user
+can&#x27;t be deleted by this path). <code translate="no" v-pre>PAUSED</code> and <code translate="no" v-pre>STOPPED_KEPT</code> keep the copy, <code translate="no" v-pre>resume</code> makes one for a run that has none, a new run makes a new copy.
+Not done: the uuid pairs, the base snapshot and the merge back.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>delete(run, hard)</code> discards a run that is not over (<code translate="no" v-pre>STOPPED_DISCARDED</code>) and deletes its working copy for good first.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>pause(run)</code>, <code translate="no" v-pre>stop(run, keep)</code> and <code translate="no" v-pre>resume(run)</code> are what the buttons of the Agents tab call. A run that waits for the user (<code translate="no" v-pre>IDLE</code>,
+<code translate="no" v-pre>WAITING_APPROVAL</code>) is paused at once; a <code translate="no" v-pre>RUNNING</code> one goes to <code translate="no" v-pre>PAUSING</code> / <code translate="no" v-pre>STOPPING</code> and the runner finishes the change at its next stable
+point, unless <strong>no worker is registered</strong> for it (<code translate="no" v-pre>workerStarted(run)</code> / <code translate="no" v-pre>workerFinished(run)</code>, the runner&#x27;s to call, a set of run ids in
+memory), then the service takes the second step itself, so nothing waits for a runner that does not exist. <code translate="no" v-pre>stop</code> of a run that is paused,
+kept or done changes it at once; discarding deletes the working copy. <code translate="no" v-pre>resume</code> checks what <code translate="no" v-pre>start</code> checks (except the one-unfinished-run rule,
+the run is that run). All three take the status of the <code translate="no" v-pre>run</code> the caller has and fail with an <code translate="no" v-pre>IllegalStateException</code> when it is out of date.</p>
+</li>
+<li>
+<p><strong>Attention.</strong> <code translate="no" v-pre>AgentRunStatus.needsAttention(reason)</code> says which statuses the user should hear of (<code translate="no" v-pre>IDLE</code>, <code translate="no" v-pre>WAITING_APPROVAL</code>, <code translate="no" v-pre>DONE</code>, <code translate="no" v-pre>FAILED</code>, a <code translate="no" v-pre>PAUSED</code> with a
+reason); every status change writes it into the column <code translate="no" v-pre>agent_runs.attention</code> in the same SQL update as the status (<code translate="no" v-pre>JpaAgentRunRepository.statusUpdate</code>), so it is
+stored while the user is away. <code translate="no" v-pre>findNeedingAttention()</code> reads it, <code translate="no" v-pre>acknowledge(run)</code> clears it. After the transaction commits, <code translate="no" v-pre>start</code>, every <code translate="no" v-pre>transition</code> and <code translate="no" v-pre>acknowledge</code> hand the run
+to <code translate="no" v-pre>AgentAttentionService.publish</code> (every change, with <code translate="no" v-pre>Notice.attention</code> telling whether it needs the user: a stop or a pause is finished by the worker later, and the tables of
+agents on the open screens have to show where it ended), which calls the listeners subscribed for the owner (<code translate="no" v-pre>subscribe(userId, listener)</code>, a plain observer in memory with no UI in it): the
+Agents tab of every open UI subscribes in <code translate="no" v-pre>create()</code>, keeps the <code translate="no" v-pre>RequestAttributes</code> of its session (<code translate="no" v-pre>ThreadCopyRequestAttributes.create()</code>) and runs the notice through
+<code translate="no" v-pre>ui.access</code> + <code translate="no" v-pre>InRequestScope</code>.</p>
+</li>
+<li>
+<p><strong>Approvals.</strong> <code translate="no" v-pre>AgentApprovalService</code> keeps, in memory, the commands an agent in the <code translate="no" v-pre>ASK</code> mode waits to run (<code translate="no" v-pre>request</code> returns the future of the decision). The
+runner&#x27;s <code translate="no" v-pre>Worker.approve</code> is the <code translate="no" v-pre>CommandFunctions.Approval</code>: it registers the request, moves the run <code translate="no" v-pre>RUNNING</code> to <code translate="no" v-pre>WAITING_APPROVAL</code>, and returns a future that
+completes on a thread of the run in its <code translate="no" v-pre>InRequestScope</code>, so the command that follows is never run in the session of the user&#x27;s browser; <code translate="no" v-pre>backToWork</code> moves the run back
+to <code translate="no" v-pre>RUNNING</code> when nothing waits. <code translate="no" v-pre>transition</code> to <code translate="no" v-pre>PAUSED</code>, <code translate="no" v-pre>STOPPING</code>, <code translate="no" v-pre>STOPPED_*</code>, <code translate="no" v-pre>DONE</code> or <code translate="no" v-pre>FAILED</code> calls <code translate="no" v-pre>rejectAll</code>. <code translate="no" v-pre>pending(run)</code> and <code translate="no" v-pre>decide(run, id, approved)</code>
+check that the run is the user&#x27;s.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>findLockingRun(manuscript)</code> is the run of the non-deleted agent of the book whose status <code translate="no" v-pre>holdsLock()</code> (<code translate="no" v-pre>RUNNING</code>, <code translate="no" v-pre>IDLE</code>, <code translate="no" v-pre>WAITING_APPROVAL</code>,
+<code translate="no" v-pre>PAUSING</code>, <code translate="no" v-pre>STOPPING</code>; whoever owns it), <code translate="no" v-pre>checkNotLocked(manuscript)</code> throws the <code translate="no" v-pre>ManuscriptLockedException</code> (it carries the agent name) when there is
+one. It is called by <code translate="no" v-pre>ManuscriptService</code> (<code translate="no" v-pre>save</code>, <code translate="no" v-pre>delete</code>, <code translate="no" v-pre>restoreBackup</code>), <code translate="no" v-pre>ChatMessageService</code> (<code translate="no" v-pre>save</code>, <code translate="no" v-pre>delete</code>), <code translate="no" v-pre>SummaryService</code>
+(creating, updating, attaching and removing a summary), <code translate="no" v-pre>ManuscriptReplaceService.apply</code> and <code translate="no" v-pre>StoryGenerationService.generateNextTurn</code>. Reading is
+free, lorebooks are not locked, and the lock follows the status: paused, stopped and finished runs release it. A change of the manuscript
+that a service does not route through these methods is not locked.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>openSession(run)</code> makes the <strong>request context of a run</strong> (<code translate="no" v-pre>AgentRequestAttributes</code>, package <code translate="no" v-pre>bound</code>) from the database for every start and
+resume. A run stores only its <code translate="no" v-pre>AgentSession(userUuid, language)</code> (<code translate="no" v-pre>AgentSession.of(run)</code>: the owner of the run and the language of the book;
+the UI language of the user does not matter, the agent sees one fixed language, English where the book&#x27;s has no localization bundle). The attributes
+are not a servlet request: they hold the session scope in memory, with the <code translate="no" v-pre>user</code> bean (a copy of the owner, with uuid) and the <code translate="no" v-pre>sessionPoint</code>
+(an <code translate="no" v-pre>AgenticSessionPoint</code> on the working copy; a run without one fails with an <code translate="no" v-pre>IllegalStateException</code>, the agent never gets the book of the user), so <code translate="no" v-pre>currentUser</code>, the services and
+<code translate="no" v-pre>Localization</code> resolve on any thread that enters them with <code translate="no" v-pre>InRequestScope</code>. All the threads of the run share the one object:
+<code translate="no" v-pre>ThreadCopyRequestAttributes.create()</code> hands it on, so the commands and the generation worker started from a command keep the context. The runner
+closes it (<code translate="no" v-pre>close()</code> runs the destruction callbacks) when the run stops working. It checks nothing, it is for the runner.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>recoverInterrupted()</code> is for the start of the server, when no runner is alive: <code translate="no" v-pre>STOPPING</code> becomes <code translate="no" v-pre>STOPPED_KEPT</code>, the other active statuses
+<code translate="no" v-pre>PAUSED</code>, with a reason. It needs no user; <code translate="no" v-pre>AgentRunnerImpl</code> calls it when the singletons are created (<code translate="no" v-pre>SmartInitializingSingleton</code>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>getStopTarget(run)</code> and <code translate="no" v-pre>endStop(run)</code>: <code translate="no" v-pre>stop</code> of a working run remembers in memory whether the result is kept and the worker ends the stop (<code translate="no" v-pre>STOPPING</code> to that status, the copy dropped for a discard); without a worker <code translate="no" v-pre>stop</code> ends it at once. <code translate="no" v-pre>workerFinished</code> forgets the choice.</p>
+</li>
+</ul>
+<h2 id="the-runner">The runner</h2>
+<p><code translate="no" v-pre>AgentRunner</code> (<code translate="no" v-pre>AgentRunnerImpl</code>, <code translate="no" v-pre>domain.service</code>) is what makes a run do anything. <code translate="no" v-pre>run(run)</code> takes a <code translate="no" v-pre>RUNNING</code> run up (it throws for another status, and
+does nothing when a worker has it already): it registers the worker with <code translate="no" v-pre>workerStarted</code> before the thread starts, so a pause asked at once waits for it.
+<code translate="no" v-pre>send(run, text)</code> is the message of the user to an <code translate="no" v-pre>IDLE</code> run (<code translate="no" v-pre>IDLE</code> to <code translate="no" v-pre>RUNNING</code>, the message appended, a worker started). The UI calls <code translate="no" v-pre>run</code> after
+<code translate="no" v-pre>start</code> and <code translate="no" v-pre>resume</code> (<code translate="no" v-pre>run(run, firstMessage)</code> appends that first message to the empty transcript of a run first, for the run started from the console, where the
+agent is told to ask the author at once). A worker (a daemon thread of a cached pool) does this, in <code translate="no" v-pre>InRequestScope</code> of the <code translate="no" v-pre>AgentRequestAttributes</code> of <code translate="no" v-pre>openSession</code>, which it closes at the end:</p>
+<ol>
+<li>
+<p>Loads the run, resolves the main profile (a model that is gone pauses the run), reads the transcript (<code translate="no" v-pre>AgentMessageService.transcript</code>) and repairs its end: a
+new run gets <code translate="no" v-pre>Defaults.DEFAULT_AGENT_START_MESSAGE</code>, calls of the last assistant message without a result get <code translate="no" v-pre>Defaults.AGENT_INTERRUPTED_CALL</code>, a transcript that ends
+with a plain assistant reply gets <code translate="no" v-pre>Defaults.DEFAULT_AGENT_RESUME_MESSAGE</code>. The plan is read back from the last <code translate="no" v-pre>update_plan</code> call.</p>
+</li>
+<li>
+<p>Builds the tools: <code translate="no" v-pre>CommandFunctions.forAgent(...)</code> (with a reader of the files of the run and the <code translate="no" v-pre>CommandResults</code> of the run, see <doc-anchor-trigger to="#references">References</doc-anchor-trigger>) <code translate="no" v-pre>and</code> the file tools of <code translate="no" v-pre>AgentVirtualFileSystemService</code> <code translate="no" v-pre>and</code> <code translate="no" v-pre>RunTools</code> bound to a <code translate="no" v-pre>RunToolsImpl</code>
+(a name used twice fails the run). The <code translate="no" v-pre>ASK</code> approval is <code translate="no" v-pre>Worker.approve</code>, see <doc-anchor-trigger to="#bringing-the-user-in">Bringing the user in</doc-anchor-trigger>.</p>
+</li>
+<li>
+<p>Loops. At the top, the <strong>stable point</strong>: the status is read, and <code translate="no" v-pre>PAUSING</code> becomes <code translate="no" v-pre>PAUSED</code>, <code translate="no" v-pre>STOPPING</code> ends with <code translate="no" v-pre>endStop</code>, any other status than <code translate="no" v-pre>RUNNING</code> ends the worker.
+Then the limits: rounds (<code translate="no" v-pre>Agent.maxRounds</code>), <code translate="no" v-pre>isBudgetExceeded</code>, and the context (the lowest cap of the agent, the profile and the AI against the tokens of the
+last request, the first one estimated); a limit pauses the run with the reason. The request is <code translate="no" v-pre>InferenceService.round</code> with the system message (prompt,
+instructions, <code translate="no" v-pre>Defaults.AGENT_RUNNER_NOTE</code>, for a conversation also <code translate="no" v-pre>Defaults.AGENT_INTERACTIVE_NOTE</code>, and the limits of the model: the context cap and <code translate="no" v-pre>TokenLimits.responseTokens</code>, as <code translate="no" v-pre>limitsNote</code>) and the transcript; a failure of it (also the limits of the user&#x27;s AI) pauses the run. The usage goes to <code translate="no" v-pre>addUsage</code>, the answer is
+appended with its context and its reasoning (<code translate="no" v-pre>appendAnswer</code>; the round callback&#x27;s <code translate="no" v-pre>onRound(text, reasoning, calls, usage)</code> brings the reasoning, read from <code translate="no" v-pre>reasoning_content</code> / <code translate="no" v-pre>reasoning</code> of the message), a reply without calls ends the turn (<code translate="no" v-pre>IDLE</code>), otherwise every call runs one after another on a thread in the context of the run and the results are appended
+together (<code translate="no" v-pre>Error: &lt;message&gt;</code> for a failure, as the inference service writes it). After the round <code translate="no" v-pre>finish</code> makes the run <code translate="no" v-pre>DONE</code> (the report is the status reason, cut
+at 2 000 characters) and <code translate="no" v-pre>ask_user</code> makes it <code translate="no" v-pre>IDLE</code> (the question is the reason).</p>
+</li>
+<li>
+<p>While it waits for a request or a call the worker looks every second whether the run was thrown away (deleted or <code translate="no" v-pre>STOPPED_DISCARDED</code>) and cancels the request
+and ends; a pause and a stop wait.</p>
+</li>
+</ol>
+<p>A status change that finds another status than it expected (the user paused meanwhile) is not an error: <code translate="no" v-pre>reach</code> and <code translate="no" v-pre>pause</code> then do the pause or stop that was asked.
+Anything the worker throws that is not one of these makes the run <code translate="no" v-pre>FAILED</code> with the message. <code translate="no" v-pre>RunTools</code> (<code translate="no" v-pre>domain.service.agent</code>) are <code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>update_plan</code>
+(statuses <code translate="no" v-pre>pending</code>, <code translate="no" v-pre>in_progress</code>, <code translate="no" v-pre>done</code>; the usual other spellings are mapped) and <code translate="no" v-pre>get_run_status</code>; <code translate="no" v-pre>RunToolsImpl</code> only notes the request of the model, the worker acts on
+it after the round, so every call of the round has its result in the transcript first.</p>
+<p>The transcript is <code translate="no" v-pre>AgentMessage</code> (table <code translate="no" v-pre>agent_messages</code>): the run, the <code translate="no" v-pre>ordinal</code> and the <code translate="no" v-pre>LLMChatMessage</code> as JSON in an extended attribute, only appended. The system
+message is not stored.</p>
+<p><code translate="no" v-pre>InferenceService.round(payload, protocol, functions, callback)</code> is what the runner uses instead of <code translate="no" v-pre>stream</code>/<code translate="no" v-pre>infer</code>: one non-streaming request that reports the
+text, the calls the model asked for (they are not called) and the tokens (the provider&#x27;s, otherwise ours), with the limits and the usage of the user as for any
+request. Services that can&#x27;t do it throw <code translate="no" v-pre>UnsupportedOperationException</code>.</p>
+<h2 id="what-the-model-is-told">What the model is told</h2>
+<p>The model gets, in every request, a system message built by <code translate="no" v-pre>AgentRunnerImpl.Worker.payload</code> from these parts, in this order, and the transcript after it.
+The system message is <strong>never stored</strong>: it is made again for every round, so a change in <code translate="no" v-pre>Defaults</code> reaches a run that is resumed.</p>
+<retype-table copy-text="| Part | From |
+|---|---|
+| The system prompt of the agent | `Agent.systemPrompt`, a new agent starts with `Defaults.DEFAULT_AGENT_PROMPT` (the editorial role and working rules). |
+| `# Instructions of the author` | `Agent.instructions`, the &quot;agents.md&quot; of the user. The agent can read it and never change it. |
+| How this run works | `Defaults.AGENT_RUNNER_NOTE`: rounds, `finish` / `ask_user` / `update_plan`, the cost of writing, `@file:` and `@result`. This is where a rule for *all* agents goes. |
+| A conversation | `Defaults.AGENT_INTERACTIVE_NOTE`, only for a run started from the console: `finish` does not end it. |
+| Limits of the model | `limitsNote`: the context cap and `TokenLimits.responseTokens` (the longest answer), because a model that does not know it tries to write a 100 000 token file in one call and the call is cut off. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Part</th>
+<th>From</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The system prompt of the agent</td>
+<td><code translate="no" v-pre>Agent.systemPrompt</code>, a new agent starts with <code translate="no" v-pre>Defaults.DEFAULT_AGENT_PROMPT</code> (the editorial role and working rules).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre># Instructions of the author</code></td>
+<td><code translate="no" v-pre>Agent.instructions</code>, the &quot;agents.md&quot; of the user. The agent can read it and never change it.</td>
+</tr>
+<tr>
+<td>How this run works</td>
+<td><code translate="no" v-pre>Defaults.AGENT_RUNNER_NOTE</code>: rounds, <code translate="no" v-pre>finish</code> / <code translate="no" v-pre>ask_user</code> / <code translate="no" v-pre>update_plan</code>, the cost of writing, <code translate="no" v-pre>@file:</code> and <code translate="no" v-pre>@result</code>. This is where a rule for <em>all</em> agents goes.</td>
+</tr>
+<tr>
+<td>A conversation</td>
+<td><code translate="no" v-pre>Defaults.AGENT_INTERACTIVE_NOTE</code>, only for a run started from the console: <code translate="no" v-pre>finish</code> does not end it.</td>
+</tr>
+<tr>
+<td>Limits of the model</td>
+<td><code translate="no" v-pre>limitsNote</code>: the context cap and <code translate="no" v-pre>TokenLimits.responseTokens</code> (the longest answer), because a model that does not know it tries to write a 100 000 token file in one call and the call is cut off.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The first message of a run is a user message too: <code translate="no" v-pre>Defaults.DEFAULT_AGENT_START_MESSAGE</code> (work now; the task is in the instructions) or, for a run
+started from the console, <code translate="no" v-pre>AGENT_CONSOLE_START_MESSAGE</code> (do not work yet, call <code translate="no" v-pre>ask_user</code> at once). A run that goes on after a pause with the last
+word being the model&#x27;s gets <code translate="no" v-pre>DEFAULT_AGENT_RESUME_MESSAGE</code>; a call that was in the air when the server stopped is answered with
+<code translate="no" v-pre>AGENT_INTERRUPTED_CALL</code>.</p>
+<p>The descriptions of the commands are part of the prompt in practice: a model decides what to call from <code translate="no" v-pre>llmDescriptionText</code> and the
+<code translate="no" v-pre>descriptionText</code> of the parameters, see <doc-anchor-trigger to="#writing-commands-for-agents">Writing commands for agents</doc-anchor-trigger>. The parameter descriptions of the text
+parameters also get <code translate="no" v-pre>AGENT_FILE_ARGUMENT_HINT</code> and <code translate="no" v-pre>AGENT_RESULT_ARGUMENT_HINT</code>.</p>
+<h2 id="the-tools-of-an-agent">The tools of an agent</h2>
+<p><code translate="no" v-pre>AgentRunnerImpl.Worker.tools()</code> puts three function sets together with <code translate="no" v-pre>FunctionSet.and</code> (a function name used twice fails the run):</p>
+<div id="the-tools-of-an-agent-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">CommandFunctions.forAgent(...)                    the commands the agent is allowed
+  .and(fileSystemService.getFileTools(files, results))   list_files, read_file, write_file, ..., save_command_result
+  .and(registry.bind(RunTools.class, runTools))          finish, ask_user, update_plan, get_run_status</code></pre>
+</doc-codeblock></div>
+<p>A round is one <strong>non-streaming</strong> request (<code translate="no" v-pre>InferenceService.round</code>) that answers with text, the calls the model asked for (they are not called by the
+inference service) and the tokens. The runner calls them itself, <strong>one after another in the order the model wrote them</strong>, each on a thread of its pool inside
+the context of the run, and appends all the results together as the next messages; a failure is the text <code translate="no" v-pre>Error: &lt;message&gt;</code> so the model can correct the
+call. Because the order is kept, a call may use what an earlier call of the same answer did (<code translate="no" v-pre>save_command_result</code> right after a command).
+<code translate="no" v-pre>RunTools</code> only <em>notes</em> what the model asked (the report, the question, the plan); the worker acts on it after the round, so that every call of the round
+has its result in the transcript first.</p>
+<h3 id="commands-as-functions">Commands as functions</h3>
+<p><code translate="no" v-pre>CommandFunctions</code> (package <code translate="no" v-pre>domain.service.agent</code>) turns the commands an agent may call into a <code translate="no" v-pre>FunctionSet</code>: <code translate="no" v-pre>forAgent(commandService, agent, lookup, approval)</code> offers the commands on the allowlist of the agent, <code translate="no" v-pre>create(commandService, names, mode, lookup, approval)</code> the ones named. <code translate="no" v-pre>lookup</code> gives the
+texts (<code translate="no" v-pre>localization::getValue</code>; the descriptions are for the model, so build the set inside the context of the run). It is built for a run and combined with
+the tools of the runner by <code translate="no" v-pre>FunctionSet.and</code>; the arguments may hold <doc-anchor-trigger to="#references">references</doc-anchor-trigger>.</p>
+<ul>
+<li>
+<p><strong>One function per command.</strong> The forms (overloads) of a command share one schema: the union of their parameters in the order of the ladder, a type
+that differs between the forms is &quot;any&quot;. A call goes to the form with the fewest parameters that has every argument the model passed, the parameters of
+it the model left out are null or their <code translate="no" v-pre>defaultValue</code>; a middle option left out therefore works. Arguments no form takes, a missing required one
+or a value outside <code translate="no" v-pre>allowed</code> are an <code translate="no" v-pre>INVALID_ARGUMENTS</code> error that says which. A command without a declared signature takes any properties.</p>
+</li>
+<li>
+<p><strong>Required</strong> is not declared: a parameter is required when every form with a signature has it and none marks it <code translate="no" v-pre>optional</code> (see
+<a href="../commands/writing-commands/">writing commands</a>). The schema carries <code translate="no" v-pre>description</code>, <code translate="no" v-pre>enum</code> (enum types and <code translate="no" v-pre>allowed</code>) and <code translate="no" v-pre>default</code>.</p>
+</li>
+<li>
+<p><strong>Names.</strong> A command name that is a valid function name (<code translate="no" v-pre>[a-zA-Z0-9_-]{1,64}</code>) is the function name. Any other is written with <code translate="no" v-pre>_</code> for every
+character that is not allowed, cut so that it fits, and <code translate="no" v-pre>_</code> plus six hexadecimal digits of the SHA-256 of the command name (<code translate="no" v-pre>functionName</code>). The rule
+looks at the name only, never at what else is registered, so the name in a stored transcript means the same command after a restart (and <code translate="no" v-pre>foo.bar</code>
+is never taken for a command <code translate="no" v-pre>foo_bar</code>). Names are resolved by the name at every call, so a command that is gone answers &quot;not available now&quot;.</p>
+</li>
+<li>
+<p><strong>Result and errors.</strong> The result is bounded (<code translate="no" v-pre>MAX_RESULT_LENGTH</code>, 20 000 characters, cut at a line with a note how much there was): a string as it is,
+anything else JSON, nothing &quot;OK&quot;. A failure is the message of the cause (no class names), which the inference service writes as <code translate="no" v-pre>Error: &lt;message&gt;</code>.</p>
+</li>
+<li>
+<p><strong>Policy.</strong> Only the allowed commands exist for the model. A <code translate="no" v-pre>DESTRUCTIVE</code> command follows <code translate="no" v-pre>Agent.getDestructiveMode()</code>: <code translate="no" v-pre>DENY</code> leaves it out,
+<code translate="no" v-pre>AUTO</code> runs it, <code translate="no" v-pre>ASK</code> asks the <code translate="no" v-pre>Approval</code> (a future of the decision of the user; the call waits for it and no thread is held) and refuses when there is none.</p>
+</li>
+<li>
+<p><strong>Context.</strong> The commands run as whoever the thread is: the inference service calls the functions in the request context of the caller, which for a run is
+the <code translate="no" v-pre>AgentRequestAttributes</code> of <code translate="no" v-pre>openSession</code>, and the command service hands it on to the commands that run on a worker. Nothing is aimed at the
+working copy by the adapter itself; that is what the context (the <code translate="no" v-pre>AgenticSessionPoint</code> of the run) does.</p>
+</li>
+</ul>
+<h3 id="references">References</h3>
+<p>A long text should not pass through the model twice: the model pays for every token it writes (time, and the limit of one answer), and a text it
+has already read is in its context. Two references let a call name the text instead of writing it. Both are a <strong>whole value</strong> of an argument
+(<code translate="no" v-pre>@file:/notes/a.md</code>, <code translate="no" v-pre>@result</code>, <code translate="no" v-pre>@result:3</code>; text inside a longer value is just text) and both are replaced <strong>before the call</strong>, so the command
+(and the approval dialog) gets the real text, while the transcript keeps the short call.</p>
+<retype-table copy-text="| Reference | Is | Works in |
+|---|---|---|
+| `@file:/path` | The text of that file of the workspace. | The text parameters of the commands, the `content` of `write_file` and `append_file`. |
+| `@result` | The whole result of the newest call of a command in the run. | The same places. |
+| `@result:3` (also `@result:#3`) | The whole result with that number. | The same places. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Reference</th>
+<th>Is</th>
+<th>Works in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>@file:/path</code></td>
+<td>The text of that file of the workspace.</td>
+<td>The text parameters of the commands, the <code translate="no" v-pre>content</code> of <code translate="no" v-pre>write_file</code> and <code translate="no" v-pre>append_file</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@result</code></td>
+<td>The whole result of the newest call of a command in the run.</td>
+<td>The same places.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>@result:3</code> (also <code translate="no" v-pre>@result:#3</code>)</td>
+<td>The whole result with that number.</td>
+<td>The same places.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p><code translate="no" v-pre>CommandFunctions.readReferences</code> does the replacing, once the arguments are known and before the form of the command is picked, and only for a
+parameter that is a text in every form that has it: a number or a boolean is left as the model wrote it. A reference that
+cannot be resolved is an error naming the argument (<code translate="no" v-pre>The argument text: There is no result #7, list_command_results shows the ones that are kept</code>),
+so the model corrects it. The functions are told about the references in the schema (the description of every text parameter gets the hint) and in the
+runner note; <code translate="no" v-pre>@file:</code> is a reference only when the agent has files (a <code translate="no" v-pre>files</code> reader was given) and <code translate="no" v-pre>@result</code> only when results are kept (a <code translate="no" v-pre>CommandResults</code>
+was given), otherwise the text is passed as it is.</p>
+<p><code translate="no" v-pre>CommandResults</code> is the holder of the results: one per <code translate="no" v-pre>tools()</code>, shared by the commands (which add to it) and the file tools (which read it).
+<code translate="no" v-pre>CommandFunctions.run</code> adds the result of every call that <strong>returned</strong> (a failure keeps nothing) with the function name, the arguments as one short
+line (<code translate="no" v-pre>describeArguments</code>; an argument that was a reference shows the reference) and the text <strong>before</strong> the model&#x27;s 20 000 characters cut, so what a reference
+inserts and <code translate="no" v-pre>save_command_result</code> writes is all of it even when the model saw a cut one. The last <code translate="no" v-pre>KEEP</code> = 10 are kept, numbers count from 1 in the run, the
+holder lives as long as one worker (a resumed run starts empty). <code translate="no" v-pre>list_command_results</code> shows them newest first, <code translate="no" v-pre>save_command_result(path, id?, append?)</code>
+writes one to a file by the same atomic write as <code translate="no" v-pre>write_file</code>. A result is added after the command returned and before the next call is read, so the
+newest is always the one of the previous call.</p>
+<h3 id="files-of-an-agent">Files of an agent</h3>
+<p><code translate="no" v-pre>AgentVirtualFileSystemService</code> hands out the files of agents. Two folders in the application folder (not in <code translate="no" v-pre>data/</code>, which is named by logins):
+<code translate="no" v-pre>agent-workspaces/&lt;agent uuid&gt;</code> is the <strong>workspace</strong>, which belongs to the agent and stays between its runs (the notes it keeps), and
+<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;</code> is the folder of a run (<code translate="no" v-pre>base/</code> and <code translate="no" v-pre>checkpoints/</code>, nothing writes them yet; <code translate="no" v-pre>RunFolder</code> is the layout). The uuids are
+checked, so no value of the database makes a path leave these folders. <code translate="no" v-pre>open(run)</code> is the file system of a run (the workspace and <code translate="no" v-pre>/checkpoints</code>),
+<code translate="no" v-pre>openWorkspace(agent)</code> the workspace alone for the user to look at; both refuse (<code translate="no" v-pre>IllegalArgumentException</code>) what is not the user&#x27;s own.
+<code translate="no" v-pre>getFileTools(fileSystem)</code> binds <code translate="no" v-pre>AgentFileTools</code> to it (a <code translate="no" v-pre>FunctionSet</code>, to be put with the other tools of the run). <code translate="no" v-pre>clearWorkspace</code> refuses
+while the agent works, <code translate="no" v-pre>copyWorkspace</code> is what <code translate="no" v-pre>AgentService.cloneAgent</code> calls, and a workspace is deleted with an agent that is deleted for good
+(not with a soft deleted one: it can be restored) and by the cleanup (the service is a <code translate="no" v-pre>CleanupContributor</code>), a run folder with its run; the
+files go after the transaction committed, a rollback does not bring them back.</p>
+<p>The model never gets a path of the disk. A string it wrote goes through three steps, all in <code translate="no" v-pre>domain.service.agent</code>:</p>
+<div id="files-of-an-agent-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">text -&gt; VirtualPath.parse -&gt; VirtualFileSystem (mounts) -&gt; WorkspaceMount: checked real path (never returned)</code></pre>
+</doc-codeblock></div>
+<ul>
+<li>
+<p><code translate="no" v-pre>VirtualPath</code> is the immutable value. Parsing normalizes (NFC), requires <code translate="no" v-pre>/</code> at the start, lets <code translate="no" v-pre>..</code> go up and stop at the root (a chroot), and refuses
+empty and <code translate="no" v-pre>.</code> parts, <code translate="no" v-pre>\</code>, control, format and unassigned characters, <code translate="no" v-pre>&lt; &gt; : &quot; | ? *</code>, a name that starts or ends with a space or ends with a dot,
+Windows device names and too long names, paths and depth. That takes drive letters and UNC paths with it. Percent encoded or full width dots are
+letters: names like any other, leading nowhere. Every method that builds a path from a name checks the name again.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>VirtualFileSystem</code> routes a path to a <code translate="no" v-pre>VirtualMount</code> (<code translate="no" v-pre>stat</code>, <code translate="no" v-pre>list</code>, <code translate="no" v-pre>read</code>, <code translate="no" v-pre>write</code>, <code translate="no" v-pre>delete</code>, <code translate="no" v-pre>move</code>, <code translate="no" v-pre>toVirtual</code>): the workspace is the root,
+<code translate="no" v-pre>/checkpoints</code> (<code translate="no" v-pre>CheckpointsMount</code>) lists the checkpoints and is read only. Other mounts, backed by services, can be added the same way. <code translate="no" v-pre>toVirtual(Path)</code>
+is the reverse mapping for everything that goes to the model and throws for a path outside every mount.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>WorkspaceMount</code> is where the cage is made of real checks: it walks the path name by name from the real root and refuses a symbolic link, anything
+but a file or a folder, and a name present in another spelling (also on a case sensitive file system, so <code translate="no" v-pre>Notes.md</code> and <code translate="no" v-pre>notes.md</code> are never both there);
+a workspace folder that is itself a link is refused when it is opened. Files are written whole to a temporary file (<code translate="no" v-pre>.marginalia-tmp-</code> prefix, not listed,
+not creatable) and moved over the target, so a reader sees the old or the new content. Writes and deletes of one workspace take one lock (kept by the
+service per agent), which makes the limits of <code translate="no" v-pre>WorkspaceLimits</code> (file size, total size, number of files) true under parallel threads. The name
+<code translate="no" v-pre>checkpoints</code> is reserved at the root.</p>
+</li>
+<li>
+<p>Errors are <code translate="no" v-pre>VirtualFileException</code>s whose message names virtual paths only; the cause (with real paths) goes to the log. The tools pass nothing else to the model.</p>
+</li>
+</ul>
+<p><code translate="no" v-pre>AgentFileToolsImpl</code> implements the functions: <code translate="no" v-pre>list_files</code>, <code translate="no" v-pre>read_file</code> (line ranges, cut at 20 000 characters at a line with the line to go on from),
+<code translate="no" v-pre>write_file</code>, <code translate="no" v-pre>append_file</code>, <code translate="no" v-pre>replace_in_file</code> (the old text must be in the file exactly once; a file with Windows line breaks is matched too),
+<code translate="no" v-pre>regex_replace_in_file</code>, <code translate="no" v-pre>grep_files</code> (at most 100 lines, 1 000 files), <code translate="no" v-pre>move_file</code> (a free target name, the folders above it are
+created; not between mounts), <code translate="no" v-pre>copy_file</code> (a file or a folder to a free name; all or nothing, checked against the file, size, depth and path-length limits before a byte is copied, through a temporary file or folder moved into place; the same mount only), <code translate="no" v-pre>merge_files</code> (up to 100 files, read and joined in Java, one write; a <code translate="no" v-pre>*</code> / <code translate="no" v-pre>?</code> in the last name of a path stands for the files of that folder by name, the target left out) and <code translate="no" v-pre>delete_file</code>. <code translate="no" v-pre>list_command_results</code> and <code translate="no" v-pre>save_command_result</code> work on the results of the commands, see <doc-anchor-trigger to="#references">References</doc-anchor-trigger>. <code translate="no" v-pre>list_files</code> and <code translate="no" v-pre>grep_files</code> take a <code translate="no" v-pre>glob</code> (<code translate="no" v-pre>VirtualGlob</code>: <code translate="no" v-pre>*</code>, <code translate="no" v-pre>**</code>, <code translate="no" v-pre>?</code>, <code translate="no" v-pre>[a-c]</code>, <code translate="no" v-pre>{md,txt}</code>, case-insensitive, matched on virtual paths only; without a <code translate="no" v-pre>/</code> against the name at any depth, with one against the path below the folder). The regular expressions use <code translate="no" v-pre>TextSearch</code> and read the text through
+a <code translate="no" v-pre>DeadlineCharSequence</code>, which throws after three seconds, because a thread cannot be stopped from outside and a pattern with a back reference backtracks for
+hours.</p>
+<h2 id="bringing-the-user-in">Bringing the user in</h2>
+<p>Agents work while the user is away, so nothing here depends on an open browser.</p>
+<ul>
+<li>
+<p><strong>Attention.</strong> Every status change writes <code translate="no" v-pre>agent_runs.attention</code> in the same SQL update as the status (<code translate="no" v-pre>AgentRunStatus.needsAttention</code>: <code translate="no" v-pre>IDLE</code>,
+<code translate="no" v-pre>WAITING_APPROVAL</code>, <code translate="no" v-pre>DONE</code>, <code translate="no" v-pre>FAILED</code>, a <code translate="no" v-pre>PAUSED</code> with a reason of its own), so it is stored while the user is away; <code translate="no" v-pre>acknowledge(run)</code> clears it. After
+the transaction commits, <code translate="no" v-pre>AgentAttentionService.publish</code> calls the listeners of the owner, an observer in memory with no UI in it. The Agents tab of
+every open UI subscribes in <code translate="no" v-pre>create()</code> and runs the notice through <code translate="no" v-pre>ui.access</code> + <code translate="no" v-pre>InRequestScope</code>: the number on the tab, a notice with <strong>Open</strong>. Opening
+the console acknowledges the run.</p>
+</li>
+<li>
+<p><strong>Approvals.</strong> For an agent in the <code translate="no" v-pre>ASK</code> mode a destructive command waits. <code translate="no" v-pre>CommandFunctions</code> calls the <code translate="no" v-pre>Approval</code> the runner gave it (<code translate="no" v-pre>Worker.approve</code>),
+which registers the request with <code translate="no" v-pre>AgentApprovalService</code>, moves the run to <code translate="no" v-pre>WAITING_APPROVAL</code>, and returns the future of the decision. The console shows
+the oldest pending command in <code translate="no" v-pre>AgentApprovalDialog</code>; <strong>Approve</strong> / <strong>Deny</strong> complete the future, and the continuation runs on a thread of the run in its
+own context, <strong>never</strong> in the session of the user&#x27;s browser. <code translate="no" v-pre>backToWork</code> moves the run to <code translate="no" v-pre>RUNNING</code> when nothing else waits. Pausing, stopping, finishing or failing
+the run refuses every pending command (<code translate="no" v-pre>rejectAll</code>).</p>
+</li>
+<li>
+<p><strong>Questions.</strong> <code translate="no" v-pre>ask_user</code>, or a reply with no call, ends the round with <code translate="no" v-pre>IDLE</code>; the question is the status reason and the console shows it as the
+last bubble. <code translate="no" v-pre>AgentRunner.send(run, text)</code> appends the answer, moves <code translate="no" v-pre>IDLE</code> to <code translate="no" v-pre>RUNNING</code> and starts a worker.</p>
+</li>
+</ul>
+<h2 id="the-screens">The screens</h2>
+<p>All under <code translate="no" v-pre>ui.dialogs.agent</code> except the tab. They are ordinary <code translate="no" v-pre>@Configurable</code> classes created with <code translate="no" v-pre>new</code>, so they use the services and never touch the
+runner&#x27;s internals.</p>
+<retype-table copy-text="| Class | Does |
+|---|---|
+| `AgentPart` | The **Agents** tab (a `WorkspaceComponent`, not in the phone layout yet): the table of agents with the state of their run, the buttons that call `AgentRunService` / `AgentRunner`, and the attention badge. |
+| `AgentDialog`, `AgentCommandsEditor`, `AgentCommandPreset` | Create / edit an agent. The editor lists every registered command with its severity; the presets (all, none, non-destructive) tick them at once. An allowed command that is not registered now (its extension is not loaded) stays allowed when saved. |
+| `AgentCloneDialog` | Copies the definition and the workspace (not the runs) to a new agent of another book. |
+| `AgentStopDialog` | Keep or discard the result. |
+| `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. |
+| `AgentRunHistory` | The **Runs** tab: every run, open one in the Run tab, download it (`AgentTranscriptExport`, the transcript as Markdown, nothing cut), delete it. |
+| `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. |
+| `AgentApprovalDialog` | One pending command, Approve / Deny. |
+| `AgentLockCheck` | Called by the screens that open a book: tells which agent holds a locked book. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Class</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>AgentPart</code></td>
+<td>The <strong>Agents</strong> tab (a <code translate="no" v-pre>WorkspaceComponent</code>, not in the phone layout yet): the table of agents with the state of their run, the buttons that call <code translate="no" v-pre>AgentRunService</code> / <code translate="no" v-pre>AgentRunner</code>, and the attention badge.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentDialog</code>, <code translate="no" v-pre>AgentCommandsEditor</code>, <code translate="no" v-pre>AgentCommandPreset</code></td>
+<td>Create / edit an agent. The editor lists every registered command with its severity; the presets (all, none, non-destructive) tick them at once. An allowed command that is not registered now (its extension is not loaded) stays allowed when saved.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentCloneDialog</code></td>
+<td>Copies the definition and the workspace (not the runs) to a new agent of another book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentStopDialog</code></td>
+<td>Keep or discard the result.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentConsoleDialog</code></td>
+<td>The window of a run: three tabs (<strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>), the state above, the box and the buttons below. It <strong>polls</strong> (<code translate="no" v-pre>ui.setPollInterval(2000)</code> while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (<code translate="no" v-pre>shown</code>), so a long run costs no more than a short one; the model&#x27;s reasoning is a folded block, a command is a folded line that opens to its arguments and result.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentRunHistory</code></td>
+<td>The <strong>Runs</strong> tab: every run, open one in the Run tab, download it (<code translate="no" v-pre>AgentTranscriptExport</code>, the transcript as Markdown, nothing cut), delete it.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentWorkspaceBrowser</code></td>
+<td>The <strong>Workspace</strong> tab: the folders and files of the agent over <code translate="no" v-pre>AgentVirtualFileSystemService.openWorkspace</code>. A text file is shown cut at <code translate="no" v-pre>VIEW_LIMIT</code> (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentApprovalDialog</code></td>
+<td>One pending command, Approve / Deny.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentLockCheck</code></td>
+<td>Called by the screens that open a book: tells which agent holds a locked book.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The console shows the model&#x27;s results cut at <code translate="no" v-pre>RESULT_LIMIT</code> (20 000), the same as the model got. Texts for the screens are <code translate="no" v-pre>L</code> keys like any other (English, Japanese and the Chinese plugin bundle).</p>
+<h2 id="writing-commands-for-agents">Writing commands for agents</h2>
+<p>An agent calls the commands that the user ticked in the editor, so <strong>every command is also an agent tool</strong>. The rules for <a href="../commands/writing-commands/">writing commands</a>
+apply; for an agent these matter most:</p>
+<ul>
+<li>
+<p><strong>Get the book from <code translate="no" v-pre>CommandUtils</code></strong>, never from the UI; return the data (text, JSON) instead of showing it.</p>
+</li>
+<li>
+<p><strong>Mark the severity honestly.</strong> <code translate="no" v-pre>NON_DESTRUCTIVE</code> commands are what the default selection offers; <code translate="no" v-pre>DESTRUCTIVE</code> follows the agent&#x27;s mode (<code translate="no" v-pre>DENY</code> hides them).
+A command that only returns text and leaves the storing to the caller (the lore generator commands do this: they return the text, the agent writes the
+entry with the commands that exist for that) is the safest tool to hand out.</p>
+</li>
+<li>
+<p><strong>Describe it for a model.</strong> <code translate="no" v-pre>llmDescriptionText</code> is read by the model, <code translate="no" v-pre>descriptionText</code> by the human; say <em>when</em> to use it, what the arguments mean, what
+the result looks like and what it costs. A required prompt argument that is vague gives vague results: say what a good one contains (the lore generator
+throws &quot;Give the prompt: what the entry is about, ...&quot; for an empty one). Parameters can carry <code translate="no" v-pre>allowed</code>, <code translate="no" v-pre>defaultValue</code> and <code translate="no" v-pre>optional</code>; they become the <code translate="no" v-pre>enum</code>, <code translate="no" v-pre>default</code> and <code translate="no" v-pre>required</code> of the schema.</p>
+</li>
+<li>
+<p><strong>Order the forms as a ladder.</strong> The overloads are positional, the adapter picks the form with the fewest parameters that has every argument the model
+passed, so put the rarely used options last and make them <code translate="no" v-pre>optional</code>.</p>
+</li>
+<li>
+<p><strong>Keep results short or paged.</strong> Over 20 000 characters the model gets a cut with a note; give the command a limit or a page argument. The whole result is
+still kept for <code translate="no" v-pre>@result</code> and <code translate="no" v-pre>save_command_result</code>.</p>
+</li>
+<li>
+<p><strong>Long work goes <code translate="no" v-pre>async = true</code>.</strong> The command then runs on the command service&#x27;s worker pool with the request context of the run
+(<code translate="no" v-pre>ThreadCopyRequestAttributes</code>). A command that calls a model (lore generator) uses the blocking <code translate="no" v-pre>InferenceService.infer</code>; with one slot on the model server
+that is sequential and re-reads the prompt, which is why such a command is worth its cost only for a task the agent cannot do itself. Not done: an <code translate="no" v-pre>async</code> command is
+not stopped when the run is; honour the thread interrupt (<code translate="no" v-pre>CancellationException</code>) so a stop can reach it.</p>
+</li>
+<li>
+<p><strong>Fail with a message for the model.</strong> The text of the exception is what the model reads as <code translate="no" v-pre>Error: &lt;message&gt;</code>; no class names, say what to change.</p>
+</li>
+</ul>
+<p>Extensions bring commands the same way for the command bar and for agents: register a suite in <code translate="no" v-pre>onExtensionLoad</code>, unregister it in <code translate="no" v-pre>onExtensionUnload</code>.
+<code translate="no" v-pre>lore-generator</code> (<code translate="no" v-pre>list-lore-templates</code>, <code translate="no" v-pre>generate-lore-entry</code>, <code translate="no" v-pre>compact-lore-entry</code>), <code translate="no" v-pre>name-generator</code> (<code translate="no" v-pre>list-name-categories</code>, <code translate="no" v-pre>generate-names</code>)
+and <code translate="no" v-pre>name-provider</code> (<code translate="no" v-pre>list-real-name-lists</code>, <code translate="no" v-pre>pick-real-names</code>) are examples; the <a href="../plugins/example/">example plugin</a> shows the registration.</p>
+<h2 id="logging">Logging</h2>
+<p>At <code translate="no" v-pre>INFO</code>, always with the uuid of the run: a run started and taken up, the model and the limits when a worker begins, every round (tokens, the context against
+its cap, the names of the calls), every call (name, time, length of the result, <code translate="no" v-pre>done</code> or <code translate="no" v-pre>failed</code>), every status change, a message of the user (only its length), an approval
+asked and decided. The arguments and results of calls, messages and reports are the story&#x27;s business and are <strong>never logged</strong>.</p>
+<h2 id="tests">Tests</h2>
+<p><code translate="no" v-pre>AgentTestBase</code> (and the helper <code translate="no" v-pre>AgenticRequestAttributes</code>) set up a user with the permission, a book and an AI; <code translate="no" v-pre>MockLLMServer</code> plays the
+model, so a whole run is tested without a network. The main classes: <code translate="no" v-pre>AgentRunnerTest</code> (the loop with a scripted model), <code translate="no" v-pre>AgentRunServiceTest</code>, <code translate="no" v-pre>AgentRunControlTest</code>
+(pause, stop, resume, the worker registry), <code translate="no" v-pre>AgentRunStatusTest</code> (the table of changes), <code translate="no" v-pre>AgentWorkingCopyTest</code>, <code translate="no" v-pre>ManuscriptLockTest</code>, <code translate="no" v-pre>AgenticBooksTest</code>,
+<code translate="no" v-pre>AgentApprovalTest</code>, <code translate="no" v-pre>AgentAttentionTest</code>, <code translate="no" v-pre>CommandFunctionsTest</code> and <code translate="no" v-pre>CommandFunctionsAgentTest</code> (the adapter: forms, references, results, policy), <code translate="no" v-pre>AgentFileToolsTest</code>,
+<code translate="no" v-pre>VirtualFileSystemTest</code> / <code translate="no" v-pre>VirtualPathTest</code> (the cage of the files), <code translate="no" v-pre>AgentTranscriptExportTest</code>, and the UI tests (<code translate="no" v-pre>AgentPartTest</code>, <code translate="no" v-pre>AgentConsoleDialogTest</code>,
+<code translate="no" v-pre>AgentDialogTest</code>, <code translate="no" v-pre>AgentWorkspaceBrowserTest</code>...). An <code translate="no" v-pre>async</code> command is only tested with the real <code translate="no" v-pre>AgentRequestAttributes</code> (see
+<doc-anchor-trigger to="#the-request-context-of-a-run">The request context of a run</doc-anchor-trigger>).</p>
+<h2 id="extending">Extending</h2>
+<retype-table copy-text="| To add... | Do |
+|---|---|
+| A tool the agent can call | A command (see above) is the normal way, it appears in the editor by itself. A tool of the runner (needs the run, not the book) goes into `RunTools` / `AgentFileTools` (an `@LLMFunction` method plus its implementation and a test) and, if it needs per run state, a holder passed in `tools()` like `CommandResults`. |
+| A rule for all agents | A bullet in `Defaults.AGENT_RUNNER_NOTE`; keep it a targeted rule, models take a general &quot;be brief&quot; literally. |
+| A limit of a run | Next to `maxRounds` in `Agent`, checked in `Worker.limit`; a limit pauses the run with a reason (`needsAttention`). |
+| A status | Add it to `AgentRunStatus` and to `next()` (stored by name, do not rename), decide `isActive` / `holdsLock` / `needsAttention`, handle it in `AgentRunServiceImpl` and the localization of the status (`Localization.getAgentRunStatus`). |
+| A screen | A class in `ui.dialogs.agent`, a poll in the console when it shows run data. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>To add...</th>
+<th>Do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A tool the agent can call</td>
+<td>A command (see above) is the normal way, it appears in the editor by itself. A tool of the runner (needs the run, not the book) goes into <code translate="no" v-pre>RunTools</code> / <code translate="no" v-pre>AgentFileTools</code> (an <code translate="no" v-pre>@LLMFunction</code> method plus its implementation and a test) and, if it needs per run state, a holder passed in <code translate="no" v-pre>tools()</code> like <code translate="no" v-pre>CommandResults</code>.</td>
+</tr>
+<tr>
+<td>A rule for all agents</td>
+<td>A bullet in <code translate="no" v-pre>Defaults.AGENT_RUNNER_NOTE</code>; keep it a targeted rule, models take a general &quot;be brief&quot; literally.</td>
+</tr>
+<tr>
+<td>A limit of a run</td>
+<td>Next to <code translate="no" v-pre>maxRounds</code> in <code translate="no" v-pre>Agent</code>, checked in <code translate="no" v-pre>Worker.limit</code>; a limit pauses the run with a reason (<code translate="no" v-pre>needsAttention</code>).</td>
+</tr>
+<tr>
+<td>A status</td>
+<td>Add it to <code translate="no" v-pre>AgentRunStatus</code> and to <code translate="no" v-pre>next()</code> (stored by name, do not rename), decide <code translate="no" v-pre>isActive</code> / <code translate="no" v-pre>holdsLock</code> / <code translate="no" v-pre>needsAttention</code>, handle it in <code translate="no" v-pre>AgentRunServiceImpl</code> and the localization of the status (<code translate="no" v-pre>Localization.getAgentRunStatus</code>).</td>
+</tr>
+<tr>
+<td>A screen</td>
+<td>A class in <code translate="no" v-pre>ui.dialogs.agent</code>, a poll in the console when it shows run data.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Not done: the review that brings the changes of the working copy back into the book (<code translate="no" v-pre>APPLIED</code>; the uuid pairs and the base snapshot are not built either), summaries of
+older rounds when the context is full (the run pauses instead), &quot;Pause now&quot; (the request in the air is waited for), a limit of concurrent requests per AI, threads
+(sub-agents) and handles, stopping a running <code translate="no" v-pre>async</code> command when its run stops.</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../developer/commands/command-bar/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">The command bar</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../developer/generation-pipeline/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Generation pipeline</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (6f7c8538).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Agents", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/agents.md" }</script>
+</body>
+</html>

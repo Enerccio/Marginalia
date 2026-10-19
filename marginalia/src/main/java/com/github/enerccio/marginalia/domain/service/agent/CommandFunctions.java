@@ -51,6 +51,9 @@ import java.util.function.Function;
  * <li><b>Files</b>: a text argument that is exactly {@code @file:/path} is replaced, before the command runs, by the text of
  * that file of the agent's own file system (when the caller gave a reader), so a long text goes through the model once, in
  * the file, and the call stays short. The call keeps the reference, so what a file held is read when the call is made.</li>
+ * <li><b>Results</b>: the same for {@code @result} (the newest result of the run) and {@code @result:3} (the result #3,
+ * see {@link CommandResults}): the whole text of that result, before it was cut for the model, so the text of one command
+ * goes into the next without passing through the model.</li>
  * <li><b>Policy</b>: only the allowed commands exist for the model. A destructive one follows the
  * {@link DestructiveCommandMode} of the agent: {@code DENY} leaves it out, {@code ASK} waits for the {@link Approval}
  * (refused when there is none), {@code AUTO} runs it.</li>
@@ -188,7 +191,7 @@ public final class CommandFunctions {
                 continue;
             }
             String functionName = functionName(entry.getKey());
-            FunctionDefinition definition = FunctionDefinition.dynamic(functionName, describe(forms, lookup), schema(forms, lookup, files != null),
+            FunctionDefinition definition = FunctionDefinition.dynamic(functionName, describe(forms, lookup), schema(forms, lookup, files != null, commandResults != null),
                     (continuation, arguments) -> call(commands, entry.getKey(), destructive ? mode : DestructiveCommandMode.AUTO,
                             approval, files, commandResults, continuation, arguments));
             if (functions.putIfAbsent(functionName, definition) != null) {
@@ -240,9 +243,9 @@ public final class CommandFunctions {
         return required;
     }
 
-    private static ObjectNode schema(List<CommandDefinition> forms, Function<L, String> lookup, boolean files) {
+    private static ObjectNode schema(List<CommandDefinition> forms, Function<L, String> lookup, boolean files, boolean results) {
         ObjectNode properties = JSON.createObjectNode();
-        parametersOf(forms).forEach((name, parameters) -> properties.set(name, parameterSchema(parameters, lookup, files)));
+        parametersOf(forms).forEach((name, parameters) -> properties.set(name, parameterSchema(parameters, lookup, files, results)));
         ObjectNode root = JSON.createObjectNode();
         root.put("type", "object");
         root.set("properties", properties);
@@ -255,7 +258,8 @@ public final class CommandFunctions {
         return root;
     }
 
-    private static ObjectNode parameterSchema(List<CommandParameterDefinition> forms, Function<L, String> lookup, boolean files) {
+    private static ObjectNode parameterSchema(List<CommandParameterDefinition> forms, Function<L, String> lookup, boolean files,
+                                                boolean results) {
         CommandParameterDefinition first = forms.getFirst();
         // forms that disagree about the type take anything
         Class<?> type = forms.stream().allMatch(p -> p.type() == first.type()) ? first.type() : Object.class;
@@ -263,9 +267,10 @@ public final class CommandFunctions {
         forms.stream().map(p -> p.description().get(lookup)).filter(text -> !text.isBlank()).findFirst()
                 .ifPresent(text -> schema.put("description", text));
         List<String> allowed = forms.stream().map(CommandParameterDefinition::allowed).filter(a -> !a.isEmpty()).findFirst().orElse(List.of());
-        if (files && allowed.isEmpty() && isText(forms)) {
+        if ((files || results) && allowed.isEmpty() && isText(forms)) {
             String text = schema.path("description").asText("");
-            schema.put("description", (text.isEmpty() ? "" : text + " ") + Defaults.AGENT_FILE_ARGUMENT_HINT);
+            schema.put("description", (text.isEmpty() ? "" : text + " ") + (files ? Defaults.AGENT_FILE_ARGUMENT_HINT : "")
+                    + (files && results ? " " : "") + (results ? Defaults.AGENT_RESULT_ARGUMENT_HINT : ""));
         }
         if (!allowed.isEmpty()) {
             ArrayNode values = JSON.createArrayNode();
@@ -369,9 +374,7 @@ public final class CommandFunctions {
                     arguments.put(name, value);
                 }
             });
-            if (files != null) {
-                readFiles(forms, arguments, files);
-            }
+            Map<String, String> references = readReferences(forms, arguments, files, commandResults);
             Map<String, Object> complete = complete(forms, arguments);
 
             if (mode == DestructiveCommandMode.DENY) {
@@ -388,27 +391,42 @@ public final class CommandFunctions {
                     } else if (!Boolean.TRUE.equals(approved)) {
                         continuation.fail(new FunctionCallException(Kind.FAILED, "The user did not approve the command " + commandName));
                     } else {
-                        run(commands, commandName, complete, commandResults, continuation);
+                        run(commands, commandName, complete, references, commandResults, continuation);
                     }
                 });
                 return;
             }
-            run(commands, commandName, complete, commandResults, continuation);
+            run(commands, commandName, complete, references, commandResults, continuation);
         } catch (RuntimeException e) {
             continuation.fail(e);
         }
     }
 
     /**
-     * Puts the contents of the file in the place of a text argument that is {@code @file:/path}. Anything else, an
-     * argument that is not a text parameter too, is left as the model wrote it.
+     * Puts the text in the place of a text argument that is {@code @file:/path} (the contents of that file) or
+     * {@code @result} / {@code @result:3} (a result of an earlier call, whole). Anything else, an argument that is not a
+     * text parameter too, is left as the model wrote it.
      *
-     * @throws FunctionCallException with the reason when a file can't be read, the model corrects the call
+     * @param files          null when the agent has no files, {@code @file:} is then not a reference
+     * @param commandResults null when no results are kept, {@code @result} is then not a reference
+     * @return the references that were replaced, by the name of the argument
+     * @throws FunctionCallException with the reason when a file can't be read or the result is not kept, the model
+     *                               corrects the call
      */
-    private static void readFiles(List<CommandDefinition> forms, Map<String, Object> arguments, Function<String, String> files) {
+    private static Map<String, String> readReferences(List<CommandDefinition> forms, Map<String, Object> arguments,
+                                                      Function<String, String> files, CommandResults commandResults) {
+        Map<String, String> replaced = new LinkedHashMap<>();
+        if (files == null && commandResults == null) {
+            return replaced;
+        }
         Map<String, List<CommandParameterDefinition>> parameters = parametersOf(forms);
         for (Map.Entry<String, Object> argument : arguments.entrySet()) {
-            if (!(argument.getValue() instanceof String text) || !text.startsWith(FILE_PREFIX)) {
+            if (!(argument.getValue() instanceof String text)) {
+                continue;
+            }
+            boolean file = files != null && text.startsWith(FILE_PREFIX);
+            boolean result = commandResults != null && CommandResults.isReference(text);
+            if (!file && !result) {
                 continue;
             }
             List<CommandParameterDefinition> declared = parameters.get(argument.getKey());
@@ -416,11 +434,13 @@ public final class CommandFunctions {
                 continue;
             }
             try {
-                argument.setValue(files.apply(text.substring(FILE_PREFIX.length()).strip()));
+                argument.setValue(file ? files.apply(text.substring(FILE_PREFIX.length()).strip()) : commandResults.resolve(text).text());
+                replaced.put(argument.getKey(), text.strip());
             } catch (RuntimeException e) {
                 throw new FunctionCallException(Kind.FAILED, "The argument " + argument.getKey() + ": " + messageOf(e), e);
             }
         }
+        return replaced;
     }
 
     /**
@@ -471,8 +491,8 @@ public final class CommandFunctions {
         return complete;
     }
 
-    private static void run(CommandService commands, String commandName, Map<String, Object> arguments, CommandResults commandResults,
-                            FunctionContinuation<Object> continuation) {
+    private static void run(CommandService commands, String commandName, Map<String, Object> arguments, Map<String, String> references,
+                            CommandResults commandResults, FunctionContinuation<Object> continuation) {
         CommandRun run = commands.execute(commandName, arguments);
         run.whenComplete((value, error) -> {
             if (error != null) {
@@ -482,7 +502,7 @@ public final class CommandFunctions {
             try {
                 String text = FunctionDefinition.render(value);
                 if (commandResults != null) {
-                    commandResults.add(functionName(commandName), describeArguments(arguments), text);
+                    commandResults.add(functionName(commandName), describeArguments(arguments, references), text);
                 }
                 continuation.complete(bound(text));
             } catch (RuntimeException e) {
@@ -493,12 +513,17 @@ public final class CommandFunctions {
 
     /** The arguments of a call as one short line for the list of the results: {@code name=value, ...}, cut. */
     public static String describeArguments(Map<String, Object> arguments) {
+        return describeArguments(arguments, Map.of());
+    }
+
+    /** As {@link #describeArguments(Map)}, an argument that was a reference shows the reference, not the text it stood for. */
+    private static String describeArguments(Map<String, Object> arguments, Map<String, String> references) {
         StringBuilder text = new StringBuilder();
         for (Map.Entry<String, Object> argument : arguments.entrySet()) {
             if (argument.getValue() == null) {
                 continue;
             }
-            String value = String.valueOf(argument.getValue()).replaceAll("\\s+", " ").strip();
+            String value = references.getOrDefault(argument.getKey(), String.valueOf(argument.getValue())).replaceAll("\\s+", " ").strip();
             if (value.length() > 40) {
                 value = value.substring(0, 40) + "…";
             }

@@ -155,7 +155,7 @@ How this run works:
 - Keep your to-do list with update_plan, and look at get_run_status before a long step: your rounds, tokens and context are limited.
 - A tool that fails returns an error text. Read it and correct the call; do not repeat the same call unchanged.
 - What you write costs time and counts against the limit of your answer, so do not write out text you already have: do not copy a result or a file into a call (use save_command_result or @file:/path), do not repeat a result back, and keep what you say between calls to a sentence. The long texts belong in the files you write and in your report.
-- A text argument of a command, and the content of write_file and append_file, can be given as @file:/path (the whole value): the contents of that file of your workspace are used. Write a long text to a file once, check it, and pass it that way instead of writing it again in the call. A long result of a command that you want to keep (a generated text) is saved with save_command_result right after the call, you do not write it out again (list_command_results shows the last ten results, to save an older one); then pass the file as @file:/path to the next command. To join several files into one use merge_files, to copy a file or a folder copy_file, to find files by name pass a glob such as *.md to list_files or grep_files.
+- A text argument of a command, and the content of write_file and append_file, can be given as @file:/path (the whole value): the contents of that file of your workspace are used. Write a long text to a file once, check it, and pass it that way instead of writing it again in the call. A result of a command you pass to the next command as @result (the result of the last call) or @result:3 (the result with that number; list_command_results shows the last ten), the same in write_file and append_file, so you never write it out again. A result you want to keep (a generated text) is saved with save_command_result right after the call; then pass the file as @file:/path. To join several files into one use merge_files, to copy a file or a folder copy_file, to find files by name pass a glob such as *.md to list_files or grep_files.
 """;
 
     /**
@@ -170,6 +170,12 @@ This run is a conversation with the author, who is in the console. Calling finis
      */
     public static final String AGENT_FILE_ARGUMENT_HINT = "Instead of the text you can pass @file:/path (the whole value) "
             + "to use the contents of that file of your workspace.";
+
+    /**
+     * Added to the description of every text parameter of a command the agent may call, when its results are kept.
+     */
+    public static final String AGENT_RESULT_ARGUMENT_HINT = "Or @result (the whole value) for the whole result of your last "
+            + "command call, @result:3 for the result with that number (list_command_results).";
 
     /**
      * The first message of a run, the task is in the system prompt and the instructions.

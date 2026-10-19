@@ -116,7 +116,7 @@ executor.submit(() -> {
 ```
 
 `create()` answers with the copy of a browser session, with the attributes of an agent run as they are (see
-[Agents](#agents)), and with `null` on a thread that has no context. The generation engine, `SummaryServiceImpl` and `ThreadAccessDialog` do this. Scheduled jobs (database backups) run
+[Agents](agents.md#the-request-context-of-a-run)), and with `null` on a thread that has no context. The generation engine, `SummaryServiceImpl` and `ThreadAccessDialog` do this. Scheduled jobs (database backups) run
 without any user and only use installation-wide data (`getOrCreateApp`).
 
 ## Services by area
@@ -257,193 +257,15 @@ functions rejects a non-empty `FunctionSet` with `UnsupportedOperationException`
 |---|---|
 | `UserService` | Users: `authenticate` (PBKDF2-HMAC-SHA256 hashes, constant-time compare and the same amount of work for an unknown user, a missing password or a locked account; the first 10 consecutive failures are free, then the account is locked for 1 s, 2 s, 4 s... up to 15 minutes, tracked in `User.failedLogins` / `lockedUntil`; a locked account refuses even the right password; `authenticate(username, password, clientAddress)` also throttles per client address, in memory only: the first 30 consecutive failures from an address are free, then it is blocked with the same 1 s ... 15 minutes back-off for every user name, blocked attempts are not counted against the user, a successful login does not clear the address (otherwise any account holder could reset the count between batches of guesses), entries are forgotten after an hour without failures, the table keeps at most 10,000 addresses (least recently used dropped first) and a restart clears everything; every failure and the moment of a block are logged; see [Login throttling](#login-throttling)), `unlock` (an administrator's *Unlock account* checkbox in `UserDialog`, shown while the user has failures on record: forgets the failures and the lock), `changePassword` (also resets the lock, drops all saved logins and invalidates the user's other open sessions through `SessionManager.runForUsers` - the caller's own session is kept; the current password is checked by `UserDialog` for self edits), `clearPassword` (removes the password, resets the lock, removes saved logins and invalidates the user's sessions except the caller's, an administrator's reset), `isLoginAvailable`, `isLastAdmin` (the last administrator can't be removed or demoted), `deleteUser` (soft delete, frees the login by renaming it to `<login>#<uuid>`, drops saved logins, renames the data folder to `<login>-deleted`; owned data is purged with the user by cleanup), saved logins (`generateNewPersistentInfo`; `authenticateFromCookie` hashes the secret once and compares it with every saved login in constant time, a null user takes the same path; a matched login is rotated). |
 | `PermissionService` | What users were allowed to do (`PermissionType`), see [Permissions](#permissions). |
-| `AgentService`, `AgentRunService`, `AgentMessageService`, `AgentRunner` | Agents, their runs, the transcript of a run and the loop that works a run, see [Agents](#agents). |
+| `AgentService`, `AgentRunService`, `AgentMessageService`, `AgentRunner` | Agents, their runs, the transcript of a run and the loop that works a run, see [Agents](agents.md). |
 | `SettingService` | `getOrCreate(UserSetting.class)` for the current user, `getOrCreate(cls, user)`, `getOrCreateApp(AppSettings.class)` for the installation. |
 | `ResourceService` | Files stored by hash in the user's `resources` (or `images`) folder. `uploadImage` stores an attachment (format detected from the content, WebP converted to PNG, 10 MB and 50 megapixel limits), `findImage(uuid)` finds the current user's image. `link` / `unlink` / `describeLink` keep the loose `clazz` + `objectId` note (class name and id of the object using the resource, like `TagRelation`; not a cleanup reference, `describeLink` only checks that the entity exists and is not deleted). `findPageForUser` / `countForUser` serve the lazy table of the Resources tab, `replace` writes a new file and points the resource at it, `softDelete(uuids)` marks resources of the current user deleted (cleanup purges them; files are never deleted). |
 
 ### Agents
 
-`AgentService` and `AgentRunService` (`domain.service`) manage the definitions of agents and their runs, see
-[`Agent` and `AgentRun`](domain-model.md#agent-and-agentrun-agents). `AgentRunner` works a started run, see [The runner](#the-runner).
-
-`AgentService` extends `ExtendableService`. `save` checks that a new agent is allowed (`getGrant(user).allowed()`: administrators,
-or a user with the granted permission `AGENTS`), the manuscript exists and is the user's own, a manuscript has no other agent and the
-manuscript of an existing agent is not changed, the instructions are at most `MAX_INSTRUCTIONS_LENGTH`, there are at most
-`MAX_MODEL_PROFILES` profiles with unique non-blank roles and positive limits; names, roles and the allowed commands are trimmed (commands
-also de-duplicated). It does not check that the AI and protocol of a profile exist: `resolveProfile(profile)` does, when the agent is used.
-An existing agent can be edited after the permission was taken away, it can't run. `getGrant(user)` is an `AgentGrant(allowed,
-maxConcurrentRuns, runTokenBudget, maxAgents)`: everything for an administrator, else the settings of the `AGENTS` permission (1 run, no budget,
-`DEFAULT_MAX_AGENTS` = 5 agents when not set). `save` of a **new** agent (so `cloneAgent` too) refuses with an `IllegalStateException` when the user already
-has `maxAgents` agents (the deleted ones don't count); `canCreate()` is the same rule for the UI. `cloneAgent(source, name, manuscript)` copies the definition to another manuscript of the user, `findForManuscript`,
-`deleteForManuscript(manuscript, hard)` (called by `ManuscriptService.delete`) and `delete`, which deletes the runs first.
-
-`AgentRunService` extends `ExtendableService`. The status and the counters change only here, by SQL updates (`AgentRunRepository`):
-
-- `start(agent)` creates a run in `RUNNING` (the language of the book). It refuses (`SecurityException`, `IllegalArgumentException` for an agent
-  that is not the user's, `IllegalStateException` otherwise) when the user is not allowed, the agent is disabled, has no main model or the main model
-  can't be resolved, the agent has an unfinished run, or the user has all the concurrent runs of the grant (`RUNNING`, `WAITING_APPROVAL`,
-  `PAUSING`, `STOPPING`; a run waiting for the user in `IDLE` is not counted).
-- `transition(run, to, reason)` changes the status along `AgentRunStatus.next()`. The status of the `run` argument is the one the caller
-  believes the run has: the update is conditional on it (and on the owner), so a runner whose run was paused by the user in between gets
-  an `IllegalStateException` and has to look again. The update comes first and nothing is read before it: in WAL mode SQLite fails a
-  transaction that reads and then writes when another transaction wrote in between, at once and without waiting. It returns the run as it is now.
-- `addUsage(run, prefill, generated)` adds to the counters and counts a round, safe for the parallel threads of a run;
-  `getTokenBudget(run)` is the smaller of the agent's budget and the grant's (0 is none), `isBudgetExceeded(run)`.
-- `start` makes the **working copy** of the run before it saves it (`ManuscriptService.createAgenticCopy`: the book through its backup JSON without the
-  lorebook link, plus its own copy of the lorebook tree from `LorebookService.copyLorebooks`; every copy has `agentic = true`, new uuids and nothing
-  shared with the original) and stores it as `AgentRun.workingCopy`. `transition` to `DONE`, `FAILED`, `STOPPED_DISCARDED` or `APPLIED` (the
-  `COPY_ENDING` statuses) deletes the copy for good and sets the column to null (`AgentRunRepository.updateWorkingCopy`, an SQL update first, the
-  run lets go of it before the copy is deleted: `ManuscriptService.deleteAgenticCopy` hard deletes the messages with their summaries
-  (`ChatMessageService.hardDeleteForManuscript`, the soft deleted ones too, children first), the tags and the copy's lorebooks
-  (`LorebookService.deleteAgenticCopy`: the tree, its entries and tags); both refuse anything whose `agentic` is false, so a book of the user
-  can't be deleted by this path). `PAUSED` and `STOPPED_KEPT` keep the copy, `resume` makes one for a run that has none, a new run makes a new copy.
-  Not done: the uuid pairs, the base snapshot and the merge back.
-- `delete(run, hard)` discards a run that is not over (`STOPPED_DISCARDED`) and deletes its working copy for good first.
-- `pause(run)`, `stop(run, keep)` and `resume(run)` are what the buttons of the Agents tab call. A run that waits for the user (`IDLE`,
-  `WAITING_APPROVAL`) is paused at once; a `RUNNING` one goes to `PAUSING` / `STOPPING` and the runner finishes the change at its next stable
-  point, unless **no worker is registered** for it (`workerStarted(run)` / `workerFinished(run)`, the runner's to call, a set of run ids in
-  memory), then the service takes the second step itself, so nothing waits for a runner that does not exist. `stop` of a run that is paused,
-  kept or done changes it at once; discarding deletes the working copy. `resume` checks what `start` checks (except the one-unfinished-run rule,
-  the run is that run). All three take the status of the `run` the caller has and fail with an `IllegalStateException` when it is out of date.
-- **Attention.** `AgentRunStatus.needsAttention(reason)` says which statuses the user should hear of (`IDLE`, `WAITING_APPROVAL`, `DONE`, `FAILED`, a `PAUSED` with a
-  reason); every status change writes it into the column `agent_runs.attention` in the same SQL update as the status (`JpaAgentRunRepository.statusUpdate`), so it is
-  stored while the user is away. `findNeedingAttention()` reads it, `acknowledge(run)` clears it. After the transaction commits, `start`, every `transition` and `acknowledge` hand the run
-  to `AgentAttentionService.publish` (every change, with `Notice.attention` telling whether it needs the user: a stop or a pause is finished by the worker later, and the tables of
-  agents on the open screens have to show where it ended), which calls the listeners subscribed for the owner (`subscribe(userId, listener)`, a plain observer in memory with no UI in it): the
-  Agents tab of every open UI subscribes in `create()`, keeps the `RequestAttributes` of its session (`ThreadCopyRequestAttributes.create()`) and runs the notice through
-  `ui.access` + `InRequestScope`.
-- **Approvals.** `AgentApprovalService` keeps, in memory, the commands an agent in the `ASK` mode waits to run (`request` returns the future of the decision). The
-  runner's `Worker.approve` is the `CommandFunctions.Approval`: it registers the request, moves the run `RUNNING` to `WAITING_APPROVAL`, and returns a future that
-  completes on a thread of the run in its `InRequestScope`, so the command that follows is never run in the session of the user's browser; `backToWork` moves the run back
-  to `RUNNING` when nothing waits. `transition` to `PAUSED`, `STOPPING`, `STOPPED_*`, `DONE` or `FAILED` calls `rejectAll`. `pending(run)` and `decide(run, id, approved)`
-  check that the run is the user's.
-- `findLockingRun(manuscript)` is the run of the non-deleted agent of the book whose status `holdsLock()` (`RUNNING`, `IDLE`, `WAITING_APPROVAL`,
-  `PAUSING`, `STOPPING`; whoever owns it), `checkNotLocked(manuscript)` throws the `ManuscriptLockedException` (it carries the agent name) when there is
-  one. It is called by `ManuscriptService` (`save`, `delete`, `restoreBackup`), `ChatMessageService` (`save`, `delete`), `SummaryService`
-  (creating, updating, attaching and removing a summary), `ManuscriptReplaceService.apply` and `StoryGenerationService.generateNextTurn`. Reading is
-  free, lorebooks are not locked, and the lock follows the status: paused, stopped and finished runs release it. A change of the manuscript
-  that a service does not route through these methods is not locked.
-- `openSession(run)` makes the **request context of a run** (`AgentRequestAttributes`, package `bound`) from the database for every start and
-  resume. A run stores only its `AgentSession(userUuid, language)` (`AgentSession.of(run)`: the owner of the run and the language of the book;
-  the UI language of the user does not matter, the agent sees one fixed language, English where the book's has no localization bundle). The attributes
-  are not a servlet request: they hold the session scope in memory, with the `user` bean (a copy of the owner, with uuid) and the `sessionPoint`
-  (an `AgenticSessionPoint` on the working copy; a run without one fails with an `IllegalStateException`, the agent never gets the book of the user), so `currentUser`, the services and
-  `Localization` resolve on any thread that enters them with `InRequestScope`. All the threads of the run share the one object:
-  `ThreadCopyRequestAttributes.create()` hands it on, so the commands and the generation worker started from a command keep the context. The runner
-  closes it (`close()` runs the destruction callbacks) when the run stops working. It checks nothing, it is for the runner.
-- `recoverInterrupted()` is for the start of the server, when no runner is alive: `STOPPING` becomes `STOPPED_KEPT`, the other active statuses
-  `PAUSED`, with a reason. It needs no user; `AgentRunnerImpl` calls it when the singletons are created (`SmartInitializingSingleton`).
-- `getStopTarget(run)` and `endStop(run)`: `stop` of a working run remembers in memory whether the result is kept and the worker ends the stop (`STOPPING` to that status, the copy dropped for a discard); without a worker `stop` ends it at once. `workerFinished` forgets the choice.
-
-#### The runner
-
-`AgentRunner` (`AgentRunnerImpl`, `domain.service`) is what makes a run do anything. `run(run)` takes a `RUNNING` run up (it throws for another status, and
-does nothing when a worker has it already): it registers the worker with `workerStarted` before the thread starts, so a pause asked at once waits for it.
-`send(run, text)` is the message of the user to an `IDLE` run (`IDLE` to `RUNNING`, the message appended, a worker started). The UI calls `run` after
-`start` and `resume` (`run(run, firstMessage)` appends that first message to the empty transcript of a run first, for the run started from the console, where the
-agent is told to ask the author at once). A worker (a daemon thread of a cached pool) does this, in `InRequestScope` of the `AgentRequestAttributes` of `openSession`, which it closes at the end:
-
-1. Loads the run, resolves the main profile (a model that is gone pauses the run), reads the transcript (`AgentMessageService.transcript`) and repairs its end: a
-   new run gets `Defaults.DEFAULT_AGENT_START_MESSAGE`, calls of the last assistant message without a result get `Defaults.AGENT_INTERRUPTED_CALL`, a transcript that ends
-   with a plain assistant reply gets `Defaults.DEFAULT_AGENT_RESUME_MESSAGE`. The plan is read back from the last `update_plan` call.
-2. Builds the tools: `CommandFunctions.forAgent(...)` (with a reader of the files of the run: a text argument `@file:/path` is replaced by the text of that file before the command runs, `readFiles`; `write_file` and `append_file` of `AgentFileToolsImpl` take the same reference as their content, `textOf`) `and` the file tools of `AgentVirtualFileSystemService` `and` `RunTools` bound to a `RunToolsImpl`
-   (a name used twice fails the run). The `ASK` approval is `null`, so `ASK` commands are refused.
-3. Loops. At the top, the **stable point**: the status is read, and `PAUSING` becomes `PAUSED`, `STOPPING` ends with `endStop`, any other status than `RUNNING` ends the worker.
-   Then the limits: rounds (`Agent.maxRounds`), `isBudgetExceeded`, and the context (the lowest cap of the agent, the profile and the AI against the tokens of the
-   last request, the first one estimated); a limit pauses the run with the reason. The request is `InferenceService.round` with the system message (prompt,
-   instructions, `Defaults.AGENT_RUNNER_NOTE`, for a conversation also `Defaults.AGENT_INTERACTIVE_NOTE`, and the limits of the model: the context cap and `TokenLimits.responseTokens`, as `limitsNote`) and the transcript; a failure of it (also the limits of the user's AI) pauses the run. The usage goes to `addUsage`, the answer is
-   appended with its context and its reasoning (`appendAnswer`; the round callback's `onRound(text, reasoning, calls, usage)` brings the reasoning, read from `reasoning_content` / `reasoning` of the message), a reply without calls ends the turn (`IDLE`), otherwise every call runs one after another on a thread in the context of the run and the results are appended
-   together (`Error: <message>` for a failure, as the inference service writes it). After the round `finish` makes the run `DONE` (the report is the status reason, cut
-   at 2 000 characters) and `ask_user` makes it `IDLE` (the question is the reason).
-4. While it waits for a request or a call the worker looks every second whether the run was thrown away (deleted or `STOPPED_DISCARDED`) and cancels the request
-   and ends; a pause and a stop wait.
-
-The application log tells what the agents do, at `INFO`, always with the uuid of the run: a run started, taken up by a worker, the model and the limits when a worker begins, every
-round (tokens of the request and the answer, the context against its cap, the names of the calls), every call (name, time, length of the result, `done` or `failed`), every status
-change (`AgentRunServiceImpl.transition`, with the reason except of `IDLE` and `DONE` whose reason is the agent's own words), a stop or a delete the user asked for, a message of the
-user (its length), and an approval asked and decided (`AgentApprovalServiceImpl`, the command). The arguments and results of the calls, the messages and the reports are the story's
-business and are never logged.
-
-A status change that finds another status than it expected (the user paused meanwhile) is not an error: `reach` and `pause` then do the pause or stop that was asked.
-Anything the worker throws that is not one of these makes the run `FAILED` with the message. `RunTools` (`domain.service.agent`) are `finish`, `ask_user`, `update_plan`
-(statuses `pending`, `in_progress`, `done`; the usual other spellings are mapped) and `get_run_status`; `RunToolsImpl` only notes the request of the model, the worker acts on
-it after the round, so every call of the round has its result in the transcript first.
-
-The transcript is `AgentMessage` (table `agent_messages`): the run, the `ordinal` and the `LLMChatMessage` as JSON in an extended attribute, only appended. The system
-message is not stored.
-
-`InferenceService.round(payload, protocol, functions, callback)` is what the runner uses instead of `stream`/`infer`: one non-streaming request that reports the
-text, the calls the model asked for (they are not called) and the tokens (the provider's, otherwise ours), with the limits and the usage of the user as for any
-request. Services that can't do it throw `UnsupportedOperationException`.
-
-Not done: summaries of older rounds when the context is full, the approval card for `ASK`, "Pause now" (the request in the air is waited for), a limit of concurrent
-requests per AI, threads (sub-agents), handles, and the merge of the working copy back.
-
-#### Commands as functions
-
-`CommandFunctions` (package `domain.service.agent`) turns the commands an agent may call into a `FunctionSet`: `forAgent(commandService, agent, lookup,
-approval)` offers the commands on the allowlist of the agent, `create(commandService, names, mode, lookup, approval)` the ones named. `lookup` gives the
-texts (`localization::getValue`; the descriptions are for the model, so build the set inside the context of the run). It is built for a run and combined with
-the tools of the runner by `FunctionSet.and`.
-
-- **One function per command.** The forms (overloads) of a command share one schema: the union of their parameters in the order of the ladder, a type
-  that differs between the forms is "any". A call goes to the form with the fewest parameters that has every argument the model passed, the parameters of
-  it the model left out are null or their `defaultValue`; a middle option left out therefore works. Arguments no form takes, a missing required one
-  or a value outside `allowed` are an `INVALID_ARGUMENTS` error that says which. A command without a declared signature takes any properties.
-- **Required** is not declared: a parameter is required when every form with a signature has it and none marks it `optional` (see
-  [writing commands](commands/writing-commands.md)). The schema carries `description`, `enum` (enum types and `allowed`) and `default`.
-- **Names.** A command name that is a valid function name (`[a-zA-Z0-9_-]{1,64}`) is the function name. Any other is written with `_` for every
-  character that is not allowed, cut so that it fits, and `_` plus six hexadecimal digits of the SHA-256 of the command name (`functionName`). The rule
-  looks at the name only, never at what else is registered, so the name in a stored transcript means the same command after a restart (and `foo.bar`
-  is never taken for a command `foo_bar`). Names are resolved by the name at every call, so a command that is gone answers "not available now".
-- **Result and errors.** The result is bounded (`MAX_RESULT_LENGTH`, 20 000 characters, cut at a line with a note how much there was): a string as it is,
-  anything else JSON, nothing "OK". A failure is the message of the cause (no class names), which the inference service writes as `Error: <message>`.
-- **Policy.** Only the allowed commands exist for the model. A `DESTRUCTIVE` command follows `Agent.getDestructiveMode()`: `DENY` leaves it out,
-  `AUTO` runs it, `ASK` asks the `Approval` (a future of the decision of the user; the call waits for it and no thread is held) and refuses when there is none.
-- **Context.** The commands run as whoever the thread is: the inference service calls the functions in the request context of the caller, which for a run is
-  the `AgentRequestAttributes` of `openSession`, and the command service hands it on to the commands that run on a worker. Nothing is aimed at the
-  working copy by the adapter itself; that is what the context (the `AgenticSessionPoint` of the run) does.
-- Not done: a running `async` command is not stopped when the run is (a `FunctionContinuation` has no cancel listener, only `isCancelled()`).
-
-#### Files of an agent
-
-`AgentVirtualFileSystemService` hands out the files of agents. Two folders in the application folder (not in `data/`, which is named by logins):
-`agent-workspaces/<agent uuid>` is the **workspace**, which belongs to the agent and stays between its runs (the notes it keeps), and
-`agent-runs/<run uuid>` is the folder of a run (`base/` and `checkpoints/`, nothing writes them yet; `RunFolder` is the layout). The uuids are
-checked, so no value of the database makes a path leave these folders. `open(run)` is the file system of a run (the workspace and `/checkpoints`),
-`openWorkspace(agent)` the workspace alone for the user to look at; both refuse (`IllegalArgumentException`) what is not the user's own.
-`getFileTools(fileSystem)` binds `AgentFileTools` to it (a `FunctionSet`, to be put with the other tools of the run). `clearWorkspace` refuses
-while the agent works, `copyWorkspace` is what `AgentService.cloneAgent` calls, and a workspace is deleted with an agent that is deleted for good
-(not with a soft deleted one: it can be restored) and by the cleanup (the service is a `CleanupContributor`), a run folder with its run; the
-files go after the transaction committed, a rollback does not bring them back.
-
-The model never gets a path of the disk. A string it wrote goes through three steps, all in `domain.service.agent`:
-
-```text
-text -> VirtualPath.parse -> VirtualFileSystem (mounts) -> WorkspaceMount: checked real path (never returned)
-```
-
-- `VirtualPath` is the immutable value. Parsing normalizes (NFC), requires `/` at the start, lets `..` go up and stop at the root (a chroot), and refuses
-  empty and `.` parts, `\`, control, format and unassigned characters, `< > : " | ? *`, a name that starts or ends with a space or ends with a dot,
-  Windows device names and too long names, paths and depth. That takes drive letters and UNC paths with it. Percent encoded or full width dots are
-  letters: names like any other, leading nowhere. Every method that builds a path from a name checks the name again.
-- `VirtualFileSystem` routes a path to a `VirtualMount` (`stat`, `list`, `read`, `write`, `delete`, `move`, `toVirtual`): the workspace is the root,
-  `/checkpoints` (`CheckpointsMount`) lists the checkpoints and is read only. Other mounts, backed by services, can be added the same way. `toVirtual(Path)`
-  is the reverse mapping for everything that goes to the model and throws for a path outside every mount.
-- `WorkspaceMount` is where the cage is made of real checks: it walks the path name by name from the real root and refuses a symbolic link, anything
-  but a file or a folder, and a name present in another spelling (also on a case sensitive file system, so `Notes.md` and `notes.md` are never both there);
-  a workspace folder that is itself a link is refused when it is opened. Files are written whole to a temporary file (`.marginalia-tmp-` prefix, not listed,
-  not creatable) and moved over the target, so a reader sees the old or the new content. Writes and deletes of one workspace take one lock (kept by the
-  service per agent), which makes the limits of `WorkspaceLimits` (file size, total size, number of files) true under parallel threads. The name
-  `checkpoints` is reserved at the root.
-- Errors are `VirtualFileException`s whose message names virtual paths only; the cause (with real paths) goes to the log. The tools pass nothing else to the model.
-
-`AgentFileToolsImpl` implements the functions: `list_files`, `read_file` (line ranges, cut at 20 000 characters at a line with the line to go on from),
-`write_file`, `append_file`, `replace_in_file` (the old text must be in the file exactly once; a file with Windows line breaks is matched too),
-`regex_replace_in_file`, `grep_files` (at most 100 lines, 1 000 files), `move_file` (a free target name, the folders above it are
-created; not between mounts), `copy_file` (a file or a folder to a free name; all or nothing, checked against the file, size, depth and path-length limits before a byte is copied, through a temporary file or folder moved into place; the same mount only), `merge_files` (up to 100 files, read and joined in Java, one write; a `*` / `?` in the last name of a path stands for the files of that folder by name, the target left out) and `delete_file`. `list_command_results` and `save_command_result` work on the `CommandResults` of the run: `CommandFunctions` adds the whole result of every call that returned (the call it made it, its arguments shortened by `describeArguments`, the text before `bound` cuts it) and the file tools list them, newest first, or write one to a file by its number (the last when none is given, `append` adds to the file; the write is the same atomic one as `write_file`, so a result over the file limit is refused). Only the last 10 are kept (`CommandResults.KEEP`), the numbers count on from 1 in the run, and the holder lives as long as the tools of one `AgentRunnerImpl` run, so a resumed run starts empty; the runner passes it to `CommandFunctions.forAgent` and to `getFileTools(files, results)`. `list_files` and `grep_files` take a `glob` (`VirtualGlob`: `*`, `**`, `?`, `[a-c]`, `{md,txt}`, case-insensitive, matched on virtual paths only; without a `/` against the name at any depth, with one against the path below the folder). The regular expressions use `TextSearch` and read the text through
-a `DeadlineCharSequence`, which throws after three seconds, because a thread cannot be stopped from outside and a pattern with a back reference backtracks for
-hours. Which tools an agent gets, and the adapter that makes tools from the commands, are not here yet.
+`AgentService`, `AgentRunService`, `AgentMessageService`, `AgentRunner`, `AgentApprovalService`, `AgentAttentionService` and `AgentVirtualFileSystemService`
+(with `CommandFunctions`, the adapter that makes the commands tools of an agent) are described on their own page, [Agents](agents.md): the life of a run,
+the services, the runner, the tools and the files of an agent.
 
 ### Permissions
 
