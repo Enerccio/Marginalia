@@ -786,6 +786,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 // the state the changes of this round start from is saved first; the notice for the agent, if any, comes after the results
                 boolean changes = round.calls().stream().anyMatch(this::changes);
                 String notice = changes ? checkpointBeforeChanges() : null;
+                // the answers to the calls the author's message cut off, stored with the message (the others are stored as they are made)
                 List<LLMChatMessage> results = new ArrayList<>();
                 boolean forced = false;
                 for (LLMToolCall call : round.calls()) {
@@ -806,14 +807,15 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     // the arguments and the result are the story's business and not logged
                     log.info("Agent run {}: {} {} in {} ms ({} characters)", run.getUuid(), call.getName(),
                             result.startsWith("Error:") ? "failed" : "done", System.currentTimeMillis() - began, result.length());
-                    results.add(LLMChatMessage.ofToolResult(call.getId(), result));
+                    // stored at once: the console shows the result of a call when it is made, not when the round is over, and a
+                    // pause in the middle of a round keeps what the calls before it did
+                    append(transcript, LLMChatMessage.ofToolResult(call.getId(), result));
                 }
                 if (forced) {
                     log.info("Agent run {}: the rest of the round was thrown away, the author sent a message", run.getUuid());
                     deliverForced(transcript, results);
                     continue;
                 }
-                append(transcript, results.toArray(new LLMChatMessage[0]));
                 List<VirtualPath> looked = shown.take();
                 if (!looked.isEmpty()) {
                     append(transcript, imagesMessage(looked));
