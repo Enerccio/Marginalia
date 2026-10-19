@@ -775,7 +775,50 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     }
                     return;
                 }
+                if (runTools.isCompactionRequested()) {
+                    compactForAgent(runTools.getCompactionFocus(), transcript);
+                } else {
+                    warnAboutContext(transcript);
+                }
             }
+        }
+
+        /**
+         * The agent asked for a compaction with {@code request_compaction}: done between two rounds, with every call of the
+         * round answered. A failure changes nothing and the agent is told, it goes on with the context it has.
+         */
+        private void compactForAgent(String focus, List<LLMChatMessage> transcript) throws Exception {
+            boolean before = ignoreForce;
+            ignoreForce = true;
+            try {
+                log.info("Agent run {}: the agent asks for a compaction", run.getUuid());
+                compact(focus, transcript, true);
+            } catch (Discarded e) {
+                throw e;
+            } catch (Exception e) {
+                log.warn("Agent run {}: compaction failed: {}", run.getUuid(), e.getMessage());
+                append(transcript, LLMChatMessage.of(LLMRole.USER, "You asked to compact your work, but it failed: "
+                        + CommandFunctions.messageOf(e) + "\nNothing was changed."));
+            } finally {
+                ignoreForce = before;
+            }
+        }
+
+        /**
+         * After a round, once the context passes {@link Defaults#AGENT_CONTEXT_WARNING_PERCENT} of its cap, the agent is told
+         * so, and where to go from there: its notes to a file, then {@code request_compaction}. The number is the one of the
+         * request just made, so the results of the round are not in it yet.
+         */
+        private void warnAboutContext(List<LLMChatMessage> transcript) throws Exception {
+            long cap = progress.contextCap;
+            long used = progress.contextTokens;
+            if (cap <= 0 || used * 100 < cap * Defaults.AGENT_CONTEXT_WARNING_PERCENT) {
+                return;
+            }
+            int percent = (int) Math.min(100, used * 100 / cap);
+            append(transcript, LLMChatMessage.of(LLMRole.USER, String.format(
+                    percent >= Defaults.AGENT_CONTEXT_CRITICAL_PERCENT ? Defaults.AGENT_CONTEXT_CRITICAL : Defaults.AGENT_CONTEXT_WARNING,
+                    percent, used, cap)));
         }
 
         /**
@@ -865,7 +908,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 log.info("Agent run {}: the user runs /{}", run.getUuid(), name);
                 if (COMPACT.equals(name)) {
                     try {
-                        compact(commandArguments(line), transcript);
+                        compact(commandArguments(line), transcript, false);
                     } catch (Discarded e) {
                         throw e;
                     } catch (Exception e) {
@@ -924,9 +967,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * The compaction: the model reads the whole transcript and writes the summary, which becomes the start of what it
          * reads from now on. The rounds before stay in the transcript of the user, marked as compacted.
          *
-         * @param focus what the author wants the summary to stress, may be empty
+         * @param focus   what the author wants the summary to stress, may be empty
+         * @param byAgent whether the agent asked for it with {@code request_compaction} and not the author
          */
-        private void compact(String focus, List<LLMChatMessage> transcript) throws Exception {
+        private void compact(String focus, List<LLMChatMessage> transcript, boolean byAgent) throws Exception {
             if (profile == null || inference == null) {
                 throw new IllegalStateException("The model of the agent is not available");
             }
@@ -937,7 +981,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             int dropped = fit(history);
             String prompt = agentService.getCompactionPrompt(agent).strip();
             history.add(LLMChatMessage.of(LLMRole.USER, focus.isEmpty() ? prompt
-                    : prompt + "\n\nThe author wants the summary to stress: " + focus));
+                    : prompt + (byAgent ? "\n\nYou asked the summary to stress: " : "\n\nThe author wants the summary to stress: ") + focus));
 
             Round round = ask(inference, profile, payload(history), tools);
             run = runService.addUsage(run, round.usage().promptTokens(), round.usage().completionTokens());
@@ -948,7 +992,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 throw new IllegalStateException(round.calls().isEmpty() ? "The model wrote no summary"
                         : "The model called a tool instead of writing the summary");
             }
-            StringBuilder message = new StringBuilder(Defaults.AGENT_COMPACTED_NOTE).append("\n\n").append(text);
+            StringBuilder message = new StringBuilder(byAgent ? Defaults.AGENT_SELF_COMPACTED_NOTE : Defaults.AGENT_COMPACTED_NOTE)
+                    .append("\n\n").append(text);
             if (dropped > 0) {
                 message.append("\n\n").append(String.format(Defaults.AGENT_COMPACTED_TRIMMED, dropped));
             }

@@ -305,6 +305,24 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         return save(summary);
     }
 
+    @Override
+    @CommonTx
+    public List<SummaryBlock> revalidate(Manuscript manuscript, List<ChatMessage> newestFirst, ChatMessage only) throws Exception {
+        agentRunService.checkNotLocked(manuscript);
+        List<SummaryBlock> revalidated = new ArrayList<>();
+        for (SummaryBlock block : collectBlocks(newestFirst)) {
+            if (block.isValid() || only != null && !block.head().getId().equals(only.getId())) {
+                continue;
+            }
+            Summary summary = find(block.summary());
+            summary.setSummaryMessageHash(block.hash());
+            save(summary);
+            revalidated.add(block);
+        }
+        Collections.reverse(revalidated);
+        return revalidated;
+    }
+
     private static long inferenceTokensFallback(String text) {
         return StringUtils.length(text) / 4;
     }

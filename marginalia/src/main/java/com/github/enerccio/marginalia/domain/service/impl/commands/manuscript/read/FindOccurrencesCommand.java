@@ -141,18 +141,21 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
         // the position of a part and, when it is not on the active branch, the branch that shows it
         Map<Long, Integer> positions = new HashMap<>();
         Map<Long, Integer> branches = new HashMap<>();
+        Map<Long, String> handles = new HashMap<>();
         if (everywhere) {
             StoryTree tree = book.tree();
             for (ChatMessage message : tree.byId.values()) {
                 positions.put(message.getId(), tree.depth(message));
+                handles.put(message.getId(), message.getUuid());
                 if (!tree.activeIds.contains(message.getId())) {
                     branches.put(message.getId(), tree.branchOf(message));
                 }
             }
         } else {
-            List<ChatMessage> path = book.path(null);
+            List<ChatMessage> path = book.path((String) null);
             for (int i = 0; i < path.size(); i++) {
                 positions.put(path.get(i).getId(), i + 1);
+                handles.put(path.get(i).getId(), path.get(i).getUuid());
             }
         }
 
@@ -177,7 +180,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
                 partsFound++;
                 occurrences += match.count();
                 if (inParts.size() < max) {
-                    inParts.add(hitRow(position, branches.get(text.messageId()), match));
+                    inParts.add(hitRow(handles.get(text.messageId()), position, branches.get(text.messageId()), match));
                 }
             }
             row.addProperty("parts", partsFound);
@@ -194,7 +197,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
                     }
                     summariesFound++;
                     if (inSummaries.size() < max) {
-                        inSummaries.add(hitRow(position, branches.get(text.messageId()), match));
+                        inSummaries.add(hitRow(handles.get(text.messageId()), position, branches.get(text.messageId()), match));
                     }
                 }
                 row.addProperty("summaries", summariesFound);
@@ -231,8 +234,9 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
         return count == 0 ? null : new Match(count, snippet);
     }
 
-    private static JsonObject hitRow(int position, Integer branch, Match match) {
+    private static JsonObject hitRow(String handle, int position, Integer branch, Match match) {
         JsonObject row = new JsonObject();
+        row.addProperty("handle", handle);
         row.addProperty("position", position);
         if (branch != null) {
             row.addProperty("branch", branch);

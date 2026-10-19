@@ -11,7 +11,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
 /**
- * {@code /count-tokens text}, {@code /count-tokens part [branch]}: tokens (with the tokenizer of the book's model), words and characters of a text or of a part.
+ * {@code /count-tokens text} (the text can be the handle of a part), {@code /count-tokens part branch}: tokens (with the tokenizer of the book's model), words and characters of a text or of a part.
  * Changes nothing; the answer is JSON text, see {@link ManuscriptReadSupport}.
  */
 public class CountTokensCommand extends ManuscriptReadSupport {
@@ -32,40 +32,38 @@ public class CountTokensCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_COUNT_TOKENS, llmDescription = L.DESC_COMMAND_COUNT_TOKENS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_COUNT_TOKENS_RETURN))
-    public void countPart(CommandContext context) throws Exception {
-        countPart(context, context.get("part", Integer.class), null);
-    }
-
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_COUNT_TOKENS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_COUNT_TOKENS, llmDescription = L.DESC_COMMAND_COUNT_TOKENS_LLM,
-            signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_COUNT_TOKENS_RETURN))
     public void countPartBranch(CommandContext context) throws Exception {
-        countPart(context, context.get("part", Integer.class), context.get("branch", Integer.class));
+        countPart(context, ref(context, "part"), ref(context, "branch"));
     }
 
     private void countText(CommandContext context, String text) throws Exception {
         Book book = new Book(context);
+        if (isHandle(text)) {
+            // the handle of a part counts the part
+            countPart(context, text, null);
+            return;
+        }
         countTokens(context, book.manuscript, text, null);
     }
 
-    private void countPart(CommandContext context, Integer position, Integer branch) throws Exception {
+    private void countPart(CommandContext context, String position, String branch) throws Exception {
         Book book = new Book(context);
-        ChatMessage message = book.part(book.path(branch), position);
-        countTokens(context, book.manuscript, message.getResponse(), position);
+        Book.Located at = book.locate(position, branch);
+        countTokens(context, book.manuscript, at.message().getResponse(), at);
     }
 
-    private void countTokens(CommandContext context, Manuscript manuscript, String text, Integer position) throws Exception {
+    private void countTokens(CommandContext context, Manuscript manuscript, String text, Book.Located at) throws Exception {
         String content = text == null ? "" : text;
         AI ai = manuscript.getAi();
         InferenceService inferenceService = ai == null ? null : inferenceServices.forAI(ai);
         JsonObject result = new JsonObject();
-        result.addProperty("position", position);
+        if (at != null) {
+            result.addProperty("handle", at.message().getUuid());
+            result.addProperty("position", at.position());
+        }
         result.addProperty("tokens", inferenceService == null
                 ? new JavaTokkitStrategy().countTokens(null, content) : inferenceService.countTokens(content));
         result.addProperty("tokenizer", inferenceService == null ? "generic" : ai.getName());

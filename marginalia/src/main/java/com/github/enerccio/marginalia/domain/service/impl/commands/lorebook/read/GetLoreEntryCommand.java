@@ -20,56 +20,59 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "entry", type = Integer.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM)}),
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
     public void getLoreEntry(CommandContext context) throws Exception {
-        getLoreEntry(context, context.get("entry", Integer.class), null, null, null);
+        getLoreEntry(context, ref(context, "entry"), null, null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "entry", type = Integer.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
-                    @CommandParameter(name = "lorebook", type = Integer.class, description = L.DESC_COMMAND_LOREBOOK_PARAM)}),
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
+                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
     public void getLoreEntryLorebook(CommandContext context) throws Exception {
-        getLoreEntry(context, context.get("entry", Integer.class), context.get("lorebook", Integer.class), null, null);
+        getLoreEntry(context, ref(context, "entry"), ref(context, "lorebook"), null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "entry", type = Integer.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
-                    @CommandParameter(name = "lorebook", type = Integer.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
+                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
     public void getLoreEntryOffset(CommandContext context) throws Exception {
-        getLoreEntry(context, context.get("entry", Integer.class), context.get("lorebook", Integer.class), context.get("offset", Integer.class), null);
+        getLoreEntry(context, ref(context, "entry"), ref(context, "lorebook"), context.get("offset", Integer.class), null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "entry", type = Integer.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
-                    @CommandParameter(name = "lorebook", type = Integer.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
+                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
                     @CommandParameter(name = "length", type = Integer.class, description = L.DESC_COMMAND_LENGTH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_LORE_ENTRY_RETURN))
     public void getLoreEntryLength(CommandContext context) throws Exception {
-        getLoreEntry(context, context.get("entry", Integer.class), context.get("lorebook", Integer.class), context.get("offset", Integer.class), context.get("length", Integer.class));
+        getLoreEntry(context, ref(context, "entry"), ref(context, "lorebook"), context.get("offset", Integer.class), context.get("length", Integer.class));
     }
 
-    private void getLoreEntry(CommandContext context, Integer entryNumber, Integer lorebook, Integer offset, Integer length) throws Exception {
+    private void getLoreEntry(CommandContext context, String entryNumber, String lorebook, Integer offset, Integer length) throws Exception {
         Lore lore = new Lore(new Book(context));
-        Lorebook book = lore.book(lorebook);
-        LorebookEntry entry = lore.entry(book, entryNumber);
+        Lore.Found found = lore.find(lorebook, entryNumber);
+        Lorebook book = found.book();
+        LorebookEntry entry = found.entry();
 
         JsonObject result = new JsonObject();
         result.addProperty("lorebook", lore.number(book));
-        result.addProperty("entry", entryNumber);
+        result.addProperty("lorebookHandle", book.getUuid());
+        result.addProperty("entry", found.number());
+        result.addProperty("handle", entry.getUuid());
         result.addProperty("name", entry.getName());
         result.addProperty("enabled", entry.isEnabled());
         result.addProperty("order", entry.getOrder());

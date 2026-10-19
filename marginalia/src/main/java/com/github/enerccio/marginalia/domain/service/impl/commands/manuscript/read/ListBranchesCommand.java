@@ -59,6 +59,7 @@ public class ListBranchesCommand extends ManuscriptReadSupport {
             List<ChatMessage> path = tree.pathTo(leaf);
             JsonObject row = new JsonObject();
             row.addProperty("branch", i + 1);
+            row.addProperty("handle", leaf.getUuid());
             row.addProperty("active", leaf.getId().equals(tree.activeLeafId));
             row.addProperty("parts", path.size());
             row.addProperty("words", path.stream().mapToInt(ChatMessage::getWordCount).sum());
@@ -70,6 +71,9 @@ public class ListBranchesCommand extends ManuscriptReadSupport {
                 }
             }
             row.addProperty("forkPosition", fork);
+            if (fork > 0) {
+                row.addProperty("forkHandle", path.get(fork - 1).getUuid());
+            }
             row.addProperty("created", leaf.getCreation() == null ? null : leaf.getCreation().toInstant().toString());
             row.addProperty("endPreview", preview(leaf.getResponse(), PREVIEW_LENGTH));
             branches.add(row);

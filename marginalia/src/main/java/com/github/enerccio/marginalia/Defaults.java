@@ -170,6 +170,37 @@ Do not call any tool and do not do any of the work now, only write the summary. 
             + "This summary, written by you, is all that is left of it:";
 
     /**
+     * Starts the message that holds the summary of a run that compacted itself with {@code request_compaction}.
+     */
+    public static final String AGENT_SELF_COMPACTED_NOTE = "Your earlier work on this run was compacted at your own request. "
+            + "This summary, written by you, is all that is left of it:";
+
+    /**
+     * From this share of the context cap (in percent) the runner reminds the agent after every round that the context fills up.
+     */
+    public static final int AGENT_CONTEXT_WARNING_PERCENT = 75;
+
+    /**
+     * From this share of the context cap (in percent) the reminder says that the run is about to stop.
+     */
+    public static final int AGENT_CONTEXT_CRITICAL_PERCENT = 90;
+
+    /**
+     * The reminder of a context that is filling up, a message of the run to the agent: the share, the tokens, the cap.
+     */
+    public static final String AGENT_CONTEXT_WARNING = "Notice from the run: your context is %d%% full (about %d of %d tokens). "
+            + "Earlier rounds will have to go. Put what you must not lose into files of your workspace now (what is done, "
+            + "what you found, the paths, what you are doing and the next step) and update your plan, then call "
+            + "request_compaction so that the earlier rounds are replaced by a summary. Do not start a long read or write first.";
+
+    /**
+     * The same, once the context is nearly full: the run stops when the cap is reached.
+     */
+    public static final String AGENT_CONTEXT_CRITICAL = "Notice from the run: your context is %d%% full (about %d of %d tokens) "
+            + "and the run stops when it is full. Save your notes to a file in your workspace and call request_compaction "
+            + "now, before anything else.";
+
+    /**
      * Added to the summary when the oldest part of the run did not fit the context of the model and was left out of it.
      */
     public static final String AGENT_COMPACTED_TRIMMED = "(The oldest %d message(s) of the run did not fit the context of the model "
@@ -191,6 +222,7 @@ How this run works:
 - You work in rounds: you call tools, you get their results, you call more. A reply without a tool call ends your turn and the run waits for the author to write to you, so do not reply with a plain text while there is work left.
 - When the task is done, call finish with your report. If you need a decision that only the author can make, call ask_user.
 - Keep your to-do list with update_plan, and look at get_run_status before a long step: your rounds, tokens and context are limited.
+- Your context fills up with everything you read and write. When the run tells you it is filling up, save your notes to a file of your workspace and call request_compaction: the earlier rounds are then replaced by a summary you write. A run whose context is full stops.
 - A tool that fails returns an error text. Read it and correct the call; do not repeat the same call unchanged.
 - The instructions of the author, as they are in your system prompt, are also the read-only file /AGENTS.md. Read it again when you are unsure what the author asked for; you cannot change it.
 - What you write costs time and counts against the limit of your answer, so do not write out text you already have: do not copy a result or a file into a call (use save_command_result or @file:/path), do not repeat a result back, and keep what you say between calls to a sentence. The long texts belong in the files you write and in your report.

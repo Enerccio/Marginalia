@@ -50,6 +50,18 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
     Summary copySummary(Summary summary) throws Exception;
 
     /**
+     * Says that the summaries of the branch still describe the story: works out their hash again from the story as it is
+     * now, the way a search and replace does for the texts it changed. For the author (or an agent) who edited a part
+     * and knows that what the summary says is still true.
+     *
+     * @param newestFirst the branch, from the newest part to the root
+     * @param only        the part whose summary is revalidated, all the summaries of the branch when null
+     * @return the summaries that were outdated and are valid now, oldest first
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    List<SummaryBlock> revalidate(Manuscript manuscript, List<ChatMessage> newestFirst, ChatMessage only) throws Exception;
+
+    /**
      * Changes the text of the summary, its token count is counted again.
      * <p>
      * Only for summaries that no meta summary stands in for: the text of those is a part of the hash of the meta summary.

@@ -49,6 +49,24 @@ class RunToolsTest {
     private final RunToolsImpl tools = new RunToolsImpl(() -> "Rounds: 3");
 
     @Test
+    void requestCompactionNotesTheFocusUntilTheRunnerTakesIt() {
+        assertThat(tools.isCompactionRequested()).isFalse();
+
+        Answer asked = new Answer();
+        tools.requestCompaction(asked, "  the chapters ");
+        assertThat(asked.result).isEqualTo(RunToolsImpl.COMPACTION_ACK);
+        assertThat(tools.isCompactionRequested()).isTrue();
+        assertThat(tools.getCompactionFocus()).isEqualTo("the chapters");
+
+        tools.clearRequests();
+        assertThat(tools.isCompactionRequested()).isFalse();
+
+        tools.requestCompaction(new Answer(), null);
+        assertThat(tools.isCompactionRequested()).as("a focus is not required").isTrue();
+        assertThat(tools.getCompactionFocus()).isEmpty();
+    }
+
+    @Test
     void finishKeepsTheReportAndNeedsOne() {
         Answer empty = new Answer();
         tools.finish(empty, "  ");

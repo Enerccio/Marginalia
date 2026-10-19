@@ -30,6 +30,7 @@ public class ListLorebooksCommand extends LorebookReadSupport {
         for (Lorebook book : lore.books) {
             JsonObject row = new JsonObject();
             row.addProperty("lorebook", lore.number(book));
+            row.addProperty("handle", book.getUuid());
             row.addProperty("name", book.getName());
             row.addProperty("enabled", book.isEnabled());
             int enabled = 0;

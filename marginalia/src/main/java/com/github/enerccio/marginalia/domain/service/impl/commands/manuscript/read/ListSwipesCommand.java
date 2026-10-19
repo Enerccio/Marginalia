@@ -22,27 +22,27 @@ public class ListSwipesCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_SWIPES, llmDescription = L.DESC_COMMAND_LIST_SWIPES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_SWIPES_RETURN))
     public void listSwipes(CommandContext context) throws Exception {
-        listSwipes(context, context.get("part", Integer.class), null);
+        listSwipes(context, ref(context, "part"), null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_SWIPES,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_SWIPES, llmDescription = L.DESC_COMMAND_LIST_SWIPES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_SWIPES_RETURN))
     public void listSwipesBranch(CommandContext context) throws Exception {
-        listSwipes(context, context.get("part", Integer.class), context.get("branch", Integer.class));
+        listSwipes(context, ref(context, "part"), ref(context, "branch"));
     }
 
-    private void listSwipes(CommandContext context, Integer position, Integer branch) throws Exception {
+    private void listSwipes(CommandContext context, String position, String branch) throws Exception {
         Book book = new Book(context);
-        List<ChatMessage> path = book.path(branch);
-        ChatMessage message = book.part(path, position);
+        Book.Located at = book.locate(position, branch);
+        ChatMessage message = at.message();
         StoryTree tree = book.tree();
 
         List<ChatMessage> swipes = new ArrayList<>(chatMessageService.getSwipesForMessage(message));
@@ -53,6 +53,7 @@ public class ListSwipesCommand extends ManuscriptReadSupport {
         for (ChatMessage swipe : swipes) {
             number++;
             JsonObject row = new JsonObject();
+            row.addProperty("handle", swipe.getUuid());
             row.addProperty("swipe", number);
             row.addProperty("shown", swipe.getId().equals(message.getId()));
             row.addProperty("words", swipe.getWordCount());
@@ -66,7 +67,8 @@ public class ListSwipesCommand extends ManuscriptReadSupport {
             list.add(row);
         }
         JsonObject result = new JsonObject();
-        result.addProperty("position", position);
+        result.addProperty("handle", message.getUuid());
+        result.addProperty("position", at.position());
         result.add("swipes", list);
         answer(context, result);
     }

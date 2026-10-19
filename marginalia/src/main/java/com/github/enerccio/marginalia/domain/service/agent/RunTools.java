@@ -42,6 +42,14 @@ public interface RunTools {
     void updatePlan(FunctionContinuation<String> done,
                     @LLMParam(description = "All the steps, in order; each has text and status") List<PlanItem> items);
 
+    @LLMFunction(name = "request_compaction", description = "Frees your context: when this round ends, everything you did so "
+            + "far is replaced by a summary that you write then. Use it when the run tells you the context is filling up, "
+            + "or before you start a new stage of the task. Save your notes to a file of your workspace and update your "
+            + "plan first; what is in neither is only in the summary if you write it there.")
+    void requestCompaction(FunctionContinuation<String> done,
+                           @LLMParam(description = "What the summary should stress, e.g. the stage you start next",
+                                   required = false) String focus);
+
     @LLMFunction(name = "get_run_status", description = "Tells how much of your budget is spent: rounds, tokens, the "
             + "context of the model, and your current plan. Look at it before a long step to pace yourself.")
     void getRunStatus(FunctionContinuation<String> done);

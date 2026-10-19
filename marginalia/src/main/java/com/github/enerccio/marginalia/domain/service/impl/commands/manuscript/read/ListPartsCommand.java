@@ -31,36 +31,36 @@ public class ListPartsCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_PARTS, llmDescription = L.DESC_COMMAND_LIST_PARTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_PARTS_RETURN))
     public void listPartsBranch(CommandContext context) throws Exception {
-        listParts(context, context.get("branch", Integer.class), null, null);
+        listParts(context, ref(context, "branch"), null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_PARTS,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_PARTS, llmDescription = L.DESC_COMMAND_LIST_PARTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_PARTS_RETURN))
     public void listPartsOffset(CommandContext context) throws Exception {
-        listParts(context, context.get("branch", Integer.class), context.get("offset", Integer.class), null);
+        listParts(context, ref(context, "branch"), context.get("offset", Integer.class), null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_PARTS,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_PARTS, llmDescription = L.DESC_COMMAND_LIST_PARTS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
                     @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_PARTS_RETURN))
     public void listPartsLimit(CommandContext context) throws Exception {
-        listParts(context, context.get("branch", Integer.class), context.get("offset", Integer.class), context.get("limit", Integer.class));
+        listParts(context, ref(context, "branch"), context.get("offset", Integer.class), context.get("limit", Integer.class));
     }
 
-    private void listParts(CommandContext context, Integer branch, Integer offset, Integer limit) throws Exception {
+    private void listParts(CommandContext context, String branch, Integer offset, Integer limit) throws Exception {
         Book book = new Book(context);
         List<ChatMessage> path = book.path(branch);
         int from = Math.min(Math.max(offset == null ? 0 : offset, 0), path.size());
@@ -71,6 +71,7 @@ public class ListPartsCommand extends ManuscriptReadSupport {
         for (int i = from; i < to; i++) {
             ChatMessage message = path.get(i);
             JsonObject part = new JsonObject();
+            part.addProperty("handle", message.getUuid());
             part.addProperty("position", i + 1);
             part.addProperty("swipes", chatMessageService.getSwipesForMessage(message).size());
             part.addProperty("words", message.getWordCount());

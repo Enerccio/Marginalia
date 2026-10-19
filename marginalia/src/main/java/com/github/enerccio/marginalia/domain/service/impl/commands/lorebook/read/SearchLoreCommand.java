@@ -110,6 +110,7 @@ public class SearchLoreCommand extends LorebookReadSupport {
                     JsonObject row = new JsonObject();
                     row.addProperty("lorebook", lore.number(book));
                     row.addProperty("entry", number);
+                    row.addProperty("handle", entry.getUuid());
                     row.addProperty("name", entry.getName());
                     row.add("matchedIn", matchedIn);
                     row.addProperty("snippet", snippet);

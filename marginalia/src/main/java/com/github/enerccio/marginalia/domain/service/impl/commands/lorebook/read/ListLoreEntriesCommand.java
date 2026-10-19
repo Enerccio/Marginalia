@@ -35,49 +35,49 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_LORE_ENTRIES, llmDescription = L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = Integer.class, description = L.DESC_COMMAND_LOREBOOK_PARAM)}),
+                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN))
     public void listLoreEntriesLorebook(CommandContext context) throws Exception {
-        listLoreEntries(context, context.get("lorebook", Integer.class), null, null, null);
+        listLoreEntries(context, ref(context, "lorebook"), null, null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LORE_ENTRIES,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_LORE_ENTRIES, llmDescription = L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = Integer.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
+                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
                     @CommandParameter(name = "filter", type = String.class, description = L.DESC_COMMAND_LORE_FILTER_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN))
     public void listLoreEntriesFilter(CommandContext context) throws Exception {
-        listLoreEntries(context, context.get("lorebook", Integer.class), context.get("filter", String.class), null, null);
+        listLoreEntries(context, ref(context, "lorebook"), context.get("filter", String.class), null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LORE_ENTRIES,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_LORE_ENTRIES, llmDescription = L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = Integer.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
+                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
                     @CommandParameter(name = "filter", type = String.class, description = L.DESC_COMMAND_LORE_FILTER_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN))
     public void listLoreEntriesOffset(CommandContext context) throws Exception {
-        listLoreEntries(context, context.get("lorebook", Integer.class), context.get("filter", String.class), context.get("offset", Integer.class), null);
+        listLoreEntries(context, ref(context, "lorebook"), context.get("filter", String.class), context.get("offset", Integer.class), null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LORE_ENTRIES,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_LORE_ENTRIES, llmDescription = L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "lorebook", type = Integer.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
+                    @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
                     @CommandParameter(name = "filter", type = String.class, description = L.DESC_COMMAND_LORE_FILTER_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
                     @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN))
     public void listLoreEntriesLimit(CommandContext context) throws Exception {
-        listLoreEntries(context, context.get("lorebook", Integer.class), context.get("filter", String.class), context.get("offset", Integer.class), context.get("limit", Integer.class));
+        listLoreEntries(context, ref(context, "lorebook"), context.get("filter", String.class), context.get("offset", Integer.class), context.get("limit", Integer.class));
     }
 
-    private void listLoreEntries(CommandContext context, Integer lorebook, String filter, Integer offset, Integer limit) throws Exception {
+    private void listLoreEntries(CommandContext context, String lorebook, String filter, Integer offset, Integer limit) throws Exception {
         Lore lore = new Lore(new Book(context));
         Lorebook book = lore.book(lorebook);
         List<LorebookEntry> all = lore.entries(book);
@@ -98,6 +98,7 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
         }
         JsonObject result = new JsonObject();
         result.addProperty("lorebook", lore.number(book));
+        result.addProperty("handle", book.getUuid());
         result.addProperty("name", book.getName());
         result.addProperty("entries", all.size());
         result.addProperty("matching", matching);

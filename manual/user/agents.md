@@ -60,6 +60,7 @@ these of its own:
 | Images for commands | A command that sends pictures to a model of its own, such as [`generate-lore-entry`](extensions/lore-generator.md#commands), takes an `images` parameter: a list of paths of image files of the workspace (at most 8). It is the model of the command, not the agent's, that has to see them, so the agent can pass images even when its own model does not see images. |
 | `update_plan` | Its to-do list. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
+| `request_compaction` | Compacts its own context: when the round ends it writes the summary of its earlier work, as with `/compact`. It is told to save its notes to a file first. See [Context filling up](#running-a-command-yourself). |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
 | `finish` | Its report: the run is *Done*. The report is shown as the reason of the status. |
 
@@ -108,6 +109,11 @@ and the summary as a folded block, **Summary of the earlier work**; the export k
 The request is the agent's own and its tokens count against the run. The question the agent is asked is its **Compaction prompt**: the one of the agent, else your
 default in [Settings](account.md#templates), else the one of the administrator, else the built-in one. If the context is already so full that the request does
 not fit, the oldest messages are left out of it (the summary says how many). Do it before the context is full, the usage line shows how close it is. Right after the compaction the context shown is an estimate of what the next request will hold (the summary, the system prompt and the definitions of the tools); the first answer of the model after it replaces it with the real number.
+
+**Context filling up.** Once the context of the model passes 75% of its cap the agent gets a notice after every round (a message of the run, you see it in the
+transcript): how full it is, and that it should save what it must not lose to a file of its workspace, update its plan and call `request_compaction`. Above 90% the notice says that the run
+stops when the context is full. The compaction the agent asks for is the same as yours (its **Compaction prompt**, see [Creating and editing an agent](#creating-and-editing-an-agent), its tokens count against the run); if it fails, nothing is changed and the agent is told.
+The notices need a context cap: the lowest of the cap of the agent and the limits of its model.
 
 **`/clear-workspace [what to keep]`** deletes the files and all the folders of the [workspace](#the-working-copy) of the run (after you confirm, as with the button of the workspace). Name what
 to keep after it, separated by spaces: files, folders (with everything in them) or patterns such as `*.md` or `chapters/*.md`, a path with spaces in double quotes

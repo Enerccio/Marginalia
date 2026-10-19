@@ -35,13 +35,13 @@ public class ListSummariesCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_LIST_SUMMARIES, llmDescription = L.DESC_COMMAND_LIST_SUMMARIES_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_SUMMARIES_RETURN))
     public void listSummariesBranch(CommandContext context) throws Exception {
-        listSummaries(context, context.get("branch", Integer.class));
+        listSummaries(context, ref(context, "branch"));
     }
 
-    private void listSummaries(CommandContext context, Integer branch) throws Exception {
+    private void listSummaries(CommandContext context, String branch) throws Exception {
         Book book = new Book(context);
         List<ChatMessage> path = book.path(branch);
         Map<Long, Boolean> valid = validSummaries(path);
@@ -52,6 +52,7 @@ public class ListSummariesCommand extends ManuscriptReadSupport {
         int previous = 0;
         for (SummaryNode node : summaryService.collectTree(newestFirst)) {
             JsonObject row = new JsonObject();
+            row.addProperty("handle", node.getMessage().getUuid());
             row.addProperty("position", node.getOrder());
             row.addProperty("covers", (previous + 1) + "-" + node.getOrder());
             row.addProperty("type", node.getSummary().getSummaryType() == SummaryType.META_SUMMARY ? "meta" : "summary");

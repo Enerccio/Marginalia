@@ -22,29 +22,31 @@ public class GetSummaryCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_SUMMARY, llmDescription = L.DESC_COMMAND_GET_SUMMARY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_SUMMARY_RETURN))
     public void getSummary(CommandContext context) throws Exception {
-        getSummary(context, context.get("part", Integer.class), null);
+        getSummary(context, ref(context, "part"), null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_SUMMARY,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_SUMMARY, llmDescription = L.DESC_COMMAND_GET_SUMMARY_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_SUMMARY_RETURN))
     public void getSummaryBranch(CommandContext context) throws Exception {
-        getSummary(context, context.get("part", Integer.class), context.get("branch", Integer.class));
+        getSummary(context, ref(context, "part"), ref(context, "branch"));
     }
 
-    private void getSummary(CommandContext context, Integer position, Integer branch) throws Exception {
+    private void getSummary(CommandContext context, String position, String branch) throws Exception {
         Book book = new Book(context);
-        List<ChatMessage> path = book.path(branch);
-        ChatMessage message = book.part(path, position);
+        Book.Located at = book.locate(position, branch);
+        List<ChatMessage> path = at.path();
+        ChatMessage message = at.message();
         JsonObject result = new JsonObject();
-        result.addProperty("position", position);
+        result.addProperty("handle", message.getUuid());
+        result.addProperty("position", at.position());
         Summary summary = message.getSummary();
         result.addProperty("hasSummary", summary != null);
         if (summary != null) {

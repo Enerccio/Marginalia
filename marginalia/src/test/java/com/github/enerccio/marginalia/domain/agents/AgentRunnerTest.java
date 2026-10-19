@@ -591,6 +591,92 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(agentRunService.getContextCap(run)).isEqualTo(5_000);
     }
 
+    // --- the context fills up ---
+
+    @Test
+    void theAgentIsToldAfterEveryRoundOnceItsContextPassesThreeQuartersOfTheCap() throws Exception {
+        Agent agent = readingAgent();
+        agent.setContextCap(10_000);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").usage(5_000, 500),
+                MockLLMResponse.toolCall("get-book-info", "{}").usage(7_000, 600),
+                MockLLMResponse.toolCall("get-book-info", "{}").usage(7_200, 400),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}").usage(100, 10));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).as(run.getStatusReason()).isEqualTo(AgentRunStatus.DONE);
+        List<MockLLMRequest> requests = llm.getCompletionRequests();
+        assertThat(requests.get(1).getMessages("user")).as("55% is no reason yet").noneMatch(text -> text.contains("Notice from the run"));
+        assertThat(requests.get(2).getMessages("user")).as("76%").anyMatch(text -> text.contains("context is 76% full")
+                && text.contains("7600 of 10000") && text.contains("request_compaction") && !text.contains("stops when it is full"));
+        assertThat(requests.get(3).getMessages("user")).as("76% and then 76% again, once for every round")
+                .filteredOn(text -> text.contains("Notice from the run")).hasSize(2);
+    }
+
+    @Test
+    void theWarningSaysThatTheRunStopsWhenTheContextIsNearlyFull() throws Exception {
+        Agent agent = readingAgent();
+        agent.setContextCap(10_000);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").usage(9_000, 300),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}").usage(100, 10));
+
+        await(startRun(agent));
+
+        assertThat(llm.getCompletionRequests().get(1).getMessages("user")).anyMatch(text -> text.contains("context is 93% full")
+                && text.contains("stops when it is full"));
+    }
+
+    @Test
+    void noWarningComesWhenTheContextHasNoCap() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").usage(9_000, 300),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}").usage(100, 10));
+
+        await(startRun(agent));
+
+        assertThat(llm.getCompletionRequests().get(1).getMessages("user")).noneMatch(text -> text.contains("Notice from the run"));
+    }
+
+    @Test
+    void theAgentCompactsItselfWhenItAsksForIt() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"),
+                MockLLMResponse.toolCall("request_compaction", "{\"focus\":\"the chapters\"}"),
+                MockLLMResponse.text("Task: count parts. Notes in notes.md."),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}"));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        // the request for the summary: everything so far, then the prompt with the agent's own focus as the last message
+        MockLLMRequest ask = llm.getCompletionRequests().get(2);
+        assertThat(ask.getMessages("user").getLast()).startsWith(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT.strip())
+                .endsWith("You asked the summary to stress: the chapters");
+        assertThat(ask.getMessages("tool")).as("the call has its result before the compaction").hasSize(2);
+        // and the next round reads the summary only
+        MockLLMRequest next = llm.getCompletionRequests().get(3);
+        assertThat(next.getMessages("tool")).isEmpty();
+        assertThat(next.getMessages("user").getLast()).startsWith(Defaults.AGENT_SELF_COMPACTED_NOTE).contains("Notes in notes.md.");
+        assertThat(transcript(run).getFirst().getContent()).startsWith(Defaults.AGENT_SELF_COMPACTED_NOTE);
+    }
+
+    @Test
+    void aCompactionTheAgentAskedForThatFailsIsReportedToTheAgent() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("request_compaction", "{}"),
+                MockLLMResponse.toolCall("get-book-info", "{}"),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}"));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        assertThat(llm.lastCompletionRequest().getMessages("user")).anyMatch(text -> text.contains("You asked to compact your work, but it failed")
+                && text.contains("Nothing was changed."));
+        assertThat(llm.lastCompletionRequest().getMessages("tool")).as("nothing was dropped").hasSize(1);
+    }
+
     @Test
     void theReasoningOfTheModelIsKeptBesideItsAnswerAndNotSentBack() throws Exception {
         Agent agent = readingAgent();

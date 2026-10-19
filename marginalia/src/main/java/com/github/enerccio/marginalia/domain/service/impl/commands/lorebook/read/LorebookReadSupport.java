@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
+import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.ManuscriptReadSupport;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
@@ -36,11 +37,14 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
      */
     protected final class Lore {
 
-        final List<Lorebook> books = new ArrayList<>();
+        public final List<Lorebook> books = new ArrayList<>();
         private final Map<Long, Integer> numbers = new HashMap<>();
         private final Map<Long, List<LorebookEntry>> entries = new HashMap<>();
 
+        private final CommandContext context;
+
         public Lore(Book book) throws Exception {
+            this.context = book.context();
             Lorebook root = book.manuscript.getLorebook() == null ? null : lorebookService.find(book.manuscript.getLorebook());
             if (root == null || root.isDeleted()) {
                 throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_LOREBOOK));
@@ -63,13 +67,55 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
             return numbers.get(book.getId());
         }
 
-        /** The lorebook with that number, the root when it is null. */
-        public Lorebook book(Integer number) {
-            int n = number == null ? 1 : number;
+        /** The lorebook with that handle or number, the root when it is null. */
+        public Lorebook book(String ref) throws Exception {
+            if (ref == null || ref.isBlank()) {
+                return books.getFirst();
+            }
+            if (isHandle(ref)) {
+                Lorebook found = context.getScope().resolveLorebook(ref.strip());
+                return books.stream().filter(b -> b.getId().equals(found.getId())).findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE)));
+            }
+            int n = number(ref);
             if (n < 1 || n > books.size()) {
                 throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NO_SUCH_LOREBOOK), n, books.size()));
             }
             return books.get(n - 1);
+        }
+
+        private int number(String text) {
+            try {
+                return Integer.parseInt(text.strip());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NOT_A_REFERENCE), text), e);
+            }
+        }
+
+        /** An entry, the lorebook it is in and its number there. */
+        public record Found(Lorebook book, LorebookEntry entry, int number) {
+        }
+
+        /**
+         * The entry the caller means: its handle (then the lorebook is the one it is in), or its number in the lorebook
+         * (the root when none is given).
+         */
+        public Found find(String lorebookRef, String entryRef) throws Exception {
+            if (entryRef != null && isHandle(entryRef)) {
+                LorebookEntry entry = context.getScope().resolveEntry(entryRef.strip());
+                Lorebook owner = books.stream().filter(b -> b.getId().equals(entry.getLorebook().getId())).findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE)));
+                List<LorebookEntry> all = entries(owner);
+                for (int i = 0; i < all.size(); i++) {
+                    if (all.get(i).getId().equals(entry.getId())) {
+                        return new Found(owner, all.get(i), i + 1);
+                    }
+                }
+                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE));
+            }
+            Lorebook owner = book(lorebookRef);
+            int number = entryRef == null ? 0 : number(entryRef);
+            return new Found(owner, entry(owner, number), number);
         }
 
         /** The entries of the lorebook that are not deleted, in the order of the lorebook. */
@@ -93,7 +139,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
         }
 
         /** The numbers of the subbooks of the lorebook. */
-        protected JsonArray subbooks(Lorebook book) throws Exception {
+        public JsonArray subbooks(Lorebook book) throws Exception {
             JsonArray subs = new JsonArray();
             for (Lorebook sub : lorebookService.getSubbooks(book)) {
                 Integer n = numbers.get(sub.getId());
@@ -119,6 +165,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
     protected JsonObject entryRow(int number, LorebookEntry entry) throws Exception {
         JsonObject row = new JsonObject();
         row.addProperty("entry", number);
+        row.addProperty("handle", entry.getUuid());
         row.addProperty("name", entry.getName());
         row.addProperty("enabled", entry.isEnabled());
         row.addProperty("order", entry.getOrder());
