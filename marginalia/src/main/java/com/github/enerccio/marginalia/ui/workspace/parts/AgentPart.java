@@ -22,6 +22,7 @@ import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentCloneDialog;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentConsoleDialog;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentDialog;
+import com.github.enerccio.marginalia.ui.dialogs.agent.AgentMergeDialog;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentStopDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
@@ -67,6 +68,11 @@ public class AgentPart implements WorkspaceComponent {
     private static final Set<AgentRunStatus> STOPPABLE = Set.of(AgentRunStatus.RUNNING, AgentRunStatus.IDLE,
             AgentRunStatus.WAITING_APPROVAL, AgentRunStatus.PAUSING, AgentRunStatus.PAUSED, AgentRunStatus.STOPPED_KEPT,
             AgentRunStatus.DONE);
+
+    /**
+     * The statuses of a run whose result the user can take over.
+     */
+    private static final Set<AgentRunStatus> REVIEWABLE = Set.of(AgentRunStatus.DONE, AgentRunStatus.STOPPED_KEPT);
 
     @Autowired
     private Localization loc;
@@ -285,6 +291,12 @@ public class AgentPart implements WorkspaceComponent {
         stopButton.setTooltipText(loc.getValue(L.LABEL_STOP));
         stopButton.setVisible(status != null && STOPPABLE.contains(status));
 
+        // the result of a finished or kept run waits for the user: they take over what they want of it
+        Button reviewButton = new Button(Solid.CODE_COMPARE.create(), event -> openReview(agent, run));
+        reviewButton.setTooltipText(loc.getValue(L.LABEL_REVIEW_CHANGES));
+        reviewButton.setVisible(status != null && REVIEWABLE.contains(status));
+        reviewButton.setThemeName("primary");
+
         Button consoleButton = new Button(Solid.TERMINAL.create(), event -> openConsole(agent));
         consoleButton.setTooltipText(loc.getValue(L.LABEL_AGENT_CONSOLE));
         // the agent needs the user: the button stands out
@@ -323,9 +335,19 @@ public class AgentPart implements WorkspaceComponent {
         deleteButton.setThemeName("error tertiary");
         deleteButton.setTooltipText(loc.getValue(L.LABEL_DELETE));
 
-        HorizontalLayout actions = new HorizontalLayout(startControl, pauseButton, stopButton, consoleButton, editButton, cloneButton, deleteButton);
+        HorizontalLayout actions = new HorizontalLayout(startControl, pauseButton, stopButton, reviewButton, consoleButton, editButton, cloneButton, deleteButton);
         actions.setSpacing(true);
         return actions;
+    }
+
+    /**
+     * Opens the review of the result of the run.
+     */
+    void openReview(Agent agent, AgentRun run) {
+        AgentMergeDialog dialog = new AgentMergeDialog(agent.getName(), run, this::refreshGrid);
+        dialog.create();
+        dialog.open();
+        lastDialog = dialog;
     }
 
     /**

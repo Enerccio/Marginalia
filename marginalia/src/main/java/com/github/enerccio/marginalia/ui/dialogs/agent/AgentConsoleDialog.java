@@ -146,6 +146,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private Button resumeButton;
     private Button stopButton;
     private Button finishButton;
+    private Button reviewButton;
     private AgentWorkspaceBrowser workspaceBrowser;
     private AgentCheckpointBrowser checkpointBrowser;
     private AgentRunHistory history;
@@ -295,6 +296,18 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }));
         finishButton = new Button(loc.getValue(L.LABEL_FINISH), Solid.CHECK.create(),
                 event -> perform(() -> agentRunService.finish(run)));
+        reviewButton = new Button(loc.getValue(L.LABEL_REVIEW_CHANGES), Solid.CODE_COMPARE.create(), event -> {
+            AgentMergeDialog dialog = new AgentMergeDialog(agent.getName(), run, () -> {
+                refreshRun();
+                if (onChange != null) {
+                    onChange.run();
+                }
+            });
+            dialog.create();
+            dialog.open();
+            lastDialog = dialog;
+        });
+        reviewButton.setThemeName("primary");
         stopButton = new Button(loc.getValue(L.LABEL_STOP), Solid.STOP.create(), event -> {
             AgentStopDialog dialog = new AgentStopDialog(agent.getName(), run.getStatus() != AgentRunStatus.DONE,
                     keep -> perform(() -> agentRunService.stop(run, keep)));
@@ -304,7 +317,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         });
         Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.ARROWS_ROTATE.create(), event -> refreshRun());
         Button closeButton = new Button(loc.getValue(L.LABEL_CLOSE), event -> close());
-        HorizontalLayout footer = new HorizontalLayout(pauseButton, resumeButton, finishButton, stopButton, refreshButton, closeButton);
+        HorizontalLayout footer = new HorizontalLayout(pauseButton, resumeButton, finishButton, reviewButton, stopButton, refreshButton, closeButton);
         footer.setWidthFull();
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
@@ -418,6 +431,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         pauseButton.setEnabled(status != null && PAUSABLE.contains(status));
         resumeButton.setEnabled(status != null && status.isResumable());
         finishButton.setEnabled(status == AgentRunStatus.IDLE);
+        reviewButton.setVisible(status != null && (status == AgentRunStatus.DONE || status == AgentRunStatus.STOPPED_KEPT) && run.getWorkingCopy() != null);
         stopButton.setEnabled(status != null && STOPPABLE.contains(status));
     }
 
@@ -848,6 +862,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     Button getResumeButton() {
         return resumeButton;
+    }
+
+    Button getReviewButton() {
+        return reviewButton;
     }
 
     Button getFinishButton() {

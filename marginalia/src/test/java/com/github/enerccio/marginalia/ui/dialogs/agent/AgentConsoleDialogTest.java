@@ -306,6 +306,18 @@ class AgentConsoleDialogTest extends AgentTestBase {
     }
 
     @Test
+    void theResultOfAFinishedRunCanBeReviewed() throws Exception {
+        AgentRun run = startedRun();
+        AgentConsoleDialog dialog = console();
+        assertThat(dialog.getReviewButton().isVisible()).as("a run that works").isFalse();
+
+        agentRunService.transition(agentRunService.find(run.getId()), AgentRunStatus.DONE, "report");
+        dialog.refreshRun();
+
+        assertThat(dialog.getReviewButton().isVisible()).isTrue();
+    }
+
+    @Test
     void aFinishedRunShowsItsReport() throws Exception {
         AgentRun run = startedRun();
         say(run, LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("f1", "finish", "{\"summary\": \"No contradictions found.\"}"))),

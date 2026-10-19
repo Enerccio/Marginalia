@@ -390,11 +390,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         List<ChatMessage> newestFirst = leaf == null ? List.of() : new ArrayList<>(getBranchFromLeaf(leaf).reversed());
         Set<Long> outdatedBefore = outdatedHeads(newestFirst);
 
-        stored.setResponse(newText);
-        stored.setTokenCount(countTokens(book, newText));
-        stored.setWordCount(countWords(newText));
-        stored.setEdited(true);
-        ChatMessage saved = save(stored);
+        ChatMessage saved = storeResponse(book, stored, newText);
 
         List<SummaryBlock> outdated = new ArrayList<>();
         for (SummaryBlock block : summaryService.collectBlocks(newestFirst)) {
@@ -404,6 +400,19 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         }
         Collections.reverse(outdated);
         return new PartEdit(saved, outdated);
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage stored = ownPart(book, message);
+        String newText = text == null ? "" : text;
+        stored.setResponse(newText);
+        stored.setTokenCount(countTokens(book, newText));
+        stored.setWordCount(countWords(newText));
+        stored.setEdited(true);
+        return save(stored);
     }
 
     private long countTokens(Manuscript book, String text) throws Exception {

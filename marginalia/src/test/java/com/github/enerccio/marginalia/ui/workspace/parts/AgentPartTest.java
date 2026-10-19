@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.ComponentTree;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentConsoleDialog;
+import com.github.enerccio.marginalia.ui.dialogs.agent.AgentMergeDialog;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
@@ -426,5 +427,21 @@ class AgentPartTest extends AgentTestBase {
         ComponentTree.button(part.getLastDialog(), "Stop and discard the result").click();
 
         assertThat(ComponentTree.all(actionsOf(agent), MenuBar.class).count()).isEqualTo(1);
+    }
+
+    @Test
+    void theResultOfAFinishedRunIsReviewedFromTheRow() throws Exception {
+        Agent agent = agent();
+        part.refresh();
+        actionsOf(agent);
+        choose("Start immediately");
+        assertThat(has(actionsOf(agent), "Review changes")).as("a run that works has no result yet").isFalse();
+
+        agentRunService.transition(agentRunService.findUnfinished(agent), AgentRunStatus.DONE, "report");
+        part.refresh();
+        button(actionsOf(agent), "Review changes").click();
+
+        assertThat(part.getLastDialog()).isInstanceOf(AgentMergeDialog.class);
+        assertThat(part.getLastDialog().isOpened()).isTrue();
     }
 }

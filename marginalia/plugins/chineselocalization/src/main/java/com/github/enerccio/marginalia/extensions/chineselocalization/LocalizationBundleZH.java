@@ -508,6 +508,22 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_CHECKPOINTS, "检查点");
         setValue(L.LABEL_SAVE_CHECKPOINT, "保存检查点");
         setValue(L.LABEL_CHECKPOINT_LABEL, "标签（可选）");
+        setValue(L.LABEL_REVIEW_CHANGES, "查看更改");
+        setValue(L.LABEL_APPLY_PICKED_CHANGES, "应用所选更改");
+        setValue(L.LABEL_DISCARD_RESULT, "放弃结果");
+        setValue(L.LABEL_SELECT_ALL, "全选");
+        setValue(L.LABEL_SELECT_NONE, "全不选");
+        setValue(L.LABEL_SELECT_NEW_PARTS, "仅新增段落");
+        setValue(L.LABEL_SELECT_WITHOUT_CONFLICTS, "无冲突");
+        setValue(L.LABEL_MERGE_IN_BOOK_NOW, "书中当前内容");
+        setValue(L.LABEL_MERGE_TO_APPLY, "将应用的内容(可编辑)");
+        setValue(L.LABEL_MERGE_BEFORE_RUN, "运行开始时");
+        setValue(L.LABEL_USE_BOOK_VERSION, "使用书中的内容");
+        setValue(L.LABEL_USE_AGENT_VERSION, "使用智能体的内容");
+        setValue(L.LABEL_SWITCH_TO_AGENT_BRANCH, "显示智能体结束时所在的分支");
+        setValue(L.LABEL_PART_TEXT, "段落正文");
+        setValue(L.LABEL_SUBBOOKS, "子设定集");
+        setValue(L.LABEL_STATE, "状态");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -580,6 +596,16 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_CHECKPOINT_START, "运行开始");
         setValue(L.ENUM_CHECKPOINT_AUTOMATIC, "自动");
         setValue(L.ENUM_CHECKPOINT_MANUAL, "手动");
+        setValue(L.ENUM_MERGE_KIND_BOOK, "书籍");
+        setValue(L.ENUM_MERGE_KIND_MESSAGE, "段落");
+        setValue(L.ENUM_MERGE_KIND_LOREBOOK, "设定集");
+        setValue(L.ENUM_MERGE_KIND_ENTRY, "条目");
+        setValue(L.ENUM_MERGE_CHANGE_ADDED, "新增");
+        setValue(L.ENUM_MERGE_CHANGE_CHANGED, "修改");
+        setValue(L.ENUM_MERGE_CHANGE_DELETED, "删除");
+        setValue(L.ENUM_MERGE_STATE_CONFLICT, "冲突");
+        setValue(L.ENUM_MERGE_STATE_SHARED, "共享");
+        setValue(L.ENUM_MERGE_STATE_BLOCKED, "无法应用");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -817,6 +843,19 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CHECKPOINTS_USAGE, "检查点占用 %s / %s（其中 %s 留给自动检查点）。");
         setValue(L.MSG_AGENT_CHECKPOINTS_EMPTY, "还没有检查点。运行开始时会创建一个。");
         setValue(L.MSG_AGENT_CHECKPOINT_BUSY, "代理正在工作。请先暂停再保存或还原检查点。");
+        setValue(L.MSG_MERGE_SUMMARY, "%d 项更改:段落 %d、设定集 %d、条目 %d、书籍设置 %d。冲突:%d。");
+        setValue(L.MSG_MERGE_BOOK_CHANGED, "运行开始后书籍已被修改。冲突是指你和智能体都修改过的文本:选择保留哪一方,或自己写出结果。");
+        setValue(L.MSG_MERGE_NO_CHANGES, "智能体没有修改书籍。");
+        setValue(L.MSG_MERGE_APPLIED, "已将 %d 项更改应用到书籍。应用前的书籍已保存在备份中。");
+        setValue(L.MSG_MERGE_SKIPPED, "所选更改中有 %d 项无法应用:%s");
+        setValue(L.MSG_MERGE_CONFIRM_CONFLICTS, "所选更改中有 %d 项是冲突:书中的文本将被智能体的文本或你写的文本替换。继续吗?");
+        setValue(L.MSG_MERGE_CONFIRM_DISCARD, "放弃智能体所做的一切吗?书籍保持不变。");
+        setValue(L.MSG_MERGE_PROBLEM_GONE, "书中已没有此项,它在运行开始后被删除。");
+        setValue(L.MSG_MERGE_PROBLEM_NEEDS_PARENT, "此段落所接续的段落已从书中删除。");
+        setValue(L.MSG_MERGE_PROBLEM_NEEDS_LOREBOOK, "此条目所在的设定集已从书中删除。");
+        setValue(L.MSG_MERGE_SHARED, "也被以下书籍使用:%s。修改它会同时修改这些书籍。");
+        setValue(L.MSG_MERGE_NOTHING_PICKED, "未选择任何内容。");
+        setValue(L.MSG_MERGE_ADDED_NEEDS_OTHERS, "选择此项时也会选择它所依赖的项。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -865,6 +904,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_RUN_NOW, "丢弃智能体在这一轮正在做的事,立即运行该命令。");
         setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "单次运行的所有检查点占用的总容量 (MB)：工作副本及其工作区的还原点，包括代理自己创建的和自动创建的。留空为 100。");
         setValue(L.HELP_AGENT_CHECKPOINTS, "书的工作副本和工作区的还原点。运行开始时以及每次会产生更改的回合之前都会自动创建（保留最近五个）；代理也可以自己保存。它们共用管理员设置的配额。");
+        setValue(L.HELP_MERGE, "智能体在书籍的副本上工作。请选择要采纳的内容,应用前会先保存书籍。右侧的文本就是将写入的内容,可以编辑。冲突是指你和智能体都修改过的文本。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

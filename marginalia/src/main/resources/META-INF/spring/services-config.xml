@@ -177,6 +177,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.CheckpointServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentMergeServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptReplaceServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.LorebookReplaceServiceImpl" />

@@ -142,7 +142,7 @@ class CommandScopeTest extends AgentTestBase {
         AgentRun run = agentRunService.start(agent);
         CommandScope scope = commandScopes.forRun(run);
 
-        agentRunService.transition(run, AgentRunStatus.DONE, "report");
+        agentRunService.transition(run, AgentRunStatus.FAILED, "broke");
 
         assertThat(scope.getManuscript()).isNull();
         assertThat(scope.getLorebook()).isNull();

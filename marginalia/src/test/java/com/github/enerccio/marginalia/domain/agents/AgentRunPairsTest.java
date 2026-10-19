@@ -278,7 +278,12 @@ class AgentRunPairsTest extends AgentTestBase {
         assertThat(pairService.count(run)).isPositive();
         assertThat(fileSystemService.readBase(run)).isNotNull();
 
-        AgentRun ended = agentRunService.transition(run, DONE, "report");
+        AgentRun done = agentRunService.transition(run, DONE, "report");
+
+        assertThat(done.getWorkingCopy()).as("a finished run keeps its copy for the review").isNotNull();
+        assertThat(pairService.count(done)).isPositive();
+
+        AgentRun ended = agentRunService.stop(done, false);
 
         assertThat(ended.getWorkingCopy()).isNull();
         assertThat(pairService.count(ended)).isZero();
