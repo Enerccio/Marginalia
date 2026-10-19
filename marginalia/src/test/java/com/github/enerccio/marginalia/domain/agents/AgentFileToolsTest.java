@@ -649,6 +649,21 @@ class AgentFileToolsTest {
     }
 
     @Test
+    void aResultReferenceIsTheContentToWrite() {
+        CommandResults results = new CommandResults();
+        tools = new AgentFileToolsImpl(fs, results);
+        results.add("a", "", "First.");
+        results.add("b", "", "Second.");
+
+        ok(a -> tools.writeFile(a, "/n.md", "@result:1"));
+        ok(a -> tools.appendFile(a, "/n.md", "@result"));
+
+        assertThat(fsText("/n.md")).isEqualTo("First.Second.");
+        assertThat(error(a -> tools.writeFile(a, "/n.md", "@result:9"))).isEqualTo(
+                "The argument content: There is no result #9, list_command_results shows the ones that are kept");
+    }
+
+    @Test
     void theResultsAreListedNewestFirstWithTheirCalls() {
         CommandResults results = new CommandResults();
         tools = new AgentFileToolsImpl(fs, results);

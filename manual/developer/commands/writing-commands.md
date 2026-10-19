@@ -59,7 +59,7 @@ Rules to remember:
 - No signature means **any arguments**: the objects are in `context.getPositional()`. Use it for commands like echo, or when
   the arguments are truly free-form. A declared signature that fits always wins over the any-form.
 - An argument of type `Object.class` is "any" and also accepts a list of objects, passed as one argument.
-- A parameter can say more for an agent (it is the schema of the function, see [Commands as functions](../services.md#commands-as-functions)):
+- A parameter can say more for an agent (it is the schema of the function, see [Commands as functions](../agents.md#commands-as-functions)):
   `optional = true` (it may be left out), `defaultValue = "0"` (text, converted to the type) and `allowed = {"short", "long"}` (an enum type needs
   none, its constants are the values). Without `optional` a parameter is required when every form of the command has it, so with a ladder of forms
   that each add a parameter only the first ones are required. The command line ignores all three.

@@ -43,7 +43,8 @@ public interface AgentFileTools {
     void writeFile(FunctionContinuation<String> done,
                    @LLMParam(description = "Path of the file, for example /notes/plot.md") String path,
                    @LLMParam(description = "The whole new content of the file, or @file:/path (the whole value) to copy the "
-                           + "contents of another file of your workspace") String content);
+                           + "contents of another file of your workspace, or @result / @result:3 for the whole result of a "
+                           + "command call") String content);
 
     @LLMFunction(name = "list_command_results", description = "Lists the results of your last 10 command calls (commands, not "
             + "file tools) that are kept whole: a number, the function and its arguments (shortened), the length of the "
@@ -68,7 +69,7 @@ public interface AgentFileTools {
     void appendFile(FunctionContinuation<String> done,
                     @LLMParam(description = "Path of the file") String path,
                     @LLMParam(description = "The text to add, or @file:/path (the whole value) to add the contents of another "
-                            + "file of your workspace") String content);
+                            + "file of your workspace, or @result / @result:3 for a result of a command call") String content);
 
     @LLMFunction(name = "replace_in_file", description = "Replaces a piece of text in a file of your workspace with "
             + "another. old_text has to be in the file exactly once, character for character with its spaces and line "
