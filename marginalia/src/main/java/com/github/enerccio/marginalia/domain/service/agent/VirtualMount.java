@@ -43,6 +43,15 @@ public interface VirtualMount {
     void write(VirtualPath file, byte[] content, boolean append);
 
     /**
+     * Creates an empty folder, with the folders above it.
+     *
+     * @throws VirtualFileException when something of that name exists already
+     */
+    default void createFolder(VirtualPath folder) {
+        throw new VirtualFileException(folder + " can't have folders");
+    }
+
+    /**
      * Deletes a file or a folder.
      *
      * @param recursive needed for a folder that is not empty

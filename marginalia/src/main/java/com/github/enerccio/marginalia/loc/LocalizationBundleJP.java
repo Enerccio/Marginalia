@@ -449,6 +449,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_FINISH, "終了");
         setValue(L.LABEL_AGENT_RUNS, "実行履歴");
         setValue(L.LABEL_REASONING, "推論");
+        setValue(L.LABEL_UPLOAD_FILE, "ファイルをアップロード");
+        setValue(L.LABEL_NEW_FOLDER, "新しいフォルダ");
+        setValue(L.LABEL_FOLDER_NAME, "フォルダ名");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -714,6 +717,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NOTICE_PAUSED, "エージェント「%s」の実行が一時停止されました: %s");
         setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "この実行を削除しますか？ステップとレポートはゴミ箱に移動します。");
         setValue(L.MSG_AGENT_RUN_BUSY, "実行中です。先に一時停止または停止してください。");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "ファイル %s はテキストファイルではありません。エージェントはテキストのみを扱うため、アップロードできるのはテキストファイル（UTF-8）だけです。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

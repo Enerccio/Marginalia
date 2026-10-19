@@ -449,6 +449,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_FINISH, "Finish");
         setValue(L.LABEL_AGENT_RUNS, "Runs");
         setValue(L.LABEL_REASONING, "Reasoning");
+        setValue(L.LABEL_UPLOAD_FILE, "Upload file");
+        setValue(L.LABEL_NEW_FOLDER, "New folder");
+        setValue(L.LABEL_FOLDER_NAME, "Folder name");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -714,6 +717,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NOTICE_PAUSED, "The run of the agent \"%s\" was paused: %s");
         setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "Delete this run? Its steps and its report go to the trash.");
         setValue(L.MSG_AGENT_RUN_BUSY, "The run is going on, pause or stop it first.");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "The file %s is not a text file. The agent works with text only, so only text files (UTF-8) can be uploaded.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
