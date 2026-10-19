@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.agents;
 
 import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
+import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
@@ -13,6 +14,9 @@ import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Kind;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -369,6 +373,153 @@ class CheckpointServiceTest extends AgentTestBase {
 
         assertThat(copy().getId()).isEqualTo(id);
         assertThat(checkpointService.list(run)).hasSize(1);
+    }
+
+    // --- rewinding ---
+
+    @Autowired
+    private AgentMessageService messageService;
+
+    private void say(LLMChatMessage... messages) throws Exception {
+        messageService.append(run, List.of(messages));
+    }
+
+    private LLMChatMessage user(String text) {
+        return LLMChatMessage.of(LLMRole.USER, text);
+    }
+
+    private LLMChatMessage agentSays(String text) {
+        return LLMChatMessage.of(LLMRole.ASSISTANT, text);
+    }
+
+    private void pause() throws Exception {
+        run = agentRunService.pause(agentRunService.find(run.getId()));
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+    }
+
+    private List<String> readByTheModel() throws Exception {
+        return messageService.transcript(run).stream().map(LLMChatMessage::getContent).toList();
+    }
+
+    @Test
+    void aRewindGoesBackWithTheStateAndTheConversationKeepsWhatWasForgottenToRead() throws Exception {
+        say(user("task"), agentSays("I start"));
+        Info checkpoint = checkpointService.makeManual(run, "before the edit").checkpoint();
+        edit("Once upon a time", "changed");
+        say(user("later"), agentSays("more"));
+        pause();
+
+        CheckpointService.Rewound rewound = checkpointService.rewind(run, checkpoint.id());
+
+        assertThat(texts()).containsExactly("Once upon a time", "there was a dragon");
+        assertThat(rewound.forgotten()).isEqualTo(2);
+        assertThat(readByTheModel()).hasSize(3).startsWith("task", "I start");
+        assertThat(readByTheModel().getLast()).startsWith("Notice from the run: the author rewound the run to checkpoint " + checkpoint.id())
+                .contains("2 message(s)");
+        List<AgentMessage> rows = messageService.messages(run);
+        assertThat(rows).hasSize(5);
+        assertThat(rows.stream().map(AgentMessage::isRewound).toList()).containsExactly(false, false, true, true, false);
+        assertThat(agentRunService.find(run.getId()).getStatus()).as("the run is not resumed").isEqualTo(AgentRunStatus.PAUSED);
+    }
+
+    @Test
+    void theStateBeforeARewindIsSavedAsACheckpoint() throws Exception {
+        say(user("task"));
+        Info checkpoint = checkpointService.makeManual(run, "a").checkpoint();
+        edit("Once upon a time", "changed");
+        pause();
+
+        checkpointService.rewind(run, checkpoint.id());
+
+        assertThat(checkpointService.list(run)).extracting(Info::label).anyMatch(label -> label.startsWith("before restoring"));
+    }
+
+    @Test
+    void anAutomaticCheckpointMadeAfterTheAnswerForgetsTheAnswerToo() throws Exception {
+        say(user("task"), LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("c1", "write_file", "{}"))));
+        Info checkpoint = checkpointService.makeAutomatic(run, "before round 1", 1).checkpoint();
+        say(LLMChatMessage.ofToolResult("c1", "written"));
+        pause();
+
+        checkpointService.rewind(run, checkpoint.id());
+
+        assertThat(readByTheModel()).hasSize(2).startsWith("task");
+    }
+
+    @Test
+    void aRoundCutInTheMiddleAnswersItsLaterCallsAsNotMade() throws Exception {
+        say(user("task"), LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("c1", "get-book-info", "{}"),
+                LLMToolCall.of("c2", "write_file", "{}"))), LLMChatMessage.ofToolResult("c1", "info"));
+        Info checkpoint = checkpointService.makeManual(run, "in the round").checkpoint();
+        say(LLMChatMessage.ofToolResult("c2", "written"));
+        pause();
+
+        checkpointService.rewind(run, checkpoint.id());
+
+        List<LLMChatMessage> transcript = messageService.transcript(run);
+        assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT, LLMRole.TOOL,
+                LLMRole.TOOL, LLMRole.USER);
+        assertThat(transcript.get(2).getContent()).isEqualTo("info");
+        assertThat(transcript.get(3).getToolCallId()).isEqualTo("c2");
+        assertThat(transcript.get(3).getContent()).startsWith("Error: this call was not made");
+    }
+
+    @Test
+    void aCompactionAfterTheCheckpointIsUndoneAndAnEarlierOneStays() throws Exception {
+        say(user("task"), agentSays("one"));
+        messageService.compact(run, user("summary 1"), 10);
+        say(agentSays("two"));
+        Info checkpoint = checkpointService.makeManual(run, "after the first summary").checkpoint();
+        say(agentSays("three"));
+        messageService.compact(run, user("summary 2"), 10);
+        pause();
+
+        checkpointService.rewind(run, checkpoint.id());
+
+        // the first summary and what came after it, not the rows it replaced and not the second summary
+        assertThat(readByTheModel()).startsWith("summary 1", "two").hasSize(3);
+    }
+
+    @Test
+    void aCheckpointOfTheForgottenConversationCanBeRestoredButNotRewoundTo() throws Exception {
+        say(user("task"));
+        Info early = checkpointService.makeManual(run, "early").checkpoint();
+        say(agentSays("work"));
+        Info late = checkpointService.makeManual(run, "late").checkpoint();
+        pause();
+        assertThat(checkpointService.rewindable(run)).contains(early.id(), late.id());
+
+        checkpointService.rewind(run, early.id());
+
+        assertThat(checkpointService.rewindable(run)).contains(early.id()).doesNotContain(late.id());
+        assertThatThrownBy(() -> checkpointService.rewind(run, late.id())).isInstanceOf(CheckpointException.class)
+                .hasMessageContaining("undone by a rewind");
+        checkpointService.restore(run, late.id());
+    }
+
+    @Test
+    void aCheckpointMadeAfterARewindCanBeRewoundTo() throws Exception {
+        say(user("task"));
+        Info early = checkpointService.makeManual(run, "early").checkpoint();
+        say(agentSays("old work"));
+        pause();
+        checkpointService.rewind(run, early.id());
+        say(agentSays("new work"));
+        Info fresh = checkpointService.makeManual(run, "fresh").checkpoint();
+        say(agentSays("newer work"));
+
+        checkpointService.rewind(run, fresh.id());
+
+        assertThat(readByTheModel()).startsWith("task").contains("new work").doesNotContain("old work", "newer work");
+    }
+
+    @Test
+    void aRunThatWorksCannotBeRewound() throws Exception {
+        say(user("task"));
+        Info checkpoint = checkpointService.makeManual(run, "a").checkpoint();
+
+        assertThatThrownBy(() -> checkpointService.rewind(agentRunService.find(run.getId()), checkpoint.id()))
+                .isInstanceOf(CheckpointException.class).hasMessageContaining("paused or stopped");
     }
 
     @Test

@@ -73,6 +73,43 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     }
 
     @Override
+    @CommonTx
+    public int rewind(AgentRun run, int keep) throws Exception {
+        AgentRun stored = ownRun(run);
+        List<AgentMessage> rows = getRepository().findAllByRun(stored);
+        // the compaction the kept messages were made after: what it replaced stays replaced
+        int summary = -1;
+        for (AgentMessage row : rows) {
+            if (row.getOrdinal() < keep && row.isSummary() && !row.isRewound()) {
+                summary = row.getOrdinal();
+            }
+        }
+        int forgotten = 0;
+        for (AgentMessage row : rows) {
+            if (row.getOrdinal() >= keep) {
+                if (!row.isRewound()) {
+                    row.setRewound(true);
+                    save(row);
+                    if (!row.isCompacted()) {
+                        forgotten++;
+                    }
+                }
+            } else if (!row.isRewound() && row.isCompacted() != row.getOrdinal() < summary) {
+                row.setCompacted(row.getOrdinal() < summary);
+                save(row);
+            }
+        }
+        return forgotten;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String lastRow(AgentRun run, int skip) throws Exception {
+        List<AgentMessage> latest = getRepository().findLatestByRun(ownRun(run), skip + 1);
+        return latest.size() > skip ? latest.get(skip).getUuid() : null;
+    }
+
+    @Override
     @CommonTxReadOnly
     public List<AgentMessage> messages(AgentRun run) throws Exception {
         return getRepository().findAllByRun(ownRun(run));
@@ -83,7 +120,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     public long getContextTokens(AgentRun run) throws Exception {
         // the answers of the model are the latest rows but for the results of the calls of the last round
         for (AgentMessage message : getRepository().findLatestByRun(ownRun(run), LATEST_ROWS)) {
-            if (message.getContextTokens() != null) {
+            if (message.getContextTokens() != null && !message.isRewound()) {
                 return message.getContextTokens();
             }
         }
@@ -95,7 +132,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     public List<LLMChatMessage> transcript(AgentRun run) throws Exception {
         List<LLMChatMessage> messages = new ArrayList<>();
         for (AgentMessage message : getRepository().findAllByRun(ownRun(run))) {
-            if (!message.isCompacted()) {
+            if (!message.isCompacted() && !message.isRewound()) {
                 messages.add(message.toChatMessage());
             }
         }

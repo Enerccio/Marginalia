@@ -516,6 +516,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_PART_TEXT, "Text of the part");
         setValue(L.LABEL_SUBBOOKS, "Subbooks");
         setValue(L.LABEL_STATE, "State");
+        setValue(L.LABEL_REWIND, "Rewind");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -848,6 +849,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_MERGE_SHARED, "Also used by: %s. Changing it changes them too.");
         setValue(L.MSG_MERGE_NOTHING_PICKED, "Nothing is picked.");
         setValue(L.MSG_MERGE_ADDED_NEEDS_OTHERS, "Picking this also picks what it needs.");
+        setValue(L.MSG_AGENT_CONFIRM_REWIND_CHECKPOINT, "Rewind to checkpoint %s? The working copy of the book and the workspace go back to what was saved, like a restore, and the conversation goes back to where the checkpoint was made: the agent forgets what came after it (you can still read it, greyed). The state now is saved as an automatic checkpoint first, if there is room.");
+        setValue(L.MSG_AGENT_CHECKPOINT_REWOUND, "Rewound to checkpoint %s. Messages the agent forgot: %d. Files removed from the workspace: %d.");
+        setValue(L.MSG_AGENT_REWIND_PAUSE_FIRST, "Pause or stop the run to rewind it.");
+        setValue(L.MSG_AGENT_REWIND_UNAVAILABLE, "The conversation can't go back to this checkpoint: it does not know its place in it, or an earlier rewind undid it. Restore it instead.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -895,7 +900,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_COMMAND, "You run the command, not the agent: it is told that you did and what came out. While the agent works the command waits for the end of its turn.");
         setValue(L.HELP_AGENT_RUN_NOW, "Throws away what the agent is doing in this round and runs the command right now.");
         setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "How much all the checkpoints of one run can take, in MB; the restore points of the working copy and its workspace, the ones the agent makes and the automatic ones. Empty is 100.");
-        setValue(L.HELP_AGENT_CHECKPOINTS, "Restore points of the working copy of the book and the workspace. The run makes one when it starts and one before the rounds that change something (the last five are kept); the agent can save its own. They share a quota set by the administrator.");
+        setValue(L.HELP_AGENT_CHECKPOINTS, "Restore points of the working copy of the book and the workspace. The run makes one when it starts and one before the rounds that change something (the last five are kept); the agent can save its own. They share a quota set by the administrator. Restore brings back the book and the workspace; Rewind also takes the conversation back to where the checkpoint was made, so the agent does not remember work that is no longer in the book (a paused or stopped run).");
         setValue(L.HELP_MERGE, "The agent worked on a copy of the book. Pick what to take over, the book is saved first. The text on the right is what will be written: edit it to change it. A conflict is a text that both you and the agent changed.");
 
         // --- DESC ---

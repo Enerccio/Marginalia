@@ -524,6 +524,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_PART_TEXT, "段落正文");
         setValue(L.LABEL_SUBBOOKS, "子设定集");
         setValue(L.LABEL_STATE, "状态");
+        setValue(L.LABEL_REWIND, "回退");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -856,6 +857,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_MERGE_SHARED, "也被以下书籍使用:%s。修改它会同时修改这些书籍。");
         setValue(L.MSG_MERGE_NOTHING_PICKED, "未选择任何内容。");
         setValue(L.MSG_MERGE_ADDED_NEEDS_OTHERS, "选择此项时也会选择它所依赖的项。");
+        setValue(L.MSG_AGENT_CONFIRM_REWIND_CHECKPOINT, "回退到检查点 %s？书籍的工作副本和工作区会像还原一样回到已保存的内容，对话也会回到创建该检查点的位置：智能体会忘记之后的内容（您仍可阅读，显示为灰色）。如有空间，当前状态会先保存为自动检查点。");
+        setValue(L.MSG_AGENT_CHECKPOINT_REWOUND, "已回退到检查点 %s。智能体忘记的消息：%d。从工作区删除的文件：%d。");
+        setValue(L.MSG_AGENT_REWIND_PAUSE_FIRST, "请先暂停或停止运行再回退。");
+        setValue(L.MSG_AGENT_REWIND_UNAVAILABLE, "对话无法回到此检查点：它不记得自己在对话中的位置，或已被之前的回退撤销。请改用还原。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -903,7 +908,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_COMMAND, "命令由您运行,而不是智能体:它会得知您运行了命令及其结果。智能体工作时,命令会等到它这一轮结束。");
         setValue(L.HELP_AGENT_RUN_NOW, "丢弃智能体在这一轮正在做的事,立即运行该命令。");
         setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "单次运行的所有检查点占用的总容量 (MB)：工作副本及其工作区的还原点，包括代理自己创建的和自动创建的。留空为 100。");
-        setValue(L.HELP_AGENT_CHECKPOINTS, "书的工作副本和工作区的还原点。运行开始时以及每次会产生更改的回合之前都会自动创建（保留最近五个）；代理也可以自己保存。它们共用管理员设置的配额。");
+        setValue(L.HELP_AGENT_CHECKPOINTS, "书籍工作副本和工作区的还原点。运行开始时以及每次会修改内容的回合之前都会创建一个（保留最近五个）；智能体也可以保存自己的检查点。它们共用管理员设置的配额。“还原”会恢复书籍和工作区；“回退”还会让对话回到创建检查点的位置，使智能体不会记得已不在书中的工作（需暂停或停止的运行）。");
         setValue(L.HELP_MERGE, "智能体在书籍的副本上工作。请选择要采纳的内容,应用前会先保存书籍。右侧的文本就是将写入的内容,可以编辑。冲突是指你和智能体都修改过的文本。");
 
         // --- DESC ---

@@ -724,6 +724,35 @@ class AgentRunnerTest extends AgentTestBase {
     }
 
     @Test
+    void aRewoundRunGoesOnFromTheCheckpointWithoutRememberingWhatCameAfterIt() throws Exception {
+        Agent agent = writingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("set-book-info", "{\"name\":\"One\"}"),
+                MockLLMResponse.toolCall("set-book-info", "{\"name\":\"Two\"}"),
+                MockLLMResponse.text("Done."));
+        AgentRun run = await(startRun(agent));
+        assertThat(nameOfCopy(run)).isEqualTo("Two");
+        // the automatic checkpoint before the second change (the first one starts from the checkpoint of the start): the book is named One then
+        Info before = checkpointService.list(run).get(1);
+        assertThat(before.kind()).isEqualTo(Kind.AUTOMATIC);
+        run = agentRunService.pause(agentRunService.find(run.getId()));
+
+        checkpointService.rewind(run, before.id());
+
+        assertThat(nameOfCopy(run)).isEqualTo("One");
+        llm.enqueue(MockLLMResponse.text("Back at One."));
+        runner.run(agentRunService.resume(agentRunService.find(run.getId())));
+        run = await(run);
+
+        List<LLMChatMessage> seen = transcript(run);
+        assertThat(seen.stream().filter(m -> m.getRole() == LLMRole.ASSISTANT && m.hasToolCalls())
+                .flatMap(m -> m.getToolCalls().stream()).map(LLMToolCall::getArguments)).containsExactly("{\"name\":\"One\"}");
+        assertThat(seen.stream().map(LLMChatMessage::getContent).filter(java.util.Objects::nonNull))
+                .anyMatch(text -> text.startsWith("Notice from the run: the author rewound the run to checkpoint " + before.id()));
+        assertThat(llm.lastCompletionRequest().getBody().toString()).doesNotContain("Two");
+        assertThat(nameOfCopy(run)).isEqualTo("One");
+    }
+
+    @Test
     void theAgentSavesAndRestoresACheckpointAndIsToldWhatCameBack() throws Exception {
         Agent agent = writingAgent();
         String original = agentService.findForUser(agent.getUuid()).getManuscript().getName();

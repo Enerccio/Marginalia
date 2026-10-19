@@ -38,13 +38,14 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 /**
  * The checkpoints of a run: restore points of its working copy and its workspace. The user sees who made each one (the
  * start of the run, the runner before a round that changes something, or the agent or the user on purpose), saves one,
- * restores one, downloads the archive and deletes one. They share a quota; what the agent can do with them is in the
+ * restores one or rewinds to one (the conversation goes back with it), downloads the archive and deletes one. They share a quota; what the agent can do with them is in the
  * checkpoint tools. Saving and restoring change the copy, so they wait until the agent does not work.
  */
 @Configurable
@@ -59,11 +60,14 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
     private final Supplier<AgentRun> run;
     private final BooleanSupplier busy;
     private final Runnable restored;
+    private final Runnable rewound;
 
     private Grid<Info> grid;
     private Span usageLabel;
     private Span emptyLabel;
     private Button saveButton;
+    // the checkpoints the conversation can go back to, read with the list
+    private Set<String> rewindable = Set.of();
 
     /**
      * @param run      the run whose checkpoints are shown, as it is now; null for none
@@ -71,9 +75,18 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
      * @param restored called after a checkpoint was restored, the console shows the run again
      */
     public AgentCheckpointBrowser(Supplier<AgentRun> run, BooleanSupplier busy, Runnable restored) {
+        this(run, busy, restored, restored);
+    }
+
+    /**
+     * @param rewound called after the run was rewound: the messages after the checkpoint are marked, the console shows the
+     *                transcript again from its start
+     */
+    public AgentCheckpointBrowser(Supplier<AgentRun> run, BooleanSupplier busy, Runnable restored, Runnable rewound) {
         this.run = run;
         this.busy = busy;
         this.restored = restored;
+        this.rewound = rewound;
     }
 
     public void create() {
@@ -107,7 +120,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         grid.addColumn(info -> DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
                         .format(Instant.ofEpochMilli(info.created()).atZone(ZoneId.systemDefault())))
                 .setHeader(loc.getValue(L.LABEL_CREATED)).setFlexGrow(2);
-        grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth("170px");
+        grid.addComponentColumn(this::actions).setHeader("").setFlexGrow(0).setWidth("210px");
 
         usageLabel = new Span();
         usageLabel.addClassNames(CssStyles.HINT_TEXT);
@@ -135,6 +148,16 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         restoreButton.setTooltipText(loc.getValue(working ? L.MSG_AGENT_CHECKPOINT_BUSY : L.LABEL_RESTORE));
         restoreButton.setEnabled(!working);
 
+        AgentRun current = run.get();
+        boolean paused = current != null && current.getStatus().isResumable();
+        Button rewindButton = new Button(Solid.BACKWARD_STEP.create(), event ->
+                ConfirmDialog.open(String.format(loc.getValue(L.MSG_AGENT_CONFIRM_REWIND_CHECKPOINT), info.id()),
+                        () -> rewind(info), () -> {}));
+        rewindButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        rewindButton.setTooltipText(loc.getValue(working ? L.MSG_AGENT_CHECKPOINT_BUSY : !paused ? L.MSG_AGENT_REWIND_PAUSE_FIRST
+                : !rewindable.contains(info.id()) ? L.MSG_AGENT_REWIND_UNAVAILABLE : L.LABEL_REWIND));
+        rewindButton.setEnabled(!working && paused && rewindable.contains(info.id()));
+
         Button downloadButton = new Button(Solid.DOWNLOAD.create());
         downloadButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         downloadButton.setTooltipText(loc.getValue(L.LABEL_DOWNLOAD));
@@ -155,7 +178,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
         deleteButton.setTooltipText(loc.getValue(L.LABEL_DELETE));
 
-        HorizontalLayout actions = new HorizontalLayout(restoreButton, download, deleteButton);
+        HorizontalLayout actions = new HorizontalLayout(restoreButton, rewindButton, download, deleteButton);
         actions.setSpacing(false);
         return actions;
     }
@@ -184,6 +207,23 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
             Notification.success(String.format(loc.getValue(L.MSG_AGENT_CHECKPOINT_RESTORED), info.id(), result.removedFiles().size()));
             restored.run();
         } catch (CheckpointException e) {
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        refresh();
+    }
+
+    void rewind(Info info) {
+        if (isBusy()) {
+            return;
+        }
+        try {
+            CheckpointService.Rewound result = checkpointService.rewind(run.get(), info.id());
+            Notification.success(String.format(loc.getValue(L.MSG_AGENT_CHECKPOINT_REWOUND), info.id(), result.forgotten(),
+                    result.restored().removedFiles().size()));
+            rewound.run();
+        } catch (CheckpointException | IllegalStateException e) {
             Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -221,6 +261,7 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
         try {
             AgentRun current = run.get();
             List<Info> infos = current == null ? List.of() : checkpointService.list(current);
+            rewindable = current == null ? Set.of() : checkpointService.rewindable(current);
             grid.setItems(infos);
             emptyLabel.setVisible(infos.isEmpty());
             boolean canSave = current != null && current.getWorkingCopy() != null && !busy.getAsBoolean();
@@ -242,6 +283,10 @@ public class AgentCheckpointBrowser extends VerticalLayout implements LLMInterac
 
     Grid<Info> getGrid() {
         return grid;
+    }
+
+    Set<String> getRewindable() {
+        return rewindable;
     }
 
     Button getSaveButton() {

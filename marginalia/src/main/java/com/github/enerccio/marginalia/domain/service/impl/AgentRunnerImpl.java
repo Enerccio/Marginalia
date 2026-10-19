@@ -891,7 +891,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 return null;
             }
             try {
-                checkpointService.makeAutomatic(run, "before round " + (run.getRounds()));
+                // the answer that asks for the changes is already in the transcript: a rewind to this checkpoint forgets it
+                checkpointService.makeAutomatic(run, "before round " + (run.getRounds()), 1);
                 dirty = false;
                 fullNoticeGiven = false;
                 return null;

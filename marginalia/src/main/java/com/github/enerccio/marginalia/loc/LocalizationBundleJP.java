@@ -516,6 +516,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_PART_TEXT, "パートの本文");
         setValue(L.LABEL_SUBBOOKS, "サブブック");
         setValue(L.LABEL_STATE, "状態");
+        setValue(L.LABEL_REWIND, "巻き戻す");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -848,6 +849,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_MERGE_SHARED, "次でも使われています: %s。変更するとそちらも変わります。");
         setValue(L.MSG_MERGE_NOTHING_PICKED, "何も選択されていません。");
         setValue(L.MSG_MERGE_ADDED_NEEDS_OTHERS, "これを選択すると、必要な項目も選択されます。");
+        setValue(L.MSG_AGENT_CONFIRM_REWIND_CHECKPOINT, "チェックポイント %s まで巻き戻しますか? 本の作業コピーとワークスペースは復元と同じく保存された内容に戻り、会話もチェックポイントを作った時点まで戻ります。エージェントはその後の内容を忘れます (内容は灰色で読むことができます)。現在の状態は、空きがあれば先に自動チェックポイントとして保存されます。");
+        setValue(L.MSG_AGENT_CHECKPOINT_REWOUND, "チェックポイント %s まで巻き戻しました。エージェントが忘れたメッセージ: %d。ワークスペースから削除されたファイル: %d。");
+        setValue(L.MSG_AGENT_REWIND_PAUSE_FIRST, "巻き戻すには実行を一時停止または停止してください。");
+        setValue(L.MSG_AGENT_REWIND_UNAVAILABLE, "このチェックポイントまで会話を戻すことはできません。会話内の位置が不明か、以前の巻き戻しで取り消されています。代わりに復元してください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -895,7 +900,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_COMMAND, "コマンドを実行するのはあなたで、エージェントではありません。実行したことと結果がエージェントに伝わります。エージェントが作業中の間、コマンドはそのターンの終わりまで待ちます。");
         setValue(L.HELP_AGENT_RUN_NOW, "エージェントがこのラウンドで行っていることを破棄して、今すぐコマンドを実行します。");
         setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "1回の実行のすべてのチェックポイントの合計容量 (MB)。作業コピーとワークスペースの復元ポイントで、エージェントが作るものと自動のものを含みます。空欄は 100。");
-        setValue(L.HELP_AGENT_CHECKPOINTS, "本の作業コピーとワークスペースの復元ポイントです。実行の開始時と、変更を伴うラウンドの前に自動で作られます (最新の5つを保持)。エージェントも自分で保存できます。管理者が設定した容量を共有します。");
+        setValue(L.HELP_AGENT_CHECKPOINTS, "本の作業コピーとワークスペースの復元ポイントです。実行の開始時と、変更を伴うラウンドの前に自動で作られます (最新の5つを保持)。エージェントも自分で保存できます。管理者が設定した容量を共有します。「復元」は本とワークスペースを戻し、「巻き戻す」は会話もチェックポイントを作った時点まで戻します。これにより、エージェントは本に残っていない作業を覚えていません (一時停止または停止した実行)。");
         setValue(L.HELP_MERGE, "エージェントはブックのコピーで作業しました。引き継ぐ内容を選んでください。適用前にブックが保存されます。右側のテキストが書き込まれる内容で、編集できます。競合とは、あなたとエージェントの両方が変更したテキストです。");
 
         // --- DESC ---

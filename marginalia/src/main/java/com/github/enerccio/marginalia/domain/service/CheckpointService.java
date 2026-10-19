@@ -97,6 +97,15 @@ public interface CheckpointService {
     Made makeAutomatic(AgentRun run, String label) throws Exception;
 
     /**
+     * A checkpoint of the runner that is made in the middle of a round, when the answer of the model that asked for the changes
+     * is already in the transcript: a rewind to it forgets that answer too, so the model decides again.
+     *
+     * @param forgetLast how many of the last rows of the transcript are not part of the state the checkpoint saves
+     * @throws CheckpointFullException when the quota can't hold it even after the ring let go of its older ones
+     */
+    Made makeAutomatic(AgentRun run, String label, int forgetLast) throws Exception;
+
+    /**
      * A checkpoint made on purpose, by the agent or by the user.
      *
      * @throws CheckpointFullException when it does not fit what is left of the quota, the message tells how much it needs
@@ -134,6 +143,36 @@ public interface CheckpointService {
      * @throws CheckpointException when there is no such checkpoint
      */
     Restored restore(AgentRun run, String id) throws Exception;
+
+    /**
+     * A rewind: a restore, and the conversation goes back to where the checkpoint was made.
+     *
+     * @param restored  what the restore did
+     * @param forgotten how many messages the model no longer reads
+     */
+    record Rewound(Restored restored, int forgotten) {
+    }
+
+    /**
+     * The checkpoints the run can be rewound to: the ones that know their place in the conversation, when that place is still
+     * part of it (a rewind to an earlier checkpoint left it behind).
+     *
+     * @return their ids
+     */
+    java.util.Set<String> rewindable(AgentRun run) throws Exception;
+
+    /**
+     * Brings the run back to the checkpoint like {@link #restore}, and the conversation with it: the messages after the place
+     * where the checkpoint was made are kept for the user to read, marked rewound, and the model no longer reads them. What the
+     * calls of the last kept round that were not answered yet get as their answer is that they were not made, and the model is
+     * told what happened. The run is not resumed.
+     * <p>
+     * The run has to be paused or stopped and kept: nothing works on it.
+     *
+     * @throws CheckpointException when there is no such checkpoint, it does not know its place in the conversation, the place was
+     *                             rewound over before, or the run is not paused or stopped
+     */
+    Rewound rewind(AgentRun run, String id) throws Exception;
 
     /**
      * The archive of a checkpoint, to download.

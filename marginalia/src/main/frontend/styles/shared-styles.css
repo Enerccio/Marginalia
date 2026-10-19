@@ -799,6 +799,11 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     white-space: normal;
 }
 
+/* what a rewind of an agent run took out of the memory of the agent: still there to read */
+.agent-rewound {
+    opacity: 0.45;
+}
+
 .help-message-error {
     background: var(--lumo-error-color-10pct);
     color: var(--lumo-error-text-color);

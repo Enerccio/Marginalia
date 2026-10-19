@@ -1,7 +1,10 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunPairService;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.AgentService;
@@ -16,7 +19,11 @@ import com.github.enerccio.marginalia.domain.service.agent.CheckpointText;
 import com.github.enerccio.marginalia.domain.service.agent.RunFolder;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
+import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +69,10 @@ public class CheckpointServiceImpl implements CheckpointService {
     @Lazy
     private AgentRunPairService pairService;
 
+    @Autowired
+    @Lazy
+    private AgentMessageService messageService;
+
     // by run uuid: whoever makes, deletes or restores a checkpoint of a run takes its lock
     private final Map<String, Lock> locks = new ConcurrentHashMap<>();
 
@@ -102,7 +113,7 @@ public class CheckpointServiceImpl implements CheckpointService {
                     return info;
                 }
             }
-            return make(stored, Kind.START, "start of the run", null).checkpoint();
+            return make(stored, Kind.START, "start of the run", null, 0).checkpoint();
         } finally {
             lock.unlock();
         }
@@ -113,12 +124,21 @@ public class CheckpointServiceImpl implements CheckpointService {
         return makeAutomatic(run, label, null);
     }
 
+    @Override
+    public Made makeAutomatic(AgentRun run, String label, int forgetLast) throws Exception {
+        return makeAutomatic(run, label, null, forgetLast);
+    }
+
     private Made makeAutomatic(AgentRun run, String label, String protectedId) throws Exception {
+        return makeAutomatic(run, label, protectedId, 0);
+    }
+
+    private Made makeAutomatic(AgentRun run, String label, String protectedId, int forgetLast) throws Exception {
         AgentRun stored = own(run);
         Lock lock = lockOf(stored);
         lock.lock();
         try {
-            return make(stored, Kind.AUTOMATIC, label, protectedId);
+            return make(stored, Kind.AUTOMATIC, label, protectedId, forgetLast);
         } finally {
             lock.unlock();
         }
@@ -130,7 +150,7 @@ public class CheckpointServiceImpl implements CheckpointService {
         Lock lock = lockOf(stored);
         lock.lock();
         try {
-            return make(stored, Kind.MANUAL, label, null);
+            return make(stored, Kind.MANUAL, label, null, 0);
         } finally {
             lock.unlock();
         }
@@ -140,8 +160,9 @@ public class CheckpointServiceImpl implements CheckpointService {
      * Writes a checkpoint and decides whether it fits. The caller holds the lock of the run.
      *
      * @param protectedId a checkpoint the ring must not let go of (the one being restored), may be null
+     * @param forgetLast  how many of the last rows of the transcript a rewind to this checkpoint forgets besides the ones after it
      */
-    private Made make(AgentRun run, Kind kind, String label, String protectedId) throws Exception {
+    private Made make(AgentRun run, Kind kind, String label, String protectedId, int forgetLast) throws Exception {
         Manuscript copy = run.getWorkingCopy();
         if (copy == null) {
             throw new CheckpointException("The run has no working copy, there is nothing to save");
@@ -152,7 +173,7 @@ public class CheckpointServiceImpl implements CheckpointService {
         JsonObject snapshot = manuscriptService.snapshotAgenticCopy(copy);
         List<UuidPair> pairs = pairService.getAll(run);
         VirtualFileSystem files = fileSystemService.open(run);
-        try (CheckpointStore.Pending pending = store.begin(kind, label, run.getRounds())) {
+        try (CheckpointStore.Pending pending = store.begin(kind, label, run.getRounds(), messageService.lastRow(run, forgetLast))) {
             pending.write(snapshot, pairs, files);
             long size = pending.size();
             long used = before.stream().mapToLong(Info::bytes).sum();
@@ -326,6 +347,99 @@ public class CheckpointServiceImpl implements CheckpointService {
             }
         } catch (IOException e) {
             throw new CheckpointException("The checkpoint could not be restored: " + e.getMessage());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // rewinding
+    // ---------------------------------------------------------------------------------------------------------------
+
+    /**
+     * How many rows of the transcript stay when the run goes back to the checkpoint: the rows up to the one it was made at.
+     *
+     * @throws CheckpointException when the checkpoint has no place in the conversation, or it was rewound over
+     */
+    private int keepOf(AgentRun run, Info info) throws Exception {
+        if (info.after() == null) {
+            throw new CheckpointException("The checkpoint " + info.id() + " does not know where in the conversation it was made, so the "
+                    + "conversation can't go back to it. Restore it instead.");
+        }
+        AgentMessage row = messageService.findForUser(info.after());
+        if (row == null || row.getRun() == null || !row.getRun().getUuid().equals(run.getUuid()) || row.isRewound()) {
+            throw new CheckpointException("The conversation after the checkpoint " + info.id() + " was undone by a rewind to an earlier one. "
+                    + "Restore it instead.");
+        }
+        return row.getOrdinal() + 1;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Set<String> rewindable(AgentRun run) throws Exception {
+        AgentRun stored = own(run);
+        Set<String> ids = new HashSet<>();
+        for (Info info : storeOf(stored).list()) {
+            try {
+                keepOf(stored, info);
+                ids.add(info.id());
+            } catch (CheckpointException e) {
+                // restore only
+            }
+        }
+        return ids;
+    }
+
+    @Override
+    @CommonTx
+    public Rewound rewind(AgentRun run, String id) throws Exception {
+        AgentRun stored = own(run);
+        if (!stored.getStatus().isResumable()) {
+            throw new CheckpointException("The run has to be paused or stopped to go back in its conversation, it is " + stored.getStatus());
+        }
+        Lock lock = lockOf(stored);
+        lock.lock();
+        try {
+            Info info = storeOf(stored).find(id);
+            if (info == null) {
+                throw new CheckpointException("There is no checkpoint " + id);
+            }
+            int keep = keepOf(stored, info);
+            // the state first: it saves the state before as a checkpoint with the conversation as it is; the rows are only marked
+            // after it, in the same transaction, so a failure of either leaves the database as it was
+            Restored restored = restore(stored, info.id());
+            AgentRun back = restored.run();
+            int forgotten = messageService.rewind(back, keep);
+            List<LLMChatMessage> tell = new ArrayList<>();
+            // a round that was cut in the middle: the calls that are left have no result, a model can't be sent that
+            List<LLMChatMessage> kept = messageService.transcript(back);
+            Set<String> answered = new HashSet<>();
+            LLMChatMessage calls = null;
+            for (LLMChatMessage message : kept) {
+                if (message.getRole() == LLMRole.ASSISTANT) {
+                    calls = message.hasToolCalls() ? message : null;
+                    answered.clear();
+                } else if (message.getRole() == LLMRole.TOOL) {
+                    answered.add(message.getToolCallId());
+                }
+            }
+            if (calls != null) {
+                for (LLMToolCall call : calls.getToolCalls()) {
+                    if (!answered.contains(call.getId())) {
+                        tell.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_REWOUND_CALL));
+                    }
+                }
+            }
+            StringBuilder note = new StringBuilder(String.format(Defaults.AGENT_REWOUND, info.id(), info.round(), forgotten));
+            if (!restored.removedFiles().isEmpty()) {
+                note.append(" The files you wrote after it are gone: ")
+                        .append(restored.removedFiles().stream().limit(20).collect(java.util.stream.Collectors.joining(", ")))
+                        .append(restored.removedFiles().size() > 20 ? ", ..." : ".");
+            }
+            tell.add(LLMChatMessage.of(LLMRole.USER, note.toString()));
+            messageService.append(back, tell);
+            log.info("Agent run {}: rewound to checkpoint {}, {} message(s) forgotten", stored.getUuid(), info.id(), forgotten);
+            return new Rewound(restored, forgotten);
         } finally {
             lock.unlock();
         }

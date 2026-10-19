@@ -122,6 +122,7 @@ public final class CssStyles {
     public static final String HELP_MESSAGE_QUEUED = "help-message-queued";
     public static final String HELP_MESSAGE_FOLDED = "help-message-folded";
     public static final String HELP_MESSAGE_ERROR = "help-message-error";
+    public static final String AGENT_REWOUND = "agent-rewound";
     public static final String HELP_INPUT = "help-input";
 
     // --- Commands (ui.components.CommandBar, CommandResultView) ---

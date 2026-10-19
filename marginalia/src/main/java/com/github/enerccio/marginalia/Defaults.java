@@ -308,6 +308,20 @@ The author has opened the console and is watching. Do not start any work yet: ca
             + "nothing.";
 
     /**
+     * The notice after the author rewound the run to a checkpoint: the number of the checkpoint, the round it was made in and
+     * how many messages the agent forgets.
+     */
+    public static final String AGENT_REWOUND = "Notice from the run: the author rewound the run to checkpoint %s (made in round %d). Your "
+            + "working copy of the book and your workspace are as they were then, and the %d message(s) that came after that point "
+            + "are gone from your memory: what you read, wrote or decided in them did not happen, so do it again if it is still needed. "
+            + "The handles you were given for the items that were there still work, the ones of items you made later point at nothing.";
+
+    /**
+     * The answer to a call of the last kept round whose work the rewind undid.
+     */
+    public static final String AGENT_REWOUND_CALL = "Error: this call was not made, the author rewound the run to a point before it.";
+
+    /**
      * The most calls of one answer that are made; a model that falls into a loop can write hundreds of the same call, and
      * their results would fill the context of the next request.
      */

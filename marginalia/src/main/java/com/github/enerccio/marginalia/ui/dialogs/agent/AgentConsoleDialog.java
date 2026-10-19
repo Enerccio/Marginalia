@@ -256,7 +256,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
         workspaceBrowser = new AgentWorkspaceBrowser(agent, this::isWorking);
         workspaceBrowser.create();
-        checkpointBrowser = new AgentCheckpointBrowser(() -> run, this::isWorking, this::refreshRun);
+        checkpointBrowser = new AgentCheckpointBrowser(() -> run, this::isWorking, this::refreshRun, this::rewound);
         checkpointBrowser.create();
 
         history = new AgentRunHistory(agent, picked -> {
@@ -353,6 +353,14 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      */
     public boolean isFor(String agentUuid) {
         return agent.getUuid().equals(agentUuid);
+    }
+
+    /**
+     * The run went back in its conversation: the rows that were shown are marked now, so the transcript is made again.
+     */
+    void rewound() {
+        shownRunId = null;
+        refreshRun();
     }
 
     private boolean isWorking() {
@@ -500,7 +508,14 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         List<AgentMessage> messages = agentMessageService.messages(run);
         boolean first = shown == 0;
         for (AgentMessage row : messages.subList(Math.min(shown, messages.size()), messages.size())) {
+            int before = transcriptBox.getComponentCount();
             render(row.toChatMessage(), row.getReasoning(), row.isSummary());
+            if (row.isRewound()) {
+                // what the agent forgot is still there to read
+                for (int i = before; i < transcriptBox.getComponentCount(); i++) {
+                    transcriptBox.getComponentAt(i).getElement().getClassList().add(CssStyles.AGENT_REWOUND);
+                }
+            }
         }
         shown = messages.size();
         if (first) {
