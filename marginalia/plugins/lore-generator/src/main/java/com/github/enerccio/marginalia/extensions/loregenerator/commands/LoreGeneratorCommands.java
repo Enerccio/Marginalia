@@ -73,7 +73,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     private static final String TASK_HEADER = "\n\n### Task for this entry\n";
     private static final String NO_TEMPLATE = "none";
 
-    private static final String PARAM_ENTRY = "Number of the entry in its lorebook, the first entry is 1: the entry the text is for. Omit it for a new entry";
+    private static final String PARAM_ENTRY = "The entry the text is for: its handle, or its number in its lorebook, the first entry is 1. Omit it for a new entry";
     private static final String PARAM_PROMPT = "What this entry is about: the subject, every fact it must contain, the target length and the "
             + "sections wanted. Put in after the template as the task for this entry";
     private static final String PARAM_TEMPLATE = "Name of a saved generation prompt from list-lore-templates to put in front of the prompt; "
@@ -81,7 +81,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     private static final String PARAM_ORDER = "For an entry that does not exist yet: the order it will have (the order list-lore-entries shows). "
             + "With limit UP_TO_POSITION the model sees only the entries before that order. Omit it to put the new entry after all the others. "
             + "Ignored when entry is given";
-    private static final String PARAM_LOREBOOK = "Number of the lorebook from list-lorebooks; the root lorebook (1) when omitted";
+    private static final String PARAM_LOREBOOK = "The lorebook: its handle or its number from list-lorebooks; the root lorebook (1) when omitted";
     private static final String PARAM_SCOPE = "Which lore the model sees: CURRENT_LOREBOOK (default) or ALL_LORE (with the subbooks)";
     private static final String PARAM_LIMIT = "Which entries of that lore the model sees: UP_TO_POSITION (default, those before the entry) or ALL_ENTRIES";
     private static final String PARAM_IMAGES = "Images the model looks at while it writes, for example a reference picture or a map; the prompt "
@@ -163,7 +163,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK)}),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK)}),
             returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
     public void generateLorebook(CommandContext context) throws Exception {
         runGenerate(context);
@@ -174,8 +174,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
-                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY)}),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY)}),
             returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
     public void generateEntry(CommandContext context) throws Exception {
         runGenerate(context);
@@ -186,8 +186,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
-                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY),
                     @CommandParameter(name = "order", type = Integer.class, optional = true, descriptionText = PARAM_ORDER)}),
             returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
     public void generateOrder(CommandContext context) throws Exception {
@@ -199,8 +199,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
-                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY),
                     @CommandParameter(name = "order", type = Integer.class, optional = true, descriptionText = PARAM_ORDER),
                     @CommandParameter(name = "scope", type = String.class, optional = true, defaultValue = "CURRENT_LOREBOOK",
                             allowed = {"CURRENT_LOREBOOK", "ALL_LORE"}, descriptionText = PARAM_SCOPE)}),
@@ -214,8 +214,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
-                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY),
                     @CommandParameter(name = "order", type = Integer.class, optional = true, descriptionText = PARAM_ORDER),
                     @CommandParameter(name = "scope", type = String.class, optional = true, defaultValue = "CURRENT_LOREBOOK",
                             allowed = {"CURRENT_LOREBOOK", "ALL_LORE"}, descriptionText = PARAM_SCOPE),
@@ -231,8 +231,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
                     @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
-                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY),
                     @CommandParameter(name = "order", type = Integer.class, optional = true, descriptionText = PARAM_ORDER),
                     @CommandParameter(name = "scope", type = String.class, optional = true, defaultValue = "CURRENT_LOREBOOK",
                             allowed = {"CURRENT_LOREBOOK", "ALL_LORE"}, descriptionText = PARAM_SCOPE),
@@ -246,8 +246,9 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
 
     private void runGenerate(CommandContext context) throws Exception {
         Lore lore = new Lore(new Book(context));
-        Lorebook book = lore.book(context.get("lorebook", Integer.class));
-        LorebookEntry entry = target(lore, book, context.get("entry", Integer.class), context.get("order", Integer.class));
+        Target target = target(lore, ref(context, "lorebook"), ref(context, "entry"), context.get("order", Integer.class));
+        Lorebook book = target.book();
+        LorebookEntry entry = target.entry();
         LoreScope scope = option(LoreScope.class, context.get("scope", String.class), LoreScope.CURRENT_LOREBOOK, "scope");
         EntryLimit limit = option(EntryLimit.class, context.get("limit", String.class), EntryLimit.UP_TO_POSITION, "limit");
 
@@ -294,7 +295,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK)}),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK)}),
             returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
     public void compactLorebook(CommandContext context) throws Exception {
         runCompact(context);
@@ -304,8 +305,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
-                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY)}),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY)}),
             returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
     public void compactEntry(CommandContext context) throws Exception {
         runCompact(context);
@@ -315,8 +316,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
-                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY),
                     @CommandParameter(name = "order", type = Integer.class, optional = true, descriptionText = PARAM_ORDER)}),
             returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
     public void compactOrder(CommandContext context) throws Exception {
@@ -327,8 +328,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
-                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY),
                     @CommandParameter(name = "order", type = Integer.class, optional = true, descriptionText = PARAM_ORDER),
                     @CommandParameter(name = "scope", type = String.class, optional = true, defaultValue = "CURRENT_LOREBOOK",
                             allowed = {"CURRENT_LOREBOOK", "ALL_LORE"}, descriptionText = PARAM_SCOPE)}),
@@ -341,8 +342,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = COMPACT_TEXT, llmDescriptionText = COMPACT_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = PARAM_TEXT),
-                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
-                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY),
+                    @CommandParameter(name = "lorebook", type = String.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = String.class, optional = true, descriptionText = PARAM_ENTRY),
                     @CommandParameter(name = "order", type = Integer.class, optional = true, descriptionText = PARAM_ORDER),
                     @CommandParameter(name = "scope", type = String.class, optional = true, defaultValue = "CURRENT_LOREBOOK",
                             allowed = {"CURRENT_LOREBOOK", "ALL_LORE"}, descriptionText = PARAM_SCOPE),
@@ -355,8 +356,9 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
 
     private void runCompact(CommandContext context) throws Exception {
         Lore lore = new Lore(new Book(context));
-        Lorebook book = lore.book(context.get("lorebook", Integer.class));
-        LorebookEntry entry = target(lore, book, context.get("entry", Integer.class), context.get("order", Integer.class));
+        Target target = target(lore, ref(context, "lorebook"), ref(context, "entry"), context.get("order", Integer.class));
+        Lorebook book = target.book();
+        LorebookEntry entry = target.entry();
         LoreScope scope = option(LoreScope.class, context.get("scope", String.class), LoreScope.CURRENT_LOREBOOK, "scope");
         EntryLimit limit = option(EntryLimit.class, context.get("limit", String.class), EntryLimit.UP_TO_POSITION, "limit");
 
@@ -390,13 +392,17 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
      * none). It is not stored anywhere, it only stands for the place: the model sees the entries before it. Entries with
      * the same order come before it, as the newest one is last.
      */
-    private LorebookEntry target(Lore lore, Lorebook book, Integer number, Integer order) throws Exception {
-        if (number != null) {
-            return lore.entry(book, number);
+    private Target target(Lore lore, String lorebook, String entry, Integer order) throws Exception {
+        if (entry != null) {
+            Lore.Found found = lore.find(lorebook, entry);
+            return new Target(found.book(), found.entry());
         }
         LorebookEntry fresh = new LorebookEntry();
         fresh.setOrder(order == null ? Integer.MAX_VALUE : order);
-        return fresh;
+        return new Target(lore.book(lorebook), fresh);
+    }
+
+    private record Target(Lorebook book, LorebookEntry entry) {
     }
 
     private ModelSelection requireModel() throws Exception {
