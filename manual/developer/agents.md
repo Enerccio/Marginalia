@@ -354,7 +354,7 @@ The agent is warned instead and compacts itself. After the tools of a round are 
 `request_compaction`: `compact(focus, transcript, true)`, the note of the summary is `Defaults.AGENT_SELF_COMPACTED_NOTE`, the focus line says "You asked", `ignoreForce` as for `/compact`; a failure is written to
 the transcript as a message to the agent) or `warnAboutContext`: when the context of the last request (`Progress.contextTokens`, so without the results of this round) is at least
 `Defaults.AGENT_CONTEXT_WARNING_PERCENT` (75) of `contextCap` it appends a `USER` message, `Defaults.AGENT_CONTEXT_WARNING`, from `AGENT_CONTEXT_CRITICAL_PERCENT` (90) `AGENT_CONTEXT_CRITICAL`. One notice per
-round while above the threshold, none without a cap. `Defaults.AGENT_RUNNER_NOTE` tells the agent about both.
+round while above the threshold, none without a cap. The numbers lag by one round, so what one answer can add is limited too: `limitCalls` drops the repeats of a `NO_CHANGE_TOOLS` call (same name and arguments) from the answer and keeps at most `Defaults.AGENT_MAX_CALLS_PER_ROUND` (32) calls, before the answer is stored, so no result is owed for the dropped ones; the agent gets `Defaults.AGENT_TOO_MANY_CALLS` after the results. (A Gemma 4 run wrote 773 `get_run_status` calls in one answer, 119k tokens of results.) `Defaults.AGENT_RUNNER_NOTE` tells the agent about both.
 
 ## Checkpoints
 

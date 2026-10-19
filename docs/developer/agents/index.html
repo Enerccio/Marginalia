@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845752922550">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845754484673">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845752922550" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845754484673" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845752922550" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845754484673" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845752922550" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845754484673" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -638,7 +638,7 @@ compaction by the runner itself at a threshold of the context.</p>
 <code translate="no" v-pre>request_compaction</code>: <code translate="no" v-pre>compact(focus, transcript, true)</code>, the note of the summary is <code translate="no" v-pre>Defaults.AGENT_SELF_COMPACTED_NOTE</code>, the focus line says &quot;You asked&quot;, <code translate="no" v-pre>ignoreForce</code> as for <code translate="no" v-pre>/compact</code>; a failure is written to
 the transcript as a message to the agent) or <code translate="no" v-pre>warnAboutContext</code>: when the context of the last request (<code translate="no" v-pre>Progress.contextTokens</code>, so without the results of this round) is at least
 <code translate="no" v-pre>Defaults.AGENT_CONTEXT_WARNING_PERCENT</code> (75) of <code translate="no" v-pre>contextCap</code> it appends a <code translate="no" v-pre>USER</code> message, <code translate="no" v-pre>Defaults.AGENT_CONTEXT_WARNING</code>, from <code translate="no" v-pre>AGENT_CONTEXT_CRITICAL_PERCENT</code> (90) <code translate="no" v-pre>AGENT_CONTEXT_CRITICAL</code>. One notice per
-round while above the threshold, none without a cap. <code translate="no" v-pre>Defaults.AGENT_RUNNER_NOTE</code> tells the agent about both.</p>
+round while above the threshold, none without a cap. The numbers lag by one round, so what one answer can add is limited too: <code translate="no" v-pre>limitCalls</code> drops the repeats of a <code translate="no" v-pre>NO_CHANGE_TOOLS</code> call (same name and arguments) from the answer and keeps at most <code translate="no" v-pre>Defaults.AGENT_MAX_CALLS_PER_ROUND</code> (32) calls, before the answer is stored, so no result is owed for the dropped ones; the agent gets <code translate="no" v-pre>Defaults.AGENT_TOO_MANY_CALLS</code> after the results. (A Gemma 4 run wrote 773 <code translate="no" v-pre>get_run_status</code> calls in one answer, 119k tokens of results.) <code translate="no" v-pre>Defaults.AGENT_RUNNER_NOTE</code> tells the agent about both.</p>
 <h2 id="checkpoints">Checkpoints</h2>
 <p>A checkpoint is a restore point of the working copy and the workspace of a run. <code translate="no" v-pre>CheckpointStore</code> (<code translate="no" v-pre>domain.service.agent</code>, only files, not synchronized) keeps them as <code translate="no" v-pre>checkpoints/NNNN.zip</code> in the run folder: the number is given
 by the code (the next one, never the agent), the archive holds <code translate="no" v-pre>manuscript.json</code> (<code translate="no" v-pre>ManuscriptService.snapshotAgenticCopy</code>: the backup of the copy with its lorebooks and the uuids of their entries, the format of the base),
@@ -1112,7 +1112,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b8c37a9e).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (8ecd68ae).</p></div>
             </footer>
         </div>
     </div>

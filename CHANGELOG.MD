@@ -98,6 +98,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Agents: a model that loops no longer overflows its context.** An answer with hundreds of the same call (seen with Gemma 4) made a request far over the context, because the cap is only checked against the previous request. The run now makes at most 32 calls of an answer, a repeat of a read-only call in the same answer is made once, and the agent is told.
 - **Lore Generator commands did not build against the handle-based lorebook commands.** `generate-lore-entry` and `compact-lore-entry` take the `lorebook` and the `entry` as a handle or a number, like the other lorebook commands.
 - **Agent console, Workspace tab:** the tab no longer scrolls over the file list and the viewer (three scrollbars): the list and the viewer share the height of the tab and scroll by themselves.
 - A book created with **Add Book** is now remembered by the workspace autosave like a book opened from the list (the list did not know about its window).

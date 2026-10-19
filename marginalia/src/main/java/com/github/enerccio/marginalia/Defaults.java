@@ -308,6 +308,20 @@ The author has opened the console and is watching. Do not start any work yet: ca
             + "nothing.";
 
     /**
+     * The most calls of one answer that are made; a model that falls into a loop can write hundreds of the same call, and
+     * their results would fill the context of the next request.
+     */
+    public static final int AGENT_MAX_CALLS_PER_ROUND = 32;
+
+    /**
+     * The notice after a round whose calls were cut: the number of calls it had, the number made, and how many of them were
+     * repeats of a call that reads only.
+     */
+    public static final String AGENT_TOO_MANY_CALLS = "Notice from the run: your last answer had %d calls, %d of them repeats of a call you had "
+            + "already made in it. Only %d were made. Do not repeat a call: its result is the same, and the calls that read need to be made "
+            + "once. Go on with the next step of your task.";
+
+    /**
      * The result given to the model for a call that had not begun when the author forced a message in.
      */
     public static final String AGENT_SKIPPED_CALL = "Error: this call was not made because the author sent a message and the "

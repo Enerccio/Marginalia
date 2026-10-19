@@ -111,6 +111,8 @@ transcript): how full it is, and that it should save what it must not lose to a 
 stops when the context is full. The compaction the agent asks for is the same as yours (its **Compaction prompt**, see [Creating and editing an agent](#creating-and-editing-an-agent), its tokens count against the run); if it fails, nothing is changed and the agent is told.
 The notices need a context cap: the lowest of the cap of the agent and the limits of its model.
 
+**Runaway calls.** A model can fall into a loop and write the same call hundreds of times in one answer; the results would fill the context before the next request. The run makes at most 32 calls of an answer, and a repeat of a call that only reads (the same tool with the same arguments, in the same answer) is made once. The calls that are left out are not in the transcript, and the agent gets a notice that says so.
+
 **`/clear-workspace [what to keep]`** deletes the files and all the folders of the [workspace](#the-working-copy) of the run (after you confirm, as with the button of the workspace). Name what
 to keep after it, separated by spaces: files, folders (with everything in them) or patterns such as `*.md` or `chapters/*.md`, a path with spaces in double quotes
 (`/clear-workspace /notes.md "/my drafts" *.png`). The folders above a kept file stay. If something named is not there nothing is deleted. `/AGENTS.md` and the checkpoints are not

@@ -541,6 +541,34 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     }
 
     /**
+     * The calls without the repeats of a call that changes nothing: the same name with the same arguments, made again in the
+     * same answer.
+     */
+    private static List<LLMToolCall> withoutRepeats(List<LLMToolCall> calls) {
+        Set<String> seen = new HashSet<>();
+        List<LLMToolCall> kept = new ArrayList<>();
+        for (LLMToolCall call : calls) {
+            if (!NO_CHANGE_TOOLS.contains(call.getName()) || seen.add(call.getName() + '\0' + call.getArguments())) {
+                kept.add(call);
+            }
+        }
+        return kept;
+    }
+
+    /**
+     * What of an answer is made: the repeats of calls that read are dropped, and no more than
+     * {@link Defaults#AGENT_MAX_CALLS_PER_ROUND} calls are kept. The dropped calls are not in the transcript either, so no
+     * result is owed for them.
+     */
+    private static Round limitCalls(Round round) {
+        List<LLMToolCall> kept = withoutRepeats(round.calls());
+        if (kept.size() > Defaults.AGENT_MAX_CALLS_PER_ROUND) {
+            kept = new ArrayList<>(kept.subList(0, Defaults.AGENT_MAX_CALLS_PER_ROUND));
+        }
+        return kept.size() == round.calls().size() ? round : new Round(round.text(), round.reasoning(), kept, round.usage());
+    }
+
+    /**
      * The end of a worker that is not an exception: the run was thrown away under it.
      */
     private static final class Discarded extends RuntimeException {
@@ -736,6 +764,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         round.calls().isEmpty() ? "answers in text" : "calls " + round.calls().stream().map(LLMToolCall::getName)
                                 .collect(java.util.stream.Collectors.joining(", ")));
 
+                int asked = round.calls().size();
+                int repeats = asked - withoutRepeats(round.calls()).size();
+                round = limitCalls(round);
+                String callNotice = round.calls().size() == asked ? null
+                        : String.format(Defaults.AGENT_TOO_MANY_CALLS, asked, repeats, round.calls().size());
+
                 LLMChatMessage answer = round.calls().isEmpty()
                         ? LLMChatMessage.of(LLMRole.ASSISTANT, round.text())
                         : LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls());
@@ -786,6 +820,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
                 if (notice != null) {
                     append(transcript, LLMChatMessage.of(LLMRole.USER, notice));
+                }
+                if (callNotice != null) {
+                    append(transcript, LLMChatMessage.of(LLMRole.USER, callNotice));
                 }
                 dirty |= changes;
 
