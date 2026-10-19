@@ -4,12 +4,15 @@ import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.CheckpointService;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Kind;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.data.provider.Query;
@@ -37,6 +40,9 @@ class AgentCheckpointBrowserTest extends AgentTestBase {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private AgentMessageService messageService;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -101,6 +107,38 @@ class AgentCheckpointBrowserTest extends AgentTestBase {
         assertThat(agentRunService.find(run.getId()).getWorkingCopy().getId()).isNotEqualTo(copy);
         assertThat(fileSystemService.open(run).stat(files.parse("/later.txt"))).isNull();
         assertThat(rows(browser)).as("the state before is saved too").extracting(Info::kind).containsExactly(Kind.START, Kind.AUTOMATIC);
+    }
+
+    @Test
+    void aRewindOfAPausedRunGoesBackInTheConversationAndTellsTheConsole() throws Exception {
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "task")));
+        checkpointService.ensureStart(run);
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.ASSISTANT, "work")));
+        run = agentRunService.pause(agentRunService.find(run.getId()));
+        AtomicInteger rewound = new AtomicInteger();
+        AgentCheckpointBrowser browser = new AgentCheckpointBrowser(() -> run, busy::get, restored::incrementAndGet, rewound::incrementAndGet);
+        browser.create();
+        assertThat(browser.getRewindable()).containsExactly(rows(browser).getFirst().id());
+
+        browser.rewind(rows(browser).getFirst());
+
+        assertThat(rewound.get()).isEqualTo(1);
+        assertThat(restored.get()).isZero();
+        assertThat(messageService.transcript(run)).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.USER);
+    }
+
+    @Test
+    void aRunThatWorksIsNotRewound() throws Exception {
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "task")));
+        checkpointService.ensureStart(run);
+        AtomicInteger rewound = new AtomicInteger();
+        AgentCheckpointBrowser browser = new AgentCheckpointBrowser(() -> run, busy::get, restored::incrementAndGet, rewound::incrementAndGet);
+        browser.create();
+
+        browser.rewind(rows(browser).getFirst());
+
+        assertThat(rewound.get()).isZero();
+        assertThat(messageService.transcript(run)).hasSize(1);
     }
 
     @Test

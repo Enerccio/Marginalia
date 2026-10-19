@@ -75,9 +75,12 @@ public final class CheckpointStore {
      * @param workspaceFiles how many files of the workspace are in it
      * @param workspaceBytes how much they take, unpacked
      * @param bytes          the size of the archive
+     * @param after          the uuid of the last row of the transcript that was part of the state of the checkpoint, where a
+     *                       rewind goes back to; null when it is not known (made before the rewind existed, or the transcript
+     *                       was empty)
      */
     public record Info(String id, Kind kind, String label, long created, long round, int workspaceFiles, long workspaceBytes,
-                       long bytes) {
+                       long bytes, String after) {
     }
 
     private final Path folder;
@@ -171,7 +174,8 @@ public final class CheckpointStore {
                 return new Info(name.substring(0, name.length() - SUFFIX.length()), Kind.valueOf(meta.get("kind").getAsString()),
                         meta.has("label") ? meta.get("label").getAsString() : "", meta.get("created").getAsLong(),
                         meta.get("round").getAsLong(), meta.get("workspaceFiles").getAsInt(),
-                        meta.get("workspaceBytes").getAsLong(), Files.size(file));
+                        meta.get("workspaceBytes").getAsLong(), Files.size(file),
+                        meta.has("after") && !meta.get("after").isJsonNull() ? meta.get("after").getAsString() : null);
             }
         } catch (IOException | RuntimeException e) {
             log.warn("The checkpoint {} could not be read and is left out: {}", file.getFileName(), e.getMessage());
@@ -183,10 +187,10 @@ public final class CheckpointStore {
      * Starts a checkpoint: the archive is made as a temporary file and only {@link Pending#commit()} gives it its number,
      * so a refused or failed one leaves nothing.
      */
-    public Pending begin(Kind kind, String label, long round) throws IOException {
+    public Pending begin(Kind kind, String label, long round, String after) throws IOException {
         Files.createDirectories(folder);
         long next = list().stream().mapToLong(info -> Long.parseLong(info.id())).max().orElse(0) + 1;
-        return new Pending(String.format("%04d", next), kind, cleanLabel(label), round);
+        return new Pending(String.format("%04d", next), kind, cleanLabel(label), round, after);
     }
 
     /**
@@ -239,17 +243,19 @@ public final class CheckpointStore {
         private final Kind kind;
         private final String label;
         private final long round;
+        private final String after;
         private final Path temp;
         private boolean done;
         private long size;
         private int workspaceFiles;
         private long workspaceBytes;
 
-        private Pending(String id, Kind kind, String label, long round) {
+        private Pending(String id, Kind kind, String label, long round, String after) {
             this.id = id;
             this.kind = kind;
             this.label = label;
             this.round = round;
+            this.after = after;
             this.temp = folder.resolve(TEMP_PREFIX + id);
         }
 
@@ -284,6 +290,9 @@ public final class CheckpointStore {
                 meta.addProperty("label", label);
                 meta.addProperty("created", System.currentTimeMillis());
                 meta.addProperty("round", round);
+                if (after != null) {
+                    meta.addProperty("after", after);
+                }
                 meta.addProperty("workspaceFiles", workspaceFiles);
                 meta.addProperty("workspaceBytes", workspaceBytes);
                 zip.putNextEntry(new ZipEntry(META));

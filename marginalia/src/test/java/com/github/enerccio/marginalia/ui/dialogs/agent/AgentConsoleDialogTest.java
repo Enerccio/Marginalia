@@ -17,6 +17,8 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMTool
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.ComponentTree;
 import com.github.enerccio.marginalia.test.TestImages;
+import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.service.CheckpointService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -46,6 +48,9 @@ class AgentConsoleDialogTest extends AgentTestBase {
 
     @Autowired
     private AgentMessageService agentMessageService;
+
+    @Autowired
+    private CheckpointService checkpointService;
 
     @Autowired
     private AgentApprovalService approvals;
@@ -221,6 +226,26 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(call.getSummaryText()).startsWith("list-parts").contains("limit");
         assertThat(call.isOpened()).isFalse();
         assertThat(textOf(call)).contains("{\"limit\": 5}", "1: Once upon a time");
+    }
+
+    @Test
+    void whatARewindTookOutOfTheMemoryOfTheAgentIsGreyedInTheTranscript() throws Exception {
+        AgentRun run = startedRun();
+        say(run, LLMChatMessage.of(LLMRole.USER, "task"), LLMChatMessage.of(LLMRole.ASSISTANT, "first"));
+        checkpointService.ensureStart(run);
+        say(run, LLMChatMessage.of(LLMRole.ASSISTANT, "second"));
+        AgentConsoleDialog dialog = console();
+        assertThat(dialog.getTranscriptBox().getChildren().filter(c -> c.hasClassName(CssStyles.AGENT_REWOUND))).isEmpty();
+        run = agentRunService.pause(agentRunService.find(run.getId()));
+
+        checkpointService.rewind(run, checkpointService.list(run).getFirst().id());
+        dialog.rewound();
+
+        List<Component> shown = dialog.getTranscriptBox().getChildren().toList();
+        // task, first, second (greyed), the notice of the run
+        assertThat(shown).hasSize(4);
+        assertThat(shown.stream().map(c -> c.hasClassName(CssStyles.AGENT_REWOUND)).toList()).containsExactly(false, false, true, false);
+        assertThat(textOf(shown.getLast())).contains("rewound the run to checkpoint");
     }
 
     @Test

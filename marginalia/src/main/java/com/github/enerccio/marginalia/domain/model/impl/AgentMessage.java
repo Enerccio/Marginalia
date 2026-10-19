@@ -69,6 +69,22 @@ public class AgentMessage extends ExtendableEntity {
     @ExtendedAttribute
     private Boolean summary;
 
+    /**
+     * Whether a rewind of the run went back to before this message: it stays in the transcript the user reads and in the
+     * export, greyed, and is no longer sent to the model.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean rewound;
+
+    public boolean isRewound() {
+        return rewound != null && rewound;
+    }
+
+    public void setRewound(boolean rewound) {
+        this.rewound = rewound ? Boolean.TRUE : null;
+    }
+
     public boolean isCompacted() {
         return compacted != null && compacted;
     }

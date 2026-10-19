@@ -58,8 +58,28 @@ public interface AgentMessageService extends ExtendableService<AgentMessage, Age
     AgentMessage compact(AgentRun run, LLMChatMessage summary, long contextTokens) throws Exception;
 
     /**
+     * Goes back in the conversation: every message from the place {@code keep} on is marked rewound - it stays in
+     * {@link #messages} for the user and the export and is no longer sent to the model. What a compaction after that place
+     * replaced is read by the model again (the messages before the last summary that is kept stay replaced).
+     *
+     * @param keep how many rows of the transcript stay, the place of the first one that goes
+     * @return how many messages the model no longer reads
+     * @throws IllegalArgumentException when the run is not a run of the current user
+     */
+    int rewind(AgentRun run, int keep) throws Exception;
+
+    /**
+     * The row of the transcript that is the {@code skip}-th from the end (0 is the last one), as the place a checkpoint is
+     * made at.
+     *
+     * @return its uuid, null when the transcript has no such row
+     * @throws IllegalArgumentException when the run is not a run of the current user
+     */
+    String lastRow(AgentRun run, int skip) throws Exception;
+
+    /**
      * The messages of the run in order, ready to be sent to the model (without the system prompt), the ones a
-     * compaction replaced left out.
+     * compaction replaced or a rewind went back over left out.
      *
      * @throws IllegalArgumentException when the run is not a run of the current user
      */
