@@ -139,7 +139,7 @@ model and protocol.
 | `/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit [images]]]]]]]]` | Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below). With `images` the model also looks at pictures, as with the attachments of the dialog. |
 | `/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]` | Compacts the text with the same lore and returns the result, without the code block around it. |
 
-The entry the text is for decides which lore the model sees. Give its number as `entry` and the lore is the same as in
+The entry the text is for decides which lore the model sees. Give its handle or its number as `entry` (and the `lorebook` it is in, by handle or number, when you give the number) and the lore is the same as in
 the dialog: with `limit` `UP_TO_POSITION` (the default) the entries before it, the entry itself never. An entry that does
 not exist yet has no number: give the `order` it will get instead (the `order` of `/list-lore-entries`, lower comes first)
 and the model sees the entries before that order; without either, the text is written for a new entry after all the others.
