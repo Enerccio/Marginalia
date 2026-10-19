@@ -43,6 +43,14 @@ public interface VirtualMount {
     void write(VirtualPath file, byte[] content, boolean append);
 
     /**
+     * As {@link #write} of a whole image file, which may be larger than a text file: the caller checked that it is an
+     * image ({@link ImageFiles#check}).
+     */
+    default void writeImage(VirtualPath file, byte[] content) {
+        throw new VirtualFileException(file + " can't hold images");
+    }
+
+    /**
      * Creates an empty folder, with the folders above it.
      *
      * @throws VirtualFileException when something of that name exists already

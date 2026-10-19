@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845721838967">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845723551660">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845721838967" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845723551660" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845721838967" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845723551660" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845721838967" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845723551660" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -199,6 +199,7 @@ context made from the database, a state machine that can be paused and resumed, 
 | `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. |
 | `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
 | `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `get_run_status`. |
+| `ImageTools`, `ImageFiles`, `ShownImages` | `domain.service.agent` | `view_image` (only for a profile with `images`), the image checks and scaling, and the images asked for in a round; see [Images](#images). |
 | `CommandResults` | `domain.service.agent` | The last 10 results of the commands of a run, whole. |
 | `AgentApprovalService`, `AgentAttentionService` | `domain.service` | Bring the user in: approve a command, a notice that a run needs them. |
 | `AgentRequestAttributes`, `AgenticSessionPoint`, `AgentSession` | `bound` | The request context of a run (no browser) and where it finds its book. |
@@ -253,6 +254,11 @@ context made from the database, a state machine that can be paused and resumed, 
 <td><code translate="no" v-pre>RunTools</code></td>
 <td><code translate="no" v-pre>domain.service.agent</code></td>
 <td><code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>update_plan</code>, <code translate="no" v-pre>get_run_status</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ImageTools</code>, <code translate="no" v-pre>ImageFiles</code>, <code translate="no" v-pre>ShownImages</code></td>
+<td><code translate="no" v-pre>domain.service.agent</code></td>
+<td><code translate="no" v-pre>view_image</code> (only for a profile with <code translate="no" v-pre>images</code>), the image checks and scaling, and the images asked for in a round; see <doc-anchor-trigger to="#images">Images</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>CommandResults</code></td>
@@ -558,7 +564,8 @@ parameters also get <code translate="no" v-pre>AGENT_FILE_ARGUMENT_HINT</code> a
 <div id="the-tools-of-an-agent-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-none"><code v-pre class="language-none">CommandFunctions.forAgent(...)                    the commands the agent is allowed
   .and(fileSystemService.getFileTools(files, results))   list_files, read_file, write_file, ..., save_command_result
-  .and(registry.bind(RunTools.class, runTools))          finish, ask_user, update_plan, get_run_status</code></pre>
+  .and(registry.bind(RunTools.class, runTools))          finish, ask_user, update_plan, get_run_status
+  .and(registry.bind(ImageTools.class, ...))             view_image, only when the main profile has images</code></pre>
 </doc-codeblock></div>
 <p>A round is one <strong>non-streaming</strong> request (<code translate="no" v-pre>InferenceService.round</code>) that answers with text, the calls the model asked for (they are not called by the
 inference service) and the tokens. The runner calls them itself, <strong>one after another in the order the model wrote them</strong>, each on a thread of its pool inside
@@ -566,6 +573,49 @@ the context of the run, and appends all the results together as the next message
 call. Because the order is kept, a call may use what an earlier call of the same answer did (<code translate="no" v-pre>save_command_result</code> right after a command).
 <code translate="no" v-pre>RunTools</code> only <em>notes</em> what the model asked (the report, the question, the plan); the worker acts on it after the round, so that every call of the round
 has its result in the transcript first.</p>
+<h3 id="images">Images</h3>
+<p>An agent can look at images when the author says its model can (<code translate="no" v-pre>AgentModelProfile.isImages()</code>, a checkbox of the <code translate="no" v-pre>AgentDialog</code> for the main profile; the API of
+an OpenAI compatible endpoint does not report it). Everything image related is built from three existing facts: <code translate="no" v-pre>LLMAttachment</code> (an image on a user message becomes
+an <code translate="no" v-pre>image_url</code> content part in <code translate="no" v-pre>OpenAICompatibleInferenceService.toUserMessage</code>), the cage (an image is a file of the workspace) and the transcript (rows must stay small).</p>
+<ul>
+<li>
+<p><strong>Files.</strong> An image is a workspace file whose <strong>bytes</strong> start like a PNG, a JPEG, a GIF or a WebP (<code translate="no" v-pre>ImageFiles.mimeType</code>, never the name; SVG is text and is not one).
+<code translate="no" v-pre>VirtualFileSystem.writeImage</code> checks that (<code translate="no" v-pre>ImageFiles.check</code>: the type, and for the types ImageIO reads the pixels from the header, at most <code translate="no" v-pre>MAX_PIXELS</code>, so a
+decompression bomb is not stored) and writes through <code translate="no" v-pre>VirtualMount.writeImage</code> (a default method that refuses; <code translate="no" v-pre>WorkspaceMount</code> shares <code translate="no" v-pre>write</code> with it). An image may be
+<code translate="no" v-pre>WorkspaceLimits.maxImageBytes</code> (5 MB by default; the three argument constructor makes it the larger of that and <code translate="no" v-pre>maxFileBytes</code>), a text file keeps <code translate="no" v-pre>maxFileBytes</code>; both count against
+the total and the number of files. <code translate="no" v-pre>WorkspaceMount.read</code> reads up to the larger limit and <code translate="no" v-pre>VirtualFileSystem.read</code> refuses what is over <code translate="no" v-pre>maxFileBytes</code> and not an image, so the
+text rules did not change. <code translate="no" v-pre>readText</code> of an image says &quot;is an image ... view_image shows it to you&quot;. The agent can&#x27;t write bytes (its tools write text), so images come from the
+user: the Upload button of the <code translate="no" v-pre>AgentWorkspaceBrowser</code> and the attach button of the console, or a command result in a later version.</p>
+</li>
+<li>
+<p><strong>What the model is sent.</strong> <code translate="no" v-pre>ImageFiles.prepare</code> returns an image as it is when its longest side is within <code translate="no" v-pre>MAX_SIDE</code> (1568) and the file within 1.5 MB, otherwise it is scaled
+with ImageIO in its own format (a PNG stays PNG, a JPEG stays JPEG, a GIF is its first frame as PNG, an image with alpha is PNG); a WebP is not decoded here and goes as it is.
+<code translate="no" v-pre>VirtualFileSystem.readImage</code> is <code translate="no" v-pre>prepare(read(...))</code>.</p>
+</li>
+<li>
+<p><strong><code translate="no" v-pre>view_image(path)</code></strong> (<code translate="no" v-pre>ImageTools</code>, <code translate="no" v-pre>ImageToolsImpl</code>) checks the image and notes the path in the <code translate="no" v-pre>ShownImages</code> of the worker. A tool result is text only in Chat Completions, so after the results of
+the round the worker appends <strong>one more message of the user</strong>: the text &quot;The image you asked to look at: /refs/map.png&quot; and an attachment per image. The tool is bound only
+when the main profile has <code translate="no" v-pre>images</code> (<code translate="no" v-pre>Worker.seesImages</code>).</p>
+</li>
+<li>
+<p><strong>The transcript keeps paths.</strong> The attachment of a stored message is <code translate="no" v-pre>ImageFiles.reference(path)</code> (kind <code translate="no" v-pre>IMAGE</code>, the path as its name, no bytes, no URL; <code translate="no" v-pre>isReference</code> tells it). A message of the
+transcript with such an attachment is turned into the real image <strong>when a request is made</strong>: <code translate="no" v-pre>Worker.withImages</code> works on a copy of the transcript, reads and scales the newest
+<code translate="no" v-pre>MAX_SHOWN_IMAGES</code> (4) images, and writes a note into the text of the older ones (<code translate="no" v-pre>... is not shown any more, view_image shows it again</code>), of the ones that are gone (<code translate="no" v-pre>can't be shown: &lt;reason&gt;</code>)
+and of all of them for a model that does not see images. The images are re-read for each request, which costs a decode and keeps the stored run small and valid after a resume.</p>
+</li>
+<li>
+<p><strong>Images with a message of the author.</strong> <code translate="no" v-pre>AgentRunner.send(run, text, images)</code> takes paths of image files of the workspace (at most <code translate="no" v-pre>MAX_ATTACHED_IMAGES</code> = 8; the text may be empty): it refuses a model
+that does not see images, checks each path with <code translate="no" v-pre>readImage</code>, appends &quot;Attached image: /uploads/a.png&quot; to the text and adds the references. The console (<code translate="no" v-pre>AgentConsoleDialog</code>) keeps the picked images
+(<code translate="no" v-pre>attachImage</code>, an <code translate="no" v-pre>Upload</code> that takes <code translate="no" v-pre>image/*</code> and a paste handler, <code translate="no" v-pre>JavascriptLibrary.forwardPastedImages</code>) until <strong>Send</strong>, then writes them with <code translate="no" v-pre>writeImage</code> into <code translate="no" v-pre>/uploads</code> (<code translate="no" v-pre>uploadPath</code>: a taken
+name gets <code translate="no" v-pre>-2</code>, <code translate="no" v-pre>-3</code>) and passes their paths.</p>
+</li>
+<li>
+<p><strong>Commands that take images.</strong> A command parameter of the type <code translate="no" v-pre>LLMAttachment[]</code> is a list of paths for the model (an array of strings with <code translate="no" v-pre>Defaults.AGENT_IMAGES_ARGUMENT_HINT</code>):
+<code translate="no" v-pre>CommandFunctions.forAgent(..., Function&lt;String, LLMAttachment&gt; images)</code> reads the paths with <code translate="no" v-pre>readImages</code> (at most <code translate="no" v-pre>MAX_IMAGES</code> = 8; a path that is not an image is an error naming the argument)
+and the command gets <code translate="no" v-pre>LLMAttachment[]</code>. Without a reader the parameter is not in the schema. The worker gives the reader whatever the profile says: the images go to the model of the <strong>command</strong>, which is not the model
+of the agent (<code translate="no" v-pre>generate-lore-entry</code> of the Lore Generator is the first). In the command bar the argument is text, which can&#x27;t be converted, so a form with such a parameter is not reachable there.</p>
+</li>
+</ul>
 <h3 id="commands-as-functions">Commands as functions</h3>
 <p><code translate="no" v-pre>CommandFunctions</code> (package <code translate="no" v-pre>domain.service.agent</code>) turns the commands an agent may call into a <code translate="no" v-pre>FunctionSet</code>: <code translate="no" v-pre>forAgent(commandService, agent, lookup, approval)</code> offers the commands on the allowlist of the agent, <code translate="no" v-pre>create(commandService, names, mode, lookup, approval)</code> the ones named. <code translate="no" v-pre>lookup</code> gives the
 texts (<code translate="no" v-pre>localization::getValue</code>; the descriptions are for the model, so build the set inside the context of the run). It is built for a run and combined with
@@ -675,7 +725,7 @@ Windows device names and too long names, paths and depth. That takes drive lette
 letters: names like any other, leading nowhere. Every method that builds a path from a name checks the name again.</p>
 </li>
 <li>
-<p><code translate="no" v-pre>VirtualFileSystem</code> routes a path to a <code translate="no" v-pre>VirtualMount</code> (<code translate="no" v-pre>stat</code>, <code translate="no" v-pre>list</code>, <code translate="no" v-pre>read</code>, <code translate="no" v-pre>write</code>, <code translate="no" v-pre>delete</code>, <code translate="no" v-pre>move</code>, <code translate="no" v-pre>toVirtual</code>): the workspace is the root,
+<p><code translate="no" v-pre>VirtualFileSystem</code> routes a path to a <code translate="no" v-pre>VirtualMount</code> (<code translate="no" v-pre>stat</code>, <code translate="no" v-pre>list</code>, <code translate="no" v-pre>read</code>, <code translate="no" v-pre>write</code>, <code translate="no" v-pre>writeImage</code>, <code translate="no" v-pre>createFolder</code>, <code translate="no" v-pre>delete</code>, <code translate="no" v-pre>move</code>, <code translate="no" v-pre>toVirtual</code>): the workspace is the root,
 <code translate="no" v-pre>/checkpoints</code> (<code translate="no" v-pre>CheckpointsMount</code>) lists the checkpoints and is read only. Other mounts, backed by services, can be added the same way. <code translate="no" v-pre>toVirtual(Path)</code>
 is the reverse mapping for everything that goes to the model and throws for a path outside every mount.</p>
 </li>
@@ -730,7 +780,7 @@ runner&#x27;s internals.</p>
 | `AgentStopDialog` | Keep or discard the result. |
 | `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. |
 | `AgentRunHistory` | The **Runs** tab: every run, open one in the Run tab, download it (`AgentTranscriptExport`, the transcript as Markdown, nothing cut), delete it. |
-| `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. **New folder** (`VirtualFileSystem.createFolder`, `WorkspaceMount.createFolder`) and **Upload file** (an `InMemoryUploadHandler`; the bytes go through `VirtualFileSystem.decodeText`, the same UTF-8 without NUL as `readText`, then `writeText`) keep the cage, the names and the limits of the agent's own writes; an existing file is not replaced, and both are refused while the agent works. |
+| `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. **New folder** (`VirtualFileSystem.createFolder`, `WorkspaceMount.createFolder`) and **Upload file** (an `InMemoryUploadHandler`; a file that starts like an image goes to `writeImage`, anything else through `VirtualFileSystem.decodeText`, the same UTF-8 without NUL as `readText`, then `writeText`) keep the cage, the names and the limits of the agent's own writes; an existing file is not replaced, and both are refused while the agent works. |
 | `AgentApprovalDialog` | One pending command, Approve / Deny. |
 | `AgentLockCheck` | Called by the screens that open a book: tells which agent holds a locked book. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -768,7 +818,7 @@ runner&#x27;s internals.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AgentWorkspaceBrowser</code></td>
-<td>The <strong>Workspace</strong> tab: the folders and files of the agent over <code translate="no" v-pre>AgentVirtualFileSystemService.openWorkspace</code>. A text file is shown cut at <code translate="no" v-pre>VIEW_LIMIT</code> (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. <strong>New folder</strong> (<code translate="no" v-pre>VirtualFileSystem.createFolder</code>, <code translate="no" v-pre>WorkspaceMount.createFolder</code>) and <strong>Upload file</strong> (an <code translate="no" v-pre>InMemoryUploadHandler</code>; the bytes go through <code translate="no" v-pre>VirtualFileSystem.decodeText</code>, the same UTF-8 without NUL as <code translate="no" v-pre>readText</code>, then <code translate="no" v-pre>writeText</code>) keep the cage, the names and the limits of the agent&#x27;s own writes; an existing file is not replaced, and both are refused while the agent works.</td>
+<td>The <strong>Workspace</strong> tab: the folders and files of the agent over <code translate="no" v-pre>AgentVirtualFileSystemService.openWorkspace</code>. A text file is shown cut at <code translate="no" v-pre>VIEW_LIMIT</code> (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. <strong>New folder</strong> (<code translate="no" v-pre>VirtualFileSystem.createFolder</code>, <code translate="no" v-pre>WorkspaceMount.createFolder</code>) and <strong>Upload file</strong> (an <code translate="no" v-pre>InMemoryUploadHandler</code>; a file that starts like an image goes to <code translate="no" v-pre>writeImage</code>, anything else through <code translate="no" v-pre>VirtualFileSystem.decodeText</code>, the same UTF-8 without NUL as <code translate="no" v-pre>readText</code>, then <code translate="no" v-pre>writeText</code>) keep the cage, the names and the limits of the agent&#x27;s own writes; an existing file is not replaced, and both are refused while the agent works.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AgentApprovalDialog</code></td>
@@ -914,7 +964,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (6b7cb09a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (52d45120).</p></div>
             </footer>
         </div>
     </div>

@@ -8,10 +8,15 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
+import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
+import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
+import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.test.AgentTestBase;
+import com.github.enerccio.marginalia.test.TestImages;
 import com.github.enerccio.marginalia.test.llm.MockLLMRequest;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import org.junit.jupiter.api.Test;
@@ -39,6 +44,9 @@ class AgentRunnerTest extends AgentTestBase {
 
     @Autowired
     private AgentMessageService messageService;
+
+    @Autowired
+    private AgentVirtualFileSystemService fileSystemService;
 
     /**
      * An agent that may read the book information and does not mind the rest.
@@ -504,5 +512,160 @@ class AgentRunnerTest extends AgentTestBase {
                 .contains("at most 300 tokens").contains("append_file");
         String status = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).findFirst().orElseThrow();
         assertThat(status).contains("Longest answer you can write: 300 tokens").contains("of 32000 tokens");
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // images
+    // ---------------------------------------------------------------------------------------------------------------
+
+    /** An agent whose model sees images, with the images in its workspace. */
+    private Agent seeingAgent(String... images) throws Exception {
+        Agent agent = readingAgent();
+        agent.getMainProfile().setImages(true);
+        agent = agentService.save(agent);
+        for (String image : images) {
+            fileSystemService.openWorkspace(agent).writeImage(VirtualPath.parse(image), TestImages.image(64, 48, "png"));
+        }
+        return agent;
+    }
+
+    /** The data URLs of the images in the messages of a request, in order. */
+    private static List<String> imagesOf(MockLLMRequest request) {
+        List<String> urls = new java.util.ArrayList<>();
+        for (var message : request.getBody().getAsJsonArray("messages")) {
+            var content = message.getAsJsonObject().get("content");
+            if (content != null && content.isJsonArray()) {
+                for (var part : content.getAsJsonArray()) {
+                    if (part.getAsJsonObject().has("image_url")) {
+                        urls.add(part.getAsJsonObject().getAsJsonObject("image_url").get("url").getAsString());
+                    }
+                }
+            }
+        }
+        return urls;
+    }
+
+    private static String view(String path) {
+        return "{\"path\":\"" + path + "\"}";
+    }
+
+    @Test
+    void aModelThatSeesImagesGetsTheToolAndTheImageAfterTheResult() throws Exception {
+        Agent agent = seeingAgent("/refs/map.png");
+        llm.enqueue(MockLLMResponse.toolCall("view_image", view("/refs/map.png")), MockLLMResponse.text("A map of a coast."));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        List<MockLLMRequest> requests = llm.getCompletionRequests();
+        assertThat(requests).hasSize(2);
+        assertThat(requests.getFirst().getBody().getAsJsonArray("tools").toString()).contains("view_image");
+        assertThat(imagesOf(requests.getFirst())).isEmpty();
+
+        // the result is text, the picture follows it as a message of the user
+        MockLLMRequest second = requests.get(1);
+        assertThat(imagesOf(second)).hasSize(1).allMatch(url -> url.startsWith("data:image/png;base64,"));
+        List<MockLLMRequest.Message> messages = second.getMessages();
+        assertThat(messages.get(messages.size() - 2).role()).isEqualTo("tool");
+        assertThat(messages.get(messages.size() - 2).content()).startsWith("Showing /refs/map.png (png, 64 x 48 pixels)");
+        assertThat(messages.getLast().role()).isEqualTo("user");
+        assertThat(messages.getLast().content()).contains("/refs/map.png");
+
+        // the transcript keeps the path, never the bytes
+        LLMChatMessage shown = transcript(run).stream().filter(LLMChatMessage::hasAttachments).findFirst().orElseThrow();
+        assertThat(shown.getRole()).isEqualTo(LLMRole.USER);
+        assertThat(shown.getAttachments()).hasSize(1);
+        LLMAttachment reference = shown.getAttachments().getFirst();
+        assertThat(ImageFiles.isReference(reference)).isTrue();
+        assertThat(reference.getName()).isEqualTo("/refs/map.png");
+        assertThat(messageService.messages(run).stream().map(AgentMessage::getMessage).toList()).noneMatch(json -> json.contains("base64"));
+    }
+
+    @Test
+    void aModelThatDoesNotSeeImagesDoesNotGetTheTool() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Nothing to look at.");
+
+        await(startRun(agent));
+
+        assertThat(llm.lastCompletionRequest().getBody().getAsJsonArray("tools").toString()).doesNotContain("view_image");
+    }
+
+    @Test
+    void onlyTheNewestImagesStayInFrontOfTheModel() throws Exception {
+        String[] names = {"/a.png", "/b.png", "/c.png", "/d.png", "/e.png"};
+        Agent agent = seeingAgent(names);
+        MockLLMResponse[] answers = new MockLLMResponse[names.length + 1];
+        for (int i = 0; i < names.length; i++) {
+            answers[i] = MockLLMResponse.toolCall("view_image", view(names[i]));
+        }
+        answers[names.length] = MockLLMResponse.text("Seen them all.");
+        llm.enqueue(answers);
+
+        await(startRun(agent));
+
+        MockLLMRequest last = llm.lastCompletionRequest();
+        assertThat(imagesOf(last)).hasSize(4);
+        // the oldest one is a note that says how to see it again
+        String prompt = last.getPromptText();
+        assertThat(prompt).contains("/a.png is not shown any more, view_image shows it again");
+        assertThat(prompt).doesNotContain("/e.png is not shown any more");
+    }
+
+    @Test
+    void anImageThatIsGoneIsANoteNotAnError() throws Exception {
+        Agent agent = seeingAgent("/gone.png");
+        llm.enqueue(MockLLMResponse.toolCall("view_image", view("/gone.png")), MockLLMResponse.text("Done."));
+        AgentRun run = await(startRun(agent));
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+
+        // later the file is deleted and the run goes on
+        fileSystemService.openWorkspace(agent).delete(VirtualPath.parse("/gone.png"), false);
+        llm.reply("Still here.");
+        runner.send(run, "Anything else?");
+        await(run);
+
+        MockLLMRequest last = llm.lastCompletionRequest();
+        assertThat(imagesOf(last)).isEmpty();
+        assertThat(last.getPromptText()).contains("/gone.png can't be shown");
+    }
+
+    @Test
+    void anImageAttachedToAMessageIsSentToTheModelAndKeptAsAPath() throws Exception {
+        Agent agent = seeingAgent("/uploads/shot.png");
+        llm.reply("Which one?");
+        AgentRun run = await(startRun(agent));
+        llm.reply("A coast.");
+
+        runner.send(run, "Look at this.", List.of("/uploads/shot.png"));
+        await(run);
+
+        MockLLMRequest request = llm.lastCompletionRequest();
+        assertThat(imagesOf(request)).hasSize(1).allMatch(url -> url.startsWith("data:image/png;base64,"));
+        assertThat(request.getMessages().getLast().content()).startsWith("Look at this.").contains("Attached image: /uploads/shot.png");
+        LLMChatMessage stored = transcript(run).stream().filter(LLMChatMessage::hasAttachments).findFirst().orElseThrow();
+        assertThat(ImageFiles.isReference(stored.getAttachments().getFirst())).isTrue();
+    }
+
+    @Test
+    void aMessageNeedsTextOrAnImageAndAnImageThatTheModelCanSee() throws Exception {
+        Agent blind = readingAgent();
+        llm.reply("Which one?");
+        AgentRun blindRun = await(startRun(blind));
+        fileSystemService.openWorkspace(blind).writeImage(VirtualPath.parse("/a.png"), TestImages.image(20, 20, "png"));
+
+        assertThatThrownBy(() -> runner.send(blindRun, "", List.of())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> runner.send(blindRun, "x", List.of("/a.png"))).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not see images");
+
+        Agent seeing = seeingAgent("/a.png");
+        llm.reply("Which one?");
+        AgentRun run = await(startRun(seeing));
+        assertThatThrownBy(() -> runner.send(run, "x", List.of("/missing.png"))).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("no file /missing.png");
+        assertThatThrownBy(() -> runner.send(run, "x", java.util.Collections.nCopies(9, "/a.png")))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("at most 8");
+        // nothing was sent: the run still waits
+        assertThat(agentRunService.find(run.getId()).getStatus()).isEqualTo(AgentRunStatus.IDLE);
     }
 }

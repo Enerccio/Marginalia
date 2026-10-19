@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionCallExcept
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.traits.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -632,5 +633,86 @@ class CommandFunctionsTest {
                 .doesNotContain("@file:");
         assertThat(definition(withResults(new CommandResults(), FILES), "wipe").getParametersSchema().toString())
                 .contains("@file:/path").contains("@result:3");
+    }
+
+    // --- images as arguments ---
+
+    /** A command that sends images to its own model, the way the generation of the Lore Generator does. */
+    public static class Pictures {
+        @Command(commandName = "describe", humanNameText = "Describe", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+                signature = @CommandParameterSignature({
+                        @CommandParameter(name = "prompt", type = String.class)}))
+        public void plain(CommandContext context) {
+            context.setReturn("no images for " + context.get("prompt"));
+        }
+
+        @Command(commandName = "describe", humanNameText = "Describe", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+                signature = @CommandParameterSignature({
+                        @CommandParameter(name = "prompt", type = String.class),
+                        @CommandParameter(name = "images", type = LLMAttachment[].class, optional = true,
+                                descriptionText = "Pictures to look at")}))
+        public void withImages(CommandContext context) {
+            LLMAttachment[] images = context.get("images", LLMAttachment[].class);
+            context.setReturn(images == null ? "none" : java.util.Arrays.stream(images)
+                    .map(i -> i.getName() + ":" + i.getMimeType() + ":" + i.getData().length).toList().toString());
+        }
+    }
+
+    private static final Function<String, LLMAttachment> IMAGES = path -> {
+        if (path.startsWith("/refs/")) {
+            return LLMAttachment.of(LLMAttachment.Kind.IMAGE, "image/png", path, new byte[]{1, 2, 3});
+        }
+        throw new com.github.enerccio.marginalia.domain.service.agent.VirtualFileException(path + " is not an image");
+    };
+
+    private FunctionSet withImages(Function<String, LLMAttachment> images) {
+        commands.registerCommands(new Pictures());
+        return CommandFunctions.create(commands, List.of("describe"), DestructiveCommandMode.AUTO, l -> l.name(), null, null, null,
+                images);
+    }
+
+    @Test
+    void anImageParameterIsAListOfPathsAndTheCommandGetsTheAttachments() throws Exception {
+        FunctionSet set = withImages(IMAGES);
+
+        JsonNode images = definition(set, "describe").getParametersSchema().get("properties").get("images");
+        assertThat(images.get("type").asText()).isEqualTo("array");
+        assertThat(images.get("items").get("type").asText()).isEqualTo("string");
+        assertThat(images.get("description").asText()).startsWith("Pictures to look at").contains("paths of image files");
+
+        assertThat(call(set, "describe", "{\"prompt\":\"x\",\"images\":[\"/refs/a.png\",\"/refs/b.png\"]}"))
+                .isEqualTo("[/refs/a.png:image/png:3, /refs/b.png:image/png:3]");
+        // one path is a list of one
+        assertThat(call(set, "describe", "{\"prompt\":\"x\",\"images\":\"/refs/a.png\"}")).isEqualTo("[/refs/a.png:image/png:3]");
+        // the form without images still works
+        assertThat(call(set, "describe", "{\"prompt\":\"x\"}")).isEqualTo("no images for x");
+    }
+
+    @Test
+    void aPathThatIsNotAnImageIsAnErrorNamingTheArgument() {
+        FunctionSet set = withImages(IMAGES);
+
+        FunctionCallException error = failure(set, "describe", "{\"prompt\":\"x\",\"images\":[\"/notes/draft.md\"]}");
+
+        assertThat(error.getMessage()).isEqualTo("The argument images: /notes/draft.md is not an image");
+    }
+
+    @Test
+    void aCallPassesAtMostSomeImages() {
+        FunctionSet set = withImages(IMAGES);
+        String paths = String.join(",", java.util.Collections.nCopies(CommandFunctions.MAX_IMAGES + 1, "\"/refs/a.png\""));
+
+        FunctionCallException error = failure(set, "describe", "{\"prompt\":\"x\",\"images\":[" + paths + "]}");
+
+        assertThat(error.getMessage()).contains("the most it takes is " + CommandFunctions.MAX_IMAGES);
+    }
+
+    @Test
+    void withoutFilesThereIsNoImageParameter() {
+        FunctionSet set = withImages(null);
+
+        assertThat(definition(set, "describe").getParametersSchema().get("properties").has("images")).isFalse();
+        assertThat(failure(set, "describe", "{\"prompt\":\"x\",\"images\":[\"/refs/a.png\"]}").getMessage())
+                .contains("not available");
     }
 }

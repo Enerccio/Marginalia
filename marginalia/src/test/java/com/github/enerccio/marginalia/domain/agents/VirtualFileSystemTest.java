@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.agents;
 
 import com.github.enerccio.marginalia.domain.service.agent.*;
+import com.github.enerccio.marginalia.test.TestImages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -575,5 +576,76 @@ class VirtualFileSystemTest {
         }
         assertThat(outside.resolve("secret.txt")).exists();
         assertThat(other.getUsage().files()).isEqualTo(2);
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // images
+    // ---------------------------------------------------------------------------------------------------------------
+
+    private VirtualFileSystem withImageLimit(long textBytes, long imageBytes) {
+        return VirtualFileSystem.ofRun(folder, new WorkspaceLimits(textBytes, 100_000, 10, imageBytes), new ReentrantLock());
+    }
+
+    @Test
+    void anImageMayBeLargerThanATextFileButNotThanTheImageLimit() throws IOException {
+        byte[] image = TestImages.image(120, 120, "png");
+        assertThat(image.length).isGreaterThan(300).isLessThan(20_000);
+        fs = withImageLimit(300, 20_000);
+
+        fs.writeImage(p("/refs/map.png"), image);
+
+        assertThat(fs.read(p("/refs/map.png"))).isEqualTo(image);
+        assertThat(fs.isImage(p("/refs/map.png"))).isTrue();
+        assertThat(fs.readImage(p("/refs/map.png")).mimeType()).isEqualTo("image/png");
+        assertThat(fs.getUsage().bytes()).isEqualTo(image.length);
+        // text keeps its own limit
+        assertThatThrownBy(() -> write("/notes.md", "x".repeat(301))).isInstanceOf(VirtualFileException.class)
+                .hasMessageContaining("limit of a file");
+        fs = withImageLimit(300, image.length - 1);
+        assertThatThrownBy(() -> fs.writeImage(p("/refs/other.png"), image)).isInstanceOf(VirtualFileException.class)
+                .hasMessageContaining("limit of a file");
+    }
+
+    @Test
+    void anImageCountsAgainstTheTotalAndTheNumberOfFiles() throws IOException {
+        byte[] image = TestImages.image(120, 120, "png");
+        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(1000, image.length + 10, 2, 100_000), new ReentrantLock());
+
+        fs.writeImage(p("/a.png"), image);
+
+        assertThatThrownBy(() -> fs.writeImage(p("/b.png"), image)).isInstanceOf(VirtualFileException.class)
+                .hasMessageContaining("larger than its limit");
+        write("/a.md", "A");
+        assertThatThrownBy(() -> write("/b.md", "B")).isInstanceOf(VirtualFileException.class).hasMessageContaining("most files");
+    }
+
+    @Test
+    void onlyAnImageIsKeptAsAnImage() {
+        assertThatThrownBy(() -> fs.writeImage(p("/refs/x.png"), "not an image at all".getBytes(StandardCharsets.UTF_8)))
+                .isInstanceOf(VirtualFileException.class).hasMessageContaining("not an image");
+        assertThat(fs.stat(p("/refs/x.png"))).isNull();
+    }
+
+    @Test
+    void textToolsSayThatAnImageIsOne() throws IOException {
+        fs.writeImage(p("/pic.png"), TestImages.image(20, 20, "png"));
+        write("/note.md", "text");
+
+        assertThatThrownBy(() -> fs.readText(p("/pic.png"))).isInstanceOf(VirtualFileException.class)
+                .hasMessageContaining("is an image").hasMessageContaining("view_image");
+        assertThatThrownBy(() -> fs.readImage(p("/note.md"))).isInstanceOf(VirtualFileException.class)
+                .hasMessageContaining("not an image");
+        assertThat(fs.isImage(p("/note.md"))).isFalse();
+        assertThat(fs.isImage(p("/missing.png"))).isFalse();
+    }
+
+    @Test
+    void aTextFileOverTheTextLimitIsStillRefusedWhenItIsReadFromTheDisk() throws IOException {
+        // put there by hand, between the limit of the text and the one of the images
+        fs = withImageLimit(300, 20_000);
+        Files.writeString(folder.workspace().resolve("big.md"), "x".repeat(400));
+
+        assertThatThrownBy(() -> fs.readText(p("/big.md"))).isInstanceOf(VirtualFileException.class)
+                .hasMessageContaining("larger than the limit of 300");
     }
 }

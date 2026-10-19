@@ -172,6 +172,13 @@ This run is a conversation with the author, who is in the console. Calling finis
             + "to use the contents of that file of your workspace.";
 
     /**
+     * Added to the description of every parameter that takes images, of a command the agent may call.
+     */
+    public static final String AGENT_IMAGES_ARGUMENT_HINT = "A list of paths of image files of your workspace (PNG, JPEG, GIF "
+            + "or WebP; the user uploads them), at most " + com.github.enerccio.marginalia.domain.service.agent.CommandFunctions.MAX_IMAGES
+            + ". The model of the command looks at them; it must be able to.";
+
+    /**
      * Added to the description of every text parameter of a command the agent may call, when its results are kept.
      */
     public static final String AGENT_RESULT_ARGUMENT_HINT = "Or @result (the whole value) for the whole result of your last "

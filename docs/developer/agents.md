@@ -39,6 +39,7 @@ flowchart LR
 | `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. |
 | `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
 | `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `get_run_status`. |
+| `ImageTools`, `ImageFiles`, `ShownImages` | `domain.service.agent` | `view_image` (only for a profile with `images`), the image checks and scaling, and the images asked for in a round; see [Images](#images). |
 | `CommandResults` | `domain.service.agent` | The last 10 results of the commands of a run, whole. |
 | `AgentApprovalService`, `AgentAttentionService` | `domain.service` | Bring the user in: approve a command, a notice that a run needs them. |
 | `AgentRequestAttributes`, `AgenticSessionPoint`, `AgentSession` | `bound` | The request context of a run (no browser) and where it finds its book. |
@@ -271,6 +272,7 @@ parameters also get `AGENT_FILE_ARGUMENT_HINT` and `AGENT_RESULT_ARGUMENT_HINT`.
 CommandFunctions.forAgent(...)                    the commands the agent is allowed
   .and(fileSystemService.getFileTools(files, results))   list_files, read_file, write_file, ..., save_command_result
   .and(registry.bind(RunTools.class, runTools))          finish, ask_user, update_plan, get_run_status
+  .and(registry.bind(ImageTools.class, ...))             view_image, only when the main profile has images
 ```
 
 A round is one **non-streaming** request (`InferenceService.round`) that answers with text, the calls the model asked for (they are not called by the
@@ -279,6 +281,38 @@ the context of the run, and appends all the results together as the next message
 call. Because the order is kept, a call may use what an earlier call of the same answer did (`save_command_result` right after a command).
 `RunTools` only *notes* what the model asked (the report, the question, the plan); the worker acts on it after the round, so that every call of the round
 has its result in the transcript first.
+
+### Images
+
+An agent can look at images when the author says its model can (`AgentModelProfile.isImages()`, a checkbox of the `AgentDialog` for the main profile; the API of
+an OpenAI compatible endpoint does not report it). Everything image related is built from three existing facts: `LLMAttachment` (an image on a user message becomes
+an `image_url` content part in `OpenAICompatibleInferenceService.toUserMessage`), the cage (an image is a file of the workspace) and the transcript (rows must stay small).
+
+- **Files.** An image is a workspace file whose **bytes** start like a PNG, a JPEG, a GIF or a WebP (`ImageFiles.mimeType`, never the name; SVG is text and is not one).
+  `VirtualFileSystem.writeImage` checks that (`ImageFiles.check`: the type, and for the types ImageIO reads the pixels from the header, at most `MAX_PIXELS`, so a
+  decompression bomb is not stored) and writes through `VirtualMount.writeImage` (a default method that refuses; `WorkspaceMount` shares `write` with it). An image may be
+  `WorkspaceLimits.maxImageBytes` (5 MB by default; the three argument constructor makes it the larger of that and `maxFileBytes`), a text file keeps `maxFileBytes`; both count against
+  the total and the number of files. `WorkspaceMount.read` reads up to the larger limit and `VirtualFileSystem.read` refuses what is over `maxFileBytes` and not an image, so the
+  text rules did not change. `readText` of an image says "is an image ... view_image shows it to you". The agent can't write bytes (its tools write text), so images come from the
+  user: the Upload button of the `AgentWorkspaceBrowser` and the attach button of the console, or a command result in a later version.
+- **What the model is sent.** `ImageFiles.prepare` returns an image as it is when its longest side is within `MAX_SIDE` (1568) and the file within 1.5 MB, otherwise it is scaled
+  with ImageIO in its own format (a PNG stays PNG, a JPEG stays JPEG, a GIF is its first frame as PNG, an image with alpha is PNG); a WebP is not decoded here and goes as it is.
+  `VirtualFileSystem.readImage` is `prepare(read(...))`.
+- **`view_image(path)`** (`ImageTools`, `ImageToolsImpl`) checks the image and notes the path in the `ShownImages` of the worker. A tool result is text only in Chat Completions, so after the results of
+  the round the worker appends **one more message of the user**: the text "The image you asked to look at: /refs/map.png" and an attachment per image. The tool is bound only
+  when the main profile has `images` (`Worker.seesImages`).
+- **The transcript keeps paths.** The attachment of a stored message is `ImageFiles.reference(path)` (kind `IMAGE`, the path as its name, no bytes, no URL; `isReference` tells it). A message of the
+  transcript with such an attachment is turned into the real image **when a request is made**: `Worker.withImages` works on a copy of the transcript, reads and scales the newest
+  `MAX_SHOWN_IMAGES` (4) images, and writes a note into the text of the older ones (`... is not shown any more, view_image shows it again`), of the ones that are gone (`can't be shown: <reason>`)
+  and of all of them for a model that does not see images. The images are re-read for each request, which costs a decode and keeps the stored run small and valid after a resume.
+- **Images with a message of the author.** `AgentRunner.send(run, text, images)` takes paths of image files of the workspace (at most `MAX_ATTACHED_IMAGES` = 8; the text may be empty): it refuses a model
+  that does not see images, checks each path with `readImage`, appends "Attached image: /uploads/a.png" to the text and adds the references. The console (`AgentConsoleDialog`) keeps the picked images
+  (`attachImage`, an `Upload` that takes `image/*` and a paste handler, `JavascriptLibrary.forwardPastedImages`) until **Send**, then writes them with `writeImage` into `/uploads` (`uploadPath`: a taken
+  name gets `-2`, `-3`) and passes their paths.
+- **Commands that take images.** A command parameter of the type `LLMAttachment[]` is a list of paths for the model (an array of strings with `Defaults.AGENT_IMAGES_ARGUMENT_HINT`):
+  `CommandFunctions.forAgent(..., Function<String, LLMAttachment> images)` reads the paths with `readImages` (at most `MAX_IMAGES` = 8; a path that is not an image is an error naming the argument)
+  and the command gets `LLMAttachment[]`. Without a reader the parameter is not in the schema. The worker gives the reader whatever the profile says: the images go to the model of the **command**, which is not the model
+  of the agent (`generate-lore-entry` of the Lore Generator is the first). In the command bar the argument is text, which can't be converted, so a form with such a parameter is not reachable there.
 
 ### Commands as functions
 
@@ -355,7 +389,7 @@ text -> VirtualPath.parse -> VirtualFileSystem (mounts) -> WorkspaceMount: check
   empty and `.` parts, `\`, control, format and unassigned characters, `< > : " | ? *`, a name that starts or ends with a space or ends with a dot,
   Windows device names and too long names, paths and depth. That takes drive letters and UNC paths with it. Percent encoded or full width dots are
   letters: names like any other, leading nowhere. Every method that builds a path from a name checks the name again.
-- `VirtualFileSystem` routes a path to a `VirtualMount` (`stat`, `list`, `read`, `write`, `delete`, `move`, `toVirtual`): the workspace is the root,
+- `VirtualFileSystem` routes a path to a `VirtualMount` (`stat`, `list`, `read`, `write`, `writeImage`, `createFolder`, `delete`, `move`, `toVirtual`): the workspace is the root,
   `/checkpoints` (`CheckpointsMount`) lists the checkpoints and is read only. Other mounts, backed by services, can be added the same way. `toVirtual(Path)`
   is the reverse mapping for everything that goes to the model and throws for a path outside every mount.
 - `WorkspaceMount` is where the cage is made of real checks: it walks the path name by name from the real root and refuses a symbolic link, anything
@@ -403,7 +437,7 @@ runner's internals.
 | `AgentStopDialog` | Keep or discard the result. |
 | `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. |
 | `AgentRunHistory` | The **Runs** tab: every run, open one in the Run tab, download it (`AgentTranscriptExport`, the transcript as Markdown, nothing cut), delete it. |
-| `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. **New folder** (`VirtualFileSystem.createFolder`, `WorkspaceMount.createFolder`) and **Upload file** (an `InMemoryUploadHandler`; the bytes go through `VirtualFileSystem.decodeText`, the same UTF-8 without NUL as `readText`, then `writeText`) keep the cage, the names and the limits of the agent's own writes; an existing file is not replaced, and both are refused while the agent works. |
+| `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. **New folder** (`VirtualFileSystem.createFolder`, `WorkspaceMount.createFolder`) and **Upload file** (an `InMemoryUploadHandler`; a file that starts like an image goes to `writeImage`, anything else through `VirtualFileSystem.decodeText`, the same UTF-8 without NUL as `readText`, then `writeText`) keep the cage, the names and the limits of the agent's own writes; an existing file is not replaced, and both are refused while the agent works. |
 | `AgentApprovalDialog` | One pending command, Approve / Deny. |
 | `AgentLockCheck` | Called by the screens that open a book: tells which agent holds a locked book. |
 

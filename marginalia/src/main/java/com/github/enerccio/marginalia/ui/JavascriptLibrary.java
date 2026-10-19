@@ -22,6 +22,23 @@ public final class JavascriptLibrary {
         page.executeJs("navigator.clipboard.writeText($0);", text);
     }
 
+    /**
+     * Sends the images pasted into the element (Ctrl+V of a picture from the clipboard) to the upload, as if they were
+     * picked in it. A paste of text is left alone.
+     *
+     * @param element the box the user pastes into
+     * @param upload  the {@code vaadin-upload} the images go to
+     */
+    public static void forwardPastedImages(Element element, Element upload) {
+        element.executeJs(
+                "$0.addEventListener('paste', e => {"
+                        + " const files = Array.from(e.clipboardData ? e.clipboardData.files : []).filter(f => f.type.startsWith('image/'));"
+                        + " if (files.length) { e.preventDefault(); $1.uploadFiles(files); } });",
+                element,
+                upload
+        );
+    }
+
     // --- tree ---
 
     /**

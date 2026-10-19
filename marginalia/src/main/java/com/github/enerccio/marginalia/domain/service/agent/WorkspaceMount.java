@@ -115,11 +115,13 @@ final class WorkspaceMount implements VirtualMount {
         if (attributes.isDirectory()) {
             throw new VirtualFileException(file + " is a folder, not a file");
         }
-        if (attributes.size() > limits.maxFileBytes()) {
-            throw new VirtualFileException("The file " + file + " is larger than the limit of " + limits.maxFileBytes() + " bytes");
+        // an image may be larger than a text file, the file system tells them apart after the read
+        long readable = Math.max(limits.maxFileBytes(), limits.maxImageBytes());
+        if (attributes.size() > readable) {
+            throw new VirtualFileException("The file " + file + " is larger than the limit of " + readable + " bytes");
         }
         try (InputStream in = Files.newInputStream(real, LinkOption.NOFOLLOW_LINKS)) {
-            return in.readNBytes((int) limits.maxFileBytes() + 1);
+            return in.readNBytes((int) readable + 1);
         } catch (IOException e) {
             throw new VirtualFileException("The file " + file + " can't be read", e);
         }
@@ -127,6 +129,15 @@ final class WorkspaceMount implements VirtualMount {
 
     @Override
     public void write(VirtualPath file, byte[] content, boolean append) {
+        write(file, content, append, limits.maxFileBytes());
+    }
+
+    @Override
+    public void writeImage(VirtualPath file, byte[] content) {
+        write(file, content, false, limits.maxImageBytes());
+    }
+
+    private void write(VirtualPath file, byte[] content, boolean append, long maxFileBytes) {
         if (file.isRoot()) {
             throw new VirtualFileException("/ is the folder of the workspace, not a file");
         }
@@ -144,9 +155,9 @@ final class WorkspaceMount implements VirtualMount {
                 }
                 existing = attributes.size();
                 if (append) {
-                    if (existing > limits.maxFileBytes()) {
+                    if (existing > maxFileBytes) {
                         throw new VirtualFileException("The file " + file + " is larger than the limit of "
-                                + limits.maxFileBytes() + " bytes");
+                                + maxFileBytes + " bytes");
                     }
                     byte[] old = Files.readAllBytes(target);
                     data = new byte[old.length + content.length];
@@ -154,9 +165,9 @@ final class WorkspaceMount implements VirtualMount {
                     System.arraycopy(content, 0, data, old.length, content.length);
                 }
             }
-            if (data.length > limits.maxFileBytes()) {
+            if (data.length > maxFileBytes) {
                 throw new VirtualFileException("The file would be " + data.length + " bytes, the limit of a file is "
-                        + limits.maxFileBytes() + " bytes");
+                        + maxFileBytes + " bytes");
             }
             WorkspaceUsage usage = usage();
             if (attributes == null && usage.files() >= limits.maxFiles()) {

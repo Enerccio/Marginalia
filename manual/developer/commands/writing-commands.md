@@ -63,6 +63,9 @@ Rules to remember:
   `optional = true` (it may be left out), `defaultValue = "0"` (text, converted to the type) and `allowed = {"short", "long"}` (an enum type needs
   none, its constants are the values). Without `optional` a parameter is required when every form of the command has it, so with a ladder of forms
   that each add a parameter only the first ones are required. The command line ignores all three.
+- A parameter of the type `LLMAttachment[]` takes **images** for the model the command talks to (the Lore Generator's `generate-lore-entry` has one, `images`).
+  An agent passes paths of image files of its workspace and the command gets the attachments (see [Images](../agents.md#images)); the command line can't
+  convert text to attachments, so keep such a parameter in a form of its own at the end of the ladder, `optional = true`.
 - The suite is **stateless**. Do not keep the book, the user or the result in a field. See [Statelessness](index.md#statelessness).
 
 ## Texts

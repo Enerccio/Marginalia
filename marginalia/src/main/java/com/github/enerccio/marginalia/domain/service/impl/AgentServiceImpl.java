@@ -238,6 +238,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         AgentModelProfile copy = new AgentModelProfile(profile.getRole(), profile.getAiUuid(), profile.getProtocolUuid());
         copy.setDescription(profile.getDescription());
         copy.setTools(profile.isTools());
+        copy.setImages(profile.isImages());
         copy.setContextCap(profile.getContextCap());
         copy.setConcurrency(profile.getConcurrency());
         return copy;

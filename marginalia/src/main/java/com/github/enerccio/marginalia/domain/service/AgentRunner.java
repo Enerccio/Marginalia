@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 
+import java.util.List;
+
 /**
  * Works the runs of the agents: owns the loop of a run, one round at a time. A round is one request to the model and
  * the calls it asked for; every round is written to the transcript ({@link AgentMessageService}), so a run can be
@@ -17,6 +19,11 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
  * {@code update_plan} and {@code get_run_status}.
  */
 public interface AgentRunner {
+
+    /**
+     * The most images one message of the author may carry.
+     */
+    int MAX_ATTACHED_IMAGES = 8;
 
     /**
      * Takes the run up: a worker works on it in the background until the run leaves {@code RUNNING}. Call it after
@@ -41,7 +48,23 @@ public interface AgentRunner {
      * @return the run in its new status
      * @throws IllegalStateException when the run does not wait for the author
      */
-    AgentRun send(AgentRun run, String text) throws Exception;
+    default AgentRun send(AgentRun run, String text) throws Exception {
+        return send(run, text, List.of());
+    }
+
+    /**
+     * As {@link #send(AgentRun, String)}, with images of the agent's workspace attached to the message (the author put
+     * them there, see {@code AgentVirtualFileSystemService}). The model is sent the images with the message; the message
+     * of the transcript keeps the paths only. The text may be empty when there are images.
+     *
+     * @param images paths of image files of the workspace, in order
+     * @return the run in its new status
+     * @throws IllegalStateException    when the run does not wait for the author
+     * @throws IllegalArgumentException when there is neither text nor an image, a path is not an image of the workspace,
+     *                                  there are more than {@link #MAX_ATTACHED_IMAGES}, or the model of the agent does not
+     *                                  see images ({@code AgentModelProfile#isImages})
+     */
+    AgentRun send(AgentRun run, String text, List<String> images) throws Exception;
 
     /**
      * Whether a worker is busy with the run in this server.

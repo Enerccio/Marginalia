@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.LorebookReadSupport;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService;
@@ -14,6 +15,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
@@ -28,7 +30,9 @@ import java.util.concurrent.CancellationException;
  * {@code list-lore-entries}), and the model is the default model of the user. The entry is optional: it is the entry
  * the text is meant for, whose place decides which lore is shown and which is left out, without it a new entry after
  * all the others is meant. The model gets no name tools: an agent that wants names calls the commands of the Name
- * Generator and the Name Provider and writes them into its prompt.
+ * Generator and the Name Provider and writes them into its prompt. As in the dialog, images can be sent with the
+ * generation (not with the compaction, which works on the generated text only): the {@code images} parameter takes
+ * image files, for an agent the paths of images in its workspace.
  */
 public class LoreGeneratorCommands extends LorebookReadSupport {
 
@@ -54,8 +58,9 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
             + "\"none\". The model has no name tools: get names with the name commands first and put them into the prompt. Pass the "
             + "number of the entry the text is for to have the lore after it left out and the entry itself not shown. If the entry does not "
             + "exist yet, pass the order it will get instead (the order that list-lore-entries shows, lower comes first): the model then sees "
-            + "the entries before that order; without either, the text is written for a new entry after all the others. Takes a while. "
-            + "Reads only.";
+            + "the entries before that order; without either, the text is written for a new entry after all the others. Pass images (paths of "
+            + "image files of your workspace, a reference picture, a map, a portrait) to have the model look at them while it writes: it is the "
+            + "model of the user that sees them, and it must take images, or the command fails. Takes a while. Reads only.";
     private static final String COMPACT_TEXT = "Compacts a generated text into a dense lore entry text with the default model of the user and "
             + "returns it. Stores nothing.";
     private static final String COMPACT_LLM = "Turns a generated text (the result of generate-lore-entry) into a dense, factual lore entry text "
@@ -79,6 +84,8 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     private static final String PARAM_LOREBOOK = "Number of the lorebook from list-lorebooks; the root lorebook (1) when omitted";
     private static final String PARAM_SCOPE = "Which lore the model sees: CURRENT_LOREBOOK (default) or ALL_LORE (with the subbooks)";
     private static final String PARAM_LIMIT = "Which entries of that lore the model sees: UP_TO_POSITION (default, those before the entry) or ALL_ENTRIES";
+    private static final String PARAM_IMAGES = "Images the model looks at while it writes, for example a reference picture or a map; the prompt "
+            + "should say what to take from them";
     private static final String PARAM_TEXT = "The text to compact";
 
     private final LoreGeneratorService service;
@@ -219,6 +226,24 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
+    @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
+                    @CommandParameter(name = "template", type = String.class, optional = true, descriptionText = PARAM_TEMPLATE),
+                    @CommandParameter(name = "lorebook", type = Integer.class, optional = true, descriptionText = PARAM_LOREBOOK),
+                    @CommandParameter(name = "entry", type = Integer.class, optional = true, descriptionText = PARAM_ENTRY),
+                    @CommandParameter(name = "order", type = Integer.class, optional = true, descriptionText = PARAM_ORDER),
+                    @CommandParameter(name = "scope", type = String.class, optional = true, defaultValue = "CURRENT_LOREBOOK",
+                            allowed = {"CURRENT_LOREBOOK", "ALL_LORE"}, descriptionText = PARAM_SCOPE),
+                    @CommandParameter(name = "limit", type = String.class, optional = true, defaultValue = "UP_TO_POSITION",
+                            allowed = {"UP_TO_POSITION", "ALL_ENTRIES"}, descriptionText = PARAM_LIMIT),
+                    @CommandParameter(name = "images", type = LLMAttachment[].class, optional = true, descriptionText = PARAM_IMAGES)}),
+            returns = @CommandReturn(name = "text", type = String.class, descriptionText = RESULT_GENERATE))
+    public void generateImages(CommandContext context) throws Exception {
+        runGenerate(context);
+    }
+
     private void runGenerate(CommandContext context) throws Exception {
         Lore lore = new Lore(new Book());
         Lorebook book = lore.book(context.get("lorebook", Integer.class));
@@ -233,13 +258,15 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         String generationPrompt = name == null ? prompt.strip()
                 : StringUtils.isBlank(prompt) ? data.getGenerationPrompts().get(name)
                 : data.getGenerationPrompts().get(name).strip() + TASK_HEADER + prompt.strip();
+        LLMAttachment[] images = context.get("images", LLMAttachment[].class);
         ModelSelection model = requireModel();
 
         context.setStatus("Generating the text of a lore entry");
         String generated;
         try {
             generated = service.complete(model, service.toPayload(
-                    service.buildGenerationPrompt(book, entry, scope, limit, generationPrompt, null)));
+                    service.buildGenerationPrompt(book, entry, scope, limit, generationPrompt, null),
+                    images == null ? List.of() : List.of(images)));
         } catch (CancellationException e) {
             return;
         }

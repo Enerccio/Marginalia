@@ -56,6 +56,8 @@ these of its own:
 | Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `delete_file` in its own workspace (notes it keeps between runs). `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`). `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
 | `@file:/path` | Not a tool but a way to call one: a text argument of a command that is exactly `@file:/notes/chapter.md` is replaced by the contents of that file of the agent's workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). `write_file` and `append_file` take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way. |
 | `@result` | Like `@file:`, for the result of a command: a text argument that is exactly `@result` is replaced by the whole result of the last command the agent called, `@result:3` by the result with that number (`list_command_results` shows the numbers). A generated text goes from one command to the next, or into `write_file` and `append_file`, without the agent writing it out. |
+| `view_image` | Looks at an image file of its workspace (PNG, JPEG, GIF or WebP): the picture is shown to the model in the next message. Only an agent whose model is marked as seeing images (**The model sees images** in the agent) has it. A large image is scaled down before it is sent, a GIF shows its first frame, and only the newest four images stay in front of the model (an older one becomes a note, and the agent can look again). The images come from you (**Upload file**, or [attached to a message](#the-console)); the agent can't make one. |
+| Images for commands | A command that sends pictures to a model of its own, such as [`generate-lore-entry`](extensions/lore-generator.md#commands), takes an `images` parameter: a list of paths of image files of the workspace (at most 8). It is the model of the command, not the agent's, that has to see them, so the agent can pass images even when its own model does not see images. |
 | `update_plan` | Its to-do list. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
@@ -83,6 +85,11 @@ is one) stay above it and the box for your message under it, while the transcrip
 - when the run is *Waiting for you*, the question of the agent; write the answer in the box and press **Send** (or **Ctrl+Enter**), and the agent goes on;
 - when the run is *Done*, the report of the agent.
 
+When the model of the agent sees images (see [Creating and editing an agent](#creating-and-editing-an-agent)), **Attach image** is next to **Send**: pick a PNG, JPEG, GIF or WebP file, or paste a picture from the clipboard
+into the message box (**Ctrl+V**), and it waits above the box (the cross takes it back) until you send. Up to eight images go with a message; the text may be empty.
+The images are saved in the **uploads** folder of the workspace (a name that is taken gets a number: `map-2.png`), within the limits and rules of the workspace,
+and the model is shown them with your message. Delete them in the **Workspace** tab when you no longer need them.
+
 The buttons at the bottom are **Pause**, **Resume** and **Stop**, which do what they do in the table, and **Finish**, which ends a run that waits for you (its work is over, *Done*).
 
 The window looks at the run every two seconds while it is open; **Refresh** does it at once. The **Run** tab shows the latest run that was not discarded, so a run that finished or failed can still be read there until the agent starts a new run; older runs are in **Runs**.
@@ -98,7 +105,8 @@ text file to read it, use the arrows to download a file or the bin to delete it,
 **New folder** creates a folder in the open one and **Upload file** puts a file from your computer there, so you can hand the agent
 a brief, a style guide or a draft. The same rules hold as for the agent's own files: names can't have `\ < > : " | ? *`, a trailing dot
 or space, or be too long or too deep, the limits of file size and number of files apply, and an uploaded file must be text (UTF-8),
-because the agent can only read text. A file is never replaced by an upload: delete the old one first.
+because the agent can only read text, or an image (PNG, JPEG, GIF or WebP, recognised by what the file contains, not by its name;
+up to 5 MB, and it counts against the total and the number of files like any file). A file is never replaced by an upload: delete the old one first.
 Files can't be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files; the line
 under the table says how much is used.
 
@@ -140,6 +148,7 @@ book yet.
 | **Enabled** | A disabled agent can't be started; its runs that exist are not touched. |
 | **Book** | The book the agent works on, required. Only books that have no agent are offered, and the book of an agent can't be changed later. |
 | **Model**, **Protocols** | The model and the protocol the agent talks with. Both, or neither; an agent without them can't be started. |
+| **The model sees images** | Tick it when the model takes images (the API of the model does not say, so you do). The agent then has `view_image` and you can attach images to your messages; without it it never gets a picture. |
 | **Destructive commands** | What happens when the agent wants a command that changes or removes data: *Run them*, *Ask first* (a [window](#asking-you) asks you to approve it) or *Refuse them*. |
 | **Most rounds**, **Token budget of a run**, **Context limit** | Optional limits of one run. The limit your administrator gave you applies in any case. |
 | **System prompt** | What the agent is told to be. A new agent starts with the default one; **Restore default** puts it back. |
