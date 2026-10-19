@@ -89,6 +89,10 @@ too, so you can read what they did or delete them; the **Run** tab shows them on
 
 **Workspace** shows the files of the agent: its notes and reports, which it keeps between runs. Click a folder to go in (**Up** goes back), click a
 text file to read it, use the arrows to download a file or the bin to delete it, and **Clear** deletes everything (stale notes mislead a fresh run).
+**New folder** creates a folder in the open one and **Upload file** puts a file from your computer there, so you can hand the agent
+a brief, a style guide or a draft. The same rules hold as for the agent's own files: names can't have `\ < > : " | ? *`, a trailing dot
+or space, or be too long or too deep, the limits of file size and number of files apply, and an uploaded file must be text (UTF-8),
+because the agent can only read text. A file is never replaced by an upload: delete the old one first.
 Files can't be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files; the line
 under the table says how much is used.
 

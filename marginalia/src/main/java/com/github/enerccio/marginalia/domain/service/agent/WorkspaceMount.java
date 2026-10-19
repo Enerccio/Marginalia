@@ -176,6 +176,26 @@ final class WorkspaceMount implements VirtualMount {
     }
 
     @Override
+    public void createFolder(VirtualPath folder) {
+        if (folder.isRoot()) {
+            throw new VirtualFileException("/ is the folder of the workspace, it exists");
+        }
+        lock.lock();
+        try {
+            Path target = resolve(folder, true);
+            if (attributes(target) != null) {
+                throw new VirtualFileException(folder + " exists already");
+            }
+            checkNewName(target.getParent(), folder.getName(), folder.getDepth() == 1);
+            Files.createDirectory(target);
+        } catch (IOException e) {
+            throw new VirtualFileException("The folder " + folder + " can't be created", e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
     public void delete(VirtualPath path, boolean recursive) {
         if (path.isRoot()) {
             throw new VirtualFileException("The workspace itself can't be deleted");

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845719289684">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845721838967">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845719289684" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845721838967" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845721838967" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845721838967" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -369,6 +369,10 @@ A deleted run goes to the <a href="../trash/">trash</a>. A run that is going on 
 too, so you can read what they did or delete them; the <strong>Run</strong> tab shows them only when you open them.</p>
 <p><strong>Workspace</strong> shows the files of the agent: its notes and reports, which it keeps between runs. Click a folder to go in (<strong>Up</strong> goes back), click a
 text file to read it, use the arrows to download a file or the bin to delete it, and <strong>Clear</strong> deletes everything (stale notes mislead a fresh run).
+<strong>New folder</strong> creates a folder in the open one and <strong>Upload file</strong> puts a file from your computer there, so you can hand the agent
+a brief, a style guide or a draft. The same rules hold as for the agent&#x27;s own files: names can&#x27;t have <code translate="no" v-pre>\ &lt; &gt; : &quot; | ? *</code>, a trailing dot
+or space, or be too long or too deep, the limits of file size and number of files apply, and an uploaded file must be text (UTF-8),
+because the agent can only read text. A file is never replaced by an upload: delete the old one first.
 Files can&#x27;t be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files; the line
 under the table says how much is used.</p>
 <h2 id="asking-you">Asking you</h2>
@@ -505,7 +509,7 @@ a paused, stopped or finished run does not lock it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (6f7c8538).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (6b7cb09a).</p></div>
             </footer>
         </div>
     </div>

@@ -186,6 +186,43 @@ class VirtualFileSystemTest {
     }
 
     @Test
+    void createsAnEmptyFolderWithTheFoldersAboveIt() throws IOException {
+        fs.createFolder(p("/notes/plot/act1"));
+
+        assertThat(fs.stat(p("/notes/plot/act1")).directory()).isTrue();
+        assertThat(names("/notes/plot")).containsExactly("/notes/plot/act1");
+        assertThat(fs.getUsage().files()).isZero();
+        try (Stream<Path> files = Files.list(folder.workspace())) {
+            assertThat(files.count()).isEqualTo(1);
+        }
+    }
+
+    @Test
+    void aFolderIsRefusedWhereSomethingIsAlreadyOrTheNameIsNotAllowed() {
+        write("/a.md", "A");
+        fs.createFolder(p("/dir"));
+
+        assertThatThrownBy(() -> fs.createFolder(p("/a.md"))).isInstanceOf(VirtualFileException.class).hasMessageContaining("exists");
+        assertThatThrownBy(() -> fs.createFolder(p("/dir"))).isInstanceOf(VirtualFileException.class).hasMessageContaining("exists");
+        assertThatThrownBy(() -> fs.createFolder(p("/DIR"))).isInstanceOf(VirtualFileException.class).hasMessageContaining("case");
+        assertThatThrownBy(() -> fs.createFolder(VirtualPath.ROOT)).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> fs.createFolder(p("/checkpoints"))).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> fs.createFolder(p("/dir/.marginalia-tmp-x"))).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> fs.createFolder(VirtualPath.ROOT.resolve("bad:name"))).isInstanceOf(VirtualFileException.class);
+    }
+
+    @Test
+    void textIsDecodedAsTheModelWouldHaveIt() {
+        VirtualPath file = p("/a.md");
+
+        assertThat(VirtualFileSystem.decodeText("žluťoučký".getBytes(StandardCharsets.UTF_8), file)).isEqualTo("žluťoučký");
+        assertThatThrownBy(() -> VirtualFileSystem.decodeText(new byte[]{(byte) 0xff, (byte) 0xfe}, file))
+                .isInstanceOf(VirtualFileException.class).hasMessageContaining("not a text file");
+        assertThatThrownBy(() -> VirtualFileSystem.decodeText(new byte[]{'a', 0, 'b'}, file))
+                .isInstanceOf(VirtualFileException.class);
+    }
+
+    @Test
     void emptyFolderIsDeletedWithoutRecursive() {
         write("/a/b/c.md", "x");
         fs.delete(p("/a/b/c.md"), false);

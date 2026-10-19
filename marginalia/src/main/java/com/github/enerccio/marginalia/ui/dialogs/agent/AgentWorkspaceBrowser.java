@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -22,7 +23,9 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.server.streams.DownloadResponse;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
 import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
 import org.apache.commons.io.FileUtils;
@@ -37,9 +40,11 @@ import java.util.function.BooleanSupplier;
 
 /**
  * Looks at the workspace of an agent, the files it keeps between its runs (its notes and reports): browse the folders,
- * read a text file, download a file, delete a file or a folder, or clear the whole workspace to get rid of stale
- * notes. Goes through the same cage as the agent's own file tools, so there is nothing here but the workspace. Files
- * can't be changed while the agent works, the run would lose them under its hands.
+ * read a text file, download a file, upload a text file, create a folder, delete a file or a folder, or clear the whole
+ * workspace to get rid of stale notes. Goes through the same cage as the agent's own file tools, so there is nothing
+ * here but the workspace, and the same limits and rules of names hold for what the user puts in (an uploaded file
+ * has to be text, as the agent can only read text). Files can't be changed while the agent works, the run would lose
+ * them under its hands.
  */
 @Configurable
 public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract {
@@ -69,6 +74,8 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     private Span noteLabel;
     private Button upButton;
     private Button clearButton;
+    private Button newFolderButton;
+    private Upload upload;
     private Grid<VirtualEntry> grid;
     private TextArea viewer;
 
@@ -96,13 +103,27 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         clearButton = new Button(loc.getValue(L.LABEL_CLEAR), Solid.TRASH.create(), event ->
                 ConfirmDialog.open(loc.getValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE), this::clear, () -> {}));
         clearButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        for (Button button : List.of(upButton, refreshButton, clearButton)) {
+        newFolderButton = new Button(loc.getValue(L.LABEL_NEW_FOLDER), Solid.FOLDER_PLUS.create(), event ->
+                new TextInputDialog.Builder(loc.getValue(L.LABEL_NEW_FOLDER), this::createFolder)
+                        .inputMessageLabel(loc.getValue(L.LABEL_FOLDER_NAME)).messageRequired().showCancel(true)
+                        .build().open());
+        for (Button button : List.of(upButton, refreshButton, newFolderButton, clearButton)) {
             button.addThemeVariants(ButtonVariant.LUMO_SMALL);
         }
+        Button uploadButton = new Button(loc.getValue(L.LABEL_UPLOAD_FILE), Solid.UPLOAD.create());
+        uploadButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        upload = new Upload(new InMemoryUploadHandler((metadata, data) -> upload(metadata.fileName(), data)));
+        upload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, fileSystemService.getLimits().maxFileBytes()));
+        upload.setUploadButton(uploadButton);
+        upload.setDropLabel(new Span());
+        upload.addFileRejectedListener(event -> Notification.warning(
+                String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), event.getErrorMessage())));
         pathLabel = new Span();
         pathLabel.addClassNames(CssStyles.TEXT_MONOSPACE, CssStyles.WRAP_ANYWHERE);
-        HorizontalLayout toolbar = new HorizontalLayout(upButton, refreshButton, pathLabel, clearButton);
+        HorizontalLayout toolbar = new HorizontalLayout(upButton, refreshButton, pathLabel, newFolderButton, upload,
+                clearButton);
         toolbar.setWidthFull();
+        toolbar.setWrap(true);
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
         toolbar.expand(pathLabel);
 
@@ -211,6 +232,59 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         refresh();
     }
 
+    /**
+     * Creates a folder in the open one; the name follows the rules of the names of the agent.
+     */
+    void createFolder(String name) {
+        if (isBusy()) {
+            return;
+        }
+        try {
+            files.createFolder(folder.resolve(name.trim()));
+        } catch (VirtualFileException e) {
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+        }
+        refresh();
+    }
+
+    /**
+     * Puts an uploaded file in the open folder. It is text (what the agent reads) and within the limits of the
+     * workspace, a file of that name is not replaced.
+     */
+    void upload(String fileName, byte[] content) {
+        if (isBusy()) {
+            return;
+        }
+        try {
+            VirtualPath target = folder.resolve(fileName);
+            if (files.stat(target) != null) {
+                throw new VirtualFileException(target + " exists already; delete it first or rename the file");
+            }
+            String text;
+            try {
+                text = VirtualFileSystem.decodeText(content, target);
+            } catch (VirtualFileException e) {
+                Notification.warning(String.format(loc.getValue(L.MSG_AGENT_UPLOAD_NOT_TEXT), fileName));
+                return;
+            }
+            files.writeText(target, text, false);
+        } catch (VirtualFileException e) {
+            Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
+        } finally {
+            upload.clearFileList();
+            refresh();
+        }
+    }
+
+    private boolean isBusy() {
+        if (busy.getAsBoolean()) {
+            Notification.warning(loc.getValue(L.MSG_AGENT_WORKSPACE_BUSY));
+            refresh();
+            return true;
+        }
+        return false;
+    }
+
     void clear() {
         try {
             fileSystemService.clearWorkspace(agent);
@@ -246,6 +320,9 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             upButton.setEnabled(!folder.isRoot());
             clearButton.setEnabled(!busy.getAsBoolean());
             clearButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(L.MSG_AGENT_WORKSPACE_BUSY) : null);
+            newFolderButton.setEnabled(!busy.getAsBoolean());
+            newFolderButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(L.MSG_AGENT_WORKSPACE_BUSY) : null);
+            upload.setEnabled(!busy.getAsBoolean());
             WorkspaceUsage usage = files.getUsage();
             usageLabel.setText(entries.isEmpty() && usage.files() == 0
                     ? loc.getValue(L.MSG_AGENT_WORKSPACE_EMPTY)
@@ -273,6 +350,14 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
 
     Button getClearButton() {
         return clearButton;
+    }
+
+    Button getNewFolderButton() {
+        return newFolderButton;
+    }
+
+    Upload getUpload() {
+        return upload;
     }
 
     Button getUpButton() {

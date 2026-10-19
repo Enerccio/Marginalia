@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845719289684">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845721838967">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845719289684" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845721838967" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845721838967" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845719289684" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845721838967" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -730,7 +730,7 @@ runner&#x27;s internals.</p>
 | `AgentStopDialog` | Keep or discard the result. |
 | `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. |
 | `AgentRunHistory` | The **Runs** tab: every run, open one in the Run tab, download it (`AgentTranscriptExport`, the transcript as Markdown, nothing cut), delete it. |
-| `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. |
+| `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. **New folder** (`VirtualFileSystem.createFolder`, `WorkspaceMount.createFolder`) and **Upload file** (an `InMemoryUploadHandler`; the bytes go through `VirtualFileSystem.decodeText`, the same UTF-8 without NUL as `readText`, then `writeText`) keep the cage, the names and the limits of the agent's own writes; an existing file is not replaced, and both are refused while the agent works. |
 | `AgentApprovalDialog` | One pending command, Approve / Deny. |
 | `AgentLockCheck` | Called by the screens that open a book: tells which agent holds a locked book. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -768,7 +768,7 @@ runner&#x27;s internals.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AgentWorkspaceBrowser</code></td>
-<td>The <strong>Workspace</strong> tab: the folders and files of the agent over <code translate="no" v-pre>AgentVirtualFileSystemService.openWorkspace</code>. A text file is shown cut at <code translate="no" v-pre>VIEW_LIMIT</code> (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works.</td>
+<td>The <strong>Workspace</strong> tab: the folders and files of the agent over <code translate="no" v-pre>AgentVirtualFileSystemService.openWorkspace</code>. A text file is shown cut at <code translate="no" v-pre>VIEW_LIMIT</code> (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. <strong>New folder</strong> (<code translate="no" v-pre>VirtualFileSystem.createFolder</code>, <code translate="no" v-pre>WorkspaceMount.createFolder</code>) and <strong>Upload file</strong> (an <code translate="no" v-pre>InMemoryUploadHandler</code>; the bytes go through <code translate="no" v-pre>VirtualFileSystem.decodeText</code>, the same UTF-8 without NUL as <code translate="no" v-pre>readText</code>, then <code translate="no" v-pre>writeText</code>) keep the cage, the names and the limits of the agent&#x27;s own writes; an existing file is not replaced, and both are refused while the agent works.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AgentApprovalDialog</code></td>
@@ -914,7 +914,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (6f7c8538).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (6b7cb09a).</p></div>
             </footer>
         </div>
     </div>

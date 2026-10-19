@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemServi
 import com.github.enerccio.marginalia.domain.service.agent.VirtualEntry;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
+import com.github.enerccio.marginalia.domain.service.agent.WorkspaceLimits;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.data.provider.Query;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -159,5 +161,89 @@ class AgentWorkspaceBrowserTest extends AgentTestBase {
         browser.clear();
 
         assertThat(names(browser)).as("the service refused").containsExactly("a.txt");
+    }
+
+    @Test
+    void aFolderIsCreatedInTheOpenFolder() {
+        write("/reports/continuity.md", "all fine");
+        AgentWorkspaceBrowser browser = browser();
+        browser.createFolder("drafts");
+        browser.open(entry(browser, "reports"));
+
+        browser.createFolder(" chapters ");
+
+        assertThat(names(browser)).containsExactly("chapters", "continuity.md");
+        assertThat(files.stat(VirtualPath.parse("/reports/chapters")).directory()).isTrue();
+        assertThat(files.stat(VirtualPath.parse("/drafts")).directory()).isTrue();
+    }
+
+    @Test
+    void aFolderWithABadNameOrOneThatExistsIsRefused() {
+        write("/notes.md", "my notes");
+        AgentWorkspaceBrowser browser = browser();
+
+        browser.createFolder("a/b:c");
+        browser.createFolder("notes.md");
+
+        assertThat(names(browser)).containsExactly("notes.md");
+    }
+
+    @Test
+    void anUploadedTextFileLandsInTheOpenFolder() {
+        write("/reports/continuity.md", "all fine");
+        AgentWorkspaceBrowser browser = browser();
+        browser.open(entry(browser, "reports"));
+
+        browser.upload("plot.md", "žluťoučký kůň".getBytes(StandardCharsets.UTF_8));
+
+        assertThat(names(browser)).containsExactly("continuity.md", "plot.md");
+        assertThat(files.readText(VirtualPath.parse("/reports/plot.md"))).isEqualTo("žluťoučký kůň");
+    }
+
+    @Test
+    void anUploadHasToBeTextWithAGoodNameAndNothingThatExists() {
+        write("/notes.md", "my notes");
+        AgentWorkspaceBrowser browser = browser();
+
+        browser.upload("image.png", new byte[]{(byte) 0x89, 'P', 'N', 'G', 0, 1});
+        browser.upload("a:b.md", "x".getBytes(StandardCharsets.UTF_8));
+        browser.upload("notes.md", "replaced".getBytes(StandardCharsets.UTF_8));
+        browser.upload("NOTES.md", "replaced".getBytes(StandardCharsets.UTF_8));
+
+        assertThat(names(browser)).containsExactly("notes.md");
+        assertThat(files.readText(VirtualPath.parse("/notes.md"))).isEqualTo("my notes");
+    }
+
+    @Test
+    void anUploadKeepsTheLimitsOfTheAgent() {
+        AgentWorkspaceBrowser browser = browser();
+        WorkspaceLimits limits = fileSystemService.getLimits();
+
+        browser.upload("big.txt", "x".repeat((int) limits.maxFileBytes() + 1).getBytes(StandardCharsets.UTF_8));
+        for (int i = 0; i < limits.maxFiles() + 2; i++) {
+            files.writeText(VirtualPath.parse("/f" + i + ".txt"), "x", false);
+            if (files.getUsage().files() >= limits.maxFiles()) {
+                break;
+            }
+        }
+        browser.upload("one-more.txt", "x".getBytes(StandardCharsets.UTF_8));
+
+        assertThat(files.stat(VirtualPath.parse("/big.txt"))).isNull();
+        assertThat(files.stat(VirtualPath.parse("/one-more.txt"))).isNull();
+        assertThat(files.getUsage().files()).isEqualTo(limits.maxFiles());
+    }
+
+    @Test
+    void whileTheAgentWorksNothingCanBeUploadedOrCreated() throws Exception {
+        agentRunService.start(agent);
+        busy.set(true);
+        AgentWorkspaceBrowser browser = browser();
+
+        assertThat(browser.getNewFolderButton().isEnabled()).isFalse();
+        assertThat(browser.getUpload().isEnabled()).isFalse();
+        browser.createFolder("drafts");
+        browser.upload("a.txt", "a".getBytes(StandardCharsets.UTF_8));
+
+        assertThat(names(browser)).isEmpty();
     }
 }

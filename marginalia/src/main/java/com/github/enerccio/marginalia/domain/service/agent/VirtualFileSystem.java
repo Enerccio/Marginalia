@@ -138,10 +138,23 @@ public final class VirtualFileSystem {
      * @throws VirtualFileException when it is not UTF-8 text
      */
     public String readText(VirtualPath file) {
-        byte[] bytes = read(file);
+        return decodeText(read(file), file);
+    }
+
+    /**
+     * The bytes as text, what the model can read and write: UTF-8 with no NUL character.
+     *
+     * @param file the name for the message
+     * @throws VirtualFileException when it is not text
+     */
+    public static String decodeText(byte[] bytes, VirtualPath file) {
         try {
-            return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+            String text = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
                     .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString();
+            if (text.indexOf('\0') >= 0) {
+                throw new CharacterCodingException();
+            }
+            return text;
         } catch (CharacterCodingException e) {
             throw new VirtualFileException(file + " is not a text file");
         }
@@ -155,6 +168,15 @@ public final class VirtualFileSystem {
             throw new VirtualFileException("Only text can be written, the content has a NUL character");
         }
         writableMountFor(file).write(file, text.getBytes(StandardCharsets.UTF_8), append);
+    }
+
+    /**
+     * Creates an empty folder (and the folders above it); folders don't count against the limits.
+     *
+     * @throws VirtualFileException when the name is taken or not allowed, or the path is on a mount that can't be changed
+     */
+    public void createFolder(VirtualPath folder) {
+        writableMountFor(folder).createFolder(folder);
     }
 
     public void delete(VirtualPath path, boolean recursive) {
