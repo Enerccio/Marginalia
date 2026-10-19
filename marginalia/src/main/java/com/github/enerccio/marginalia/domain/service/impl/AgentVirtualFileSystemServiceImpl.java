@@ -116,8 +116,8 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
     }
 
     @Override
-    public FunctionSet getFileTools(VirtualFileSystem fileSystem) {
-        return inferenceServices.getFunctionRegistry().bind(AgentFileTools.class, new AgentFileToolsImpl(fileSystem));
+    public FunctionSet getFileTools(VirtualFileSystem fileSystem, CommandResults commandResults) {
+        return inferenceServices.getFunctionRegistry().bind(AgentFileTools.class, new AgentFileToolsImpl(fileSystem, commandResults));
     }
 
     @Override

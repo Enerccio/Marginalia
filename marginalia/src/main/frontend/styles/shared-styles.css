@@ -956,3 +956,20 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     display: inline-block;
     width: var(--lumo-size-s);
 }
+
+/* Agent console: the workspace tab (ui.dialogs.agent.AgentWorkspaceBrowser) is small text with little room around it,
+   so that the folder shows more than a row or two */
+.workspace-browser {
+    gap: var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-xs);
+}
+
+.workspace-browser vaadin-grid {
+    font-size: var(--lumo-font-size-xs);
+    --lumo-font-size-m: var(--lumo-font-size-xs);
+}
+
+.workspace-browser vaadin-text-area {
+    padding: 0;
+    --lumo-font-size-m: var(--lumo-font-size-xs);
+}

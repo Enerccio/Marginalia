@@ -40,7 +40,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
         private final Map<Long, Integer> numbers = new HashMap<>();
         private final Map<Long, List<LorebookEntry>> entries = new HashMap<>();
 
-        protected Lore(Book book) throws Exception {
+        public Lore(Book book) throws Exception {
             Lorebook root = book.manuscript.getLorebook() == null ? null : lorebookService.find(book.manuscript.getLorebook());
             if (root == null || root.isDeleted()) {
                 throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_LOREBOOK));
@@ -59,12 +59,12 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
         }
 
         /** The number of the lorebook, 1 for the root. */
-        protected int number(Lorebook book) {
+        public int number(Lorebook book) {
             return numbers.get(book.getId());
         }
 
         /** The lorebook with that number, the root when it is null. */
-        protected Lorebook book(Integer number) {
+        public Lorebook book(Integer number) {
             int n = number == null ? 1 : number;
             if (n < 1 || n > books.size()) {
                 throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NO_SUCH_LOREBOOK), n, books.size()));
@@ -73,7 +73,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
         }
 
         /** The entries of the lorebook that are not deleted, in the order of the lorebook. */
-        protected List<LorebookEntry> entries(Lorebook book) throws Exception {
+        public List<LorebookEntry> entries(Lorebook book) throws Exception {
             List<LorebookEntry> found = entries.get(book.getId());
             if (found == null) {
                 found = lorebookEntryService.getEntriesForLorebook(book);
@@ -83,7 +83,7 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
         }
 
         /** The entry with that number in the lorebook. */
-        protected LorebookEntry entry(Lorebook book, Integer number) throws Exception {
+        public LorebookEntry entry(Lorebook book, Integer number) throws Exception {
             List<LorebookEntry> all = entries(book);
             if (number == null || number < 1 || number > all.size()) {
                 throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY),

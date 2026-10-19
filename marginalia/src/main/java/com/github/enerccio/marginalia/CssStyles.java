@@ -145,6 +145,9 @@ public final class CssStyles {
     public static final String SEARCH_HIT_REPLACEMENT = "search-hit-replacement";
     public static final String SEARCH_HIT_PLACEHOLDER = "search-hit-placeholder";
 
+    // --- Agent console (ui.dialogs.agent) ---
+    public static final String WORKSPACE_BROWSER = "workspace-browser";
+
     // --- Version footer (ui.components.BuildInfoFooter) ---
     public static final String BUILD_INFO_FOOTER = "build-info-footer";
 

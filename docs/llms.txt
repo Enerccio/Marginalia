@@ -41,7 +41,7 @@
 - [Creating lorebooks](https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks.md): Open the Lorebooks tab. The editor shows one lorebook at a time; pick it in the Lorebook field at the top. Lorebooks belong to your account: other users don't see them.
 - [Entries & activation](https://enerccio.github.io/Marginalia/user/lorebooks/entries.md): Each row of the lorebook editor is one entry:
 - [Import & export](https://enerccio.github.io/Marginalia/user/lorebooks/import-export.md): Select the lorebook in the editor and click the export button (file icon, Export Lorebook). The browser downloads lorebook name.json with:
-- [Commands](https://enerccio.github.io/Marginalia/user/commands/index.md): Commands are small actions you run by typing them, instead of clicking through menus. Marginalia itself comes with only a couple of example commands; the real use of the command line is that extensions can add commands of their own, for example to look something up, change the book or start a task.
+- [Commands](https://enerccio.github.io/Marginalia/user/commands/index.md): Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or the lorebooks, search and replace, take a backup.
 
 ### Templates & macros
 

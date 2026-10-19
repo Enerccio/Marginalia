@@ -712,7 +712,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d 个文件，%s / %s");
         setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "要删除智能体工作区中的所有文件吗？智能体保存在其中的笔记将会丢失。");
         setValue(L.MSG_AGENT_FILE_NOT_TEXT, "该文件不是文本。请下载后查看。");
-        setValue(L.MSG_AGENT_FILE_CUT, "文件较长，仅显示开头部分。");
+        setValue(L.MSG_AGENT_FILE_CUT, "文件较长：仅显示前 %d 个字符（共 %d 个，…已截断），其余部分请下载查看。");
         setValue(L.MSG_AGENT_WORKSPACE_BUSY, "智能体正在工作。请先暂停它再修改其文件。");
         setValue(L.MSG_AGENT_APPROVAL_QUESTION, "智能体“%s”想运行命令 %s，该命令会更改或删除数据。它在书的副本上工作，不会影响副本之外的内容。");
         setValue(L.MSG_AGENT_NOTICE_IDLE, "智能体“%s”正在等待你。");

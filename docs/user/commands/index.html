@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845717698101">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title>Commands</title>
     <meta name="title" content="Commands">
-    <meta name="description" content="Commands are small actions you run by typing them, instead of clicking through menus. Marginalia itself comes with only a couple of example commands; the real use of the command line is that extensions can add commands of their own, for example to look something up, change the book or start a task.">
+    <meta name="description" content="Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or the lorebooks, search and replace, take a backup.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/commands/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/commands/">
     <meta property="og:title" content="Commands">
-    <meta property="og:description" content="Commands are small actions you run by typing them, instead of clicking through menus. Marginalia itself comes with only a couple of example commands; the real use of the command line is that extensions can add commands of their own, for example to look something up, change the book or start a task.">
+    <meta property="og:description" content="Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or the lorebooks, search and replace, take a backup.">
     <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/command-list.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -35,7 +35,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/commands/">
     <meta name="twitter:title" content="Commands">
-    <meta name="twitter:description" content="Commands are small actions you run by typing them, instead of clicking through menus. Marginalia itself comes with only a couple of example commands; the real use of the command line is that extensions can add commands of their own, for example to look something up, change the book or start a task.">
+    <meta name="twitter:description" content="Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or the lorebooks, search and replace, take a backup.">
     <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/command-list.png">
     <meta name="twitter:image:alt" content="Commands">
 
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845717698101" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -171,10 +171,10 @@
 
                 <!-- Page content  -->
 <h1 id="commands">Commands</h1>
-<p>Commands are small actions you run by typing them, instead of clicking through menus. Marginalia itself comes with only
-a couple of example commands; the real use of the command line is that <a href="../extensions/">extensions</a> can add
-commands of their own, for example to look something up, change the book or start a task. What a command does is
-described by the command itself – you can read it while you type.</p>
+<p>Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or
+the lorebooks, search and replace, take a backup. <a href="../extensions/">Extensions</a> add commands of their own, for
+example to generate a lore entry or to make up names. The same commands are what an <a href="../agents/">agent</a> works with, so a
+command does one clear thing and says what it does: you can read it while you type.</p>
 <p>The <strong>command line</strong> is the field next to the menu below the story, in the <a href="../books/story-editor/">story editor</a>.</p>
 <h2 id="running-a-command">Running a command</h2>
 <ol>
@@ -329,9 +329,9 @@ rewrite the book. Point at the label to see the explanation.</p>
 changes nothing else.</p>
 </li>
 </ul>
-<p>The label is information for you; it does not stop the command. In the future an assistant that runs commands on its
-own will use it to ask you before it runs a destructive one. A command that asks for confirmation by itself is described
-below.</p>
+<p>The label is information for you; it does not stop the command when you run it. An <a href="../agents/">agent</a> goes by it: it is
+not given a destructive command, or has to ask you first, or runs it, as set for that agent. A command that asks for
+confirmation by itself is described below.</p>
 <h2 id="commands-that-ask-first">Commands that ask first</h2>
 <p>A command that changes a lot can ask before it does. The search and replace commands have no preview, so after the
 search they show how many matches they found in how many items and what would be replaced by what, and only <strong>Yes</strong>
@@ -343,7 +343,7 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 <h2 id="commands-that-come-with-marginalia">Commands that come with Marginalia</h2>
 <retype-table copy-text="| Command                              | What it does                                                                       |
 |--------------------------------------|------------------------------------------------------------------------------------|
-| `/hello-world`                       | Returns *Hello world*.                                                             |
+| `/hello-world`                       | Returns *Hello world*. (This and the two below are examples to try the command line.) |
 | `/hello-world &lt;message&gt;`             | Returns the message it was given.                                                  |
 | `/hello-world-async [&lt;message&gt;]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
 | `/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
@@ -379,7 +379,7 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 <tbody>
 <tr>
 <td><code translate="no" v-pre>/hello-world</code></td>
-<td>Returns <em>Hello world</em>.</td>
+<td>Returns <em>Hello world</em>. (This and the two below are examples to try the command line.)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/hello-world &lt;message&gt;</code></td>
@@ -492,8 +492,56 @@ commands the options are positional: to set one, give those before it too.</p>
 book: the root lorebook and its subbooks. A lorebook is its <strong>number</strong> from <code translate="no" v-pre>/list-lorebooks</code> (the root is <code translate="no" v-pre>1</code>), an entry its
 <strong>number in the lorebook</strong>, in the order of the lorebook (the first entry is <code translate="no" v-pre>1</code>); the numbers change when entries or subbooks are
 added or removed. Without a lorebook number the root lorebook is used.</p>
-<p>Commands from extensions are listed in the documentation of the extension, and you see them in the list as long as the
-extension is loaded.</p>
+<h2 id="commands-that-come-with-extensions">Commands that come with extensions</h2>
+<p>You see these in the list as long as the extension is loaded; each is described in the documentation of its extension.</p>
+<retype-table copy-text="| Command | Extension | What it does |
+|---|---|---|
+| `/list-lore-templates [&lt;template&gt;]` | [Lore Generator](../extensions/lore-generator.md) | Your saved generation prompts, or the text of one. |
+| `/generate-lore-entry [&lt;prompt&gt; ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing. |
+| `/compact-lore-entry &lt;text&gt; [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
+| `/list-name-categories`, `/generate-names &lt;category&gt; &lt;count&gt; [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
+| `/list-real-name-lists`, `/pick-real-names &lt;list&gt; &lt;count&gt;` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>Extension</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/list-lore-templates [&lt;template&gt;]</code></td>
+<td><a href="../extensions/lore-generator/">Lore Generator</a></td>
+<td>Your saved generation prompts, or the text of one.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/generate-lore-entry [&lt;prompt&gt; ...]</code></td>
+<td><a href="../extensions/lore-generator/">Lore Generator</a></td>
+<td>Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/compact-lore-entry &lt;text&gt; [...]</code></td>
+<td><a href="../extensions/lore-generator/">Lore Generator</a></td>
+<td>Compacts a generated text into a dense lore entry text and returns it. Stores nothing.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-name-categories</code>, <code translate="no" v-pre>/generate-names &lt;category&gt; &lt;count&gt; [...]</code></td>
+<td><a href="../extensions/name-generator/">Name generator</a></td>
+<td>The categories of made up names, and names of one of them.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-real-name-lists</code>, <code translate="no" v-pre>/pick-real-names &lt;list&gt; &lt;count&gt;</code></td>
+<td><a href="../extensions/name-provider/">Name provider</a></td>
+<td>The lists of real names, and names picked from one of them.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>These commands only read: the generating ones return text and leave it to you, or to the agent that called them, to put it
+into an entry.</p>
 <h2 id="limits">Limits</h2>
 <ul>
 <li>The command line is in the story tab of the desktop layout. The <a href="../phone/">phone view</a> does not have it yet.</li>
@@ -536,7 +584,7 @@ extension is loaded.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2303322d).</p></div>
             </footer>
         </div>
     </div>

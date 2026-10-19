@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.agents;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
+import com.github.enerccio.marginalia.domain.service.agent.CommandResults;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
@@ -375,6 +376,60 @@ class CommandFunctionsTest {
         String kept = result.substring(0, result.indexOf("[cut:"));
         assertThat(kept).endsWith("\n");
         assertThat(kept.lines()).allMatch("line of the text"::equals);
+    }
+
+    // --- the results kept for the model ---
+
+    @Test
+    void theResultsAreKeptWholeWithTheCallThatMadeThem() throws Exception {
+        commands.registerCommands(new Ladder());
+        commands.registerCommands(new Others());
+        CommandResults results = new CommandResults();
+        FunctionSet set = CommandFunctions.create(commands, List.of("list-things", "long", "data"), DestructiveCommandMode.AUTO,
+                l -> l.name(), null, null, results);
+
+        assertThat(results.last()).isNull();
+        call(set, "list-things", "{\"branch\":2,\"offset\":5}");
+        String shown = call(set, "long", "{}");
+        call(set, "data", "{}");
+
+        assertThat(shown).contains("[cut: ");
+        assertThat(results.list()).extracting(CommandResults.Entry::id).containsExactly(1, 2, 3);
+        assertThat(results.get(1).function()).isEqualTo("list-things");
+        assertThat(results.get(1).arguments()).isEqualTo("branch=2, offset=5");
+        assertThat(results.get(1).text()).isEqualTo("things branch=2 offset=5 limit=null");
+        assertThat(results.get(2).text()).as("whole, not cut").hasSize(5_000 * "line of the text\n".length());
+        assertThat(results.last().function()).isEqualTo("data");
+        assertThat(results.last().text()).contains("\"count\"");
+    }
+
+    @Test
+    void aFailedCallKeepsNothingAndOnlyTheLastTenAreKept() throws Exception {
+        commands.registerCommands(new Ladder());
+        commands.registerCommands(new Others());
+        CommandResults results = new CommandResults();
+        FunctionSet set = CommandFunctions.create(commands, List.of("list-things", "data"), DestructiveCommandMode.AUTO,
+                l -> l.name(), null, null, results);
+
+        failure(set, "list-things", "{\"branch\":\"many\"}");
+        assertThat(results.list()).isEmpty();
+        for (int i = 0; i < 13; i++) {
+            call(set, "data", "{}");
+        }
+
+        assertThat(results.list()).hasSize(CommandResults.KEEP);
+        assertThat(results.list().getFirst().id()).isEqualTo(4);
+        assertThat(results.get(3)).as("older than the last ten").isNull();
+        assertThat(results.last().id()).isEqualTo(13);
+    }
+
+    @Test
+    void theArgumentsOfAResultAreShortened() {
+        String argument = "x".repeat(500) + " and\nmore";
+        String described = CommandFunctions.describeArguments(new java.util.LinkedHashMap<>(Map.of("text", argument)));
+
+        assertThat(described).startsWith("text=" + "x".repeat(40) + "…").hasSize(46).doesNotContain("\n");
+        assertThat(CommandFunctions.describeArguments(new java.util.LinkedHashMap<>())).isEmpty();
     }
 
     // --- the policy ---

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845717698101">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845717698101" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -211,6 +211,35 @@ check lists of both, of one of them or of none.</p>
 <p>A list with fewer names than asked for returns all of them. The model is told (see the <em>Name provider hint</em> of the Lore
 Generator and the Arc Outline) to pick a name from what it gets and to write it as it was returned, with the original next
 to it when that suits the setting; it may combine a forename with a surname of the same country.</p>
+<h2 id="commands">Commands</h2>
+<p>The same names are available as <a href="../../commands/">commands</a>, for the command line and for <a href="../../agents/">agents</a>,
+which can use them in their own prompts (for example for <code translate="no" v-pre>/generate-lore-entry</code> of the <a href="../lore-generator/">Lore Generator</a>):</p>
+<retype-table copy-text="| Command | What it does |
+|---|---|
+| `/list-real-name-lists` | Lists the lists as a JSON array. |
+| `/pick-real-names list count` | Picks up to 100 names of the list at random and returns them as a JSON array of pairs, the romanized name and the original one. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/list-real-name-lists</code></td>
+<td>Lists the lists as a JSON array.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/pick-real-names list count</code></td>
+<td>Picks up to 100 names of the list at random and returns them as a JSON array of pairs, the romanized name and the original one.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Both only read.</p>
 <h2 id="lists">Lists</h2>
 <p>There are about 180 lists, named <code translate="no" v-pre>&lt;Country&gt; - Surnames</code> and <code translate="no" v-pre>&lt;Country&gt; - Forenames</code>: surnames of 75 countries and forenames of
 106 (<code translate="no" v-pre>Japan - Surnames</code>, <code translate="no" v-pre>Czechia - Forenames</code>, <code translate="no" v-pre>Kosovo - Surnames</code>). Forenames of both genders are in one list. A list has
@@ -261,7 +290,7 @@ button.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2303322d).</p></div>
             </footer>
         </div>
     </div>

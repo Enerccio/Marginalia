@@ -120,6 +120,38 @@ the entry, and the generated text before the compaction goes into its **note**. 
 is one code block (the built-in prompt asks for that, to make the text easy to copy), the code block around it is
 removed. The lorebook is refreshed, and the dialog stays open; **Exit** closes it.
 
+## Commands
+
+The generator also works without the dialog, as three [commands](../commands/index.md) for the command line and for
+[agents](../agents.md). They do the same two steps as the dialog and, like the dialog, they store nothing: they return
+the text, and putting it into an entry (what **Copy to Lore Entry** does) is up to the caller, so all three only read. The
+lorebook and the entry are given by number, as in `/list-lorebooks` and `/list-lore-entries`; the model is your default
+model and protocol.
+
+| Command | What it does |
+|---|---|
+| `/list-lore-templates [template]` | Lists your saved generation prompts (name, length, start of the text) and the one used last. With a name it returns the whole text of that prompt. |
+| `/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit]]]]]]]` | Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below). |
+| `/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]` | Compacts the text with the same lore and returns the result, without the code block around it. |
+
+The entry the text is for decides which lore the model sees. Give its number as `entry` and the lore is the same as in
+the dialog: with `limit` `UP_TO_POSITION` (the default) the entries before it, the entry itself never. An entry that does
+not exist yet has no number: give the `order` it will get instead (the `order` of `/list-lore-entries`, lower comes first)
+and the model sees the entries before that order; without either, the text is written for a new entry after all the others.
+`scope` is `CURRENT_LOREBOOK` (the default) or `ALL_LORE`, `limit` is `UP_TO_POSITION` or `ALL_ENTRIES`, as in the dialog.
+
+A generation is only as good as its prompt, so the command always starts from one of your saved generation prompts (see
+[Prompts](#prompts)): the one named in `template`, or the one used last when none is named. The `prompt` of the caller
+follows it under the heading *Task for this entry* and is where the subject, the facts, the length and the sections go,
+which is what the template asks for. `template` `none` sends the prompt alone, for a caller that has written the whole
+prompt itself, for example after getting the text of a template from `/list-lore-templates` and editing it. A command
+that is called with a template and no prompt sends just the template.
+
+The model gets no name tools here. A caller that wants names asks for them first, with `/generate-names` of the
+[Name generator](name-generator.md) or `/pick-real-names` of the [Name provider](name-provider.md), and writes the ones it
+likes into the prompt. An agent can also take the text of a template from `/list-lore-templates`, change it and pass the
+result as the prompt.
+
 ## Storage
 
 The prompts and the compaction prompt are stored with your settings, so [database backups](../administration/database-backups.md)

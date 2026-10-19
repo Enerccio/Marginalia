@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845717698101">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845717698101" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845678350344" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845717698101" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -885,7 +885,7 @@ service per agent), which makes the limits of <code translate="no" v-pre>Workspa
 <p><code translate="no" v-pre>AgentFileToolsImpl</code> implements the functions: <code translate="no" v-pre>list_files</code>, <code translate="no" v-pre>read_file</code> (line ranges, cut at 20 000 characters at a line with the line to go on from),
 <code translate="no" v-pre>write_file</code>, <code translate="no" v-pre>append_file</code>, <code translate="no" v-pre>replace_in_file</code> (the old text must be in the file exactly once; a file with Windows line breaks is matched too),
 <code translate="no" v-pre>regex_replace_in_file</code>, <code translate="no" v-pre>grep_files</code> (at most 100 lines, 1 000 files), <code translate="no" v-pre>move_file</code> (a free target name, the folders above it are
-created; not between mounts) and <code translate="no" v-pre>delete_file</code>. The regular expressions use <code translate="no" v-pre>TextSearch</code> and read the text through
+created; not between mounts), <code translate="no" v-pre>copy_file</code> (a file or a folder to a free name; all or nothing, checked against the file, size, depth and path-length limits before a byte is copied, through a temporary file or folder moved into place; the same mount only), <code translate="no" v-pre>merge_files</code> (up to 100 files, read and joined in Java, one write; a <code translate="no" v-pre>*</code> / <code translate="no" v-pre>?</code> in the last name of a path stands for the files of that folder by name, the target left out) and <code translate="no" v-pre>delete_file</code>. <code translate="no" v-pre>list_command_results</code> and <code translate="no" v-pre>save_command_result</code> work on the <code translate="no" v-pre>CommandResults</code> of the run: <code translate="no" v-pre>CommandFunctions</code> adds the whole result of every call that returned (the call it made it, its arguments shortened by <code translate="no" v-pre>describeArguments</code>, the text before <code translate="no" v-pre>bound</code> cuts it) and the file tools list them, newest first, or write one to a file by its number (the last when none is given, <code translate="no" v-pre>append</code> adds to the file; the write is the same atomic one as <code translate="no" v-pre>write_file</code>, so a result over the file limit is refused). Only the last 10 are kept (<code translate="no" v-pre>CommandResults.KEEP</code>), the numbers count on from 1 in the run, and the holder lives as long as the tools of one <code translate="no" v-pre>AgentRunnerImpl</code> run, so a resumed run starts empty; the runner passes it to <code translate="no" v-pre>CommandFunctions.forAgent</code> and to <code translate="no" v-pre>getFileTools(files, results)</code>. <code translate="no" v-pre>list_files</code> and <code translate="no" v-pre>grep_files</code> take a <code translate="no" v-pre>glob</code> (<code translate="no" v-pre>VirtualGlob</code>: <code translate="no" v-pre>*</code>, <code translate="no" v-pre>**</code>, <code translate="no" v-pre>?</code>, <code translate="no" v-pre>[a-c]</code>, <code translate="no" v-pre>{md,txt}</code>, case-insensitive, matched on virtual paths only; without a <code translate="no" v-pre>/</code> against the name at any depth, with one against the path below the folder). The regular expressions use <code translate="no" v-pre>TextSearch</code> and read the text through
 a <code translate="no" v-pre>DeadlineCharSequence</code>, which throws after three seconds, because a thread cannot be stopped from outside and a pattern with a back reference backtracks for
 hours. Which tools an agent gets, and the adapter that makes tools from the commands, are not here yet.</p>
 <h3 id="permissions">Permissions</h3>
@@ -1151,7 +1151,7 @@ call. See
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2303322d).</p></div>
             </footer>
         </div>
     </div>

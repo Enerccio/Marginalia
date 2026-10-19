@@ -389,9 +389,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
         private FunctionSet tools() throws Exception {
             VirtualFileSystem files = fileSystemService.open(run);
+            // what the commands return, whole, for the tool that saves it to a file
+            CommandResults commandResults = new CommandResults();
             return CommandFunctions.forAgent(commandService, agent, l -> localization.getValue(l), this::approve,
-                            path -> files.readText(VirtualPath.parse(path)))
-                    .and(fileSystemService.getFileTools(files))
+                            path -> files.readText(VirtualPath.parse(path)), commandResults)
+                    .and(fileSystemService.getFileTools(files, commandResults))
                     .and(inferenceServices.getFunctionRegistry().bind(RunTools.class, runTools));
         }
 

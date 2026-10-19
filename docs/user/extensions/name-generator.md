@@ -23,6 +23,18 @@ long names, one of short forenames short ones). The model can ask for other leng
 category may return fewer names than asked for, because the chain runs out of different ones. The model is free to
 pick one of the names, change it or combine two of them; see the *Name generator hint* of the Lore Generator.
 
+## Commands
+
+The same names are available as [commands](../commands/index.md), for the command line and for [agents](../agents.md),
+which can use them in their own prompts (for example for `/generate-lore-entry` of the [Lore Generator](lore-generator.md)):
+
+| Command | What it does |
+|---|---|
+| `/list-name-categories` | Lists the categories as a JSON array. |
+| `/generate-names category count [min_length [max_length]]` | Makes up to 100 names of the category and returns them as a JSON array. Different names each time. |
+
+Both only read.
+
 ## Categories
 
 There are about 1270 categories. Their names say what they are:

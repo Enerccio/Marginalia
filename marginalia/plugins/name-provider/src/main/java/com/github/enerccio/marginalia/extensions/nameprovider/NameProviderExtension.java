@@ -1,9 +1,6 @@
 package com.github.enerccio.marginalia.extensions.nameprovider;
 
-import com.github.enerccio.marginalia.domain.service.ExtensionService;
-import com.github.enerccio.marginalia.domain.service.FunctionRegistry;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import org.osgi.framework.Bundle;
@@ -15,7 +12,7 @@ import java.util.List;
 
 /**
  * Gives the model functions to get real names (lists of forenames and surnames of countries, then names picked at
- * random from one of them). The functions are compiled on load; other extensions offer them to the model.
+ * random from one of them). The functions are compiled on load and the commands registered; other extensions offer them to the model.
  */
 @Configurable
 public class NameProviderExtension implements MarginaliaExtension {
@@ -28,6 +25,12 @@ public class NameProviderExtension implements MarginaliaExtension {
     @Autowired
     private InferenceServices inferenceServices;
 
+    @Autowired
+    private CommandService commandService;
+
+    /** Kept to unregister it, the service takes the object. */
+    private NameProviderCommands commands;
+
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
@@ -36,10 +39,16 @@ public class NameProviderExtension implements MarginaliaExtension {
         // fails the load when the interface is not a valid set of functions
         int count = registry.definitionsOf(NameProviderFunctions.class).size();
         log.info("Name provider loaded with {} functions and {} categories", count, lists.categories().size());
+        commands = new NameProviderCommands(lists);
+        commandService.registerCommands(commands);
     }
 
     @Override
     public void onExtensionUnload(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        if (commands != null) {
+            commandService.unregisterCommands(commands);
+            commands = null;
+        }
     }
 
     /** The titles of the categories the functions can pick from. */

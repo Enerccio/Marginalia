@@ -55,6 +55,16 @@ public interface VirtualMount {
     void move(VirtualPath from, VirtualPath to);
 
     /**
+     * Copies a file or a folder with everything in it to a name that is free; the folders above the target are
+     * created. All or nothing: a copy that does not fit the limits is not made.
+     *
+     * @return what was copied
+     */
+    default WorkspaceUsage copy(VirtualPath from, VirtualPath to) {
+        throw new VirtualFileException(from + " can't be copied");
+    }
+
+    /**
      * The reverse of the mapping: the virtual path of a real one, null when the mount does not hold it.
      */
     VirtualPath toVirtual(Path real);

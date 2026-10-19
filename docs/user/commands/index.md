@@ -1,9 +1,9 @@
 # Commands
 
-Commands are small actions you run by typing them, instead of clicking through menus. Marginalia itself comes with only
-a couple of example commands; the real use of the command line is that [extensions](../extensions/index.md) can add
-commands of their own, for example to look something up, change the book or start a task. What a command does is
-described by the command itself – you can read it while you type.
+Commands are small actions you run by typing them, instead of clicking through menus: look something up in the story or
+the lorebooks, search and replace, take a backup. [Extensions](../extensions/index.md) add commands of their own, for
+example to generate a lore entry or to make up names. The same commands are what an [agent](../agents.md) works with, so a
+command does one clear thing and says what it does: you can read it while you type.
 
 The **command line** is the field next to the menu below the story, in the [story editor](../books/story-editor.md).
 
@@ -97,9 +97,9 @@ the command, in the list and in the help:
 - **Non-destructive** (green) - the command only reads data or adds new data, like `/take-backup`, which adds a backup and
   changes nothing else.
 
-The label is information for you; it does not stop the command. In the future an assistant that runs commands on its
-own will use it to ask you before it runs a destructive one. A command that asks for confirmation by itself is described
-below.
+The label is information for you; it does not stop the command when you run it. An [agent](../agents.md) goes by it: it is
+not given a destructive command, or has to ask you first, or runs it, as set for that agent. A command that asks for
+confirmation by itself is described below.
 
 ## Commands that ask first
 
@@ -113,7 +113,7 @@ changes the book; **No** leaves everything as it was. The question stays until y
 
 | Command                              | What it does                                                                       |
 |--------------------------------------|------------------------------------------------------------------------------------|
-| `/hello-world`                       | Returns *Hello world*.                                                             |
+| `/hello-world`                       | Returns *Hello world*. (This and the two below are examples to try the command line.) |
 | `/hello-world <message>`             | Returns the message it was given.                                                  |
 | `/hello-world-async [<message>]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
 | `/search-replace-parts <search> <replace> [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
@@ -153,8 +153,20 @@ book: the root lorebook and its subbooks. A lorebook is its **number** from `/li
 **number in the lorebook**, in the order of the lorebook (the first entry is `1`); the numbers change when entries or subbooks are
 added or removed. Without a lorebook number the root lorebook is used.
 
-Commands from extensions are listed in the documentation of the extension, and you see them in the list as long as the
-extension is loaded.
+## Commands that come with extensions
+
+You see these in the list as long as the extension is loaded; each is described in the documentation of its extension.
+
+| Command | Extension | What it does |
+|---|---|---|
+| `/list-lore-templates [<template>]` | [Lore Generator](../extensions/lore-generator.md) | Your saved generation prompts, or the text of one. |
+| `/generate-lore-entry [<prompt> ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing. |
+| `/compact-lore-entry <text> [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
+| `/list-name-categories`, `/generate-names <category> <count> [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
+| `/list-real-name-lists`, `/pick-real-names <list> <count>` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |
+
+These commands only read: the generating ones return text and leave it to you, or to the agent that called them, to put it
+into an entry.
 
 ## Limits
 

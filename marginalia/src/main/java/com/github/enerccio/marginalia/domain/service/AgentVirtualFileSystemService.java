@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.service.agent.CommandResults;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.WorkspaceLimits;
 import com.github.enerccio.marginalia.domain.service.agent.WorkspaceUsage;
@@ -43,7 +44,17 @@ public interface AgentVirtualFileSystemService {
      * The functions of the model for the files ({@link com.github.enerccio.marginalia.domain.service.agent.AgentFileTools}),
      * to put with the other tools of the run.
      */
-    FunctionSet getFileTools(VirtualFileSystem fileSystem);
+    default FunctionSet getFileTools(VirtualFileSystem fileSystem) {
+        return getFileTools(fileSystem, null);
+    }
+
+    /**
+     * As {@link #getFileTools(VirtualFileSystem)}, with the results of the commands of the run for the tool that saves
+     * the last one.
+     *
+     * @param commandResults null when there is none, the tool then says there is nothing to save
+     */
+    FunctionSet getFileTools(VirtualFileSystem fileSystem, CommandResults commandResults);
 
     /**
      * How much the workspace of the agent holds.

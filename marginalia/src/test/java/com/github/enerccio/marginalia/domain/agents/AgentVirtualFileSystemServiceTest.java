@@ -147,7 +147,8 @@ class AgentVirtualFileSystemServiceTest extends AgentTestBase {
         FunctionSet tools = fileSystemService.getFileTools(fileSystemService.open(run));
 
         assertThat(tools.getDefinitions().stream().map(FunctionDefinition::getName)).containsExactlyInAnyOrder("list_files", "read_file",
-                "write_file", "append_file", "replace_in_file", "regex_replace_in_file", "grep_files", "move_file", "delete_file");
+                "write_file", "append_file", "replace_in_file", "regex_replace_in_file", "grep_files", "move_file", "copy_file", "merge_files",
+                "delete_file", "list_command_results", "save_command_result");
         assertThat(call(tools, "write_file", "{\"path\":\"/notes/plot.md\",\"content\":\"The hero left.\\n\"}"))
                 .isEqualTo("Wrote /notes/plot.md (15 bytes)");
         call(tools, "replace_in_file", "{\"path\":\"/notes/plot.md\",\"old_text\":\"left\",\"new_text\":\"stayed\"}");
@@ -156,6 +157,14 @@ class AgentVirtualFileSystemServiceTest extends AgentTestBase {
         assertThat(call(tools, "read_file", "{\"path\":\"/notes/plot.md\",\"start_line\":1,\"end_line\":1}")).startsWith("The hero stayed.");
         assertThat(call(tools, "grep_files", "{\"pattern\":\"hero\"}")).isEqualTo("/notes/plot.md:1: The hero stayed.");
         assertThat(call(tools, "list_files", "{\"path\":\"/notes\"}")).isEqualTo("/notes/plot.md  (17 bytes)");
+        assertThat(call(tools, "list_files", "{\"glob\":\"*.md\"}")).isEqualTo("/notes/plot.md  (17 bytes)");
+        assertThat(call(tools, "copy_file", "{\"from\":\"/notes\",\"to\":\"/copy\"}")).startsWith("Copied /notes to /copy");
+        assertThat(call(tools, "merge_files", "{\"paths\":[\"/notes/plot.md\",\"/copy/*.md\"],\"target\":\"/all.md\",\"delimiter\":\"|\"}"))
+                .startsWith("Joined 2 files into /all.md");
+        assertThat(call(tools, "read_file", "{\"path\":\"/all.md\"}")).isEqualTo("The hero stayed.\n|The hero stayed.");
+        assertThat(call(tools, "list_command_results", "{}")).isEqualTo("No command result is kept yet");
+        assertThatThrownBy(() -> call(tools, "save_command_result", "{\"path\":\"/x.md\"}"))
+                .hasMessageContaining("There is no result to save yet: call a command first");
         assertThat(call(tools, "move_file", "{\"from\":\"/notes/plot.md\",\"to\":\"/old/plot.md\"}")).isEqualTo("Moved /notes/plot.md to /old/plot.md");
         assertThat(call(tools, "delete_file", "{\"path\":\"/notes\",\"recursive\":true}")).isEqualTo("Deleted /notes");
         assertThat(workspaceOf(agent).resolve("old/plot.md")).exists();

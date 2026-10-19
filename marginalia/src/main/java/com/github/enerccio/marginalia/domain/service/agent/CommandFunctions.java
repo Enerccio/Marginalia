@@ -131,7 +131,18 @@ public final class CommandFunctions {
      */
     public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
                                        Function<String, String> files) {
-        return create(commands, agent.getAllowedCommands(), agent.getDestructiveMode(), lookup, approval, files);
+        return forAgent(commands, agent, lookup, approval, files, null);
+    }
+
+    /**
+     * As {@link #forAgent(CommandService, Agent, Function, Approval, Function)}, and every result a command returns is
+     * kept whole in {@code commandResults} (the model gets it cut when it is long).
+     *
+     * @param commandResults where the result of each call is put, null to keep none
+     */
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
+                                       Function<String, String> files, CommandResults commandResults) {
+        return create(commands, agent.getAllowedCommands(), agent.getDestructiveMode(), lookup, approval, files, commandResults);
     }
 
     /**
@@ -151,6 +162,16 @@ public final class CommandFunctions {
      */
     public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
                                      Function<L, String> lookup, Approval approval, Function<String, String> files) {
+        return create(commands, allowed, mode, lookup, approval, files, null);
+    }
+
+    /**
+     * @param commandResults where the result of each call is put, null to keep none; see
+     *                   {@link #forAgent(CommandService, Agent, Function, Approval, Function, CommandResults)}
+     */
+    public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
+                                     Function<L, String> lookup, Approval approval, Function<String, String> files,
+                                     CommandResults commandResults) {
         Set<String> names = new HashSet<>(allowed);
         Map<String, List<CommandDefinition>> byName = new TreeMap<>();
         for (CommandDefinition definition : commands.getCommands()) {
@@ -169,7 +190,7 @@ public final class CommandFunctions {
             String functionName = functionName(entry.getKey());
             FunctionDefinition definition = FunctionDefinition.dynamic(functionName, describe(forms, lookup), schema(forms, lookup, files != null),
                     (continuation, arguments) -> call(commands, entry.getKey(), destructive ? mode : DestructiveCommandMode.AUTO,
-                            approval, files, continuation, arguments));
+                            approval, files, commandResults, continuation, arguments));
             if (functions.putIfAbsent(functionName, definition) != null) {
                 // two names with the same hash, which is not going to happen; the first (by name) wins
                 log.warn("Command {} has the function name {} of another command, it is not offered", entry.getKey(), functionName);
@@ -335,7 +356,8 @@ public final class CommandFunctions {
     // --- the call ---
 
     private static void call(CommandService commands, String commandName, DestructiveCommandMode mode, Approval approval,
-                             Function<String, String> files, FunctionContinuation<Object> continuation, Map<String, Object> passed) {
+                             Function<String, String> files, CommandResults commandResults, FunctionContinuation<Object> continuation,
+                             Map<String, Object> passed) {
         try {
             List<CommandDefinition> forms = commands.getCommands(commandName);
             if (forms.isEmpty()) {
@@ -366,12 +388,12 @@ public final class CommandFunctions {
                     } else if (!Boolean.TRUE.equals(approved)) {
                         continuation.fail(new FunctionCallException(Kind.FAILED, "The user did not approve the command " + commandName));
                     } else {
-                        run(commands, commandName, complete, continuation);
+                        run(commands, commandName, complete, commandResults, continuation);
                     }
                 });
                 return;
             }
-            run(commands, commandName, complete, continuation);
+            run(commands, commandName, complete, commandResults, continuation);
         } catch (RuntimeException e) {
             continuation.fail(e);
         }
@@ -449,7 +471,7 @@ public final class CommandFunctions {
         return complete;
     }
 
-    private static void run(CommandService commands, String commandName, Map<String, Object> arguments,
+    private static void run(CommandService commands, String commandName, Map<String, Object> arguments, CommandResults commandResults,
                             FunctionContinuation<Object> continuation) {
         CommandRun run = commands.execute(commandName, arguments);
         run.whenComplete((value, error) -> {
@@ -458,11 +480,32 @@ public final class CommandFunctions {
                 return;
             }
             try {
-                continuation.complete(bound(FunctionDefinition.render(value)));
+                String text = FunctionDefinition.render(value);
+                if (commandResults != null) {
+                    commandResults.add(functionName(commandName), describeArguments(arguments), text);
+                }
+                continuation.complete(bound(text));
             } catch (RuntimeException e) {
                 continuation.fail(e);
             }
         });
+    }
+
+    /** The arguments of a call as one short line for the list of the results: {@code name=value, ...}, cut. */
+    public static String describeArguments(Map<String, Object> arguments) {
+        StringBuilder text = new StringBuilder();
+        for (Map.Entry<String, Object> argument : arguments.entrySet()) {
+            if (argument.getValue() == null) {
+                continue;
+            }
+            String value = String.valueOf(argument.getValue()).replaceAll("\\s+", " ").strip();
+            if (value.length() > 40) {
+                value = value.substring(0, 40) + "…";
+            }
+            text.append(text.isEmpty() ? "" : ", ").append(argument.getKey()).append('=').append(value);
+        }
+        return text.length() <= CommandResults.MAX_ARGUMENTS ? text.toString()
+                : text.substring(0, CommandResults.MAX_ARGUMENTS) + "…";
     }
 
     /** What went wrong, from the cause of the command for the model: no class names, no "Command x failed". */

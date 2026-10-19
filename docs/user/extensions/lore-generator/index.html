@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845678350344">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845717698101">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845678350344" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845717698101" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845678350344" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845717698101" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -329,6 +329,57 @@ message and nothing is generated.</p>
 the entry, and the generated text before the compaction goes into its <strong>note</strong>. Both are replaced. If the compaction
 is one code block (the built-in prompt asks for that, to make the text easy to copy), the code block around it is
 removed. The lorebook is refreshed, and the dialog stays open; <strong>Exit</strong> closes it.</p>
+<h2 id="commands">Commands</h2>
+<p>The generator also works without the dialog, as three <a href="../../commands/">commands</a> for the command line and for
+<a href="../../agents/">agents</a>. They do the same two steps as the dialog and, like the dialog, they store nothing: they return
+the text, and putting it into an entry (what <strong>Copy to Lore Entry</strong> does) is up to the caller, so all three only read. The
+lorebook and the entry are given by number, as in <code translate="no" v-pre>/list-lorebooks</code> and <code translate="no" v-pre>/list-lore-entries</code>; the model is your default
+model and protocol.</p>
+<retype-table copy-text="| Command | What it does |
+|---|---|
+| `/list-lore-templates [template]` | Lists your saved generation prompts (name, length, start of the text) and the one used last. With a name it returns the whole text of that prompt. |
+| `/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit]]]]]]]` | Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below). |
+| `/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]` | Compacts the text with the same lore and returns the result, without the code block around it. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/list-lore-templates [template]</code></td>
+<td>Lists your saved generation prompts (name, length, start of the text) and the one used last. With a name it returns the whole text of that prompt.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/generate-lore-entry [prompt [template [lorebook [entry [order [scope [limit]]]]]]]</code></td>
+<td>Generates a text with the lore of the lorebook and returns it. The text sent is a template followed by the prompt of the caller (see below).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/compact-lore-entry text [lorebook [entry [order [scope [limit]]]]]</code></td>
+<td>Compacts the text with the same lore and returns the result, without the code block around it.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The entry the text is for decides which lore the model sees. Give its number as <code translate="no" v-pre>entry</code> and the lore is the same as in
+the dialog: with <code translate="no" v-pre>limit</code> <code translate="no" v-pre>UP_TO_POSITION</code> (the default) the entries before it, the entry itself never. An entry that does
+not exist yet has no number: give the <code translate="no" v-pre>order</code> it will get instead (the <code translate="no" v-pre>order</code> of <code translate="no" v-pre>/list-lore-entries</code>, lower comes first)
+and the model sees the entries before that order; without either, the text is written for a new entry after all the others.
+<code translate="no" v-pre>scope</code> is <code translate="no" v-pre>CURRENT_LOREBOOK</code> (the default) or <code translate="no" v-pre>ALL_LORE</code>, <code translate="no" v-pre>limit</code> is <code translate="no" v-pre>UP_TO_POSITION</code> or <code translate="no" v-pre>ALL_ENTRIES</code>, as in the dialog.</p>
+<p>A generation is only as good as its prompt, so the command always starts from one of your saved generation prompts (see
+<doc-anchor-trigger to="#prompts">Prompts</doc-anchor-trigger>): the one named in <code translate="no" v-pre>template</code>, or the one used last when none is named. The <code translate="no" v-pre>prompt</code> of the caller
+follows it under the heading <em>Task for this entry</em> and is where the subject, the facts, the length and the sections go,
+which is what the template asks for. <code translate="no" v-pre>template</code> <code translate="no" v-pre>none</code> sends the prompt alone, for a caller that has written the whole
+prompt itself, for example after getting the text of a template from <code translate="no" v-pre>/list-lore-templates</code> and editing it. A command
+that is called with a template and no prompt sends just the template.</p>
+<p>The model gets no name tools here. A caller that wants names asks for them first, with <code translate="no" v-pre>/generate-names</code> of the
+<a href="../name-generator/">Name generator</a> or <code translate="no" v-pre>/pick-real-names</code> of the <a href="../name-provider/">Name provider</a>, and writes the ones it
+likes into the prompt. An agent can also take the text of a template from <code translate="no" v-pre>/list-lore-templates</code>, change it and pass the
+result as the prompt.</p>
 <h2 id="storage">Storage</h2>
 <p>The prompts and the compaction prompt are stored with your settings, so <a href="../../administration/database-backups/">database backups</a>
 include them. Nothing is stored with the lorebook; the generated text exists in the dialog only until you copy it.</p>
@@ -369,7 +420,7 @@ include them. Nothing is stored with the lorebook; the generated text exists in 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (15c47c28).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2303322d).</p></div>
             </footer>
         </div>
     </div>

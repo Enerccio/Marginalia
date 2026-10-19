@@ -15,6 +15,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -46,7 +47,10 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     /**
      * How much of a text file is shown, the rest is for the download.
      */
-    static final int VIEW_LIMIT = 100_000;
+    static final int VIEW_LIMIT = 2_000;
+
+    private static final String GRID_HEIGHT = "12rem";
+    private static final String VIEWER_HEIGHT = "14rem";
 
     @Autowired
     private Localization loc;
@@ -80,6 +84,8 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     public void create() {
         setSizeFull();
         setPadding(false);
+        setSpacing(false);
+        addClassNames(CssStyles.WORKSPACE_BROWSER, CssStyles.MIN_HEIGHT_0);
 
         upButton = new Button(loc.getValue(L.LABEL_UP), Solid.ARROW_UP.create(), event -> {
             folder = folder.isRoot() ? folder : folder.getParent();
@@ -90,6 +96,9 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         clearButton = new Button(loc.getValue(L.LABEL_CLEAR), Solid.TRASH.create(), event ->
                 ConfirmDialog.open(loc.getValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE), this::clear, () -> {}));
         clearButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        for (Button button : List.of(upButton, refreshButton, clearButton)) {
+            button.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        }
         pathLabel = new Span();
         pathLabel.addClassNames(CssStyles.TEXT_MONOSPACE, CssStyles.WRAP_ANYWHERE);
         HorizontalLayout toolbar = new HorizontalLayout(upButton, refreshButton, pathLabel, clearButton);
@@ -99,7 +108,10 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
 
         grid = new Grid<>();
         grid.setWidthFull();
-        grid.setHeight("240px");
+        grid.addThemeVariants(GridVariant.LUMO_COMPACT);
+        // the sizes are fixed, a long file must not push the list out (the tab scrolls when the dialog is small)
+        grid.setHeight(GRID_HEIGHT);
+        grid.addClassName(CssStyles.FLEX_SHRINK_0);
         grid.addComponentColumn(this::nameCell).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(3);
         grid.addColumn(entry -> entry.directory() ? "" : FileUtils.byteCountToDisplaySize(entry.size()))
                 .setHeader(loc.getValue(L.LABEL_SIZE)).setFlexGrow(1);
@@ -111,13 +123,13 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         viewer = new TextArea();
         viewer.setReadOnly(true);
         viewer.setWidthFull();
-        viewer.setMinHeight("200px");
+        viewer.setHeight(VIEWER_HEIGHT);
+        viewer.addClassName(CssStyles.FLEX_SHRINK_0);
         viewer.addClassName(CssStyles.TEXT_MONOSPACE);
         usageLabel = new Span();
         usageLabel.addClassNames(CssStyles.HINT_TEXT);
 
         add(toolbar, grid, noteLabel, viewer, usageLabel);
-        setFlexGrow(1, viewer);
         refresh();
     }
 
@@ -182,7 +194,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             }
             boolean cut = text.length() > VIEW_LIMIT;
             viewer.setValue(cut ? text.substring(0, VIEW_LIMIT) : text);
-            noteLabel.setText(cut ? loc.getValue(L.MSG_AGENT_FILE_CUT) : "");
+            noteLabel.setText(cut ? String.format(loc.getValue(L.MSG_AGENT_FILE_CUT), VIEW_LIMIT, text.length()) : "");
         } catch (VirtualFileException e) {
             Notification.warning(String.format(loc.getValue(L.ERROR_AGENT_ACTION_FAILED), e.getMessage()));
             refresh();

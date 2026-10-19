@@ -13,6 +13,10 @@ makes up new names that sound like a category, this one hands out names that exi
 
 The names of the functions differ from the ones of the Name generator, so a request can offer both.
 
+## Commands
+
+The same names for the command bar and for agents (`NameProviderCommands`, both `NON_DESTRUCTIVE`): `/list-real-name-lists` (a JSON array) and `/pick-real-names list count` (a JSON array of `{romanized, original}`, same limit as the function).
+
 ## Categories
 
 One category per country and kind, `<Country> - Surnames` or `<Country> - Forenames` (the country code of the data is

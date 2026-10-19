@@ -43,6 +43,9 @@
     <loc>https://enerccio.github.io/Marginalia/user/commands/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/agents/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/templates/</loc>
   </url>
   <url>
@@ -53,9 +56,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/backups/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/agents/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/</loc>
@@ -142,13 +142,13 @@
     <loc>https://enerccio.github.io/Marginalia/user/lorebooks/import-export/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/extensions/lore-generator/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/developer/commands/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/arc-outline/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/extensions/lore-generator/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/database-backups/</loc>
@@ -190,22 +190,22 @@
     <loc>https://enerccio.github.io/Marginalia/user/extensions/google-genai/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/extensions/name-generator/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/reviewer/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/gemma-4-tools-fix/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/extensions/name-generator/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/extensions/name-provider/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/cleanup/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/extensions/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/extensions/name-provider/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/users/</loc>
