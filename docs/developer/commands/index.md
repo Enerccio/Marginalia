@@ -213,16 +213,22 @@ The package `domain.service.impl.commands.manuscript.read` holds one class per c
 `ManuscriptReadSupport` (the services, the `Book` loaded again from the current manuscript, the JSON helpers) and `StoryTree` (the
 parts as a tree, with the numbers of the branches). All are `NON_DESTRUCTIVE`, synchronous and answer JSON text.
 
-- **No ids.** A part is addressed by its *position* (depth on a branch, the first part is 1) and a branch by its *number*: the
-  ends of the branches (parts without children) ordered by creation, the oldest is 1; `list-branches` gives the numbers and
-  `list-swipes`, `search-parts` and `find-occurrences` say the branch that shows a part that is not on the active branch. No
-  command gives out or accepts a uuid. Without a branch the active branch (`getBranchFromLeaf`, the root first) is used; the other
+- **Handles, positions and numbers.** Every row of an answer has a `handle`, the uuid of the part (an agent sees it as `h:m17`: the
+  border of the agent turns the uuids of its copy into handles and back, see `CommandCage`; a command knows nothing of it). A part
+  parameter is a `String` that `Book.locate(part, branch)` reads as a handle (`CommandScope.resolveMessage`, so only a part of the
+  scope's book is found) or as a *position* (depth on a branch, the first part is 1); a branch is the handle of one of its parts
+  (the branch through it to its end, `StoryTree.leafOf`) or its *number*: the ends of the branches (parts without children)
+  ordered by creation, the oldest is 1. Positions and numbers move when parts are added or deleted, so the commands that write
+  accept handles only. `list-branches` gives the numbers and `list-swipes`, `search-parts` and `find-occurrences` say the branch that
+  shows a part that is not on the active branch. Without a branch the active branch (`getBranchFromLeaf`, the root first) is used; the other
   branches need the whole tree (`ChatMessageService.getAllMessages`, one query), so a command loads it only when asked for one.
+  A form with a single `String` that could be a text or a part (`count-tokens`, `preview-lore-activation`) takes the handle in the text:
+  the dispatcher can't tell two one-`String` forms apart.
 - **Time limited patterns.** The regular expressions of `find-occurrences` (and `search-lore`) run over `utils.TimeSafeText`: the text is wrapped in a
   `CharSequence` whose `charAt` checks the clock and throws `RegexTimeoutException` after 30 seconds for the whole command (the system property
   `marginalia.regexTimeoutMillis` changes it), which the command turns into an error with `ERROR_REGEX_TIMEOUT`. A pattern the JDK can't optimise, such as
   one with a back reference (`(a+)+\1b`), can run for hours otherwise; `TextSearch` uses the same wrapper for each text.
-- **Bounded answers.** Lists take `offset` and `limit` (50, at most 200); texts come in slices (`offset`, `length`, 4000 characters,
+- **Bounded answers.** Lists take `offset` and `limit` (50, at most 200); texts come in slices (`offset`, `length`, 6000 characters,
   at most 20000) with `totalLength` and `truncated`.
 - **Forms.** The options are the usual ladder of overloads (every prefix of the parameter list is a form), so a command can be
   called by name only with a prefix of its parameters.
@@ -254,3 +260,38 @@ without it. The form with `text` and the form with `part` both have one argument
 to `executePositional`, or by name as an agent does.
 
 Tests: `LorebookReadCommandsTest`, the same way, with a lorebook tree, a lorebook the book does not use and a deleted entry.
+
+## Commands that change the book
+
+The packages `domain.service.impl.commands.manuscript.write` and `lorebook.write` hold the commands that change the book, on
+`ManuscriptWriteSupport` (which extends `ManuscriptReadSupport`) and `LorebookWriteSupport` (which extends `LorebookReadSupport`):
+`PartEditCommands` (`edit-part`, `replace-part-text`, `append-to-part`, `set-part-fields`), `PartStructureCommands` (`create-part`,
+`branch-part`, `delete-part`, `switch-branch`), `SummaryWriteCommands` (`set-summary`, `remove-summary`, `revalidate-summaries`),
+`BookSettingsCommands` (`set-book-info`, `set-book-prompts`, `set-book-tags`), `StoryGenerationCommands` (`next`, `swipe`,
+`regenerate`), `SummaryGenerationCommands` (`regenerate-summary`, `create-meta-summary`), `LoreEntryWriteCommands` and
+`LorebookWriteCommands`. They call the services the screens use (`ChatMessageService.updateResponse` / `createPart` /
+`branchAndSwitch` / `swipeAndSwitch` / `deleteNodeAndMigrateChildren`, `SummaryService.updateSummaryText` / `removeSummary` /
+`revalidate`, `ManuscriptService.updateSettings`, `LorebookEntryService.create` / `update` / `move` / `deleteEntry`,
+`LorebookService` for the subbooks) and add no rule of their own, so what the user does in a window and what a command does is one path.
+
+- **Handles only.** A part, lorebook or entry parameter must be a handle (`ManuscriptWriteSupport.part`, `LorebookWriteSupport.book` /
+  `entry`); a position or number is refused with `ERROR_COMMAND_HANDLE_REQUIRED`.
+- **Severity.** Adding and changing is `NON_DESTRUCTIVE`; what removes text or data (`replace-part-text`, `delete-*`, `remove-summary`,
+  `regenerate`, `set-book-prompts`) is `DESTRUCTIVE` and calls `context.confirm(question)`: the user at the command bar gets a
+  dialog, an agent is not asked again (its destructive mode decided before the call). A refusal answers *Nothing was changed.*
+- **Outdated summaries.** An edit can invalidate the hash of a summary block. `reportOutdated` puts the summaries an edit made
+  outdated (the ones outdated now and not before) and a hint into the answer; `revalidate-summaries` is the author's way to
+  say they are still right.
+- **The window.** After a change `changed()` reloads the book window of the user (`CommandUtils.reloadManuscriptWindow`, nothing for an
+  agent, which has none).
+- **Generation.** `next`, `swipe` and `regenerate` are `async` and call `StoryGenerationService.generateNextTurn` with a listener that
+  completes a future; each moves `activeLeaf`, so one generation of a book runs at a time (a lock per manuscript, the others wait). Swipe
+  and regenerate need the part to be the end of its branch (they make it the active leaf first, as the pipeline expects), and take
+  the turn input from the part unless given. `profile` names a model profile of the agent of the run (`AgentService.resolveProfile`,
+  `GenerationOptions.withModel`); for the user it is refused. The generation question about outdated summaries is passed on
+  with `context.confirm` and the answer yes is reported as a warning. Stopping the command cancels the generation (`CancellationToken`).
+- `search-replace-parts` and `search-replace-lore-entries` have `maxHits` (refuse above it) and `dryRun` (count and show five matches,
+  change nothing).
+
+Tests: `ManuscriptWriteCommandsTest`, `LorebookWriteCommandsTest` (a scope that answers the questions), `GenerationCommandsTest`
+(the real generation against the mock server), `AgentHandlesTest` (the commands through the cage of a run, on the working copy).

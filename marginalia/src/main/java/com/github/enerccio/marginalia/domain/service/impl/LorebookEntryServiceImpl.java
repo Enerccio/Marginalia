@@ -88,6 +88,19 @@ public class LorebookEntryServiceImpl extends ExtendableServiceImpl<LorebookEntr
     }
 
     @Override
+    @CommonTx
+    public LorebookEntry move(LorebookEntry entry, Lorebook target) throws Exception {
+        LorebookEntry stored = entry == null || entry.getUuid() == null ? null : (LorebookEntry) Hibernate.unproxy(findForUser(entry.getUuid()));
+        if (stored == null || stored.isDeleted()) {
+            throw new IllegalArgumentException("The entry does not exist");
+        }
+        Lorebook book = ownLorebook(target);
+        agentRunService.checkNotLocked(stored.getLorebook());
+        stored.setLorebook(book);
+        return save(stored);
+    }
+
+    @Override
     @CommonTxReadOnly
     public List<EntryProblem> validate(LorebookEntry entry) throws Exception {
         List<EntryProblem> problems = new ArrayList<>();

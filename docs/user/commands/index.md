@@ -116,11 +116,11 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/hello-world`                       | Returns *Hello world*. (This and the two below are examples to try the command line.) |
 | `/hello-world <message>`             | Returns the message it was given.                                                  |
 | `/hello-world-async [<message>]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
-| `/search-replace-parts <search> <replace> [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
-| `/search-replace-lore-entries <search> <replace> [regex] [caseSensitive]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
+| `/search-replace-parts <search> <replace> [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries] [maxHits] [dryRun]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. `maxHits` refuses a replace that finds more matches than that, and with `dryRun` `true` nothing is changed: the answer counts the matches and shows a few, which is how an agent looks before it replaces. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
+| `/search-replace-lore-entries <search> <replace> [regex] [caseSensitive] [maxHits] [dryRun]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
 | `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
 | `/get-book-info` | The name, settings, model, totals (parts, words, tokens) and tags of the open book. |
-| `/list-parts [branch] [offset] [limit]` | The parts of a branch: position, size, swipes, summary state and a short preview. |
+| `/list-parts [branch] [offset] [limit]` | The parts of a branch: handle, position, size, swipes, summary state and a short preview. |
 | `/get-part <part> [branch] [offset] [length] [field]` | The text of a part in slices (or its `instructions`, `scene`, `pov`, `present` or `reasoning`) and what it was made from. |
 | `/list-swipes <part> [branch]` | The alternatives (swipes) of a part, with the branch number that shows each. |
 | `/list-branches [offset] [limit]` | The branches of the book, numbered, with where each parts from the others. |
@@ -129,7 +129,7 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/search-parts <query> [limit]` | Full-text search in the parts of all branches, with snippets. |
 | `/find-occurrences <terms> [regex] [caseSensitive] [summaries] [allBranches] [limit]` | How often and where names or words occur (defaults: no regex, case insensitive, parts only, active branch). |
 | `/compare-parts <a> <b> [branchA] [branchB]` | The sentences that differ between two parts; `0` as `b` compares part `a` with the text the model produced first. |
-| `/count-tokens <text>`, `/count-tokens <part> [branch]` | Tokens (with the tokenizer of the book's model), words and characters of a text or of a part. |
+| `/count-tokens <text>`, `/count-tokens <part> <branch>` | Tokens (with the tokenizer of the book's model), words and characters of a text, or of a part when the text is its handle. |
 | `/list-summaries [branch]` | The summaries of a branch, the parts they cover and whether they are still valid. |
 | `/get-summary <part> [branch]` | The summary of a part. |
 | `/check-summaries [branch]` | The outdated summaries and the edited parts that made them so. |
@@ -138,21 +138,65 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
 | `/get-lore-entry <entry> [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
 | `/search-lore <query> [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
-| `/preview-lore-activation <text> [limit]`, `/preview-lore-activation <part> [branch] [limit]` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. |
+| `/preview-lore-activation <text> [limit]`, `/preview-lore-activation <part> <branch> <limit>` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |
 
 ### Reading the story
 
 The commands above that read the book (`/get-book-info` to `/get-template-variables`) change nothing; they answer in JSON text,
-so an agent can use them as well. They never show ids: a part is its **position** on a branch, the first part of the story being
-`1`, and a branch is its **number** from `/list-branches` (the numbers follow the creation of the ends of the branches, so they
-change when a branch is added or deleted). Without a branch number the commands work on the active branch. Lists are paged with
-`offset` and `limit`, long texts are cut into slices (`offset`, `length`) and the answer says the total length. As with the other
-commands the options are positional: to set one, give those before it too.
+so an agent can use them as well. Every row of an answer has a **`handle`**: the identifier of the part (or lorebook, or entry), which
+does not change when parts are added, moved or deleted. A part is given by its handle, or by its **position** on a branch, the first
+part of the story being `1`; a branch by the handle of any part of it, or by its **number** from `/list-branches` (the numbers follow
+the creation of the ends of the branches, so they change when a branch is added or deleted). Positions and numbers are easier to type,
+handles are what an agent should use, and the commands that change the story take handles only. Without a branch the commands work on
+the active branch. Lists are paged with `offset` and `limit`, long texts are cut into slices (`offset`, `length`) and the answer says
+the total length. As with the other commands the options are positional: to set one, give those before it too.
 
 The commands that read the lorebooks (`/list-lorebooks` to `/preview-lore-activation`) work the same way and reach only the lorebooks of the open
-book: the root lorebook and its subbooks. A lorebook is its **number** from `/list-lorebooks` (the root is `1`), an entry its
-**number in the lorebook**, in the order of the lorebook (the first entry is `1`); the numbers change when entries or subbooks are
-added or removed. Without a lorebook number the root lorebook is used.
+book: the root lorebook and its subbooks. A lorebook is its **handle** or its **number** from `/list-lorebooks` (the root is `1`), an entry its
+**handle** or its **number in the lorebook**, in the order of the lorebook (the first entry is `1`); the numbers change when entries or subbooks are
+added or removed. Without a lorebook the root lorebook is used.
+
+### Changing the story and the lore
+
+These commands change the open book (or the working copy of an agent, which is where an agent's changes go). A part, lorebook or
+entry is always given by its **handle**, never by a position or a number: those move when something is added or deleted, and a
+position that was right when it was read may be another part by the time it is written. The options are positional as before. A
+command that removes text or data is `DESTRUCTIVE` and asks you to confirm (an agent is covered by its destructive mode instead);
+adding and changing are not. An edit of the story can make summaries outdated (a summary carries the hash of the story it
+describes): the answer lists them and says what to do, `/revalidate-summaries` if they are still right, `/regenerate-summary` if not.
+
+| Command | What it does |
+|---------|--------------|
+| `/edit-part <part> <old> <new> [field]` | Replaces `old` by `new` in the text of a part; `old` must be found exactly once, otherwise nothing changes and the error says how many times it was found. `field` edits the `instructions`, `scene`, `pov` or `present` characters of the turn instead. |
+| `/replace-part-text <part> <text> [field]` | Replaces the whole text of a part. Asks first. |
+| `/append-to-part <part> <text> [separator]` | Adds text to the end of a part, after a blank line unless `separator` says otherwise. |
+| `/set-part-fields <part> [instructions] [scene] [pov] [present]` | Changes what a part was made from, which a new generation of it reuses; an empty text clears a field, a field you leave out stays. |
+| `/create-part <text> [parent] [instructions] [scene] [pov] [present]` | Writes a new part after the last part of the active branch, or after `parent` (a new branch); it becomes the end of the active branch. |
+| `/branch-part <part>` | Copies a part (and its summary) next to it, a new swipe that starts a branch, and makes the copy the active end. |
+| `/delete-part <part>` | Deletes a part and its summary; the parts that followed it stay. Asks first. |
+| `/switch-branch <part>` | Makes the branch through a part the active one. |
+| `/set-summary <part> <text>` | Replaces the text of the summary on a part. |
+| `/remove-summary <part> [unwind]` | Removes the summary of a part (`unwind` brings back what a meta summary replaced). Asks first. |
+| `/revalidate-summaries [part]` | Says the outdated summaries still describe the story (all of the active branch, or only that part's). Use it only when you checked. |
+| `/regenerate-summary <part>` | Has the model make the summary on a part again. Slow, costs tokens. |
+| `/create-meta-summary <from> <to>` | Has the model merge the summaries from the part `from` (newest) back to `to` into one. Slow, costs tokens. |
+| `/next [scene] [pov] [present] [instructions] [after] [profile]` | Has the model write the next part, like the **New turn** button. Slow, costs tokens; one generation of a book runs at a time, the others wait. `profile` names one of the model profiles of an agent. |
+| `/swipe [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write another version of the last part of a branch. What you leave out is taken from the part. |
+| `/regenerate [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write the last part of a branch again, replacing its text. Asks first. |
+| `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
+| `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
+| `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
+| `/create-lore-entry <name> <payload> [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given). A problem of the template or of the regular expression is saved and reported. |
+| `/update-lore-entry <entry> [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]` | Changes the fields you give. |
+| `/delete-lore-entry <entry>` | Deletes an entry. Asks first. |
+| `/move-lore-entry <entry> <lorebook>` | Moves an entry to another lorebook of the book. |
+| `/set-lore-entry-tags <entry> [add] [remove] [addNegative] [removeNegative]` | Changes the tags and negative tags of an entry (comma separated). |
+| `/create-lorebook <name> [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given). |
+| `/set-lorebook <lorebook> [name] [enabled]` | Renames a lorebook or switches it on or off. |
+| `/add-subbook <lorebook> <subbook>`, `/remove-subbook <lorebook> <subbook>` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. |
+| `/delete-lorebook <lorebook>` | Deletes a lorebook with its entries (not the root). Asks first. |
+
+The commands that have the model write (`/next`, `/swipe`, `/regenerate`, the two summaries) take time and show the **Stop** window.
 
 ## Commands that come with extensions
 

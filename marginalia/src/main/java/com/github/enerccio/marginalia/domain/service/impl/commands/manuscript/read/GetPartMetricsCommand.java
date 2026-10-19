@@ -20,29 +20,30 @@ public class GetPartMetricsCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_PART_METRICS, llmDescription = L.DESC_COMMAND_GET_PART_METRICS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_METRICS_RETURN))
     public void getPartMetrics(CommandContext context) throws Exception {
-        partMetrics(context, context.get("part", Integer.class), null);
+        partMetrics(context, ref(context, "part"), null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART_METRICS,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_PART_METRICS, llmDescription = L.DESC_COMMAND_GET_PART_METRICS_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_METRICS_RETURN))
     public void getPartMetricsBranch(CommandContext context) throws Exception {
-        partMetrics(context, context.get("part", Integer.class), context.get("branch", Integer.class));
+        partMetrics(context, ref(context, "part"), ref(context, "branch"));
     }
 
-    private void partMetrics(CommandContext context, Integer position, Integer branch) throws Exception {
+    private void partMetrics(CommandContext context, String position, String branch) throws Exception {
         Book book = new Book(context);
-        List<ChatMessage> path = book.path(branch);
-        ChatMessage message = book.part(path, position);
+        Book.Located at = book.locate(position, branch);
+        ChatMessage message = at.message();
         JsonObject result = new JsonObject();
-        result.addProperty("position", position);
+        result.addProperty("handle", message.getUuid());
+        result.addProperty("position", at.position());
         result.addProperty("generated", message.getModelUsed() != null || message.getOriginalResponse() != null);
         result.addProperty("tokens", message.getTokenCount());
         result.addProperty("words", message.getWordCount());

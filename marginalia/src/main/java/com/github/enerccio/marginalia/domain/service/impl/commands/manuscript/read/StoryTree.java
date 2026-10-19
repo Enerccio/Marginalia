@@ -62,16 +62,21 @@ final class StoryTree {
         return path;
     }
 
-    /** The number of a branch that shows the part: the active one if the part is on it, else the newest below it. */
-    int branchOf(ChatMessage message) {
+    /** The end of the branch that shows the part: the active leaf if the part is on the active branch, else the newest below it. */
+    ChatMessage leafOf(ChatMessage message) {
         if (activeIds.contains(message.getId())) {
-            return leafNumbers.getOrDefault(activeLeafId, 0);
+            return byId.get(activeLeafId);
         }
         ChatMessage current = message;
         while (children.containsKey(current.getId())) {
             current = children.get(current.getId()).getLast();
         }
-        return leafNumbers.get(current.getId());
+        return current;
+    }
+
+    /** The number of a branch that shows the part: the active one if the part is on it, else the newest below it. */
+    int branchOf(ChatMessage message) {
+        return leafNumbers.getOrDefault(leafOf(message).getId(), 0);
     }
 
     int siblings(ChatMessage message) {

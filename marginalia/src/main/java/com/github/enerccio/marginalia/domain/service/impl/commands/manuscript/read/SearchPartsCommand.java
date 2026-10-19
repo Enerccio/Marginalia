@@ -57,6 +57,7 @@ public class SearchPartsCommand extends ManuscriptReadSupport {
                 break;
             }
             JsonObject row = new JsonObject();
+            row.addProperty("handle", message.getUuid());
             row.addProperty("position", tree.depth(message));
             if (!tree.activeIds.contains(message.getId())) {
                 row.addProperty("branch", tree.branchOf(message));

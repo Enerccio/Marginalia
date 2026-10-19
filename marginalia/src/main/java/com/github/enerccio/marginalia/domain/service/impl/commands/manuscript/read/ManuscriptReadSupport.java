@@ -18,12 +18,15 @@ import java.util.*;
  * What the commands that read the book have in common: the services they use, the book (loaded again, with the tree
  * of its parts when a command needs the other branches) and the helpers that make the JSON answers small.
  * <p>
- * A part is addressed only by its <b>position</b>: how deep it is on a branch, the first part of the story is 1. The
- * branch is the active one unless a <b>branch number</b> is given: the number {@code list-branches} gives to the end
- * of a branch (the numbers follow the creation of the ends, the oldest is 1, so they change when a branch is added or
- * deleted). Neither the positions nor the branch numbers are stored anywhere, no id of any entity is given out or
- * accepted. Lists are paged ({@code offset}, {@code limit}), long texts are returned in slices with their total
- * length. The options of a command are positional, so to set one the ones before it are given too.
+ * A part is addressed by its <b>handle</b>, the {@code handle} every row of an answer has (the uuid of the part; an
+ * agent sees it as a short {@code h:m17}, the border of the agent translates it), or by its <b>position</b>: how deep it
+ * is on a branch, the first part of the story is 1. The handle does not change when parts are added, moved or deleted,
+ * the position does, so the commands that write take handles only. The branch is the active one unless a
+ * <b>branch</b> is given: the handle of any part of it (the branch then goes through that part to its end), or the number
+ * {@code list-branches} gives to the end of a branch (the numbers follow the creation of the ends, the oldest is 1, so
+ * they change when a branch is added or deleted). Lists are paged ({@code offset}, {@code limit}), long texts are
+ * returned in slices with their total length. The options of a command are positional, so to set one the ones before
+ * it are given too.
  */
 @Configurable
 public abstract class ManuscriptReadSupport {
@@ -33,7 +36,7 @@ public abstract class ManuscriptReadSupport {
     protected static final int MAX_LIMIT = 200;
 
     /** The size of a slice of a text when {@code length} is left out, and the most that can be asked for. */
-    protected static final int DEFAULT_SLICE = 4000;
+    protected static final int DEFAULT_SLICE = 6000;
     protected static final int MAX_SLICE = 20000;
 
     /** How much of a part the lists show. */
@@ -66,14 +69,34 @@ public abstract class ManuscriptReadSupport {
     protected final class Book {
 
         public final Manuscript manuscript;
+        private final CommandContext context;
         private StoryTree tree;
 
         public Book(CommandContext context) throws Exception {
+            this.context = context;
             Manuscript fresh = context.getScope().getManuscript();
             if (fresh == null) {
                 throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
             }
             manuscript = fresh;
+        }
+
+        /** The parts that continue the part, the oldest first. */
+        public List<ChatMessage> childrenOf(ChatMessage message) throws Exception {
+            return tree().children.getOrDefault(message.getId(), List.of());
+        }
+
+        /** The parts of the book that are not deleted. */
+        public int partCount() throws Exception {
+            return tree().byId.size();
+        }
+
+        public CommandContext context() {
+            return context;
+        }
+
+        /** A part found by its handle or its position: the branch it is on, the part, and how deep it is. */
+        public record Located(List<ChatMessage> path, ChatMessage message, int position) {
         }
 
         StoryTree tree() throws Exception {
@@ -96,6 +119,55 @@ public abstract class ManuscriptReadSupport {
                         t.leaves.size()));
             }
             return t.pathTo(t.leaves.get(branch - 1));
+        }
+
+        /**
+         * The parts of the branch the {@code branch} names: the handle of one of its parts or its number, the active
+         * branch when it is null or blank.
+         */
+        public List<ChatMessage> path(String branch) throws Exception {
+            if (branch == null || branch.isBlank()) {
+                return path((Integer) null);
+            }
+            if (isHandle(branch)) {
+                StoryTree t = tree();
+                return t.pathTo(t.leafOf(known(branch)));
+            }
+            return path(number(branch));
+        }
+
+        /**
+         * The part with the handle (the uuid), checked to be a part of the book.
+         */
+        public ChatMessage known(String handle) throws Exception {
+            ChatMessage found = context.getScope().resolveMessage(handle.strip());
+            ChatMessage message = tree().byId.get(found.getId());
+            if (message == null) {
+                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NO_SUCH_HANDLE));
+            }
+            return message;
+        }
+
+        /**
+         * The part a command is aimed at: the handle of a part, or its position on the branch (see {@link #path(String)}).
+         */
+        public Located locate(String part, String branch) throws Exception {
+            if (part != null && isHandle(part)) {
+                ChatMessage message = known(part);
+                List<ChatMessage> path = tree().pathTo(tree().leafOf(message));
+                return new Located(path, message, path.indexOf(message) + 1);
+            }
+            List<ChatMessage> path = path(branch);
+            int position = number(part);
+            return new Located(path, part(path, position), position);
+        }
+
+        private int number(String text) {
+            try {
+                return Integer.parseInt(text == null ? "" : text.strip());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_NOT_A_REFERENCE), text), e);
+            }
         }
 
         /**
@@ -134,6 +206,20 @@ public abstract class ManuscriptReadSupport {
             return "none";
         }
         return Boolean.FALSE.equals(valid.get(message.getId())) ? "outdated" : "valid";
+    }
+
+    private static final java.util.regex.Pattern UUID = java.util.regex.Pattern
+            .compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+
+    /** Whether the text is a handle (the uuid of an item) and not a position or a number. */
+    protected static boolean isHandle(String text) {
+        return text != null && UUID.matcher(text.strip()).matches();
+    }
+
+    /** What the caller gave for the parameter as text (a number from a model comes as a number), null when it is not given. */
+    protected static String ref(CommandContext context, String name) {
+        Object value = context.get(name);
+        return value == null ? null : value.toString().strip();
     }
 
     protected static int limit(Integer limit) {

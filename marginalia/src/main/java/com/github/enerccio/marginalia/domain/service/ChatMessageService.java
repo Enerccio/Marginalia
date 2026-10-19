@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
@@ -114,6 +115,17 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
      */
     PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception;
+
+    /**
+     * Adds a part the author (or an agent) wrote as a child of {@code parent}, or as the first part of an empty book when
+     * the parent is null: counts its tokens and words and makes it the active leaf of the book, which is saved. The part is
+     * not flagged as edited, nobody changed a text of the model.
+     *
+     * @param input what the turn the part stands for was made from; null for none
+     * @throws IllegalArgumentException when the parent is not a part of the manuscript, the manuscript is not the user's,
+     *                                  or there is no parent and the book has parts already
+     */
+    ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input) throws Exception;
 
     /**
      * @param message  the part as saved

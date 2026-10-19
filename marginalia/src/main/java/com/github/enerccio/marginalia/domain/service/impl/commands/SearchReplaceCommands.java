@@ -2,6 +2,9 @@ package com.github.enerccio.marginalia.domain.service.impl.commands;
 
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.search.replace.TaskProgress;
+import com.github.enerccio.marginalia.domain.service.search.replace.TextHit;
+
+import java.util.List;
 
 /**
  * What the two search and replace commands ({@link SearchReplaceChatMessageCommand},
@@ -42,6 +45,21 @@ final class SearchReplaceCommands {
                 return context.isTerminated();
             }
         };
+    }
+
+    /** How many matches a dry run shows. */
+    private static final int SAMPLES = 5;
+
+    /**
+     * The first matches of a dry run, one to a line, with what they would become.
+     */
+    static String samples(List<TextHit> hits) {
+        StringBuilder text = new StringBuilder();
+        for (TextHit hit : hits.stream().limit(SAMPLES).toList()) {
+            text.append("\n…").append(hit.before()).append(" [").append(shorten(hit.match())).append(" -> ")
+                    .append(shorten(hit.replacement())).append("] ").append(hit.after()).append('…');
+        }
+        return text.toString();
     }
 
     /**

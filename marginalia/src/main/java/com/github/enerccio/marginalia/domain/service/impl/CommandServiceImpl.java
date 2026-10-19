@@ -8,7 +8,9 @@ import com.github.enerccio.marginalia.domain.service.impl.commands.HelloWorldCom
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceChatMessageCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.*;
+import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
+import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.*;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
@@ -76,6 +78,18 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         registerCommands(new SearchReplaceLoreEntryCommand());
         registerManuscriptReadCommands();
         registerLorebookReadCommands();
+        registerManuscriptWriteCommands();
+    }
+
+    private void registerManuscriptWriteCommands() {
+        registerCommands(new PartEditCommands());
+        registerCommands(new PartStructureCommands());
+        registerCommands(new SummaryWriteCommands());
+        registerCommands(new BookSettingsCommands());
+        registerCommands(new StoryGenerationCommands());
+        registerCommands(new SummaryGenerationCommands());
+        registerCommands(new LoreEntryWriteCommands());
+        registerCommands(new LorebookWriteCommands());
     }
 
     private void registerLorebookReadCommands() {

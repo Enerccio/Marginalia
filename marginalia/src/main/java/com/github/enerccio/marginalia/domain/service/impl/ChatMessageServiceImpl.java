@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
@@ -390,12 +391,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         Set<Long> outdatedBefore = outdatedHeads(newestFirst);
 
         stored.setResponse(newText);
-        InferenceService inferenceService = inferenceServices.forAI(book.getAi());
-        if (inferenceService == null) {
-            stored.setTokenCount(new JavaTokkitStrategy().countTokens(null, newText));
-        } else {
-            stored.setTokenCount(inferenceService.countTokens(newText));
-        }
+        stored.setTokenCount(countTokens(book, newText));
         stored.setWordCount(countWords(newText));
         stored.setEdited(true);
         ChatMessage saved = save(stored);
@@ -408,6 +404,36 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         }
         Collections.reverse(outdated);
         return new PartEdit(saved, outdated);
+    }
+
+    private long countTokens(Manuscript book, String text) throws Exception {
+        InferenceService inferenceService = inferenceServices.forAI(book.getAi());
+        return inferenceService == null ? new JavaTokkitStrategy().countTokens(null, text) : inferenceService.countTokens(text);
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage createPart(Manuscript manuscript, ChatMessage parent, String text, TurnInput input) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage above = parent == null ? null : ownPart(book, parent);
+        if (above == null && hasAnyMessages(book)) {
+            throw new IllegalArgumentException("The book has parts already, say after which part the new one comes");
+        }
+        String newText = text == null ? "" : text;
+        ChatMessage created = new ChatMessage();
+        created.setResponse(newText);
+        created.setTokenCount(countTokens(book, newText));
+        created.setWordCount(countWords(newText));
+        if (input != null) {
+            created.setSceneSetting(input.sceneSetting());
+            created.setPovCharacter(input.povCharacter());
+            created.setPresentCharacters(input.presentCharacters());
+            created.setInstructions(input.instructions());
+        }
+        ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);
+        book.setActiveLeaf(saved);
+        manuscriptService.save(book);
+        return saved;
     }
 
     private Set<Long> outdatedHeads(List<ChatMessage> newestFirst) throws Exception {

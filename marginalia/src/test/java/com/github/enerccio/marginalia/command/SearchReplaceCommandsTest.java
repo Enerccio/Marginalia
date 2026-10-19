@@ -215,6 +215,42 @@ class SearchReplaceCommandsTest extends GenerationTestBase {
     }
 
     @Test
+    void aDryRunCountsAndShowsMatchesButChangesAndAsksNothing() throws Exception {
+        openBook();
+
+        // regex, case sensitive, summaries, all branches, revalidate, max hits, dry run
+        String report = run("/search-replace-parts John Mike false true true true true 100 true");
+
+        assertThat(report).contains("Dry run").contains("3 matches").contains("John -> Mike");
+        assertThat(response(first)).isEqualTo("Anna met John");
+        assertThat(response(other)).isEqualTo("Another John");
+        assertThat(questions).isEmpty();
+    }
+
+    @Test
+    void aReplaceWithMoreMatchesThanAllowedIsRefused() throws Exception {
+        openBook();
+
+        assertThatThrownBy(() -> run("/search-replace-parts John Mike false true true true true 1"))
+                .isInstanceOf(ExecutionException.class).hasMessageContaining("3 matches").hasMessageContaining("1 allowed");
+        assertThat(response(first)).isEqualTo("Anna met John");
+        assertThat(questions).isEmpty();
+
+        assertThat(run("/search-replace-parts John Mike false true true true true 3")).contains("Replaced 3");
+    }
+
+    @Test
+    void theLorebookHasADryRunAndALimitToo() throws Exception {
+        openBook();
+
+        assertThat(run("/search-replace-lore-entries Harry Ron false true 1 true")).contains("Dry run").contains("2 matches");
+        assertThat(payload(harry)).isEqualTo("Harry the boy");
+        assertThatThrownBy(() -> run("/search-replace-lore-entries Harry Ron false true 1")).isInstanceOf(ExecutionException.class);
+        assertThat(questions).isEmpty();
+        assertThat(run("/search-replace-lore-entries Harry Ron false true 2")).contains("Replaced 2");
+    }
+
+    @Test
     void anInvalidRegexFailsWithTheReason() throws Exception {
         openBook();
 

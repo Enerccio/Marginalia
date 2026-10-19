@@ -156,7 +156,8 @@ class LorebookReadCommandsTest extends GenerationTestBase {
         assertThat(at(books, 1).get("lorebook").getAsInt()).isEqualTo(2);
         assertThat(at(books, 1).get("name").getAsString()).isEqualTo("Places");
         assertThat(strings(at(books, 1).getAsJsonArray("tags"))).containsExactly("geography");
-        assertThat(result.toString()).doesNotContain(world.getUuid()).doesNotContain("Unused");
+        assertThat(at(books, 0).get("handle").getAsString()).isEqualTo(world.getUuid());
+        assertThat(result.toString()).doesNotContain("Unused");
     }
 
     @Test
@@ -194,7 +195,7 @@ class LorebookReadCommandsTest extends GenerationTestBase {
         assertThat(johnRow.get("payloadLength").getAsInt()).isEqualTo("John, Anna's brother.".length());
         assertThat(johnRow.get("preview").getAsString()).isEqualTo("John, Anna's brother.");
         assertThat(at(items, 1).get("preview").getAsString()).as("a long text is cut").hasSizeLessThan(130).endsWith("…");
-        assertThat(items.toString()).doesNotContain(anna.getUuid());
+        assertThat(at(items, 0).get("handle").getAsString()).isEqualTo(anna.getUuid());
     }
 
     @Test
@@ -251,7 +252,7 @@ class LorebookReadCommandsTest extends GenerationTestBase {
         assertThat(strings(result.getAsJsonArray("negativeTags"))).containsExactly("minor");
         assertThat(result.getAsJsonObject("payload").get("text").getAsString()).isEqualTo("John, Anna's brother.");
         assertThat(result.getAsJsonObject("payload").get("truncated").getAsBoolean()).isFalse();
-        assertThat(result.toString()).doesNotContain(john.getUuid());
+        assertThat(result.get("handle").getAsString()).isEqualTo(john.getUuid());
     }
 
     @Test
@@ -267,13 +268,13 @@ class LorebookReadCommandsTest extends GenerationTestBase {
 
         JsonObject first = run("/get-lore-entry 2").getAsJsonObject("payload");
         assertThat(first.get("totalLength").getAsInt()).isEqualTo(total);
-        assertThat(first.get("length").getAsInt()).isEqualTo(4000);
+        assertThat(first.get("length").getAsInt()).isEqualTo(6000);
         assertThat(first.get("truncated").getAsBoolean()).isTrue();
 
-        JsonObject second = run("/get-lore-entry 2 1 4000 100").getAsJsonObject("payload");
-        assertThat(second.get("offset").getAsInt()).isEqualTo(4000);
+        JsonObject second = run("/get-lore-entry 2 1 6000 100").getAsJsonObject("payload");
+        assertThat(second.get("offset").getAsInt()).isEqualTo(6000);
         assertThat(second.get("length").getAsInt()).isEqualTo(100);
-        assertThat(second.get("text").getAsString()).isEqualTo(dragons.getPayload().substring(4000, 4100));
+        assertThat(second.get("text").getAsString()).isEqualTo(dragons.getPayload().substring(6000, 6100));
     }
 
     @Test
@@ -480,8 +481,8 @@ class LorebookReadCommandsTest extends GenerationTestBase {
         loaded.setActiveLeaf(root);
         sessionPoint.setManuscript(manuscriptService.save(loaded));
 
-        // a number on the command line is taken for the text, a part is given as a number
-        JsonObject result = positional("preview-lore-activation", List.of(1));
+        // the handle of a part is taken for the part
+        JsonObject result = run("/preview-lore-activation " + root.getUuid());
 
         assertThat(result.get("source").getAsString()).isEqualTo("part");
         assertThat(result.get("matchedTextLength").getAsInt()).isEqualTo("Let a wolf appear / A cold forest".length());

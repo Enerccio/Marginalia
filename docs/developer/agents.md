@@ -39,7 +39,7 @@ flowchart LR
 | `AgentMessageService` | `domain.service` | The transcript, append only. |
 | `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. |
 | `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
-| `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `get_run_status`. |
+| `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `request_compaction`, `get_run_status`. |
 | `ImageTools`, `ImageFiles`, `ShownImages` | `domain.service.agent` | `view_image` (only for a profile with `images`), the image checks and scaling, and the images asked for in a round; see [Images](#images). |
 | `CommandResults` | `domain.service.agent` | The last 10 results of the commands of a run, whole. |
 | `AgentApprovalService`, `AgentAttentionService` | `domain.service` | Bring the user in: approve a command, a notice that a run needs them. |
@@ -272,7 +272,7 @@ agent is told to ask the author at once). A worker (a daemon thread of a cached 
 
 A status change that finds another status than it expected (the user paused meanwhile) is not an error: `reach` and `pause` then do the pause or stop that was asked.
 Anything the worker throws that is not one of these makes the run `FAILED` with the message. `RunTools` (`domain.service.agent`) are `finish`, `ask_user`, `update_plan`
-(statuses `pending`, `in_progress`, `done`; the usual other spellings are mapped) and `get_run_status`; `RunToolsImpl` only notes the request of the model, the worker acts on
+(statuses `pending`, `in_progress`, `done`; the usual other spellings are mapped) `request_compaction` (the focus is noted, `isCompactionRequested`) and `get_run_status`; `RunToolsImpl` only notes the request of the model, the worker acts on
 it after the round, so every call of the round has its result in the transcript first.
 
 The transcript is `AgentMessage` (table `agent_messages`): the run, the `ordinal` and the `LLMChatMessage` as JSON in an extended attribute, only appended. The system
@@ -314,7 +314,13 @@ and the system message take at most 80% of the context cap, so a run that stoppe
 plan appended (`Your plan when this summary was written`): `update_plan` calls are in the compacted rows and `planOf` would not find them after a resume. `AgentMessageService.compact` marks every row of the run
 `compacted` (extended attribute of `AgentMessage`, no migration) and appends the summary as a row with `summary`; `transcript` leaves the compacted rows out, `messages` and `count` keep them, so the console shows everything
 (the summary as a folded block) and the Markdown export keeps it. A failure (no model, no text, a tool call instead of text) changes nothing and is written to the transcript as a message of the author. Not built:
-compaction by itself at a threshold of the context, and a `request_compaction` tool for the agent.
+compaction by the runner itself at a threshold of the context.
+
+The agent is warned instead and compacts itself. After the tools of a round are answered (and `finish` / `ask_user` did not end the turn) the worker either runs `compactForAgent` (the model called
+`request_compaction`: `compact(focus, transcript, true)`, the note of the summary is `Defaults.AGENT_SELF_COMPACTED_NOTE`, the focus line says "You asked", `ignoreForce` as for `/compact`; a failure is written to
+the transcript as a message to the agent) or `warnAboutContext`: when the context of the last request (`Progress.contextTokens`, so without the results of this round) is at least
+`Defaults.AGENT_CONTEXT_WARNING_PERCENT` (75) of `contextCap` it appends a `USER` message, `Defaults.AGENT_CONTEXT_WARNING`, from `AGENT_CONTEXT_CRITICAL_PERCENT` (90) `AGENT_CONTEXT_CRITICAL`. One notice per
+round while above the threshold, none without a cap. `Defaults.AGENT_RUNNER_NOTE` tells the agent about both.
 
 ## The tools of an agent
 

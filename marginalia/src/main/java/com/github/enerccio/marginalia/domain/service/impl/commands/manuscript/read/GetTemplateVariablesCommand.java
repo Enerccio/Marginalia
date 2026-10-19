@@ -32,10 +32,10 @@ public class GetTemplateVariablesCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, llmDescription = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "scope", type = String.class, description = L.DESC_COMMAND_SCOPE_PARAM),
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN))
     public void getTemplateVariablesPart(CommandContext context) throws Exception {
-        templateVariables(context, context.get("scope", String.class), context.get("part", Integer.class), null);
+        templateVariables(context, context.get("scope", String.class), ref(context, "part"), null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
@@ -43,14 +43,14 @@ public class GetTemplateVariablesCommand extends ManuscriptReadSupport {
             description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, llmDescription = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "scope", type = String.class, description = L.DESC_COMMAND_SCOPE_PARAM),
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN))
     public void getTemplateVariablesBranch(CommandContext context) throws Exception {
-        templateVariables(context, context.get("scope", String.class), context.get("part", Integer.class), context.get("branch", Integer.class));
+        templateVariables(context, context.get("scope", String.class), ref(context, "part"), ref(context, "branch"));
     }
 
-    private void templateVariables(CommandContext context, String scope, Integer position, Integer branch) throws Exception {
+    private void templateVariables(CommandContext context, String scope, String position, String branch) throws Exception {
         String name = scope == null ? "" : scope.strip().toLowerCase();
         Book book = new Book(context);
         TemplateVariables variables = new TemplateVariables();
@@ -59,10 +59,11 @@ public class GetTemplateVariablesCommand extends ManuscriptReadSupport {
         switch (name) {
             case "global" -> variables.loadFrom(TemplateVariables.Scope.GLOBAL, book.manuscript.getAttributes());
             case "part" -> {
-                List<ChatMessage> path = book.path(branch);
-                int at = position == null ? path.size() : position;
-                variables.loadFrom(TemplateVariables.Scope.LOCAL, book.part(path, at).getAttributes());
-                result.addProperty("position", at);
+                // the last part of the branch when none is given
+                Book.Located at = book.locate(position == null ? String.valueOf(book.path(branch).size()) : position, branch);
+                variables.loadFrom(TemplateVariables.Scope.LOCAL, at.message().getAttributes());
+                result.addProperty("handle", at.message().getUuid());
+                result.addProperty("position", at.position());
             }
             default -> throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_SCOPE), scope));
         }

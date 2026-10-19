@@ -250,6 +250,32 @@ class AgentHandlesTest extends AgentTestBase {
     }
 
     @Test
+    void theCommandsThatWriteTakeHandlesAndOnlyChangeTheCopy() throws Exception {
+        Manuscript copy = scope.getManuscript();
+        copy.setActiveLeaf(copied("there was a dragon"));
+        manuscriptService.save(copy);
+        FunctionSet functions = CommandFunctions.create(commandService, List.of("list-parts", "edit-part", "create-part", "delete-part"),
+                DestructiveCommandMode.AUTO, l -> l.name(), null, null, null, null, new CommandCage(scope, handles));
+
+        String listed = call(functions, "list-parts", "{}");
+        assertThat(listed).contains("\"handle\":\"h:m1\"").contains("\"handle\":\"h:m2\"");
+        assertThat(listed).doesNotContain(copied("Once upon a time").getUuid());
+
+        call(functions, "edit-part", "{\"part\":\"h:m1\",\"old\":\"Once\",\"new\":\"Twice\"}");
+        assertThat(copied("Twice upon a time")).isNotNull();
+        assertThat(chatMessageService.find(first.getId()).getResponse()).as("the original").isEqualTo("Once upon a time");
+
+        String created = call(functions, "create-part", "{\"text\":\"The end.\"}");
+        assertThat(created).contains("\"handle\":\"h:m3\"").contains("\"position\":3");
+        assertThat(copied("The end.").getParent().getId()).isEqualTo(copied("there was a dragon").getId());
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> call(functions, "edit-part", "{\"part\":\"3\",\"old\":\"The\",\"new\":\"A\"}"))
+                .hasMessageContaining("handle");
+        call(functions, "delete-part", "{\"part\":\"h:m3\"}");
+        assertThat(chatMessageService.find(copied("there was a dragon").getId()).isDeleted()).isFalse();
+    }
+
+    @Test
     void aHandleOfThePartOfTheOriginalOrAnUuidReachesNothing() throws Exception {
         FunctionSet functions = functions();
 

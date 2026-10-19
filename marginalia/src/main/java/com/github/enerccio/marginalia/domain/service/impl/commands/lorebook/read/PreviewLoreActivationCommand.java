@@ -73,42 +73,27 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN))
-    public void previewPart(CommandContext context) throws Exception {
-        preview(context, null, context.get("part", Integer.class), null, null);
-    }
-
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
-            signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
-            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN))
-    public void previewPartBranch(CommandContext context) throws Exception {
-        preview(context, null, context.get("part", Integer.class), context.get("branch", Integer.class), null);
-    }
-
-    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
-            signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
                     @CommandParameter(name = "limit", type = Integer.class, description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN))
     public void previewPartLimit(CommandContext context) throws Exception {
-        preview(context, null, context.get("part", Integer.class), context.get("branch", Integer.class), context.get("limit", Integer.class));
+        preview(context, null, ref(context, "part"), ref(context, "branch"), context.get("limit", Integer.class));
     }
 
-    private void preview(CommandContext context, String text, Integer position, Integer branch, Integer limit) throws Exception {
+    private void preview(CommandContext context, String text, String position, String branch, Integer limit) throws Exception {
+        if (position == null && isHandle(text)) {
+            // the handle of a part is the part
+            position = text.strip();
+            text = null;
+        }
         Book book = new Book(context);
         Manuscript manuscript = book.manuscript;
         Lore lore = new Lore(book);
         Lorebook root = lore.book(null);
 
-        ChatMessage part = position == null ? null : book.part(book.path(branch), position);
+        Book.Located at = position == null ? null : book.locate(position, branch);
+        ChatMessage part = at == null ? null : at.message();
         TurnInput input = part == null ? null : new TurnInput(part.getSceneSetting(), part.getPovCharacter(),
                 part.getPresentCharacters(), part.getInstructions());
         TemplateContext templateContext = templateContext(manuscript, input, part);
@@ -149,6 +134,7 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
             JsonObject row = new JsonObject();
             row.addProperty("lorebook", lore.number(owner));
             row.addProperty("entry", numberOf(lore, owner, entry));
+            row.addProperty("handle", entry.getUuid());
             row.addProperty("name", entry.getName());
             row.addProperty("reason", verdict.reason().name());
             if (verdict.detail() != null) {
@@ -176,7 +162,8 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
         JsonObject result = new JsonObject();
         result.addProperty("source", part == null ? "text" : "part");
         if (part != null) {
-            result.addProperty("part", position);
+            result.addProperty("part", at.position());
+            result.addProperty("handle", part.getUuid());
         }
         result.addProperty("matchedTextLength", matched.length());
         result.addProperty("activatedCount", activatedCount);

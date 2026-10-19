@@ -24,6 +24,7 @@ public final class RunToolsImpl implements RunTools {
 
     private volatile String summary;
     private volatile String question;
+    private volatile String compaction;
     private volatile List<PlanItem> plan = List.of();
 
     /**
@@ -44,6 +45,7 @@ public final class RunToolsImpl implements RunTools {
 
     public static final String REPORT_ACK_INTERACTIVE = "Your report is passed to the author. The run waits for their next message; do not call anything else.";
     public static final String REPORT_ACK = "The run ends after this round. Your report is passed to the author.";
+    public static final String COMPACTION_ACK = "The earlier rounds are summarized when this round ends. You will write the summary then; what you need afterwards must be in your workspace or your plan.";
     public static final String QUESTION_ACK = "The question is passed to the author. The run waits here; the answer comes as the next message.";
 
     /**
@@ -82,11 +84,26 @@ public final class RunToolsImpl implements RunTools {
     }
 
     /**
+     * Whether the model called {@code request_compaction} in this round.
+     */
+    public boolean isCompactionRequested() {
+        return compaction != null;
+    }
+
+    /**
+     * What the summary should stress, as the model wrote it; empty when it did not say or no compaction was requested.
+     */
+    public String getCompactionFocus() {
+        return StringUtils.defaultString(compaction);
+    }
+
+    /**
      * The runner takes the notes of the round.
      */
     public void clearRequests() {
         summary = null;
         question = null;
+        compaction = null;
     }
 
     public List<PlanItem> getPlan() {
@@ -140,6 +157,12 @@ public final class RunToolsImpl implements RunTools {
         }
         this.plan = List.copyOf(cleaned);
         done.complete("Plan saved.\n" + render(cleaned));
+    }
+
+    @Override
+    public void requestCompaction(FunctionContinuation<String> done, String focus) {
+        this.compaction = StringUtils.abbreviate(StringUtils.defaultString(focus).strip(), MAX_QUESTION_LENGTH);
+        done.complete(COMPACTION_ACK);
     }
 
     @Override

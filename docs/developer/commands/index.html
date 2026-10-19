@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845737720540">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845742431545">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845737720540" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845742431545" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -543,11 +543,17 @@ both:</p>
 parts as a tree, with the numbers of the branches). All are <code translate="no" v-pre>NON_DESTRUCTIVE</code>, synchronous and answer JSON text.</p>
 <ul>
 <li>
-<p><strong>No ids.</strong> A part is addressed by its <em>position</em> (depth on a branch, the first part is 1) and a branch by its <em>number</em>: the
-ends of the branches (parts without children) ordered by creation, the oldest is 1; <code translate="no" v-pre>list-branches</code> gives the numbers and
-<code translate="no" v-pre>list-swipes</code>, <code translate="no" v-pre>search-parts</code> and <code translate="no" v-pre>find-occurrences</code> say the branch that shows a part that is not on the active branch. No
-command gives out or accepts a uuid. Without a branch the active branch (<code translate="no" v-pre>getBranchFromLeaf</code>, the root first) is used; the other
-branches need the whole tree (<code translate="no" v-pre>ChatMessageService.getAllMessages</code>, one query), so a command loads it only when asked for one.</p>
+<p><strong>Handles, positions and numbers.</strong> Every row of an answer has a <code translate="no" v-pre>handle</code>, the uuid of the part (an agent sees it as <code translate="no" v-pre>h:m17</code>: the
+border of the agent turns the uuids of its copy into handles and back, see <code translate="no" v-pre>CommandCage</code>; a command knows nothing of it). A part
+parameter is a <code translate="no" v-pre>String</code> that <code translate="no" v-pre>Book.locate(part, branch)</code> reads as a handle (<code translate="no" v-pre>CommandScope.resolveMessage</code>, so only a part of the
+scope&#x27;s book is found) or as a <em>position</em> (depth on a branch, the first part is 1); a branch is the handle of one of its parts
+(the branch through it to its end, <code translate="no" v-pre>StoryTree.leafOf</code>) or its <em>number</em>: the ends of the branches (parts without children)
+ordered by creation, the oldest is 1. Positions and numbers move when parts are added or deleted, so the commands that write
+accept handles only. <code translate="no" v-pre>list-branches</code> gives the numbers and <code translate="no" v-pre>list-swipes</code>, <code translate="no" v-pre>search-parts</code> and <code translate="no" v-pre>find-occurrences</code> say the branch that
+shows a part that is not on the active branch. Without a branch the active branch (<code translate="no" v-pre>getBranchFromLeaf</code>, the root first) is used; the other
+branches need the whole tree (<code translate="no" v-pre>ChatMessageService.getAllMessages</code>, one query), so a command loads it only when asked for one.
+A form with a single <code translate="no" v-pre>String</code> that could be a text or a part (<code translate="no" v-pre>count-tokens</code>, <code translate="no" v-pre>preview-lore-activation</code>) takes the handle in the text:
+the dispatcher can&#x27;t tell two one-<code translate="no" v-pre>String</code> forms apart.</p>
 </li>
 <li>
 <p><strong>Time limited patterns.</strong> The regular expressions of <code translate="no" v-pre>find-occurrences</code> (and <code translate="no" v-pre>search-lore</code>) run over <code translate="no" v-pre>utils.TimeSafeText</code>: the text is wrapped in a
@@ -556,7 +562,7 @@ branches need the whole tree (<code translate="no" v-pre>ChatMessageService.getA
 one with a back reference (<code translate="no" v-pre>(a+)+\1b</code>), can run for hours otherwise; <code translate="no" v-pre>TextSearch</code> uses the same wrapper for each text.</p>
 </li>
 <li>
-<p><strong>Bounded answers.</strong> Lists take <code translate="no" v-pre>offset</code> and <code translate="no" v-pre>limit</code> (50, at most 200); texts come in slices (<code translate="no" v-pre>offset</code>, <code translate="no" v-pre>length</code>, 4000 characters,
+<p><strong>Bounded answers.</strong> Lists take <code translate="no" v-pre>offset</code> and <code translate="no" v-pre>limit</code> (50, at most 200); texts come in slices (<code translate="no" v-pre>offset</code>, <code translate="no" v-pre>length</code>, 6000 characters,
 at most 20000) with <code translate="no" v-pre>totalLength</code> and <code translate="no" v-pre>truncated</code>.</p>
 </li>
 <li>
@@ -591,6 +597,51 @@ fresh <code translate="no" v-pre>TemplateContext</code> (the book, the narration
 without it. The form with <code translate="no" v-pre>text</code> and the form with <code translate="no" v-pre>part</code> both have one argument, a number on the command line is taken for the text: give a part as a number
 to <code translate="no" v-pre>executePositional</code>, or by name as an agent does.</p>
 <p>Tests: <code translate="no" v-pre>LorebookReadCommandsTest</code>, the same way, with a lorebook tree, a lorebook the book does not use and a deleted entry.</p>
+<h2 id="commands-that-change-the-book">Commands that change the book</h2>
+<p>The packages <code translate="no" v-pre>domain.service.impl.commands.manuscript.write</code> and <code translate="no" v-pre>lorebook.write</code> hold the commands that change the book, on
+<code translate="no" v-pre>ManuscriptWriteSupport</code> (which extends <code translate="no" v-pre>ManuscriptReadSupport</code>) and <code translate="no" v-pre>LorebookWriteSupport</code> (which extends <code translate="no" v-pre>LorebookReadSupport</code>):
+<code translate="no" v-pre>PartEditCommands</code> (<code translate="no" v-pre>edit-part</code>, <code translate="no" v-pre>replace-part-text</code>, <code translate="no" v-pre>append-to-part</code>, <code translate="no" v-pre>set-part-fields</code>), <code translate="no" v-pre>PartStructureCommands</code> (<code translate="no" v-pre>create-part</code>,
+<code translate="no" v-pre>branch-part</code>, <code translate="no" v-pre>delete-part</code>, <code translate="no" v-pre>switch-branch</code>), <code translate="no" v-pre>SummaryWriteCommands</code> (<code translate="no" v-pre>set-summary</code>, <code translate="no" v-pre>remove-summary</code>, <code translate="no" v-pre>revalidate-summaries</code>),
+<code translate="no" v-pre>BookSettingsCommands</code> (<code translate="no" v-pre>set-book-info</code>, <code translate="no" v-pre>set-book-prompts</code>, <code translate="no" v-pre>set-book-tags</code>), <code translate="no" v-pre>StoryGenerationCommands</code> (<code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code>,
+<code translate="no" v-pre>regenerate</code>), <code translate="no" v-pre>SummaryGenerationCommands</code> (<code translate="no" v-pre>regenerate-summary</code>, <code translate="no" v-pre>create-meta-summary</code>), <code translate="no" v-pre>LoreEntryWriteCommands</code> and
+<code translate="no" v-pre>LorebookWriteCommands</code>. They call the services the screens use (<code translate="no" v-pre>ChatMessageService.updateResponse</code> / <code translate="no" v-pre>createPart</code> /
+<code translate="no" v-pre>branchAndSwitch</code> / <code translate="no" v-pre>swipeAndSwitch</code> / <code translate="no" v-pre>deleteNodeAndMigrateChildren</code>, <code translate="no" v-pre>SummaryService.updateSummaryText</code> / <code translate="no" v-pre>removeSummary</code> /
+<code translate="no" v-pre>revalidate</code>, <code translate="no" v-pre>ManuscriptService.updateSettings</code>, <code translate="no" v-pre>LorebookEntryService.create</code> / <code translate="no" v-pre>update</code> / <code translate="no" v-pre>move</code> / <code translate="no" v-pre>deleteEntry</code>,
+<code translate="no" v-pre>LorebookService</code> for the subbooks) and add no rule of their own, so what the user does in a window and what a command does is one path.</p>
+<ul>
+<li>
+<p><strong>Handles only.</strong> A part, lorebook or entry parameter must be a handle (<code translate="no" v-pre>ManuscriptWriteSupport.part</code>, <code translate="no" v-pre>LorebookWriteSupport.book</code> /
+<code translate="no" v-pre>entry</code>); a position or number is refused with <code translate="no" v-pre>ERROR_COMMAND_HANDLE_REQUIRED</code>.</p>
+</li>
+<li>
+<p><strong>Severity.</strong> Adding and changing is <code translate="no" v-pre>NON_DESTRUCTIVE</code>; what removes text or data (<code translate="no" v-pre>replace-part-text</code>, <code translate="no" v-pre>delete-*</code>, <code translate="no" v-pre>remove-summary</code>,
+<code translate="no" v-pre>regenerate</code>, <code translate="no" v-pre>set-book-prompts</code>) is <code translate="no" v-pre>DESTRUCTIVE</code> and calls <code translate="no" v-pre>context.confirm(question)</code>: the user at the command bar gets a
+dialog, an agent is not asked again (its destructive mode decided before the call). A refusal answers <em>Nothing was changed.</em></p>
+</li>
+<li>
+<p><strong>Outdated summaries.</strong> An edit can invalidate the hash of a summary block. <code translate="no" v-pre>reportOutdated</code> puts the summaries an edit made
+outdated (the ones outdated now and not before) and a hint into the answer; <code translate="no" v-pre>revalidate-summaries</code> is the author&#x27;s way to
+say they are still right.</p>
+</li>
+<li>
+<p><strong>The window.</strong> After a change <code translate="no" v-pre>changed()</code> reloads the book window of the user (<code translate="no" v-pre>CommandUtils.reloadManuscriptWindow</code>, nothing for an
+agent, which has none).</p>
+</li>
+<li>
+<p><strong>Generation.</strong> <code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code> and <code translate="no" v-pre>regenerate</code> are <code translate="no" v-pre>async</code> and call <code translate="no" v-pre>StoryGenerationService.generateNextTurn</code> with a listener that
+completes a future; each moves <code translate="no" v-pre>activeLeaf</code>, so one generation of a book runs at a time (a lock per manuscript, the others wait). Swipe
+and regenerate need the part to be the end of its branch (they make it the active leaf first, as the pipeline expects), and take
+the turn input from the part unless given. <code translate="no" v-pre>profile</code> names a model profile of the agent of the run (<code translate="no" v-pre>AgentService.resolveProfile</code>,
+<code translate="no" v-pre>GenerationOptions.withModel</code>); for the user it is refused. The generation question about outdated summaries is passed on
+with <code translate="no" v-pre>context.confirm</code> and the answer yes is reported as a warning. Stopping the command cancels the generation (<code translate="no" v-pre>CancellationToken</code>).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>search-replace-parts</code> and <code translate="no" v-pre>search-replace-lore-entries</code> have <code translate="no" v-pre>maxHits</code> (refuse above it) and <code translate="no" v-pre>dryRun</code> (count and show five matches,
+change nothing).</p>
+</li>
+</ul>
+<p>Tests: <code translate="no" v-pre>ManuscriptWriteCommandsTest</code>, <code translate="no" v-pre>LorebookWriteCommandsTest</code> (a scope that answers the questions), <code translate="no" v-pre>GenerationCommandsTest</code>
+(the real generation against the mock server), <code translate="no" v-pre>AgentHandlesTest</code> (the commands through the cage of a run, on the working copy).</p>
 
                 
                 <!-- Required only on API pages -->
@@ -628,7 +679,7 @@ to <code translate="no" v-pre>executePositional</code>, or by name as an agent d
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fe6ffde3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (8346aead).</p></div>
             </footer>
         </div>
     </div>

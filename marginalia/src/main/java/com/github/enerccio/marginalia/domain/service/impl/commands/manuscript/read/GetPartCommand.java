@@ -22,67 +22,68 @@ public class GetPartCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
     public void getPart(CommandContext context) throws Exception {
-        getPart(context, context.get("part", Integer.class), null, null, null, null);
+        getPart(context, ref(context, "part"), null, null, null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
     public void getPartBranch(CommandContext context) throws Exception {
-        getPart(context, context.get("part", Integer.class), context.get("branch", Integer.class), null, null, null);
+        getPart(context, ref(context, "part"), ref(context, "branch"), null, null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
     public void getPartOffset(CommandContext context) throws Exception {
-        getPart(context, context.get("part", Integer.class), context.get("branch", Integer.class), context.get("offset", Integer.class), null, null);
+        getPart(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
                     @CommandParameter(name = "length", type = Integer.class, description = L.DESC_COMMAND_LENGTH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
     public void getPartLength(CommandContext context) throws Exception {
-        getPart(context, context.get("part", Integer.class), context.get("branch", Integer.class), context.get("offset", Integer.class), context.get("length", Integer.class), null);
+        getPart(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), context.get("length", Integer.class), null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
                     @CommandParameter(name = "length", type = Integer.class, description = L.DESC_COMMAND_LENGTH_PARAM),
                     @CommandParameter(name = "field", type = String.class, description = L.DESC_COMMAND_FIELD_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_PART_RETURN))
     public void getPartField(CommandContext context) throws Exception {
-        getPart(context, context.get("part", Integer.class), context.get("branch", Integer.class), context.get("offset", Integer.class), context.get("length", Integer.class), context.get("field", String.class));
+        getPart(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), context.get("length", Integer.class), context.get("field", String.class));
     }
 
-    private void getPart(CommandContext context, Integer position, Integer branch, Integer offset, Integer length,
+    private void getPart(CommandContext context, String position, String branch, Integer offset, Integer length,
                          String field) throws Exception {
         Book book = new Book(context);
-        List<ChatMessage> path = book.path(branch);
-        ChatMessage message = book.part(path, position);
+        Book.Located at = book.locate(position, branch);
+        List<ChatMessage> path = at.path();
+        ChatMessage message = at.message();
         String name = field == null || field.isBlank() ? "response" : field.strip().toLowerCase();
         String text = switch (name) {
             case "response" -> message.getResponse();
@@ -96,7 +97,8 @@ public class GetPartCommand extends ManuscriptReadSupport {
         };
 
         JsonObject result = new JsonObject();
-        result.addProperty("position", position);
+        result.addProperty("handle", message.getUuid());
+        result.addProperty("position", at.position());
         result.addProperty("parts", path.size());
         result.addProperty("field", name);
         slice(result, text, offset, length);

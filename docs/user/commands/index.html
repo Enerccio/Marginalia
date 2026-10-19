@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845737720540">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845742431545">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845737720540" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845742431545" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -346,11 +346,11 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 | `/hello-world`                       | Returns *Hello world*. (This and the two below are examples to try the command line.) |
 | `/hello-world &lt;message&gt;`             | Returns the message it was given.                                                  |
 | `/hello-world-async [&lt;message&gt;]`     | The same, but after 10 seconds; shows the **Stop** window while it waits.          |
-| `/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
-| `/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
+| `/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries] [maxHits] [dryRun]` | Search and replace in the story of the open book, like the **Search and replace** window of the story tab. The options are `true`/`false`, in this order, and each one you leave out has the default of that window ([regex](../regular-expressions.md) no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. `maxHits` refuses a replace that finds more matches than that, and with `dryRun` `true` nothing is changed: the answer counts the matches and shows a few, which is how an agent looks before it replaces. There is no preview: after the search you are asked whether to replace the number of matches found, and only **Yes** changes the book. The replace cannot be stopped. |
+| `/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [maxHits] [dryRun]` | The same for the entries (name, text and comment) of the lorebook of the open book. |
 | `/take-backup`                       | Takes a backup of the book that is open; it appears in the **Backups** tab of the book. Says no book is open when there is none. |
 | `/get-book-info` | The name, settings, model, totals (parts, words, tokens) and tags of the open book. |
-| `/list-parts [branch] [offset] [limit]` | The parts of a branch: position, size, swipes, summary state and a short preview. |
+| `/list-parts [branch] [offset] [limit]` | The parts of a branch: handle, position, size, swipes, summary state and a short preview. |
 | `/get-part &lt;part&gt; [branch] [offset] [length] [field]` | The text of a part in slices (or its `instructions`, `scene`, `pov`, `present` or `reasoning`) and what it was made from. |
 | `/list-swipes &lt;part&gt; [branch]` | The alternatives (swipes) of a part, with the branch number that shows each. |
 | `/list-branches [offset] [limit]` | The branches of the book, numbered, with where each parts from the others. |
@@ -359,7 +359,7 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 | `/search-parts &lt;query&gt; [limit]` | Full-text search in the parts of all branches, with snippets. |
 | `/find-occurrences &lt;terms&gt; [regex] [caseSensitive] [summaries] [allBranches] [limit]` | How often and where names or words occur (defaults: no regex, case insensitive, parts only, active branch). |
 | `/compare-parts &lt;a&gt; &lt;b&gt; [branchA] [branchB]` | The sentences that differ between two parts; `0` as `b` compares part `a` with the text the model produced first. |
-| `/count-tokens &lt;text&gt;`, `/count-tokens &lt;part&gt; [branch]` | Tokens (with the tokenizer of the book's model), words and characters of a text or of a part. |
+| `/count-tokens &lt;text&gt;`, `/count-tokens &lt;part&gt; &lt;branch&gt;` | Tokens (with the tokenizer of the book's model), words and characters of a text, or of a part when the text is its handle. |
 | `/list-summaries [branch]` | The summaries of a branch, the parts they cover and whether they are still valid. |
 | `/get-summary &lt;part&gt; [branch]` | The summary of a part. |
 | `/check-summaries [branch]` | The outdated summaries and the edited parts that made them so. |
@@ -368,7 +368,7 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 | `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
 | `/get-lore-entry &lt;entry&gt; [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
 | `/search-lore &lt;query&gt; [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
-| `/preview-lore-activation &lt;text&gt; [limit]`, `/preview-lore-activation &lt;part&gt; [branch] [limit]` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. |">
+| `/preview-lore-activation &lt;text&gt; [limit]`, `/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -391,11 +391,11 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 <td>The same, but after 10 seconds; shows the <strong>Stop</strong> window while it waits.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries]</code></td>
-<td>Search and replace in the story of the open book, like the <strong>Search and replace</strong> window of the story tab. The options are <code translate="no" v-pre>true</code>/<code translate="no" v-pre>false</code>, in this order, and each one you leave out has the default of that window (<a href="../regular-expressions/">regex</a> no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. There is no preview: after the search you are asked whether to replace the number of matches found, and only <strong>Yes</strong> changes the book. The replace cannot be stopped.</td>
+<td><code translate="no" v-pre>/search-replace-parts &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [summaries] [allBranches] [revalidateSummaries] [maxHits] [dryRun]</code></td>
+<td>Search and replace in the story of the open book, like the <strong>Search and replace</strong> window of the story tab. The options are <code translate="no" v-pre>true</code>/<code translate="no" v-pre>false</code>, in this order, and each one you leave out has the default of that window (<a href="../regular-expressions/">regex</a> no, case sensitive yes, summaries yes, all branches no, revalidate yes); to set one, give those before it too. <code translate="no" v-pre>maxHits</code> refuses a replace that finds more matches than that, and with <code translate="no" v-pre>dryRun</code> <code translate="no" v-pre>true</code> nothing is changed: the answer counts the matches and shows a few, which is how an agent looks before it replaces. There is no preview: after the search you are asked whether to replace the number of matches found, and only <strong>Yes</strong> changes the book. The replace cannot be stopped.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive]</code></td>
+<td><code translate="no" v-pre>/search-replace-lore-entries &lt;search&gt; &lt;replace&gt; [regex] [caseSensitive] [maxHits] [dryRun]</code></td>
 <td>The same for the entries (name, text and comment) of the lorebook of the open book.</td>
 </tr>
 <tr>
@@ -408,7 +408,7 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 </tr>
 <tr>
 <td><code translate="no" v-pre>/list-parts [branch] [offset] [limit]</code></td>
-<td>The parts of a branch: position, size, swipes, summary state and a short preview.</td>
+<td>The parts of a branch: handle, position, size, swipes, summary state and a short preview.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/get-part &lt;part&gt; [branch] [offset] [length] [field]</code></td>
@@ -443,8 +443,8 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 <td>The sentences that differ between two parts; <code translate="no" v-pre>0</code> as <code translate="no" v-pre>b</code> compares part <code translate="no" v-pre>a</code> with the text the model produced first.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>/count-tokens &lt;text&gt;</code>, <code translate="no" v-pre>/count-tokens &lt;part&gt; [branch]</code></td>
-<td>Tokens (with the tokenizer of the book&#x27;s model), words and characters of a text or of a part.</td>
+<td><code translate="no" v-pre>/count-tokens &lt;text&gt;</code>, <code translate="no" v-pre>/count-tokens &lt;part&gt; &lt;branch&gt;</code></td>
+<td>Tokens (with the tokenizer of the book&#x27;s model), words and characters of a text, or of a part when the text is its handle.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/list-summaries [branch]</code></td>
@@ -479,8 +479,8 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 <td>The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>/preview-lore-activation &lt;text&gt; [limit]</code>, <code translate="no" v-pre>/preview-lore-activation &lt;part&gt; [branch] [limit]</code></td>
-<td>Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens.</td>
+<td><code translate="no" v-pre>/preview-lore-activation &lt;text&gt; [limit]</code>, <code translate="no" v-pre>/preview-lore-activation &lt;part&gt; &lt;branch&gt; &lt;limit&gt;</code></td>
+<td>Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part.</td>
 </tr>
 </tbody>
 </table>
@@ -488,15 +488,180 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 </retype-table>
 <h3 id="reading-the-story">Reading the story</h3>
 <p>The commands above that read the book (<code translate="no" v-pre>/get-book-info</code> to <code translate="no" v-pre>/get-template-variables</code>) change nothing; they answer in JSON text,
-so an agent can use them as well. They never show ids: a part is its <strong>position</strong> on a branch, the first part of the story being
-<code translate="no" v-pre>1</code>, and a branch is its <strong>number</strong> from <code translate="no" v-pre>/list-branches</code> (the numbers follow the creation of the ends of the branches, so they
-change when a branch is added or deleted). Without a branch number the commands work on the active branch. Lists are paged with
-<code translate="no" v-pre>offset</code> and <code translate="no" v-pre>limit</code>, long texts are cut into slices (<code translate="no" v-pre>offset</code>, <code translate="no" v-pre>length</code>) and the answer says the total length. As with the other
-commands the options are positional: to set one, give those before it too.</p>
+so an agent can use them as well. Every row of an answer has a <strong><code translate="no" v-pre>handle</code></strong>: the identifier of the part (or lorebook, or entry), which
+does not change when parts are added, moved or deleted. A part is given by its handle, or by its <strong>position</strong> on a branch, the first
+part of the story being <code translate="no" v-pre>1</code>; a branch by the handle of any part of it, or by its <strong>number</strong> from <code translate="no" v-pre>/list-branches</code> (the numbers follow
+the creation of the ends of the branches, so they change when a branch is added or deleted). Positions and numbers are easier to type,
+handles are what an agent should use, and the commands that change the story take handles only. Without a branch the commands work on
+the active branch. Lists are paged with <code translate="no" v-pre>offset</code> and <code translate="no" v-pre>limit</code>, long texts are cut into slices (<code translate="no" v-pre>offset</code>, <code translate="no" v-pre>length</code>) and the answer says
+the total length. As with the other commands the options are positional: to set one, give those before it too.</p>
 <p>The commands that read the lorebooks (<code translate="no" v-pre>/list-lorebooks</code> to <code translate="no" v-pre>/preview-lore-activation</code>) work the same way and reach only the lorebooks of the open
-book: the root lorebook and its subbooks. A lorebook is its <strong>number</strong> from <code translate="no" v-pre>/list-lorebooks</code> (the root is <code translate="no" v-pre>1</code>), an entry its
-<strong>number in the lorebook</strong>, in the order of the lorebook (the first entry is <code translate="no" v-pre>1</code>); the numbers change when entries or subbooks are
-added or removed. Without a lorebook number the root lorebook is used.</p>
+book: the root lorebook and its subbooks. A lorebook is its <strong>handle</strong> or its <strong>number</strong> from <code translate="no" v-pre>/list-lorebooks</code> (the root is <code translate="no" v-pre>1</code>), an entry its
+<strong>handle</strong> or its <strong>number in the lorebook</strong>, in the order of the lorebook (the first entry is <code translate="no" v-pre>1</code>); the numbers change when entries or subbooks are
+added or removed. Without a lorebook the root lorebook is used.</p>
+<h3 id="changing-the-story-and-the-lore">Changing the story and the lore</h3>
+<p>These commands change the open book (or the working copy of an agent, which is where an agent&#x27;s changes go). A part, lorebook or
+entry is always given by its <strong>handle</strong>, never by a position or a number: those move when something is added or deleted, and a
+position that was right when it was read may be another part by the time it is written. The options are positional as before. A
+command that removes text or data is <code translate="no" v-pre>DESTRUCTIVE</code> and asks you to confirm (an agent is covered by its destructive mode instead);
+adding and changing are not. An edit of the story can make summaries outdated (a summary carries the hash of the story it
+describes): the answer lists them and says what to do, <code translate="no" v-pre>/revalidate-summaries</code> if they are still right, <code translate="no" v-pre>/regenerate-summary</code> if not.</p>
+<retype-table copy-text="| Command | What it does |
+|---------|--------------|
+| `/edit-part &lt;part&gt; &lt;old&gt; &lt;new&gt; [field]` | Replaces `old` by `new` in the text of a part; `old` must be found exactly once, otherwise nothing changes and the error says how many times it was found. `field` edits the `instructions`, `scene`, `pov` or `present` characters of the turn instead. |
+| `/replace-part-text &lt;part&gt; &lt;text&gt; [field]` | Replaces the whole text of a part. Asks first. |
+| `/append-to-part &lt;part&gt; &lt;text&gt; [separator]` | Adds text to the end of a part, after a blank line unless `separator` says otherwise. |
+| `/set-part-fields &lt;part&gt; [instructions] [scene] [pov] [present]` | Changes what a part was made from, which a new generation of it reuses; an empty text clears a field, a field you leave out stays. |
+| `/create-part &lt;text&gt; [parent] [instructions] [scene] [pov] [present]` | Writes a new part after the last part of the active branch, or after `parent` (a new branch); it becomes the end of the active branch. |
+| `/branch-part &lt;part&gt;` | Copies a part (and its summary) next to it, a new swipe that starts a branch, and makes the copy the active end. |
+| `/delete-part &lt;part&gt;` | Deletes a part and its summary; the parts that followed it stay. Asks first. |
+| `/switch-branch &lt;part&gt;` | Makes the branch through a part the active one. |
+| `/set-summary &lt;part&gt; &lt;text&gt;` | Replaces the text of the summary on a part. |
+| `/remove-summary &lt;part&gt; [unwind]` | Removes the summary of a part (`unwind` brings back what a meta summary replaced). Asks first. |
+| `/revalidate-summaries [part]` | Says the outdated summaries still describe the story (all of the active branch, or only that part's). Use it only when you checked. |
+| `/regenerate-summary &lt;part&gt;` | Has the model make the summary on a part again. Slow, costs tokens. |
+| `/create-meta-summary &lt;from&gt; &lt;to&gt;` | Has the model merge the summaries from the part `from` (newest) back to `to` into one. Slow, costs tokens. |
+| `/next [scene] [pov] [present] [instructions] [after] [profile]` | Has the model write the next part, like the **New turn** button. Slow, costs tokens; one generation of a book runs at a time, the others wait. `profile` names one of the model profiles of an agent. |
+| `/swipe [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write another version of the last part of a branch. What you leave out is taken from the part. |
+| `/regenerate [part] [scene] [pov] [present] [instructions] [profile]` | Has the model write the last part of a branch again, replacing its text. Asks first. |
+| `/set-book-info [name] [description] [pov] [tense] [style] [language]` | Changes the descriptive settings of the book; only the values you give. |
+| `/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]` | Replaces the prompt templates of the book. Each is checked first. `DESTRUCTIVE`: a bad template spoils every later generation. |
+| `/set-book-tags [add] [remove]` | Adds and takes off tags of the book (comma separated). |
+| `/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]` | Adds an entry to a lorebook (the root when none is given). A problem of the template or of the regular expression is saved and reported. |
+| `/update-lore-entry &lt;entry&gt; [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]` | Changes the fields you give. |
+| `/delete-lore-entry &lt;entry&gt;` | Deletes an entry. Asks first. |
+| `/move-lore-entry &lt;entry&gt; &lt;lorebook&gt;` | Moves an entry to another lorebook of the book. |
+| `/set-lore-entry-tags &lt;entry&gt; [add] [remove] [addNegative] [removeNegative]` | Changes the tags and negative tags of an entry (comma separated). |
+| `/create-lorebook &lt;name&gt; [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given). |
+| `/set-lorebook &lt;lorebook&gt; [name] [enabled]` | Renames a lorebook or switches it on or off. |
+| `/add-subbook &lt;lorebook&gt; &lt;subbook&gt;`, `/remove-subbook &lt;lorebook&gt; &lt;subbook&gt;` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. |
+| `/delete-lorebook &lt;lorebook&gt;` | Deletes a lorebook with its entries (not the root). Asks first. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/edit-part &lt;part&gt; &lt;old&gt; &lt;new&gt; [field]</code></td>
+<td>Replaces <code translate="no" v-pre>old</code> by <code translate="no" v-pre>new</code> in the text of a part; <code translate="no" v-pre>old</code> must be found exactly once, otherwise nothing changes and the error says how many times it was found. <code translate="no" v-pre>field</code> edits the <code translate="no" v-pre>instructions</code>, <code translate="no" v-pre>scene</code>, <code translate="no" v-pre>pov</code> or <code translate="no" v-pre>present</code> characters of the turn instead.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/replace-part-text &lt;part&gt; &lt;text&gt; [field]</code></td>
+<td>Replaces the whole text of a part. Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/append-to-part &lt;part&gt; &lt;text&gt; [separator]</code></td>
+<td>Adds text to the end of a part, after a blank line unless <code translate="no" v-pre>separator</code> says otherwise.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-part-fields &lt;part&gt; [instructions] [scene] [pov] [present]</code></td>
+<td>Changes what a part was made from, which a new generation of it reuses; an empty text clears a field, a field you leave out stays.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-part &lt;text&gt; [parent] [instructions] [scene] [pov] [present]</code></td>
+<td>Writes a new part after the last part of the active branch, or after <code translate="no" v-pre>parent</code> (a new branch); it becomes the end of the active branch.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/branch-part &lt;part&gt;</code></td>
+<td>Copies a part (and its summary) next to it, a new swipe that starts a branch, and makes the copy the active end.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-part &lt;part&gt;</code></td>
+<td>Deletes a part and its summary; the parts that followed it stay. Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/switch-branch &lt;part&gt;</code></td>
+<td>Makes the branch through a part the active one.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-summary &lt;part&gt; &lt;text&gt;</code></td>
+<td>Replaces the text of the summary on a part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/remove-summary &lt;part&gt; [unwind]</code></td>
+<td>Removes the summary of a part (<code translate="no" v-pre>unwind</code> brings back what a meta summary replaced). Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/revalidate-summaries [part]</code></td>
+<td>Says the outdated summaries still describe the story (all of the active branch, or only that part&#x27;s). Use it only when you checked.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/regenerate-summary &lt;part&gt;</code></td>
+<td>Has the model make the summary on a part again. Slow, costs tokens.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-meta-summary &lt;from&gt; &lt;to&gt;</code></td>
+<td>Has the model merge the summaries from the part <code translate="no" v-pre>from</code> (newest) back to <code translate="no" v-pre>to</code> into one. Slow, costs tokens.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/next [scene] [pov] [present] [instructions] [after] [profile]</code></td>
+<td>Has the model write the next part, like the <strong>New turn</strong> button. Slow, costs tokens; one generation of a book runs at a time, the others wait. <code translate="no" v-pre>profile</code> names one of the model profiles of an agent.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/swipe [part] [scene] [pov] [present] [instructions] [profile]</code></td>
+<td>Has the model write another version of the last part of a branch. What you leave out is taken from the part.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/regenerate [part] [scene] [pov] [present] [instructions] [profile]</code></td>
+<td>Has the model write the last part of a branch again, replacing its text. Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-book-info [name] [description] [pov] [tense] [style] [language]</code></td>
+<td>Changes the descriptive settings of the book; only the values you give.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-book-prompts [template] [userPrompt] [summaryPrompt] [metaSummaryPrompt]</code></td>
+<td>Replaces the prompt templates of the book. Each is checked first. <code translate="no" v-pre>DESTRUCTIVE</code>: a bad template spoils every later generation.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-book-tags [add] [remove]</code></td>
+<td>Adds and takes off tags of the book (comma separated).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-lore-entry &lt;name&gt; &lt;payload&gt; [lorebook] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode] [tags]</code></td>
+<td>Adds an entry to a lorebook (the root when none is given). A problem of the template or of the regular expression is saved and reported.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/update-lore-entry &lt;entry&gt; [name] [payload] [comment] [enabled] [order] [keys] [filteringMode] [insertionMode]</code></td>
+<td>Changes the fields you give.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-lore-entry &lt;entry&gt;</code></td>
+<td>Deletes an entry. Asks first.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/move-lore-entry &lt;entry&gt; &lt;lorebook&gt;</code></td>
+<td>Moves an entry to another lorebook of the book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-lore-entry-tags &lt;entry&gt; [add] [remove] [addNegative] [removeNegative]</code></td>
+<td>Changes the tags and negative tags of an entry (comma separated).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-lorebook &lt;name&gt; [parent]</code></td>
+<td>Makes a lorebook that is a subbook of <code translate="no" v-pre>parent</code> (the root when none is given).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-lorebook &lt;lorebook&gt; [name] [enabled]</code></td>
+<td>Renames a lorebook or switches it on or off.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-subbook &lt;lorebook&gt; &lt;subbook&gt;</code>, <code translate="no" v-pre>/remove-subbook &lt;lorebook&gt; &lt;subbook&gt;</code></td>
+<td>Changes which lorebooks a lorebook contains; a lorebook can&#x27;t contain itself.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-lorebook &lt;lorebook&gt;</code></td>
+<td>Deletes a lorebook with its entries (not the root). Asks first.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The commands that have the model write (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, the two summaries) take time and show the <strong>Stop</strong> window.</p>
 <h2 id="commands-that-come-with-extensions">Commands that come with extensions</h2>
 <p>You see these in the list as long as the extension is loaded; each is described in the documentation of its extension.</p>
 <retype-table copy-text="| Command | Extension | What it does |
@@ -632,7 +797,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fe6ffde3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (8346aead).</p></div>
             </footer>
         </div>
     </div>

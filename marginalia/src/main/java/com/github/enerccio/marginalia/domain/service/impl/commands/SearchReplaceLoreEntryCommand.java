@@ -49,7 +49,7 @@ public class SearchReplaceLoreEntryCommand {
                     @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM)}),
             returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
     public void replace(CommandContext context) throws Exception {
-        run(context, false, true);
+        run(context, false, true, null, false);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
@@ -61,7 +61,7 @@ public class SearchReplaceLoreEntryCommand {
                     @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM)}),
             returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
     public void replaceRegex(CommandContext context) throws Exception {
-        run(context, context.get("regex", Boolean.class), true);
+        run(context, context.get("regex", Boolean.class), true, null, false);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
@@ -74,10 +74,41 @@ public class SearchReplaceLoreEntryCommand {
                     @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM)}),
             returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
     public void replaceCase(CommandContext context) throws Exception {
-        run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class));
+        run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class), null, false);
     }
 
-    private void run(CommandContext context, boolean regex, boolean caseSensitive) throws Exception {
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+            dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
+                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @CommandParameter(name = "maxHits", type = Integer.class, description = L.DESC_COMMAND_MAX_HITS_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
+    public void replaceMaxHits(CommandContext context) throws Exception {
+        run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
+                context.get("maxHits", Integer.class), false);
+    }
+
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_REPLACE_LOREBOOK, async = true,
+            dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+            description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK, llmDescription = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "search", type = String.class, description = L.DESC_COMMAND_SEARCH_PARAM),
+                    @CommandParameter(name = "replace", type = String.class, description = L.DESC_COMMAND_REPLACE_PARAM),
+                    @CommandParameter(name = "regex", type = Boolean.class, description = L.DESC_COMMAND_REGEX_PARAM),
+                    @CommandParameter(name = "caseSensitive", type = Boolean.class, description = L.DESC_COMMAND_CASE_SENSITIVE_PARAM),
+                    @CommandParameter(name = "maxHits", type = Integer.class, description = L.DESC_COMMAND_MAX_HITS_PARAM),
+                    @CommandParameter(name = "dryRun", type = Boolean.class, description = L.DESC_COMMAND_DRY_RUN_PARAM)}),
+            returns = @CommandReturn(name = "message", type = String.class, description = L.DESC_COMMAND_SEARCH_REPLACE_LOREBOOK_RETURN))
+    public void replaceDryRun(CommandContext context) throws Exception {
+        run(context, context.get("regex", Boolean.class), context.get("caseSensitive", Boolean.class),
+                context.get("maxHits", Integer.class), context.get("dryRun", Boolean.class));
+    }
+
+    private void run(CommandContext context, boolean regex, boolean caseSensitive, Integer maxHits, boolean dryRun) throws Exception {
         Manuscript manuscript = context.getScope().getManuscript();
         if (manuscript == null) {
             throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
@@ -115,9 +146,18 @@ public class SearchReplaceLoreEntryCommand {
             return;
         }
 
-        // there is no preview, so the user decides on the numbers
         context.setStatus(null);
         context.setSubStatus(null);
+        if (dryRun) {
+            // only the numbers and a few matches, to decide whether the replace is wanted
+            context.setReturn(String.format(loc.getValue(L.MSG_COMMAND_REPLACE_DRY_RUN), plan.hitCount(), plan.items().size())
+                    + SearchReplaceCommands.samples(plan.items().stream().flatMap(item -> item.hits().stream()).toList()));
+            return;
+        }
+        if (maxHits != null && plan.hitCount() > maxHits) {
+            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_TOO_MANY_HITS), plan.hitCount(), maxHits));
+        }
+        // there is no preview, so the user decides on the numbers
         String question = String.format(loc.getValue(L.MSG_COMMAND_REPLACE_CONFIRM), plan.hitCount(),
                 plan.items().size(), SearchReplaceCommands.shorten(search), SearchReplaceCommands.shorten(replacement));
         if (!confirm(context, question)) {

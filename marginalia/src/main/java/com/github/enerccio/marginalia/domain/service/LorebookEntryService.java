@@ -52,6 +52,13 @@ public interface LorebookEntryService extends ExtendableService<LorebookEntry, L
      */
     void deleteEntry(Lorebook lorebook, LorebookEntry entry) throws Exception;
 
+    /**
+     * Moves the entry to another lorebook.
+     *
+     * @throws IllegalArgumentException when the entry or the lorebook is not the user's
+     */
+    LorebookEntry move(LorebookEntry entry, Lorebook target) throws Exception;
+
     record EntrySaved(LorebookEntry entry, List<EntryProblem> problems) {
     }
 

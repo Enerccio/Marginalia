@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845737720540">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845742431545">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845737720540" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845742431545" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -199,7 +199,7 @@ context made from the database, a state machine that can be paused and resumed, 
 | `AgentMessageService` | `domain.service` | The transcript, append only. |
 | `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. |
 | `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
-| `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `get_run_status`. |
+| `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `request_compaction`, `get_run_status`. |
 | `ImageTools`, `ImageFiles`, `ShownImages` | `domain.service.agent` | `view_image` (only for a profile with `images`), the image checks and scaling, and the images asked for in a round; see [Images](#images). |
 | `CommandResults` | `domain.service.agent` | The last 10 results of the commands of a run, whole. |
 | `AgentApprovalService`, `AgentAttentionService` | `domain.service` | Bring the user in: approve a command, a notice that a run needs them. |
@@ -259,7 +259,7 @@ context made from the database, a state machine that can be paused and resumed, 
 <tr>
 <td><code translate="no" v-pre>RunTools</code></td>
 <td><code translate="no" v-pre>domain.service.agent</code></td>
-<td><code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>update_plan</code>, <code translate="no" v-pre>get_run_status</code>.</td>
+<td><code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>update_plan</code>, <code translate="no" v-pre>request_compaction</code>, <code translate="no" v-pre>get_run_status</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ImageTools</code>, <code translate="no" v-pre>ImageFiles</code>, <code translate="no" v-pre>ShownImages</code></td>
@@ -550,7 +550,7 @@ and ends; a pause and a stop wait.</p>
 </ol>
 <p>A status change that finds another status than it expected (the user paused meanwhile) is not an error: <code translate="no" v-pre>reach</code> and <code translate="no" v-pre>pause</code> then do the pause or stop that was asked.
 Anything the worker throws that is not one of these makes the run <code translate="no" v-pre>FAILED</code> with the message. <code translate="no" v-pre>RunTools</code> (<code translate="no" v-pre>domain.service.agent</code>) are <code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>update_plan</code>
-(statuses <code translate="no" v-pre>pending</code>, <code translate="no" v-pre>in_progress</code>, <code translate="no" v-pre>done</code>; the usual other spellings are mapped) and <code translate="no" v-pre>get_run_status</code>; <code translate="no" v-pre>RunToolsImpl</code> only notes the request of the model, the worker acts on
+(statuses <code translate="no" v-pre>pending</code>, <code translate="no" v-pre>in_progress</code>, <code translate="no" v-pre>done</code>; the usual other spellings are mapped) <code translate="no" v-pre>request_compaction</code> (the focus is noted, <code translate="no" v-pre>isCompactionRequested</code>) and <code translate="no" v-pre>get_run_status</code>; <code translate="no" v-pre>RunToolsImpl</code> only notes the request of the model, the worker acts on
 it after the round, so every call of the round has its result in the transcript first.</p>
 <p>The transcript is <code translate="no" v-pre>AgentMessage</code> (table <code translate="no" v-pre>agent_messages</code>): the run, the <code translate="no" v-pre>ordinal</code> and the <code translate="no" v-pre>LLMChatMessage</code> as JSON in an extended attribute, only appended. The system
 message is not stored.</p>
@@ -620,7 +620,12 @@ and the system message take at most 80% of the context cap, so a run that stoppe
 plan appended (<code translate="no" v-pre>Your plan when this summary was written</code>): <code translate="no" v-pre>update_plan</code> calls are in the compacted rows and <code translate="no" v-pre>planOf</code> would not find them after a resume. <code translate="no" v-pre>AgentMessageService.compact</code> marks every row of the run
 <code translate="no" v-pre>compacted</code> (extended attribute of <code translate="no" v-pre>AgentMessage</code>, no migration) and appends the summary as a row with <code translate="no" v-pre>summary</code>; <code translate="no" v-pre>transcript</code> leaves the compacted rows out, <code translate="no" v-pre>messages</code> and <code translate="no" v-pre>count</code> keep them, so the console shows everything
 (the summary as a folded block) and the Markdown export keeps it. A failure (no model, no text, a tool call instead of text) changes nothing and is written to the transcript as a message of the author. Not built:
-compaction by itself at a threshold of the context, and a <code translate="no" v-pre>request_compaction</code> tool for the agent.</p>
+compaction by the runner itself at a threshold of the context.</p>
+<p>The agent is warned instead and compacts itself. After the tools of a round are answered (and <code translate="no" v-pre>finish</code> / <code translate="no" v-pre>ask_user</code> did not end the turn) the worker either runs <code translate="no" v-pre>compactForAgent</code> (the model called
+<code translate="no" v-pre>request_compaction</code>: <code translate="no" v-pre>compact(focus, transcript, true)</code>, the note of the summary is <code translate="no" v-pre>Defaults.AGENT_SELF_COMPACTED_NOTE</code>, the focus line says &quot;You asked&quot;, <code translate="no" v-pre>ignoreForce</code> as for <code translate="no" v-pre>/compact</code>; a failure is written to
+the transcript as a message to the agent) or <code translate="no" v-pre>warnAboutContext</code>: when the context of the last request (<code translate="no" v-pre>Progress.contextTokens</code>, so without the results of this round) is at least
+<code translate="no" v-pre>Defaults.AGENT_CONTEXT_WARNING_PERCENT</code> (75) of <code translate="no" v-pre>contextCap</code> it appends a <code translate="no" v-pre>USER</code> message, <code translate="no" v-pre>Defaults.AGENT_CONTEXT_WARNING</code>, from <code translate="no" v-pre>AGENT_CONTEXT_CRITICAL_PERCENT</code> (90) <code translate="no" v-pre>AGENT_CONTEXT_CRITICAL</code>. One notice per
+round while above the threshold, none without a cap. <code translate="no" v-pre>Defaults.AGENT_RUNNER_NOTE</code> tells the agent about both.</p>
 <h2 id="the-tools-of-an-agent">The tools of an agent</h2>
 <p><code translate="no" v-pre>AgentRunnerImpl.Worker.tools()</code> puts three function sets together with <code translate="no" v-pre>FunctionSet.and</code> (a function name used twice fails the run):</p>
 <div id="the-tools-of-an-agent-code-1" class="codeblock-wrapper"><doc-codeblock>
@@ -1030,7 +1035,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fe6ffde3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (8346aead).</p></div>
             </footer>
         </div>
     </div>

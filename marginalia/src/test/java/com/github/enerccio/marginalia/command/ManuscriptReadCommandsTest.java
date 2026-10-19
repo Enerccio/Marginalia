@@ -131,7 +131,27 @@ class ManuscriptReadCommandsTest extends GenerationTestBase {
         assertThat(parts.get(1).getAsJsonObject().get("position").getAsInt()).isEqualTo(2);
         assertThat(parts.get(1).getAsJsonObject().get("swipes").getAsInt()).isEqualTo(2);
         assertThat(parts.get(1).getAsJsonObject().get("preview").getAsString()).startsWith("John went home");
-        assertThat(parts.toString()).doesNotContain(first.getUuid()).doesNotContain(second.getUuid());
+        assertThat(parts.get(0).getAsJsonObject().get("handle").getAsString()).isEqualTo(first.getUuid());
+        assertThat(parts.get(1).getAsJsonObject().get("handle").getAsString()).isEqualTo(second.getUuid());
+    }
+
+    @Test
+    void partsAndBranchesAreAddressedByHandle() throws Exception {
+        JsonObject part = run("/get-part " + other.getUuid());
+        assertThat(part.get("text").getAsString()).isEqualTo("Another John.");
+        assertThat(part.get("position").getAsInt()).isEqualTo(2);
+        assertThat(part.get("handle").getAsString()).isEqualTo(other.getUuid());
+
+        // a branch is named by a part on it
+        JsonObject list = run("/list-parts " + other.getUuid());
+        assertThat(list.getAsJsonArray("parts").get(1).getAsJsonObject().get("preview").getAsString()).isEqualTo("Another John.");
+        JsonObject branches = run("/list-branches");
+        assertThat(branches.getAsJsonArray("branches").get(1).getAsJsonObject().get("handle").getAsString()).isEqualTo(other.getUuid());
+        assertThat(branches.getAsJsonArray("branches").get(1).getAsJsonObject().get("forkHandle").getAsString()).isEqualTo(first.getUuid());
+
+        assertThatThrownBy(() -> run("/get-part 6f1d3a52-0000-4000-8000-000000000000")).isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> run("/get-part second")).isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("neither a handle");
     }
 
     @Test
@@ -288,9 +308,12 @@ class ManuscriptReadCommandsTest extends GenerationTestBase {
         assertThat(text.get("tokens").getAsLong()).isPositive();
         assertThat(text.get("characters").getAsInt()).isEqualTo(17);
 
-        JsonObject part = commandsRun("count-tokens", java.util.List.of(2, 2));
+        JsonObject part = commandsRun("count-tokens", java.util.List.<Object>of("2", "2"));
         assertThat(part.get("characters").getAsInt()).isEqualTo("Another John.".length());
-        assertThat(commandsRun("count-tokens", java.util.List.of(1)).get("position").getAsInt()).isEqualTo(1);
+        // the handle of a part counts the part
+        JsonObject byHandle = run("/count-tokens " + first.getUuid());
+        assertThat(byHandle.get("position").getAsInt()).isEqualTo(1);
+        assertThat(byHandle.get("handle").getAsString()).isEqualTo(first.getUuid());
     }
 
     @Test

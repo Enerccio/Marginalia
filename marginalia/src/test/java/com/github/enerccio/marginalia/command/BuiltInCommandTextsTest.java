@@ -61,6 +61,17 @@ class BuiltInCommandTextsTest extends MarginaliaTestBase {
                 "list-lorebooks", "list-lore-entries", "get-lore-entry", "search-lore", "preview-lore-activation")) {
             expected.put(name, CommandDataSeverity.NON_DESTRUCTIVE);
         }
+        // the commands that change the book: what they do to the text that exists decides (adding is not destructive)
+        for (String name : List.of("edit-part", "append-to-part", "set-part-fields", "create-part", "branch-part", "switch-branch",
+                "set-summary", "revalidate-summaries", "regenerate-summary", "create-meta-summary", "next", "swipe",
+                "set-book-info", "set-book-tags", "create-lore-entry", "update-lore-entry", "move-lore-entry",
+                "set-lore-entry-tags", "create-lorebook", "set-lorebook", "add-subbook", "remove-subbook")) {
+            expected.put(name, CommandDataSeverity.NON_DESTRUCTIVE);
+        }
+        for (String name : List.of("replace-part-text", "delete-part", "remove-summary", "regenerate", "set-book-prompts",
+                "delete-lore-entry", "delete-lorebook")) {
+            expected.put(name, CommandDataSeverity.DESTRUCTIVE);
+        }
         for (CommandDefinition definition : commandService.getCommands()) {
             assertThat(expected).as("a built-in command with a declared severity").containsKey(definition.commandName());
             assertThat(definition.dataSeverity()).as("severity of %s", definition.commandName())

@@ -18,54 +18,56 @@ public class ShowPromptCommand extends ManuscriptReadSupport {
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SHOW_PROMPT, llmDescription = L.DESC_COMMAND_SHOW_PROMPT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
     public void showPrompt(CommandContext context) throws Exception {
-        showPrompt(context, context.get("part", Integer.class), null, null, null);
+        showPrompt(context, ref(context, "part"), null, null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SHOW_PROMPT,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SHOW_PROMPT, llmDescription = L.DESC_COMMAND_SHOW_PROMPT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
     public void showPromptBranch(CommandContext context) throws Exception {
-        showPrompt(context, context.get("part", Integer.class), context.get("branch", Integer.class), null, null);
+        showPrompt(context, ref(context, "part"), ref(context, "branch"), null, null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SHOW_PROMPT,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SHOW_PROMPT, llmDescription = L.DESC_COMMAND_SHOW_PROMPT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
     public void showPromptOffset(CommandContext context) throws Exception {
-        showPrompt(context, context.get("part", Integer.class), context.get("branch", Integer.class), context.get("offset", Integer.class), null);
+        showPrompt(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), null);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SHOW_PROMPT,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SHOW_PROMPT, llmDescription = L.DESC_COMMAND_SHOW_PROMPT_LLM,
             signature = @CommandParameterSignature({
-                    @CommandParameter(name = "part", type = Integer.class, description = L.DESC_COMMAND_PART_PARAM),
-                    @CommandParameter(name = "branch", type = Integer.class, description = L.DESC_COMMAND_BRANCH_PARAM),
+                    @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
+                    @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),
                     @CommandParameter(name = "length", type = Integer.class, description = L.DESC_COMMAND_LENGTH_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SHOW_PROMPT_RETURN))
     public void showPromptLength(CommandContext context) throws Exception {
-        showPrompt(context, context.get("part", Integer.class), context.get("branch", Integer.class), context.get("offset", Integer.class), context.get("length", Integer.class));
+        showPrompt(context, ref(context, "part"), ref(context, "branch"), context.get("offset", Integer.class), context.get("length", Integer.class));
     }
 
-    private void showPrompt(CommandContext context, Integer position, Integer branch, Integer offset, Integer length)
+    private void showPrompt(CommandContext context, String position, String branch, Integer offset, Integer length)
             throws Exception {
         Book book = new Book(context);
-        ChatMessage message = book.part(book.path(branch), position);
+        Book.Located at = book.locate(position, branch);
+        ChatMessage message = at.message();
         JsonObject result = new JsonObject();
-        result.addProperty("position", position);
+        result.addProperty("handle", message.getUuid());
+        result.addProperty("position", at.position());
         result.addProperty("available", message.getBuiltPrompt() != null);
         if (message.getBuiltPrompt() != null) {
             result.addProperty("promptTokens", message.getBuiltPromptTokens());
