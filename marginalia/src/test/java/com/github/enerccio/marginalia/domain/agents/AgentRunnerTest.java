@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.CheckpointService;
@@ -400,6 +401,52 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(run.getRounds()).isEqualTo(2);
         // the model saw the first round again
         assertThat(llm.lastCompletionRequest().getMessages("tool")).hasSize(1);
+    }
+
+    @Test
+    void theModelIsToldWhatTheUserChangedWhileTheRunWasPausedAndCanAskAgain() throws Exception {
+        Agent agent = readingAgent();
+        agent.setMaxRounds(1);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.toolCall("get_sync_report", "{}"),
+                MockLLMResponse.text("Thanks."));
+
+        AgentRun run = await(startRun(agent));
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        // the book is the user's while the run is paused
+        Manuscript book = manuscriptService.find(agent.getManuscript().getId());
+        book.setDescription("A new description");
+        manuscriptService.save(book);
+        agent.setMaxRounds(null);
+        agentService.save(agent);
+
+        runner.run(agentRunService.resume(run));
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        List<LLMChatMessage> transcript = transcript(run);
+        LLMChatMessage told = transcript.stream().filter(m -> m.getRole() == LLMRole.USER && m.getContent().contains("While the run was paused"))
+                .findFirst().orElseThrow();
+        assertThat(told.getContent()).contains("book setting \"description\" changed by the user").endsWith("with your task. If you have finished it, call finish with your report.");
+        assertThat(transcript.stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList().getLast())
+                .contains("Taken over into your working copy");
+        assertThat(llm.lastCompletionRequest().getBody().getAsJsonArray("tools").toString()).contains("get_sync_report");
+    }
+
+    @Test
+    void aResumeWithoutChangesToTheBookAddsNoNoteForTheModel() throws Exception {
+        Agent agent = readingAgent();
+        agent.setMaxRounds(1);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.text("Done reading."));
+
+        AgentRun run = await(startRun(agent));
+        agent.setMaxRounds(null);
+        agentService.save(agent);
+        runner.run(agentRunService.resume(run));
+        run = await(run);
+
+        assertThat(transcript(run).stream().map(LLMChatMessage::getContent)).noneMatch(c -> c != null && c.contains("While the run was paused"));
     }
 
     @Test

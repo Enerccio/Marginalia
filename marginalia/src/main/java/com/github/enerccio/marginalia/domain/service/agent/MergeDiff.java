@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,27 +84,52 @@ public final class MergeDiff {
     }
 
     /**
+     * What the agent changed, to be taken over by the book (the review).
+     *
      * @param base           the snapshot of the book when the run started
      * @param copy           the snapshot of the working copy
      * @param current        the snapshot of the book now
      * @param copyToOriginal the pairs of the run: the uuid of an item of the copy to the uuid of the item it was made from
      */
     public static MergePlan compute(JsonObject base, JsonObject copy, JsonObject current, Map<String, String> copyToOriginal) {
-        View baseView = view(base, null);
-        View copyView = view(copy, copyToOriginal);
-        View currentView = view(current, null);
+        Map<String, String> originalToCopy = invert(copyToOriginal);
+        return compute(base, view(copy, copyToOriginal), view(current, null),
+                key -> key.startsWith(NEW) ? key.substring(NEW.length()) : originalToCopy.get(key),
+                key -> key.startsWith(NEW) ? null : key);
+    }
+
+    /**
+     * What the user changed in the book since the run started, to be taken over by the working copy (the sync on resume): the
+     * same comparison with the roles swapped. The items of the plan have the book as their source and the copy as their
+     * target; what the agent changed too is a conflict.
+     *
+     * @param book           the snapshot of the book now
+     * @param copy           the snapshot of the working copy
+     * @param copyToOriginal the pairs of the run
+     */
+    public static MergePlan computeSync(JsonObject base, JsonObject book, JsonObject copy, Map<String, String> copyToOriginal) {
+        Map<String, String> originalToCopy = invert(copyToOriginal);
+        return compute(base, view(book, null), view(copy, copyToOriginal), key -> key, originalToCopy::get);
+    }
+
+    private static Map<String, String> invert(Map<String, String> copyToOriginal) {
         Map<String, String> originalToCopy = new HashMap<>();
         copyToOriginal.forEach((copyUuid, original) -> originalToCopy.putIfAbsent(original, copyUuid));
+        return originalToCopy;
+    }
 
-        boolean bookChanged = !baseView.messages.equals(currentView.messages) || !baseView.lorebooks.equals(currentView.lorebooks)
-                || !baseView.entries.equals(currentView.entries) || !baseView.book.equals(currentView.book);
+    private static MergePlan compute(JsonObject base, View changed, View other, Function<String, String> source,
+                                     Function<String, String> target) {
+        View baseView = view(base, null);
+        boolean bookChanged = !baseView.messages.equals(other.messages) || !baseView.lorebooks.equals(other.lorebooks)
+                || !baseView.entries.equals(other.entries) || !baseView.book.equals(other.book);
 
         Map<String, String> names = new HashMap<>();
-        for (View v : List.of(baseView, currentView, copyView)) {
+        for (View v : List.of(baseView, other, changed)) {
             v.lorebooks.forEach((key, props) -> names.put(key, props.get("name")));
         }
 
-        Context context = new Context(baseView, copyView, currentView, originalToCopy, names);
+        Context context = new Context(baseView, changed, other, source, target, names);
         List<Item> items = new ArrayList<>(bookItems(context));
         items.addAll(lorebookItems(context));
         items.addAll(entryItems(context));
@@ -111,14 +137,19 @@ public final class MergeDiff {
         return new MergePlan(items, names, bookChanged);
     }
 
-    private record Context(View base, View copy, View current, Map<String, String> originalToCopy, Map<String, String> names) {
+    /**
+     * The three views, and where the uuid of an item is in the source (the side that changed) and in the target (the side that
+     * takes the change over). A key is the uuid in the book, or {@code new:} and the uuid in the copy for an item the agent made.
+     */
+    private record Context(View base, View changed, View other, Function<String, String> source, Function<String, String> target,
+                           Map<String, String> names) {
 
-        String copyUuid(String key) {
-            return key.startsWith(NEW) ? key.substring(NEW.length()) : originalToCopy.get(key);
+        String sourceUuid(String key) {
+            return source.apply(key);
         }
 
-        String originalUuid(String key) {
-            return key.startsWith(NEW) ? null : key;
+        String targetUuid(String key) {
+            return target.apply(key);
         }
     }
 
@@ -396,12 +427,12 @@ public final class MergeDiff {
     private static List<Item> bookItems(Context context) {
         Set<String> names = new LinkedHashSet<>(BOOK_FIELDS);
         names.add(TAGS);
-        for (View view : List.of(context.base, context.copy, context.current)) {
+        for (View view : List.of(context.base, context.changed, context.other)) {
             view.book.keySet().stream().filter(name -> name.startsWith(ATTRIBUTES)).sorted().forEach(names::add);
         }
         List<Item> items = new ArrayList<>();
         for (String name : names) {
-            Field field = compare(name, context.base.book, context.copy.book, context.current.book);
+            Field field = compare(name, context.base.book, context.changed.book, context.other.book);
             if (field != null) {
                 items.add(new Item(ID_BOOK + name, Kind.BOOK, Change.CHANGED, null, null, name, null, List.of(field), field.conflict(), null, List.of()));
             }
@@ -415,32 +446,32 @@ public final class MergeDiff {
         List<Item> changed = new ArrayList<>();
         List<Item> added = new ArrayList<>();
         List<Item> deleted = new ArrayList<>();
-        for (Map.Entry<String, Map<String, String>> e : context.copy.lorebooks.entrySet()) {
+        for (Map.Entry<String, Map<String, String>> e : context.changed.lorebooks.entrySet()) {
             String key = e.getKey();
             Map<String, String> props = e.getValue();
             Map<String, String> base = context.base.lorebooks.get(key);
-            Map<String, String> current = context.current.lorebooks.get(key);
+            Map<String, String> current = context.other.lorebooks.get(key);
             if (base == null) {
-                if (key.startsWith(NEW)) {
-                    added.add(new Item(ID_LOREBOOK + key, Kind.LOREBOOK, Change.ADDED, context.copyUuid(key), null, props.get("name"),
+                if (current == null) {
+                    added.add(new Item(ID_LOREBOOK + key, Kind.LOREBOOK, Change.ADDED, context.sourceUuid(key), null, props.get("name"),
                             null, oneSided(LOREBOOK_FIELDS, props, true, null), false, null, List.of()));
                 }
                 continue;
             }
             List<Field> fields = compareAll(LOREBOOK_FIELDS, base, props, current);
             if (!fields.isEmpty()) {
-                changed.add(new Item(ID_LOREBOOK + key, Kind.LOREBOOK, Change.CHANGED, context.copyUuid(key), key, props.get("name"), null,
+                changed.add(new Item(ID_LOREBOOK + key, Kind.LOREBOOK, Change.CHANGED, context.sourceUuid(key), context.targetUuid(key), props.get("name"), null,
                         fields, fields.stream().anyMatch(Field::conflict), current == null ? MergePlan.PROBLEM_GONE : null, List.of()));
             }
         }
         for (Map.Entry<String, Map<String, String>> e : context.base.lorebooks.entrySet()) {
             String key = e.getKey();
-            Map<String, String> current = context.current.lorebooks.get(key);
-            if (context.copy.lorebooks.containsKey(key) || current == null) {
+            Map<String, String> current = context.other.lorebooks.get(key);
+            if (context.changed.lorebooks.containsKey(key) || current == null) {
                 continue;
             }
-            boolean conflict = !same(LOREBOOK_FIELDS, e.getValue(), current) || !entriesOf(context.base, key).equals(entriesOf(context.current, key));
-            deleted.add(new Item(ID_LOREBOOK + key, Kind.LOREBOOK, Change.DELETED, null, key, e.getValue().get("name"), null,
+            boolean conflict = !same(LOREBOOK_FIELDS, e.getValue(), current) || !entriesOf(context.base, key).equals(entriesOf(context.other, key));
+            deleted.add(new Item(ID_LOREBOOK + key, Kind.LOREBOOK, Change.DELETED, null, context.targetUuid(key), e.getValue().get("name"), null,
                     oneSided(LOREBOOK_FIELDS, e.getValue(), false, current), conflict, null, List.of()));
         }
         List<Item> items = new ArrayList<>(added);
@@ -463,40 +494,53 @@ public final class MergeDiff {
         List<Item> changed = new ArrayList<>();
         List<Item> added = new ArrayList<>();
         List<Item> deleted = new ArrayList<>();
-        for (Map.Entry<String, Map<String, String>> e : context.copy.entries.entrySet()) {
+        for (Map.Entry<String, Map<String, String>> e : context.changed.entries.entrySet()) {
             String key = e.getKey();
             Map<String, String> props = e.getValue();
             Map<String, String> base = context.base.entries.get(key);
-            Map<String, String> current = context.current.entries.get(key);
+            Map<String, String> current = context.other.entries.get(key);
             if (base == null) {
-                if (key.startsWith(NEW)) {
+                if (current == null) {
                     String lorebook = props.get("lorebook");
-                    boolean newBook = lorebook.startsWith(NEW);
-                    added.add(new Item(ID_ENTRY + key, Kind.ENTRY, Change.ADDED, context.copyUuid(key), null, entryLabel(context, props), newBook ? ID_LOREBOOK + lorebook : null,
+                    boolean newBook = isNew(context, lorebook);
+                    added.add(new Item(ID_ENTRY + key, Kind.ENTRY, Change.ADDED, context.sourceUuid(key), null, entryLabel(context, props), newBook ? ID_LOREBOOK + lorebook : null,
                             oneSided(ENTRY_FIELDS, props, true, null), false,
-                            newBook || context.current.lorebooks.containsKey(lorebook) ? null : MergePlan.PROBLEM_NEEDS_LOREBOOK, List.of()));
+                            newBook || context.other.lorebooks.containsKey(lorebook) ? null : MergePlan.PROBLEM_NEEDS_LOREBOOK, List.of()));
                 }
                 continue;
             }
             List<Field> fields = compareAll(ENTRY_FIELDS, base, props, current);
             if (!fields.isEmpty()) {
-                changed.add(new Item(ID_ENTRY + key, Kind.ENTRY, Change.CHANGED, context.copyUuid(key), key, entryLabel(context, props), null,
+                changed.add(new Item(ID_ENTRY + key, Kind.ENTRY, Change.CHANGED, context.sourceUuid(key), context.targetUuid(key), entryLabel(context, props), null,
                         fields, fields.stream().anyMatch(Field::conflict), current == null ? MergePlan.PROBLEM_GONE : null, List.of()));
             }
         }
         for (Map.Entry<String, Map<String, String>> e : context.base.entries.entrySet()) {
             String key = e.getKey();
-            Map<String, String> current = context.current.entries.get(key);
-            if (context.copy.entries.containsKey(key) || current == null) {
+            Map<String, String> current = context.other.entries.get(key);
+            if (context.changed.entries.containsKey(key) || current == null) {
                 continue;
             }
-            deleted.add(new Item(ID_ENTRY + key, Kind.ENTRY, Change.DELETED, null, key, entryLabel(context, e.getValue()), null,
+            deleted.add(new Item(ID_ENTRY + key, Kind.ENTRY, Change.DELETED, null, context.targetUuid(key), entryLabel(context, e.getValue()), null,
                     oneSided(ENTRY_FIELDS, e.getValue(), false, current), !same(ENTRY_FIELDS, e.getValue(), current), null, List.of()));
         }
         List<Item> items = new ArrayList<>(added);
         items.addAll(changed);
         items.addAll(deleted);
         return items;
+    }
+
+    /**
+     * Whether the lorebook is new on the changed side: neither the base nor the other side has it.
+     */
+    private static boolean isNew(Context context, String lorebook) {
+        return context.changed.lorebooks.containsKey(lorebook) && !context.base.lorebooks.containsKey(lorebook)
+                && !context.other.lorebooks.containsKey(lorebook);
+    }
+
+    private static boolean isNewPart(Context context, String part) {
+        return context.changed.messages.containsKey(part) && !context.base.messages.containsKey(part)
+                && !context.other.messages.containsKey(part);
     }
 
     private static String entryLabel(Context context, Map<String, String> props) {
@@ -509,42 +553,42 @@ public final class MergeDiff {
         List<Item> changed = new ArrayList<>();
         List<Map.Entry<String, Map<String, String>>> added = new ArrayList<>();
         List<Item> deleted = new ArrayList<>();
-        for (Map.Entry<String, Map<String, String>> e : context.copy.messages.entrySet()) {
+        for (Map.Entry<String, Map<String, String>> e : context.changed.messages.entrySet()) {
             String key = e.getKey();
             Map<String, String> props = e.getValue();
             Map<String, String> base = context.base.messages.get(key);
-            Map<String, String> current = context.current.messages.get(key);
+            Map<String, String> current = context.other.messages.get(key);
             if (base == null) {
-                if (key.startsWith(NEW)) {
+                if (current == null) {
                     added.add(e);
                 }
                 continue;
             }
             List<Field> fields = compareAll(MESSAGE_FIELDS, base, props, current);
             if (!fields.isEmpty()) {
-                changed.add(new Item(ID_MESSAGE + key, Kind.MESSAGE, Change.CHANGED, context.copyUuid(key), key,
-                        messageLabel(context.copy, key), null, fields, fields.stream().anyMatch(Field::conflict),
+                changed.add(new Item(ID_MESSAGE + key, Kind.MESSAGE, Change.CHANGED, context.sourceUuid(key), context.targetUuid(key),
+                        messageLabel(context.changed, key), null, fields, fields.stream().anyMatch(Field::conflict),
                         current == null ? MergePlan.PROBLEM_GONE : null, List.of()));
             }
         }
-        added.sort(Comparator.comparingInt(e -> depth(context.copy.messages, e.getKey())));
+        added.sort(Comparator.comparingInt(e -> depth(context.changed.messages, e.getKey())));
         List<Item> items = new ArrayList<>();
         for (Map.Entry<String, Map<String, String>> e : added) {
             String key = e.getKey();
             String parent = e.getValue().get("parent");
-            boolean newParent = parent.startsWith(NEW);
-            items.add(new Item(ID_MESSAGE + key, Kind.MESSAGE, Change.ADDED, context.copyUuid(key), null, messageLabel(context.copy, key),
+            boolean newParent = isNewPart(context, parent);
+            items.add(new Item(ID_MESSAGE + key, Kind.MESSAGE, Change.ADDED, context.sourceUuid(key), null, messageLabel(context.changed, key),
                     newParent ? ID_MESSAGE + parent : null, oneSided(MESSAGE_FIELDS, e.getValue(), true, null), false,
-                    parent.isEmpty() || newParent || context.current.messages.containsKey(parent) ? null : MergePlan.PROBLEM_NEEDS_PARENT, List.of()));
+                    parent.isEmpty() || newParent || context.other.messages.containsKey(parent) ? null : MergePlan.PROBLEM_NEEDS_PARENT, List.of()));
         }
         items.addAll(changed);
         for (Map.Entry<String, Map<String, String>> e : context.base.messages.entrySet()) {
             String key = e.getKey();
-            Map<String, String> current = context.current.messages.get(key);
-            if (context.copy.messages.containsKey(key) || current == null) {
+            Map<String, String> current = context.other.messages.get(key);
+            if (context.changed.messages.containsKey(key) || current == null) {
                 continue;
             }
-            deleted.add(new Item(ID_MESSAGE + key, Kind.MESSAGE, Change.DELETED, null, key, messageLabel(context.base, key), null,
+            deleted.add(new Item(ID_MESSAGE + key, Kind.MESSAGE, Change.DELETED, null, context.targetUuid(key), messageLabel(context.base, key), null,
                     oneSided(MESSAGE_FIELDS, e.getValue(), false, current), !same(MESSAGE_FIELDS, e.getValue(), current), null, List.of()));
         }
         items.addAll(deleted);

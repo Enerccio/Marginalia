@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
@@ -17,6 +18,7 @@ import com.github.enerccio.marginalia.domain.service.AgentRunPairService;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
 import com.github.enerccio.marginalia.domain.service.BackupService;
+import com.github.enerccio.marginalia.domain.service.CheckpointService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
@@ -30,7 +32,10 @@ import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Change;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Field;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Item;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Kind;
+import com.github.enerccio.marginalia.domain.service.agent.BaseAdvance;
+import com.github.enerccio.marginalia.domain.service.agent.SyncReport;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
+import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -54,6 +59,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class AgentMergeServiceImpl implements AgentMergeService {
 
@@ -104,6 +111,10 @@ public class AgentMergeServiceImpl implements AgentMergeService {
     @Autowired
     @Lazy
     private BackupService backupService;
+
+    @Autowired
+    @Lazy
+    private CheckpointService checkpointService;
 
     @Autowired
     @Qualifier("common")
@@ -188,9 +199,9 @@ public class AgentMergeServiceImpl implements AgentMergeService {
 
     private List<String> sharedWith(Item item, Map<String, List<String>> shared) throws Exception {
         String lorebook = switch (item.kind()) {
-            case LOREBOOK -> item.originalUuid();
+            case LOREBOOK -> item.targetUuid();
             case ENTRY -> {
-                LorebookEntry entry = item.originalUuid() == null ? null : lorebookEntryService.findForUser(item.originalUuid());
+                LorebookEntry entry = item.targetUuid() == null ? null : lorebookEntryService.findForUser(item.targetUuid());
                 yield entry != null ? entry.getLorebook().getUuid() : item.fields().stream()
                         .filter(field -> field.name().equals("lorebook")).map(Field::agent).findFirst().orElse(null);
             }
@@ -260,60 +271,227 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             throw new IllegalArgumentException("Nothing is picked");
         }
         MergePlan plan = plan(review);
-        return new Applier(review, plan, selection).apply();
+        List<Skipped> skipped = new ArrayList<>();
+        List<Item> chosen = applicable(plan, selection.items(), skipped);
+        if (chosen.isEmpty()) {
+            throw new IllegalArgumentException("Nothing that is picked can be applied");
+        }
+        // the book as it is now, before anything is changed in it (lorebooks and the story are in it)
+        BackupService.ManuscriptBackup backup = backupService.takeBackup(review.original());
+        Direction direction = new Direction(review.copy(), review.original(), review.copyToOriginal(),
+                key -> key.startsWith(MergeDiff.NEW) ? null : key);
+        Outcome outcome = new Applier(direction, chosen, selection.edits(), selection.switchToAgentBranch(), skipped).apply();
+        return new Applied(review.run(), outcome.counts(), outcome.skipped(), backup == null ? null : backup.getFile());
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // sync
+    // ---------------------------------------------------------------------------------------------------------------
+
+    @Override
+    @CommonTx
+    public SyncReport sync(AgentRun run) throws Exception {
+        AgentRun stored = run == null ? null : agentRunService.findForUser(run.getUuid());
+        if (stored == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        if (!stored.getStatus().isResumable() || stored.getWorkingCopy() == null) {
+            throw new IllegalStateException("A run that is " + stored.getStatus() + " has no copy to bring the book into");
+        }
+        Manuscript bookRef = stored.getAgent() == null ? null : stored.getAgent().getManuscript();
+        Manuscript original = bookRef == null ? null : (Manuscript) Hibernate.unproxy(manuscriptService.findForUser(bookRef.getUuid()));
+        if (original == null || original.isDeleted()) {
+            throw new IllegalArgumentException("The book of the agent does not exist");
+        }
+        JsonObject base = fileSystemService.readBase(stored);
+        if (base == null) {
+            return SyncReport.EMPTY;
+        }
+        Manuscript copy = (Manuscript) Hibernate.unproxy(stored.getWorkingCopy());
+        Map<String, String> copyToOriginal = new HashMap<>();
+        Map<String, String> originalToCopy = new HashMap<>();
+        for (UuidPair pair : pairService.getAll(stored)) {
+            if (pair.originalUuid() != null) {
+                copyToOriginal.put(pair.copyUuid(), pair.originalUuid());
+                originalToCopy.putIfAbsent(pair.originalUuid(), pair.copyUuid());
+            }
+        }
+        JsonObject bookSnapshot = snapshotOfBook(original);
+        MergePlan plan = MergeDiff.computeSync(base, bookSnapshot, manuscriptService.snapshotAgenticCopy(copy), copyToOriginal);
+
+        // what the copy can take over: the fields the agent did not change too; the rest is told as a conflict
+        List<SyncReport.Line> conflicts = new ArrayList<>();
+        List<Item> clean = new ArrayList<>();
+        for (Item item : plan.items()) {
+            if (!item.applicable()) {
+                conflicts.add(conflictLine(stored, item, item.change() == Change.CHANGED ? SyncReport.Reason.YOU_DELETED : SyncReport.Reason.NOT_ADDED, List.of()));
+            } else if (item.change() == Change.DELETED) {
+                if (item.conflict()) {
+                    conflicts.add(conflictLine(stored, item, SyncReport.Reason.USER_DELETED, List.of()));
+                } else {
+                    clean.add(item);
+                }
+            } else if (item.change() == Change.CHANGED && item.conflict()) {
+                List<String> both = item.fields().stream().filter(Field::conflict).map(Field::name).toList();
+                conflicts.add(conflictLine(stored, item, SyncReport.Reason.BOTH_CHANGED, both));
+                List<Field> fields = item.fields().stream().filter(field -> !field.conflict()).toList();
+                if (!fields.isEmpty()) {
+                    clean.add(new Item(item.id(), item.kind(), item.change(), item.sourceUuid(), item.targetUuid(), item.label(),
+                            item.dependsOn(), fields, false, null, List.of()));
+                }
+            } else {
+                clean.add(item);
+            }
+        }
+        MergePlan cleanPlan = new MergePlan(clean, plan.names(), plan.bookChanged());
+        List<Skipped> skipped = new ArrayList<>();
+        List<Item> chosen = applicable(cleanPlan, clean.stream().map(Item::id).collect(Collectors.toSet()), skipped);
+        for (Skipped notTaken : skipped) {
+            for (Item item : clean) {
+                if (item.id().equals(notTaken.id())) {
+                    conflicts.add(conflictLine(stored, item, SyncReport.Reason.NOT_ADDED, List.of()));
+                }
+            }
+        }
+
+        List<SyncReport.Line> taken = new ArrayList<>();
+        if (!chosen.isEmpty()) {
+            try {
+                checkpointService.makeAutomatic(stored, "before the changes of the book");
+            } catch (Exception e) {
+                log.warn("Agent run {}: no checkpoint before the sync: {}", stored.getUuid(), e.getMessage());
+            }
+            Direction direction = new Direction(original, copy, originalToCopy, originalToCopy::get);
+            Outcome outcome = new Applier(direction, chosen, Map.of(), false, new ArrayList<>()).apply();
+            List<UuidPair> pairs = new ArrayList<>(pairService.getAll(stored));
+            Map<String, String> madeFrom = new HashMap<>();
+            for (Created made : outcome.created()) {
+                pairs.add(new UuidPair(made.kind(), made.targetUuid(), made.sourceUuid()));
+                madeFrom.put(made.sourceUuid(), made.targetUuid());
+            }
+            pairService.replace(stored, pairs);
+            BaseAdvance.advance(base, bookSnapshot, chosen);
+            fileSystemService.updateBase(stored, base);
+            for (Item item : chosen) {
+                String copyUuid = item.change() == Change.ADDED ? madeFrom.get(item.sourceUuid()) : item.targetUuid();
+                taken.add(new SyncReport.Line(item.kind(), item.change(), handle(stored, item, copyUuid), item.label(),
+                        item.fields().stream().map(Field::name).toList(), null));
+            }
+        }
+        SyncReport report = new SyncReport(taken, conflicts);
+        fileSystemService.writeSyncReport(stored, report.isEmpty() ? null : report.text());
+        if (!report.isEmpty()) {
+            log.info("Agent run {}: the sync took over {} change(s) of the book, {} conflict(s)", stored.getUuid(), taken.size(), conflicts.size());
+        }
+        return report;
+    }
+
+    private SyncReport.Line conflictLine(AgentRun run, Item item, SyncReport.Reason reason, List<String> fields) throws Exception {
+        return new SyncReport.Line(item.kind(), item.change(), handle(run, item, item.targetUuid()), item.label(), fields, reason);
     }
 
     /**
-     * One apply: the state it builds up while it goes through the picked items.
+     * The handle of the item in the copy, given when it has none; none for the settings of the book and for an item that
+     * is not in the copy (a handle it had before is kept for it).
+     */
+    private String handle(AgentRun run, Item item, String copyUuid) throws Exception {
+        AgentRunPairKind kind = switch (item.kind()) {
+            case MESSAGE -> AgentRunPairKind.MESSAGE;
+            case LOREBOOK -> AgentRunPairKind.LOREBOOK;
+            case ENTRY -> AgentRunPairKind.ENTRY;
+            case BOOK -> null;
+        };
+        if (kind == null || copyUuid == null) {
+            return null;
+        }
+        if (item.change() == Change.DELETED && item.conflict() == false || item.problem() != null && item.change() == Change.CHANGED) {
+            // gone from the copy: only a handle it already had
+            return pairService.findHandle(run, copyUuid).orElse(null);
+        }
+        return pairService.handleFor(run, kind, copyUuid);
+    }
+
+    /**
+     * What a change is applied to and from: the review applies the working copy to the book, the sync of a resume applies the
+     * book to the working copy.
+     *
+     * @param source        the book the changes come from
+     * @param target        the book that takes them over
+     * @param toTarget      the uuid of an item of the source to the uuid of its item in the target (the pairs, in the direction needed)
+     * @param keyToTarget   the uuid in the target of the item a key of the plan names; null for an item that is not in the target
+     */
+    private record Direction(Manuscript source, Manuscript target, Map<String, String> toTarget, Function<String, String> keyToTarget) {
+    }
+
+    /**
+     * An item the apply made in the target.
+     */
+    private record Created(AgentRunPairKind kind, String sourceUuid, String targetUuid) {
+    }
+
+    private record Outcome(Map<Kind, Integer> counts, List<Skipped> skipped, List<Created> created) {
+    }
+
+    /**
+     * The items of the plan that can be applied, from the ones that were picked: the ones that can't (they need something
+     * the target no longer has) and the ones that need an item that is not picked are told to {@code skipped}.
+     */
+    private static List<Item> applicable(MergePlan plan, Set<String> picked, List<Skipped> skipped) {
+        List<Item> chosen = new ArrayList<>();
+        Set<String> willApply = new HashSet<>();
+        for (Item item : plan.items()) {
+            if (!picked.contains(item.id())) {
+                continue;
+            }
+            if (!item.applicable()) {
+                skipped.add(new Skipped(item.id(), item.label(), item.problem()));
+            } else if (item.dependsOn() != null && !willApply.contains(item.dependsOn())) {
+                // the plan lists what an item needs before it
+                skipped.add(new Skipped(item.id(), item.label(), "needs " + item.dependsOn()));
+            } else {
+                chosen.add(item);
+                willApply.add(item.id());
+            }
+        }
+        return chosen;
+    }
+
+    /**
+     * One apply: the state it builds up while it goes through the items it is given.
      */
     private final class Applier {
-        private final Review review;
-        private final MergePlan plan;
-        private final MergeSelection selection;
-        private Manuscript original;
+        private final Direction direction;
+        private final List<Item> chosen;
+        private final Map<String, Map<String, String>> edits;
+        private final boolean switchToSourceBranch;
+        private Manuscript targetBook;
+        private final Manuscript sourceBook;
 
-        // the pairs of the run, and what the apply made: the uuid in the copy to the uuid of the item in the book
-        private final Map<String, String> toOriginal;
+        // the pairs of the run, and what the apply made: the uuid in the source to the uuid of the item in the target
+        private final Map<String, String> toTarget;
+        // the lorebooks the apply made, by the key of their item in the plan
         private final Map<String, Lorebook> createdLorebooks = new HashMap<>();
-        // the summaries written to the book by the uuid of the summary of the copy they were made from
+        // the summaries written to the target by the uuid of the summary of the source they were made from
         private final Map<String, Summary> writtenSummaries = new HashMap<>();
 
         private final Set<String> applied = new LinkedHashSet<>();
         private final Map<Kind, Integer> counts = new EnumMap<>(Kind.class);
-        private final List<Skipped> skipped = new ArrayList<>();
+        private final List<Skipped> skipped;
+        private final List<Created> created = new ArrayList<>();
 
-        Applier(Review review, MergePlan plan, MergeSelection selection) {
-            this.review = review;
-            this.plan = plan;
-            this.selection = selection;
-            this.original = review.original();
-            this.toOriginal = new HashMap<>(review.copyToOriginal());
+        Applier(Direction direction, List<Item> chosen, Map<String, Map<String, String>> edits, boolean switchToSourceBranch,
+                List<Skipped> skipped) {
+            this.direction = direction;
+            this.chosen = chosen;
+            this.edits = edits;
+            this.switchToSourceBranch = switchToSourceBranch;
+            this.skipped = skipped;
+            this.sourceBook = direction.source();
+            this.targetBook = direction.target();
+            this.toTarget = new HashMap<>(direction.toTarget());
         }
 
-        Applied apply() throws Exception {
-            List<Item> chosen = new ArrayList<>();
-            Set<String> willApply = new HashSet<>();
-            for (Item item : plan.items()) {
-                if (!selection.items().contains(item.id())) {
-                    continue;
-                }
-                if (!item.applicable()) {
-                    skipped.add(new Skipped(item.id(), item.label(), item.problem()));
-                } else if (item.dependsOn() != null && !willApply.contains(item.dependsOn())) {
-                    // the plan lists what an item needs before it
-                    skipped.add(new Skipped(item.id(), item.label(), "needs " + item.dependsOn()));
-                } else {
-                    chosen.add(item);
-                    willApply.add(item.id());
-                }
-            }
-            if (chosen.isEmpty()) {
-                throw new IllegalArgumentException("Nothing that is picked can be applied");
-            }
-
-            // the book as it is now, before anything is changed in it (lorebooks and the story are in it)
-            BackupService.ManuscriptBackup backup = backupService.takeBackup(original);
-
+        Outcome apply() throws Exception {
             applyBook(chosen);
             each(chosen, Kind.LOREBOOK, Change.ADDED, this::createLorebook);
             each(chosen, Kind.LOREBOOK, Change.CHANGED, this::changeLorebook);
@@ -330,10 +508,10 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             each(chosen, Kind.MESSAGE, Change.CHANGED, this::changeMessage);
             each(chosen, Kind.MESSAGE, Change.DELETED, this::deleteMessage);
             relinkSummaries();
-            if (selection.switchToAgentBranch()) {
+            if (switchToSourceBranch) {
                 switchBranch();
             }
-            return new Applied(review.run(), counts, skipped, backup == null ? null : backup.getFile());
+            return new Outcome(counts, skipped, created);
         }
 
         @FunctionalInterface
@@ -342,7 +520,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
 
         /**
-         * Goes through the picked items of the kind (of the change; any for null) in the order of the plan.
+         * Goes through the items of the kind (of the change; any for null) in the order of the plan.
          */
         private void each(List<Item> chosen, Kind kind, Change change, Action action) throws Exception {
             for (Item item : chosen) {
@@ -357,8 +535,20 @@ public class AgentMergeServiceImpl implements AgentMergeService {
 
         // -----------------------------------------------------------------------------------------------------------
 
+        /**
+         * The key of the item in the plan, the uuid in the book or {@code new:} and the uuid in the copy.
+         */
+        private String keyOf(Item item) {
+            return item.id().substring(2);
+        }
+
+        private void made(AgentRunPairKind kind, String sourceUuid, String targetUuid) {
+            toTarget.put(sourceUuid, targetUuid);
+            created.add(new Created(kind, sourceUuid, targetUuid));
+        }
+
         private String value(Item item, Field field) {
-            Map<String, String> edits = selection.edits().get(item.id());
+            Map<String, String> edits = this.edits.get(item.id());
             if (field.editable() && edits != null && edits.containsKey(field.name())) {
                 return edits.get(field.name());
             }
@@ -370,17 +560,17 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
 
         private Manuscript reload() throws Exception {
-            original = (Manuscript) Hibernate.unproxy(manuscriptService.findForUser(original.getUuid()));
-            return original;
+            targetBook = (Manuscript) Hibernate.unproxy(manuscriptService.findForUser(targetBook.getUuid()));
+            return targetBook;
         }
 
         /**
-         * The uuid in the book of an item of the copy: the item it was made from or the one this apply made of it.
+         * The uuid in the target of an item of the source: the item it was made from or the one this apply made of it.
          */
-        private String originalOf(String copyUuid) {
-            String uuid = toOriginal.get(copyUuid);
+        private String targetOf(String sourceUuid) {
+            String uuid = toTarget.get(sourceUuid);
             if (uuid == null) {
-                throw new IllegalStateException("The item " + copyUuid + " of the copy is not in the book");
+                throw new IllegalStateException("The item " + sourceUuid + " is not in the other book");
             }
             return uuid;
         }
@@ -424,24 +614,24 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                 counts.merge(Kind.BOOK, 1, Integer::sum);
             }
             if (settingsChanged) {
-                manuscriptService.updateSettings(original, settings);
+                manuscriptService.updateSettings(targetBook, settings);
                 reload();
             }
             if (!attributes.isEmpty()) {
                 for (Map.Entry<String, String> attribute : attributes.entrySet()) {
                     String name = attribute.getKey().substring(MergeDiff.ATTRIBUTES.length());
                     if (StringUtils.isBlank(attribute.getValue())) {
-                        original.getAttributes().remove(name);
+                        targetBook.getAttributes().remove(name);
                     } else {
-                        original.getAttributes().add(name, JsonParser.parseString(attribute.getValue()));
+                        targetBook.getAttributes().add(name, JsonParser.parseString(attribute.getValue()));
                     }
                 }
-                manuscriptService.save(original);
+                manuscriptService.save(targetBook);
                 reload();
             }
             if (tags != null) {
                 Field field = tags.fields().get(0);
-                retag(original, field, false);
+                retag(targetBook, field, false);
             }
         }
 
@@ -470,23 +660,38 @@ public class AgentMergeServiceImpl implements AgentMergeService {
 
         // --- lorebooks and their entries
 
+        /**
+         * The lorebook of the target a key of the plan names: one this apply made, or the one the key stands for.
+         */
         private Lorebook lorebookByKey(String key) throws Exception {
-            Lorebook found = key.startsWith(MergeDiff.NEW) ? createdLorebooks.get(key.substring(MergeDiff.NEW.length()))
-                    : lorebookService.findForUser(key);
+            Lorebook found = createdLorebooks.get(key);
+            if (found == null) {
+                String uuid = direction.keyToTarget().apply(key);
+                found = uuid == null ? null : lorebookService.findForUser(uuid);
+            }
             if (found == null || found.isDeleted()) {
                 throw new IllegalStateException("The lorebook " + key + " is not in the book");
             }
             return (Lorebook) Hibernate.unproxy(found);
         }
 
+        /**
+         * Whether the key names a lorebook the target has or this apply made.
+         */
+        private boolean knownLorebook(String key) {
+            return createdLorebooks.containsKey(key) || direction.keyToTarget().apply(key) != null;
+        }
+
         private void createLorebook(Item item) throws Exception {
             Lorebook lorebook = new Lorebook();
+            // a lorebook of the working copy is a copy as well, the two kinds can't be mixed
+            lorebook.setAgentic(targetBook.isAgentic());
             lorebook.setName(value(item, field(item, "name")));
             Field enabled = field(item, "enabled");
             lorebook.setEnabled(enabled == null || Boolean.parseBoolean(enabled.agent()));
             lorebook = lorebookService.save(lorebook);
-            createdLorebooks.put(item.copyUuid(), lorebook);
-            toOriginal.put(item.copyUuid(), lorebook.getUuid());
+            createdLorebooks.put(keyOf(item), lorebook);
+            made(AgentRunPairKind.LOREBOOK, item.sourceUuid(), lorebook.getUuid());
             Field tags = field(item, "tags");
             if (tags != null) {
                 retag(lorebook, tags, false);
@@ -494,7 +699,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
 
         private void changeLorebook(Item item) throws Exception {
-            Lorebook lorebook = (Lorebook) Hibernate.unproxy(lorebookService.findForUser(item.originalUuid()));
+            Lorebook lorebook = (Lorebook) Hibernate.unproxy(lorebookService.findForUser(item.targetUuid()));
             Field name = field(item, "name");
             Field enabled = field(item, "enabled");
             if (name != null && StringUtils.isNotBlank(value(item, name))) {
@@ -519,8 +724,8 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             if (subbooks == null) {
                 return;
             }
-            Lorebook lorebook = item.change() == Change.ADDED ? lorebookByKey(MergeDiff.NEW + item.copyUuid())
-                    : (Lorebook) Hibernate.unproxy(lorebookService.findForUser(item.originalUuid()));
+            Lorebook lorebook = item.change() == Change.ADDED ? lorebookByKey(keyOf(item))
+                    : (Lorebook) Hibernate.unproxy(lorebookService.findForUser(item.targetUuid()));
             Set<String> before = lines(subbooks.base());
             Set<String> after = lines(subbooks.agent());
             Set<Long> present = new HashSet<>();
@@ -528,15 +733,15 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                 present.add(sub.getId());
             }
             for (String key : before) {
-                if (!after.contains(key) && !key.startsWith(MergeDiff.NEW)) {
-                    Lorebook sub = lorebookService.findForUser(key);
+                if (!after.contains(key) && knownLorebook(key)) {
+                    Lorebook sub = lorebookByKey(key);
                     if (sub != null && present.contains(sub.getId())) {
                         lorebookService.removeSubbook(lorebook, sub);
                     }
                 }
             }
             for (String key : after) {
-                if (before.contains(key) || key.startsWith(MergeDiff.NEW) && !createdLorebooks.containsKey(key.substring(MergeDiff.NEW.length()))) {
+                if (before.contains(key) || !knownLorebook(key)) {
                     continue;
                 }
                 Lorebook sub = lorebookByKey(key);
@@ -547,10 +752,10 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
 
         private void deleteLorebook(Item item) throws Exception {
-            Lorebook lorebook = lorebookService.findForUser(item.originalUuid());
-            Lorebook root = original.getLorebook();
+            Lorebook lorebook = lorebookService.findForUser(item.targetUuid());
+            Lorebook root = targetBook.getLorebook();
             if (lorebook == null || root == null || lorebook.getId().equals(root.getId())) {
-                throw new IllegalStateException("The lorebook " + item.originalUuid() + " can't be deleted");
+                throw new IllegalStateException("The lorebook " + item.targetUuid() + " can't be deleted");
             }
             for (Lorebook parent : tree(root)) {
                 if (lorebookService.getSubbooks(parent).stream().anyMatch(sub -> sub.getId().equals(lorebook.getId()))) {
@@ -565,12 +770,12 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             setEntryFields(item, fields);
             Lorebook target = lorebookByKey(field(item, "lorebook").agent());
             LorebookEntry saved = lorebookEntryService.create(target, fields).entry();
-            toOriginal.put(item.copyUuid(), saved.getUuid());
+            made(AgentRunPairKind.ENTRY, item.sourceUuid(), saved.getUuid());
             retagEntry(item, saved);
         }
 
         private void changeEntry(Item item) throws Exception {
-            LorebookEntry entry = (LorebookEntry) Hibernate.unproxy(lorebookEntryService.findForUser(item.originalUuid()));
+            LorebookEntry entry = (LorebookEntry) Hibernate.unproxy(lorebookEntryService.findForUser(item.targetUuid()));
             setEntryFields(item, entry);
             entry = lorebookEntryService.update(entry).entry();
             retagEntry(item, entry);
@@ -581,7 +786,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
 
         private void deleteEntry(Item item) throws Exception {
-            LorebookEntry entry = (LorebookEntry) Hibernate.unproxy(lorebookEntryService.findForUser(item.originalUuid()));
+            LorebookEntry entry = (LorebookEntry) Hibernate.unproxy(lorebookEntryService.findForUser(item.targetUuid()));
             lorebookEntryService.deleteEntry(entry.getLorebook(), entry);
         }
 
@@ -619,22 +824,22 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         private ChatMessage messageOf(String uuid) throws Exception {
             ChatMessage message = chatMessageService.findForUser(uuid);
             if (message == null || message.isDeleted() || message.getParentScript() == null
-                    || !message.getParentScript().getId().equals(original.getId())) {
+                    || !message.getParentScript().getId().equals(targetBook.getId())) {
                 throw new IllegalStateException("The part " + uuid + " is not in the book");
             }
             return (ChatMessage) Hibernate.unproxy(message);
         }
 
-        private ChatMessage copyMessage(String copyUuid) throws Exception {
+        private ChatMessage sourceMessage(String copyUuid) throws Exception {
             ChatMessage message = chatMessageService.findForUser(copyUuid);
-            if (message == null || message.getParentScript() == null || !message.getParentScript().getId().equals(review.copy().getId())) {
+            if (message == null || message.getParentScript() == null || !message.getParentScript().getId().equals(sourceBook.getId())) {
                 throw new IllegalStateException("The part " + copyUuid + " is not in the copy");
             }
             return (ChatMessage) Hibernate.unproxy(message);
         }
 
         private void createMessage(Item item) throws Exception {
-            ChatMessage source = copyMessage(item.copyUuid());
+            ChatMessage source = sourceMessage(item.sourceUuid());
             ChatMessage created = ChatMessage.copyOf(source);
             created.setSummary(null);
             String text = null;
@@ -651,9 +856,9 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                 }
             }
             ChatMessage parent = source.getParent();
-            ChatMessage saved = parent == null ? chatMessageService.createRoot(original, created)
-                    : chatMessageService.addChild(messageOf(originalOf(parent.getUuid())), created);
-            toOriginal.put(item.copyUuid(), saved.getUuid());
+            ChatMessage saved = parent == null ? chatMessageService.createRoot(targetBook, created)
+                    : chatMessageService.addChild(messageOf(targetOf(parent.getUuid())), created);
+            made(AgentRunPairKind.MESSAGE, item.sourceUuid(), saved.getUuid());
             if (text != null && !text.equals(source.getResponse())) {
                 storeResponse(saved, source, text);
             }
@@ -664,8 +869,8 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
 
         private void changeMessage(Item item) throws Exception {
-            ChatMessage message = messageOf(item.originalUuid());
-            ChatMessage source = copyMessage(item.copyUuid());
+            ChatMessage message = messageOf(item.targetUuid());
+            ChatMessage source = sourceMessage(item.sourceUuid());
             String text = null;
             boolean fields = false;
             for (Field field : item.fields()) {
@@ -714,7 +919,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
          */
         private ChatMessage storeResponse(ChatMessage message, ChatMessage source, String text) throws Exception {
             if (!text.equals(source.getResponse())) {
-                return chatMessageService.storeResponse(original, message, text);
+                return chatMessageService.storeResponse(targetBook, message, text);
             }
             message.setResponse(text);
             message.setTokenCount(source.getTokenCount());
@@ -724,8 +929,8 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
 
         private void deleteMessage(Item item) throws Exception {
-            ChatMessage message = messageOf(item.originalUuid());
-            original = chatMessageService.deleteNodeAndMigrateChildren(message, original, false);
+            ChatMessage message = messageOf(item.targetUuid());
+            targetBook = chatMessageService.deleteNodeAndMigrateChildren(message, targetBook, false);
         }
 
         /**
@@ -736,6 +941,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             Summary target = message.getSummary() == null ? null : summaryService.find(message.getSummary());
             if (target == null) {
                 target = summaryService.copySummary(source);
+                created.add(new Created(AgentRunPairKind.SUMMARY, source.getUuid(), target.getUuid()));
                 message.setSummary(target);
                 chatMessageService.save(message);
             } else {
@@ -750,7 +956,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                 target = summaryService.save(target);
             }
             if (edited != null && !edited.equals(source.getSummary())) {
-                target = summaryService.updateSummaryText(original, target, edited);
+                target = summaryService.updateSummaryText(targetBook, target, edited);
             }
             writtenSummaries.put(source.getUuid(), target);
         }
@@ -760,7 +966,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
          * the book now that every summary is written.
          */
         private void relinkSummaries() throws Exception {
-            Map<String, String> uuids = new HashMap<>(toOriginal);
+            Map<String, String> uuids = new HashMap<>(toTarget);
             writtenSummaries.forEach((copyUuid, written) -> uuids.put(copyUuid, written.getUuid()));
             for (Summary written : writtenSummaries.values()) {
                 String next = MergeDiff.translate(written.getNextSummaryUuid(), uuids);
@@ -774,14 +980,14 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         }
 
         private void switchBranch() throws Exception {
-            ChatMessage leaf = review.copy().getActiveLeaf();
-            String uuid = leaf == null ? null : toOriginal.get(leaf.getUuid());
+            ChatMessage leaf = sourceBook.getActiveLeaf();
+            String uuid = leaf == null ? null : toTarget.get(leaf.getUuid());
             if (uuid == null) {
                 return;
             }
             ChatMessage message = messageOf(uuid);
-            original.setActiveLeaf(message);
-            original = manuscriptService.save(original);
+            targetBook.setActiveLeaf(message);
+            targetBook = manuscriptService.save(targetBook);
         }
     }
 

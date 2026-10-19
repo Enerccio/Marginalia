@@ -22,6 +22,11 @@ public final class RunFolder {
      * The file of the base folder with the snapshot of the original book (the backup with its lorebooks).
      */
     public static final String BASE_MANUSCRIPT = "manuscript.json";
+    /**
+     * The files of the base folder with the report of the last sync of the run, and the mark that the model was not told of it yet.
+     */
+    public static final String SYNC_REPORT = "sync-report.txt";
+    public static final String SYNC_PENDING = "sync-pending";
 
     private final Path run;
     private final Path workspace;

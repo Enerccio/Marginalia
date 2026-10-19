@@ -60,7 +60,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
     // the tools that change neither the working copy nor the workspace; every other call may, and a round of them needs a checkpoint first
     private static final Set<String> NO_CHANGE_TOOLS = Set.of("finish", "ask_user", "update_plan", "get_run_status", "request_compaction",
-            "checkpoint", "checkpoint_list", "checkpoint_restore", "checkpoint_delete", "view_image", "list_files", "read_file",
+            "checkpoint", "checkpoint_list", "checkpoint_restore", "checkpoint_delete", "get_sync_report", "view_image", "list_files", "read_file",
             "grep_files", "list_command_results");
     // images the model is shown at once: the newest ones; an older one is a note that view_image shows it again
     static final int MAX_SHOWN_IMAGES = 4;
@@ -1224,6 +1224,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 return;
             }
             repairCalls(transcript);
+            // the user changed the book while the run was paused: the model hears what came into its copy and what did not
+            String sync = fileSystemService.takePendingSync(run);
+            if (sync != null) {
+                append(transcript, LLMChatMessage.of(LLMRole.USER, sync + "\n\n" + Defaults.DEFAULT_AGENT_RESUME_MESSAGE));
+                return;
+            }
             LLMChatMessage last = transcript.getLast();
             if (last.getRole() == LLMRole.ASSISTANT && !last.hasToolCalls() && !deliverQueued(transcript)) {
                 append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.DEFAULT_AGENT_RESUME_MESSAGE));
@@ -1281,7 +1287,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                             path -> files.readImage(VirtualPath.parse(path)).toAttachment(path), cage)
                     .and(fileSystemService.getFileTools(files, commandResults))
                     .and(inferenceServices.getFunctionRegistry().bind(RunTools.class, runTools))
-                    .and(inferenceServices.getFunctionRegistry().bind(CheckpointTools.class, checkpointTools));
+                    .and(inferenceServices.getFunctionRegistry().bind(CheckpointTools.class, checkpointTools))
+                    .and(inferenceServices.getFunctionRegistry().bind(SyncTools.class, new SyncToolsImpl(() -> {
+                        try {
+                            return fileSystemService.readSyncReport(run);
+                        } catch (Exception e) {
+                            throw new IllegalStateException(e);
+                        }
+                    })));
             return seesImages ? tools.and(inferenceServices.getFunctionRegistry().bind(ImageTools.class, new ImageToolsImpl(files, shown)))
                     : tools;
         }

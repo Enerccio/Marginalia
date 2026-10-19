@@ -24,12 +24,14 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
@@ -241,6 +243,92 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
         }
         try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             return GSON.fromJson(reader, JsonObject.class);
+        }
+    }
+
+    private AgentRun ownRun(AgentRun run) throws Exception {
+        AgentRun stored = run == null ? null : agentRunService.findForUser(run.getUuid());
+        if (stored == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        return stored;
+    }
+
+    /**
+     * Does the work when the transaction commits, at once when there is none.
+     */
+    private static void afterCommit(Runnable work) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    work.run();
+                }
+            });
+        } else {
+            work.run();
+        }
+    }
+
+    private static void writeAtomically(Path file, String content) {
+        try {
+            Files.createDirectories(file.getParent());
+            Path temporary = file.resolveSibling(file.getFileName() + ".tmp");
+            Files.writeString(temporary, content, StandardCharsets.UTF_8);
+            Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public void updateBase(AgentRun run, JsonObject base) throws Exception {
+        AgentRun stored = ownRun(run);
+        Path file = RunFolder.runOf(home(), stored.getUuid()).resolve(RunFolder.BASE).resolve(RunFolder.BASE_MANUSCRIPT);
+        String json = GSON.toJson(base);
+        afterCommit(() -> writeAtomically(file, json));
+    }
+
+    @Override
+    public void writeSyncReport(AgentRun run, String report) throws Exception {
+        AgentRun stored = ownRun(run);
+        Path folder = RunFolder.runOf(home(), stored.getUuid()).resolve(RunFolder.BASE);
+        afterCommit(() -> {
+            try {
+                Files.deleteIfExists(folder.resolve(RunFolder.SYNC_REPORT));
+                Files.deleteIfExists(folder.resolve(RunFolder.SYNC_PENDING));
+                if (report != null) {
+                    writeAtomically(folder.resolve(RunFolder.SYNC_REPORT), report);
+                    writeAtomically(folder.resolve(RunFolder.SYNC_PENDING), "");
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+    }
+
+    @Override
+    public String readSyncReport(AgentRun run) throws Exception {
+        AgentRun stored = ownRun(run);
+        Path file = RunFolder.runOf(home(), stored.getUuid()).resolve(RunFolder.BASE).resolve(RunFolder.SYNC_REPORT);
+        return Files.isRegularFile(file) ? Files.readString(file, StandardCharsets.UTF_8) : null;
+    }
+
+    @Override
+    public String takePendingSync(AgentRun run) {
+        if (run == null || run.getUuid() == null) {
+            return null;
+        }
+        Path folder = RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.BASE);
+        try {
+            if (!Files.deleteIfExists(folder.resolve(RunFolder.SYNC_PENDING))) {
+                return null;
+            }
+            Path file = folder.resolve(RunFolder.SYNC_REPORT);
+            return Files.isRegularFile(file) ? Files.readString(file, StandardCharsets.UTF_8) : null;
+        } catch (IOException e) {
+            log.warn("Agent run {}: the report of the sync can't be read: {}", run.getUuid(), e.getMessage());
+            return null;
         }
     }
 

@@ -68,8 +68,9 @@ public record MergePlan(List<Item> items, Map<String, String> names, boolean boo
      *
      * @param id           identifies the item in the plan: the kind and the uuid of the item in the book, or of the item in the copy
      *                     for one the agent made
-     * @param copyUuid     the item in the copy; null for one the agent deleted
-     * @param originalUuid the item in the book; null for one the agent made
+     * @param sourceUuid   the item on the side that changed it (the copy for a review, the book for a sync); null for one it deleted
+     * @param targetUuid   the item on the side that takes the change over (the book for a review, the copy for a sync); null for one
+     *                     that is new
      * @param label        what the item is, for a list
      * @param dependsOn    the id of the item this one needs to be taken over first (the new part it follows, the new lorebook it
      *                     is in); null for none
@@ -79,7 +80,7 @@ public record MergePlan(List<Item> items, Map<String, String> names, boolean boo
      * @param sharedWith   for a lorebook or an entry the names of the other books that use the lorebook; changing it changes
      *                     them too
      */
-    public record Item(String id, Kind kind, Change change, String copyUuid, String originalUuid, String label, String dependsOn,
+    public record Item(String id, Kind kind, Change change, String sourceUuid, String targetUuid, String label, String dependsOn,
                        List<Field> fields, boolean conflict, String problem, List<String> sharedWith) {
 
         public boolean applicable() {
@@ -87,7 +88,7 @@ public record MergePlan(List<Item> items, Map<String, String> names, boolean boo
         }
 
         public Item withShared(List<String> shared) {
-            return new Item(id, kind, change, copyUuid, originalUuid, label, dependsOn, fields, conflict, problem, shared);
+            return new Item(id, kind, change, sourceUuid, targetUuid, label, dependsOn, fields, conflict, problem, shared);
         }
     }
 
