@@ -24,6 +24,45 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
 
     List<Lorebook> getSubbooks(Lorebook lorebook) throws Exception;
 
+    /**
+     * Whether making {@code subbook} a subbook of {@code parent} would make a lorebook contain itself: it is the parent, or
+     * the parent is one of its subbooks, however deep.
+     */
+    boolean wouldCycle(Lorebook parent, Lorebook subbook) throws Exception;
+
+    /**
+     * Makes the lorebook a subbook of the parent, if it is not one already.
+     *
+     * @return the saved parent
+     * @throws LorebookCycleException   when the lorebook would contain itself
+     * @throws IllegalArgumentException when a lorebook is not the user's, or one of them is a working copy of an agent and the
+     *                                  other is not
+     */
+    Lorebook addSubbook(Lorebook parent, Lorebook subbook) throws Exception;
+
+    /**
+     * Takes the lorebook out of the subbooks of the parent (nothing happens when it is not one).
+     *
+     * @return the saved parent
+     */
+    Lorebook removeSubbook(Lorebook parent, Lorebook subbook) throws Exception;
+
+    /**
+     * Replaces the subbooks of the lorebook.
+     *
+     * @return the saved parent
+     * @throws LorebookCycleException when one of them would make the lorebook contain itself; nothing is changed
+     */
+    Lorebook setSubbooks(Lorebook parent, Collection<Lorebook> subbooks) throws Exception;
+
+    /**
+     * Makes a new, enabled lorebook with the name and adds it as a subbook of the parent (a working copy of an agent when
+     * the parent is one).
+     *
+     * @return the new lorebook
+     */
+    Lorebook createSubbook(Lorebook parent, String name) throws Exception;
+
     Lorebook fillEntries(Lorebook book) throws Exception;
 
     Lorebook importFromSillytavern(String json, String name) throws Exception;

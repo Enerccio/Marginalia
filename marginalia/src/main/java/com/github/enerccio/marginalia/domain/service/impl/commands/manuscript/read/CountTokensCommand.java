@@ -50,12 +50,12 @@ public class CountTokensCommand extends ManuscriptReadSupport {
     }
 
     private void countText(CommandContext context, String text) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         countTokens(context, book.manuscript, text, null);
     }
 
     private void countPart(CommandContext context, Integer position, Integer branch) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         ChatMessage message = book.part(book.path(branch), position);
         countTokens(context, book.manuscript, message.getResponse(), position);
     }

@@ -28,6 +28,16 @@ public interface AgentRunPairRepository {
      */
     AgentRunPair findByOriginal(Long runId, String originalUuid) throws Exception;
 
+    /**
+     * The row that has the handle; null when there is none.
+     */
+    AgentRunPair findByHandle(Long runId, String handle) throws Exception;
+
+    /**
+     * The biggest number among the handles of the kind ({@code h:m17} is 17 of {@code m}); 0 when there are none.
+     */
+    int maxHandleNumber(Long runId, char kind) throws Exception;
+
     long countByRun(Long runId) throws Exception;
 
     /**

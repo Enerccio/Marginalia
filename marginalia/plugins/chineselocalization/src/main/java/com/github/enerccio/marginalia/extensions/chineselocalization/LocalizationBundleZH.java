@@ -606,6 +606,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "没有编号为 %s 的世界书，本书有 %s 个世界书（见 list-lorebooks）。");
         setValue(L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "世界书 %s 中没有条目 %s，它有 %s 个条目。");
         setValue(L.ERROR_REGEX_TIMEOUT, "正则表达式的处理时间超过 %s 秒，已被停止。请使用更简单的表达式。");
+        setValue(L.ERROR_LOREBOOK_LOCKED, "该世界书已被智能体“%s”锁定。请先暂停或停止其运行，再修改此世界书。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -742,6 +743,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_RUN_BUSY, "运行仍在进行，请先暂停或停止。");
         setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "文件 %s 不是文本文件。智能体处理文本，因此只能上传文本文件（UTF-8）和图片（PNG、JPEG、GIF、WebP）。");
         setValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE, "文件 %s 不是图片。只能附加 PNG、JPEG、GIF 和 WebP 图片。");
+        setValue(L.MSG_AGENT_LOREBOOK_LOCKED, "该世界书已被使用它的书的智能体“%s”锁定，只能查看，在运行暂停或停止之前无法修改。可点击刷新检查。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

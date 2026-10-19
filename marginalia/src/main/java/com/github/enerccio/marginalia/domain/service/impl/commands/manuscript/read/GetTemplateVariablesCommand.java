@@ -52,7 +52,7 @@ public class GetTemplateVariablesCommand extends ManuscriptReadSupport {
 
     private void templateVariables(CommandContext context, String scope, Integer position, Integer branch) throws Exception {
         String name = scope == null ? "" : scope.strip().toLowerCase();
-        Book book = new Book();
+        Book book = new Book(context);
         TemplateVariables variables = new TemplateVariables();
         JsonObject result = new JsonObject();
         result.addProperty("scope", name);

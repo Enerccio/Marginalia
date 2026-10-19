@@ -42,7 +42,7 @@ public class ListSummariesCommand extends ManuscriptReadSupport {
     }
 
     private void listSummaries(CommandContext context, Integer branch) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         List<ChatMessage> path = book.path(branch);
         Map<Long, Boolean> valid = validSummaries(path);
         List<ChatMessage> newestFirst = new ArrayList<>(path);

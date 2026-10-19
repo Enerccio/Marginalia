@@ -40,7 +40,7 @@ public class ListSwipesCommand extends ManuscriptReadSupport {
     }
 
     private void listSwipes(CommandContext context, Integer position, Integer branch) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         List<ChatMessage> path = book.path(branch);
         ChatMessage message = book.part(path, position);
         StoryTree tree = book.tree();

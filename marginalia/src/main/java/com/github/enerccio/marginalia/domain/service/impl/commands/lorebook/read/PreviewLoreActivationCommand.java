@@ -103,7 +103,7 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
     }
 
     private void preview(CommandContext context, String text, Integer position, Integer branch, Integer limit) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         Manuscript manuscript = book.manuscript;
         Lore lore = new Lore(book);
         Lorebook root = lore.book(null);

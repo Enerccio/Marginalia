@@ -236,7 +236,8 @@ class AgentRunPairsTest extends AgentTestBase {
     void baseKeepsWhatTheLorebookSaidWhenTheOriginalChangesLater() throws Exception {
         AgentRun run = reload(agentRunService.start(agent));
 
-        // the lorebooks of the original are not locked while the run works
+        // the lorebooks of the original are locked while the run works, so the user edits it while the run is paused
+        agentRunService.pause(run);
         LorebookEntry changed = lorebookEntryService.getEntriesForLorebook(root).getFirst();
         String before = changed.getPayload();
         changed.setPayload("changed by the user");

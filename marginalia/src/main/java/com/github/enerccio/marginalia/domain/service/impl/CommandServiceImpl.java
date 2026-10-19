@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.service.CommandScopes;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.BackupCommands;
@@ -16,6 +17,8 @@ import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.context.request.RequestAttributes;
 
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +32,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 public class CommandServiceImpl implements CommandService, InitializingBean, DisposableBean {
+
+    @Autowired
+    @Lazy
+    private CommandScopes commandScopes;
+
+    /**
+     * For a service that is made by hand, outside of the application context (the scopes then come from here).
+     */
+    public void setCommandScopes(CommandScopes commandScopes) {
+        this.commandScopes = commandScopes;
+    }
 
     private static final Pattern VALID_NAME = Pattern.compile("[A-Za-z0-9_.-]+");
 
@@ -254,7 +268,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
     }
 
     @Override
-    public CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable) {
+    public CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable, CommandScope scope) {
         List<Registered> overloads = overloadsOf(commandName);
         if (overloads.isEmpty()) {
             return noSuchCommand(commandName);
@@ -271,11 +285,11 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             return failedRun(new IllegalArgumentException(
                     "No form of command " + commandName + " takes the arguments " + named.keySet()));
         }
-        return run(commandName, best, uninterruptable);
+        return run(commandName, best, uninterruptable, scope);
     }
 
     @Override
-    public CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable) {
+    public CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable, CommandScope scope) {
         List<Registered> overloads = overloadsOf(commandName);
         if (overloads.isEmpty()) {
             return noSuchCommand(commandName);
@@ -292,16 +306,16 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             return failedRun(new IllegalArgumentException(
                     "No form of command " + commandName + " takes " + positional.size() + " such argument(s)"));
         }
-        return run(commandName, best, uninterruptable);
+        return run(commandName, best, uninterruptable, scope);
     }
 
     @Override
-    public CommandRun executeLine(String line, boolean uninterruptable) {
+    public CommandRun executeLine(String line, boolean uninterruptable, CommandScope scope) {
         CommandLine parsed = CommandLine.parse(line);
         if (!parsed.command()) {
             return failedRun(new IllegalArgumentException("A command starts with a slash: " + line));
         }
-        return executePositional(parsed.name(), new ArrayList<>(parsed.arguments()), uninterruptable);
+        return executePositional(parsed.name(), new ArrayList<>(parsed.arguments()), uninterruptable, scope);
     }
 
     private static CommandRun failedRun(Throwable error) {
@@ -363,11 +377,12 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         return new Binding(registered, converted, positional, cost);
     }
 
-    private CommandRun run(String commandName, Binding binding, boolean uninterruptable) {
+    private CommandRun run(String commandName, Binding binding, boolean uninterruptable, CommandScope scope) {
         Registered registered = binding.registered();
         CommandRunImpl result = new CommandRunImpl();
+        // the scope of the session is made here, on the thread of the caller, for the command to use on its worker thread
         CommandContextImpl context = new CommandContextImpl(commandName, binding.arguments(), binding.positional(),
-                registered.definition().async(), result, uninterruptable);
+                registered.definition().async(), result, uninterruptable, scope != null || commandScopes == null ? scope : commandScopes.session());
         if (!registered.definition().async()) {
             invoke(registered, context);
             context.finish();

@@ -72,7 +72,7 @@ public class SearchLoreCommand extends LorebookReadSupport {
             throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_INVALID_REGEX), e.getDescription()), e);
         }
 
-        Lore lore = new Lore(new Book());
+        Lore lore = new Lore(new Book(context));
         // one time for the whole search, a pattern that backtracks is stopped instead of holding the thread
         long deadline = TimeSafeText.deadlineIn(TimeSafeText.timeoutMillis());
         try {

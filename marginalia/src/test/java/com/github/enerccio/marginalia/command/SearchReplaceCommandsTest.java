@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.CommandScopes;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
@@ -51,6 +52,9 @@ class SearchReplaceCommandsTest extends GenerationTestBase {
     @Autowired
     private SessionPoint sessionPoint;
 
+    @Autowired
+    private CommandScopes commandScopes;
+
     private final CommandServiceImpl commands = new CommandServiceImpl();
 
     /** What the user answers to the question, and the questions that were asked. */
@@ -66,6 +70,7 @@ class SearchReplaceCommandsTest extends GenerationTestBase {
 
     @BeforeEach
     void setUp() throws Exception {
+        commands.setCommandScopes(commandScopes);
         ui = new UI();
         UI.setCurrent(ui);
         commands.registerCommands(new SearchReplaceChatMessageCommand() {

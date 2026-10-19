@@ -598,6 +598,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "ロアブック %s はありません。この本には %s 個のロアブックがあります（list-lorebooks を参照）。");
         setValue(L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "ロアブック %s にエントリ %s はありません。エントリは %s 個です。");
         setValue(L.ERROR_REGEX_TIMEOUT, "正規表現の処理が %s 秒を超えたため停止しました。より単純な式を使ってください。");
+        setValue(L.ERROR_LOREBOOK_LOCKED, "このロアブックはエージェント「%s」によってロックされています。変更するには実行を一時停止または停止してください。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -734,6 +735,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_RUN_BUSY, "実行中です。先に一時停止または停止してください。");
         setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "ファイル %s はテキストファイルではありません。エージェントはテキストを扱うため、アップロードできるのはテキストファイル（UTF-8）と画像（PNG、JPEG、GIF、WebP）だけです。");
         setValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE, "ファイル %s は画像ではありません。添付できるのは PNG、JPEG、GIF、WebP の画像だけです。");
+        setValue(L.MSG_AGENT_LOREBOOK_LOCKED, "このロアブックは、これを使う本で作業中のエージェント「%s」によってロックされています。表示のみで、実行を一時停止または停止するまで変更できません。更新で確認できます。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

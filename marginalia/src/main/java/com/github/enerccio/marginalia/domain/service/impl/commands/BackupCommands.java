@@ -11,7 +11,6 @@ import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import com.github.enerccio.marginalia.domain.traits.CommandReturn;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.utils.CommandUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -39,12 +38,7 @@ public class BackupCommands {
             returns = @CommandReturn(name = "message", type = String.class,
                     description = L.DESC_COMMAND_TAKE_BACKUP_RETURN))
     public void takeBackup(CommandContext context) throws Exception {
-        Manuscript open = CommandUtils.getCurrentManuscript();
-        if (open == null) {
-            throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
-        }
-        // the window's copy can be older than the stored book (renamed, for one)
-        Manuscript manuscript = manuscriptService.findForUser(open.getUuid());
+        Manuscript manuscript = context.getScope().getManuscript();
         if (manuscript == null) {
             throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
         }

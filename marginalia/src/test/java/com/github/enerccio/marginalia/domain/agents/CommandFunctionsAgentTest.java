@@ -36,7 +36,8 @@ class CommandFunctionsAgentTest extends AgentTestBase {
 
     @Test
     void everyRegisteredCommandIsAFunction() {
-        List<String> all = commandService.getCommands().stream().map(CommandDefinition::commandName).distinct().toList();
+        List<String> all = commandService.getCommands().stream().filter(CommandDefinition::availableForAgent)
+                .map(CommandDefinition::commandName).distinct().toList();
 
         FunctionSet set = CommandFunctions.create(commandService, all, DestructiveCommandMode.AUTO, localization::getValue, null);
 

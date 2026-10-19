@@ -7,11 +7,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch.InvalidSearchException;
-import com.github.enerccio.marginalia.domain.traits.Command;
-import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
-import com.github.enerccio.marginalia.domain.traits.CommandParameter;
-import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
-import com.github.enerccio.marginalia.domain.traits.CommandReturn;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.CommandUtils;
@@ -82,8 +78,7 @@ public class SearchReplaceLoreEntryCommand {
     }
 
     private void run(CommandContext context, boolean regex, boolean caseSensitive) throws Exception {
-        Manuscript open = CommandUtils.getCurrentManuscript();
-        Manuscript manuscript = open == null ? null : manuscriptService.findForUser(open.getUuid());
+        Manuscript manuscript = context.getScope().getManuscript();
         if (manuscript == null) {
             throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
         }
@@ -147,7 +142,7 @@ public class SearchReplaceLoreEntryCommand {
      * Asks the user whether to replace. A hook for tests, which have no browser to ask in.
      */
     protected boolean confirm(CommandContext context, String question) throws Exception {
-        return CommandUtils.confirm(context, question);
+        return context.confirm(question);
     }
 
 }

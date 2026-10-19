@@ -6,12 +6,10 @@ import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
+import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
-import com.github.enerccio.marginalia.domain.service.LorebookService;
-import com.github.enerccio.marginalia.domain.service.TemplateService;
-import com.github.enerccio.marginalia.domain.service.TokenizerService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
@@ -78,6 +76,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     @Autowired
     private TokenizerService tokenizerService;
 
+    @Autowired
+    private AgentRunService agentRunService;
+
     private Lorebook currentLorebook;
     private boolean pinnedLorebook = false;
 
@@ -106,6 +107,11 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     // uuids of the entries whose details are opened, kept over reloading the entries
     private final Set<String> openEntries = new LinkedHashSet<>();
     private Runnable onStateChange;
+
+    // what an agent that works on the book of the lorebook takes away: the lorebook is shown by the read only phone view
+    private HorizontalLayout controlsRow;
+    private PhoneLorebookView lockedView;
+    private final List<Component> hiddenByLock = new ArrayList<>();
 
     public LorebookView() {
         this(null);
@@ -195,7 +201,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             try {
                 refreshEntries();
             } catch (Exception e) {
-                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+                UIUtils.internalServerError(loc, e);
             }
         });
 
@@ -225,7 +231,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                         }
                     }
                 } catch (Exception ex) {
-                    UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+                    UIUtils.internalServerError(loc, ex);
                 }
             }
         });
@@ -236,31 +242,13 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         subLorebooksCombo.addValueChangeListener(e -> {
             if (currentLorebook != null && e.isFromClient()) {
                 Set<Lorebook> newSelection = e.getValue();
-                if (newSelection != null && !newSelection.isEmpty()) {
-                    try {
-                        List<Lorebook> allUserLorebooks = lorebookService.findAllRegularForUser();
-                        Map<Long, Lorebook> lorebookMap = allUserLorebooks.stream()
-                                .filter(l -> l.getId() != null)
-                                .collect(Collectors.toMap(BaseEntity::getId, l -> l, (a, b) -> a));
-
-                        for (Lorebook candidate : newSelection) {
-                            if (candidate.getId() != null && (candidate.getId().equals(currentLorebook.getId())
-                                    || isReachable(candidate.getId(), currentLorebook.getId(), lorebookMap, new HashSet<>()))) {
-                                Notification.warning(loc.getValue(L.MSG_CYCLE_DETECTED));
-                                subLorebooksCombo.setValue(e.getOldValue() != null ? e.getOldValue() : Collections.emptySet());
-                                return;
-                            }
-                        }
-                    } catch (Exception ex) {
-                        UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
-                        return;
-                    }
-                }
                 try {
-                    currentLorebook.setSubbooks(newSelection != null ? new ArrayList<>(newSelection) : new ArrayList<>());
-                    lorebookService.save(currentLorebook);
+                    currentLorebook = lorebookService.setSubbooks(currentLorebook, newSelection);
+                } catch (LorebookCycleException ex) {
+                    Notification.warning(loc.getValue(L.MSG_CYCLE_DETECTED));
+                    subLorebooksCombo.setValue(e.getOldValue() != null ? e.getOldValue() : Collections.emptySet());
                 } catch (Exception ex) {
-                    UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+                    UIUtils.internalServerError(loc, ex);
                 }
             }
         });
@@ -275,7 +263,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                     currentLorebook.setEnabled(Boolean.TRUE.equals(e.getValue()));
                     lorebookService.save(currentLorebook);
                 } catch (Exception ex) {
-                    UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+                    UIUtils.internalServerError(loc, ex);
                 }
             }
         });
@@ -291,6 +279,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
         add(controlsLayout, lorebookHeaderLayout, lorebookTokensSpan, grid);
         setFlexGrow(1, grid);
+        controlsRow = controlsLayout;
 
         refresh();
 
@@ -344,7 +333,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             } catch (IllegalArgumentException | JsonParseException e) {
                 Notification.warning(loc.getValue(L.MSG_INVALID_LOREBOOK_FILE));
             } catch (Exception e) {
-                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+                UIUtils.internalServerError(loc, e);
             }
         });
 
@@ -357,38 +346,6 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         dialog.add(dialogLayout);
         dialog.getFooter().add(cancelButton);
         dialog.open();
-    }
-
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = boolean.class),
-            parameters = {@APIParameter(name = "startId", type = Long.class),
-                    @APIParameter(name = "targetId", type = Long.class),
-                    @APIParameter(name = "lorebookMap", type = Map.class),
-                    @APIParameter(name = "visited", type = Set.class)},
-            locals = {@APILocals(name = "start", type = Lorebook.class),
-                    @APILocals(name = "sub", type = Lorebook.class)})
-    private boolean isReachable(Long startId, Long targetId, Map<Long, Lorebook> lorebookMap, Set<Long> visited) {
-        if (startId == null || targetId == null) {
-            return false;
-        }
-        if (startId.equals(targetId)) {
-            return true;
-        }
-        if (!visited.add(startId)) {
-            return false;
-        }
-        Lorebook start = lorebookMap.get(startId);
-        if (start == null || start.getSubbooks() == null) {
-            return false;
-        }
-        for (Lorebook sub : start.getSubbooks()) {
-            if (sub != null && sub.getId() != null) {
-                if (isReachable(sub.getId(), targetId, lorebookMap, visited)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     @PublicAPI(from = "1.1.0",
@@ -465,7 +422,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                         lorebookEntryService.delete(entry, false);
                         refreshEntries();
                     } catch (Exception ex) {
-                        UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+                        UIUtils.internalServerError(loc, ex);
                     }
                 });
             });
@@ -612,7 +569,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         try {
             tokens = tokenizerService.countTokensApprox(StringUtils.defaultString(entry.getPayload()));
         } catch (Exception ex) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+            UIUtils.internalServerError(loc, ex);
         }
         if (entry.getId() != null) {
             entryTokens.put(entry.getId(), tokens);
@@ -688,18 +645,30 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
             updateSelectedLorebook();
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "allLorebooks", type = List.class),
+            locals = {@APILocals(name = "locking", type = AgentRun.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "allLorebooks", type = List.class),
                     @APILocals(name = "availableLorebooks", type = List.class),
                     @APILocals(name = "subIds", type = Set.class),
-                    @APILocals(name = "selectedSubbooks", type = Set.class),
-                    @APILocals(name = "e", type = Exception.class)})
+                    @APILocals(name = "selectedSubbooks", type = Set.class)})
     private void updateSelectedLorebook() {
+        AgentRun locking = null;
+        try {
+            locking = currentLorebook == null ? null : agentRunService.findLockingRun(currentLorebook);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        showLocked(locking);
+        if (locking != null) {
+            return;
+        }
+
         boolean hasLorebook = currentLorebook != null;
         lorebookNameField.setEnabled(hasLorebook);
         lorebookEnabledCheckbox.setEnabled(hasLorebook);
@@ -738,7 +707,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                     subLorebooksCombo.setValue(Collections.emptySet());
                 }
             } catch (Exception e) {
-                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+                UIUtils.internalServerError(loc, e);
             }
 
             refreshEntries();
@@ -753,11 +722,65 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         }
     }
 
+    /**
+     * Shows the lorebook read only while an agent works on a book that uses it (a lorebook is locked with the book), as
+     * the {@link PhoneLorebookView} shows it, and the editing again when the lock is gone.
+     *
+     * @param locking the run that holds the lock, null when the lorebook is free
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "locking", type = AgentRun.class)},
+            locals = {@APILocals(name = "component", type = Component.class),
+                    @APILocals(name = "child", type = Component.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void showLocked(AgentRun locking) {
+        if (lockedView != null) {
+            remove(lockedView);
+            lockedView = null;
+        }
+        for (Component component : hiddenByLock) {
+            component.setVisible(true);
+        }
+        hiddenByLock.clear();
+
+        boolean locked = locking != null;
+        boolean visible = !locked && !pinnedLorebook;
+        addLorebookButton.setVisible(visible);
+        deleteLorebookButton.setVisible(visible);
+        importLorebookButton.setVisible(visible);
+        addEntryButton.setVisible(!locked);
+        searchReplaceButton.setVisible(!locked);
+        if (!locked) {
+            return;
+        }
+
+        // everything but the selection of the lorebook, also what an extension added
+        for (Component child : getChildren().filter(c -> c != controlsRow && c.isVisible()).toList()) {
+            child.setVisible(false);
+            hiddenByLock.add(child);
+        }
+        try {
+            lockedView = new PhoneLorebookView(true);
+            lockedView.create();
+            lockedView.setLorebook(currentLorebook);
+            add(lockedView);
+            setFlexGrow(1, lockedView);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "entries", type = List.class),
                     @APILocals(name = "e", type = Exception.class)})
     public void refreshEntries() {
+        if (lockedView != null) {
+            // the lock may be gone by now
+            updateSelectedLorebook();
+            return;
+        }
         if (currentLorebook == null || currentLorebook.getId() == null) {
             grid.setItems(new ArrayList<>());
             currentEntries = new ArrayList<>();
@@ -773,7 +796,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             entryTokens.clear();
             updateLorebookTokens();
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 
@@ -792,7 +815,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             loadLorebooks();
             fireStateChanged();
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 
@@ -814,7 +837,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 }
                 fireStateChanged();
             } catch (Exception e) {
-                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+                UIUtils.internalServerError(loc, e);
             }
         });
     }
@@ -836,7 +859,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             lorebookEntryService.save(entry);
             refreshEntries();
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 
@@ -864,7 +887,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         try {
             lorebookEntryService.save(entry);
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 
@@ -965,7 +988,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             openEntries.addAll(RestorableState.strings(self, "entries"));
             refresh();
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 }

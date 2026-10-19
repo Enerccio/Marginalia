@@ -80,7 +80,7 @@ public class GetPartCommand extends ManuscriptReadSupport {
 
     private void getPart(CommandContext context, Integer position, Integer branch, Integer offset, Integer length,
                          String field) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         List<ChatMessage> path = book.path(branch);
         ChatMessage message = book.part(path, position);
         String name = field == null || field.isBlank() ? "response" : field.strip().toLowerCase();

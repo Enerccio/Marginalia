@@ -31,7 +31,7 @@ public class GetBookInfoCommand extends ManuscriptReadSupport {
     }
 
     private void bookInfo(CommandContext context) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         Manuscript manuscript = book.manuscript;
         JsonObject result = new JsonObject();
         result.addProperty("name", manuscript.getName());

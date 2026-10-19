@@ -25,7 +25,7 @@ public class ListLorebooksCommand extends LorebookReadSupport {
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LOREBOOKS_RETURN))
     public void listLorebooks(CommandContext context) throws Exception {
-        Lore lore = new Lore(new Book());
+        Lore lore = new Lore(new Book(context));
         JsonArray books = new JsonArray();
         for (Lorebook book : lore.books) {
             JsonObject row = new JsonObject();

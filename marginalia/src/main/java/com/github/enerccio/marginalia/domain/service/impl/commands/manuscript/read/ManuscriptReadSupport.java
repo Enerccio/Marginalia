@@ -7,7 +7,6 @@ import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.utils.CommandUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,9 +68,8 @@ public abstract class ManuscriptReadSupport {
         public final Manuscript manuscript;
         private StoryTree tree;
 
-        public Book() throws Exception {
-            Manuscript open = CommandUtils.getCurrentManuscript();
-            Manuscript fresh = open == null ? null : manuscriptService.findForUser(open.getUuid());
+        public Book(CommandContext context) throws Exception {
+            Manuscript fresh = context.getScope().getManuscript();
             if (fresh == null) {
                 throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_BOOK_OPEN));
             }
