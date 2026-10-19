@@ -447,6 +447,8 @@ class AgentRunnerTest extends AgentTestBase {
         run = await(run);
 
         assertThat(transcript(run).stream().map(LLMChatMessage::getContent)).noneMatch(c -> c != null && c.contains("While the run was paused"));
+        // nothing to ask about, so the model is not offered the tool
+        assertThat(llm.lastCompletionRequest().getBody().getAsJsonArray("tools").toString()).doesNotContain("get_sync_report");
     }
 
     @Test
