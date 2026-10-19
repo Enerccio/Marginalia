@@ -336,7 +336,7 @@ word being the model's gets `DEFAULT_AGENT_RESUME_MESSAGE`; a call that was in t
 
 The descriptions of the commands are part of the prompt in practice: a model decides what to call from `llmDescriptionText` and the
 `descriptionText` of the parameters, see [Writing commands for agents](#writing-commands-for-agents). The parameter descriptions of the text
-parameters also get `AGENT_FILE_ARGUMENT_HINT` and `AGENT_RESULT_ARGUMENT_HINT`.
+parameters do not repeat that a value can be given as `@file:/path` or `@result` (it was in every one, more than half of the size of the definitions of all the tools, 20k tokens for the whole set): `AGENT_RUNNER_NOTE` in the system prompt says it once.
 
 
 ### Compaction

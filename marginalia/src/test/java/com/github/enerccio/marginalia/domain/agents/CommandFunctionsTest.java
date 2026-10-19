@@ -585,16 +585,16 @@ class CommandFunctionsTest {
     }
 
     @Test
-    void theTextParametersSayThatAFileCanBePassedButTheOthersDoNot() {
+    void noParameterRepeatsThatAFileCanBePassedTheNoteOfTheRunnerSaysItOnce() {
         commands.registerCommands(new Others());
         FunctionSet set = withFiles(DestructiveCommandMode.AUTO, null, FILES, "get.part");
         String schema = definition(set, CommandFunctions.functionName("get.part")).getParametersSchema().toString();
 
-        // the part is a number and the mode one of a few values: neither takes a file
+        // it was said in every text parameter and was half of the tokens of the definitions of the tools
         assertThat(schema).doesNotContain("@file:");
         commands.registerCommands(new Destructive());
         assertThat(definition(withFiles(DestructiveCommandMode.AUTO, null, FILES, "wipe"), "wipe").getParametersSchema().toString())
-                .contains("@file:/path");
+                .doesNotContain("@file:");
     }
 
     // --- the results as arguments ---
@@ -649,10 +649,8 @@ class CommandFunctionsTest {
 
         assertThat(call(set, "wipe", "{\"what\":\"@result\"}")).isEqualTo("wiped @result");
         assertThat(definition(set, "wipe").getParametersSchema().toString()).doesNotContain("@result");
-        assertThat(definition(withResults(new CommandResults(), null), "wipe").getParametersSchema().toString()).contains("@result:3")
-                .doesNotContain("@file:");
         assertThat(definition(withResults(new CommandResults(), FILES), "wipe").getParametersSchema().toString())
-                .contains("@file:/path").contains("@result:3");
+                .doesNotContain("@file:").doesNotContain("@result");
     }
 
     // --- images as arguments ---

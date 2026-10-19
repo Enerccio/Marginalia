@@ -87,6 +87,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Agents: smaller tool definitions.** The note that a text argument can be given as `@file:/path` or `@result` is no longer repeated in the description of every text parameter of every command (it was more than a quarter of the tokens of all the tools: 89k characters became 62k with every command allowed). The note of the runner in the system prompt says it once.
 - **Schema validation per table.** `persistence.xml` sets `hibernate.hbm2ddl.jdbc_metadata_extraction_strategy` to `individually`: the SQLite driver answers the columns of all tables with one compound SELECT, which SQLite refuses above 500 columns in total (the schema was at 490 before `V16`, the application did not start with more).
 - **`SessionPoint` and `CommandUtils` (plugin API from 1.4.0).** `SessionPoint` got `getManuscriptSection()`, `getManuscriptWindow()`, `getCurrentManuscript()` and `getCurrentAI()` (the lookup in the workspace moved there from `CommandUtils`, whose methods now delegate to them). `CommandUtils.getSessionPoint()` also answers for request attributes that are not a servlet request when they hold an `AgenticSessionPoint`.
 
