@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
@@ -85,6 +86,128 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
      * @throws IllegalArgumentException when the manuscript is not a working copy of an agent
      */
     void deleteAgenticCopy(Manuscript copy) throws Exception;
+
+    /**
+     * Changes the settings of the book that are named in {@code changes} (the others are left as they are) and saves it. The
+     * prompt templates are checked first: an invalid one refuses the whole change, a template that uses names that do not
+     * exist is saved and reported in the result.
+     *
+     * @throws IllegalArgumentException when the manuscript is not the user's, the name would be empty or a template is not valid
+     */
+    SettingsSaved updateSettings(Manuscript manuscript, BookSettings changes) throws Exception;
+
+    /**
+     * @param warnings what is wrong with a saved template without making it unusable, one text for each
+     */
+    record SettingsSaved(Manuscript manuscript, List<String> warnings) {
+    }
+
+    /**
+     * The settings of a book that can be changed together; a field that is not set stays as it is. The AI, the protocol, the
+     * lorebook and publishing are not among them, those are the user's decision.
+     */
+    class BookSettings {
+        private String name;
+        private String description;
+        private Language language;
+        private String pov;
+        private String tense;
+        private String style;
+        private String masterTemplate;
+        private String userPrompt;
+        private String summaryPrompt;
+        private String metaSummaryPrompt;
+
+        public String name() {
+            return name;
+        }
+
+        public BookSettings name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public String description() {
+            return description;
+        }
+
+        public BookSettings description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Language language() {
+            return language;
+        }
+
+        public BookSettings language(Language language) {
+            this.language = language;
+            return this;
+        }
+
+        public String pov() {
+            return pov;
+        }
+
+        public BookSettings pov(String pov) {
+            this.pov = pov;
+            return this;
+        }
+
+        public String tense() {
+            return tense;
+        }
+
+        public BookSettings tense(String tense) {
+            this.tense = tense;
+            return this;
+        }
+
+        public String style() {
+            return style;
+        }
+
+        public BookSettings style(String style) {
+            this.style = style;
+            return this;
+        }
+
+        public String masterTemplate() {
+            return masterTemplate;
+        }
+
+        public BookSettings masterTemplate(String masterTemplate) {
+            this.masterTemplate = masterTemplate;
+            return this;
+        }
+
+        public String userPrompt() {
+            return userPrompt;
+        }
+
+        public BookSettings userPrompt(String userPrompt) {
+            this.userPrompt = userPrompt;
+            return this;
+        }
+
+        public String summaryPrompt() {
+            return summaryPrompt;
+        }
+
+        public BookSettings summaryPrompt(String summaryPrompt) {
+            this.summaryPrompt = summaryPrompt;
+            return this;
+        }
+
+        public String metaSummaryPrompt() {
+            return metaSummaryPrompt;
+        }
+
+        public BookSettings metaSummaryPrompt(String metaSummaryPrompt) {
+            this.metaSummaryPrompt = metaSummaryPrompt;
+            return this;
+        }
+    }
 
     JsonObject createBackup(Manuscript manuscript) throws Exception;
     Manuscript cloneFromBackup(JsonObject backup) throws Exception;

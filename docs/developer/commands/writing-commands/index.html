@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845732137321">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845735820612">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845732137321" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845735820612" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845732137321" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845735820612" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -334,7 +334,7 @@ carried by <code translate="no" v-pre>CommandDataSeverity.getLabel()</code>/<cod
 <div id="reading-the-current-state-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">@Command(commandName = &quot;book-title&quot;, humanNameText = &quot;Title of the open book&quot;, returns = @CommandReturn(name = &quot;title&quot;, type = String.class))
 public void title(CommandContext context) {
-    Manuscript book = CommandUtils.getCurrentManuscript();
+    Manuscript book = context.getScope().getManuscript();
     if (book == null) {
         context.fail(new IllegalStateException(&quot;No book is open&quot;));
         return;
@@ -342,12 +342,11 @@ public void title(CommandContext context) {
     context.setReturn(book.getName());
 }</code></pre>
 </doc-codeblock></div>
-<p><code translate="no" v-pre>CommandUtils</code> returns <code translate="no" v-pre>null</code> when nothing is open (no workspace yet, no book). The same code works in the desktop and in
-the phone layout, because <code translate="no" v-pre>getManuscriptWindow()</code> returns the <code translate="no" v-pre>ManuscriptWindow</code> interface, and for an agent, whose
-<code translate="no" v-pre>AgenticSessionPoint</code> holds the book directly (<code translate="no" v-pre>CommandUtils.getCurrentManuscript()</code> delegates to
-<code translate="no" v-pre>SessionPoint.getCurrentManuscript()</code>); a command that must work for agents asks <code translate="no" v-pre>CommandUtils</code> for the book and does not go
-through the workspace itself. Use the services for data;
-they check ownership of the current user.</p>
+<p><code translate="no" v-pre>getScope().getManuscript()</code> returns <code translate="no" v-pre>null</code> when nothing is open (no workspace yet, no book). The same code works in the desktop and in
+the phone layout and for an agent, whose scope is its working copy (see <a href="../#the-scope">The scope</a>); a command that must work for
+agents takes the book from the scope and does not go through the workspace or the open window itself. An item that is given to the command
+(a part, a lorebook, an entry) is found with <code translate="no" v-pre>getScope().resolveMessage(uuid)</code> and its siblings, which keep the command inside the book.
+Use the services for data; they check ownership of the current user.</p>
 <h2 id="failing">Failing</h2>
 <p>A synchronous command can throw; the caller gets a <code translate="no" v-pre>CommandException</code> with the exception as its cause. <code translate="no" v-pre>fail</code> does the same
 and is the way for code on another thread. A message intended for the user goes into the exception message – the command
@@ -440,9 +439,10 @@ commands.destroy();   // stops the worker pool</code></pre>
 the work: assert <code translate="no" v-pre>isTerminated()</code> becomes true and the worker returns. <code translate="no" v-pre>CommandUtils</code> returns <code translate="no" v-pre>null</code> outside a session, so
 a test of a command that reads the workspace needs the request attributes (see <code translate="no" v-pre>CommandUtilsTest</code>).</p>
 <h2 id="asking-the-user">Asking the user</h2>
-<p>A command that changes data without a preview asks first. <code translate="no" v-pre>CommandUtils.confirm(context, question)</code> opens a yes/no dialog in
-the UI of the book window, on top of the progress window (so over its Stop button), waits on the worker thread and returns
-<code translate="no" v-pre>false</code> for no, when the run is stopped meanwhile or when there is no window. Declare the command uninterruptable
+<p>A command that changes data without a preview asks first. <code translate="no" v-pre>context.confirm(question)</code> asks whoever called the command: the user gets a
+yes/no dialog in the UI of the book window, on top of the progress window (so over its Stop button), the command waits on the worker thread
+and gets <code translate="no" v-pre>false</code> for no, when the run is stopped meanwhile or when there is no window; an agent is not asked again and gets yes (the
+<a href="../../agents/">destructive mode</a> of the agent decided when it called the command). Declare the command uninterruptable
 only after the answer. <code translate="no" v-pre>/search-replace-parts</code> and <code translate="no" v-pre>/search-replace-lore-entries</code> (<code translate="no" v-pre>SearchReplaceChatMessageCommand</code>,
 <code translate="no" v-pre>SearchReplaceLoreEntryCommand</code>) are the examples; their <code translate="no" v-pre>confirm</code> method is a hook that tests override.</p>
 <figure class="content-center">
@@ -496,7 +496,7 @@ only after the answer. <code translate="no" v-pre>/search-replace-parts</code> a
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5607ccef).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (aeac9e2b).</p></div>
             </footer>
         </div>
     </div>

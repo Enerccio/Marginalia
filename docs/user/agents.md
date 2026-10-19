@@ -198,3 +198,7 @@ While a run of an agent works or waits for you, **its book is locked**: you can 
 works on text that moves under it. The book list does not open a locked book, it tells you which agent holds it, and
 generating, editing, search and replace, summaries and deleting the book are refused. **Pause** or **Stop** the run to edit the book again;
 a paused, stopped or finished run does not lock it.
+
+The **lorebooks of the book** are locked with it: the lorebook the book uses and its sub-lorebooks. On the Lorebooks tab such a lorebook is
+shown the way it is on a phone, as plain text and without any editing, with a note that says which agent holds it; **Refresh** shows it for
+editing again after you paused or stopped the run. Other lorebooks are not affected.

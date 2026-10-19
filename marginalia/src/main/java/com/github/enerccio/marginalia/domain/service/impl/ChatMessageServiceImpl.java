@@ -4,15 +4,15 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
-import com.github.enerccio.marginalia.domain.service.AgentRunService;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.SummaryService;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
+import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -33,6 +33,10 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @Autowired
     @Lazy
     private AgentRunService agentRunService;
+
+    @Autowired
+    @Lazy
+    private InferenceServices inferenceServices;
 
     /**
      * A part of a book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
@@ -112,6 +116,40 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         clone.loadFrom(branched);
         clone.setSummary(summaryService.copySummary(branched.getSummary()));
         return save(clone);
+    }
+
+    @Override
+    @CommonTx
+    public Manuscript branchAndSwitch(Manuscript manuscript, ChatMessage branched) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage clone = branch(book, ownPart(book, branched));
+        book.setActiveLeaf(clone);
+        return manuscriptService.save(book);
+    }
+
+    @Override
+    @CommonTx
+    public Manuscript swipeAndSwitch(Manuscript manuscript, ChatMessage target) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        swipeTo(book, ownPart(book, target));
+        return manuscriptService.save(book);
+    }
+
+    private Manuscript ownBook(Manuscript manuscript) throws Exception {
+        Manuscript book = manuscript == null ? null : (Manuscript) Hibernate.unproxy(manuscriptService.findForUser(manuscript.getUuid()));
+        if (book == null) {
+            throw new IllegalArgumentException("The manuscript does not exist");
+        }
+        return book;
+    }
+
+    private ChatMessage ownPart(Manuscript book, ChatMessage message) throws Exception {
+        // the part may be the lazy proxy of an association loaded earlier, its extended attributes are not read from the proxy
+        ChatMessage stored = message == null ? null : (ChatMessage) Hibernate.unproxy(find(message));
+        if (stored == null || stored.isDeleted() || stored.getParentScript() == null || !stored.getParentScript().getId().equals(book.getId())) {
+            throw new IllegalArgumentException("The part does not exist");
+        }
+        return stored;
     }
 
     @Override
@@ -336,6 +374,50 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         int count = 0;
         while (matcher.find()) count++;
         return count;
+    }
+
+
+    @Override
+    @CommonTx
+    public PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception {
+        Manuscript book = ownBook(manuscript);
+        ChatMessage stored = ownPart(book, message);
+        String newText = text == null ? "" : text;
+
+        // the summaries of the branch the part is on that are outdated already do not count as made so by this edit
+        ChatMessage leaf = findLeafFor(book, stored);
+        List<ChatMessage> newestFirst = leaf == null ? List.of() : new ArrayList<>(getBranchFromLeaf(leaf).reversed());
+        Set<Long> outdatedBefore = outdatedHeads(newestFirst);
+
+        stored.setResponse(newText);
+        InferenceService inferenceService = inferenceServices.forAI(book.getAi());
+        if (inferenceService == null) {
+            stored.setTokenCount(new JavaTokkitStrategy().countTokens(null, newText));
+        } else {
+            stored.setTokenCount(inferenceService.countTokens(newText));
+        }
+        stored.setWordCount(countWords(newText));
+        stored.setEdited(true);
+        ChatMessage saved = save(stored);
+
+        List<SummaryBlock> outdated = new ArrayList<>();
+        for (SummaryBlock block : summaryService.collectBlocks(newestFirst)) {
+            if (!block.isValid() && !outdatedBefore.contains(block.head().getId())) {
+                outdated.add(block);
+            }
+        }
+        Collections.reverse(outdated);
+        return new PartEdit(saved, outdated);
+    }
+
+    private Set<Long> outdatedHeads(List<ChatMessage> newestFirst) throws Exception {
+        Set<Long> heads = new HashSet<>();
+        for (SummaryBlock block : summaryService.collectBlocks(newestFirst)) {
+            if (!block.isValid()) {
+                heads.add(block.head().getId());
+            }
+        }
+        return heads;
     }
 
 }

@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.command.CommandException;
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 
 import java.util.*;
 
@@ -19,6 +20,7 @@ class CommandContextImpl implements CommandContext {
     private final CommandRunImpl result;
     /** The caller started the run as uninterruptable, the command can't undo it. */
     private final boolean forcedUninterruptable;
+    private final CommandScope scope;
 
     private Object value;
     private boolean closed;
@@ -26,7 +28,7 @@ class CommandContextImpl implements CommandContext {
     private String subStatus;
 
     CommandContextImpl(String commandName, Map<String, Object> arguments, List<Object> positional, boolean async,
-                       CommandRunImpl result, boolean forcedUninterruptable) {
+                       CommandRunImpl result, boolean forcedUninterruptable, CommandScope scope) {
         this.commandName = commandName;
         // LinkedHashMap and ArrayList, not Map.copyOf: arguments may be null
         this.arguments = arguments == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(arguments));
@@ -34,6 +36,7 @@ class CommandContextImpl implements CommandContext {
         this.async = async;
         this.result = result;
         this.forcedUninterruptable = forcedUninterruptable;
+        this.scope = scope;
         if (forcedUninterruptable) {
             result.uninterruptable(true);
         }
@@ -71,6 +74,16 @@ class CommandContextImpl implements CommandContext {
     @Override
     public Map<String, Object> getArguments() {
         return arguments;
+    }
+
+    @Override
+    public CommandScope getScope() {
+        return scope;
+    }
+
+    @Override
+    public boolean confirm(String question) throws InterruptedException {
+        return scope != null && scope.confirm(this, question);
     }
 
     @Override

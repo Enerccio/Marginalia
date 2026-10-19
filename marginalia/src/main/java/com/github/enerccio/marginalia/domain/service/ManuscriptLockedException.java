@@ -9,7 +9,11 @@ public class ManuscriptLockedException extends IllegalStateException {
     private final String agentName;
 
     public ManuscriptLockedException(String agentName) {
-        super("The book is locked by the agent " + agentName + ", pause or stop its run to change the book");
+        this("The book is locked by the agent " + agentName + ", pause or stop its run to change the book", agentName);
+    }
+
+    protected ManuscriptLockedException(String message, String agentName) {
+        super(message);
         this.agentName = agentName;
     }
 

@@ -78,7 +78,7 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
     }
 
     private void listLoreEntries(CommandContext context, Integer lorebook, String filter, Integer offset, Integer limit) throws Exception {
-        Lore lore = new Lore(new Book());
+        Lore lore = new Lore(new Book(context));
         Lorebook book = lore.book(lorebook);
         List<LorebookEntry> all = lore.entries(book);
         String needle = filter == null || filter.isBlank() ? null : filter.strip().toLowerCase(Locale.ROOT);

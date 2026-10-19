@@ -39,6 +39,17 @@ public interface CommandContext {
     Map<String, Object> getArguments();
 
     /**
+     * What the command works on: the book, its lorebooks and who answers its questions. The user at the command bar and an
+     * agent get different ones, so a command takes the book from here and not from the open window.
+     */
+    CommandScope getScope();
+
+    /**
+     * Asks whoever called the command a yes/no question and waits for the answer, see {@link CommandScope#confirm}.
+     */
+    boolean confirm(String question) throws InterruptedException;
+
+    /**
      * Whether the run is over for the caller: the command has finished (answered or failed), or the caller stopped it
      * (the future was cancelled, the stop button of the progress window). A command that runs for a while, an
      * {@code async} one above all, checks it between the steps of its work and returns at once when it is true; what it

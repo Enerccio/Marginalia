@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 
+import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 
@@ -24,6 +25,24 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     ChatMessage swipeTo(Manuscript manuscript, ChatMessage targetMessage) throws Exception;
 
     ChatMessage branch(Manuscript manuscript, ChatMessage branched) throws Exception;
+
+    /**
+     * Branches the part (a copy of it, with a copy of its summary, as its sibling) and makes the new part the active leaf of
+     * the book, which is saved. What the Branch button does.
+     *
+     * @return the saved manuscript
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     */
+    Manuscript branchAndSwitch(Manuscript manuscript, ChatMessage branched) throws Exception;
+
+    /**
+     * Makes the end of the branch that goes through the part (the newest descendants) the active leaf of the book, which is
+     * saved. What choosing another swipe does.
+     *
+     * @return the saved manuscript
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     */
+    Manuscript swipeAndSwitch(Manuscript manuscript, ChatMessage target) throws Exception;
 
     List<ChatMessage> getAllMessages(Manuscript manuscript) throws Exception;
 
@@ -85,5 +104,22 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard) throws Exception;
 
     int countWords(String text);
+
+    /**
+     * Stores the text of a part the author (or an agent) edited: counts its tokens (with the tokenizer of the book's AI, a
+     * generic one when it has none) and words, flags the part as edited and saves it.
+     *
+     * @return the saved part and the summaries the edit made outdated (the ones that described the story before and no
+     * longer do, not the ones that were outdated already)
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     */
+    PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception;
+
+    /**
+     * @param message  the part as saved
+     * @param outdated the summaries that became outdated by the edit, oldest first
+     */
+    record PartEdit(ChatMessage message, List<SummaryBlock> outdated) {
+    }
 
 }

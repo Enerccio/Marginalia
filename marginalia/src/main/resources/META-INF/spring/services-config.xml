@@ -163,6 +163,8 @@
         <property name="repository" ref="agentRunPairRepository" />
     </bean>
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.CommandScopesImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentApprovalServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentAttentionServiceImpl" />

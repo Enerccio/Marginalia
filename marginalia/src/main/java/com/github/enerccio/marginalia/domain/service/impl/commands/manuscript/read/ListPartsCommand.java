@@ -61,7 +61,7 @@ public class ListPartsCommand extends ManuscriptReadSupport {
     }
 
     private void listParts(CommandContext context, Integer branch, Integer offset, Integer limit) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         List<ChatMessage> path = book.path(branch);
         int from = Math.min(Math.max(offset == null ? 0 : offset, 0), path.size());
         int to = Math.min(path.size(), from + limit(limit));

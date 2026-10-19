@@ -167,7 +167,19 @@ public final class CommandFunctions {
     public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
                                        Function<String, String> files, CommandResults commandResults,
                                        Function<String, LLMAttachment> images) {
-        return create(commands, agent.getAllowedCommands(), agent.getDestructiveMode(), lookup, approval, files, commandResults, images);
+        return forAgent(commands, agent, lookup, approval, files, commandResults, images, null);
+    }
+
+    /**
+     * As {@link #forAgent(CommandService, Agent, Function, Approval, Function, CommandResults, Function)}, and the commands
+     * run in the scope of the cage and the agent works with the handles of the cage instead of the uuids.
+     *
+     * @param cage the scope of the commands and the handles; null runs them in the scope of the session, with the uuids
+     */
+    public static FunctionSet forAgent(CommandService commands, Agent agent, Function<L, String> lookup, Approval approval,
+                                       Function<String, String> files, CommandResults commandResults,
+                                       Function<String, LLMAttachment> images, CommandCage cage) {
+        return create(commands, agent.getAllowedCommands(), agent.getDestructiveMode(), lookup, approval, files, commandResults, images, cage);
     }
 
     /**
@@ -207,6 +219,16 @@ public final class CommandFunctions {
     public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
                                      Function<L, String> lookup, Approval approval, Function<String, String> files,
                                      CommandResults commandResults, Function<String, LLMAttachment> images) {
+        return create(commands, allowed, mode, lookup, approval, files, commandResults, images, null);
+    }
+
+    /**
+     * @param cage the scope the commands run in and the handles of the agent, see
+     *             {@link #forAgent(CommandService, Agent, Function, Approval, Function, CommandResults, Function, CommandCage)}
+     */
+    public static FunctionSet create(CommandService commands, Collection<String> allowed, DestructiveCommandMode mode,
+                                     Function<L, String> lookup, Approval approval, Function<String, String> files,
+                                     CommandResults commandResults, Function<String, LLMAttachment> images, CommandCage cage) {
         Set<String> names = new HashSet<>(allowed);
         Map<String, List<CommandDefinition>> byName = new TreeMap<>();
         for (CommandDefinition definition : commands.getCommands()) {
@@ -225,7 +247,7 @@ public final class CommandFunctions {
             String functionName = functionName(entry.getKey());
             FunctionDefinition definition = FunctionDefinition.dynamic(functionName, describe(forms, lookup), schema(forms, lookup, files != null, commandResults != null, images != null),
                     (continuation, arguments) -> call(commands, entry.getKey(), destructive ? mode : DestructiveCommandMode.AUTO,
-                            approval, files, commandResults, images, continuation, arguments));
+                            approval, files, commandResults, images, cage, continuation, arguments));
             if (functions.putIfAbsent(functionName, definition) != null) {
                 // two names with the same hash, which is not going to happen; the first (by name) wins
                 log.warn("Command {} has the function name {} of another command, it is not offered", entry.getKey(), functionName);
@@ -417,7 +439,7 @@ public final class CommandFunctions {
 
     private static void call(CommandService commands, String commandName, DestructiveCommandMode mode, Approval approval,
                              Function<String, String> files, CommandResults commandResults, Function<String, LLMAttachment> images,
-                             FunctionContinuation<Object> continuation, Map<String, Object> passed) {
+                             CommandCage cage, FunctionContinuation<Object> continuation, Map<String, Object> passed) {
         try {
             List<CommandDefinition> forms = commands.getCommands(commandName);
             if (forms.isEmpty()) {
@@ -447,12 +469,12 @@ public final class CommandFunctions {
                     } else if (!Boolean.TRUE.equals(approved)) {
                         continuation.fail(new FunctionCallException(Kind.FAILED, "The user did not approve the command " + commandName));
                     } else {
-                        run(commands, commandName, complete, references, commandResults, continuation);
+                        run(commands, commandName, complete, references, commandResults, cage, continuation);
                     }
                 });
                 return;
             }
-            run(commands, commandName, complete, references, commandResults, continuation);
+            run(commands, commandName, complete, references, commandResults, cage, continuation);
         } catch (RuntimeException e) {
             continuation.fail(e);
         }
@@ -594,9 +616,12 @@ public final class CommandFunctions {
         return complete;
     }
 
+    @SuppressWarnings("unchecked")
     private static void run(CommandService commands, String commandName, Map<String, Object> arguments, Map<String, String> references,
-                            CommandResults commandResults, FunctionContinuation<Object> continuation) {
-        CommandRun run = commands.execute(commandName, arguments);
+                            CommandResults commandResults, CommandCage cage, FunctionContinuation<Object> continuation) {
+        // the agent knows the items by handles, the command by uuids; the user was shown the handles
+        CommandRun run = cage == null ? commands.execute(commandName, arguments)
+                : commands.execute(commandName, (Map<String, Object>) cage.handles().fromHandles(arguments), false, cage.scope());
         run.whenComplete((value, error) -> {
             if (error != null) {
                 continuation.fail(new FunctionCallException(Kind.FAILED, messageOf(error), error));
@@ -604,6 +629,9 @@ public final class CommandFunctions {
             }
             try {
                 String text = FunctionDefinition.render(value);
+                if (cage != null) {
+                    text = cage.handles().toHandles(text);
+                }
                 if (commandResults != null) {
                     commandResults.add(functionName(commandName), describeArguments(arguments, references), text);
                 }

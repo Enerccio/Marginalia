@@ -245,7 +245,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     private void runGenerate(CommandContext context) throws Exception {
-        Lore lore = new Lore(new Book());
+        Lore lore = new Lore(new Book(context));
         Lorebook book = lore.book(context.get("lorebook", Integer.class));
         LorebookEntry entry = target(lore, book, context.get("entry", Integer.class), context.get("order", Integer.class));
         LoreScope scope = option(LoreScope.class, context.get("scope", String.class), LoreScope.CURRENT_LOREBOOK, "scope");
@@ -354,7 +354,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     }
 
     private void runCompact(CommandContext context) throws Exception {
-        Lore lore = new Lore(new Book());
+        Lore lore = new Lore(new Book(context));
         Lorebook book = lore.book(context.get("lorebook", Integer.class));
         LorebookEntry entry = target(lore, book, context.get("entry", Integer.class), context.get("order", Integer.class));
         LoreScope scope = option(LoreScope.class, context.get("scope", String.class), LoreScope.CURRENT_LOREBOOK, "scope");

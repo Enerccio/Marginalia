@@ -3,10 +3,10 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
-import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.domain.traits.APIParameter;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +25,6 @@ public class StorySupport {
 
     @Autowired
     private ChatMessageService chatMessageService;
-
-    @Autowired
-    private InferenceServices inferenceServices;
 
     /**
      * Stores the scroll position of the story panel on the last part of the branch, so the story opens where the
@@ -67,22 +64,9 @@ public class StorySupport {
             returns = @APIReturn(type = ChatMessage.class),
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class),
                     @APIParameter(name = "message", type = ChatMessage.class),
-                    @APIParameter(name = "newResponse", type = String.class)},
-            locals = {@APILocals(name = "inferenceService", type = InferenceService.class),
-                    @APILocals(name = "strategy", type = JavaTokkitStrategy.class)})
+                    @APIParameter(name = "newResponse", type = String.class)})
     public ChatMessage saveEditedResponse(Manuscript manuscript, ChatMessage message, String newResponse) throws Exception {
-        message.setResponse(newResponse);
-
-        InferenceService inferenceService = inferenceServices.forAI(manuscript.getAi());
-        if (inferenceService == null) {
-            JavaTokkitStrategy strategy = new JavaTokkitStrategy();
-            message.setTokenCount(strategy.countTokens(null, newResponse));
-        } else {
-            message.setTokenCount(inferenceService.countTokens(newResponse));
-        }
-        message.setWordCount(chatMessageService.countWords(newResponse));
-        message.setEdited(true);
-        return chatMessageService.save(message);
+        return chatMessageService.updateResponse(manuscript, message, newResponse).message();
     }
 
 }

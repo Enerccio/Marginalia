@@ -34,6 +34,7 @@ flowchart LR
 | `Agent`, `AgentRun`, `AgentMessage` | `domain.model.impl` | The definition, one execution, one row of the transcript. |
 | `AgentService` | `domain.service` | CRUD of the definitions, the grant of the user (`AGENTS` permission), cloning, resolving the model profile. |
 | `AgentRunService` | `domain.service` | The state of a run: start, `transition`, pause, stop, resume, the working copy, the lock of the book, the request context. |
+| `AgentRunPairService` | `domain.service` | Which item of the working copy is which item of the original (the uuid pairs), see [The working copy and the lock](#the-working-copy-and-the-lock). |
 | `AgentRunner` | `domain.service` | Makes a `RUNNING` run do work: the loop, one worker thread per run. |
 | `AgentMessageService` | `domain.service` | The transcript, append only. |
 | `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. |
@@ -110,8 +111,10 @@ the database at every start and resume:
 - `AgentRequestAttributes` implements `RequestAttributes` over two maps in memory (session and request scope). It starts with the `user`
   bean (a copy of the owner, as the login makes it) and an `AgenticSessionPoint`. Any other session bean is created on first use, empty.
 - `AgenticSessionPoint` is a `SessionPoint` that holds the **working copy** directly. `CommandUtils.getSessionPoint()` returns it for these attributes
-  (and the bean of the servlet session for a browser), so **the same command works at the command bar and for an agent**: it asks `CommandUtils`
-  for the book and never knows who is asking. This is why a command must never keep the book in a field or reach for `Workspace`.
+  (and the bean of the servlet session for a browser). A command no longer reads the book from there: it takes it from `context.getScope()`, and
+  the runner runs the commands of an agent in the scope of its run (`CommandScopes.forRun(run)`, see [The scope](commands/index.md#the-scope)), so
+  **the same command works at the command bar and for an agent** and never knows who is asking. This is why a command must never keep the book in a
+  field or reach for `Workspace`.
 - The worker enters it with `InRequestScope`; every thread that works for the run does the same. `ThreadCopyRequestAttributes.create()` hands
   the `AgentRequestAttributes` on as it is (a browser session is copied, these are shared), so a command that starts a worker thread (`async = true`,
   or the generation of a story turn) keeps the context. A test wrapper that is not an `AgentRequestAttributes` is *not* handed on: in tests of an
@@ -128,10 +131,27 @@ it as `AgentRun.workingCopy`. The lists of the UI leave the `agentic` books out 
 `agentic`, so a path that deletes the book of a user does not exist. `DONE`, `FAILED` and a discarded stop delete the copy for good; a pause or a kept stop
 keeps it. Bringing the changes back into the book (the review, `APPLIED`) is not built yet.
 
+The copy has **new uuids**, so the run records how it relates to the original, in the transaction that makes the copy:
+
+- **The uuid pairs** (`AgentRunPairService`, table `agent_run_pairs`, V17): one `AgentRunPair` row per message, summary, lorebook and lorebook entry of the copy,
+  `kind` + `copyUuid` -> `originalUuid` (null for an item the agent made; it has none until it is applied) + a `handle` column that is empty until the agent is
+  given handles. `ManuscriptService.createAgenticCopy` returns an `AgenticCopy` (the copy, the `UuidPair`s, the base); `cloneFromBackup(backup, pairs)` and
+  `LorebookService.copyLorebooks(lorebooks, pairs)` report the pairs of the messages, summaries, lorebooks and entries as they make them, and `AgentRunServiceImpl.start`
+  and `resume` (for a run without a copy) store them with `AgentRunPairService.replace` once the run is saved. `AgentRunPair` is a **plain entity** (no `BaseEntity`: no
+  uuid, no soft delete, no extended content, a book of 2000 parts is thousands of rows) keyed by the id of the run, so the cleanup does not know it:
+  `AgentRunServiceImpl.releaseCopy` deletes the rows (`deleteForRun`) when the run lets go of the copy, whichever way that happens. The reading methods work for the
+  runs of the user only.
+- **The base snapshot**: the backup JSON of the original as it was copied, with the lorebook tree **and the uuids of the entries** (the backup format has none, so
+  `LorebookService.marshalLorebooks(root, true)` adds them; the copy of the lorebooks is made from this very JSON, so base and pairs agree), written to
+  `agent-runs/<run uuid>/base/manuscript.json` by `AgentVirtualFileSystemService.writeBase` (deleted again when the transaction rolls back) and read with `readBase`. It is deleted
+  with the copy (`deleteBase`) and with the run folder.
+
 While a run `holdsLock()` the **original book is locked**: `AgentRunService.checkNotLocked(manuscript)` throws `ManuscriptLockedException`, and the services
 that change a book call it (`ManuscriptService.save/delete/restoreBackup`, `ChatMessageService`, `SummaryService`, `ManuscriptReplaceService.apply`,
-`StoryGenerationService.generateNextTurn`). Reading is free, lorebooks are not locked. The screens that open a book ask `AgentLockCheck` first
+`StoryGenerationService.generateNextTurn`). Reading is free. The screens that open a book ask `AgentLockCheck` first
 so the user is told which agent holds it instead of getting an error later. A change that a service does not route through these methods is not locked.
+
+The **lorebooks** are locked with the book, because the run works on a copy of them and the copy is compared with the lorebooks as they were: the lorebook the book links and its subbooks, however deep (`AgentRunService.findLockingRun(Lorebook)` / `checkNotLocked(Lorebook)`, which throw `LorebookLockedException`, a `ManuscriptLockedException`; the working copies of agents are never locked). `LorebookService` and `LorebookEntryService` check it in `save` and `delete`. A lorebook has no screen of its own to tell the user, so `LorebookView` shows a locked lorebook with the `PhoneLorebookView` (nothing else of the screen), which says which agent holds it and changes nothing; both views read the lock again on **Refresh**. The tags of a lorebook are not locked.
 
 ## The services
 
@@ -173,7 +193,7 @@ has `maxAgents` agents (the deleted ones don't count); `canCreate()` is the same
   (`ChatMessageService.hardDeleteForManuscript`, the soft deleted ones too, children first), the tags and the copy's lorebooks
   (`LorebookService.deleteAgenticCopy`: the tree, its entries and tags); both refuse anything whose `agentic` is false, so a book of the user
   can't be deleted by this path). `PAUSED` and `STOPPED_KEPT` keep the copy, `resume` makes one for a run that has none, a new run makes a new copy.
-  Not done: the uuid pairs, the base snapshot and the merge back.
+  The pairs and the base snapshot of the copy are stored with it (above). Not done: the merge back.
 - `delete(run, hard)` discards a run that is not over (`STOPPED_DISCARDED`) and deletes its working copy for good first.
 - `pause(run)`, `stop(run, keep)` and `resume(run)` are what the buttons of the Agents tab call. A run that waits for the user (`IDLE`,
   `WAITING_APPROVAL`) is paused at once; a `RUNNING` one goes to `PAUSING` / `STOPPING` and the runner finishes the change at its next stable
@@ -403,7 +423,7 @@ newest is always the one of the previous call.
 
 `AgentVirtualFileSystemService` hands out the files of agents. Two folders in the application folder (not in `data/`, which is named by logins):
 `agent-workspaces/<agent uuid>` is the **workspace**, which belongs to the agent and stays between its runs (the notes it keeps), and
-`agent-runs/<run uuid>` is the folder of a run (`base/` and `checkpoints/`, nothing writes them yet; `RunFolder` is the layout). The uuids are
+`agent-runs/<run uuid>` is the folder of a run (`base/` with the snapshot of the original, written when the copy is made, and `checkpoints/`, which nothing writes yet; `RunFolder` is the layout). The uuids are
 checked, so no value of the database makes a path leave these folders. `open(run)` is the file system of a run (the workspace, `/checkpoints` and `/AGENTS.md`),
 `openWorkspace(agent)` the workspace alone for the user to look at; both refuse (`IllegalArgumentException`) what is not the user's own. Both use the
 `WorkspaceLimits` of `getLimits(agent)`: the defaults of the service (`getLimits()`) with the quotas of the permission of the agent's owner over them.
@@ -483,7 +503,8 @@ The console shows the model's results cut at `RESULT_LIMIT` (20 000), the same a
 An agent calls the commands that the user ticked in the editor, so **every command is also an agent tool**. The rules for [writing commands](commands/writing-commands.md)
 apply; for an agent these matter most:
 
-- **Get the book from `CommandUtils`**, never from the UI; return the data (text, JSON) instead of showing it.
+- **Get the book from `context.getScope()`**, never from the UI; return the data (text, JSON) instead of showing it. An item that is passed in
+  is found through the scope (`resolveMessage`, `resolveLorebook`, `resolveEntry`), which keeps the command inside the working copy.
 - **Mark the severity honestly.** `NON_DESTRUCTIVE` commands are what the default selection offers; `DESTRUCTIVE` follows the agent's mode (`DENY` hides them).
   A command that only returns text and leaves the storing to the caller (the lore generator commands do this: they return the text, the agent writes the
   entry with the commands that exist for that) is the safest tool to hand out.
@@ -530,6 +551,6 @@ model, so a whole run is tested without a network. The main classes: `AgentRunne
 | A status | Add it to `AgentRunStatus` and to `next()` (stored by name, do not rename), decide `isActive` / `holdsLock` / `needsAttention`, handle it in `AgentRunServiceImpl` and the localization of the status (`Localization.getAgentRunStatus`). |
 | A screen | A class in `ui.dialogs.agent`, a poll in the console when it shows run data. |
 
-Not done: the review that brings the changes of the working copy back into the book (`APPLIED`; the uuid pairs and the base snapshot are not built either), summaries of
+Not done: the review that brings the changes of the working copy back into the book (`APPLIED`), summaries of
 older rounds when the context is full (the run pauses instead), "Pause now" (the request in the air is waited for), a limit of concurrent requests per AI, threads
 (sub-agents) and handles, stopping a running `async` command when its run stops.

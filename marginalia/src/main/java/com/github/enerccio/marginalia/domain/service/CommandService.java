@@ -1,9 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
-import com.github.enerccio.marginalia.domain.service.command.CommandContext;
-import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
-import com.github.enerccio.marginalia.domain.service.command.CommandException;
-import com.github.enerccio.marginalia.domain.service.command.CommandRun;
+import com.github.enerccio.marginalia.domain.service.command.*;
 import com.github.enerccio.marginalia.domain.traits.Command;
 
 import java.util.List;
@@ -95,7 +92,18 @@ public interface CommandService {
      * lift it with {@link CommandContext#setUninterruptable(boolean)}. For a command that is uninterruptable itself and
      * starts another asynchronous command: the nested one must not be abandoned half way either.
      */
-    CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable);
+    default CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable) {
+        return execute(commandName, arguments, uninterruptable, null);
+    }
+
+    /**
+     * Like {@link #execute(String, Map, boolean)}, for the book and the caller of the {@code scope}: this is how an
+     * agent aims a command at its working copy and gets no questions asked.
+     *
+     * @param scope what the command works on, see {@link CommandScope}; null for the scope of the session of the calling
+     *              thread ({@link CommandScopes#session()}), which is the book the user has open
+     */
+    CommandRun execute(String commandName, Map<String, Object> arguments, boolean uninterruptable, CommandScope scope);
 
     /**
      * Runs the command with the arguments by position (any objects, text from a command line included). The overload
@@ -113,7 +121,15 @@ public interface CommandService {
      * Like {@link #executePositional(String, List)}, with the {@code uninterruptable} flag of
      * {@link #execute(String, Map, boolean)}.
      */
-    CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable);
+    default CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable) {
+        return executePositional(commandName, arguments, uninterruptable, null);
+    }
+
+    /**
+     * Like {@link #executePositional(String, List, boolean)}, with the {@code scope} of
+     * {@link #execute(String, Map, boolean, CommandScope)}.
+     */
+    CommandRun executePositional(String commandName, List<Object> arguments, boolean uninterruptable, CommandScope scope);
 
     /**
      * Runs a command typed as text, {@code /command-name argument argument}, see
@@ -128,6 +144,14 @@ public interface CommandService {
      * Like {@link #executeLine(String)}, with the {@code uninterruptable} flag of
      * {@link #execute(String, Map, boolean)}.
      */
-    CommandRun executeLine(String line, boolean uninterruptable);
+    default CommandRun executeLine(String line, boolean uninterruptable) {
+        return executeLine(line, uninterruptable, null);
+    }
+
+    /**
+     * Like {@link #executeLine(String, boolean)}, with the {@code scope} of
+     * {@link #execute(String, Map, boolean, CommandScope)}.
+     */
+    CommandRun executeLine(String line, boolean uninterruptable, CommandScope scope);
 
 }

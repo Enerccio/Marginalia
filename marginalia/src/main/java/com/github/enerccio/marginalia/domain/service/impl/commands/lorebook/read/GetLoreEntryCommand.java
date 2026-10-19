@@ -63,7 +63,7 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
     }
 
     private void getLoreEntry(CommandContext context, Integer entryNumber, Integer lorebook, Integer offset, Integer length) throws Exception {
-        Lore lore = new Lore(new Book());
+        Lore lore = new Lore(new Book(context));
         Lorebook book = lore.book(lorebook);
         LorebookEntry entry = lore.entry(book, entryNumber);
 

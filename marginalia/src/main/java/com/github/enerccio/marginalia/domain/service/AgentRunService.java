@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.bound.AgentRequestAttributes;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.AgentRunRepository;
 
@@ -139,6 +140,19 @@ public interface AgentRunService extends ExtendableService<AgentRun, AgentRunRep
      * @throws ManuscriptLockedException when a run of the agent of the manuscript holds the lock
      */
     void checkNotLocked(Manuscript manuscript) throws Exception;
+
+    /**
+     * The run that locks the lorebook, whoever it belongs to; null when it is free. The lorebooks of a book an agent
+     * works on (the one the book links and, transitively, its subbooks) are locked while the book is
+     * ({@link #findLockingRun(Manuscript)}), as the run works on a copy of them and the copy is compared with the
+     * lorebooks as they were. The working copies of agents ({@code agentic}) are never locked.
+     */
+    AgentRun findLockingRun(Lorebook lorebook) throws Exception;
+
+    /**
+     * @throws LorebookLockedException when a run of an agent whose book uses the lorebook holds the lock
+     */
+    void checkNotLocked(Lorebook lorebook) throws Exception;
 
     /**
      * Runs of the agent of the current user, the newest first.

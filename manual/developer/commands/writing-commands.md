@@ -5,6 +5,8 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/commands
   - marginalia/src/main/java/com/github/enerccio/marginalia/utils/CommandUtils.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandScope.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/CommandScopes.java
   - marginalia/src/test/java/com/github/enerccio/marginalia/command
 verified: a5fb0fe1
 ---
@@ -123,7 +125,7 @@ carried by `CommandDataSeverity.getLabel()`/`getDescription()`.
 ```java
 @Command(commandName = "book-title", humanNameText = "Title of the open book", returns = @CommandReturn(name = "title", type = String.class))
 public void title(CommandContext context) {
-    Manuscript book = CommandUtils.getCurrentManuscript();
+    Manuscript book = context.getScope().getManuscript();
     if (book == null) {
         context.fail(new IllegalStateException("No book is open"));
         return;
@@ -132,12 +134,11 @@ public void title(CommandContext context) {
 }
 ```
 
-`CommandUtils` returns `null` when nothing is open (no workspace yet, no book). The same code works in the desktop and in
-the phone layout, because `getManuscriptWindow()` returns the `ManuscriptWindow` interface, and for an agent, whose
-`AgenticSessionPoint` holds the book directly (`CommandUtils.getCurrentManuscript()` delegates to
-`SessionPoint.getCurrentManuscript()`); a command that must work for agents asks `CommandUtils` for the book and does not go
-through the workspace itself. Use the services for data;
-they check ownership of the current user.
+`getScope().getManuscript()` returns `null` when nothing is open (no workspace yet, no book). The same code works in the desktop and in
+the phone layout and for an agent, whose scope is its working copy (see [The scope](index.md#the-scope)); a command that must work for
+agents takes the book from the scope and does not go through the workspace or the open window itself. An item that is given to the command
+(a part, a lorebook, an entry) is found with `getScope().resolveMessage(uuid)` and its siblings, which keep the command inside the book.
+Use the services for data; they check ownership of the current user.
 
 ## Failing
 
@@ -256,9 +257,10 @@ a test of a command that reads the workspace needs the request attributes (see `
 
 ## Asking the user
 
-A command that changes data without a preview asks first. `CommandUtils.confirm(context, question)` opens a yes/no dialog in
-the UI of the book window, on top of the progress window (so over its Stop button), waits on the worker thread and returns
-`false` for no, when the run is stopped meanwhile or when there is no window. Declare the command uninterruptable
+A command that changes data without a preview asks first. `context.confirm(question)` asks whoever called the command: the user gets a
+yes/no dialog in the UI of the book window, on top of the progress window (so over its Stop button), the command waits on the worker thread
+and gets `false` for no, when the run is stopped meanwhile or when there is no window; an agent is not asked again and gets yes (the
+[destructive mode](../agents.md) of the agent decided when it called the command). Declare the command uninterruptable
 only after the answer. `/search-replace-parts` and `/search-replace-lore-entries` (`SearchReplaceChatMessageCommand`,
 `SearchReplaceLoreEntryCommand`) are the examples; their `confirm` method is a hook that tests override.
 

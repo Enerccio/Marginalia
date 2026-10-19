@@ -48,7 +48,7 @@ public class ListBranchesCommand extends ManuscriptReadSupport {
     }
 
     private void listBranches(CommandContext context, Integer offset, Integer limit) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         StoryTree tree = book.tree();
         int from = Math.min(Math.max(offset == null ? 0 : offset, 0), tree.leaves.size());
         int to = Math.min(tree.leaves.size(), from + limit(limit));

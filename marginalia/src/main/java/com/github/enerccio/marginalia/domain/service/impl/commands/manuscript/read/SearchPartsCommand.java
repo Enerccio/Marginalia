@@ -43,7 +43,7 @@ public class SearchPartsCommand extends ManuscriptReadSupport {
         if (query == null || query.isBlank()) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_SEARCH_TEXT_EMPTY));
         }
-        Book book = new Book();
+        Book book = new Book(context);
         List<FulltextHit> found = chatMessageService.searchFulltext(book.manuscript, query);
         int max = limit(limit);
         StoryTree tree = book.tree();

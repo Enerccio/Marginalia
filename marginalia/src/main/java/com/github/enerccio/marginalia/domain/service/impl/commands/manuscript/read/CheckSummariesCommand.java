@@ -38,7 +38,7 @@ public class CheckSummariesCommand extends ManuscriptReadSupport {
     }
 
     private void checkSummaries(CommandContext context, Integer branch) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         List<ChatMessage> path = book.path(branch);
         List<ChatMessage> newestFirst = new ArrayList<>(path);
         Collections.reverse(newestFirst);

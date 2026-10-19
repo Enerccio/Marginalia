@@ -58,7 +58,7 @@ public class ComparePartsCommand extends ManuscriptReadSupport {
 
     private void comparePartsImpl(CommandContext context, Integer a, Integer b, Integer branchA, Integer branchB)
             throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         ChatMessage first = book.part(book.path(branchA), a);
         // part 0 stands for the text the model produced first, before the author edited it
         boolean original = b != null && b == 0;

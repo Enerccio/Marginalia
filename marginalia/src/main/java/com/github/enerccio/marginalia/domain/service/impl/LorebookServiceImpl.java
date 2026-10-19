@@ -7,20 +7,20 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.repository.LorebookRepository;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
-import com.github.enerccio.marginalia.domain.service.LorebookService;
-import com.github.enerccio.marginalia.domain.service.TagRelationService;
-import com.github.enerccio.marginalia.domain.service.TagService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.*;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, LorebookRepository> implements LorebookService {
     private static final Logger log = LoggerFactory.getLogger(LorebookServiceImpl.class);
@@ -38,6 +38,22 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     @Autowired
     private TagService tagService;
 
+    @Autowired
+    @Lazy
+    private AgentRunService agentRunService;
+
+    /**
+     * The lorebooks of a book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked(Lorebook)}.
+     */
+    @Override
+    @CommonTx
+    public Lorebook save(Lorebook lorebook) throws Exception {
+        if (lorebook != null && lorebook.getId() != null) {
+            agentRunService.checkNotLocked(lorebook);
+        }
+        return super.save(lorebook);
+    }
+
     /**
      * A soft deleted lorebook takes its entries (with their tags) and its tags with it. Books that include it as a
      * subbook only lose the link when it is purged.
@@ -45,6 +61,9 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     @Override
     @CommonTx
     public Lorebook delete(Lorebook lorebook, boolean hard) throws Exception {
+        if (lorebook != null && lorebook.getId() != null) {
+            agentRunService.checkNotLocked(lorebook);
+        }
         if (!hard && lorebook != null && lorebook.getId() != null) {
             for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(lorebook)) {
                 lorebookEntryService.delete(entry, false);
@@ -78,6 +97,121 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             }
         }
         return subbooks;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public boolean wouldCycle(Lorebook parent, Lorebook subbook) throws Exception {
+        Lorebook p = own(parent);
+        Lorebook sub = own(subbook);
+        return reaches(sub, p.getId());
+    }
+
+    /**
+     * Whether the lorebook is the one with the id, or has it among its subbooks, however deep.
+     */
+    private boolean reaches(Lorebook start, Long id) throws Exception {
+        Set<Long> visited = new HashSet<>();
+        Deque<Lorebook> queue = new ArrayDeque<>();
+        queue.add(start);
+        while (!queue.isEmpty()) {
+            Lorebook current = queue.remove();
+            if (current == null || current.getId() == null || !visited.add(current.getId())) {
+                continue;
+            }
+            if (current.getId().equals(id)) {
+                return true;
+            }
+            if (current.getSubbooks() != null) {
+                queue.addAll(current.getSubbooks());
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The stored lorebook of the current user.
+     */
+    private Lorebook own(Lorebook lorebook) throws Exception {
+        Lorebook stored = lorebook == null || lorebook.getUuid() == null ? null : (Lorebook) Hibernate.unproxy(findForUser(lorebook.getUuid()));
+        if (stored == null || stored.isDeleted()) {
+            throw new IllegalArgumentException("The lorebook does not exist");
+        }
+        return stored;
+    }
+
+    private void checkSameKind(Lorebook parent, Lorebook subbook) {
+        if (parent.isAgentic() != subbook.isAgentic()) {
+            throw new IllegalArgumentException("A working copy of an agent and a lorebook of the user can't be mixed");
+        }
+    }
+
+    private void checkNoCycle(Lorebook parent, Lorebook subbook) throws Exception {
+        if (reaches(subbook, parent.getId())) {
+            throw new LorebookCycleException("The lorebook " + subbook.getName() + " can't be a subbook of " + parent.getName()
+                    + ", it would contain itself");
+        }
+    }
+
+    @Override
+    @CommonTx
+    public Lorebook addSubbook(Lorebook parent, Lorebook subbook) throws Exception {
+        Lorebook p = own(parent);
+        Lorebook sub = own(subbook);
+        checkSameKind(p, sub);
+        checkNoCycle(p, sub);
+        List<Lorebook> subbooks = p.getSubbooks() == null ? new ArrayList<>() : new ArrayList<>(p.getSubbooks());
+        if (subbooks.stream().noneMatch(l -> l.getId().equals(sub.getId()))) {
+            subbooks.add(sub);
+            p.setSubbooks(subbooks);
+            p = save(p);
+        }
+        return p;
+    }
+
+    @Override
+    @CommonTx
+    public Lorebook removeSubbook(Lorebook parent, Lorebook subbook) throws Exception {
+        Lorebook p = own(parent);
+        if (subbook == null || p.getSubbooks() == null
+                || p.getSubbooks().stream().noneMatch(l -> l.getId().equals(subbook.getId()))) {
+            return p;
+        }
+        p.setSubbooks(p.getSubbooks().stream().filter(l -> !l.getId().equals(subbook.getId())).collect(Collectors.toCollection(ArrayList::new)));
+        return save(p);
+    }
+
+    @Override
+    @CommonTx
+    public Lorebook setSubbooks(Lorebook parent, Collection<Lorebook> subbooks) throws Exception {
+        Lorebook p = own(parent);
+        List<Lorebook> chosen = new ArrayList<>();
+        for (Lorebook candidate : subbooks == null ? List.<Lorebook>of() : subbooks) {
+            Lorebook sub = own(candidate);
+            checkSameKind(p, sub);
+            checkNoCycle(p, sub);
+            if (chosen.stream().noneMatch(l -> l.getId().equals(sub.getId()))) {
+                chosen.add(sub);
+            }
+        }
+        p.setSubbooks(chosen);
+        return save(p);
+    }
+
+    @Override
+    @CommonTx
+    public Lorebook createSubbook(Lorebook parent, String name) throws Exception {
+        Lorebook p = own(parent);
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("The name can't be empty");
+        }
+        Lorebook created = new Lorebook();
+        created.setName(name.trim());
+        created.setEnabled(true);
+        created.setAgentic(p.isAgentic());
+        created = save(created);
+        addSubbook(p, created);
+        return created;
     }
 
     @Override

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845732137321">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845735820612">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845732137321" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845735820612" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845732137321" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845735820612" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -379,7 +379,8 @@ migration is written for one version step and ignores the others.</p>
 | V13 | `V13__usage_ai_nullable.sql` | `usages.ai_id` allows NULL (table rebuilt, SQLite cannot drop NOT NULL): the cleanup nulls the reference to an AI before it purges it, which failed for an AI with usage rows. |
 | V14 | `V14__extension_ai.sql` | New table `ais_extension` (`extensionId`, `id`): the subclass `ExtensionAI` of `AI`, an AI provided by an extension. The settings of the provider are not columns, they are in the attributes of the AI. |
 | V15 | `V15__permissions.sql` | New table `permissions` (`permissionType`, `holder_id`, `granted`, owner `userId`, extended content) and its `permissions_SEQ`, the index `(holder_id, permissionType, is_deleted)`: the entity `Permission`. See [`Permission`](domain-model.md#permission-what-a-user-was-allowed). |
-| V16 | `V16__agents.sql` | New tables `agents` (`name`, `enabled`, `manuscript_id`, owner `userId`, extended content), `agent_runs` (`agent_id`, `status`, `statusReason`, `workingCopy_id`, `prefillTokens`, `generatedTokens`, `rounds`, `startedAt`, `finishedAt`) and `agent_messages` (`run_id`, `ordinal`: the transcript of a run) with their `_SEQ` tables and indexes: the entities `Agent`, `AgentRun` and `AgentMessage`; the column `agentic` of `manuscripts` and `lorebooks` (a working copy of an agent). `manuscript_id`, `agent_id` are nullable (the cleanup nulls an `OWNED_BY` reference before the purge). A partial unique index `ux_agent_runs_unfinished` keeps one run per agent that is not over (the statuses are listed in the index, a new status that is not terminal needs a new migration). See [`Agent`](domain-model.md#agent-and-agentrun-agents). |">
+| V16 | `V16__agents.sql` | New tables `agents` (`name`, `enabled`, `manuscript_id`, owner `userId`, extended content), `agent_runs` (`agent_id`, `status`, `statusReason`, `workingCopy_id`, `prefillTokens`, `generatedTokens`, `rounds`, `startedAt`, `finishedAt`) and `agent_messages` (`run_id`, `ordinal`: the transcript of a run) with their `_SEQ` tables and indexes: the entities `Agent`, `AgentRun` and `AgentMessage`; the column `agentic` of `manuscripts` and `lorebooks` (a working copy of an agent). `manuscript_id`, `agent_id` are nullable (the cleanup nulls an `OWNED_BY` reference before the purge). A partial unique index `ux_agent_runs_unfinished` keeps one run per agent that is not over (the statuses are listed in the index, a new status that is not terminal needs a new migration). See [`Agent`](domain-model.md#agent-and-agentrun-agents). |
+| V17 | `V17__agent_run_pairs.sql` | New table `agent_run_pairs` (`run_id`, `kind`, `copyUuid`, `originalUuid`, `handle`) with its `_SEQ` table: the entity `AgentRunPair`, which item of the working copy of an agent run is which item of the original. Not a `BaseEntity` (no uuid, `is_deleted` or extended content columns). Unique indexes on `(run_id, copyUuid)` and `(run_id, handle)`, an index on `(run_id, originalUuid)`; there is no foreign key to `agent_runs` (the project uses none), the rows are deleted by `AgentRunPairService.deleteForRun`. See [`AgentRunPair`](domain-model.md#agent-and-agentrun-agents). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -469,6 +470,11 @@ migration is written for one version step and ignores the others.</p>
 <td>V16</td>
 <td><code translate="no" v-pre>V16__agents.sql</code></td>
 <td>New tables <code translate="no" v-pre>agents</code> (<code translate="no" v-pre>name</code>, <code translate="no" v-pre>enabled</code>, <code translate="no" v-pre>manuscript_id</code>, owner <code translate="no" v-pre>userId</code>, extended content), <code translate="no" v-pre>agent_runs</code> (<code translate="no" v-pre>agent_id</code>, <code translate="no" v-pre>status</code>, <code translate="no" v-pre>statusReason</code>, <code translate="no" v-pre>workingCopy_id</code>, <code translate="no" v-pre>prefillTokens</code>, <code translate="no" v-pre>generatedTokens</code>, <code translate="no" v-pre>rounds</code>, <code translate="no" v-pre>startedAt</code>, <code translate="no" v-pre>finishedAt</code>) and <code translate="no" v-pre>agent_messages</code> (<code translate="no" v-pre>run_id</code>, <code translate="no" v-pre>ordinal</code>: the transcript of a run) with their <code translate="no" v-pre>_SEQ</code> tables and indexes: the entities <code translate="no" v-pre>Agent</code>, <code translate="no" v-pre>AgentRun</code> and <code translate="no" v-pre>AgentMessage</code>; the column <code translate="no" v-pre>agentic</code> of <code translate="no" v-pre>manuscripts</code> and <code translate="no" v-pre>lorebooks</code> (a working copy of an agent). <code translate="no" v-pre>manuscript_id</code>, <code translate="no" v-pre>agent_id</code> are nullable (the cleanup nulls an <code translate="no" v-pre>OWNED_BY</code> reference before the purge). A partial unique index <code translate="no" v-pre>ux_agent_runs_unfinished</code> keeps one run per agent that is not over (the statuses are listed in the index, a new status that is not terminal needs a new migration). See <a href="../domain-model/#agent-and-agentrun-agents"><code translate="no" v-pre>Agent</code></a>.</td>
+</tr>
+<tr>
+<td>V17</td>
+<td><code translate="no" v-pre>V17__agent_run_pairs.sql</code></td>
+<td>New table <code translate="no" v-pre>agent_run_pairs</code> (<code translate="no" v-pre>run_id</code>, <code translate="no" v-pre>kind</code>, <code translate="no" v-pre>copyUuid</code>, <code translate="no" v-pre>originalUuid</code>, <code translate="no" v-pre>handle</code>) with its <code translate="no" v-pre>_SEQ</code> table: the entity <code translate="no" v-pre>AgentRunPair</code>, which item of the working copy of an agent run is which item of the original. Not a <code translate="no" v-pre>BaseEntity</code> (no uuid, <code translate="no" v-pre>is_deleted</code> or extended content columns). Unique indexes on <code translate="no" v-pre>(run_id, copyUuid)</code> and <code translate="no" v-pre>(run_id, handle)</code>, an index on <code translate="no" v-pre>(run_id, originalUuid)</code>; there is no foreign key to <code translate="no" v-pre>agent_runs</code> (the project uses none), the rows are deleted by <code translate="no" v-pre>AgentRunPairService.deleteForRun</code>. See <a href="../domain-model/#agent-and-agentrun-agents"><code translate="no" v-pre>AgentRunPair</code></a>.</td>
 </tr>
 </tbody>
 </table>
@@ -841,7 +847,7 @@ A backup restored on another installation loses them unless <code translate="no"
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5607ccef).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (aeac9e2b).</p></div>
             </footer>
         </div>
     </div>

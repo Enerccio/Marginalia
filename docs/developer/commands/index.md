@@ -164,7 +164,24 @@ A suite is one object shared by all users and runs in parallel, so it must be **
 run or a user did. What a command needs to know about the current state it reads when it runs:
 
 - from the services, which resolve the current user and check ownership (`ManuscriptService`, and so on),
+- from the **scope** of the call, `context.getScope()` (below): the book the command works on, its lorebooks and the way to ask a question,
 - from the session-scoped `SessionPoint` (`getLanguage()`, `getWorkspace()`), through `CommandUtils`.
+
+### The scope
+
+`CommandContext.getScope()` is a `CommandScope`: what the command works on and who answers its questions. A command takes the book from it
+(`getManuscript()`, read again from the database every time, `getLorebook()` the root lorebook of the book) and asks with
+`context.confirm(question)`; it never reaches for the open window. The user at the command bar gets the scope of their session
+(`CommandScopes.session()`: the open book, a dialog for the questions), an agent the scope of its working copy
+(`CommandScopes.forRun(run)`: the copy of the run, whichever it is now, and a yes without asking, since what an agent may do without
+asking was decided when it called the command). `CommandService.execute`, `executePositional` and `executeLine` have a form with a last
+argument `scope`; without one the scope of the session of the calling thread is made on that thread.
+
+The scope is also the **cage**. `resolveMessage(uuid)`, `resolveLorebook(uuid)` and `resolveEntry(uuid)` find an item by the uuid, and only
+the ones of the book of the scope: the parts of the book, the lorebook of the book and its subbooks however deep, and their entries. A uuid of
+anything else (the original book of a copy, another book, a lorebook the book does not use, a deleted item) is refused with an
+`IllegalArgumentException` as if it did not exist, so a command that takes an item as an argument can't be aimed outside of the book by what
+it is given. A command that takes an item does it through the scope and not through `findForUser` or `find(id)`.
 
 `CommandUtils` (package `utils`) reads the session of the caller – also on the worker thread of an `async` command, which
 gets the request attributes – and returns `null` when there is nothing to return (no session, no workspace yet, no book
@@ -179,10 +196,10 @@ both:
 | `getWorkspace()`          | The user's `Workspace` (desktop or phone); `null` for an agent.               |
 | `getManuscriptSection()`  | The part of the workspace that holds book windows (`ManuscriptSection`); `null` for an agent. |
 | `getManuscriptWindow()`   | The open book window (`ManuscriptWindow`, the same interface on the desktop and the phone); `null` for an agent. |
-| `getCurrentManuscript()`  | The book the command works on: the open book (`SessionPoint.getCurrentManuscript()`) or the book of the agent session. |
+| `getCurrentManuscript()`  | The open book (`SessionPoint.getCurrentManuscript()`) or the book of the agent session; a command takes the book from `context.getScope()` instead. |
 | `getCurrentAI()`          | The AI of that book.                                                          |
 
-`confirm` and `reloadManuscriptWindow` talk to the window, so in a session without one they answer *no* and do nothing.
+`confirm` and `reloadManuscriptWindow` talk to the window, so in a session without one they answer *no* and do nothing (`CommandContext.confirm` is what a command calls, it is routed by the scope).
 
 A command that changes the UI does it on the UI thread: from a synchronous command that is the calling thread, from an
 `async` one use `ui.access(...)` (see [UI extensions → Threads](../plugins/ui-extensions.md#threads)).

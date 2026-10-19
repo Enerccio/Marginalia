@@ -52,6 +52,35 @@ public class JpaAgentRunPairRepository implements AgentRunPairRepository {
     }
 
     @Override
+    public AgentRunPair findByHandle(Long runId, String handle) throws Exception {
+        return entityManager
+                .createQuery("SELECT p FROM AgentRunPair p WHERE p.runId = :run AND p.handle = :handle", AgentRunPair.class)
+                .setParameter("run", runId)
+                .setParameter("handle", handle)
+                .setMaxResults(1)
+                .getResultStream().findFirst().orElse(null);
+    }
+
+    @Override
+    public int maxHandleNumber(Long runId, char kind) throws Exception {
+        int max = 0;
+        String prefix = "h:" + kind;
+        List<String> handles = entityManager
+                .createQuery("SELECT p.handle FROM AgentRunPair p WHERE p.runId = :run AND p.handle LIKE :prefix", String.class)
+                .setParameter("run", runId)
+                .setParameter("prefix", prefix + "%")
+                .getResultList();
+        for (String handle : handles) {
+            try {
+                max = Math.max(max, Integer.parseInt(handle.substring(prefix.length())));
+            } catch (NumberFormatException ignored) {
+                // not one of ours
+            }
+        }
+        return max;
+    }
+
+    @Override
     public long countByRun(Long runId) throws Exception {
         return entityManager
                 .createQuery("SELECT COUNT(p) FROM AgentRunPair p WHERE p.runId = :run", Long.class)

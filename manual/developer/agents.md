@@ -137,8 +137,10 @@ the database at every start and resume:
 - `AgentRequestAttributes` implements `RequestAttributes` over two maps in memory (session and request scope). It starts with the `user`
   bean (a copy of the owner, as the login makes it) and an `AgenticSessionPoint`. Any other session bean is created on first use, empty.
 - `AgenticSessionPoint` is a `SessionPoint` that holds the **working copy** directly. `CommandUtils.getSessionPoint()` returns it for these attributes
-  (and the bean of the servlet session for a browser), so **the same command works at the command bar and for an agent**: it asks `CommandUtils`
-  for the book and never knows who is asking. This is why a command must never keep the book in a field or reach for `Workspace`.
+  (and the bean of the servlet session for a browser). A command no longer reads the book from there: it takes it from `context.getScope()`, and
+  the runner runs the commands of an agent in the scope of its run (`CommandScopes.forRun(run)`, see [The scope](commands/index.md#the-scope)), so
+  **the same command works at the command bar and for an agent** and never knows who is asking. This is why a command must never keep the book in a
+  field or reach for `Workspace`.
 - The worker enters it with `InRequestScope`; every thread that works for the run does the same. `ThreadCopyRequestAttributes.create()` hands
   the `AgentRequestAttributes` on as it is (a browser session is copied, these are shared), so a command that starts a worker thread (`async = true`,
   or the generation of a story turn) keeps the context. A test wrapper that is not an `AgentRequestAttributes` is *not* handed on: in tests of an
@@ -172,8 +174,10 @@ The copy has **new uuids**, so the run records how it relates to the original, i
 
 While a run `holdsLock()` the **original book is locked**: `AgentRunService.checkNotLocked(manuscript)` throws `ManuscriptLockedException`, and the services
 that change a book call it (`ManuscriptService.save/delete/restoreBackup`, `ChatMessageService`, `SummaryService`, `ManuscriptReplaceService.apply`,
-`StoryGenerationService.generateNextTurn`). Reading is free, lorebooks are not locked. The screens that open a book ask `AgentLockCheck` first
+`StoryGenerationService.generateNextTurn`). Reading is free. The screens that open a book ask `AgentLockCheck` first
 so the user is told which agent holds it instead of getting an error later. A change that a service does not route through these methods is not locked.
+
+The **lorebooks** are locked with the book, because the run works on a copy of them and the copy is compared with the lorebooks as they were: the lorebook the book links and its subbooks, however deep (`AgentRunService.findLockingRun(Lorebook)` / `checkNotLocked(Lorebook)`, which throw `LorebookLockedException`, a `ManuscriptLockedException`; the working copies of agents are never locked). `LorebookService` and `LorebookEntryService` check it in `save` and `delete`. A lorebook has no screen of its own to tell the user, so `LorebookView` shows a locked lorebook with the `PhoneLorebookView` (nothing else of the screen), which says which agent holds it and changes nothing; both views read the lock again on **Refresh**. The tags of a lorebook are not locked.
 
 
 ## The services
@@ -529,7 +533,8 @@ The console shows the model's results cut at `RESULT_LIMIT` (20 000), the same a
 An agent calls the commands that the user ticked in the editor, so **every command is also an agent tool**. The rules for [writing commands](commands/writing-commands.md)
 apply; for an agent these matter most:
 
-- **Get the book from `CommandUtils`**, never from the UI; return the data (text, JSON) instead of showing it.
+- **Get the book from `context.getScope()`**, never from the UI; return the data (text, JSON) instead of showing it. An item that is passed in
+  is found through the scope (`resolveMessage`, `resolveLorebook`, `resolveEntry`), which keeps the command inside the working copy.
 - **Mark the severity honestly.** `NON_DESTRUCTIVE` commands are what the default selection offers; `DESTRUCTIVE` follows the agent's mode (`DENY` hides them).
   A command that only returns text and leaves the storing to the caller (the lore generator commands do this: they return the text, the agent writes the
   entry with the commands that exist for that) is the safest tool to hand out.

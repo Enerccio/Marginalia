@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.AgentRunRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -65,6 +66,10 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
     @Autowired
     @Lazy
     private AgentRunPairService pairService;
+
+    @Autowired
+    @Lazy
+    private LorebookService lorebookService;
 
     @Autowired
     @Lazy
@@ -301,6 +306,55 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         if (locking != null) {
             throw new ManuscriptLockedException(locking.getAgent().getName());
         }
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public AgentRun findLockingRun(Lorebook lorebook) throws Exception {
+        // the id only: the argument may be a proxy that is not attached to a session any more
+        Lorebook stored = lorebook == null || lorebook.getId() == null ? null : lorebookService.find(lorebook.getId());
+        if (stored == null || stored.isAgentic()) {
+            return null;
+        }
+        for (AgentRun run : getRepository().findAllByStatus(AgentRunStatus.locking())) {
+            Agent agent = run.getAgent();
+            Manuscript book = agent == null || agent.isDeleted() ? null : agent.getManuscript();
+            if (book != null && book.getLorebook() != null && treeContains(book.getLorebook(), stored.getId())) {
+                return run;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public void checkNotLocked(Lorebook lorebook) throws Exception {
+        AgentRun locking = findLockingRun(lorebook);
+        if (locking != null) {
+            throw new LorebookLockedException(locking.getAgent().getName());
+        }
+    }
+
+    /**
+     * Whether the lorebook is the root or one of the subbooks, however deep, of the tree.
+     */
+    private boolean treeContains(Lorebook root, Long lorebookId) throws Exception {
+        Set<Long> visited = new HashSet<>();
+        Deque<Lorebook> queue = new ArrayDeque<>();
+        queue.add(root);
+        while (!queue.isEmpty()) {
+            Lorebook current = queue.remove();
+            if (current == null || current.getId() == null || !visited.add(current.getId())) {
+                continue;
+            }
+            if (current.getId().equals(lorebookId)) {
+                return true;
+            }
+            if (current.getSubbooks() != null) {
+                queue.addAll(current.getSubbooks());
+            }
+        }
+        return false;
     }
 
     @Override

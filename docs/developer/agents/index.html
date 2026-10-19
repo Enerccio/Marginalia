@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845732137321">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845735820612">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845732137321" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845735820612" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -194,6 +194,7 @@ context made from the database, a state machine that can be paused and resumed, 
 | `Agent`, `AgentRun`, `AgentMessage` | `domain.model.impl` | The definition, one execution, one row of the transcript. |
 | `AgentService` | `domain.service` | CRUD of the definitions, the grant of the user (`AGENTS` permission), cloning, resolving the model profile. |
 | `AgentRunService` | `domain.service` | The state of a run: start, `transition`, pause, stop, resume, the working copy, the lock of the book, the request context. |
+| `AgentRunPairService` | `domain.service` | Which item of the working copy is which item of the original (the uuid pairs), see [The working copy and the lock](#the-working-copy-and-the-lock). |
 | `AgentRunner` | `domain.service` | Makes a `RUNNING` run do work: the loop, one worker thread per run. |
 | `AgentMessageService` | `domain.service` | The transcript, append only. |
 | `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. |
@@ -229,6 +230,11 @@ context made from the database, a state machine that can be paused and resumed, 
 <td><code translate="no" v-pre>AgentRunService</code></td>
 <td><code translate="no" v-pre>domain.service</code></td>
 <td>The state of a run: start, <code translate="no" v-pre>transition</code>, pause, stop, resume, the working copy, the lock of the book, the request context.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentRunPairService</code></td>
+<td><code translate="no" v-pre>domain.service</code></td>
+<td>Which item of the working copy is which item of the original (the uuid pairs), see <doc-anchor-trigger to="#the-working-copy-and-the-lock">The working copy and the lock</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AgentRunner</code></td>
@@ -354,8 +360,10 @@ bean (a copy of the owner, as the login makes it) and an <code translate="no" v-
 </li>
 <li>
 <p><code translate="no" v-pre>AgenticSessionPoint</code> is a <code translate="no" v-pre>SessionPoint</code> that holds the <strong>working copy</strong> directly. <code translate="no" v-pre>CommandUtils.getSessionPoint()</code> returns it for these attributes
-(and the bean of the servlet session for a browser), so <strong>the same command works at the command bar and for an agent</strong>: it asks <code translate="no" v-pre>CommandUtils</code>
-for the book and never knows who is asking. This is why a command must never keep the book in a field or reach for <code translate="no" v-pre>Workspace</code>.</p>
+(and the bean of the servlet session for a browser). A command no longer reads the book from there: it takes it from <code translate="no" v-pre>context.getScope()</code>, and
+the runner runs the commands of an agent in the scope of its run (<code translate="no" v-pre>CommandScopes.forRun(run)</code>, see <a href="../commands/#the-scope">The scope</a>), so
+<strong>the same command works at the command bar and for an agent</strong> and never knows who is asking. This is why a command must never keep the book in a
+field or reach for <code translate="no" v-pre>Workspace</code>.</p>
 </li>
 <li>
 <p>The worker enters it with <code translate="no" v-pre>InRequestScope</code>; every thread that works for the run does the same. <code translate="no" v-pre>ThreadCopyRequestAttributes.create()</code> hands
@@ -372,10 +380,30 @@ book through its backup JSON, with its own copy of the lorebook tree; everything
 it as <code translate="no" v-pre>AgentRun.workingCopy</code>. The lists of the UI leave the <code translate="no" v-pre>agentic</code> books out (<code translate="no" v-pre>findAllRegular...</code>), the services that delete a copy refuse a book that is not
 <code translate="no" v-pre>agentic</code>, so a path that deletes the book of a user does not exist. <code translate="no" v-pre>DONE</code>, <code translate="no" v-pre>FAILED</code> and a discarded stop delete the copy for good; a pause or a kept stop
 keeps it. Bringing the changes back into the book (the review, <code translate="no" v-pre>APPLIED</code>) is not built yet.</p>
+<p>The copy has <strong>new uuids</strong>, so the run records how it relates to the original, in the transaction that makes the copy:</p>
+<ul>
+<li>
+<p><strong>The uuid pairs</strong> (<code translate="no" v-pre>AgentRunPairService</code>, table <code translate="no" v-pre>agent_run_pairs</code>, V17): one <code translate="no" v-pre>AgentRunPair</code> row per message, summary, lorebook and lorebook entry of the copy,
+<code translate="no" v-pre>kind</code> + <code translate="no" v-pre>copyUuid</code> -&gt; <code translate="no" v-pre>originalUuid</code> (null for an item the agent made; it has none until it is applied) + a <code translate="no" v-pre>handle</code> column that is empty until the agent is
+given handles. <code translate="no" v-pre>ManuscriptService.createAgenticCopy</code> returns an <code translate="no" v-pre>AgenticCopy</code> (the copy, the <code translate="no" v-pre>UuidPair</code>s, the base); <code translate="no" v-pre>cloneFromBackup(backup, pairs)</code> and
+<code translate="no" v-pre>LorebookService.copyLorebooks(lorebooks, pairs)</code> report the pairs of the messages, summaries, lorebooks and entries as they make them, and <code translate="no" v-pre>AgentRunServiceImpl.start</code>
+and <code translate="no" v-pre>resume</code> (for a run without a copy) store them with <code translate="no" v-pre>AgentRunPairService.replace</code> once the run is saved. <code translate="no" v-pre>AgentRunPair</code> is a <strong>plain entity</strong> (no <code translate="no" v-pre>BaseEntity</code>: no
+uuid, no soft delete, no extended content, a book of 2000 parts is thousands of rows) keyed by the id of the run, so the cleanup does not know it:
+<code translate="no" v-pre>AgentRunServiceImpl.releaseCopy</code> deletes the rows (<code translate="no" v-pre>deleteForRun</code>) when the run lets go of the copy, whichever way that happens. The reading methods work for the
+runs of the user only.</p>
+</li>
+<li>
+<p><strong>The base snapshot</strong>: the backup JSON of the original as it was copied, with the lorebook tree <strong>and the uuids of the entries</strong> (the backup format has none, so
+<code translate="no" v-pre>LorebookService.marshalLorebooks(root, true)</code> adds them; the copy of the lorebooks is made from this very JSON, so base and pairs agree), written to
+<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;/base/manuscript.json</code> by <code translate="no" v-pre>AgentVirtualFileSystemService.writeBase</code> (deleted again when the transaction rolls back) and read with <code translate="no" v-pre>readBase</code>. It is deleted
+with the copy (<code translate="no" v-pre>deleteBase</code>) and with the run folder.</p>
+</li>
+</ul>
 <p>While a run <code translate="no" v-pre>holdsLock()</code> the <strong>original book is locked</strong>: <code translate="no" v-pre>AgentRunService.checkNotLocked(manuscript)</code> throws <code translate="no" v-pre>ManuscriptLockedException</code>, and the services
 that change a book call it (<code translate="no" v-pre>ManuscriptService.save/delete/restoreBackup</code>, <code translate="no" v-pre>ChatMessageService</code>, <code translate="no" v-pre>SummaryService</code>, <code translate="no" v-pre>ManuscriptReplaceService.apply</code>,
-<code translate="no" v-pre>StoryGenerationService.generateNextTurn</code>). Reading is free, lorebooks are not locked. The screens that open a book ask <code translate="no" v-pre>AgentLockCheck</code> first
+<code translate="no" v-pre>StoryGenerationService.generateNextTurn</code>). Reading is free. The screens that open a book ask <code translate="no" v-pre>AgentLockCheck</code> first
 so the user is told which agent holds it instead of getting an error later. A change that a service does not route through these methods is not locked.</p>
+<p>The <strong>lorebooks</strong> are locked with the book, because the run works on a copy of them and the copy is compared with the lorebooks as they were: the lorebook the book links and its subbooks, however deep (<code translate="no" v-pre>AgentRunService.findLockingRun(Lorebook)</code> / <code translate="no" v-pre>checkNotLocked(Lorebook)</code>, which throw <code translate="no" v-pre>LorebookLockedException</code>, a <code translate="no" v-pre>ManuscriptLockedException</code>; the working copies of agents are never locked). <code translate="no" v-pre>LorebookService</code> and <code translate="no" v-pre>LorebookEntryService</code> check it in <code translate="no" v-pre>save</code> and <code translate="no" v-pre>delete</code>. A lorebook has no screen of its own to tell the user, so <code translate="no" v-pre>LorebookView</code> shows a locked lorebook with the <code translate="no" v-pre>PhoneLorebookView</code> (nothing else of the screen), which says which agent holds it and changes nothing; both views read the lock again on <strong>Refresh</strong>. The tags of a lorebook are not locked.</p>
 <h2 id="the-services">The services</h2>
 <p><code translate="no" v-pre>AgentService</code> and <code translate="no" v-pre>AgentRunService</code> (<code translate="no" v-pre>domain.service</code>) manage the definitions of agents and their runs, see
 <a href="../domain-model/#agent-and-agentrun-agents"><code translate="no" v-pre>Agent</code> and <code translate="no" v-pre>AgentRun</code></a>. <code translate="no" v-pre>AgentRunner</code> works a started run, see <doc-anchor-trigger to="#the-runner">The runner</doc-anchor-trigger>. This is the reference of what the services do; <doc-anchor-trigger to="#the-life-of-a-run">The life of a run</doc-anchor-trigger> is the overview.</p>
@@ -419,7 +447,7 @@ run lets go of it before the copy is deleted: <code translate="no" v-pre>Manuscr
 (<code translate="no" v-pre>ChatMessageService.hardDeleteForManuscript</code>, the soft deleted ones too, children first), the tags and the copy&#x27;s lorebooks
 (<code translate="no" v-pre>LorebookService.deleteAgenticCopy</code>: the tree, its entries and tags); both refuse anything whose <code translate="no" v-pre>agentic</code> is false, so a book of the user
 can&#x27;t be deleted by this path). <code translate="no" v-pre>PAUSED</code> and <code translate="no" v-pre>STOPPED_KEPT</code> keep the copy, <code translate="no" v-pre>resume</code> makes one for a run that has none, a new run makes a new copy.
-Not done: the uuid pairs, the base snapshot and the merge back.</p>
+The pairs and the base snapshot of the copy are stored with it (above). Not done: the merge back.</p>
 </li>
 <li>
 <p><code translate="no" v-pre>delete(run, hard)</code> discards a run that is not over (<code translate="no" v-pre>STOPPED_DISCARDED</code>) and deletes its working copy for good first.</p>
@@ -740,7 +768,7 @@ newest is always the one of the previous call.</p>
 <h3 id="files-of-an-agent">Files of an agent</h3>
 <p><code translate="no" v-pre>AgentVirtualFileSystemService</code> hands out the files of agents. Two folders in the application folder (not in <code translate="no" v-pre>data/</code>, which is named by logins):
 <code translate="no" v-pre>agent-workspaces/&lt;agent uuid&gt;</code> is the <strong>workspace</strong>, which belongs to the agent and stays between its runs (the notes it keeps), and
-<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;</code> is the folder of a run (<code translate="no" v-pre>base/</code> and <code translate="no" v-pre>checkpoints/</code>, nothing writes them yet; <code translate="no" v-pre>RunFolder</code> is the layout). The uuids are
+<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;</code> is the folder of a run (<code translate="no" v-pre>base/</code> with the snapshot of the original, written when the copy is made, and <code translate="no" v-pre>checkpoints/</code>, which nothing writes yet; <code translate="no" v-pre>RunFolder</code> is the layout). The uuids are
 checked, so no value of the database makes a path leave these folders. <code translate="no" v-pre>open(run)</code> is the file system of a run (the workspace, <code translate="no" v-pre>/checkpoints</code> and <code translate="no" v-pre>/AGENTS.md</code>),
 <code translate="no" v-pre>openWorkspace(agent)</code> the workspace alone for the user to look at; both refuse (<code translate="no" v-pre>IllegalArgumentException</code>) what is not the user&#x27;s own. Both use the
 <code translate="no" v-pre>WorkspaceLimits</code> of <code translate="no" v-pre>getLimits(agent)</code>: the defaults of the service (<code translate="no" v-pre>getLimits()</code>) with the quotas of the permission of the agent&#x27;s owner over them.
@@ -875,7 +903,8 @@ runner&#x27;s internals.</p>
 apply; for an agent these matter most:</p>
 <ul>
 <li>
-<p><strong>Get the book from <code translate="no" v-pre>CommandUtils</code></strong>, never from the UI; return the data (text, JSON) instead of showing it.</p>
+<p><strong>Get the book from <code translate="no" v-pre>context.getScope()</code></strong>, never from the UI; return the data (text, JSON) instead of showing it. An item that is passed in
+is found through the scope (<code translate="no" v-pre>resolveMessage</code>, <code translate="no" v-pre>resolveLorebook</code>, <code translate="no" v-pre>resolveEntry</code>), which keeps the command inside the working copy.</p>
 </li>
 <li>
 <p><strong>Mark the severity honestly.</strong> <code translate="no" v-pre>NON_DESTRUCTIVE</code> commands are what the default selection offers; <code translate="no" v-pre>DESTRUCTIVE</code> follows the agent&#x27;s mode (<code translate="no" v-pre>DENY</code> hides them).
@@ -961,7 +990,7 @@ model, so a whole run is tested without a network. The main classes: <code trans
 </table>
 </div>
 </retype-table>
-<p>Not done: the review that brings the changes of the working copy back into the book (<code translate="no" v-pre>APPLIED</code>; the uuid pairs and the base snapshot are not built either), summaries of
+<p>Not done: the review that brings the changes of the working copy back into the book (<code translate="no" v-pre>APPLIED</code>), summaries of
 older rounds when the context is full (the run pauses instead), &quot;Pause now&quot; (the request in the air is waited for), a limit of concurrent requests per AI, threads
 (sub-agents) and handles, stopping a running <code translate="no" v-pre>async</code> command when its run stops.</p>
 
@@ -1001,7 +1030,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5607ccef).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (aeac9e2b).</p></div>
             </footer>
         </div>
     </div>

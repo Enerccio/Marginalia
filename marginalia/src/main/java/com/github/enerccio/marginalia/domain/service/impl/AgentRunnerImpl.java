@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.command.CommandRun;
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
@@ -78,6 +79,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     @Autowired
     @Lazy
     private CommandService commandService;
+
+    @Autowired
+    @Lazy
+    private CommandScopes commandScopes;
+
+    @Autowired
+    @Lazy
+    private AgentRunPairService pairService;
 
     @Autowired
     @Lazy
@@ -1100,9 +1109,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             // what the commands return, whole, for the tool that saves it to a file
             CommandResults commandResults = new CommandResults();
             // the commands that send images to their own model take them from the files, whether this model sees them or not
+            // the commands run on the working copy of the run, and the agent knows its items by handles, never by uuids
+            CommandScope scope = commandScopes.forRun(run);
+            CommandCage cage = new CommandCage(scope, pairService.translator(run, scope));
             FunctionSet tools = CommandFunctions.forAgent(commandService, agent, l -> localization.getValue(l), this::approve,
                             path -> files.readText(VirtualPath.parse(path)), commandResults,
-                            path -> files.readImage(VirtualPath.parse(path)).toAttachment(path))
+                            path -> files.readImage(VirtualPath.parse(path)).toAttachment(path), cage)
                     .and(fileSystemService.getFileTools(files, commandResults))
                     .and(inferenceServices.getFunctionRegistry().bind(RunTools.class, runTools));
             return seesImages ? tools.and(inferenceServices.getFunctionRegistry().bind(ImageTools.class, new ImageToolsImpl(files, shown)))

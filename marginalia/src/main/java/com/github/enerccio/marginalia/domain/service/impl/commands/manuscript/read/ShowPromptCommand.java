@@ -62,7 +62,7 @@ public class ShowPromptCommand extends ManuscriptReadSupport {
 
     private void showPrompt(CommandContext context, Integer position, Integer branch, Integer offset, Integer length)
             throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         ChatMessage message = book.part(book.path(branch), position);
         JsonObject result = new JsonObject();
         result.addProperty("position", position);

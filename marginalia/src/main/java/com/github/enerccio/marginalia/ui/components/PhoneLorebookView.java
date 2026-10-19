@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
@@ -42,6 +43,9 @@ import java.util.stream.Collectors;
  * Reduced {@link LorebookView} for phones. Lorebooks can only be selected (no creating, deleting, importing or
  * exporting) and entries cannot be added. The only things that can be changed are the enabled flag of the lorebook
  * and of its entries and the content of an entry; every other setting is shown as plain text.
+ * <p>
+ * It is also the view of a lorebook that is locked by an agent (an agent works on a book that uses it): it then says so
+ * and changes nothing, and the desktop {@link LorebookView} shows this view for such a lorebook.
  */
 @Configurable
 @Extendable
@@ -65,6 +69,9 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     @Autowired
     private TokenizerService tokenizerService;
 
+    @Autowired
+    private AgentRunService agentRunService;
+
     private Lorebook currentLorebook;
     private boolean pinnedLorebook = false;
 
@@ -82,6 +89,9 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     // uuids of the entries whose details are opened, kept over reloading the entries
     private final Set<String> openEntries = new LinkedHashSet<>();
     private Runnable onStateChange;
+    // name of the agent that locks the lorebook (null when it is free), the view then changes nothing
+    private String lockedBy;
+    private Span lockedSpan;
 
     public PhoneLorebookView() {
         this(null);
@@ -126,7 +136,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             try {
                 refresh();
             } catch (Exception e) {
-                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+                UIUtils.internalServerError(loc, e);
             }
         });
 
@@ -143,7 +153,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                     currentLorebook.setEnabled(Boolean.TRUE.equals(e.getValue()));
                     lorebookService.save(currentLorebook);
                 } catch (Exception ex) {
-                    UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+                    UIUtils.internalServerError(loc, ex);
                 }
             }
         });
@@ -162,7 +172,10 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
 
         setupGrid();
 
-        add(controlsLayout, enabledLayout, lorebookInfoSpan, grid);
+        lockedSpan = new Span();
+        lockedSpan.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
+        lockedSpan.setVisible(false);
+        add(lockedSpan, controlsLayout, enabledLayout, lorebookInfoSpan, grid);
         setFlexGrow(1, grid);
 
         refresh();
@@ -190,6 +203,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                     @APILocals(name = "row", type = HorizontalLayout.class)})
     private Component createEntryRow(LorebookEntry entry) {
         Checkbox enabled = new Checkbox(entry.isEnabled());
+        enabled.setReadOnly(lockedBy != null);
         enabled.addClassName(CssStyles.FLEX_SHRINK_0);
         enabled.addValueChangeListener(e -> {
             if (e.isFromClient()) {
@@ -253,6 +267,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         payloadField.setWidthFull();
         ResizableTextArea.install(loc, payloadField, "160px");
         payloadField.setValue(StringUtils.defaultString(entry.getPayload()));
+        payloadField.setReadOnly(lockedBy != null);
         payloadField.setPopoverContent(TemplateHints.create(loc, payloadField, payloadField.getPopover(), LorebookTemplateData.class, null));
         validatePayload(payloadField);
 
@@ -308,7 +323,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         try {
             return joinTags(tagRelationService.getTagsForObject(entry, negative));
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
             return "";
         }
     }
@@ -351,7 +366,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         try {
             tokens = tokenizerService.countTokensApprox(StringUtils.defaultString(entry.getPayload()));
         } catch (Exception ex) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), ex);
+            UIUtils.internalServerError(loc, ex);
         }
         if (entry.getId() != null) {
             entryTokens.put(entry.getId(), tokens);
@@ -427,7 +442,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
             updateSelectedLorebook();
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 
@@ -447,19 +462,40 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             try {
                 refresh();
             } catch (Exception e) {
-                UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+                UIUtils.internalServerError(loc, e);
             }
         });
         dialog.open();
+    }
+
+    /**
+     * Reads whether an agent that works on a book that uses the lorebook locks it, and shows it.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "locking", type = AgentRun.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void updateLock() {
+        try {
+            AgentRun locking = currentLorebook == null ? null : agentRunService.findLockingRun(currentLorebook);
+            lockedBy = locking == null ? null : locking.getAgent().getName();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        lockedSpan.setVisible(lockedBy != null);
+        lockedSpan.setText(lockedBy == null ? "" : String.format(loc.getValue(L.MSG_AGENT_LOREBOOK_LOCKED), lockedBy));
     }
 
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class))
     private void updateSelectedLorebook() {
         boolean hasLorebook = currentLorebook != null;
+        updateLock();
         lorebookEnabledCheckbox.setEnabled(hasLorebook);
+        lorebookEnabledCheckbox.setReadOnly(lockedBy != null);
         refreshButton.setEnabled(hasLorebook);
         searchReplaceButton.setEnabled(hasLorebook);
+        searchReplaceButton.setVisible(lockedBy == null);
 
         if (hasLorebook) {
             lorebookEnabledCheckbox.setValue(currentLorebook.isEnabled());
@@ -496,7 +532,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                 info.append(loc.getValue(L.LABEL_TAGS)).append(": ").append(tags);
             }
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
         lorebookInfoSpan.setText(info.toString());
         lorebookInfoSpan.setVisible(!info.isEmpty());
@@ -522,7 +558,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             entryTokens.clear();
             updateLorebookTokens();
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 
@@ -534,7 +570,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         try {
             lorebookEntryService.save(entry);
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 
@@ -635,7 +671,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             openEntries.addAll(RestorableState.strings(self, "entries"));
             refresh();
         } catch (Exception e) {
-            UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), e);
+            UIUtils.internalServerError(loc, e);
         }
     }
 

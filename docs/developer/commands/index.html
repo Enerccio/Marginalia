@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845732137321">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845735820612">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845732137321" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845735820612" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -464,8 +464,22 @@ Runs in progress are not interrupted by unregistering.</p>
 run or a user did. What a command needs to know about the current state it reads when it runs:</p>
 <ul>
 <li>from the services, which resolve the current user and check ownership (<code translate="no" v-pre>ManuscriptService</code>, and so on),</li>
+<li>from the <strong>scope</strong> of the call, <code translate="no" v-pre>context.getScope()</code> (below): the book the command works on, its lorebooks and the way to ask a question,</li>
 <li>from the session-scoped <code translate="no" v-pre>SessionPoint</code> (<code translate="no" v-pre>getLanguage()</code>, <code translate="no" v-pre>getWorkspace()</code>), through <code translate="no" v-pre>CommandUtils</code>.</li>
 </ul>
+<h3 id="the-scope">The scope</h3>
+<p><code translate="no" v-pre>CommandContext.getScope()</code> is a <code translate="no" v-pre>CommandScope</code>: what the command works on and who answers its questions. A command takes the book from it
+(<code translate="no" v-pre>getManuscript()</code>, read again from the database every time, <code translate="no" v-pre>getLorebook()</code> the root lorebook of the book) and asks with
+<code translate="no" v-pre>context.confirm(question)</code>; it never reaches for the open window. The user at the command bar gets the scope of their session
+(<code translate="no" v-pre>CommandScopes.session()</code>: the open book, a dialog for the questions), an agent the scope of its working copy
+(<code translate="no" v-pre>CommandScopes.forRun(run)</code>: the copy of the run, whichever it is now, and a yes without asking, since what an agent may do without
+asking was decided when it called the command). <code translate="no" v-pre>CommandService.execute</code>, <code translate="no" v-pre>executePositional</code> and <code translate="no" v-pre>executeLine</code> have a form with a last
+argument <code translate="no" v-pre>scope</code>; without one the scope of the session of the calling thread is made on that thread.</p>
+<p>The scope is also the <strong>cage</strong>. <code translate="no" v-pre>resolveMessage(uuid)</code>, <code translate="no" v-pre>resolveLorebook(uuid)</code> and <code translate="no" v-pre>resolveEntry(uuid)</code> find an item by the uuid, and only
+the ones of the book of the scope: the parts of the book, the lorebook of the book and its subbooks however deep, and their entries. A uuid of
+anything else (the original book of a copy, another book, a lorebook the book does not use, a deleted item) is refused with an
+<code translate="no" v-pre>IllegalArgumentException</code> as if it did not exist, so a command that takes an item as an argument can&#x27;t be aimed outside of the book by what
+it is given. A command that takes an item does it through the scope and not through <code translate="no" v-pre>findForUser</code> or <code translate="no" v-pre>find(id)</code>.</p>
 <p><code translate="no" v-pre>CommandUtils</code> (package <code translate="no" v-pre>utils</code>) reads the session of the caller – also on the worker thread of an <code translate="no" v-pre>async</code> command, which
 gets the request attributes – and returns <code translate="no" v-pre>null</code> when there is nothing to return (no session, no workspace yet, no book
 open), so a command checks its results. The book-related methods only delegate to the <code translate="no" v-pre>SessionPoint</code>, which knows where the
@@ -478,7 +492,7 @@ both:</p>
 | `getWorkspace()`          | The user's `Workspace` (desktop or phone); `null` for an agent.               |
 | `getManuscriptSection()`  | The part of the workspace that holds book windows (`ManuscriptSection`); `null` for an agent. |
 | `getManuscriptWindow()`   | The open book window (`ManuscriptWindow`, the same interface on the desktop and the phone); `null` for an agent. |
-| `getCurrentManuscript()`  | The book the command works on: the open book (`SessionPoint.getCurrentManuscript()`) or the book of the agent session. |
+| `getCurrentManuscript()`  | The open book (`SessionPoint.getCurrentManuscript()`) or the book of the agent session; a command takes the book from `context.getScope()` instead. |
 | `getCurrentAI()`          | The AI of that book.                                                          |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -507,7 +521,7 @@ both:</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>getCurrentManuscript()</code></td>
-<td>The book the command works on: the open book (<code translate="no" v-pre>SessionPoint.getCurrentManuscript()</code>) or the book of the agent session.</td>
+<td>The open book (<code translate="no" v-pre>SessionPoint.getCurrentManuscript()</code>) or the book of the agent session; a command takes the book from <code translate="no" v-pre>context.getScope()</code> instead.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>getCurrentAI()</code></td>
@@ -517,7 +531,7 @@ both:</p>
 </table>
 </div>
 </retype-table>
-<p><code translate="no" v-pre>confirm</code> and <code translate="no" v-pre>reloadManuscriptWindow</code> talk to the window, so in a session without one they answer <em>no</em> and do nothing.</p>
+<p><code translate="no" v-pre>confirm</code> and <code translate="no" v-pre>reloadManuscriptWindow</code> talk to the window, so in a session without one they answer <em>no</em> and do nothing (<code translate="no" v-pre>CommandContext.confirm</code> is what a command calls, it is routed by the scope).</p>
 <p>A command that changes the UI does it on the UI thread: from a synchronous command that is the calling thread, from an
 <code translate="no" v-pre>async</code> one use <code translate="no" v-pre>ui.access(...)</code> (see <a href="../plugins/ui-extensions/#threads">UI extensions → Threads</a>).</p>
 <h2 id="commands-that-read-the-book">Commands that read the book</h2>
@@ -614,7 +628,7 @@ to <code translate="no" v-pre>executePositional</code>, or by name as an agent d
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5607ccef).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (aeac9e2b).</p></div>
             </footer>
         </div>
     </div>

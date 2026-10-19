@@ -598,6 +598,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_NO_SUCH_LOREBOOK, "There is no lorebook %s, the book has %s lorebooks (see list-lorebooks).");
         setValue(L.ERROR_COMMAND_NO_SUCH_LORE_ENTRY, "Lorebook %s has no entry %s, it has %s entries.");
         setValue(L.ERROR_REGEX_TIMEOUT, "The regular expression took longer than %s seconds and was stopped. Use a simpler one.");
+        setValue(L.ERROR_LOREBOOK_LOCKED, "The lorebook is locked by the agent \"%s\". Pause or stop its run to change the lorebook.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -734,6 +735,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_RUN_BUSY, "The run is going on, pause or stop it first.");
         setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "The file %s is not a text file. The agent works with text, so only text files (UTF-8) and images (PNG, JPEG, GIF, WebP) can be uploaded.");
         setValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE, "The file %s is not an image. Only PNG, JPEG, GIF and WebP images can be attached.");
+        setValue(L.MSG_AGENT_LOREBOOK_LOCKED, "This lorebook is locked by the agent \"%s\", whose book uses it. It is shown as it is and can't be changed until the run is paused or stopped. Refresh to check.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

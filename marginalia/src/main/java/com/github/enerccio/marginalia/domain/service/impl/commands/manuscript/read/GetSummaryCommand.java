@@ -40,7 +40,7 @@ public class GetSummaryCommand extends ManuscriptReadSupport {
     }
 
     private void getSummary(CommandContext context, Integer position, Integer branch) throws Exception {
-        Book book = new Book();
+        Book book = new Book(context);
         List<ChatMessage> path = book.path(branch);
         ChatMessage message = book.part(path, position);
         JsonObject result = new JsonObject();

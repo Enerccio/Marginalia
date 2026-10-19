@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrateg
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
+import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.JsonArray;
@@ -21,6 +22,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private TemplateService templateService;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -380,6 +385,69 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         backup.add("messages", messagesArray);
 
         return backup;
+    }
+
+    @Override
+    @CommonTx
+    public SettingsSaved updateSettings(Manuscript manuscript, BookSettings changes) throws Exception {
+        Manuscript book = manuscript == null || manuscript.getUuid() == null ? null : (Manuscript) Hibernate.unproxy(findForUser(manuscript.getUuid()));
+        if (book == null || book.isDeleted()) {
+            throw new IllegalArgumentException("The manuscript does not exist");
+        }
+        if (changes.name() != null && StringUtils.isBlank(changes.name())) {
+            throw new IllegalArgumentException("The name can't be empty");
+        }
+        // all the templates are checked before anything is changed
+        List<String> warnings = new ArrayList<>();
+        checkTemplate(changes.masterTemplate(), "masterTemplate", MasterTemplateData.class, warnings);
+        checkTemplate(changes.userPrompt(), "userPrompt", UserPromptData.class, warnings);
+        checkTemplate(changes.summaryPrompt(), "summaryPrompt", SummaryTemplateData.class, warnings);
+        checkTemplate(changes.metaSummaryPrompt(), "metaSummaryPrompt", MetaSummaryTemplateData.class, warnings);
+
+        if (changes.name() != null) {
+            book.setName(changes.name().trim());
+        }
+        if (changes.description() != null) {
+            book.setDescription(changes.description());
+        }
+        if (changes.language() != null) {
+            book.setLanguage(changes.language());
+        }
+        if (changes.pov() != null) {
+            book.setPov(changes.pov());
+        }
+        if (changes.tense() != null) {
+            book.setTense(changes.tense());
+        }
+        if (changes.style() != null) {
+            book.setStyle(changes.style());
+        }
+        if (changes.masterTemplate() != null) {
+            book.setTemplate(changes.masterTemplate());
+        }
+        if (changes.userPrompt() != null) {
+            book.setUserPrompt(changes.userPrompt());
+        }
+        if (changes.summaryPrompt() != null) {
+            book.setSummaryPrompt(changes.summaryPrompt());
+        }
+        if (changes.metaSummaryPrompt() != null) {
+            book.setMetaSummaryPrompt(changes.metaSummaryPrompt());
+        }
+        return new SettingsSaved(save(book), warnings);
+    }
+
+    private void checkTemplate(String template, String templateName, Class<? extends TemplateData> dataClass, List<String> warnings) throws Exception {
+        if (StringUtils.isBlank(template)) {
+            return;
+        }
+        TemplateService.ValidationResult result = templateService.isValidTemplate(template, templateName, dataClass);
+        if (!result.isValid()) {
+            throw new IllegalArgumentException("The template " + templateName + " is not valid: " + result.errorMessage());
+        }
+        if (result.hasWarnings()) {
+            warnings.add("The template " + templateName + " uses names that do not exist: " + String.join(", ", result.unknownNames()));
+        }
     }
 
     @Override

@@ -136,7 +136,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
             }
         }
 
-        Book book = new Book();
+        Book book = new Book(context);
         boolean everywhere = Boolean.TRUE.equals(allBranches);
         // the position of a part and, when it is not on the active branch, the branch that shows it
         Map<Long, Integer> positions = new HashMap<>();
