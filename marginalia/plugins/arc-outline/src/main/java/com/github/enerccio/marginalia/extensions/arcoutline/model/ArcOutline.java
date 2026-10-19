@@ -93,6 +93,42 @@ public class ArcOutline {
     }
 
     /**
+     * Adds the arc so that it gets the place {@code index} (from 0); an index past the end appends it.
+     */
+    public void add(int index, Arc arc) {
+        arcs.add(Math.clamp(index, 0, arcs.size()), arc);
+    }
+
+    /**
+     * Adds the chapter to the arc so that it gets the place {@code index} (from 0); an index past the end appends it.
+     */
+    public void add(Arc arc, int index, Chapter chapter) {
+        arc.getChapters().add(Math.clamp(index, 0, arc.getChapters().size()), chapter);
+    }
+
+    /**
+     * Moves the arc to the place {@code index} (from 0) among the arcs, counted as they are after it was taken out; an
+     * index past the end puts it last.
+     */
+    public void moveTo(Arc arc, int index) {
+        if (arcs.remove(arc)) {
+            arcs.add(Math.clamp(index, 0, arcs.size()), arc);
+        }
+    }
+
+    /**
+     * Moves the chapter to the place {@code index} (from 0) in {@code target}, which can be another arc, counted as the
+     * chapters of the arc are after it was taken out; an index past the end puts it last.
+     */
+    public void moveTo(Chapter chapter, Arc target, int index) {
+        Arc from = arcOf(chapter);
+        if (from != null) {
+            from.getChapters().remove(chapter);
+            target.getChapters().add(Math.clamp(index, 0, target.getChapters().size()), chapter);
+        }
+    }
+
+    /**
      * Removes the arc with all its chapters.
      */
     public void delete(Arc arc) {

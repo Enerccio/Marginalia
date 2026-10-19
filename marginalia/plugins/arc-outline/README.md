@@ -117,6 +117,19 @@ the **end of the arc**, each with the full reasoning and JSON of the request (th
 
 An arc made this way has a robot button (so has a generated chapter) that opens a popover with the reasoning and the JSON the model wrote.
 
+## Commands
+
+`ArcOutlineCommands` and `ArcGenerationCommands` register the outline and its generators for the command bar and for agents:
+`/get-arc-outline`, `/add-arc`, `/update-arc`, `/move-arc`, `/delete-arc`, `/add-outline-chapter`, `/update-outline-chapter`,
+`/move-outline-chapter`, `/delete-outline-chapter` and `/generate-arc`, `/generate-outline-chapters`, `/import-arc-from-story`
+(see the user manual for the arguments). They work on `CommandContext.getScope().getManuscript()` (the open book, or the
+working copy of an agent), address arcs and chapters by their numbers (no uuid leaves the plugin) and store the outline with
+`ArcOutlineService.save`, then `ArcOutlineService.changed(manuscript)` tells the open `ArcOutlineView` of the book to read the
+outline again (`onChange`; the view keeps the outline in memory and would overwrite the change otherwise). Updates take the
+fields they are given, deleting is the only `DESTRUCTIVE` kind and asks `context.confirm`. The generators build the prompt
+with the same `ArcOutlineService.build*Prompt` methods and schemas as the dialogs and ask the model with `ArcOutlineService.generate`
+(a blocking `infer` that checks the answer against the schema); with `save` false they only return the result.
+
 ## How it works
 
 The plugin decorates `renderStoryContent` of `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` and adds the tab to

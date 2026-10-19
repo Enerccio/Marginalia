@@ -23,6 +23,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
 @Configurable
@@ -39,6 +41,11 @@ public class CharacterTrackerService {
     private static final long MAX_SOURCE_PIXELS = 50_000_000L;
 
     private static final Pattern COLOR = Pattern.compile("#[0-9a-fA-F]{6}");
+
+    /** Whether the text is a color the tracker takes, {@code #rrggbb}. */
+    public static boolean isColor(String color) {
+        return color != null && COLOR.matcher(color).matches();
+    }
     private static final Pattern BASE64 = Pattern.compile("[A-Za-z0-9+/]*={0,2}");
 
     @Autowired
@@ -51,6 +58,34 @@ public class CharacterTrackerService {
     private LorebookEntryService lorebookEntryService;
 
     private final Gson gson = new Gson();
+
+    /** Who wants to know that the characters of a book were changed from outside of its view, by the uuid of the book. */
+    private final Map<String, Set<Runnable>> changeListeners = new ConcurrentHashMap<>();
+
+    /**
+     * Tells {@code listener} whenever {@link #changed} is called for the book, from the thread of the caller. For a view
+     * that keeps the characters in memory and has to read them again when a command changed them.
+     *
+     * @return what removes the listener
+     */
+    public Runnable onChange(Manuscript manuscript, Runnable listener) {
+        String key = manuscript.getUuid();
+        changeListeners.computeIfAbsent(key, _ -> new CopyOnWriteArraySet<>()).add(listener);
+        return () -> changeListeners.computeIfPresent(key, (_, set) -> {
+            set.remove(listener);
+            return set.isEmpty() ? null : set;
+        });
+    }
+
+    /**
+     * Tells the views of the book that its characters were stored by someone else than the view (a command).
+     */
+    public void changed(Manuscript manuscript) {
+        Set<Runnable> listeners = changeListeners.get(manuscript.getUuid());
+        if (listeners != null) {
+            listeners.forEach(Runnable::run);
+        }
+    }
 
     /**
      * The characters of the book as they are stored now - the story view keeps the book it was opened with, the
