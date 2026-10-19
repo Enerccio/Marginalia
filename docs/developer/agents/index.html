@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845742431545">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845744601829">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845742431545" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845744601829" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845744601829" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845744601829" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -200,6 +200,7 @@ context made from the database, a state machine that can be paused and resumed, 
 | `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. |
 | `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
 | `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `request_compaction`, `get_run_status`. |
+| `CheckpointTools`, `CheckpointService`, `CheckpointStore` | `domain.service.agent`, `domain.service` | The checkpoint tools (`checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete`), the service behind them and the console, and the ZIP files; see [Checkpoints](#checkpoints). |
 | `ImageTools`, `ImageFiles`, `ShownImages` | `domain.service.agent` | `view_image` (only for a profile with `images`), the image checks and scaling, and the images asked for in a round; see [Images](#images). |
 | `CommandResults` | `domain.service.agent` | The last 10 results of the commands of a run, whole. |
 | `AgentApprovalService`, `AgentAttentionService` | `domain.service` | Bring the user in: approve a command, a notice that a run needs them. |
@@ -260,6 +261,11 @@ context made from the database, a state machine that can be paused and resumed, 
 <td><code translate="no" v-pre>RunTools</code></td>
 <td><code translate="no" v-pre>domain.service.agent</code></td>
 <td><code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>update_plan</code>, <code translate="no" v-pre>request_compaction</code>, <code translate="no" v-pre>get_run_status</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>CheckpointTools</code>, <code translate="no" v-pre>CheckpointService</code>, <code translate="no" v-pre>CheckpointStore</code></td>
+<td><code translate="no" v-pre>domain.service.agent</code>, <code translate="no" v-pre>domain.service</code></td>
+<td>The checkpoint tools (<code translate="no" v-pre>checkpoint</code>, <code translate="no" v-pre>checkpoint_list</code>, <code translate="no" v-pre>checkpoint_restore</code>, <code translate="no" v-pre>checkpoint_delete</code>), the service behind them and the console, and the ZIP files; see <doc-anchor-trigger to="#checkpoints">Checkpoints</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ImageTools</code>, <code translate="no" v-pre>ImageFiles</code>, <code translate="no" v-pre>ShownImages</code></td>
@@ -626,6 +632,28 @@ compaction by the runner itself at a threshold of the context.</p>
 the transcript as a message to the agent) or <code translate="no" v-pre>warnAboutContext</code>: when the context of the last request (<code translate="no" v-pre>Progress.contextTokens</code>, so without the results of this round) is at least
 <code translate="no" v-pre>Defaults.AGENT_CONTEXT_WARNING_PERCENT</code> (75) of <code translate="no" v-pre>contextCap</code> it appends a <code translate="no" v-pre>USER</code> message, <code translate="no" v-pre>Defaults.AGENT_CONTEXT_WARNING</code>, from <code translate="no" v-pre>AGENT_CONTEXT_CRITICAL_PERCENT</code> (90) <code translate="no" v-pre>AGENT_CONTEXT_CRITICAL</code>. One notice per
 round while above the threshold, none without a cap. <code translate="no" v-pre>Defaults.AGENT_RUNNER_NOTE</code> tells the agent about both.</p>
+<h2 id="checkpoints">Checkpoints</h2>
+<p>A checkpoint is a restore point of the working copy and the workspace of a run. <code translate="no" v-pre>CheckpointStore</code> (<code translate="no" v-pre>domain.service.agent</code>, only files, not synchronized) keeps them as <code translate="no" v-pre>checkpoints/NNNN.zip</code> in the run folder: the number is given
+by the code (the next one, never the agent), the archive holds <code translate="no" v-pre>manuscript.json</code> (<code translate="no" v-pre>ManuscriptService.snapshotAgenticCopy</code>: the backup of the copy with its lorebooks and the uuids of their entries, the format of the base),
+<code translate="no" v-pre>pairs.json</code> (<code translate="no" v-pre>AgentRunPairService.getAll</code>, with the <strong>handles</strong>: <code translate="no" v-pre>UuidPair</code> has a <code translate="no" v-pre>handle</code>), <code translate="no" v-pre>workspace/...</code> (<code translate="no" v-pre>WorkspaceMount.snapshotTo</code>) and <code translate="no" v-pre>meta.json</code> (kind, label, round, workspace size). A checkpoint is first written
+to a temporary file (<code translate="no" v-pre>Pending</code>) and only <code translate="no" v-pre>commit()</code> gives it its number, so a refused one leaves nothing. The size of the archive is what the quota counts. Kinds: <code translate="no" v-pre>START</code> (one, pinned), <code translate="no" v-pre>AUTOMATIC</code> (the ring of <code translate="no" v-pre>RING</code> = 5),
+<code translate="no" v-pre>MANUAL</code>.</p>
+<p><code translate="no" v-pre>CheckpointService</code> (<code translate="no" v-pre>CheckpointServiceImpl</code>) holds a lock for each run and decides about the quota, which is <code translate="no" v-pre>AgentGrant.maxCheckpointBytes</code> (the permission setting <strong>Checkpoints of a run (MB)</strong>, an extended attribute of
+<code translate="no" v-pre>Permission</code>) or <code translate="no" v-pre>DEFAULT_QUOTA_BYTES</code> (100 MB). <code translate="no" v-pre>START</code> must fit the quota. <code translate="no" v-pre>AUTOMATIC</code> is never refused for the room that other automatic ones take: <code translate="no" v-pre>ringDrops</code> lets the oldest ones go (beyond the ring, and more while the quota
+is exceeded), never the start or a manual one; it fails (<code translate="no" v-pre>CheckpointFullException</code>) only when manual ones took everything. <code translate="no" v-pre>MANUAL</code> fits when <code translate="no" v-pre>used + size + reserve &lt;= quota</code>, where the reserve is the room for the ring to fill up
+(and for the start, if missing) at the size of the newest checkpoint; it fails with <code translate="no" v-pre>CheckpointFullException</code>, whose message is written for the agent (needed / free, the list, &quot;delete with checkpoint_delete&quot;, or that deleting
+does not help). Nothing is ever deleted to make room for a manual one. <code translate="no" v-pre>delete(run, id, byAgent)</code> refuses the start and the newest for the agent.</p>
+<p><strong>Restore</strong> (<code translate="no" v-pre>restore</code>, <code translate="no" v-pre>@CommonTx</code>) first makes an automatic checkpoint of the state it leaves (<code translate="no" v-pre>protectedId</code>: the ring does not push out the one being restored), then
+<code translate="no" v-pre>ManuscriptService.createAgenticCopyFromSnapshot</code> makes a new copy from the snapshot (the shared part of <code translate="no" v-pre>createAgenticCopy</code>; the pairs it reports name the uuid the item had in the snapshot as its original),
+<code translate="no" v-pre>remap</code> turns those into the real pairs (the original and the handle the item has now, else those in <code translate="no" v-pre>pairs.json</code>; the rows of handles of items that did not exist at the checkpoint stay without an item, so a handle of the
+transcript points at nothing and is never given again), <code translate="no" v-pre>AgentRunService.replaceWorkingCopy</code> points the run at the new copy, stores the pairs and deletes the old copy, and last <code translate="no" v-pre>VirtualFileSystem.restoreWorkspace</code>
+(<code translate="no" v-pre>WorkspaceMount.replaceFrom</code>) unpacks the archive next to the workspace, checks every name like a name the model writes, and swaps the folders; a failure leaves the workspace as it was and rolls the database back.
+<code translate="no" v-pre>AgentVirtualFileSystemService.deleteCheckpoints</code> is called by <code translate="no" v-pre>releaseCopy</code>, so the checkpoints go with the copy.</p>
+<p>In the runner (<code translate="no" v-pre>Worker</code>): <code translate="no" v-pre>startCheckpoint</code> before the loop (<code translate="no" v-pre>ensureStart</code>; a resumed run that has checkpoints is <code translate="no" v-pre>dirty</code>), and before the calls of each round <code translate="no" v-pre>checkpointBeforeChanges</code>: when the round contains a call that
+<code translate="no" v-pre>changes</code> (every tool except the ones in <code translate="no" v-pre>NO_CHANGE_TOOLS</code> and the commands with <code translate="no" v-pre>@Command(readOnly = true)</code>) and the worker is <code translate="no" v-pre>dirty</code> (something changed since the last checkpoint), an automatic checkpoint is made; after the round
+<code translate="no" v-pre>dirty |= changes</code>. A checkpoint that does not fit does not stop the run: the agent is told once (<code translate="no" v-pre>Defaults.AGENT_NO_AUTOMATIC_CHECKPOINT</code>, after the results of the round, never between the call and its result). The tools are
+<code translate="no" v-pre>CheckpointToolsImpl</code>: <code translate="no" v-pre>checkpoint</code>, <code translate="no" v-pre>checkpoint_list</code> and <code translate="no" v-pre>checkpoint_delete</code> are done at once; <code translate="no" v-pre>checkpoint_restore</code> only notes the id, and the worker restores after the round (<code translate="no" v-pre>restoreForAgent</code>), makes the tools again (the
+scope of the commands holds the copy) and tells the agent what came back (<code translate="no" v-pre>Defaults.AGENT_RESTORED</code>, the files removed, the checkpoint of the state before). The console tab is <code translate="no" v-pre>AgentCheckpointBrowser</code>.</p>
 <h2 id="the-tools-of-an-agent">The tools of an agent</h2>
 <p><code translate="no" v-pre>AgentRunnerImpl.Worker.tools()</code> puts three function sets together with <code translate="no" v-pre>FunctionSet.and</code> (a function name used twice fails the run):</p>
 <div id="the-tools-of-an-agent-code-1" class="codeblock-wrapper"><doc-codeblock>
@@ -773,7 +801,7 @@ newest is always the one of the previous call.</p>
 <h3 id="files-of-an-agent">Files of an agent</h3>
 <p><code translate="no" v-pre>AgentVirtualFileSystemService</code> hands out the files of agents. Two folders in the application folder (not in <code translate="no" v-pre>data/</code>, which is named by logins):
 <code translate="no" v-pre>agent-workspaces/&lt;agent uuid&gt;</code> is the <strong>workspace</strong>, which belongs to the agent and stays between its runs (the notes it keeps), and
-<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;</code> is the folder of a run (<code translate="no" v-pre>base/</code> with the snapshot of the original, written when the copy is made, and <code translate="no" v-pre>checkpoints/</code>, which nothing writes yet; <code translate="no" v-pre>RunFolder</code> is the layout). The uuids are
+<code translate="no" v-pre>agent-runs/&lt;run uuid&gt;</code> is the folder of a run (<code translate="no" v-pre>base/</code> with the snapshot of the original, written when the copy is made, and <code translate="no" v-pre>checkpoints/</code>, see <doc-anchor-trigger to="#checkpoints">Checkpoints</doc-anchor-trigger>; <code translate="no" v-pre>RunFolder</code> is the layout). The uuids are
 checked, so no value of the database makes a path leave these folders. <code translate="no" v-pre>open(run)</code> is the file system of a run (the workspace, <code translate="no" v-pre>/checkpoints</code> and <code translate="no" v-pre>/AGENTS.md</code>),
 <code translate="no" v-pre>openWorkspace(agent)</code> the workspace alone for the user to look at; both refuse (<code translate="no" v-pre>IllegalArgumentException</code>) what is not the user&#x27;s own. Both use the
 <code translate="no" v-pre>WorkspaceLimits</code> of <code translate="no" v-pre>getLimits(agent)</code>: the defaults of the service (<code translate="no" v-pre>getLimits()</code>) with the quotas of the permission of the agent&#x27;s owner over them.
@@ -848,6 +876,7 @@ runner&#x27;s internals.</p>
 | `AgentDialog`, `AgentCommandsEditor`, `AgentCommandPreset` | Create / edit an agent. The editor lists every registered command with its severity; the presets (all, none, non-destructive) tick them at once. An allowed command that is not registered now (its extension is not loaded) stays allowed when saved. |
 | `AgentCloneDialog` | Copies the definition and the workspace (not the runs) to a new agent of another book. |
 | `AgentStopDialog` | Keep or discard the result. |
+| `AgentCheckpointBrowser` | The **Checkpoints** tab of the console (`AgentConsoleDialog.CHECKPOINTS_TAB`, read again only while shown): the list with who made each, the usage of the quota, save / restore / download / delete. Saving and restoring wait until the agent does not work. |
 | `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. The command line is the `CommandBar` of the story tab (list, help popover, severity badges), set to the commands of `AgentConsoleCommands.of(commandService, AgentRunner.consoleCommands(agent))` (`setCommands`: the registered ones the agent is allowed and the definition of `/compact`, which no suite registers) and to hand its line to `AgentRunner.command` (`setLineRunner`) instead of running it as the user in their browser session; it sits, with a one line hint, between the transcript and the message box, enabled for a run that waits, is paused or is a conversation that works. Messages and commands the author queued while the agent works (`AgentRunner.queued`) are dashed bubbles after the last row, each with a small **Send now** / **Run now** button (`AgentRunner.force`); they come off while the transcript grows and go back after it. In the **Workspace** tab the list and the viewer split the height (`flex 3 : 2`), so only they scroll. |
 | `AgentRunHistory` | The **Runs** tab: every run, open one in the Run tab, download it (`AgentTranscriptExport`, the transcript as Markdown, nothing cut), delete it. |
 | `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. **New folder** (`VirtualFileSystem.createFolder`, `WorkspaceMount.createFolder`) and **Upload file** (an `InMemoryUploadHandler`; a file that starts like an image goes to `writeImage`, anything else through `VirtualFileSystem.decodeText`, the same UTF-8 without NUL as `readText`, then `writeText`) keep the cage, the names and the limits of the agent's own writes; an existing file is not replaced, and both are refused while the agent works. |
@@ -877,6 +906,10 @@ runner&#x27;s internals.</p>
 <tr>
 <td><code translate="no" v-pre>AgentStopDialog</code></td>
 <td>Keep or discard the result.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AgentCheckpointBrowser</code></td>
+<td>The <strong>Checkpoints</strong> tab of the console (<code translate="no" v-pre>AgentConsoleDialog.CHECKPOINTS_TAB</code>, read again only while shown): the list with who made each, the usage of the quota, save / restore / download / delete. Saving and restoring wait until the agent does not work.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AgentConsoleDialog</code></td>
@@ -1035,7 +1068,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (8346aead).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3e9bd026).</p></div>
             </footer>
         </div>
     </div>

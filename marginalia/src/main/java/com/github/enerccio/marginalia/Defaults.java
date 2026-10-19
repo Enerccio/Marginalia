@@ -223,6 +223,7 @@ How this run works:
 - When the task is done, call finish with your report. If you need a decision that only the author can make, call ask_user.
 - Keep your to-do list with update_plan, and look at get_run_status before a long step: your rounds, tokens and context are limited.
 - Your context fills up with everything you read and write. When the run tells you it is filling up, save your notes to a file of your workspace and call request_compaction: the earlier rounds are then replaced by a summary you write. A run whose context is full stops.
+- The run keeps checkpoints of your working copy and your workspace: one at the start, and one before a round that changes something (the last few). Before a risky step make your own with checkpoint (give it a label); if a job goes wrong, go back with checkpoint_restore. Delete what you do not need with checkpoint_delete, the quota is shared.
 - A tool that fails returns an error text. Read it and correct the call; do not repeat the same call unchanged.
 - The instructions of the author, as they are in your system prompt, are also the read-only file /AGENTS.md. Read it again when you are unsure what the author asked for; you cannot change it.
 - What you write costs time and counts against the limit of your answer, so do not write out text you already have: do not copy a result or a file into a call (use save_command_result or @file:/path), do not repeat a result back, and keep what you say between calls to a sentence. The long texts belong in the files you write and in your report.
@@ -286,6 +287,25 @@ The author has opened the console and is watching. Do not start any work yet: ca
     public static final String AGENT_FORCED_CALL = "Error: this call was cut off because the author sent a message and the "
             + "rest of the round was thrown away, so it is unknown whether it was done. Check the state with a read tool "
             + "before you repeat it.";
+
+    /**
+     * Tells the agent that the checkpoint of the start of its run could not be made; the reason follows.
+     */
+    public static final String AGENT_NO_START_CHECKPOINT = "Notice from the run: no checkpoint of the start of the run could be made.";
+
+    /**
+     * Tells the agent, once, that the runner could not make its automatic checkpoint before a change; the reason follows.
+     */
+    public static final String AGENT_NO_AUTOMATIC_CHECKPOINT = "Notice from the run: no automatic checkpoint could be made before "
+            + "your last change, so it can't be undone. Delete checkpoints you do not need with checkpoint_delete.";
+
+    /**
+     * Tells the agent that its run went back to a checkpoint: the number and the round of it.
+     */
+    public static final String AGENT_RESTORED = "Notice from the run: the run went back to checkpoint %s (made in round %d). Your "
+            + "working copy of the book and your workspace are as they were then; what you read since may be out of date. The "
+            + "handles you were given for the items that were there still work, the ones of items you made later point at "
+            + "nothing.";
 
     /**
      * The result given to the model for a call that had not begun when the author forced a message in.

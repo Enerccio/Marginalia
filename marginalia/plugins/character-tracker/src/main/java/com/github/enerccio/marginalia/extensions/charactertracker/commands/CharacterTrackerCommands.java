@@ -87,7 +87,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
 
     // --- list-characters / get-character ---
 
-    @Command(commandName = LIST, humanNameText = "List characters", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST, humanNameText = "List characters", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_TEXT, llmDescriptionText = LIST_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the characters"))
@@ -114,7 +114,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         answer(context, result);
     }
 
-    @Command(commandName = GET, humanNameText = "Get character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GET, humanNameText = "Get character", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = GET_TEXT, llmDescriptionText = GET_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER)}),
@@ -288,7 +288,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
 
     // --- relationships ---
 
-    @Command(commandName = LIST_RELATIONS, humanNameText = "List character relationships", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST_RELATIONS, humanNameText = "List character relationships", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_RELATIONS_TEXT, llmDescriptionText = LIST_RELATIONS_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the relationships"))
@@ -296,7 +296,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         runListRelations(context);
     }
 
-    @Command(commandName = LIST_RELATIONS, humanNameText = "List character relationships", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = LIST_RELATIONS, humanNameText = "List character relationships", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = LIST_RELATIONS_TEXT, llmDescriptionText = LIST_RELATIONS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "character", type = String.class, optional = true,

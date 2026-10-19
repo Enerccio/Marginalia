@@ -182,7 +182,9 @@ class AgentHandlesTest extends AgentTestBase {
 
         handles.toHandles(part.getUuid());
 
-        assertThat(pairService.findByCopy(run, part.getUuid())).contains(pair);
+        UuidPair after = pairService.findByCopy(run, part.getUuid()).orElseThrow();
+        assertThat(after.originalUuid()).as("the same pair, now with its handle").isEqualTo(pair.originalUuid());
+        assertThat(after.handle()).isNotNull();
         assertThat(pairService.count(run)).as("no second row").isEqualTo(pairService.getAll(run).size());
     }
 

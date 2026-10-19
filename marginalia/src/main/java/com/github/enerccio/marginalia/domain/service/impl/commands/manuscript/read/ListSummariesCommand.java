@@ -23,7 +23,7 @@ public class ListSummariesCommand extends ManuscriptReadSupport {
     static final String NAME = "list-summaries";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_SUMMARIES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_SUMMARIES, llmDescription = L.DESC_COMMAND_LIST_SUMMARIES_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_SUMMARIES_RETURN))
@@ -32,7 +32,7 @@ public class ListSummariesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_SUMMARIES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_SUMMARIES, llmDescription = L.DESC_COMMAND_LIST_SUMMARIES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),

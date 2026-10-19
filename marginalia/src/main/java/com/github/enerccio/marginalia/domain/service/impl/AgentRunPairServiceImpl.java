@@ -55,7 +55,9 @@ public class AgentRunPairServiceImpl implements AgentRunPairService {
             if (!seen.add(pair.copyUuid())) {
                 throw new IllegalArgumentException("The item " + pair.copyUuid() + " of the copy is paired twice");
             }
-            rows.add(new AgentRunPair(stored.getId(), pair.kind(), pair.copyUuid(), pair.originalUuid()));
+            AgentRunPair row = new AgentRunPair(stored.getId(), pair.kind(), pair.copyUuid(), pair.originalUuid());
+            row.setHandle(pair.handle());
+            rows.add(row);
         }
         repository.deleteByRun(stored.getId());
         repository.insertAll(rows);
@@ -277,7 +279,7 @@ public class AgentRunPairServiceImpl implements AgentRunPairService {
     }
 
     private static UuidPair toPair(AgentRunPair row) {
-        return new UuidPair(row.getKind(), row.getCopyUuid(), row.getOriginalUuid());
+        return new UuidPair(row.getKind(), row.getCopyUuid(), row.getOriginalUuid(), row.getHandle());
     }
 
     private AgentRun ownRun(AgentRun run) throws Exception {

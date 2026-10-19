@@ -66,6 +66,7 @@ flowchart LR
 | `CommandFunctions` | `domain.service.agent` | Turns the allowed commands into functions for the model. |
 | `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
 | `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `request_compaction`, `get_run_status`. |
+| `CheckpointTools`, `CheckpointService`, `CheckpointStore` | `domain.service.agent`, `domain.service` | The checkpoint tools (`checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete`), the service behind them and the console, and the ZIP files; see [Checkpoints](#checkpoints). |
 | `ImageTools`, `ImageFiles`, `ShownImages` | `domain.service.agent` | `view_image` (only for a profile with `images`), the image checks and scaling, and the images asked for in a round; see [Images](#images). |
 | `CommandResults` | `domain.service.agent` | The last 10 results of the commands of a run, whole. |
 | `AgentApprovalService`, `AgentAttentionService` | `domain.service` | Bring the user in: approve a command, a notice that a run needs them. |
@@ -351,6 +352,33 @@ the transcript as a message to the agent) or `warnAboutContext`: when the contex
 `Defaults.AGENT_CONTEXT_WARNING_PERCENT` (75) of `contextCap` it appends a `USER` message, `Defaults.AGENT_CONTEXT_WARNING`, from `AGENT_CONTEXT_CRITICAL_PERCENT` (90) `AGENT_CONTEXT_CRITICAL`. One notice per
 round while above the threshold, none without a cap. `Defaults.AGENT_RUNNER_NOTE` tells the agent about both.
 
+## Checkpoints
+
+A checkpoint is a restore point of the working copy and the workspace of a run. `CheckpointStore` (`domain.service.agent`, only files, not synchronized) keeps them as `checkpoints/NNNN.zip` in the run folder: the number is given
+by the code (the next one, never the agent), the archive holds `manuscript.json` (`ManuscriptService.snapshotAgenticCopy`: the backup of the copy with its lorebooks and the uuids of their entries, the format of the base),
+`pairs.json` (`AgentRunPairService.getAll`, with the **handles**: `UuidPair` has a `handle`), `workspace/...` (`WorkspaceMount.snapshotTo`) and `meta.json` (kind, label, round, workspace size). A checkpoint is first written
+to a temporary file (`Pending`) and only `commit()` gives it its number, so a refused one leaves nothing. The size of the archive is what the quota counts. Kinds: `START` (one, pinned), `AUTOMATIC` (the ring of `RING` = 5),
+`MANUAL`.
+
+`CheckpointService` (`CheckpointServiceImpl`) holds a lock for each run and decides about the quota, which is `AgentGrant.maxCheckpointBytes` (the permission setting **Checkpoints of a run (MB)**, an extended attribute of
+`Permission`) or `DEFAULT_QUOTA_BYTES` (100 MB). `START` must fit the quota. `AUTOMATIC` is never refused for the room that other automatic ones take: `ringDrops` lets the oldest ones go (beyond the ring, and more while the quota
+is exceeded), never the start or a manual one; it fails (`CheckpointFullException`) only when manual ones took everything. `MANUAL` fits when `used + size + reserve <= quota`, where the reserve is the room for the ring to fill up
+(and for the start, if missing) at the size of the newest checkpoint; it fails with `CheckpointFullException`, whose message is written for the agent (needed / free, the list, "delete with checkpoint_delete", or that deleting
+does not help). Nothing is ever deleted to make room for a manual one. `delete(run, id, byAgent)` refuses the start and the newest for the agent.
+
+**Restore** (`restore`, `@CommonTx`) first makes an automatic checkpoint of the state it leaves (`protectedId`: the ring does not push out the one being restored), then
+`ManuscriptService.createAgenticCopyFromSnapshot` makes a new copy from the snapshot (the shared part of `createAgenticCopy`; the pairs it reports name the uuid the item had in the snapshot as its original),
+`remap` turns those into the real pairs (the original and the handle the item has now, else those in `pairs.json`; the rows of handles of items that did not exist at the checkpoint stay without an item, so a handle of the
+transcript points at nothing and is never given again), `AgentRunService.replaceWorkingCopy` points the run at the new copy, stores the pairs and deletes the old copy, and last `VirtualFileSystem.restoreWorkspace`
+(`WorkspaceMount.replaceFrom`) unpacks the archive next to the workspace, checks every name like a name the model writes, and swaps the folders; a failure leaves the workspace as it was and rolls the database back.
+`AgentVirtualFileSystemService.deleteCheckpoints` is called by `releaseCopy`, so the checkpoints go with the copy.
+
+In the runner (`Worker`): `startCheckpoint` before the loop (`ensureStart`; a resumed run that has checkpoints is `dirty`), and before the calls of each round `checkpointBeforeChanges`: when the round contains a call that
+`changes` (every tool except the ones in `NO_CHANGE_TOOLS` and the commands with `@Command(readOnly = true)`) and the worker is `dirty` (something changed since the last checkpoint), an automatic checkpoint is made; after the round
+`dirty |= changes`. A checkpoint that does not fit does not stop the run: the agent is told once (`Defaults.AGENT_NO_AUTOMATIC_CHECKPOINT`, after the results of the round, never between the call and its result). The tools are
+`CheckpointToolsImpl`: `checkpoint`, `checkpoint_list` and `checkpoint_delete` are done at once; `checkpoint_restore` only notes the id, and the worker restores after the round (`restoreForAgent`), makes the tools again (the
+scope of the commands holds the copy) and tells the agent what came back (`Defaults.AGENT_RESTORED`, the files removed, the checkpoint of the state before). The console tab is `AgentCheckpointBrowser`.
+
 ## The tools of an agent
 
 `AgentRunnerImpl.Worker.tools()` puts three function sets together with `FunctionSet.and` (a function name used twice fails the run):
@@ -459,7 +487,7 @@ newest is always the one of the previous call.
 
 `AgentVirtualFileSystemService` hands out the files of agents. Two folders in the application folder (not in `data/`, which is named by logins):
 `agent-workspaces/<agent uuid>` is the **workspace**, which belongs to the agent and stays between its runs (the notes it keeps), and
-`agent-runs/<run uuid>` is the folder of a run (`base/` with the snapshot of the original, written when the copy is made, and `checkpoints/`, which nothing writes yet; `RunFolder` is the layout). The uuids are
+`agent-runs/<run uuid>` is the folder of a run (`base/` with the snapshot of the original, written when the copy is made, and `checkpoints/`, see [Checkpoints](#checkpoints); `RunFolder` is the layout). The uuids are
 checked, so no value of the database makes a path leave these folders. `open(run)` is the file system of a run (the workspace, `/checkpoints` and `/AGENTS.md`),
 `openWorkspace(agent)` the workspace alone for the user to look at; both refuse (`IllegalArgumentException`) what is not the user's own. Both use the
 `WorkspaceLimits` of `getLimits(agent)`: the defaults of the service (`getLimits()`) with the quotas of the permission of the agent's owner over them.
@@ -526,6 +554,7 @@ runner's internals.
 | `AgentDialog`, `AgentCommandsEditor`, `AgentCommandPreset` | Create / edit an agent. The editor lists every registered command with its severity; the presets (all, none, non-destructive) tick them at once. An allowed command that is not registered now (its extension is not loaded) stays allowed when saved. |
 | `AgentCloneDialog` | Copies the definition and the workspace (not the runs) to a new agent of another book. |
 | `AgentStopDialog` | Keep or discard the result. |
+| `AgentCheckpointBrowser` | The **Checkpoints** tab of the console (`AgentConsoleDialog.CHECKPOINTS_TAB`, read again only while shown): the list with who made each, the usage of the quota, save / restore / download / delete. Saving and restoring wait until the agent does not work. |
 | `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. The command line is the `CommandBar` of the story tab (list, help popover, severity badges), set to the commands of `AgentConsoleCommands.of(commandService, AgentRunner.consoleCommands(agent))` (`setCommands`: the registered ones the agent is allowed and the definition of `/compact`, which no suite registers) and to hand its line to `AgentRunner.command` (`setLineRunner`) instead of running it as the user in their browser session; it sits, with a one line hint, between the transcript and the message box, enabled for a run that waits, is paused or is a conversation that works. Messages and commands the author queued while the agent works (`AgentRunner.queued`) are dashed bubbles after the last row, each with a small **Send now** / **Run now** button (`AgentRunner.force`); they come off while the transcript grows and go back after it. In the **Workspace** tab the list and the viewer split the height (`flex 3 : 2`), so only they scroll. |
 | `AgentRunHistory` | The **Runs** tab: every run, open one in the Run tab, download it (`AgentTranscriptExport`, the transcript as Markdown, nothing cut), delete it. |
 | `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. **New folder** (`VirtualFileSystem.createFolder`, `WorkspaceMount.createFolder`) and **Upload file** (an `InMemoryUploadHandler`; a file that starts like an image goes to `writeImage`, anything else through `VirtualFileSystem.decodeText`, the same UTF-8 without NUL as `readText`, then `writeText`) keep the cage, the names and the limits of the agent's own writes; an existing file is not replaced, and both are refused while the agent works. |

@@ -19,7 +19,7 @@ public class ListPartsCommand extends ManuscriptReadSupport {
     static final String NAME = "list-parts";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_PARTS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_PARTS, llmDescription = L.DESC_COMMAND_LIST_PARTS_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_PARTS_RETURN))
@@ -28,7 +28,7 @@ public class ListPartsCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_PARTS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_PARTS, llmDescription = L.DESC_COMMAND_LIST_PARTS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM)}),
@@ -38,7 +38,7 @@ public class ListPartsCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_PARTS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_PARTS, llmDescription = L.DESC_COMMAND_LIST_PARTS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),
@@ -49,7 +49,7 @@ public class ListPartsCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_PARTS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_PARTS, llmDescription = L.DESC_COMMAND_LIST_PARTS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "branch", type = String.class, description = L.DESC_COMMAND_BRANCH_PARAM),

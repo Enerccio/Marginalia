@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.AgentRunRepository;
+import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 
 import java.util.List;
 
@@ -127,6 +128,17 @@ public interface AgentRunService extends ExtendableService<AgentRun, AgentRunRep
      * The runner tells that no worker is busy with the run any more.
      */
     void workerFinished(AgentRun run);
+
+    /**
+     * Gives the run another working copy, the one a checkpoint was restored into: the pairs (with the handles) are stored in
+     * place of the old ones and the old copy is deleted for good, with its messages and its lorebooks.
+     *
+     * @param copy  the new copy, as made by {@code ManuscriptService.createAgenticCopyFromSnapshot}
+     * @param pairs the pairs of the new copy
+     * @return the run with the new copy
+     * @throws IllegalArgumentException when the run is not a run of the user or has no copy
+     */
+    AgentRun replaceWorkingCopy(AgentRun run, Manuscript copy, java.util.Collection<UuidPair> pairs) throws Exception;
 
     /**
      * The run that locks the manuscript, whoever it belongs to; null when the book is free. A book is locked while

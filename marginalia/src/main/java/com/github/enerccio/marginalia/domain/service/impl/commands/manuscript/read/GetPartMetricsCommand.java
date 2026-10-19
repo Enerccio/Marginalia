@@ -17,7 +17,7 @@ public class GetPartMetricsCommand extends ManuscriptReadSupport {
     static final String NAME = "get-part-metrics";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART_METRICS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_PART_METRICS, llmDescription = L.DESC_COMMAND_GET_PART_METRICS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
@@ -27,7 +27,7 @@ public class GetPartMetricsCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART_METRICS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_PART_METRICS, llmDescription = L.DESC_COMMAND_GET_PART_METRICS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),

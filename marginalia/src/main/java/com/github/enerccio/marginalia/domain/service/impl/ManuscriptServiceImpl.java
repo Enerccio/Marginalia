@@ -462,14 +462,47 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         }
         // the base is this very backup and the copy is made from it, so what the run is later compared with is what it started from
         JsonObject base = createBackup(source);
-        JsonObject lorebookRef = base.has("lorebook") && base.get("lorebook").isJsonObject() ? base.getAsJsonObject("lorebook") : null;
         Lorebook originalLorebook = source.getLorebook() == null ? null : lorebookService.find(source.getLorebook());
-        JsonArray lorebooks = null;
         if (originalLorebook != null) {
             // the entries have no uuid in the backup format, the base and the copy need them
-            lorebooks = lorebookService.marshalLorebooks(originalLorebook, true);
-            base.add("lorebooks", lorebooks);
+            base.add("lorebooks", lorebookService.marshalLorebooks(originalLorebook, true));
         }
+        return copyFromSnapshot(base);
+    }
+
+    @Override
+    @CommonTx
+    public AgenticCopy createAgenticCopyFromSnapshot(JsonObject snapshot) throws Exception {
+        if (snapshot == null || !snapshot.has("messages") && !snapshot.has("name")) {
+            throw new IllegalArgumentException("The snapshot is not the backup of a book");
+        }
+        return copyFromSnapshot(snapshot);
+    }
+
+    @Override
+    @CommonTx
+    public JsonObject snapshotAgenticCopy(Manuscript copy) throws Exception {
+        Manuscript source = copy == null ? null : find(copy);
+        if (source == null || source.isDeleted()) {
+            throw new IllegalArgumentException("The manuscript does not exist");
+        }
+        if (!source.isAgentic()) {
+            throw new IllegalArgumentException("The manuscript " + source.getUuid() + " is not a working copy of an agent");
+        }
+        JsonObject snapshot = createBackup(source);
+        Lorebook lorebook = source.getLorebook() == null ? null : lorebookService.find(source.getLorebook());
+        if (lorebook != null) {
+            snapshot.add("lorebooks", lorebookService.marshalLorebooks(lorebook, true));
+        }
+        return snapshot;
+    }
+
+    /**
+     * The working copy of a backup with its lorebooks ({@code lorebooks}); the backup is also the base that is returned.
+     */
+    private AgenticCopy copyFromSnapshot(JsonObject base) throws Exception {
+        JsonObject lorebookRef = base.has("lorebook") && base.get("lorebook").isJsonObject() ? base.getAsJsonObject("lorebook") : null;
+        JsonArray lorebooks = base.has("lorebooks") && base.get("lorebooks").isJsonArray() ? base.getAsJsonArray("lorebooks") : null;
 
         // the clone would link the lorebook of the user, the copy gets its own; the elements are shared, not copied
         JsonObject cloneSource = new JsonObject();

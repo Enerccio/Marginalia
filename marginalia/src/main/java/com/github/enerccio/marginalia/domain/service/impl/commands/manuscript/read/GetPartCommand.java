@@ -19,7 +19,7 @@ public class GetPartCommand extends ManuscriptReadSupport {
     private static final List<String> FIELDS = List.of("response", "instructions", "scene", "pov", "present", "reasoning");
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
@@ -29,7 +29,7 @@ public class GetPartCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
@@ -40,7 +40,7 @@ public class GetPartCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
@@ -52,7 +52,7 @@ public class GetPartCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),
@@ -65,7 +65,7 @@ public class GetPartCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_PART,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_PART, llmDescription = L.DESC_COMMAND_GET_PART_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),

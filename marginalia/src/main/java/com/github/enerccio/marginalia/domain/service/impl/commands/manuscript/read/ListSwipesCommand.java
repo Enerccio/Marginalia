@@ -19,7 +19,7 @@ public class ListSwipesCommand extends ManuscriptReadSupport {
     static final String NAME = "list-swipes";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_SWIPES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_SWIPES, llmDescription = L.DESC_COMMAND_LIST_SWIPES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
@@ -29,7 +29,7 @@ public class ListSwipesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_SWIPES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_SWIPES, llmDescription = L.DESC_COMMAND_LIST_SWIPES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),

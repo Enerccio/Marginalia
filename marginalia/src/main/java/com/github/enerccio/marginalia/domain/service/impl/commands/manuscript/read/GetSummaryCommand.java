@@ -19,7 +19,7 @@ public class GetSummaryCommand extends ManuscriptReadSupport {
     static final String NAME = "get-summary";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_SUMMARY,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_SUMMARY, llmDescription = L.DESC_COMMAND_GET_SUMMARY_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM)}),
@@ -29,7 +29,7 @@ public class GetSummaryCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_SUMMARY,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_SUMMARY, llmDescription = L.DESC_COMMAND_GET_SUMMARY_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),

@@ -60,6 +60,7 @@ these of its own:
 | Images for commands | A command that sends pictures to a model of its own, such as [`generate-lore-entry`](extensions/lore-generator.md#commands), takes an `images` parameter: a list of paths of image files of the workspace (at most 8). It is the model of the command, not the agent's, that has to see them, so the agent can pass images even when its own model does not see images. |
 | `update_plan` | Its to-do list. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
+| `checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete` | Its [checkpoints](#checkpoints): saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need. |
 | `request_compaction` | Compacts its own context: when the round ends it writes the summary of its earlier work, as with `/compact`. It is told to save its notes to a file first. See [Context filling up](#running-a-command-yourself). |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
 | `finish` | Its report: the run is *Done*. The report is shown as the reason of the status. |
@@ -77,7 +78,7 @@ How a run ends a stretch of work:
 
 ## The console
 
-**Console** opens a window for the latest run of the agent, with three tabs.
+**Console** opens a window for the latest run of the agent, with four tabs: **Run**, **Runs**, **Workspace** and **Checkpoints**.
 
 **Run** shows the *transcript*: what you told the agent, what it said (both as [Markdown](https://commonmark.org/help/), so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its **reasoning** (what it thought before it answered), a folded *Reasoning* block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. The state of the run, the **context** (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
@@ -172,6 +173,24 @@ agent does, it does to the copy; your book stays as it was.
 A paused run keeps its copy and works on it again when you resume it. When the run ends (it is *Done*, *Failed* or you stop it and discard the result)
 the copy is deleted for good, and the next run makes a new one from the book as it is then. Nothing brings the changes of the copy back into your
 book yet.
+
+## Checkpoints
+
+A **checkpoint** is a restore point of the working copy of the run (the parts, summaries, lorebooks and the data of the extensions, with the handles the agent was given) and of the
+workspace of the agent, so that a job that went wrong can be undone: the agent goes back with `checkpoint_restore`, or you do it in the **Checkpoints** tab of the console. Who makes them:
+
+- **Start of the run**, made when the run begins. It is never rolled out.
+- **Automatic**, made by the run before a round in which the agent calls something that may change the book or the workspace (a command that is not a plain read, or a file tool that writes), and only when something
+  changed since the last checkpoint. The last five are kept; the oldest goes when a new one is made.
+- **Made on purpose**, by the agent with `checkpoint` (it is told to make one before a risky step) or by you with **Save a checkpoint**. They stay until deleted.
+
+All the checkpoints of a run share a **quota** that the administrator sets in the [permission](administration/permissions.md#settings-of-a-permission) (100 MB when empty). Part of it is kept for the automatic ones, so that the
+agent can't use it all up; a checkpoint made on purpose that does not fit is **refused**, nothing is deleted behind the back of whoever asked. The agent then gets the list and deletes what it does not need
+(not the checkpoint of the start, and not the newest one); you can delete any in the tab. Each is an archive (a ZIP of the book as JSON, the pairs and the workspace files) you can **download**.
+
+**Restore** makes the working copy again from the checkpoint: it is a new copy, the old one is deleted, the workspace is the saved one (files written after it are gone) and the handles of the agent for the items
+that were there still work. The state before is saved as an automatic checkpoint first, if there is room, so a restore can be taken back. A restore takes about as long as the start of a run (half a minute for a book
+of two thousand parts). You can restore while the agent does not work; the agent restores itself between two rounds and is told what came back. The checkpoints go when the run lets go of its copy.
 
 ## Creating and editing an agent
 

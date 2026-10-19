@@ -69,6 +69,7 @@ The ones of the agents; an empty field is the default:
 | **Largest file (KB)** | The largest file an agent of the user can write to its workspace. 1024 (1 MB) when empty. |
 | **Workspace size (MB)** | How much all the files in the workspace of one agent of the user can take. 20 when empty. |
 | **Files in a workspace** | How many files the workspace of one agent of the user can hold, folders are free. 500 when empty. |
+| **Checkpoints of a run (MB)** | How much all the [checkpoints](../agents.md#checkpoints) of one run (restore points of the working copy and its workspace) can take; part of it is kept for the automatic ones. 100 when empty. |
 
 ## When permissions were introduced
 

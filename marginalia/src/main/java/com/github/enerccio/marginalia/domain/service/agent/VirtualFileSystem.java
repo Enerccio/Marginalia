@@ -405,6 +405,23 @@ public final class VirtualFileSystem {
     }
 
     /**
+     * Writes the workspace into the archive as entries below {@code prefix} (ending with a slash), for a checkpoint.
+     */
+    public WorkspaceUsage snapshotWorkspace(java.util.zip.ZipOutputStream zip, String prefix) {
+        return workspace.snapshotTo(zip, prefix);
+    }
+
+    /**
+     * Replaces everything in the workspace with what the archive holds below {@code prefix}; a failure changes nothing.
+     *
+     * @param maxBytes the most the files may take unpacked
+     * @return the files that were in the workspace and are gone, as paths
+     */
+    public List<String> restoreWorkspace(java.util.zip.ZipFile zip, String prefix, long maxBytes) {
+        return workspace.replaceFrom(zip, prefix, maxBytes);
+    }
+
+    /**
      * Copies the workspace of another file system into this one.
      */
     public void copyWorkspaceFrom(VirtualFileSystem other) {

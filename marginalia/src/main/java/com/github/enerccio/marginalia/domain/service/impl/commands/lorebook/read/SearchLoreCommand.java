@@ -27,7 +27,7 @@ public class SearchLoreCommand extends LorebookReadSupport {
     private static final int SNIPPET_RADIUS = 40;
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_LORE,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_SEARCH_LORE, llmDescription = L.DESC_COMMAND_SEARCH_LORE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_LORE_QUERY_PARAM)}),
@@ -37,7 +37,7 @@ public class SearchLoreCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_LORE,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_SEARCH_LORE, llmDescription = L.DESC_COMMAND_SEARCH_LORE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_LORE_QUERY_PARAM),
@@ -48,7 +48,7 @@ public class SearchLoreCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_LORE,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_SEARCH_LORE, llmDescription = L.DESC_COMMAND_SEARCH_LORE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_LORE_QUERY_PARAM),

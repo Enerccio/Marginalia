@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.agent;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
@@ -7,6 +8,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.text.Normalizer;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 /**
  * The workspace of an agent: a folder of the disk, the only one the virtual root maps to. This class is where the
@@ -470,6 +474,167 @@ final class WorkspaceMount implements VirtualMount {
             throw new VirtualFileException("The workspace can't be copied", e);
         } finally {
             lock.unlock();
+        }
+    }
+
+    /**
+     * Writes the files and the folders of the workspace as entries of the archive, below {@code prefix} (which ends with a
+     * slash); links and anything else are left out, and so are the files being written.
+     *
+     * @return what was written
+     */
+    WorkspaceUsage snapshotTo(ZipOutputStream zip, String prefix) {
+        int[] files = {0};
+        long[] bytes = {0};
+        lock.lock();
+        try {
+            Files.walkFileTree(realRoot, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    if (!dir.equals(realRoot)) {
+                        zip.putNextEntry(new ZipEntry(prefix + entryName(dir) + "/"));
+                        zip.closeEntry();
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (attrs.isRegularFile() && !file.getFileName().toString().startsWith(TEMP_PREFIX)) {
+                        zip.putNextEntry(new ZipEntry(prefix + entryName(file)));
+                        Files.copy(file, zip);
+                        zip.closeEntry();
+                        files[0]++;
+                        bytes[0] += attrs.size();
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            throw new VirtualFileException("The workspace can't be saved", e);
+        } finally {
+            lock.unlock();
+        }
+        return new WorkspaceUsage(files[0], bytes[0]);
+    }
+
+    private String entryName(Path path) {
+        return realRoot.relativize(path).toString().replace(File.separatorChar, '/');
+    }
+
+    /**
+     * Replaces everything in the workspace with the entries of the archive below {@code prefix}: the archive is unpacked
+     * next to the workspace first, so a failure leaves the workspace as it was. Every name in it is checked like a name the
+     * model writes.
+     *
+     * @param maxBytes the most the unpacked files may take
+     * @return the files of the workspace that are not in the archive and are gone now, as virtual paths
+     */
+    List<String> replaceFrom(ZipFile zip, String prefix, long maxBytes) {
+        lock.lock();
+        Path name = realRoot.getFileName();
+        Path staging = realRoot.resolveSibling(name + ".restoring");
+        Path old = realRoot.resolveSibling(name + ".replaced");
+        try {
+            deleteQuietly(staging);
+            deleteQuietly(old);
+            Files.createDirectory(staging);
+            Set<String> restored = new HashSet<>();
+            long[] total = {0};
+            for (Enumeration<? extends ZipEntry> entries = zip.entries(); entries.hasMoreElements(); ) {
+                ZipEntry entry = entries.nextElement();
+                if (!entry.getName().startsWith(prefix) || entry.getName().length() == prefix.length()) {
+                    continue;
+                }
+                String relative = entry.getName().substring(prefix.length());
+                boolean directory = relative.endsWith("/");
+                VirtualPath virtual = VirtualPath.parse("/" + (directory ? relative.substring(0, relative.length() - 1) : relative));
+                if (virtual.isRoot() || reservedAtRoot.contains(virtual.getFirst().toLowerCase(Locale.ROOT))) {
+                    throw new VirtualFileException("The saved workspace holds a name that is not allowed: " + virtual);
+                }
+                Path target = staging;
+                for (String part : virtual.getSegments()) {
+                    target = target.resolve(part);
+                }
+                if (directory) {
+                    Files.createDirectories(target);
+                    continue;
+                }
+                Files.createDirectories(target.getParent());
+                try (InputStream in = zip.getInputStream(entry)) {
+                    long copied = Files.copy(new LimitedInput(in, maxBytes - total[0]), target);
+                    total[0] += copied;
+                }
+                restored.add(virtual.toString());
+            }
+            List<String> removed = new ArrayList<>();
+            Files.walkFileTree(realRoot, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    if (attrs.isRegularFile() && !file.getFileName().toString().startsWith(TEMP_PREFIX)) {
+                        String virtual = "/" + entryName(file);
+                        if (!restored.contains(virtual)) {
+                            removed.add(virtual);
+                        }
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            Files.move(realRoot, old);
+            try {
+                Files.move(staging, realRoot);
+            } catch (IOException e) {
+                Files.move(old, realRoot);
+                throw e;
+            }
+            deleteQuietly(old);
+            Collections.sort(removed);
+            return removed;
+        } catch (IOException e) {
+            throw new VirtualFileException("The workspace can't be restored", e);
+        } finally {
+            deleteQuietly(staging);
+            lock.unlock();
+        }
+    }
+
+    private static void deleteQuietly(Path path) {
+        try {
+            if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+                deleteTree(path);
+            }
+        } catch (IOException ignored) {
+            // what is left is in the way of the next restore only, which deletes it first
+        }
+    }
+
+    /**
+     * An input that fails when more than the allowed bytes are read, the size of an entry of an archive is not to be trusted.
+     */
+    private static final class LimitedInput extends java.io.FilterInputStream {
+        private long left;
+
+        LimitedInput(InputStream in, long limit) {
+            super(in);
+            this.left = limit;
+        }
+
+        @Override
+        public int read() throws IOException {
+            int value = super.read();
+            if (value >= 0 && --left < 0) {
+                throw new IOException("The saved workspace is larger than it was");
+            }
+            return value;
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int length) throws IOException {
+            int count = super.read(buffer, offset, length);
+            if (count > 0 && (left -= count) < 0) {
+                throw new IOException("The saved workspace is larger than it was");
+            }
+            return count;
         }
     }
 

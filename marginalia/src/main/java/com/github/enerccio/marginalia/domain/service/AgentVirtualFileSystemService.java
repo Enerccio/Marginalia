@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.agent.CommandResults;
+import com.github.enerccio.marginalia.domain.service.agent.RunFolder;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.WorkspaceLimits;
 import com.github.enerccio.marginalia.domain.service.agent.WorkspaceUsage;
@@ -41,6 +42,14 @@ public interface AgentVirtualFileSystemService {
      * @throws IllegalArgumentException when the run is not a run of the user
      */
     VirtualFileSystem open(AgentRun run) throws Exception;
+
+    /**
+     * Where the files of a run are on the disk, for the services that keep checkpoints there. Real paths: they never
+     * go to the model.
+     *
+     * @throws IllegalArgumentException when the run is not a run of the user
+     */
+    RunFolder getFolder(AgentRun run) throws Exception;
 
     /**
      * The workspace of an agent alone, to look at and to clear.
@@ -109,6 +118,12 @@ public interface AgentVirtualFileSystemService {
      * file goes when the transaction commits.
      */
     void deleteBase(AgentRun run);
+
+    /**
+     * Deletes the checkpoints of a run that has let go of its working copy, there is nothing to restore them into. The
+     * files go when the transaction commits.
+     */
+    void deleteCheckpoints(AgentRun run);
 
     /**
      * Deletes the folder of a run that is deleted for good, see {@link #deleteWorkspace}.

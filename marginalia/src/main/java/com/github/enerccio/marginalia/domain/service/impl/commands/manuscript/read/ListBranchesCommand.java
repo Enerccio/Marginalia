@@ -18,7 +18,7 @@ public class ListBranchesCommand extends ManuscriptReadSupport {
     static final String NAME = "list-branches";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_BRANCHES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_BRANCHES, llmDescription = L.DESC_COMMAND_LIST_BRANCHES_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_BRANCHES_RETURN))
@@ -27,7 +27,7 @@ public class ListBranchesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_BRANCHES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_BRANCHES, llmDescription = L.DESC_COMMAND_LIST_BRANCHES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM)}),
@@ -37,7 +37,7 @@ public class ListBranchesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_BRANCHES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_BRANCHES, llmDescription = L.DESC_COMMAND_LIST_BRANCHES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "offset", type = Integer.class, description = L.DESC_COMMAND_OFFSET_PARAM),

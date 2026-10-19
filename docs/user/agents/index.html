@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845742431545">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845744601829">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845742431545" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845744601829" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845744601829" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845742431545" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845744601829" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -292,6 +292,7 @@ these of its own:</p>
 | Images for commands | A command that sends pictures to a model of its own, such as [`generate-lore-entry`](extensions/lore-generator.md#commands), takes an `images` parameter: a list of paths of image files of the workspace (at most 8). It is the model of the command, not the agent's, that has to see them, so the agent can pass images even when its own model does not see images. |
 | `update_plan` | Its to-do list. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
+| `checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete` | Its [checkpoints](#checkpoints): saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need. |
 | `request_compaction` | Compacts its own context: when the round ends it writes the summary of its earlier work, as with `/compact`. It is told to save its notes to a file first. See [Context filling up](#running-a-command-yourself). |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
 | `finish` | Its report: the run is *Done*. The report is shown as the reason of the status. |">
@@ -333,6 +334,10 @@ these of its own:</p>
 <td>How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts.</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>checkpoint</code>, <code translate="no" v-pre>checkpoint_list</code>, <code translate="no" v-pre>checkpoint_restore</code>, <code translate="no" v-pre>checkpoint_delete</code></td>
+<td>Its <doc-anchor-trigger to="#checkpoints">checkpoints</doc-anchor-trigger>: saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>request_compaction</code></td>
 <td>Compacts its own context: when the round ends it writes the summary of its earlier work, as with <code translate="no" v-pre>/compact</code>. It is told to save its notes to a file first. See <doc-anchor-trigger to="#running-a-command-yourself">Context filling up</doc-anchor-trigger>.</td>
 </tr>
@@ -367,7 +372,7 @@ server stopped is reported to the model as &quot;outcome unknown&quot;.</p>
 </ul>
 <p><strong>Pause</strong> and <strong>Stop</strong> take effect between two rounds: the model request and the calls that are going on finish first.</p>
 <h2 id="the-console">The console</h2>
-<p><strong>Console</strong> opens a window for the latest run of the agent, with three tabs.</p>
+<p><strong>Console</strong> opens a window for the latest run of the agent, with four tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong> and <strong>Checkpoints</strong>.</p>
 <p><strong>Run</strong> shows the <em>transcript</em>: what you told the agent, what it said (both as <a href="https://commonmark.org/help/">Markdown</a>, so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its <strong>reasoning</strong> (what it thought before it answered), a folded <em>Reasoning</em> block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. The state of the run, the <strong>context</strong> (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
 is one) stay above it and the box for your message under it, while the transcript scrolls. What the agent waits for is in the transcript where it was written, as a bubble of its own that stays there when the run goes on:</p>
@@ -444,6 +449,27 @@ agent does, it does to the copy; your book stays as it was.</p>
 <p>A paused run keeps its copy and works on it again when you resume it. When the run ends (it is <em>Done</em>, <em>Failed</em> or you stop it and discard the result)
 the copy is deleted for good, and the next run makes a new one from the book as it is then. Nothing brings the changes of the copy back into your
 book yet.</p>
+<h2 id="checkpoints">Checkpoints</h2>
+<p>A <strong>checkpoint</strong> is a restore point of the working copy of the run (the parts, summaries, lorebooks and the data of the extensions, with the handles the agent was given) and of the
+workspace of the agent, so that a job that went wrong can be undone: the agent goes back with <code translate="no" v-pre>checkpoint_restore</code>, or you do it in the <strong>Checkpoints</strong> tab of the console. Who makes them:</p>
+<ul>
+<li>
+<p><strong>Start of the run</strong>, made when the run begins. It is never rolled out.</p>
+</li>
+<li>
+<p><strong>Automatic</strong>, made by the run before a round in which the agent calls something that may change the book or the workspace (a command that is not a plain read, or a file tool that writes), and only when something
+changed since the last checkpoint. The last five are kept; the oldest goes when a new one is made.</p>
+</li>
+<li>
+<p><strong>Made on purpose</strong>, by the agent with <code translate="no" v-pre>checkpoint</code> (it is told to make one before a risky step) or by you with <strong>Save a checkpoint</strong>. They stay until deleted.</p>
+</li>
+</ul>
+<p>All the checkpoints of a run share a <strong>quota</strong> that the administrator sets in the <a href="../administration/permissions/#settings-of-a-permission">permission</a> (100 MB when empty). Part of it is kept for the automatic ones, so that the
+agent can&#x27;t use it all up; a checkpoint made on purpose that does not fit is <strong>refused</strong>, nothing is deleted behind the back of whoever asked. The agent then gets the list and deletes what it does not need
+(not the checkpoint of the start, and not the newest one); you can delete any in the tab. Each is an archive (a ZIP of the book as JSON, the pairs and the workspace files) you can <strong>download</strong>.</p>
+<p><strong>Restore</strong> makes the working copy again from the checkpoint: it is a new copy, the old one is deleted, the workspace is the saved one (files written after it are gone) and the handles of the agent for the items
+that were there still work. The state before is saved as an automatic checkpoint first, if there is room, so a restore can be taken back. A restore takes about as long as the start of a run (half a minute for a book
+of two thousand parts). You can restore while the agent does not work; the agent restores itself between two rounds and is told what came back. The checkpoints go when the run lets go of its copy.</p>
 <h2 id="creating-and-editing-an-agent">Creating and editing an agent</h2>
 <p><strong>New agent</strong> opens the same window as <strong>Edit</strong>:</p>
 <retype-table copy-text="| Field | |
@@ -570,7 +596,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (8346aead).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3e9bd026).</p></div>
             </footer>
         </div>
     </div>

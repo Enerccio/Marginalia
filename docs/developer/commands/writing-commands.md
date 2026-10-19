@@ -93,6 +93,12 @@ annotation attribute needs an enum constant, so use `L.X` directly there, not a 
 - It is information. The service does not ask or refuse because of it, so a destructive command that has no preview still
   asks itself, see [Asking the user](#asking-the-user).
 
+### Read only commands
+
+`@Command(readOnly = true)` declares that the command changes nothing (no book, lorebook, or data of an extension); the default is `false`, so a command that does not say is taken to change data. The runner of an agent takes an
+automatic checkpoint before a round in which a call may change something, and a round of read only commands needs none. All forms of one command share the value (`registerCommands` throws when they differ),
+`CommandDefinition.readOnly()` returns it. All the read commands of the app and the `get-` / `list-` commands of the Arc Outline and the Character Tracker declare it.
+
 ### Available for agents
 
 `@Command(availableForAgent = false)` keeps a command from agents (the default is `true`). Use it for a command that only

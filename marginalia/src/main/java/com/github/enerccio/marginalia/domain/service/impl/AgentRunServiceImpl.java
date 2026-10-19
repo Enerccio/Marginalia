@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfil
 import com.github.enerccio.marginalia.domain.service.ManuscriptService.AgenticCopy;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -568,10 +569,31 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         // what says how the copy relates to the original goes with it
         pairService.deleteForRun(run);
         fileSystemService.deleteBase(run);
+        fileSystemService.deleteCheckpoints(run);
         AgentRun released = reload(run.getId());
         run.setWorkingCopy(null);
         manuscriptService.deleteAgenticCopy(copy);
         return released;
+    }
+
+    @Override
+    @CommonTx
+    public AgentRun replaceWorkingCopy(AgentRun run, Manuscript copy, Collection<UuidPair> pairs) throws Exception {
+        AgentRun stored = run == null ? null : findForUser(run.getUuid());
+        if (stored == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        Manuscript old = stored.getWorkingCopy();
+        if (old == null || copy == null) {
+            throw new IllegalArgumentException("The run has no working copy to replace");
+        }
+        // the run points at the new copy first, then the old one can be deleted
+        getRepository().updateWorkingCopy(stored.getId(), copy);
+        pairService.replace(stored, pairs);
+        AgentRun replaced = reload(stored.getId());
+        manuscriptService.deleteAgenticCopy(old);
+        log.info("Agent run {}: the working copy {} was replaced by {}", stored.getUuid(), old.getUuid(), copy.getUuid());
+        return replaced;
     }
 
     /**

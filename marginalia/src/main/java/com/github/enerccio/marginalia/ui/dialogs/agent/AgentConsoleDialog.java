@@ -60,6 +60,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * How often the open console looks at the run.
      */
     static final int POLL_MILLIS = 2000;
+    // the position of the checkpoints among the tabs, which are read again only while they are shown
+    static final int CHECKPOINTS_TAB = 3;
     // after a command: the answer of a run that waits comes in a moment, looked for faster for a while
     static final int COMMAND_POLL_MILLIS = 500;
     static final long COMMAND_POLL_FOR_MILLIS = 15_000;
@@ -145,6 +147,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private Button stopButton;
     private Button finishButton;
     private AgentWorkspaceBrowser workspaceBrowser;
+    private AgentCheckpointBrowser checkpointBrowser;
     private AgentRunHistory history;
     private TabSheet tabs;
     // the run the user picked in the history, null for the latest one that was not thrown away
@@ -252,6 +255,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
         workspaceBrowser = new AgentWorkspaceBrowser(agent, this::isWorking);
         workspaceBrowser.create();
+        checkpointBrowser = new AgentCheckpointBrowser(() -> run, this::isWorking, this::refreshRun);
+        checkpointBrowser.create();
 
         history = new AgentRunHistory(agent, picked -> {
             selectedRunUuid = picked.getUuid();
@@ -277,6 +282,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         tabs.add(loc.getValue(L.LABEL_AGENT_RUN), runTab);
         tabs.add(loc.getValue(L.LABEL_AGENT_RUNS), history);
         tabs.add(loc.getValue(L.LABEL_AGENT_WORKSPACE), workspaceBrowser);
+        checkpointBrowser.addClassName(CssStyles.PADDING_COMPACT);
+        tabs.add(loc.getValue(L.LABEL_AGENT_CHECKPOINTS), checkpointBrowser);
+        tabs.addSelectedChangeListener(event -> checkpointBrowser.refresh());
         add(tabs);
 
         pauseButton = new Button(loc.getValue(L.LABEL_PAUSE), Solid.PAUSE.create(),
@@ -361,6 +369,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             showApproval();
             showTranscript();
             workspaceBrowser.refresh();
+            if (tabs.getSelectedIndex() == CHECKPOINTS_TAB) {
+                checkpointBrowser.refresh();
+            }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

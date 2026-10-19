@@ -20,7 +20,7 @@ public class ListLorebooksCommand extends LorebookReadSupport {
     static final String NAME = "list-lorebooks";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LOREBOOKS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_LOREBOOKS, llmDescription = L.DESC_COMMAND_LIST_LOREBOOKS_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LOREBOOKS_RETURN))

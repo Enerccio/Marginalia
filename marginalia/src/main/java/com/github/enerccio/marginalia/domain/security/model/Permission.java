@@ -105,6 +105,13 @@ public class Permission extends ExtendableEntity {
     @ExtendedAttribute
     private Integer agentsMaxWorkspaceFiles;
 
+    /**
+     * {@link PermissionType#AGENTS}: the most the checkpoints of one run take on the disk, in MB; empty is the default of the application.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer agentsMaxCheckpointMb;
+
     public PermissionType getPermissionType() {
         return permissionType;
     }
@@ -191,6 +198,14 @@ public class Permission extends ExtendableEntity {
 
     public void setAgentsMaxWorkspaceFiles(Integer agentsMaxWorkspaceFiles) {
         this.agentsMaxWorkspaceFiles = agentsMaxWorkspaceFiles;
+    }
+
+    public Integer getAgentsMaxCheckpointMb() {
+        return agentsMaxCheckpointMb;
+    }
+
+    public void setAgentsMaxCheckpointMb(Integer agentsMaxCheckpointMb) {
+        this.agentsMaxCheckpointMb = agentsMaxCheckpointMb;
     }
 
     public Long getAgentsRunTokenBudget() {

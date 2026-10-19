@@ -81,6 +81,24 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     }
 
     /**
+     * A new working copy made of a snapshot of a working copy, the restore of a checkpoint: what
+     * {@link #createAgenticCopy} makes of the original, made of the snapshot instead. The snapshot is the backup of the copy
+     * with its lorebooks ({@code lorebooks}, with the uuids of their entries); the pairs report for each item of the new
+     * copy the uuid it had in the snapshot, in place of an original.
+     *
+     * @throws IllegalArgumentException when the snapshot is not one
+     */
+    AgenticCopy createAgenticCopyFromSnapshot(JsonObject snapshot) throws Exception;
+
+    /**
+     * The backup of a working copy with its lorebooks and the uuids of their entries, the snapshot of a checkpoint and the
+     * input of {@link #createAgenticCopyFromSnapshot}.
+     *
+     * @throws IllegalArgumentException when the manuscript is not a working copy of an agent
+     */
+    JsonObject snapshotAgenticCopy(Manuscript copy) throws Exception;
+
+    /**
      * Deletes for good the working copy of an agent, with its messages and its own lorebooks.
      *
      * @throws IllegalArgumentException when the manuscript is not a working copy of an agent
