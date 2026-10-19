@@ -14,9 +14,9 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentService.AgentGrant;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService.AgenticCopy;
+import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
-import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -483,6 +483,19 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
                         resolved == null ? null : resolved.profile().getContextCap(),
                         resolved == null ? null : resolved.ai().getMaxContext())
                 .filter(java.util.Objects::nonNull).mapToLong(Integer::longValue).filter(cap -> cap > 0).min().orElse(0);
+    }
+
+    @Override
+    @CommonTx
+    public void useAgentModel(AgentRun run) throws Exception {
+        AgentRun stored = run == null || run.getId() == null ? null : find(run.getId());
+        if (stored == null || stored.getWorkingCopy() == null || stored.getAgent().getMainProfile() == null) {
+            return;
+        }
+        ResolvedProfile resolved = agentService.resolveProfile(stored.getAgent().getMainProfile());
+        if (resolved != null) {
+            manuscriptService.setAgenticCopyModel(stored.getWorkingCopy(), resolved.ai(), resolved.protocol());
+        }
     }
 
     @Override

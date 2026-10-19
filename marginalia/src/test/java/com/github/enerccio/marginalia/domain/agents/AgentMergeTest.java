@@ -354,6 +354,34 @@ class AgentMergeTest extends AgentTestBase {
         assertThat(field(item(plan, Kind.BOOK, Change.CHANGED, "tags"), "tags").agent()).isEqualTo("fantasy");
     }
 
+    @Test
+    void theCopyWritesWithTheModelOfTheAgentAndTheBookKeepsItsOwn() throws Exception {
+        // the book is the user's again only when the run is over
+        edit(inCopy("there was a dragon"), "there was a small dragon");
+        finish();
+        AI bookAi = createAI();
+        Protocol bookProtocol = protocol();
+        Manuscript stored = manuscriptService.find(book.getId());
+        stored.setAi(bookAi);
+        stored.setProtocol(bookProtocol);
+        manuscriptService.save(stored);
+
+        agentRunService.useAgentModel(run);
+
+        var main = agentService.resolveProfile(agentService.findForUser(agent.getUuid()).getMainProfile());
+        Manuscript copied = manuscriptService.find(copy().getId());
+        assertThat(copied.getAi().getUuid()).isEqualTo(main.ai().getUuid()).isNotEqualTo(bookAi.getUuid());
+        assertThat(copied.getProtocol().getUuid()).isEqualTo(main.protocol().getUuid()).isNotEqualTo(bookProtocol.getUuid());
+
+        MergePlan plan = plan();
+        assertThat(plan.items()).as("the model of the copy is not a change of the run").extracting(Item::kind).containsOnly(Kind.MESSAGE);
+        applyAll(plan);
+
+        Manuscript after = manuscriptService.find(book.getId());
+        assertThat(after.getAi().getUuid()).isEqualTo(bookAi.getUuid());
+        assertThat(after.getProtocol().getUuid()).isEqualTo(bookProtocol.getUuid());
+    }
+
     // --- the apply
 
     @Test

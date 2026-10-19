@@ -551,6 +551,25 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Override
     @CommonTx
+    public void setAgenticCopyModel(Manuscript copy, AI ai, Protocol protocol) throws Exception {
+        Manuscript stored = copy == null ? null : find(copy);
+        if (stored == null) {
+            return;
+        }
+        if (!stored.isAgentic()) {
+            throw new IllegalArgumentException("The manuscript " + stored.getUuid() + " is not a working copy of an agent");
+        }
+        if (ai != null) {
+            stored.setAi(ai);
+        }
+        if (protocol != null) {
+            stored.setProtocol(protocol);
+        }
+        saveWithoutEvent(stored);
+    }
+
+    @Override
+    @CommonTx
     public Manuscript cloneFromBackup(JsonObject backup) throws Exception {
         return cloneFromBackup(backup, null);
     }

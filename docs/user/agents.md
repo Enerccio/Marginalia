@@ -167,6 +167,10 @@ Every run works on a **copy of your book** and of its lorebooks that the app mak
 as they are at that moment, and the lorebook with its sub-lorebooks. The copy is hidden: it is not in the lists of books and lorebooks. Whatever the
 agent does, it does to the copy; your book stays as it was.
 
+The copy also gets the **model of the agent** (the AI and the protocol of its main model profile) in place of the AI and the protocol of your book, every time the run starts or
+is resumed. So the commands that write with a model (`/next`, `/swipe`, `/regenerate`, the summaries) use the agent's model even when your book is set to another one, or to none;
+a `profile` named in the call still wins. This is not a change of your book: the review does not list it and applying the result leaves the AI and the protocol of your book as they are.
+
 A paused run keeps its copy and works on it again when you resume it. A run that is *Done*, or that you stopped and kept, keeps it until you
 [take over its result or discard it](#reviewing-the-result). When the run is *Failed*, you discard its result, or its changes are applied, the copy is deleted for good, and the next run
 makes a new one from the book as it is then.

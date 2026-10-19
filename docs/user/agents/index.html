@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845756359891">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845758101830">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845756359891" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845758101830" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845756359891" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845758101830" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845756359891" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845758101830" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -452,6 +452,9 @@ closed, the window is there as soon as you open it.</p>
 <p>Every run works on a <strong>copy of your book</strong> and of its lorebooks that the app makes when the run starts: the messages, summaries, tags and settings
 as they are at that moment, and the lorebook with its sub-lorebooks. The copy is hidden: it is not in the lists of books and lorebooks. Whatever the
 agent does, it does to the copy; your book stays as it was.</p>
+<p>The copy also gets the <strong>model of the agent</strong> (the AI and the protocol of its main model profile) in place of the AI and the protocol of your book, every time the run starts or
+is resumed. So the commands that write with a model (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, the summaries) use the agent&#x27;s model even when your book is set to another one, or to none;
+a <code translate="no" v-pre>profile</code> named in the call still wins. This is not a change of your book: the review does not list it and applying the result leaves the AI and the protocol of your book as they are.</p>
 <p>A paused run keeps its copy and works on it again when you resume it. A run that is <em>Done</em>, or that you stopped and kept, keeps it until you
 <doc-anchor-trigger to="#reviewing-the-result">take over its result or discard it</doc-anchor-trigger>. When the run is <em>Failed</em>, you discard its result, or its changes are applied, the copy is deleted for good, and the next run
 makes a new one from the book as it is then.</p>
@@ -633,7 +636,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5e73f145).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f12e66f9).</p></div>
             </footer>
         </div>
     </div>

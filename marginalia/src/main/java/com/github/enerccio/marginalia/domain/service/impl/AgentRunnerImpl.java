@@ -678,6 +678,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 pause("The model of the agent is not available");
                 return;
             }
+            if (profile != null) {
+                // the copy writes with the model of the agent, whatever model the book has
+                runService.useAgentModel(run);
+            }
             // a command of the author that does not ask the model needs none
             inference = profile == null ? null : inferenceServices.forAIOrThrow(profile.ai());
             seesImages = profile != null && profile.profile().isImages();
