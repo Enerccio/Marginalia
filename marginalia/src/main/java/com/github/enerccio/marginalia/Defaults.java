@@ -208,4 +208,18 @@ The author has opened the console and is watching. Do not start any work yet: ca
     public static final String AGENT_INTERRUPTED_CALL = "Error: this call was interrupted when the run was paused or the server "
             + "stopped, so it is unknown whether it was done. Check the state with a read tool before you repeat it.";
 
+    /**
+     * The result given to the model for the call that was going on when the author forced a message in: the round was
+     * thrown away.
+     */
+    public static final String AGENT_FORCED_CALL = "Error: this call was cut off because the author sent a message and the "
+            + "rest of the round was thrown away, so it is unknown whether it was done. Check the state with a read tool "
+            + "before you repeat it.";
+
+    /**
+     * The result given to the model for a call that had not begun when the author forced a message in.
+     */
+    public static final String AGENT_SKIPPED_CALL = "Error: this call was not made because the author sent a message and the "
+            + "rest of the round was thrown away.";
+
 }

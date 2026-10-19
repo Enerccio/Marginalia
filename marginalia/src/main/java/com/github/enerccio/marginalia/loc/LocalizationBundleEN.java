@@ -454,6 +454,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_FOLDER_NAME, "Folder name");
         setValue(L.LABEL_AGENT_SEES_IMAGES, "The model sees images");
         setValue(L.LABEL_ATTACH_IMAGE, "Attach image");
+        setValue(L.LABEL_AGENT_QUEUED, "Queued");
+        setValue(L.LABEL_AGENT_SEND_NOW, "Send now");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -754,6 +756,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_TOKEN_BUDGET, "Most tokens one run can spend. Empty or zero is no limit of the agent; the limit your administrator gave you applies anyway.");
         setValue(L.HELP_AGENT_CONTEXT_LIMIT, "Limit of the context of the model in tokens, lower than the context of the model itself; older rounds are summarized near it. Empty is the context of the model.");
         setValue(L.HELP_AGENT_SEES_IMAGES, "Tick it when the model takes images. The agent then gets a tool that shows it the images of its workspace (you put them there with Upload). Commands that send images to a model of their own, like the Lore Generator, take images from the workspace whatever this says.");
+        setValue(L.HELP_AGENT_MESSAGE_QUEUED, "The agent is working. Your message waits until the agent is ready to read it.");
+        setValue(L.HELP_AGENT_SEND_NOW, "Throws away what the agent is doing in this round and sends the message right now.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

@@ -44,6 +44,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
     // how often a worker that waits for a request or a call looks whether the run was thrown away
     private static final long POLL_MILLIS = 1_000;
+    // a conversation in these statuses is written to by queueing the message, the worker reads it at the end of the turn
+    private static final Set<AgentRunStatus> QUEUEING = EnumSet.of(AgentRunStatus.RUNNING, AgentRunStatus.WAITING_APPROVAL,
+            AgentRunStatus.PAUSING);
+    // the statuses in which a run keeps what was written to it: it works, waits, or is paused and can be resumed
+    private static final Set<AgentRunStatus> LIVE = EnumSet.of(AgentRunStatus.RUNNING, AgentRunStatus.IDLE,
+            AgentRunStatus.WAITING_APPROVAL, AgentRunStatus.PAUSING, AgentRunStatus.PAUSED);
     // the status reason holds this much of the report of a finished run
     private static final int MAX_REASON = 2_000;
     // images the model is shown at once: the newest ones; an older one is a note that view_image shows it again
@@ -87,6 +93,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     });
     // runs a worker is busy with: one worker per run
     private final Set<Long> working = ConcurrentHashMap.newKeySet();
+    // the messages the author wrote to a conversation while it worked, by run; in memory only, like the approvals
+    private final Map<Long, Inbox> inboxes = new ConcurrentHashMap<>();
 
     @Override
     public void afterSingletonsInstantiated() {
@@ -160,12 +168,16 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         if (StringUtils.isBlank(text) && attached.isEmpty()) {
             throw new IllegalArgumentException("The message is empty");
         }
-        if (run.getStatus() != AgentRunStatus.IDLE) {
+        boolean queue = run.isInteractive() && QUEUEING.contains(run.getStatus());
+        if (run.getStatus() != AgentRunStatus.IDLE && !queue) {
             throw new IllegalStateException("A run that is " + run.getStatus() + " does not wait for a message");
         }
         LLMChatMessage message = LLMChatMessage.of(LLMRole.USER, StringUtils.defaultString(text).strip());
         if (!attached.isEmpty()) {
             attach(run, message, attached);
+        }
+        if (queue) {
+            return enqueue(run, message);
         }
         // the change first: when the run is no longer idle, the message is not written
         AgentRun running = runService.transition(run, AgentRunStatus.RUNNING, null);
@@ -175,6 +187,149 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         messageService.append(running, List.of(message));
         run(running);
         return running;
+    }
+
+    /**
+     * Queues the message of a conversation that works, to be read at the end of its turn. The worker decides to end the
+     * turn under the lock of the inbox, so the message is either seen by it, or the run is {@code IDLE} here and the
+     * message is sent as usual.
+     */
+    private AgentRun enqueue(AgentRun run, LLMChatMessage message) throws Exception {
+        Inbox inbox = inboxes.computeIfAbsent(run.getId(), id -> new Inbox());
+        synchronized (inbox) {
+            AgentRun current = runService.find(run.getId());
+            if (QUEUEING.contains(current.getStatus())) {
+                inbox.add(new Queued(UUID.randomUUID().toString(), message));
+                log.info("Agent run {}: a message of the user ({} characters) waits for the end of the turn", run.getUuid(),
+                        message.getContent().length());
+                return current;
+            }
+            if (current.getStatus() != AgentRunStatus.IDLE) {
+                throw new IllegalStateException("A run that is " + current.getStatus() + " does not wait for a message");
+            }
+            // the turn ended while the message was made
+            AgentRun running = runService.transition(current, AgentRunStatus.RUNNING, null);
+            messageService.append(running, List.of(message));
+            run(running);
+            return running;
+        }
+    }
+
+    @Override
+    public List<QueuedMessage> queued(AgentRun run) {
+        if (run == null || run.getId() == null) {
+            return List.of();
+        }
+        Inbox inbox = inboxes.get(run.getId());
+        if (inbox == null) {
+            return List.of();
+        }
+        if (!LIVE.contains(run.getStatus())) {
+            // the run is over (or was stopped), what was written to it is dropped
+            inboxes.remove(run.getId());
+            return List.of();
+        }
+        return inbox.snapshot();
+    }
+
+    @Override
+    public void force(AgentRun run, String id) throws Exception {
+        if (run == null || run.getId() == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        Inbox inbox = inboxes.get(run.getId());
+        if (inbox == null) {
+            return;
+        }
+        synchronized (inbox) {
+            if (!inbox.contains(id)) {
+                return;
+            }
+            AgentRun current = runService.find(run.getId());
+            switch (current.getStatus()) {
+                case RUNNING, WAITING_APPROVAL -> inbox.force(id);
+                case IDLE -> {
+                    // the turn ended meanwhile, nothing to throw away
+                    AgentRun running = runService.transition(current, AgentRunStatus.RUNNING, null);
+                    messageService.append(running, List.of(merged(inbox.takeThrough(id))));
+                    run(running);
+                }
+                default -> throw new IllegalStateException("A run that is " + current.getStatus() + " can't be given a message now");
+            }
+        }
+    }
+
+    /**
+     * The messages as one message of the user: some chat templates refuse two of the same role in a row.
+     */
+    private static LLMChatMessage merged(List<Queued> due) {
+        if (due.size() == 1) {
+            return due.getFirst().message();
+        }
+        LLMChatMessage merged = LLMChatMessage.of(LLMRole.USER, due.stream().map(queued -> queued.message().getContent())
+                .collect(java.util.stream.Collectors.joining("\n\n")));
+        due.forEach(queued -> queued.message().getAttachments().forEach(merged::addAttachment));
+        return merged;
+    }
+
+    /**
+     * A message the author wrote while the run worked.
+     */
+    private record Queued(String id, LLMChatMessage message) {
+    }
+
+    /**
+     * The queued messages of one run, and the wish of the author to have one of them now. All of it is read and changed
+     * under the lock of the object, which is also what the worker holds when it decides that the turn is over.
+     */
+    private static final class Inbox {
+        private final List<Queued> queued = new ArrayList<>();
+        // the message the author wants delivered now, null when none
+        private String forced;
+
+        synchronized void add(Queued message) {
+            queued.add(message);
+        }
+
+        synchronized boolean contains(String id) {
+            return queued.stream().anyMatch(message -> message.id().equals(id));
+        }
+
+        synchronized List<QueuedMessage> snapshot() {
+            return queued.stream().map(message -> new QueuedMessage(message.id(), message.message().getContent())).toList();
+        }
+
+        synchronized void force(String id) {
+            forced = id;
+        }
+
+        synchronized boolean isForced() {
+            return forced != null;
+        }
+
+        synchronized String forcedId() {
+            return forced;
+        }
+
+        /**
+         * Removes the queued messages up to the one with the id, all of them for null (and the wish to force one is met).
+         */
+        synchronized List<Queued> takeThrough(String id) {
+            int end = queued.size();
+            for (int i = 0; id != null && i < queued.size(); i++) {
+                if (queued.get(i).id().equals(id)) {
+                    end = i + 1;
+                    break;
+                }
+            }
+            List<Queued> head = queued.subList(0, end);
+            List<Queued> taken = new ArrayList<>(head);
+            head.clear();
+            if (forced != null && !contains(forced)) {
+                forced = null;
+            }
+            return taken;
+        }
     }
 
     /**
@@ -248,6 +403,15 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
     }
 
+    /**
+     * The end of a round that is not an exception: the author forced a message in, what the worker waited for is thrown away.
+     */
+    private static final class Forced extends RuntimeException {
+        Forced() {
+            super(null, null, false, false);
+        }
+    }
+
     private final class Worker implements Runnable {
 
         private final Long runId;
@@ -262,6 +426,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private final ShownImages shown = new ShownImages();
         // whether the model of the run looks at images
         private boolean seesImages;
+        // the messages of the author, only for a conversation
+        private Inbox inbox;
 
         Worker(AgentRun run) {
             this.runId = run.getId();
@@ -283,6 +449,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             } catch (Throwable e) {
                 log.error("Agent run {} could not start working", run.getUuid(), e);
             } finally {
+                dropInbox();
                 working.remove(runId);
                 runService.workerFinished(run);
                 if (attributes != null) {
@@ -291,11 +458,26 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
         }
 
+        /**
+         * A run that ended for good has no one to read what was written to it.
+         */
+        private void dropInbox() {
+            try {
+                AgentRun last = runService.find(runId);
+                if (last == null || !LIVE.contains(last.getStatus())) {
+                    inboxes.remove(runId);
+                }
+            } catch (Exception e) {
+                log.debug("Agent run {}: the queued messages were not looked at: {}", runId, e.getMessage());
+            }
+        }
+
         // ------------------------------------------------------------------ the loop
 
         private void work() throws Exception {
             run = runService.find(runId);
             runTools = new RunToolsImpl(progress::render, run.isInteractive());
+            inbox = run.isInteractive() ? inboxes.computeIfAbsent(runId, id -> new Inbox()) : null;
             agent = agentService.findForUser(run.getAgent().getUuid());
             ResolvedProfile profile = agentService.resolveProfile(agent.getMainProfile());
             if (profile == null) {
@@ -328,6 +510,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     settleRequested();
                     return;
                 }
+                if (inbox != null && inbox.isForced()) {
+                    // asked between two rounds: nothing is in the air
+                    deliverForced(transcript, List.of());
+                    continue;
+                }
                 String limit = limit(run, transcript, inference, progress);
                 if (limit != null) {
                     pause(limit);
@@ -339,6 +526,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     round = ask(inference, profile, payload(transcript), tools);
                 } catch (Discarded e) {
                     throw e;
+                } catch (Forced e) {
+                    log.info("Agent run {}: the request was canceled, the author sent a message", run.getUuid());
+                    deliverForced(transcript, List.of());
+                    continue;
                 } catch (Exception e) {
                     log.warn("The model of agent run {} could not be asked: {}", run.getUuid(), e.getMessage(), e);
                     pause("The model could not be asked: " + messageOf(e));
@@ -361,19 +552,39 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 messageService.appendAnswer(run, answer, progress.contextTokens, round.reasoning());
                 transcript.add(answer);
                 if (round.calls().isEmpty()) {
-                    reach(AgentRunStatus.IDLE, null);
+                    if (endTurn(transcript, AgentRunStatus.IDLE, null)) {
+                        continue;
+                    }
                     return;
                 }
 
                 runTools.clearRequests();
                 List<LLMChatMessage> results = new ArrayList<>();
+                boolean forced = false;
                 for (LLMToolCall call : round.calls()) {
+                    if (forced || inbox != null && inbox.isForced()) {
+                        forced = true;
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_SKIPPED_CALL));
+                        continue;
+                    }
                     long began = System.currentTimeMillis();
-                    String result = call(tools, call);
+                    String result;
+                    try {
+                        result = call(tools, call);
+                    } catch (Forced e) {
+                        forced = true;
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_FORCED_CALL));
+                        continue;
+                    }
                     // the arguments and the result are the story's business and not logged
                     log.info("Agent run {}: {} {} in {} ms ({} characters)", run.getUuid(), call.getName(),
                             result.startsWith("Error:") ? "failed" : "done", System.currentTimeMillis() - began, result.length());
                     results.add(LLMChatMessage.ofToolResult(call.getId(), result));
+                }
+                if (forced) {
+                    log.info("Agent run {}: the rest of the round was thrown away, the author sent a message", run.getUuid());
+                    deliverForced(transcript, results);
+                    continue;
                 }
                 append(transcript, results.toArray(new LLMChatMessage[0]));
                 List<VirtualPath> looked = shown.take();
@@ -383,13 +594,92 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
                 if (runTools.getSummary() != null) {
                     // a conversation goes on after the report, only the user ends it
-                    reach(run.isInteractive() ? AgentRunStatus.IDLE : AgentRunStatus.DONE,
-                            StringUtils.abbreviate(runTools.getSummary(), MAX_REASON));
+                    if (endTurn(transcript, run.isInteractive() ? AgentRunStatus.IDLE : AgentRunStatus.DONE,
+                            StringUtils.abbreviate(runTools.getSummary(), MAX_REASON))) {
+                        continue;
+                    }
                     return;
                 }
                 if (runTools.getQuestion() != null) {
-                    reach(AgentRunStatus.IDLE, StringUtils.abbreviate(runTools.getQuestion(), MAX_REASON));
+                    if (endTurn(transcript, AgentRunStatus.IDLE, StringUtils.abbreviate(runTools.getQuestion(), MAX_REASON))) {
+                        continue;
+                    }
                     return;
+                }
+            }
+        }
+
+        /**
+         * The turn is over: the run waits for the author ({@code IDLE}) or is done. A conversation with queued messages
+         * does not wait, they are what the author would have written: they are read by the model next. The decision is
+         * made under the lock of the inbox, see {@link #enqueue}.
+         *
+         * @return whether the messages were delivered and the loop goes on
+         */
+        private boolean endTurn(List<LLMChatMessage> transcript, AgentRunStatus target, String reason) throws Exception {
+            if (inbox == null) {
+                reach(target, reason);
+                return false;
+            }
+            synchronized (inbox) {
+                if (deliverQueued(transcript)) {
+                    return true;
+                }
+                reach(target, reason);
+                return false;
+            }
+        }
+
+        /**
+         * Appends the queued messages, all of them, to the transcript as one message of the author.
+         *
+         * @return false when nothing was queued
+         */
+        private boolean deliverQueued(List<LLMChatMessage> transcript) throws Exception {
+            if (inbox == null) {
+                return false;
+            }
+            synchronized (inbox) {
+                List<Queued> due = inbox.takeThrough(null);
+                if (due.isEmpty()) {
+                    return false;
+                }
+                log.info("Agent run {}: {} queued message(s) of the user go to the agent", run.getUuid(), due.size());
+                append(transcript, merged(due));
+                return true;
+            }
+        }
+
+        /**
+         * The author wants a message now: whatever of the round was in the air is thrown away. The calls that were asked
+         * of the model and not done get their answer (the transcript keeps the calls and their results together), a
+         * command that waited for an approval is refused, and the messages up to the forced one are the next thing in
+         * the transcript.
+         *
+         * @param results the answers of the calls of the round that was written down, empty when the model had not answered
+         */
+        private void deliverForced(List<LLMChatMessage> transcript, List<LLMChatMessage> results) throws Exception {
+            // the run works again first: the refused approval would bring it back on its own thread, and two writers of
+            // the database at once fail
+            run = runService.find(runId);
+            if (run.getStatus() == AgentRunStatus.WAITING_APPROVAL) {
+                try {
+                    run = runService.transition(run, AgentRunStatus.RUNNING, null);
+                } catch (IllegalStateException e) {
+                    // a pause or a stop came first
+                    run = runService.find(runId);
+                }
+            }
+            // the calls end in the air, the approval that waited for the author is refused
+            approvalService.rejectAll(runId);
+            if (!results.isEmpty()) {
+                append(transcript, results.toArray(new LLMChatMessage[0]));
+            }
+            synchronized (inbox) {
+                String id = inbox.forcedId();
+                List<Queued> due = inbox.takeThrough(id);
+                if (!due.isEmpty()) {
+                    append(transcript, merged(due));
                 }
             }
         }
@@ -427,7 +717,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
             }
             LLMChatMessage last = transcript.getLast();
-            if (last.getRole() == LLMRole.ASSISTANT && !last.hasToolCalls()) {
+            if (last.getRole() == LLMRole.ASSISTANT && !last.hasToolCalls() && !deliverQueued(transcript)) {
                 append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.DEFAULT_AGENT_RESUME_MESSAGE));
             }
         }
@@ -675,6 +965,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          */
         private <T> T await(CompletableFuture<T> future, Runnable cancel) throws Exception {
             while (true) {
+                if (inbox != null && inbox.isForced()) {
+                    cancel.run();
+                    throw new Forced();
+                }
                 try {
                     return future.get(POLL_MILLIS, TimeUnit.MILLISECONDS);
                 } catch (TimeoutException e) {

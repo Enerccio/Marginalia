@@ -54,9 +54,6 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
      */
     static final int VIEW_LIMIT = 2_000;
 
-    private static final String GRID_HEIGHT = "12rem";
-    private static final String VIEWER_HEIGHT = "14rem";
-
     @Autowired
     private Localization loc;
 
@@ -92,7 +89,8 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         setSizeFull();
         setPadding(false);
         setSpacing(false);
-        addClassNames(CssStyles.WORKSPACE_BROWSER, CssStyles.MIN_HEIGHT_0);
+        // the list and the viewer share the height of the tab and scroll by themselves, the tab does not scroll over them
+        addClassNames(CssStyles.WORKSPACE_BROWSER, CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_AUTO);
 
         upButton = new Button(loc.getValue(L.LABEL_UP), Solid.ARROW_UP.create(), event -> {
             folder = folder.isRoot() ? folder : folder.getParent();
@@ -131,9 +129,6 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         grid = new Grid<>();
         grid.setWidthFull();
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
-        // the sizes are fixed, a long file must not push the list out (the tab scrolls when the dialog is small)
-        grid.setHeight(GRID_HEIGHT);
-        grid.addClassName(CssStyles.FLEX_SHRINK_0);
         grid.addComponentColumn(this::nameCell).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(3);
         grid.addColumn(entry -> entry.directory() ? "" : FileUtils.byteCountToDisplaySize(entry.size()))
                 .setHeader(loc.getValue(L.LABEL_SIZE)).setFlexGrow(1);
@@ -145,8 +140,6 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         viewer = new TextArea();
         viewer.setReadOnly(true);
         viewer.setWidthFull();
-        viewer.setHeight(VIEWER_HEIGHT);
-        viewer.addClassName(CssStyles.FLEX_SHRINK_0);
         viewer.addClassName(CssStyles.TEXT_MONOSPACE);
         usageLabel = new Span();
         usageLabel.addClassNames(CssStyles.HINT_TEXT);

@@ -58,6 +58,9 @@ class AgentConsoleDialogTest extends AgentTestBase {
     private final List<String> sent = new ArrayList<>();
     private final List<List<String>> sentImages = new ArrayList<>();
     private final List<AgentRun> takenUp = new ArrayList<>();
+    // what the fake runner reports as queued, and the ids it was told to force
+    private List<AgentRunner.QueuedMessage> queued = List.of();
+    private final List<String> forced = new ArrayList<>();
     private boolean changed;
 
     @BeforeEach
@@ -95,6 +98,16 @@ class AgentConsoleDialogTest extends AgentTestBase {
             }
 
             @Override
+            public List<AgentRunner.QueuedMessage> queued(AgentRun run) {
+                return queued;
+            }
+
+            @Override
+            public void force(AgentRun run, String id) {
+                forced.add(id);
+            }
+
+            @Override
             public boolean isWorking(AgentRun run) {
                 return false;
             }
@@ -118,6 +131,45 @@ class AgentConsoleDialogTest extends AgentTestBase {
                         || c instanceof Markdown)
                 .map(c -> c instanceof Markdown markdown ? markdown.getContent() : c.getElement().getText())
                 .reduce("", (a, b) -> a + "\n" + b);
+    }
+
+    @Test
+    void aConversationThatWorksTakesMessagesAndShowsThemQueuedWithAButtonToForceThem() throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
+        queued = List.of(new AgentRunner.QueuedMessage("q1", "Do this next."));
+
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getSendButton().isEnabled()).isTrue();
+        assertThat(dialog.getMessageField().isEnabled()).isTrue();
+        assertThat(dialog.getQueuedBubbles()).hasSize(1);
+        com.vaadin.flow.component.html.Div bubble = dialog.getQueuedBubbles().getFirst();
+        assertThat(textOf(bubble)).contains("Do this next.").contains("Queued");
+        // the last bubble of the transcript
+        assertThat(dialog.getTranscriptBox().getComponentAt(dialog.getTranscriptBox().getComponentCount() - 1)).isSameAs(bubble);
+
+        ComponentTree.all(bubble).filter(c -> c instanceof Button).map(c -> (Button) c).findFirst().orElseThrow().click();
+
+        assertThat(forced).containsExactly("q1");
+
+        // delivered: the bubble is gone and the message is in the transcript, once
+        say(run, LLMChatMessage.of(LLMRole.USER, "Do this next."));
+        queued = List.of();
+        dialog.refreshRun();
+
+        assertThat(dialog.getQueuedBubbles()).isEmpty();
+        assertThat(textOf(dialog.getTranscriptBox())).doesNotContain("Queued");
+    }
+
+    @Test
+    void anAutonomousRunThatWorksDoesNotTakeMessages() throws Exception {
+        agentRunService.start(agent);
+
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getSendButton().isEnabled()).isFalse();
+        assertThat(dialog.getMessageField().isEnabled()).isFalse();
     }
 
     @Test

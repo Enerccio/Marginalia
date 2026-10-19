@@ -454,6 +454,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_FOLDER_NAME, "フォルダ名");
         setValue(L.LABEL_AGENT_SEES_IMAGES, "モデルが画像を扱える");
         setValue(L.LABEL_ATTACH_IMAGE, "画像を添付");
+        setValue(L.LABEL_AGENT_QUEUED, "待機中");
+        setValue(L.LABEL_AGENT_SEND_NOW, "今すぐ送信");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -754,6 +756,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_TOKEN_BUDGET, "1回の実行で使えるトークンの上限。空欄または0はエージェント側の制限なし。管理者が設定した上限は常に適用されます。");
         setValue(L.HELP_AGENT_CONTEXT_LIMIT, "モデルのコンテキスト上限（トークン）。モデル自体より小さく設定でき、近づくと古いラウンドが要約されます。空欄はモデルのコンテキストです。");
         setValue(L.HELP_AGENT_SEES_IMAGES, "モデルが画像を受け取れる場合にチェックします。エージェントはワークスペースの画像（アップロードで置いたもの）を見るツールを使えるようになります。Lore Generator のように独自のモデルへ画像を送るコマンドは、この設定に関係なくワークスペースの画像を使えます。");
+        setValue(L.HELP_AGENT_MESSAGE_QUEUED, "エージェントは作業中です。メッセージは、エージェントが読める状態になるまで待機します。");
+        setValue(L.HELP_AGENT_SEND_NOW, "エージェントが今のラウンドで行っている作業を破棄し、メッセージを今すぐ送信します。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
