@@ -452,6 +452,41 @@ class AgentRunnerTest extends AgentTestBase {
     }
 
     @Test
+    void aLoopOfTheSameCallInOneAnswerIsMadeOnce() throws Exception {
+        Agent agent = readingAgent();
+        agent = agentService.save(agent);
+        MockLLMResponse loop = MockLLMResponse.toolCall("get_run_status", "{}");
+        for (int i = 0; i < 99; i++) {
+            loop = loop.andToolCall("get_run_status", "{}");
+        }
+        llm.enqueue(loop, MockLLMResponse.text("Sorry."));
+
+        AgentRun run = await(startRun(agent));
+
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript.stream().filter(m -> m.getRole() == LLMRole.TOOL)).hasSize(1);
+        assertThat(transcript.stream().filter(m -> m.getRole() == LLMRole.ASSISTANT && m.hasToolCalls()).findFirst().orElseThrow()
+                .getToolCalls()).hasSize(1);
+        assertThat(transcript.stream().filter(m -> m.getRole() == LLMRole.USER).map(LLMChatMessage::getContent).toList().getLast())
+                .contains("had 100 calls, 99 of them repeats").contains("Only 1 were made");
+    }
+
+    @Test
+    void anAnswerWithMoreCallsThanTheLimitIsCutAtTheLimit() throws Exception {
+        Agent agent = readingAgent();
+        agent = agentService.save(agent);
+        MockLLMResponse many = MockLLMResponse.toolCall("read_file", "{\"path\":\"/f0\"}");
+        for (int i = 1; i < 40; i++) {
+            many = many.andToolCall("read_file", "{\"path\":\"/f" + i + "\"}");
+        }
+        llm.enqueue(many, MockLLMResponse.text("Done."));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL)).hasSize(Defaults.AGENT_MAX_CALLS_PER_ROUND);
+    }
+
+    @Test
     void theTokenBudgetPausesTheRun() throws Exception {
         Agent agent = readingAgent();
         agent.setTokenBudget(100L);
