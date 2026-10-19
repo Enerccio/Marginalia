@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
+import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -14,6 +15,7 @@ import com.github.enerccio.marginalia.ui.components.InvalidExtensionsWarning;
 import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
 import com.github.enerccio.marginalia.ui.workspace.*;
+import com.github.enerccio.marginalia.ui.workspace.parts.AgentPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.ResourcesPart;
 import com.github.enerccio.marginalia.ui.workspace.phone.parts.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -49,6 +51,9 @@ public class PhoneWorkspace implements Workspace {
     @Autowired
     private User currentUser;
 
+    @Autowired
+    private AgentService agentService;
+
     private final PhoneManuscriptPart manuscriptPart = new PhoneManuscriptPart(this);
     private final PhoneLorebookPart lorebookPart = new PhoneLorebookPart(this);
     private final PhoneSettingsPart settingsPart = new PhoneSettingsPart(this);
@@ -56,6 +61,8 @@ public class PhoneWorkspace implements Workspace {
     private final PhoneAIPart aiPart = new PhoneAIPart(this);
     private final ResourcesPart resourcesPart = new ResourcesPart(this);
     private final PhoneTrashPart trashPart = new PhoneTrashPart(this);
+    // the tab exists only for users who may use agents
+    private AgentPart agentPart;
 
     // names of the parts in the stored state, the same as in the desktop workspace
     private final Map<String, WorkspaceComponent> partsByKey = new LinkedHashMap<>();
@@ -110,6 +117,7 @@ public class PhoneWorkspace implements Workspace {
         addTab(L.LABEL_SETTINGS, settingsPart);
         addTab(L.LABEL_PROTOCOLS, protocolPart);
         addTab(L.LABEL_MODELS, aiPart);
+        addAgentsTab();
         addTab(L.LABEL_RESOURCES, resourcesPart);
         addTab(L.LABEL_TRASH, trashPart);
 
@@ -205,6 +213,26 @@ public class PhoneWorkspace implements Workspace {
         tabToTitle.put(tab, name);
     }
 
+    /**
+     * The tab of the agents, for a user who may use them: the same part as the desktop's, with a card for each agent, and the
+     * count of the agents that need the user beside the name.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "tab", type = Tab.class)})
+    private void addAgentsTab() throws Exception {
+        if (!agentService.isAllowed()) {
+            return;
+        }
+        agentPart = new AgentPart(this, true);
+        Tab tab = new Tab(new Span(loc.getValue(L.LABEL_AGENTS)), agentPart.getAttentionBadge());
+        tabs.add(tab);
+        tabToComponent.put(tab, agentPart);
+        tabToContent.put(tab, agentPart.create());
+        tabToTitle.put(tab, loc.getValue(L.LABEL_AGENTS));
+        partsByKey.put("agents", agentPart);
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "part", type = WorkspaceComponent.class),
@@ -278,6 +306,9 @@ public class PhoneWorkspace implements Workspace {
         aiPart.refresh();
         resourcesPart.refresh();
         trashPart.refresh();
+        if (agentPart != null) {
+            agentPart.refresh();
+        }
     }
 
     @PublicAPI(from = "1.1.0",

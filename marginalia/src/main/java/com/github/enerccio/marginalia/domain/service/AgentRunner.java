@@ -152,6 +152,18 @@ public interface AgentRunner {
     void force(AgentRun run, String id) throws Exception;
 
     /**
+     * Pauses the run at once: as {@link AgentRunService#pause}, but the request to the model that is going on is canceled (its
+     * answer is thrown away and not paid for beyond what the provider counted) and so is the call that is going on (it gets the
+     * signal to stop; a command cannot always be killed, so the call is answered as cut off and the agent checks the state
+     * when it goes on), the calls of the round that did not run are answered as not made, and the worker pauses. A normal
+     * pause waits for all of that to finish. For a run that does not work it is the same as a normal pause.
+     *
+     * @return the run as it is after the request ({@code PAUSING} while the worker still ends, else {@code PAUSED})
+     * @throws IllegalStateException when the run is in a status that can't be paused
+     */
+    AgentRun pauseNow(AgentRun run) throws Exception;
+
+    /**
      * Whether a worker is busy with the run in this server.
      */
     boolean isWorking(AgentRun run);

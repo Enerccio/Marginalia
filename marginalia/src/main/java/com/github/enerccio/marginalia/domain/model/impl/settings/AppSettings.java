@@ -138,6 +138,14 @@ public class AppSettings extends Setting {
     // agents
 
     /**
+     * Whether the application may not send messages to the webhooks of users about their agents; null (the default) is it may. An
+     * administrator turns it off where a URL typed by a user must not be called from the server.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean agentWebhooksDisabled;
+
+    /**
      * The system prompt of the agents that have none of their own and whose user has none in the settings; blank is
      * {@code Defaults.DEFAULT_AGENT_PROMPT}.
      */
@@ -271,6 +279,14 @@ public class AppSettings extends Setting {
 
     public void setDefaultAgentCompactionPrompt(String defaultAgentCompactionPrompt) {
         this.defaultAgentCompactionPrompt = defaultAgentCompactionPrompt;
+    }
+
+    public Boolean getAgentWebhooksDisabled() {
+        return agentWebhooksDisabled;
+    }
+
+    public void setAgentWebhooksDisabled(Boolean agentWebhooksDisabled) {
+        this.agentWebhooksDisabled = agentWebhooksDisabled;
     }
 
     public String getDefaultAgentPrompt() {

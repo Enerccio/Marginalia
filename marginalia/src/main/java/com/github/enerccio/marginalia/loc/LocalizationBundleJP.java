@@ -517,6 +517,16 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SUBBOOKS, "サブブック");
         setValue(L.LABEL_STATE, "状態");
         setValue(L.LABEL_REWIND, "巻き戻す");
+        setValue(L.LABEL_MAX_CONCURRENT_REQUESTS, "エージェントの同時リクエスト数");
+        setValue(L.LABEL_PAUSE_NOW, "今すぐ一時停止");
+        setValue(L.LABEL_AGENT_DEFAULT_INSTRUCTIONS, "エージェントの指示（agents.md）");
+        setValue(L.LABEL_AGENT_AUTO_COMPACT, "圧縮する位置（コンテキストの%）");
+        setValue(L.LABEL_AGENT_USE_OWN_MODEL, "エージェントのモデルで書籍を書く");
+        setValue(L.LABEL_AGENT_WEBHOOK_URL, "エージェントが呼んでいるときにURLへメッセージを送る");
+        setValue(L.LABEL_AGENT_WEBHOOK_FORMAT, "メッセージの形式");
+        setValue(L.LABEL_AGENT_WEBHOOK_ALWAYS, "アプリを開いているときも送る");
+        setValue(L.LABEL_AGENT_WEBHOOK_TEST, "テストメッセージを送る");
+        setValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED, "エージェントがユーザーのWebhookへメッセージを送ることを許可する");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -599,6 +609,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_MERGE_STATE_CONFLICT, "競合");
         setValue(L.ENUM_MERGE_STATE_SHARED, "共有");
         setValue(L.ENUM_MERGE_STATE_BLOCKED, "適用不可");
+        setValue(L.ENUM_COMMAND_PRESET_AUDITOR, "監査役（読み取りのみ）");
+        setValue(L.ENUM_COMMAND_PRESET_LORE_KEEPER, "設定管理者");
+        setValue(L.ENUM_COMMAND_PRESET_EDITOR, "編集者");
+        setValue(L.ENUM_COMMAND_PRESET_DRAFTER, "執筆者");
+        setValue(L.ENUM_WEBHOOK_FORMAT_PLAIN, "プレーンテキスト（ntfy）");
+        setValue(L.ENUM_WEBHOOK_FORMAT_DISCORD, "Discord");
+        setValue(L.ENUM_WEBHOOK_FORMAT_GOTIFY, "Gotify");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -853,6 +870,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CHECKPOINT_REWOUND, "チェックポイント %s まで巻き戻しました。エージェントが忘れたメッセージ: %d。ワークスペースから削除されたファイル: %d。");
         setValue(L.MSG_AGENT_REWIND_PAUSE_FIRST, "巻き戻すには実行を一時停止または停止してください。");
         setValue(L.MSG_AGENT_REWIND_UNAVAILABLE, "このチェックポイントまで会話を戻すことはできません。会話内の位置が不明か、以前の巻き戻しで取り消されています。代わりに復元してください。");
+        setValue(L.MSG_COMMAND_WAITING_FOR_MODEL, "モデルの空きを待っています...");
+        setValue(L.MSG_AGENT_WEBHOOK_TEST_TEXT, "Marginaliaからのテストメッセージです。エージェントが呼んでいるときはここへ通知されます。");
+        setValue(L.MSG_AGENT_WEBHOOK_TEST_OK, "サービスがテストメッセージを受け付けました。");
+        setValue(L.MSG_AGENT_WEBHOOK_TEST_FAILED, "テストメッセージを送れませんでした：%s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -880,7 +901,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_CONCURRENT_RUNS, "ユーザーの実行を同時に動かせる数。空欄は1です。");
         setValue(L.HELP_AGENTS_RUN_TOKEN_BUDGET, "ユーザーの1回の実行で使えるトークン（送信と生成）の上限。空欄または0は無制限です。");
         setValue(L.HELP_AGENT_SYSTEM_PROMPT, "指示の前にエージェントに伝える役割。空欄は既定(設定の既定、なければ管理者の既定、なければ組み込みの内容)に従います。既定はプレースホルダーに表示され、情報アイコンから入力して編集できます。");
-        setValue(L.HELP_AGENT_INSTRUCTIONS, "エージェントへの指示。毎回の実行でプロンプトに追加されます。エージェントは読めますが変更できません。");
+        setValue(L.HELP_AGENT_INSTRUCTIONS, "エージェントへの指示。毎回の実行でプロンプトに追加されます。エージェントは読めますが変更できません。空欄の場合は、設定のデフォルトの指示が使われます。");
         setValue(L.HELP_AGENT_DESTRUCTIVE, "エージェントがデータを変更・削除するコマンドを実行しようとしたときの動作。");
         setValue(L.HELP_AGENT_MAX_ROUNDS, "1回の実行でのモデルへのリクエストの最大数。空欄はエージェント側の制限なしです。");
         setValue(L.HELP_AGENT_TOKEN_BUDGET, "1回の実行で使えるトークンの上限。空欄または0はエージェント側の制限なし。管理者が設定した上限は常に適用されます。");
@@ -902,6 +923,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "1回の実行のすべてのチェックポイントの合計容量 (MB)。作業コピーとワークスペースの復元ポイントで、エージェントが作るものと自動のものを含みます。空欄は 100。");
         setValue(L.HELP_AGENT_CHECKPOINTS, "本の作業コピーとワークスペースの復元ポイントです。実行の開始時と、変更を伴うラウンドの前に自動で作られます (最新の5つを保持)。エージェントも自分で保存できます。管理者が設定した容量を共有します。「復元」は本とワークスペースを戻し、「巻き戻す」は会話もチェックポイントを作った時点まで戻します。これにより、エージェントは本に残っていない作業を覚えていません (一時停止または停止した実行)。");
         setValue(L.HELP_MERGE, "エージェントはブックのコピーで作業しました。引き継ぐ内容を選んでください。適用前にブックが保存されます。右側のテキストが書き込まれる内容で、編集できます。競合とは、あなたとエージェントの両方が変更したテキストです。");
+        setValue(L.HELP_COMMAND_PRESETS, "役割：監査役は読み取りのみ。設定管理者はロアブックも書き込む。編集者は本文・要約・書籍情報も修正する。執筆者は新しいパートの追加とモデルによる次のターンの執筆も行う。いずれもデータを削除することはできません。");
+        setValue(L.HELP_AI_MAX_CONCURRENT_REQUESTS, "このモデルへ同時に送れるエージェントのリクエスト数。超えた分は順番待ちになります。空欄は無制限。スロットが1つのサーバー（例：GPU 1枚）では1にしてください。ストーリー画面での生成は待たされません。");
+        setValue(L.HELP_AGENT_PAUSE_NOW, "実行中のモデルへのリクエストと呼び出しを取り消し、すぐに一時停止します。その結果は失われます。止められない呼び出しは完了する場合があり、エージェントは再開時に状態を確認します。");
+        setValue(L.HELP_AGENT_DEFAULT_INSTRUCTIONS_USER, "独自の指示を持たないあなたのエージェント向けの指示。毎回の実行でプロンプトに追加されます。空欄は指示なしです。");
+        setValue(L.HELP_AGENT_AUTO_COMPACT, "モデルのコンテキストが上限のこの割合を超え、エージェントが自分で圧縮しなかった場合、実行側が以前のラウンドを要約します。空欄は%dです。0は圧縮しません（コンテキストが満杯になると実行が停止します）。それ以外は%dから99。");
+        setValue(L.HELP_AGENT_USE_OWN_MODEL, "オン：コマンドによる生成（次のターン、要約、ロアジェネレーターなど拡張機能のコマンド）は、書籍のモデルに関係なく上記のモデルを使います。オフ：書籍のモデルを使うため、考えるモデルと書くモデルを組み合わせられます。コマンドで、エージェントの別のモデルプロファイルを指定することもできます。");
+        setValue(L.HELP_AGENT_WEBHOOK_URL, "エージェントが質問・待機・完了・失敗したときにアプリを開いていなければ、サーバーがこのアドレスへ短いメッセージを送ります。例：ntfyのトピック（https://ntfy.sh/your-topic）、GotifyのメッセージURL、Discordのwebhook。アドレスを知る人はメッセージを読めます。空欄なら何も送りません。");
+        setValue(L.HELP_AGENT_WEBHOOKS_ALLOWED, "サーバーはユーザーが設定に入力したアドレスを呼び出します。これが許容できない環境（ユーザーが到達すべきでないネットワークにサーバーが届く場合など）ではオフにしてください。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl.settings;
 
+import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
 import com.github.enerccio.marginalia.domain.model.Setting;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -63,6 +64,35 @@ public class UserSetting extends Setting {
     @ExtendedAttribute
     @Transient
     private String defaultAgentPrompt;
+
+    /**
+     * The URL the application sends a short message to when an agent of the user needs them (asks, finished, failed) and the
+     * user has the application closed, see {@code AgentWebhookService}. Blank is no message. The URL may hold a secret, it is not logged.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String agentWebhookUrl;
+
+    /**
+     * The body the service behind {@link #agentWebhookUrl} expects; null is {@code PLAIN}.
+     */
+    @ExtendedAttribute
+    @Transient
+    private WebhookFormat agentWebhookFormat;
+
+    /**
+     * Whether the message is sent also while the user has the application open somewhere; the default is only when they have not.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Boolean agentWebhookAlways;
+
+    /**
+     * The instructions ("agents.md") of the agents of the user that have none of their own; blank is no instructions.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String defaultAgentInstructions;
 
     /**
      * The compaction prompt of the agents of the user that have none of their own; blank is the one of the application
@@ -173,6 +203,38 @@ public class UserSetting extends Setting {
 
     public void setDefaultAgentCompactionPrompt(String defaultAgentCompactionPrompt) {
         this.defaultAgentCompactionPrompt = defaultAgentCompactionPrompt;
+    }
+
+    public String getAgentWebhookUrl() {
+        return agentWebhookUrl;
+    }
+
+    public void setAgentWebhookUrl(String agentWebhookUrl) {
+        this.agentWebhookUrl = agentWebhookUrl;
+    }
+
+    public WebhookFormat getAgentWebhookFormat() {
+        return agentWebhookFormat;
+    }
+
+    public void setAgentWebhookFormat(WebhookFormat agentWebhookFormat) {
+        this.agentWebhookFormat = agentWebhookFormat;
+    }
+
+    public Boolean getAgentWebhookAlways() {
+        return agentWebhookAlways;
+    }
+
+    public void setAgentWebhookAlways(Boolean agentWebhookAlways) {
+        this.agentWebhookAlways = agentWebhookAlways;
+    }
+
+    public String getDefaultAgentInstructions() {
+        return defaultAgentInstructions;
+    }
+
+    public void setDefaultAgentInstructions(String defaultAgentInstructions) {
+        this.defaultAgentInstructions = defaultAgentInstructions;
     }
 
     public String getDefaultAgentPrompt() {

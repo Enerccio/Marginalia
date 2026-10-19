@@ -70,6 +70,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     private AgentRunService runService;
 
     @Autowired
+    private AIGate aiGate;
+
+    // the runs the author paused "at once": the worker gives up the request or the call that is going on (in memory, like the inboxes)
+    private final Set<Long> interrupts = ConcurrentHashMap.newKeySet();
+
+    @Autowired
     @Lazy
     private AgentMessageService messageService;
 
@@ -133,6 +139,25 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     @Override
     public void destroy() {
         executor.shutdownNow();
+    }
+
+    @Override
+    public AgentRun pauseNow(AgentRun run) throws Exception {
+        if (run == null || run.getId() == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        // set first: the worker looks at it when it waits, the pause alone only changes the status
+        interrupts.add(run.getId());
+        try {
+            AgentRun current = runService.pause(run);
+            if (current.getStatus() != AgentRunStatus.PAUSING || !isWorking(current)) {
+                interrupts.remove(run.getId());
+            }
+            return current;
+        } catch (Exception | Error e) {
+            interrupts.remove(run.getId());
+            throw e;
+        }
     }
 
     @Override
@@ -535,6 +560,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     }
 
     /**
+     * Who asked for a compaction.
+     */
+    private enum Compaction {AUTHOR, AGENT, AUTOMATIC}
+
+    // rounds a run waits before it tries an automatic compaction again after one failed
+    private static final int AUTO_COMPACT_RETRY_ROUNDS = 3;
+
+    /**
      * What one request to the model answered.
      */
     private record Round(String text, String reasoning, List<LLMToolCall> calls, RoundUsage usage) {
@@ -571,10 +604,17 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     /**
      * The end of a worker that is not an exception: the run was thrown away under it.
      */
-    private static final class Discarded extends RuntimeException {
+    private static class Discarded extends RuntimeException {
         Discarded() {
             super(null, null, false, false);
         }
+    }
+
+    /**
+     * The end of a round that is not an exception: the author paused the run at once, or paused it while it waited for a place at
+     * the model; what was going on is thrown away and the worker pauses at the next stable point.
+     */
+    private static final class Interrupted extends Discarded {
     }
 
     /**
@@ -594,6 +634,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private Agent agent;
         // the prompt of the agent or the default it follows, resolved when the work starts (like the instructions)
         private String systemPrompt;
+        // the instructions of the agent or the default of its owner, resolved with the prompt
+        private String instructions;
         private final Progress progress = new Progress();
         // made again when the run is loaded, it depends on whether the run is a conversation
         private RunToolsImpl runTools = new RunToolsImpl(progress::render);
@@ -617,6 +659,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private FunctionSet tools;
         // set while a command of the author runs: a message the author forces in then waits for it
         private boolean ignoreForce;
+        // the round before which a failed automatic compaction is not tried again
+        private long autoCompactRetryAt;
         // the queued messages and commands of the author to deliver before the work goes on, null for none; a worker
         // for a run that waits only does these and leaves the run as it is
         private final List<Queued> initial;
@@ -633,6 +677,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 attributes = runService.openSession(run);
                 try (InRequestScope _ = new InRequestScope(attributes)) {
                     work();
+                } catch (Interrupted e) {
+                    log.info("Agent run {}: the author paused it at once", run.getUuid());
+                    run = runService.find(runId);
+                    settleRequested();
                 } catch (Discarded e) {
                     log.info("Agent run {} was thrown away while it worked", run.getUuid());
                 } catch (Throwable e) {
@@ -643,6 +691,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 log.error("Agent run {} could not start working", run.getUuid(), e);
             } finally {
                 dropInbox();
+                interrupts.remove(runId);
                 working.remove(runId);
                 runService.workerFinished(run);
                 if (attributes != null) {
@@ -673,15 +722,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             inbox = run.isInteractive() ? inboxes.computeIfAbsent(runId, id -> new Inbox()) : null;
             agent = agentService.findForUser(run.getAgent().getUuid());
             systemPrompt = agentService.getSystemPrompt(agent);
+            instructions = agentService.getInstructions(agent);
             profile = agentService.resolveProfile(agent.getMainProfile());
             if (profile == null && initial == null) {
                 pause("The model of the agent is not available");
                 return;
             }
-            if (profile != null) {
-                // the copy writes with the model of the agent, whatever model the book has
-                runService.useAgentModel(run);
-            }
+            // the copy writes with the model of the agent or with the one of the book, as the definition of the agent says
+            runService.useAgentModel(run);
             // a command of the author that does not ask the model needs none
             inference = profile == null ? null : inferenceServices.forAIOrThrow(profile.ai());
             seesImages = profile != null && profile.profile().isImages();
@@ -746,6 +794,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 Round round;
                 try {
                     round = ask(inference, profile, payload(transcript), tools);
+                } catch (Interrupted e) {
+                    // the answer, if it came, is not written; the stable point pauses
+                    log.info("Agent run {}: the request was canceled, the author paused the run at once", run.getUuid());
+                    interrupts.remove(runId);
+                    continue;
                 } catch (Discarded e) {
                     throw e;
                 } catch (Forced e) {
@@ -793,7 +846,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 // the answers to the calls the author's message cut off, stored with the message (the others are stored as they are made)
                 List<LLMChatMessage> results = new ArrayList<>();
                 boolean forced = false;
+                boolean paused = false;
                 for (LLMToolCall call : round.calls()) {
+                    if (paused || interrupts.contains(runId)) {
+                        paused = true;
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_PAUSED_SKIPPED_CALL));
+                        continue;
+                    }
                     if (forced || inbox != null && inbox.isForced()) {
                         forced = true;
                         results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_SKIPPED_CALL));
@@ -803,6 +862,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     String result;
                     try {
                         result = call(tools, call);
+                    } catch (Interrupted e) {
+                        paused = true;
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_PAUSED_CALL));
+                        continue;
                     } catch (Forced e) {
                         forced = true;
                         results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_FORCED_CALL));
@@ -814,6 +877,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     // stored at once: the console shows the result of a call when it is made, not when the round is over, and a
                     // pause in the middle of a round keeps what the calls before it did
                     append(transcript, LLMChatMessage.ofToolResult(call.getId(), result));
+                }
+                if (paused) {
+                    log.info("Agent run {}: the rest of the round was thrown away, the author paused the run at once", run.getUuid());
+                    // what was done is in the transcript, the cut off calls are answered; the stable point pauses
+                    interrupts.remove(runId);
+                    append(transcript, results.toArray(new LLMChatMessage[0]));
+                    continue;
                 }
                 if (forced) {
                     log.info("Agent run {}: the rest of the round was thrown away, the author sent a message", run.getUuid());
@@ -852,7 +922,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
                 if (runTools.isCompactionRequested()) {
                     compactForAgent(runTools.getCompactionFocus(), transcript);
-                } else {
+                } else if (!compactAutomatically(transcript)) {
                     warnAboutContext(transcript);
                 }
             }
@@ -955,13 +1025,47 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             ignoreForce = true;
             try {
                 log.info("Agent run {}: the agent asks for a compaction", run.getUuid());
-                compact(focus, transcript, true);
+                compact(focus, transcript, Compaction.AGENT);
             } catch (Discarded e) {
                 throw e;
             } catch (Exception e) {
                 log.warn("Agent run {}: compaction failed: {}", run.getUuid(), e.getMessage());
                 append(transcript, LLMChatMessage.of(LLMRole.USER, "You asked to compact your work, but it failed: "
                         + CommandFunctions.messageOf(e) + "\nNothing was changed."));
+            } finally {
+                ignoreForce = before;
+            }
+        }
+
+        /**
+         * After a round, once the context passes the share of its cap that the agent says ({@code Agent.autoCompactPercent}, else
+         * {@link Defaults#AGENT_AUTO_COMPACT_PERCENT}), the runner compacts the run itself: the agent had the warnings to do it
+         * and did not, and the run would stop when the context is full. The number is the one of the request just made, like
+         * for the warnings. A failure changes nothing, the agent is told, and the next try is some rounds later.
+         *
+         * @return whether the run was compacted or the attempt failed (the agent was told either way, no warning is added)
+         */
+        private boolean compactAutomatically(List<LLMChatMessage> transcript) throws Exception {
+            long cap = progress.contextCap;
+            int percent = agent.getAutoCompactPercent() == null ? Defaults.AGENT_AUTO_COMPACT_PERCENT : agent.getAutoCompactPercent();
+            if (percent <= 0 || cap <= 0 || progress.contextTokens * 100 < cap * percent || run.getRounds() < autoCompactRetryAt) {
+                return false;
+            }
+            boolean before = ignoreForce;
+            ignoreForce = true;
+            try {
+                log.info("Agent run {}: the context is {} of {} tokens, the runner compacts the run", run.getUuid(), progress.contextTokens, cap);
+                compact("", transcript, Compaction.AUTOMATIC);
+                return true;
+            } catch (Discarded e) {
+                throw e;
+            } catch (Exception e) {
+                log.warn("Agent run {}: automatic compaction failed: {}", run.getUuid(), e.getMessage());
+                autoCompactRetryAt = run.getRounds() + AUTO_COMPACT_RETRY_ROUNDS;
+                append(transcript, LLMChatMessage.of(LLMRole.USER, "The run tried to compact your work because your context is nearly full, "
+                        + "but it failed: " + CommandFunctions.messageOf(e) + "\nNothing was changed. Save your notes to a file and call "
+                        + "request_compaction yourself."));
+                return true;
             } finally {
                 ignoreForce = before;
             }
@@ -1071,7 +1175,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 log.info("Agent run {}: the user runs /{}", run.getUuid(), name);
                 if (COMPACT.equals(name)) {
                     try {
-                        compact(commandArguments(line), transcript, false);
+                        compact(commandArguments(line), transcript, Compaction.AUTHOR);
                     } catch (Discarded e) {
                         throw e;
                     } catch (Exception e) {
@@ -1131,9 +1235,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * reads from now on. The rounds before stay in the transcript of the user, marked as compacted.
          *
          * @param focus   what the author wants the summary to stress, may be empty
-         * @param byAgent whether the agent asked for it with {@code request_compaction} and not the author
+         * @param who     who asked for it: the author, the agent with {@code request_compaction}, or the runner
          */
-        private void compact(String focus, List<LLMChatMessage> transcript, boolean byAgent) throws Exception {
+        private void compact(String focus, List<LLMChatMessage> transcript, Compaction who) throws Exception {
             if (profile == null || inference == null) {
                 throw new IllegalStateException("The model of the agent is not available");
             }
@@ -1144,7 +1248,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             int dropped = fit(history);
             String prompt = agentService.getCompactionPrompt(agent).strip();
             history.add(LLMChatMessage.of(LLMRole.USER, focus.isEmpty() ? prompt
-                    : prompt + (byAgent ? "\n\nYou asked the summary to stress: " : "\n\nThe author wants the summary to stress: ") + focus));
+                    : prompt + (who == Compaction.AGENT ? "\n\nYou asked the summary to stress: " : "\n\nThe author wants the summary to stress: ") + focus));
 
             Round round = ask(inference, profile, payload(history), tools);
             run = runService.addUsage(run, round.usage().promptTokens(), round.usage().completionTokens());
@@ -1155,7 +1259,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 throw new IllegalStateException(round.calls().isEmpty() ? "The model wrote no summary"
                         : "The model called a tool instead of writing the summary");
             }
-            StringBuilder message = new StringBuilder(byAgent ? Defaults.AGENT_SELF_COMPACTED_NOTE : Defaults.AGENT_COMPACTED_NOTE)
+            StringBuilder message = new StringBuilder(switch (who) {
+                case AGENT -> Defaults.AGENT_SELF_COMPACTED_NOTE;
+                case AUTOMATIC -> Defaults.AGENT_AUTO_COMPACTED_NOTE;
+                case AUTHOR -> Defaults.AGENT_COMPACTED_NOTE;
+            })
                     .append("\n\n").append(text);
             if (dropped > 0) {
                 message.append("\n\n").append(String.format(Defaults.AGENT_COMPACTED_TRIMMED, dropped));
@@ -1484,8 +1592,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
         private List<LLMChatMessage> payload(List<LLMChatMessage> transcript) {
             StringBuilder system = new StringBuilder(StringUtils.defaultString(systemPrompt).strip());
-            if (StringUtils.isNotBlank(agent.getInstructions())) {
-                system.append("\n\n# Instructions of the author\n\n").append(agent.getInstructions().strip());
+            if (StringUtils.isNotBlank(instructions)) {
+                system.append("\n\n# Instructions of the author\n\n").append(instructions.strip());
             }
             system.append("\n\n").append(Defaults.AGENT_RUNNER_NOTE.strip());
             if (run.isInteractive()) {
@@ -1533,6 +1641,20 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
         private Round ask(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
                           FunctionSet tools) throws Exception {
+            // a model with a cap of requests lets the runs take turns; waiting is part of the round (a pause, a stop and a forced message find it)
+            CompletableFuture<AIGate.Permit> place = aiGate.acquire(profile.ai());
+            if (!place.isDone()) {
+                log.info("Agent run {} waits for a place at the AI {} ({} waiting)", runId, profile.ai().getUuid(), aiGate.waiting(profile.ai()));
+            }
+            try (AIGate.Permit _ = await(place, () -> place.cancel(true), true)) {
+                return request(inference, profile, payload, tools);
+            } catch (ExecutionException e) {
+                throw e.getCause() instanceof Exception cause ? cause : e;
+            }
+        }
+
+        private Round request(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
+                              FunctionSet tools) throws Exception {
             CompletableFuture<Round> answer = new CompletableFuture<>();
             CancellationToken token = inference.round(payload, profile.protocol(), tools, new InferenceService.InferenceRoundCallback() {
                 @Override
@@ -1591,7 +1713,19 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * {@link #POLL_MILLIS}); a pause or a stop waits for the answer.
          */
         private <T> T await(CompletableFuture<T> future, Runnable cancel) throws Exception {
+            return await(future, cancel, false);
+        }
+
+        /**
+         * As above. {@code queued}: the wait is for a place in a queue and not for work that is going on, so an ordinary pause or
+         * stop ends it too (nothing is lost by it). A pause "at once" ends every wait.
+         */
+        private <T> T await(CompletableFuture<T> future, Runnable cancel, boolean queued) throws Exception {
             while (true) {
+                if (interrupts.contains(runId)) {
+                    cancel.run();
+                    throw new Interrupted();
+                }
                 if (!ignoreForce && inbox != null && inbox.isForced()) {
                     cancel.run();
                     throw new Forced();
@@ -1603,6 +1737,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     if (current == null || current.isDeleted() || current.getStatus() == AgentRunStatus.STOPPED_DISCARDED) {
                         cancel.run();
                         throw new Discarded();
+                    }
+                    if (queued && (current.getStatus() == AgentRunStatus.PAUSING || current.getStatus() == AgentRunStatus.STOPPING)) {
+                        cancel.run();
+                        throw new Interrupted();
                     }
                 } catch (CancellationException e) {
                     AgentRun current = runService.find(runId);

@@ -517,6 +517,16 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SUBBOOKS, "Subbooks");
         setValue(L.LABEL_STATE, "State");
         setValue(L.LABEL_REWIND, "Rewind");
+        setValue(L.LABEL_MAX_CONCURRENT_REQUESTS, "Concurrent requests of agents");
+        setValue(L.LABEL_PAUSE_NOW, "Pause now");
+        setValue(L.LABEL_AGENT_DEFAULT_INSTRUCTIONS, "Instructions of agents (agents.md)");
+        setValue(L.LABEL_AGENT_AUTO_COMPACT, "Compact at (% of context)");
+        setValue(L.LABEL_AGENT_USE_OWN_MODEL, "Write the book with the model of the agent");
+        setValue(L.LABEL_AGENT_WEBHOOK_URL, "Message to a URL when an agent needs you");
+        setValue(L.LABEL_AGENT_WEBHOOK_FORMAT, "Format of the message");
+        setValue(L.LABEL_AGENT_WEBHOOK_ALWAYS, "Also when the application is open");
+        setValue(L.LABEL_AGENT_WEBHOOK_TEST, "Send a test message");
+        setValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED, "Agents may send messages to the webhooks of users");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -599,6 +609,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_MERGE_STATE_CONFLICT, "Conflict");
         setValue(L.ENUM_MERGE_STATE_SHARED, "Shared");
         setValue(L.ENUM_MERGE_STATE_BLOCKED, "Cannot apply");
+        setValue(L.ENUM_COMMAND_PRESET_AUDITOR, "Auditor (reads only)");
+        setValue(L.ENUM_COMMAND_PRESET_LORE_KEEPER, "Lore keeper");
+        setValue(L.ENUM_COMMAND_PRESET_EDITOR, "Editor");
+        setValue(L.ENUM_COMMAND_PRESET_DRAFTER, "Drafter");
+        setValue(L.ENUM_WEBHOOK_FORMAT_PLAIN, "Plain text (ntfy)");
+        setValue(L.ENUM_WEBHOOK_FORMAT_DISCORD, "Discord");
+        setValue(L.ENUM_WEBHOOK_FORMAT_GOTIFY, "Gotify");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -853,6 +870,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CHECKPOINT_REWOUND, "Rewound to checkpoint %s. Messages the agent forgot: %d. Files removed from the workspace: %d.");
         setValue(L.MSG_AGENT_REWIND_PAUSE_FIRST, "Pause or stop the run to rewind it.");
         setValue(L.MSG_AGENT_REWIND_UNAVAILABLE, "The conversation can't go back to this checkpoint: it does not know its place in it, or an earlier rewind undid it. Restore it instead.");
+        setValue(L.MSG_COMMAND_WAITING_FOR_MODEL, "Waiting for a free place at the model...");
+        setValue(L.MSG_AGENT_WEBHOOK_TEST_TEXT, "This is a test message from Marginalia. Agents will tell you here when they need you.");
+        setValue(L.MSG_AGENT_WEBHOOK_TEST_OK, "The service accepted the test message.");
+        setValue(L.MSG_AGENT_WEBHOOK_TEST_FAILED, "The test message was not sent: %s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -880,7 +901,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_CONCURRENT_RUNS, "How many runs of the user can work at once. Empty is one.");
         setValue(L.HELP_AGENTS_RUN_TOKEN_BUDGET, "Most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit.");
         setValue(L.HELP_AGENT_SYSTEM_PROMPT, "What the agent is told to be, before your instructions. Blank follows the default (your default in the settings, else the administrator's, else the built-in one), which is the placeholder; the info icon fills it in so you can edit a copy.");
-        setValue(L.HELP_AGENT_INSTRUCTIONS, "Your instructions for the agent, added to its prompt in every run. The agent can read them but not change them.");
+        setValue(L.HELP_AGENT_INSTRUCTIONS, "Your instructions for the agent, added to its prompt in every run. The agent can read them but not change them. Empty: the default instructions from your settings are used.");
         setValue(L.HELP_AGENT_DESTRUCTIVE, "What happens when the agent wants to run a command that changes or removes data.");
         setValue(L.HELP_AGENT_MAX_ROUNDS, "Most requests to the model in one run. Empty is no limit of the agent.");
         setValue(L.HELP_AGENT_TOKEN_BUDGET, "Most tokens one run can spend. Empty or zero is no limit of the agent; the limit your administrator gave you applies anyway.");
@@ -902,6 +923,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "How much all the checkpoints of one run can take, in MB; the restore points of the working copy and its workspace, the ones the agent makes and the automatic ones. Empty is 100.");
         setValue(L.HELP_AGENT_CHECKPOINTS, "Restore points of the working copy of the book and the workspace. The run makes one when it starts and one before the rounds that change something (the last five are kept); the agent can save its own. They share a quota set by the administrator. Restore brings back the book and the workspace; Rewind also takes the conversation back to where the checkpoint was made, so the agent does not remember work that is no longer in the book (a paused or stopped run).");
         setValue(L.HELP_MERGE, "The agent worked on a copy of the book. Pick what to take over, the book is saved first. The text on the right is what will be written: edit it to change it. A conflict is a text that both you and the agent changed.");
+        setValue(L.HELP_COMMAND_PRESETS, "Roles: the auditor only reads; the lore keeper also writes lorebooks; the editor also revises the text, the summaries and the book info; the drafter also adds new parts and lets the model write the next turn. None of them can remove data.");
+        setValue(L.HELP_AI_MAX_CONCURRENT_REQUESTS, "How many requests of agents may be on the way to this model at once, the others wait their turn. Empty is no limit. Set 1 for a server with one slot (for example one GPU). Your own generation in the story window is not queued.");
+        setValue(L.HELP_AGENT_PAUSE_NOW, "Cancels the request to the model and the call that are going on and pauses at once. What they would have done is lost; a call that cannot be stopped may still finish, the agent checks the state when it goes on.");
+        setValue(L.HELP_AGENT_DEFAULT_INSTRUCTIONS_USER, "Instructions for those of your agents that have none of their own, added to their prompt in every run. Empty means no instructions.");
+        setValue(L.HELP_AGENT_AUTO_COMPACT, "When the context of the model passes this share of its limit and the agent did not compact its work itself, the run summarizes the earlier rounds. Empty is %d. Zero never compacts (the run then stops when the context is full). Otherwise %d to 99.");
+        setValue(L.HELP_AGENT_USE_OWN_MODEL, "On: what the agent has written by a command (the next turn, summaries, and the commands of extensions such as the Lore Generator) uses the model above, whatever model the book has. Off: it uses the model of the book, so you can mix models: one that thinks and one that writes. A command can still name another model profile of the agent.");
+        setValue(L.HELP_AGENT_WEBHOOK_URL, "When an agent asks something, waits for you, finishes or fails and you do not have the application open, the server sends a short message to this address: for example your ntfy topic (https://ntfy.sh/your-topic), a Gotify message URL or a Discord webhook. Anyone who knows the address can read the messages. Empty sends nothing.");
+        setValue(L.HELP_AGENT_WEBHOOKS_ALLOWED, "The server calls the address a user typed in their settings. Turn this off where that is not acceptable (for example the server can reach a network the users should not).");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

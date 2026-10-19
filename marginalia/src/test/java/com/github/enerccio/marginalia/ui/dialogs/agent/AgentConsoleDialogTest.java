@@ -1,14 +1,12 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.domain.service.AgentApprovalService;
-import com.github.enerccio.marginalia.domain.service.AgentMessageService;
-import com.github.enerccio.marginalia.domain.service.AgentRunner;
-import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.RunToolsImpl;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -17,8 +15,6 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMTool
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.ComponentTree;
 import com.github.enerccio.marginalia.test.TestImages;
-import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.domain.service.CheckpointService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -68,6 +64,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
     // what the fake runner reports as queued, and the ids it was told to force
     private List<AgentRunner.QueuedMessage> queued = List.of();
     private final List<String> forced = new ArrayList<>();
+    private final List<AgentRun> pausedNow = new ArrayList<>();
     private final List<String> commandLines = new ArrayList<>();
     private boolean changed;
 
@@ -124,6 +121,12 @@ class AgentConsoleDialogTest extends AgentTestBase {
             @Override
             public void force(AgentRun run, String id) {
                 forced.add(id);
+            }
+
+            @Override
+            public AgentRun pauseNow(AgentRun run) throws Exception {
+                pausedNow.add(run);
+                return agentRunService.pause(run);
             }
 
             @Override
@@ -356,6 +359,27 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(textOf(bubbles.getFirst())).contains("Report of the agent", "No contradictions found.");
         assertThat(dialog.getSendButton().isEnabled()).isFalse();
         assertThat(dialog.getStopButton().isEnabled()).as("a finished run can be discarded").isTrue();
+    }
+
+    @Test
+    void pauseNowIsOfferedToARunThatWorksAndAsksTheRunner() throws Exception {
+        AgentRun run = startedRun();
+        AgentConsoleDialog dialog = console();
+        assertThat(dialog.getPauseNowButton().isEnabled()).isTrue();
+
+        dialog.getPauseNowButton().click();
+
+        assertThat(pausedNow).extracting(AgentRun::getId).containsExactly(run.getId());
+        assertThat(agentRunService.find(run.getId()).getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(dialog.getPauseNowButton().isEnabled()).isFalse();
+    }
+
+    @Test
+    void pauseNowIsNotOfferedToARunThatPausesAtOnceAnyway() throws Exception {
+        AgentRun run = startedRun();
+        agentRunService.pause(run);
+
+        assertThat(console().getPauseNowButton().isEnabled()).isFalse();
     }
 
     @Test

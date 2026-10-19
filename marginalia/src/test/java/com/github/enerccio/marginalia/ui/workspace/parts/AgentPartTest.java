@@ -91,6 +91,11 @@ class AgentPartTest extends AgentTestBase {
             }
 
             @Override
+            public AgentRun pauseNow(AgentRun run) throws Exception {
+                return agentRunService.pause(run);
+            }
+
+            @Override
             public boolean isWorking(AgentRun run) {
                 return false;
             }
@@ -170,6 +175,22 @@ class AgentPartTest extends AgentTestBase {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void onThePhoneEachAgentIsACardWithItsNameStateAndButtons() throws Exception {
+        Agent agent = agent();
+        AgentPart phonePart = new AgentPart(null, true);
+        phonePart.create();
+
+        assertThat(phonePart.getGrid().getColumns()).as("one column, not a table").hasSize(1);
+        Component card = ((ComponentRenderer<Component, Agent>) phonePart.getGrid().getColumns().getFirst().getRenderer()).createComponent(agent);
+
+        assertThat(ComponentTree.all(card, com.vaadin.flow.component.html.Span.class).map(com.vaadin.flow.component.html.Span::getText))
+                .contains(agent.getName(), "Not running");
+        assertThat(has(card, "Edit agent")).isTrue();
+        assertThat(has(card, "Start")).isTrue();
+    }
+
+    @Test
     void startPauseResumeAndStopFollowTheRun() throws Exception {
         Agent agent = agent();
         part.refresh();
@@ -187,6 +208,7 @@ class AgentPartTest extends AgentTestBase {
         assertThat(statusOf(agent)).isEqualTo("Running");
         assertThat(has(actions, "Start")).isFalse();
         assertThat(has(actions, "Pause")).isTrue();
+        assertThat(has(actions, "Pause now")).isTrue();
         assertThat(has(actions, "Stop")).isTrue();
 
         button(actions, "Pause").click();
@@ -196,6 +218,7 @@ class AgentPartTest extends AgentTestBase {
         assertThat(statusOf(agent)).isEqualTo("Paused");
         assertThat(has(actions, "Resume")).isTrue();
         assertThat(has(actions, "Pause")).isFalse();
+        assertThat(has(actions, "Pause now")).isFalse();
 
         button(actions, "Resume").click();
         assertThat(agentRunService.findUnfinished(agent).getStatus()).isEqualTo(AgentRunStatus.RUNNING);

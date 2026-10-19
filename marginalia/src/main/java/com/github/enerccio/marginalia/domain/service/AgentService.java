@@ -25,6 +25,12 @@ public interface AgentService extends ExtendableService<Agent, AgentRepository> 
     int MAX_INSTRUCTIONS_LENGTH = 20_000;
 
     /**
+     * The lowest and the highest share of the context cap, in percent, at which a run is compacted by the runner (zero is never).
+     */
+    int MIN_AUTO_COMPACT_PERCENT = 50;
+    int MAX_AUTO_COMPACT_PERCENT = 99;
+
+    /**
      * Most model profiles of an agent.
      */
     int MAX_MODEL_PROFILES = 8;
@@ -99,6 +105,19 @@ public interface AgentService extends ExtendableService<Agent, AgentRepository> 
      * Resolved at every request, so a changed default applies to the agents that follow it.
      */
     String getSystemPrompt(Agent agent) throws Exception;
+
+    /**
+     * The instructions an agent runs with ("agents.md"): its own, and when that is blank the default instructions of its owner in
+     * the settings, else blank. Resolved when a run starts working and when its file system is opened, so a changed default applies
+     * to the agents that follow it.
+     */
+    String getInstructions(Agent agent) throws Exception;
+
+    /**
+     * What blank instructions of an agent of the current user mean: their default instructions in the settings, else blank. The
+     * placeholder of the instructions of the agent.
+     */
+    String getDefaultInstructions() throws Exception;
 
     /**
      * What a blank system prompt of an agent of the current user means: their default prompt in the settings, else

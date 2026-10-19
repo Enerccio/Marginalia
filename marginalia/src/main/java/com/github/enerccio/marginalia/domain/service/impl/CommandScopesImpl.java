@@ -35,6 +35,10 @@ public class CommandScopesImpl implements CommandScopes {
     @Lazy
     private AgentRunService agentRunService;
 
+    @Autowired
+    @Lazy
+    private AgentService agentService;
+
     @Override
     public CommandScope session() {
         return new SessionScope();
@@ -162,6 +166,21 @@ public class CommandScopesImpl implements CommandScopes {
         @Override
         public AgentRun getRun() {
             return run;
+        }
+
+        @Override
+        public ModelChoice getModel() throws Exception {
+            AgentRun current = agentRunService.find(run.getId());
+            Agent agent = current == null ? null : agentService.findForUser(current.getAgent().getUuid());
+            if (agent != null && agent.isUsingAgentModel()) {
+                AgentService.ResolvedProfile resolved = agent.getMainProfile() == null ? null : agentService.resolveProfile(agent.getMainProfile());
+                if (resolved != null) {
+                    return new ModelChoice(resolved.ai(), resolved.protocol());
+                }
+            }
+            Manuscript book = book();
+            return book == null || book.getAi() == null || book.getAi().isDeleted() ? null
+                    : new ModelChoice(book.getAi(), book.getProtocol() != null && !book.getProtocol().isDeleted() ? book.getProtocol() : null);
         }
 
         @Override

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.w
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
+import com.github.enerccio.marginalia.domain.service.AIGate;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
@@ -77,12 +78,15 @@ public class SummaryGenerationCommands extends ManuscriptWriteSupport {
             }
         };
         context.setStatus(loc.getValue(L.MSG_COMMAND_SUMMARIZING));
-        CancellationToken token = oldest == null ? summaryService.createSummary(book.manuscript, head, callback)
-                : summaryService.createMetaSummary(book.manuscript, head, oldest, callback);
-        if (token == null) {
-            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_SUMMARY_NOT_POSSIBLE));
+        Summary summary;
+        try (AIGate.Permit _ = placeAt(context, book.manuscript.getAi())) {
+            CancellationToken token = oldest == null ? summaryService.createSummary(book.manuscript, head, callback)
+                    : summaryService.createMetaSummary(book.manuscript, head, oldest, callback);
+            if (token == null) {
+                throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_SUMMARY_NOT_POSSIBLE));
+            }
+            summary = await(context, done, token);
         }
-        Summary summary = await(context, done, token);
         if (summary == null) {
             return;
         }

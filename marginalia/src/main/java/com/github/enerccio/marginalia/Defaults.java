@@ -186,6 +186,18 @@ Do not call any tool and do not do any of the work now, only write the summary. 
     public static final int AGENT_CONTEXT_CRITICAL_PERCENT = 90;
 
     /**
+     * The share of the context cap (in percent) at which the runner compacts a run by itself, when the agent did not and its
+     * definition says nothing else ({@code Agent.autoCompactPercent}).
+     */
+    public static final int AGENT_AUTO_COMPACT_PERCENT = 90;
+
+    /**
+     * Starts the message that holds the summary of a run that the runner compacted because the context was nearly full.
+     */
+    public static final String AGENT_AUTO_COMPACTED_NOTE = "Your earlier work on this run was compacted automatically because "
+            + "your context was nearly full. This summary, written by you, is all that is left of it:";
+
+    /**
      * The reminder of a context that is filling up, a message of the run to the agent: the share, the tokens, the cap.
      */
     public static final String AGENT_CONTEXT_WARNING = "Notice from the run: your context is %d%% full (about %d of %d tokens). "
@@ -328,5 +340,16 @@ The author has opened the console and is watching. Do not start any work yet: ca
      */
     public static final String AGENT_SKIPPED_CALL = "Error: this call was not made because the author sent a message and the "
             + "rest of the round was thrown away.";
+
+    /**
+     * The result given to the call that was going on when the author paused the run at once.
+     */
+    public static final String AGENT_PAUSED_CALL = "Error: this call was cut off because the author paused the run at once, so it "
+            + "is unknown whether it was done. Check the state with a read tool before you repeat it.";
+
+    /**
+     * The result given to the calls of the round that were not made because the author paused the run at once.
+     */
+    public static final String AGENT_PAUSED_SKIPPED_CALL = "Error: this call was not made because the author paused the run at once.";
 
 }

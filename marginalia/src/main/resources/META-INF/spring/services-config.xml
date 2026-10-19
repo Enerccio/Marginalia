@@ -167,7 +167,11 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentApprovalServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentWebhookServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentAttentionServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AIGateImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunnerImpl" />
 

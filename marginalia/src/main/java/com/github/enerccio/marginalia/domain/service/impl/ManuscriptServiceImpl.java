@@ -559,12 +559,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (!stored.isAgentic()) {
             throw new IllegalArgumentException("The manuscript " + stored.getUuid() + " is not a working copy of an agent");
         }
-        if (ai != null) {
-            stored.setAi(ai);
-        }
-        if (protocol != null) {
-            stored.setProtocol(protocol);
-        }
+        stored.setAi(ai);
+        stored.setProtocol(protocol);
         saveWithoutEvent(stored);
     }
 

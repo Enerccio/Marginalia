@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845758101830">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845761354262">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845758101830" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845761354262" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845758101830" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845758101830" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -178,7 +178,7 @@ it can make other users administrators too.</p>
 | **Database Backups** | Backups of the whole database, on demand or on a schedule, and restoring them. See [Database backups](database-backups.md). |
 | **Cleanup** | Permanently removing deleted data. See [Cleanup](cleanup.md). |
 | **Help assistant** | The chat that answers questions from the manual: the model, the prompts and who pays for it. See [Help assistant](help-assistant.md). |
-| **Agents** | The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has **Insert Default Template**, which fills it in so you can edit a copy. What users may do with agents is their [permission](permissions.md). |
+| **Agents** | The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has **Insert Default Template**, which fills it in so you can edit a copy. What users may do with agents is their [permission](permissions.md). Also **Agents may send messages to the webhooks of users**: the server calls the address a user typed in their settings when an agent needs them and they have the application closed ([When you are not there](../agents.md#when-you-are-not-there)); turn it off where that is not acceptable. |
 | **Extensions** | Installing and removing extensions. See [Managing extensions](extensions.md). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -207,7 +207,7 @@ it can make other users administrators too.</p>
 </tr>
 <tr>
 <td><strong>Agents</strong></td>
-<td>The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has <strong>Insert Default Template</strong>, which fills it in so you can edit a copy. What users may do with agents is their <a href="permissions/">permission</a>.</td>
+<td>The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has <strong>Insert Default Template</strong>, which fills it in so you can edit a copy. What users may do with agents is their <a href="permissions/">permission</a>. Also <strong>Agents may send messages to the webhooks of users</strong>: the server calls the address a user typed in their settings when an agent needs them and they have the application closed (<a href="../agents/#when-you-are-not-there">When you are not there</a>); turn it off where that is not acceptable.</td>
 </tr>
 <tr>
 <td><strong>Extensions</strong></td>
@@ -305,7 +305,7 @@ copied at any time.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f12e66f9).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (40d1602f).</p></div>
             </footer>
         </div>
     </div>

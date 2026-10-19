@@ -2,9 +2,12 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentAttentionService;
+import com.github.enerccio.marginalia.domain.service.AgentWebhookService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +20,10 @@ import java.util.function.Consumer;
 public class AgentAttentionServiceImpl implements AgentAttentionService, DisposableBean {
 
     private static final Logger log = LoggerFactory.getLogger(AgentAttentionServiceImpl.class);
+
+    @Autowired
+    @Lazy
+    private AgentWebhookService webhookService;
 
     private final Map<Long, List<Consumer<Notice>>> listeners = new ConcurrentHashMap<>();
 
@@ -49,11 +56,13 @@ public class AgentAttentionServiceImpl implements AgentAttentionService, Disposa
         }
         Long userId = run.getOwner().getId();
         List<Consumer<Notice>> all = listeners.get(userId);
+        Notice notice = new Notice(userId, run.getUuid(), run.getAgent().getUuid(), run.getAgent().getName(),
+                run.getStatus(), run.getStatusReason(), run.isAttention());
+        // the user is told on the phone too: always where they asked for it, else when no screen of theirs is open
+        webhookService.notify(notice, all != null && !all.isEmpty());
         if (all == null) {
             return;
         }
-        Notice notice = new Notice(userId, run.getUuid(), run.getAgent().getUuid(), run.getAgent().getName(),
-                run.getStatus(), run.getStatusReason(), run.isAttention());
         try {
             delivery.execute(() -> {
                 for (Consumer<Notice> listener : all) {

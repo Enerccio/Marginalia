@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
@@ -25,6 +26,7 @@ import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -36,6 +38,7 @@ import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -79,6 +82,9 @@ public class UserPart implements WorkspaceComponent {
     @Autowired
     private AgentService agentService;
 
+    @Autowired
+    private AgentWebhookService agentWebhookService;
+
     private final Workspace workspace;
 
     private VerticalLayout mainLayout;
@@ -91,6 +97,11 @@ public class UserPart implements WorkspaceComponent {
     private ComboBox<Protocol> defaultProtocolCombo;
     private ComboBox<BackupStrategy> backupStrategyCombo;
     private IntegerField backupStrategyValueField;
+    // the message to a URL when an agent needs the user, for users who may use agents
+    private TextField agentWebhookUrlField;
+    private ComboBox<WebhookFormat> agentWebhookFormatCombo;
+    private Checkbox agentWebhookAlwaysBox;
+    private Button agentWebhookTestButton;
 
     // Tab 2 fields
     private TextAreaPopoverComponent masterTemplateField;
@@ -101,6 +112,7 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultSummaryPromptField;
     private TextAreaPopoverComponent defaultMetaSummaryPromptField;
     private TextAreaPopoverComponent defaultAgentPromptField;
+    private TextArea defaultAgentInstructionsField;
     private TextAreaPopoverComponent defaultAgentCompactionPromptField;
 
     // Tab 3 Tags, not a setting: acts at once, outside of the save and discard of the part
@@ -149,6 +161,9 @@ public class UserPart implements WorkspaceComponent {
         defaultsFormLayout.setWidthFull();
         defaultsFormLayout.add(defaultModelCombo, defaultProtocolCombo);
         defaultsFormLayout.add(new HorizontalLayout(backupStrategyCombo, backupStrategyValueField));
+        defaultsFormLayout.add(agentWebhookUrlField, 2);
+        defaultsFormLayout.add(agentWebhookFormatCombo, agentWebhookAlwaysBox);
+        defaultsFormLayout.add(agentWebhookTestButton, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_GENERAL_SETTINGS), defaultsFormLayout);
 
@@ -175,6 +190,9 @@ public class UserPart implements WorkspaceComponent {
 
         templatesFormLayout.add(defaultAgentPromptField);
         templatesFormLayout.setColspan(defaultAgentPromptField, 2);
+
+        templatesFormLayout.add(defaultAgentInstructionsField);
+        templatesFormLayout.setColspan(defaultAgentInstructionsField, 2);
 
         templatesFormLayout.add(defaultAgentCompactionPromptField);
         templatesFormLayout.setColspan(defaultAgentCompactionPromptField, 2);
@@ -293,6 +311,20 @@ public class UserPart implements WorkspaceComponent {
 
         backupStrategyCombo.addValueChangeListener(e -> updateBackupStrategyValueField(e.getValue()));
 
+        agentWebhookUrlField = new TextField(loc.getValue(L.LABEL_AGENT_WEBHOOK_URL));
+        agentWebhookUrlField.setWidthFull();
+        agentWebhookUrlField.setClearButtonVisible(true);
+        agentWebhookUrlField.setHelperText(loc.getValue(L.HELP_AGENT_WEBHOOK_URL));
+        agentWebhookUrlField.setPlaceholder("https://ntfy.sh/...");
+        agentWebhookFormatCombo = new ComboBox<>(loc.getValue(L.LABEL_AGENT_WEBHOOK_FORMAT));
+        agentWebhookFormatCombo.setItems(WebhookFormat.values());
+        agentWebhookFormatCombo.setItemLabelGenerator(format -> loc.getValue(format.getLabel()));
+        agentWebhookFormatCombo.setAllowCustomValue(false);
+        agentWebhookFormatCombo.setClearButtonVisible(false);
+        agentWebhookFormatCombo.setWidthFull();
+        agentWebhookAlwaysBox = new Checkbox(loc.getValue(L.LABEL_AGENT_WEBHOOK_ALWAYS));
+        agentWebhookTestButton = new Button(loc.getValue(L.LABEL_AGENT_WEBHOOK_TEST), event -> sendTestMessage());
+
         masterTemplateField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_MASTER_TEMPLATE));
         masterTemplateField.setWidthFull();
         ResizableTextArea.install(loc, masterTemplateField, "240px");
@@ -346,6 +378,13 @@ public class UserPart implements WorkspaceComponent {
         defaultAgentPromptField.setHelperText(loc.getValue(L.HELP_AGENT_DEFAULT_PROMPT_USER));
         ResizableTextArea.install(loc, defaultAgentPromptField, "160px");
 
+        // plain text; blank is no instructions
+        defaultAgentInstructionsField = new TextArea(loc.getValue(L.LABEL_AGENT_DEFAULT_INSTRUCTIONS));
+        defaultAgentInstructionsField.setWidthFull();
+        defaultAgentInstructionsField.setMaxLength(AgentService.MAX_INSTRUCTIONS_LENGTH);
+        defaultAgentInstructionsField.setHelperText(loc.getValue(L.HELP_AGENT_DEFAULT_INSTRUCTIONS_USER));
+        ResizableTextArea.install(loc, defaultAgentInstructionsField, "160px");
+
         defaultAgentCompactionPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT));
         defaultAgentCompactionPromptField.setWidthFull();
         defaultAgentCompactionPromptField.setHelperText(loc.getValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_USER));
@@ -363,10 +402,57 @@ public class UserPart implements WorkspaceComponent {
         defaultAgentPromptField.setPlaceholder(agentService.getAppDefaultSystemPrompt());
         defaultAgentPromptField.setPopoverContent(TemplateHints.create(loc, defaultAgentPromptField,
                 defaultAgentPromptField.getPopover(), null, agentService.getAppDefaultSystemPrompt()));
+        defaultAgentInstructionsField.setVisible(defaultAgentPromptField.isVisible());
+        boolean webhook = defaultAgentPromptField.isVisible() && agentWebhookService.isAllowed();
+        agentWebhookUrlField.setVisible(webhook);
+        agentWebhookFormatCombo.setVisible(webhook);
+        agentWebhookAlwaysBox.setVisible(webhook);
+        agentWebhookTestButton.setVisible(webhook);
         defaultAgentCompactionPromptField.setVisible(defaultAgentPromptField.isVisible());
         defaultAgentCompactionPromptField.setPlaceholder(agentService.getAppDefaultCompactionPrompt());
         defaultAgentCompactionPromptField.setPopoverContent(TemplateHints.create(loc, defaultAgentCompactionPromptField,
                 defaultAgentCompactionPromptField.getPopover(), null, agentService.getAppDefaultCompactionPrompt()));
+    }
+
+    /**
+     * Sends a message to the address as it stands in the field, saved or not, and tells what the service answered.
+     */
+    /**
+     * The address, its format and the wish for the message while the application is open, into the setting. Only for a user who
+     * sees them: they are hidden where the administrator turned the messages off, and what was set stays then.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "userSetting", type = UserSetting.class)},
+            locals = {@APILocals(name = "url", type = String.class),
+                    @APILocals(name = "problem", type = String.class)})
+    private void saveWebhook(UserSetting userSetting) {
+        if (!agentWebhookUrlField.isVisible()) {
+            return;
+        }
+        String url = agentWebhookUrlField.getValue() == null ? "" : agentWebhookUrlField.getValue().strip();
+        String problem = url.isEmpty() ? null : agentWebhookService.check(url);
+        if (problem != null) {
+            // the rest of the settings are saved, the address is not
+            Notification.warning(problem);
+            return;
+        }
+        userSetting.setAgentWebhookUrl(url.isEmpty() ? null : url);
+        userSetting.setAgentWebhookFormat(agentWebhookFormatCombo.getValue());
+        userSetting.setAgentWebhookAlways(agentWebhookAlwaysBox.getValue() ? Boolean.TRUE : null);
+    }
+
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "problem", type = String.class)})
+    private void sendTestMessage() {
+        String problem = agentWebhookService.sendTest(agentWebhookUrlField.getValue(),
+                agentWebhookFormatCombo.getValue() == null ? WebhookFormat.PLAIN : agentWebhookFormatCombo.getValue());
+        if (problem == null) {
+            Notification.success(loc.getValue(L.MSG_AGENT_WEBHOOK_TEST_OK));
+        } else {
+            Notification.warning(String.format(loc.getValue(L.MSG_AGENT_WEBHOOK_TEST_FAILED), problem));
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -459,6 +545,10 @@ public class UserPart implements WorkspaceComponent {
             defaultSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultSummaryPrompt()));
             defaultMetaSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultMetaSummaryPrompt()));
             defaultAgentPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentPrompt()));
+            defaultAgentInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentInstructions()));
+            agentWebhookUrlField.setValue(StringUtils.defaultString(userSetting.getAgentWebhookUrl()));
+            agentWebhookFormatCombo.setValue(userSetting.getAgentWebhookFormat() == null ? WebhookFormat.PLAIN : userSetting.getAgentWebhookFormat());
+            agentWebhookAlwaysBox.setValue(Boolean.TRUE.equals(userSetting.getAgentWebhookAlways()));
             defaultAgentCompactionPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentCompactionPrompt()));
             refreshAgentPrompt();
             validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class);
@@ -599,6 +689,8 @@ public class UserPart implements WorkspaceComponent {
             if (defaultAgentPromptField.isVisible()) {
                 // hidden for a user who may not use agents: what they once set stays
                 userSetting.setDefaultAgentPrompt(defaultAgentPromptField.getValue());
+                userSetting.setDefaultAgentInstructions(defaultAgentInstructionsField.getValue());
+                saveWebhook(userSetting);
                 userSetting.setDefaultAgentCompactionPrompt(defaultAgentCompactionPromptField.getValue());
             }
 

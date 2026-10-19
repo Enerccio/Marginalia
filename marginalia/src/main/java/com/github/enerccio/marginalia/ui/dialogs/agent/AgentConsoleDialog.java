@@ -87,6 +87,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private static final Set<AgentRunStatus> PAUSABLE = Set.of(AgentRunStatus.RUNNING, AgentRunStatus.IDLE,
             AgentRunStatus.WAITING_APPROVAL);
 
+    // a pause at once cuts off the request and the call that go on; the others pause at once anyway
+    private static final Set<AgentRunStatus> PAUSABLE_NOW = Set.of(AgentRunStatus.RUNNING, AgentRunStatus.PAUSING);
+
     private static final Set<AgentRunStatus> STOPPABLE = Set.of(AgentRunStatus.RUNNING, AgentRunStatus.IDLE,
             AgentRunStatus.WAITING_APPROVAL, AgentRunStatus.PAUSING, AgentRunStatus.PAUSED, AgentRunStatus.STOPPED_KEPT,
             AgentRunStatus.DONE);
@@ -143,6 +146,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private HorizontalLayout pendingRow;
     private final List<PendingImage> pendingImages = new ArrayList<>();
     private Button pauseButton;
+    private Button pauseNowButton;
     private Button resumeButton;
     private Button stopButton;
     private Button finishButton;
@@ -181,6 +185,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         setModality(ModalityMode.STRICT);
         setCloseOnOutsideClick(false);
         setCloseOnEsc(false);
+        UIUtils.fitPhone(this, true);
 
         statusLabel = new Span();
         statusLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
@@ -189,6 +194,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         HorizontalLayout statusRow = new HorizontalLayout(statusLabel, usageLabel);
         statusRow.setWidthFull();
         statusRow.setPadding(false);
+        statusRow.setWrap(true);
         statusRow.setAlignItems(FlexComponent.Alignment.CENTER);
         statusRow.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
@@ -290,6 +296,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
         pauseButton = new Button(loc.getValue(L.LABEL_PAUSE), Solid.PAUSE.create(),
                 event -> perform(() -> agentRunService.pause(run)));
+        pauseNowButton = new Button(loc.getValue(L.LABEL_PAUSE_NOW), Solid.BOLT.create(),
+                event -> perform(() -> agentRunner.pauseNow(run)));
+        pauseNowButton.setTooltipText(loc.getValue(L.HELP_AGENT_PAUSE_NOW));
         resumeButton = new Button(loc.getValue(L.LABEL_RESUME), Solid.PLAY.create(), event -> perform(() -> {
             agentRunner.run(agentRunService.resume(run));
             return null;
@@ -317,8 +326,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         });
         Button refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.ARROWS_ROTATE.create(), event -> refreshRun());
         Button closeButton = new Button(loc.getValue(L.LABEL_CLOSE), event -> close());
-        HorizontalLayout footer = new HorizontalLayout(pauseButton, resumeButton, finishButton, reviewButton, stopButton, refreshButton, closeButton);
+        HorizontalLayout footer = new HorizontalLayout(pauseButton, pauseNowButton, resumeButton, finishButton, reviewButton, stopButton, refreshButton, closeButton);
         footer.setWidthFull();
+        footer.setWrap(true);
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
 
@@ -437,6 +447,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         commandBar.setEnabled(writable || status == AgentRunStatus.PAUSED);
         imageUpload.setEnabled(writable && pendingImages.size() < AgentRunner.MAX_ATTACHED_IMAGES);
         pauseButton.setEnabled(status != null && PAUSABLE.contains(status));
+        pauseNowButton.setEnabled(status != null && PAUSABLE_NOW.contains(status));
         resumeButton.setEnabled(status != null && status.isResumable());
         finishButton.setEnabled(status == AgentRunStatus.IDLE);
         reviewButton.setVisible(status != null && (status == AgentRunStatus.DONE || status == AgentRunStatus.STOPPED_KEPT) && run.getWorkingCopy() != null);
@@ -873,6 +884,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     Button getPauseButton() {
         return pauseButton;
+    }
+
+    Button getPauseNowButton() {
+        return pauseNowButton;
     }
 
     Button getResumeButton() {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845758101830">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845761354262">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845758101830" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845761354262" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845758101830" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845758101830" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845761354262" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -381,6 +381,7 @@ test then only needs the one-token answer.</p>
 |---|---|
 | **Max Context Size** | Required. How many tokens the model accepts in total, prompt and response together. |
 | **Max Response Tokens** | Required. The longest response the model may write. Sent to the API as `max_completion_tokens`, and this much of the context is kept free for the response. Must be lower than *Max Context Size*. |
+| **Concurrent requests of agents** | Optional, for a server that answers one request (or a few) at a time. How many requests of [agents](agents.md#one-model-several-agents) may be on the way to this provider at once, the others wait their turn. Empty is no limit. Your own writing in the story window is not queued. |
 | **Needs Jailbreak**, **Jailbreak Prompt** | An extra prompt for models that refuse to write some content. When checked, the jailbreak prompt is put at the very beginning of the prompt. |
 | **Enable Reasoning**, **Reasoning Effort** | For reasoning (&quot;thinking&quot;) models, see [Reasoning models](#reasoning-models). |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -399,6 +400,10 @@ test then only needs the one-token answer.</p>
 <tr>
 <td><strong>Max Response Tokens</strong></td>
 <td>Required. The longest response the model may write. Sent to the API as <code translate="no" v-pre>max_completion_tokens</code>, and this much of the context is kept free for the response. Must be lower than <em>Max Context Size</em>.</td>
+</tr>
+<tr>
+<td><strong>Concurrent requests of agents</strong></td>
+<td>Optional, for a server that answers one request (or a few) at a time. How many requests of <a href="../agents/#one-model-several-agents">agents</a> may be on the way to this provider at once, the others wait their turn. Empty is no limit. Your own writing in the story window is not queued.</td>
 </tr>
 <tr>
 <td><strong>Needs Jailbreak</strong>, <strong>Jailbreak Prompt</strong></td>
@@ -731,7 +736,7 @@ part; parts written before stay as they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f12e66f9).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (40d1602f).</p></div>
             </footer>
         </div>
     </div>

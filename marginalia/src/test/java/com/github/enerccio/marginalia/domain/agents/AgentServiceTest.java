@@ -366,6 +366,55 @@ class AgentServiceTest extends AgentTestBase {
     }
 
     @Test
+    void theShareAtWhichTheRunIsCompactedIsNeverOrWithinTheLimits() throws Exception {
+        loginAgentUser();
+        Agent agent = newAgent(manuscript());
+
+        for (int allowed : new int[]{0, 50, 90, 99}) {
+            agent.setAutoCompactPercent(allowed);
+            agent = agentService.save(agent);
+            assertThat(agentService.findForUser(agent.getUuid()).getAutoCompactPercent()).isEqualTo(allowed);
+        }
+        for (int refused : new int[]{-1, 10, 49, 100}) {
+            Agent another = newAgent(manuscript());
+            another.setAutoCompactPercent(refused);
+            assertThatThrownBy(() -> agentService.save(another)).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Test
+    void blankInstructionsFollowTheDefaultOfTheUserAndThenAreBlank() throws Exception {
+        loginAgentUser();
+        Agent agent = agent();
+        assertThat(agent.getInstructions()).isBlank();
+        assertThat(agentService.getInstructions(agent)).as("nothing set").isEmpty();
+        assertThat(agentService.getDefaultInstructions()).isEmpty();
+
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDefaultAgentInstructions("Keep the names as they are.");
+        settingService.save(setting);
+        assertThat(agentService.getInstructions(agent)).isEqualTo("Keep the names as they are.");
+        assertThat(agentService.getDefaultInstructions()).isEqualTo("Keep the names as they are.");
+
+        agent.setInstructions("Its own.");
+        agent = agentService.save(agent);
+        assertThat(agentService.getInstructions(agent)).isEqualTo("Its own.");
+        assertThat(agentService.getDefaultInstructions()).as("the placeholder stays the default").isEqualTo("Keep the names as they are.");
+    }
+
+    @Test
+    void theDefaultInstructionsOfAnotherUserDoNotReachTheAgent() throws Exception {
+        loginAgentUser();
+        Agent agent = agent();
+        login();
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDefaultAgentInstructions("Somebody else's instructions");
+        settingService.save(setting);
+
+        assertThat(agentService.getInstructions(agent)).isEmpty();
+    }
+
+    @Test
     void theDefaultOfAnotherUserDoesNotReachTheAgent() throws Exception {
         try {
             loginAgentUser();

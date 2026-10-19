@@ -202,6 +202,8 @@ run or a user did. What a command needs to know about the current state it reads
 asking was decided when it called the command). `CommandService.execute`, `executePositional` and `executeLine` have a form with a last
 argument `scope`; without one the scope of the session of the calling thread is made on that thread.
 
+`getModel()` answers which AI and protocol work that a command starts should use when the user did not choose (a `ModelChoice`; null is "no opinion"). For an agent it is the model of the agent, or the one of its book when the agent was told not to use its own (`Agent.useAgentModel`); the user at the command bar has none, so a command falls back to its own choice (the Lore Generator to the default model of the user, the Arc Outline to the model of the book first). A command of an extension that calls a model must ask it first, or it ignores what the author of the agent decided. A command that writes through the story services asks nothing: the working copy already holds the model (see [Agents](../agents.md#the-working-copy-and-the-lock)). Tools with their own request to a model inside a long-lived agent should also take a place at the AI with `AIGate` (`ManuscriptWriteSupport.placeAt`).
+
 The scope is also the **cage**. `resolveMessage(uuid)`, `resolveLorebook(uuid)` and `resolveEntry(uuid)` find an item by the uuid, and only
 the ones of the book of the scope: the parts of the book, the lorebook of the book and its subbooks however deep, and their entries. A uuid of
 anything else (the original book of a copy, another book, a lorebook the book does not use, a deleted item) is refused with an

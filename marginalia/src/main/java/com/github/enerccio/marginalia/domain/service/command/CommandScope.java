@@ -33,6 +33,22 @@ public interface CommandScope {
     AgentRun getRun();
 
     /**
+     * The AI and the protocol of work a command starts when the user did not choose a model: for an agent the model of the agent
+     * (when its definition says to use it) else the model of its book, so a command of an extension that calls a model (the Lore
+     * Generator) writes with it and not with some default of the user. Null when there is no choice to make here: the user at the
+     * command bar has their own defaults, which the command then uses; the book has no model either.
+     */
+    default ModelChoice getModel() throws Exception {
+        return null;
+    }
+
+    /**
+     * An AI and the protocol to ask it with; the protocol may be null.
+     */
+    record ModelChoice(AI ai, Protocol protocol) {
+    }
+
+    /**
      * Whether an agent calls the command.
      */
     default boolean isAgent() {

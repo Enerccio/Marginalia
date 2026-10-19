@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 /**
  * The commands an agent may call: a table with a check box per command and a selection that sets them all at once
- * (all, none, all that don't change data). A command the agent is allowed that is not registered now (the extension
+ * (all, none, all that don't remove data, and the roles auditor, lore keeper, editor and drafter). A command the agent is allowed that is not registered now (the extension
  * that brought it is not loaded) is not shown but stays allowed when the selection is saved.
  */
 @Configurable(preConstruction = true)
@@ -26,7 +26,7 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * A command as the table shows it.
      */
-    record Row(String name, String humanName, String effect, String description, boolean destructive) {
+    record Row(String name, String humanName, String effect, String description, boolean destructive, boolean readOnly) {
     }
 
     @Autowired
@@ -50,6 +50,7 @@ public class AgentCommandsEditor extends VerticalLayout {
         presetCombo.setItemLabelGenerator(preset -> loc.getValue(preset.getLabel()));
         presetCombo.setPlaceholder(loc.getValue(L.LABEL_COMMAND_SELECTION_CUSTOM));
         presetCombo.setClearButtonVisible(false);
+        presetCombo.setHelperText(loc.getValue(L.HELP_COMMAND_PRESETS));
         presetCombo.addValueChangeListener(event -> {
             if (!loading && event.isFromClient() && event.getValue() != null) {
                 select(event.getValue());
@@ -95,7 +96,8 @@ public class AgentCommandsEditor extends VerticalLayout {
             String description = definition.llmDescription().isEmpty()
                     ? definition.description().get(loc) : definition.llmDescription().get(loc);
             rows.add(new Row(definition.commandName(), definition.humanName().get(loc),
-                    loc.getValue(definition.dataSeverity().getLabel()), description == null ? "" : description, destructive));
+                    loc.getValue(definition.dataSeverity().getLabel()), description == null ? "" : description, destructive,
+                    definition.readOnly()));
         }
         rows.sort(Comparator.comparing(Row::humanName, loc.createLocaleComparator()));
         grid.setItems(rows);
@@ -136,7 +138,7 @@ public class AgentCommandsEditor extends VerticalLayout {
     public void select(AgentCommandPreset preset) {
         selected.clear();
         for (Row row : rows) {
-            if (preset == AgentCommandPreset.ALL || (preset == AgentCommandPreset.NON_DESTRUCTIVE && !row.destructive())) {
+            if (preset.includes(row)) {
                 selected.add(row.name());
             }
         }
@@ -193,15 +195,13 @@ public class AgentCommandsEditor extends VerticalLayout {
         if (rows.isEmpty()) {
             return null;
         }
-        Set<String> all = rows.stream().map(Row::name).collect(Collectors.toSet());
-        Set<String> readOnly = rows.stream().filter(row -> !row.destructive()).map(Row::name).collect(Collectors.toSet());
-        if (selected.equals(all)) {
-            return AgentCommandPreset.ALL;
+        for (AgentCommandPreset preset : AgentCommandPreset.values()) {
+            Set<String> names = rows.stream().filter(preset::includes).map(Row::name).collect(Collectors.toSet());
+            if (selected.equals(names)) {
+                return preset;
+            }
         }
-        if (selected.isEmpty()) {
-            return AgentCommandPreset.NONE;
-        }
-        return selected.equals(readOnly) ? AgentCommandPreset.NON_DESTRUCTIVE : null;
+        return null;
     }
 
     private void changed() {

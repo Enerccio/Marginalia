@@ -119,7 +119,7 @@ public class Main extends LoginCheckRoute implements LLMInteract {
             UiProblems.attach(sessionPoint);
 
             ExtendedClientDetails details = UI.getCurrent().getPage().getExtendedClientDetails();
-            boolean isPhone = details != null && details.getBodyClientWidth() < 768;
+            boolean isPhone = details != null && details.getBodyClientWidth() < UIUtils.PHONE_MAX_WIDTH_PX;
 
             Workspace workspace = isPhone ? new PhoneWorkspace() : new DesktopWorkspace();
             User referenceCopy = new User();

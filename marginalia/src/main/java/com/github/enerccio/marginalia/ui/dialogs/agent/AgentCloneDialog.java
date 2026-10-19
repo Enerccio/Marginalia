@@ -57,6 +57,7 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_CLONE_AGENT));
         setWidth("460px");
+        UIUtils.fitPhone(this, false);
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
 

@@ -166,6 +166,17 @@ public class LocalizationImpl implements Localization, InitializingBean {
     }
 
     @Override
+    public String getValue(Language language, L l) {
+        LocalizationBundle bundle = language == null ? null : bundles.get(language);
+        String text = bundle == null ? null : bundle.getValue(l);
+        if (text == null) {
+            LocalizationBundle fallback = bundles.get(defaultLanguage);
+            text = fallback == null ? null : fallback.getValue(l);
+        }
+        return text == null ? "NOT LOCALIZED!" : text;
+    }
+
+    @Override
     public String getValue(L l) {
         String text = currentBundle().getValue(l);
         if (text == null) {

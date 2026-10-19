@@ -466,6 +466,23 @@ class WorkspaceStateTest extends MarginaliaTestBase {
     }
 
     @Test
+    void phoneWorkspaceHasTheAgentsTabOnlyForAUserWhoMayUseAgents() throws Exception {
+        com.github.enerccio.marginalia.domain.security.model.User user = login();
+        Workspace without = new PhoneWorkspace();
+        without.create();
+        assertThat(without.getInteraction()).doesNotContainKey("open-section:Agents");
+
+        setPermission(user, com.github.enerccio.marginalia.domain.security.permissions.PermissionType.AGENTS, true);
+        Workspace with = new PhoneWorkspace();
+        with.create();
+        with.refresh();
+
+        assertThat(with.getInteraction()).containsKey("open-section:Agents");
+        with.getInteraction().get("open-section:Agents").action().run();
+        assertThat(with.storeState().get("tab").getAsString()).isEqualTo("agents");
+    }
+
+    @Test
     void workspaceIgnoresAStateOfAnotherShape() throws Exception {
         login();
         Workspace workspace = new PhoneWorkspace();
