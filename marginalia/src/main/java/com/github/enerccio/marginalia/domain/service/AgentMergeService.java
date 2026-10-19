@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan;
+import com.github.enerccio.marginalia.domain.service.agent.SyncReport;
 
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,23 @@ public interface AgentMergeService {
      * @throws IllegalStateException    when the run has no copy to take over
      */
     MergeResult apply(AgentRun run, MergeSelection selection) throws Exception;
+
+    /**
+     * The sync of a resume: brings the changes the user made to the book since the run started into the working copy, item by
+     * item and field by field, and tells what it did. What the user changed and the agent did not is taken over; what both changed
+     * to different values is not (the copy keeps the version of the agent and the review shows the conflict); what the user
+     * deleted and the agent did not change is deleted from the copy; what the user added comes into the copy, with a pair of its
+     * own. The base snapshot is moved forward only for what was taken over, so the review still compares everything else with the
+     * book as it was when the run started. The state of the copy before is saved as an automatic checkpoint, when there is room.
+     * Nothing changes when the user changed nothing.
+     * <p>
+     * The run must be resumable ({@code PAUSED} or {@code STOPPED_KEPT}) and have its copy; call it before the status changes.
+     *
+     * @return the report, which is also kept for {@code get_sync_report} and told to the model when the runner goes on
+     * @throws IllegalArgumentException when the run is not a run of the user, or its book is gone
+     * @throws IllegalStateException    when the run can't be resumed or has no copy
+     */
+    SyncReport sync(AgentRun run) throws Exception;
 
     /**
      * @param items                the ids of the items to apply ({@link MergePlan.Item#id()})

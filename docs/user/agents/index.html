@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845747437228">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845749385605">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845747437228" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845749385605" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845747437228" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845749385605" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845747437228" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845749385605" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -293,6 +293,7 @@ these of its own:</p>
 | `update_plan` | Its to-do list. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
 | `checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete` | Its [checkpoints](#checkpoints): saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need. |
+| `get_sync_report` | Lists again what you changed in the book while the run was paused and what of it came into the agent's copy, see [Resuming a run](#resuming-a-run). |
 | `request_compaction` | Compacts its own context: when the round ends it writes the summary of its earlier work, as with `/compact`. It is told to save its notes to a file first. See [Context filling up](#running-a-command-yourself). |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
 | `finish` | Its report: the run is *Done*. The report is shown as the reason of the status. |">
@@ -336,6 +337,10 @@ these of its own:</p>
 <tr>
 <td><code translate="no" v-pre>checkpoint</code>, <code translate="no" v-pre>checkpoint_list</code>, <code translate="no" v-pre>checkpoint_restore</code>, <code translate="no" v-pre>checkpoint_delete</code></td>
 <td>Its <doc-anchor-trigger to="#checkpoints">checkpoints</doc-anchor-trigger>: saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>get_sync_report</code></td>
+<td>Lists again what you changed in the book while the run was paused and what of it came into the agent&#x27;s copy, see <doc-anchor-trigger to="#resuming-a-run">Resuming a run</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>request_compaction</code></td>
@@ -449,6 +454,15 @@ agent does, it does to the copy; your book stays as it was.</p>
 <p>A paused run keeps its copy and works on it again when you resume it. A run that is <em>Done</em>, or that you stopped and kept, keeps it until you
 <doc-anchor-trigger to="#reviewing-the-result">take over its result or discard it</doc-anchor-trigger>. When the run is <em>Failed</em>, you discard its result, or its changes are applied, the copy is deleted for good, and the next run
 makes a new one from the book as it is then.</p>
+<h2 id="resuming-a-run">Resuming a run</h2>
+<p>A paused or kept run does not hold the lock on your book, so you can edit the book meanwhile. When you <strong>Resume</strong> the run, its working copy catches up with what you did:</p>
+<ul>
+<li>What you changed and the agent did not (a part, a lorebook entry, a setting, a tag...) comes into the copy. A part you added comes in too and the agent can build on it; what you deleted is deleted from the copy.</li>
+<li>What you and the agent both changed to different texts <strong>stays as the agent has it</strong>: nothing the agent did is lost. It is a <doc-anchor-trigger to="#reviewing-the-result">conflict</doc-anchor-trigger> that you resolve when you review the result, with both texts in front of you.</li>
+<li>What you changed and the agent deleted stays deleted, and what you deleted and the agent changed stays in the copy; the review shows both.</li>
+</ul>
+<p>Nothing needs a click: the sync is part of resuming, and it takes a moment (a few seconds when you changed hundreds of items). The state of the copy before it is saved as an automatic <doc-anchor-trigger to="#checkpoints">checkpoint</doc-anchor-trigger>. The agent is told what happened, by the names it knows
+the items by, in a message when it goes on (&quot;While the run was paused the user changed the book...&quot;), and can ask again with <code translate="no" v-pre>get_sync_report</code>. To tell it something more, write to the run as usual.</p>
 <h2 id="reviewing-the-result">Reviewing the result</h2>
 <p>When a run is <em>Done</em> (or you stopped it with <strong>Stop and keep the result</strong>) the agent row and the console have a <strong>Review changes</strong> button. It opens a window with
 everything the agent changed, compared with your book <strong>as it is now</strong>, one line each:</p>
@@ -617,7 +631,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (8c133fab).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (d4f5280c).</p></div>
             </footer>
         </div>
     </div>

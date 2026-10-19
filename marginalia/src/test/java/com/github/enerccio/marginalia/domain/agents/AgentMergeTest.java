@@ -301,7 +301,7 @@ class AgentMergeTest extends AgentTestBase {
         assertThat(inn.label()).isEqualTo("places / inn");
         assertThat(inn.dependsOn()).isNull();
         Item added = item(plan, Kind.LOREBOOK, Change.ADDED, "swamp");
-        assertThat(added.copyUuid()).isEqualTo(swamp.getUuid());
+        assertThat(added.sourceUuid()).isEqualTo(swamp.getUuid());
         Item parent = item(plan, Kind.LOREBOOK, Change.CHANGED, "lore");
         assertThat(field(parent, "subbooks").agent()).contains(MergeDiff.NEW + swamp.getUuid());
     }

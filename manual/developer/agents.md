@@ -69,7 +69,7 @@ flowchart LR
 | `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
 | `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `request_compaction`, `get_run_status`. |
 | `CheckpointTools`, `CheckpointService`, `CheckpointStore` | `domain.service.agent`, `domain.service` | The checkpoint tools (`checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete`), the service behind them and the console, and the ZIP files; see [Checkpoints](#checkpoints). |
-| `AgentMergeService`, `MergeDiff`, `MergePlan` | `domain.service`, `domain.service.agent` | Compares the copy with the base and the book now and applies the changes the user picked; see [Merge and apply](#merge-and-apply). |
+| `AgentMergeService`, `MergeDiff`, `MergePlan`, `BaseAdvance`, `SyncReport`, `SyncTools` | `domain.service`, `domain.service.agent` | Compares the copy with the base and the book now and applies the changes the user picked; brings the changes of the user into the copy on a resume; see [Merge and apply](#merge-and-apply). |
 | `ImageTools`, `ImageFiles`, `ShownImages` | `domain.service.agent` | `view_image` (only for a profile with `images`), the image checks and scaling, and the images asked for in a round; see [Images](#images). |
 | `CommandResults` | `domain.service.agent` | The last 10 results of the commands of a run, whole. |
 | `AgentApprovalService`, `AgentAttentionService` | `domain.service` | Bring the user in: approve a command, a notice that a run needs them. |
@@ -408,6 +408,15 @@ makes a copy). The plan is made again inside the transaction, so the picked ids 
 of its part), deleted ones (`deleteNodeAndMigrateChildren`, to the trash), and the summaries (the summary a part already has is written in place so that meta summaries still find it by uuid; the links inside new
 ones are translated at the end). The picked text of the user comes in `MergeSelection.edits` (item id -> field -> text), only for the `editable` fields. The services are called as for an edit by the user (their events are
 sent). Anything that fails rolls the changes back and the run stays `DONE`; if only the second transaction fails the changes are in and the run still waits, discarding it ends it.
+
+**Sync on resume** is the same comparison with the roles swapped. `MergeDiff.computeSync(base, book, copy, pairs)` takes the book as the side that changed and the copy as the side that takes it over (`Item.sourceUuid` / `targetUuid` are the item in
+the book and in the copy; in a review they are the copy and the book), and the `Applier` works on a `Direction` (source book, target book, the pairs in the direction needed, and how a key of the plan becomes a uuid of the target). `AgentRunServiceImpl.resume`
+calls `AgentMergeService.sync(run)` before the status changes. The base is **not** advanced as a whole, so that the review still sees what the sync did not take over; `BaseAdvance` moves it only for what was taken over (the new items are added to it, the fields
+changed get the value of the book), otherwise a later change of the agent to a value that came from the user would look like a change both sides made. A field both changed (`Field.conflict`) is left to the copy and reported; an item the copy lacks
+(`PROBLEM_GONE`, `PROBLEM_NEEDS_PARENT`) is a conflict line too. The items the sync creates in the copy are recorded as pairs (`Applier.created`), so they have handles, and `BaseAdvance` and the pairs are stored in the same transaction as the changes (the base file
+is replaced when it commits: `AgentVirtualFileSystemService.updateBase`). The result is a `SyncReport` (lines by handle, `text()` for the model); it is written to `base/sync-report.txt` with a `base/sync-pending` mark
+(`writeSyncReport`, after the commit), the runner's `prepare` takes the mark (`takePendingSync`) and puts the report in front of the model as a user message, with the "go on" sentence, and the tool `get_sync_report` (`SyncTools`) reads the file. A resume of a run
+whose book did not change takes 0.1 s and writes nothing; one with a hundred changed parts of a book of 2000 parts takes about 3.5 s. A lorebook the sync makes in the copy is `agentic`.
 
 The screen is `AgentMergeDialog`: a multi-select grid of the items beside the detail of the one clicked (the text of the book and an editable box of the text to apply, the added and removed values of a set), opened from
 the Agents tab and the console (`Review changes`). It keeps the picks consistent with `dependsOn` and refuses to pick a `problem` item.

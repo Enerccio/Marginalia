@@ -114,6 +114,36 @@ public interface AgentVirtualFileSystemService {
     JsonObject readBase(AgentRun run) throws Exception;
 
     /**
+     * Replaces the base snapshot of a run that keeps its copy, when the transaction commits (the files are not brought back by
+     * a rollback, and a base that does not go with the copy is worse than the old one). The old file is replaced whole.
+     *
+     * @throws IllegalArgumentException when the run is not a run of the user
+     */
+    void updateBase(AgentRun run, JsonObject base) throws Exception;
+
+    /**
+     * Keeps the report of the sync a resume made (the changes of the user that were taken into the copy and the ones that
+     * conflicted), in the folder of the base, when the transaction commits; it is what {@code get_sync_report} answers. The
+     * report also waits to be told to the model ({@link #takePendingSync}). A null report removes the previous one.
+     *
+     * @throws IllegalArgumentException when the run is not a run of the user
+     */
+    void writeSyncReport(AgentRun run, String report) throws Exception;
+
+    /**
+     * The report of the last sync of the run; null when it had none.
+     *
+     * @throws IllegalArgumentException when the run is not a run of the user
+     */
+    String readSyncReport(AgentRun run) throws Exception;
+
+    /**
+     * The report of a sync the model was not told of yet, and marks it as told; null when there is none. No check of the
+     * owner: the runner asks for the run it works.
+     */
+    String takePendingSync(AgentRun run);
+
+    /**
      * Deletes the base snapshot of a run that has let go of its working copy, nothing is compared with it any more. The
      * file goes when the transaction commits.
      */

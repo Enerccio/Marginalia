@@ -78,6 +78,10 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
 
     @Autowired
     @Lazy
+    private AgentMergeService mergeService;
+
+    @Autowired
+    @Lazy
     private AgentApprovalService approvalService;
 
     @Autowired
@@ -187,6 +191,9 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
             AgenticCopy copy = manuscriptService.createAgenticCopy(stored.getManuscript());
             getRepository().updateWorkingCopy(run.getId(), copy.manuscript());
             storeCopyRecords(current, copy);
+        } else if (current != null) {
+            // the book may have changed while the run was away: the copy takes over what the agent did not change too
+            mergeService.sync(current);
         }
         return transition(run, AgentRunStatus.RUNNING, null);
     }

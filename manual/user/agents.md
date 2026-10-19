@@ -61,6 +61,7 @@ these of its own:
 | `update_plan` | Its to-do list. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
 | `checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete` | Its [checkpoints](#checkpoints): saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need. |
+| `get_sync_report` | Lists again what you changed in the book while the run was paused and what of it came into the agent's copy, see [Resuming a run](#resuming-a-run). |
 | `request_compaction` | Compacts its own context: when the round ends it writes the summary of its earlier work, as with `/compact`. It is told to save its notes to a file first. See [Context filling up](#running-a-command-yourself). |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
 | `finish` | Its report: the run is *Done*. The report is shown as the reason of the status. |
@@ -173,6 +174,17 @@ agent does, it does to the copy; your book stays as it was.
 A paused run keeps its copy and works on it again when you resume it. A run that is *Done*, or that you stopped and kept, keeps it until you
 [take over its result or discard it](#reviewing-the-result). When the run is *Failed*, you discard its result, or its changes are applied, the copy is deleted for good, and the next run
 makes a new one from the book as it is then.
+
+## Resuming a run
+
+A paused or kept run does not hold the lock on your book, so you can edit the book meanwhile. When you **Resume** the run, its working copy catches up with what you did:
+
+- What you changed and the agent did not (a part, a lorebook entry, a setting, a tag...) comes into the copy. A part you added comes in too and the agent can build on it; what you deleted is deleted from the copy.
+- What you and the agent both changed to different texts **stays as the agent has it**: nothing the agent did is lost. It is a [conflict](#reviewing-the-result) that you resolve when you review the result, with both texts in front of you.
+- What you changed and the agent deleted stays deleted, and what you deleted and the agent changed stays in the copy; the review shows both.
+
+Nothing needs a click: the sync is part of resuming, and it takes a moment (a few seconds when you changed hundreds of items). The state of the copy before it is saved as an automatic [checkpoint](#checkpoints). The agent is told what happened, by the names it knows
+the items by, in a message when it goes on ("While the run was paused the user changed the book..."), and can ask again with `get_sync_report`. To tell it something more, write to the run as usual.
 
 ## Reviewing the result
 
