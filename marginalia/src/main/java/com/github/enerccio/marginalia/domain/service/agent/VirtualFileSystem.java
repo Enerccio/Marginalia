@@ -176,6 +176,22 @@ public final class VirtualFileSystem {
     }
 
     /**
+     * Copies a file or a folder to a name that is not taken.
+     *
+     * @return the files and bytes copied
+     * @throws VirtualFileException when the source is missing, the target exists, a folder would go into itself, the
+     *                              copy does not fit the limits, or the paths are not on the same mount that can be changed
+     */
+    public WorkspaceUsage copy(VirtualPath from, VirtualPath to) {
+        VirtualMount source = mountFor(from);
+        VirtualMount target = writableMountFor(to);
+        if (source != target) {
+            throw new VirtualFileException("A file can't be copied between " + from + " and " + to);
+        }
+        return target.copy(from, to);
+    }
+
+    /**
      * The virtual path of a real one, what every output to the model goes through.
      *
      * @throws VirtualFileException when no mount holds the path, which is also how a stray real path is kept from

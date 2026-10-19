@@ -43,8 +43,6 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Generates the content of a lore entry: a generation from the lore and a prompt, then a compaction of the result.
@@ -54,7 +52,6 @@ import java.util.regex.Pattern;
 public class LoreGeneratorDialog extends Dialog {
 
     /** The whole text is one fenced code block, which the default compaction prompt asks for. */
-    private static final Pattern FENCED = Pattern.compile("\\A\\s*```[^\\n]*\\n(.*?)\\n?```\\s*\\z", Pattern.DOTALL);
 
     @Autowired
     private Localization loc;
@@ -534,7 +531,7 @@ public class LoreGeneratorDialog extends Dialog {
     private void copyToEntry() {
         try {
             LorebookEntry fresh = lorebookEntryService.find(entry);
-            fresh.setPayload(unfence(compactionPane.content()));
+            fresh.setPayload(LoreGeneratorService.unfence(compactionPane.content()));
             fresh.setComment(generationPane.content());
             // the options of this generation, the generator of the entry opens with them
             service.putEntryGeneration(fresh, currentGeneration());
@@ -546,12 +543,4 @@ public class LoreGeneratorDialog extends Dialog {
         }
     }
 
-    /**
-     * The default compaction prompt asks for the entry in a fenced code block to be copyable, the entry should not
-     * contain the fence.
-     */
-    static String unfence(String text) {
-        Matcher matcher = FENCED.matcher(text);
-        return matcher.matches() ? matcher.group(1) : text.strip();
-    }
 }

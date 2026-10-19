@@ -30,6 +30,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.tabs.TabSheetVariant;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.shared.Registration;
@@ -204,6 +205,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
         tabs = new TabSheet();
         tabs.setSizeFull();
+        // the workspace wants every pixel, the other tabs keep a small padding of their own
+        tabs.addThemeVariants(TabSheetVariant.LUMO_NO_PADDING);
+        runTab.addClassName(CssStyles.PADDING_COMPACT);
+        history.addClassName(CssStyles.PADDING_COMPACT);
         tabs.add(loc.getValue(L.LABEL_AGENT_RUN), runTab);
         tabs.add(loc.getValue(L.LABEL_AGENT_RUNS), history);
         tabs.add(loc.getValue(L.LABEL_AGENT_WORKSPACE), workspaceBrowser);

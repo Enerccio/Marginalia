@@ -704,7 +704,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d files, %s of %s");
         setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "Delete all the files in the workspace of the agent? The notes the agent keeps there are lost.");
         setValue(L.MSG_AGENT_FILE_NOT_TEXT, "This file is not text. Download it to see it.");
-        setValue(L.MSG_AGENT_FILE_CUT, "The file is longer, only the beginning is shown.");
+        setValue(L.MSG_AGENT_FILE_CUT, "The file is longer: only the first %d of %d characters are shown (… truncated), download it to read the rest.");
         setValue(L.MSG_AGENT_WORKSPACE_BUSY, "The agent is working. Pause it to change its files.");
         setValue(L.MSG_AGENT_APPROVAL_QUESTION, "The agent \"%s\" wants to run the command %s, which changes or removes data. It works on its own copy of the book, nothing outside it is touched.");
         setValue(L.MSG_AGENT_NOTICE_IDLE, "The agent \"%s\" waits for you.");

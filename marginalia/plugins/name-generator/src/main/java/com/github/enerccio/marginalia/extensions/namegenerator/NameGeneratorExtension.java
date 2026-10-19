@@ -1,9 +1,6 @@
 package com.github.enerccio.marginalia.extensions.namegenerator;
 
-import com.github.enerccio.marginalia.domain.service.ExtensionService;
-import com.github.enerccio.marginalia.domain.service.FunctionRegistry;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.OsgiService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import org.osgi.framework.Bundle;
@@ -28,6 +25,12 @@ public class NameGeneratorExtension implements MarginaliaExtension {
     @Autowired
     private InferenceServices inferenceServices;
 
+    @Autowired
+    private CommandService commandService;
+
+    /** Kept to unregister it, the service takes the object. */
+    private NameGeneratorCommands commands;
+
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
@@ -36,10 +39,16 @@ public class NameGeneratorExtension implements MarginaliaExtension {
         // fails the load when the interface is not a valid set of functions
         int count = registry.definitionsOf(NameGeneratorFunctions.class).size();
         log.info("Name generator loaded with {} functions and categories {}", count, tables.categories());
+        commands = new NameGeneratorCommands(tables);
+        commandService.registerCommands(commands);
     }
 
     @Override
     public void onExtensionUnload(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
+        if (commands != null) {
+            commandService.unregisterCommands(commands);
+            commands = null;
+        }
     }
 
     /** The titles of the categories the functions can generate. */

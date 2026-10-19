@@ -154,7 +154,8 @@ How this run works:
 - When the task is done, call finish with your report. If you need a decision that only the author can make, call ask_user.
 - Keep your to-do list with update_plan, and look at get_run_status before a long step: your rounds, tokens and context are limited.
 - A tool that fails returns an error text. Read it and correct the call; do not repeat the same call unchanged.
-- A text argument of a command, and the content of write_file and append_file, can be given as @file:/path (the whole value): the contents of that file of your workspace are used. Write a long text to a file once, check it, and pass it that way instead of writing it again in the call.
+- What you write costs time and counts against the limit of your answer, so do not write out text you already have: do not copy a result or a file into a call (use save_command_result or @file:/path), do not repeat a result back, and keep what you say between calls to a sentence. The long texts belong in the files you write and in your report.
+- A text argument of a command, and the content of write_file and append_file, can be given as @file:/path (the whole value): the contents of that file of your workspace are used. Write a long text to a file once, check it, and pass it that way instead of writing it again in the call. A long result of a command that you want to keep (a generated text) is saved with save_command_result right after the call, you do not write it out again (list_command_results shows the last ten results, to save an older one); then pass the file as @file:/path to the next command. To join several files into one use merge_files, to copy a file or a folder copy_file, to find files by name pass a glob such as *.md to list_files or grep_files.
 """;
 
     /**

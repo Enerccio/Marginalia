@@ -27,6 +27,18 @@ A list with fewer names than asked for returns all of them. The model is told (s
 Generator and the Arc Outline) to pick a name from what it gets and to write it as it was returned, with the original next
 to it when that suits the setting; it may combine a forename with a surname of the same country.
 
+## Commands
+
+The same names are available as [commands](../commands/index.md), for the command line and for [agents](../agents.md),
+which can use them in their own prompts (for example for `/generate-lore-entry` of the [Lore Generator](lore-generator.md)):
+
+| Command | What it does |
+|---|---|
+| `/list-real-name-lists` | Lists the lists as a JSON array. |
+| `/pick-real-names list count` | Picks up to 100 names of the list at random and returns them as a JSON array of pairs, the romanized name and the original one. |
+
+Both only read.
+
 ## Lists
 
 There are about 180 lists, named `<Country> - Surnames` and `<Country> - Forenames`: surnames of 75 countries and forenames of

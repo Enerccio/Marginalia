@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
@@ -22,6 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Configurable
 public class LoreGeneratorService {
@@ -48,6 +53,9 @@ public class LoreGeneratorService {
         UP_TO_POSITION,
         ALL_ENTRIES
     }
+
+    /** The compaction prompt asks for a fenced block to be copyable, an entry should not contain the fence. */
+    private static final Pattern FENCED = Pattern.compile("\\A\\s*```[^\\n]*\\n(.*?)\\n?```\\s*\\z", Pattern.DOTALL);
 
     /** The model and the protocol the generation runs with, taken from the user settings. */
     public record ModelSelection(AI ai, Protocol protocol) {
@@ -330,4 +338,55 @@ public class LoreGeneratorService {
             return payload;
         }
     }
+
+    /**
+     * The text without the code fence the compaction prompt asks the model to wrap it in; the stripped text when there
+     * is no fence.
+     */
+    public static String unfence(String text) {
+        Matcher matcher = FENCED.matcher(text);
+        return matcher.matches() ? matcher.group(1) : text.strip();
+    }
+
+    /**
+     * Asks the model and waits for the whole answer (without its reasoning). The request is cancelled when the waiting
+     * thread is interrupted, which is how a stopped command ends.
+     *
+     * @throws CancellationException when the request was cancelled
+     */
+    public String complete(ModelSelection model, List<LLMChatMessage> payload) throws Exception {
+        CompletableFuture<String> answer = new CompletableFuture<>();
+        CancellationToken token = inferenceServices.forAIOrThrow(model.ai()).infer(payload, model.protocol(),
+                new InferenceService.InferenceResultCallback() {
+                    @Override
+                    public void onResult(String text, SchemaCheck check) {
+                        answer.complete(text);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        answer.cancel(false);
+                    }
+
+                    @Override
+                    public void onError(Throwable exception) {
+                        answer.completeExceptionally(exception);
+                    }
+
+                    @Override
+                    public boolean isDead() {
+                        return answer.isDone();
+                    }
+                });
+        try {
+            return answer.get();
+        } catch (InterruptedException e) {
+            token.cancel();
+            Thread.currentThread().interrupt();
+            throw new CancellationException("The request was stopped");
+        } catch (java.util.concurrent.ExecutionException e) {
+            throw e.getCause() instanceof Exception cause ? cause : e;
+        }
+    }
+
 }

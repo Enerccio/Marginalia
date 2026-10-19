@@ -704,7 +704,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_WORKSPACE_USAGE, "%d 個のファイル、%s / %s");
         setValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE, "エージェントのワークスペースのすべてのファイルを削除しますか？エージェントがそこに保存したメモは失われます。");
         setValue(L.MSG_AGENT_FILE_NOT_TEXT, "このファイルはテキストではありません。ダウンロードして確認してください。");
-        setValue(L.MSG_AGENT_FILE_CUT, "ファイルが長いため、先頭のみ表示しています。");
+        setValue(L.MSG_AGENT_FILE_CUT, "ファイルが長いため、%d 文字目まで（全 %d 文字）のみ表示しています（…省略）。残りはダウンロードして確認してください。");
         setValue(L.MSG_AGENT_WORKSPACE_BUSY, "エージェントが作業中です。ファイルを変更するには一時停止してください。");
         setValue(L.MSG_AGENT_APPROVAL_QUESTION, "エージェント「%s」がデータを変更または削除するコマンド %s を実行しようとしています。エージェントは本のコピー上で作業しており、それ以外には影響しません。");
         setValue(L.MSG_AGENT_NOTICE_IDLE, "エージェント「%s」があなたを待っています。");

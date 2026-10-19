@@ -232,6 +232,129 @@ final class WorkspaceMount implements VirtualMount {
     }
 
     @Override
+    public WorkspaceUsage copy(VirtualPath from, VirtualPath to) {
+        if (from.isRoot() || to.isRoot()) {
+            throw new VirtualFileException("The workspace itself can't be copied");
+        }
+        if (to.startsWith(from)) {
+            throw new VirtualFileException(from.equals(to) ? "The source and the target are the same"
+                    : "A folder can't be copied into itself");
+        }
+        lock.lock();
+        try {
+            Path source = resolve(from, false);
+            BasicFileAttributes attributes = attributes(source);
+            if (attributes == null) {
+                throw new VirtualFileException("There is nothing at " + from);
+            }
+            if (attributes(resolve(to, false)) != null) {
+                throw new VirtualFileException(to + " exists already; delete it first or choose another name");
+            }
+            // everything is checked before a folder is created or a byte is copied
+            WorkspaceUsage size = measure(source, to);
+            WorkspaceUsage usage = usage();
+            if (usage.files() + size.files() > limits.maxFiles()) {
+                throw new VirtualFileException("The copy would make " + (usage.files() + size.files()) + " files, the workspace "
+                        + "has room for " + limits.maxFiles() + "; delete files you don't need");
+            }
+            if (usage.bytes() + size.bytes() > limits.maxTotalBytes()) {
+                throw new VirtualFileException("The workspace would be larger than its limit of " + limits.maxTotalBytes()
+                        + " bytes; delete files you don't need");
+            }
+            Path target = resolve(to, true);
+            checkNewName(target.getParent(), to.getName(), to.getDepth() == 1);
+            Path temp = attributes.isDirectory() ? Files.createTempDirectory(target.getParent(), TEMP_PREFIX)
+                    : Files.createTempFile(target.getParent(), TEMP_PREFIX, null);
+            try {
+                copyTree(source, temp);
+                try {
+                    Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE);
+                } catch (AtomicMoveNotSupportedException e) {
+                    Files.move(temp, target);
+                }
+            } finally {
+                if (Files.exists(temp, LinkOption.NOFOLLOW_LINKS)) {
+                    deleteTree(temp);
+                }
+            }
+            return size;
+        } catch (IOException e) {
+            throw new VirtualFileException(from + " can't be copied", e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * The files and bytes of a file or a folder; refuses a copy to {@code to} that would be too deep or have too long
+     * a path, since the paths below the target are made by the copy and not by {@link VirtualPath}.
+     */
+    private static WorkspaceUsage measure(Path source, VirtualPath to) throws IOException {
+        int[] files = {0};
+        long[] bytes = {0};
+        Files.walkFileTree(source, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                check(dir);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                if (attrs.isRegularFile() && !file.getFileName().toString().startsWith(TEMP_PREFIX)) {
+                    check(file);
+                    files[0]++;
+                    bytes[0] += attrs.size();
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            private void check(Path path) {
+                Path relative = source.relativize(path);
+                int depth = to.getDepth() + relative.getNameCount() - (relative.toString().isEmpty() ? 1 : 0);
+                int length = to.toString().length() + relative.toString().length() + 1;
+                if (depth > VirtualPath.MAX_DEPTH) {
+                    throw new VirtualFileException("The copy would be deeper than " + VirtualPath.MAX_DEPTH + " folders");
+                }
+                if (length > VirtualPath.MAX_PATH_LENGTH) {
+                    throw new VirtualFileException("The copy would have paths longer than " + VirtualPath.MAX_PATH_LENGTH
+                            + " characters");
+                }
+            }
+        });
+        return new WorkspaceUsage(files[0], bytes[0]);
+    }
+
+    /**
+     * Copies a file over {@code target} (an empty temporary file), or the files and folders of a folder into
+     * {@code target} (an empty temporary folder); links and anything else are left out.
+     */
+    private static void copyTree(Path source, Path target) throws IOException {
+        if (Files.isRegularFile(source, LinkOption.NOFOLLOW_LINKS)) {
+            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            return;
+        }
+        Files.walkFileTree(source, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                Path copy = target.resolve(source.relativize(dir).toString());
+                if (!Files.isDirectory(copy, LinkOption.NOFOLLOW_LINKS)) {
+                    Files.createDirectory(copy);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (attrs.isRegularFile() && !file.getFileName().toString().startsWith(TEMP_PREFIX)) {
+                    Files.copy(file, target.resolve(source.relativize(file).toString()));
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    @Override
     public VirtualPath toVirtual(Path real) {
         Path path = real.toAbsolutePath().normalize();
         Path base = path.startsWith(realRoot) ? realRoot : path.startsWith(root) ? root : null;

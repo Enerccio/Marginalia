@@ -9,6 +9,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -176,12 +177,12 @@ class AgentFileToolsTest {
         write("/notes/plot.md", "12345");
         write("/readme.md", "x");
 
-        assertThat(ok(a -> tools.listFiles(a, null, false))).isEqualTo("/checkpoints/  (folder)\n/notes/  (folder)\n/readme.md  (1 bytes)");
-        assertThat(ok(a -> tools.listFiles(a, "/notes", false))).isEqualTo("/notes/plot.md  (5 bytes)");
-        assertThat(ok(a -> tools.listFiles(a, "/", true))).isEqualTo("/checkpoints/  (folder)\n/notes/  (folder)\n/notes/plot.md  (5 bytes)\n/readme.md  (1 bytes)");
-        assertThat(ok(a -> tools.listFiles(a, "/checkpoints", false))).isEqualTo("/checkpoints is empty");
-        assertThat(error(a -> tools.listFiles(a, "/missing", false))).contains("no folder");
-        assertThat(error(a -> tools.listFiles(a, "/readme.md", false))).contains("not a folder");
+        assertThat(ok(a -> tools.listFiles(a, null, false, null))).isEqualTo("/checkpoints/  (folder)\n/notes/  (folder)\n/readme.md  (1 bytes)");
+        assertThat(ok(a -> tools.listFiles(a, "/notes", false, null))).isEqualTo("/notes/plot.md  (5 bytes)");
+        assertThat(ok(a -> tools.listFiles(a, "/", true, null))).isEqualTo("/checkpoints/  (folder)\n/notes/  (folder)\n/notes/plot.md  (5 bytes)\n/readme.md  (1 bytes)");
+        assertThat(ok(a -> tools.listFiles(a, "/checkpoints", false, null))).isEqualTo("/checkpoints is empty");
+        assertThat(error(a -> tools.listFiles(a, "/missing", false, null))).contains("no folder");
+        assertThat(error(a -> tools.listFiles(a, "/readme.md", false, null))).contains("not a folder");
     }
 
     @Test
@@ -195,7 +196,7 @@ class AgentFileToolsTest {
             write("/f" + i + ".md", "x");
         }
 
-        String listing = ok(a -> tools.listFiles(a, "/", true));
+        String listing = ok(a -> tools.listFiles(a, "/", true, null));
 
         assertThat(listing.lines().count()).isEqualTo(AgentFileToolsImpl.MAX_LISTED + 1);
         assertThat(listing).endsWith("list a folder below to see the rest]");
@@ -293,7 +294,7 @@ class AgentFileToolsTest {
         long start = System.nanoTime();
 
         assertThat(error(a -> tools.regexReplaceInFile(a, "/a.md", "(a+)+\\1$", "x"))).contains("too long");
-        assertThat(error(a -> tools.grepFiles(a, "(a+)+\\1$", "/", true, false))).contains("too long");
+        assertThat(error(a -> tools.grepFiles(a, "(a+)+\\1$", "/", true, false, null))).contains("too long");
 
         assertThat((System.nanoTime() - start) / 1_000_000).as("milliseconds").isLessThan(3_000);
         assertThat(read("/a.md")).hasSize(41);
@@ -309,24 +310,24 @@ class AgentFileToolsTest {
         write("/notes/deep/b.md", "Dragon fire\n");
         write("/c.md", "nothing\n");
 
-        assertThat(ok(a -> tools.grepFiles(a, "dragon", null, false, false)))
+        assertThat(ok(a -> tools.grepFiles(a, "dragon", null, false, false, null)))
                 .isEqualTo("/notes/a.md:1: The dragon sleeps.\n/notes/a.md:2: No dragons here (really)");
-        assertThat(ok(a -> tools.grepFiles(a, "dragon", "/", false, true)))
+        assertThat(ok(a -> tools.grepFiles(a, "dragon", "/", false, true, null)))
                 .isEqualTo("/notes/deep/b.md:1: Dragon fire\n/notes/a.md:1: The dragon sleeps.\n/notes/a.md:2: No dragons here (really)");
-        assertThat(ok(a -> tools.grepFiles(a, "(really)", "/notes/a.md", false, false))).isEqualTo("/notes/a.md:2: No dragons here (really)");
-        assertThat(ok(a -> tools.grepFiles(a, "fire", "/notes/deep", false, false))).isEqualTo("/notes/deep/b.md:1: Dragon fire");
-        assertThat(ok(a -> tools.grepFiles(a, "unicorn", null, false, false))).isEqualTo("No match for \"unicorn\" in /");
+        assertThat(ok(a -> tools.grepFiles(a, "(really)", "/notes/a.md", false, false, null))).isEqualTo("/notes/a.md:2: No dragons here (really)");
+        assertThat(ok(a -> tools.grepFiles(a, "fire", "/notes/deep", false, false, null))).isEqualTo("/notes/deep/b.md:1: Dragon fire");
+        assertThat(ok(a -> tools.grepFiles(a, "unicorn", null, false, false, null))).isEqualTo("No match for \"unicorn\" in /");
     }
 
     @Test
     void searchesFilesByRegularExpression() {
         write("/a.md", "Chapter 1\nchapter two\nChapter 12\n");
 
-        assertThat(ok(a -> tools.grepFiles(a, "^Chapter \\d+$", null, true, false))).isEqualTo("/a.md:1: Chapter 1\n/a.md:3: Chapter 12");
-        assertThat(ok(a -> tools.grepFiles(a, "(?i)^chapter", null, true, false))).hasLineCount(3);
-        assertThat(error(a -> tools.grepFiles(a, "(", null, true, false))).contains("not valid");
-        assertThat(error(a -> tools.grepFiles(a, "", null, false, false))).contains("empty");
-        assertThat(error(a -> tools.grepFiles(a, "x", "/missing", false, false))).contains("nothing at /missing");
+        assertThat(ok(a -> tools.grepFiles(a, "^Chapter \\d+$", null, true, false, null))).isEqualTo("/a.md:1: Chapter 1\n/a.md:3: Chapter 12");
+        assertThat(ok(a -> tools.grepFiles(a, "(?i)^chapter", null, true, false, null))).hasLineCount(3);
+        assertThat(error(a -> tools.grepFiles(a, "(", null, true, false, null))).contains("not valid");
+        assertThat(error(a -> tools.grepFiles(a, "", null, false, false, null))).contains("empty");
+        assertThat(error(a -> tools.grepFiles(a, "x", "/missing", false, false, null))).contains("nothing at /missing");
     }
 
     @Test
@@ -338,7 +339,7 @@ class AgentFileToolsTest {
         write("/many.md", many.toString());
         Files.write(folder.workspace().resolve("image.bin"), new byte[]{(byte) 0xff, (byte) 0xfe, 'm', 'a', 't', 'c', 'h'});
 
-        String found = ok(a -> tools.grepFiles(a, "match", null, false, false));
+        String found = ok(a -> tools.grepFiles(a, "match", null, false, false, null));
 
         assertThat(found.lines().count()).isEqualTo(AgentFileToolsImpl.MAX_MATCHES + 1);
         assertThat(found).endsWith("narrow the search]").doesNotContain("image.bin");
@@ -351,7 +352,7 @@ class AgentFileToolsTest {
         write("/a.md", "match\n");
         Answer answer = new Answer(true);
 
-        tools.grepFiles(answer, "match", null, false, false);
+        tools.grepFiles(answer, "match", null, false, false, null);
 
         assertThat(answer.result).startsWith("No match");
     }
@@ -361,9 +362,9 @@ class AgentFileToolsTest {
         Files.createDirectories(folder.checkpoints());
         Files.writeString(folder.checkpoints().resolve("0001.json"), "{\"match\":1}");
 
-        assertThat(ok(a -> tools.grepFiles(a, "match", null, false, false))).startsWith("No match");
+        assertThat(ok(a -> tools.grepFiles(a, "match", null, false, false, null))).startsWith("No match");
         // listed only, not read: nothing to search in
-        assertThat(ok(a -> tools.grepFiles(a, "match", "/checkpoints", false, false))).startsWith("No match");
+        assertThat(ok(a -> tools.grepFiles(a, "match", "/checkpoints", false, false, null))).startsWith("No match");
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -418,14 +419,14 @@ class AgentFileToolsTest {
             texts.add(String.valueOf(answer.result) + String.valueOf(answer.error));
         };
 
-        collect.accept(a -> tools.listFiles(a, "/", true));
-        collect.accept(a -> tools.listFiles(a, "/link", false));
+        collect.accept(a -> tools.listFiles(a, "/", true, null));
+        collect.accept(a -> tools.listFiles(a, "/link", false, null));
         collect.accept(a -> tools.readFile(a, "/link", 0, 0));
         collect.accept(a -> tools.readFile(a, "/../../..", 0, 0));
         collect.accept(a -> tools.readFile(a, "/notes", 0, 0));
         collect.accept(a -> tools.writeFile(a, "/link/x", "x"));
-        collect.accept(a -> tools.grepFiles(a, "text", "/", false, false));
-        collect.accept(a -> tools.grepFiles(a, "text", "/link", false, false));
+        collect.accept(a -> tools.grepFiles(a, "text", "/", false, false, null));
+        collect.accept(a -> tools.grepFiles(a, "text", "/link", false, false, null));
         collect.accept(a -> tools.replaceInFile(a, "/link", "a", "b"));
         collect.accept(a -> tools.regexReplaceInFile(a, "/link", "a", "b"));
         collect.accept(a -> tools.deleteFile(a, "/link", true));
@@ -493,6 +494,264 @@ class AgentFileToolsTest {
 
         ok(a -> tools.writeFile(a, "/a.md", "@file:/a.md"));
         assertThat(fsText("/a.md")).isEqualTo("again again ");
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // patterns of names
+    // ---------------------------------------------------------------------------------------------------------------
+
+    private void notesTree() {
+        write("/readme.md", "r");
+        write("/notes/plot.md", "dragon plot\n");
+        write("/notes/Plot-2.MD", "second dragon\n");
+        write("/notes/ideas.txt", "dragon idea\n");
+        write("/notes/deep/chapter-1.md", "dragon here\n");
+        write("/notes/deep/chapter-2.md", "nothing\n");
+    }
+
+    @Test
+    void listsTheFilesWhoseNameMatchesAtAnyDepth() {
+        notesTree();
+
+        assertThat(ok(a -> tools.listFiles(a, null, false, "*.md")))
+                .isEqualTo("/notes/deep/chapter-1.md  (12 bytes)\n/notes/deep/chapter-2.md  (8 bytes)\n"
+                        + "/notes/Plot-2.MD  (14 bytes)\n/notes/plot.md  (12 bytes)\n/readme.md  (1 bytes)");
+        assertThat(ok(a -> tools.listFiles(a, "/notes/deep", false, "chapter-?.md"))).hasLineCount(2);
+        assertThat(ok(a -> tools.listFiles(a, "/notes", false, "*.{txt,MD}")))
+                .isEqualTo("/notes/deep/chapter-1.md  (12 bytes)\n/notes/deep/chapter-2.md  (8 bytes)\n"
+                        + "/notes/ideas.txt  (12 bytes)\n/notes/Plot-2.MD  (14 bytes)\n/notes/plot.md  (12 bytes)");
+        assertThat(ok(a -> tools.listFiles(a, "/notes", false, "chapter-[!2]*"))).isEqualTo("/notes/deep/chapter-1.md  (12 bytes)");
+    }
+
+    @Test
+    void aPatternWithASlashIsMatchedAgainstThePathBelowTheFolder() {
+        notesTree();
+
+        assertThat(ok(a -> tools.listFiles(a, "/notes", false, "deep/*.md"))).hasLineCount(2);
+        assertThat(ok(a -> tools.listFiles(a, "/", false, "notes/*.md"))).isEqualTo("/notes/Plot-2.MD  (14 bytes)\n/notes/plot.md  (12 bytes)");
+        assertThat(ok(a -> tools.listFiles(a, "/", false, "**/chapter-*"))).hasLineCount(2);
+        assertThat(ok(a -> tools.listFiles(a, "/", false, "deep"))).isEqualTo("/notes/deep/  (folder)");
+    }
+
+    @Test
+    void aPatternThatMatchesNothingSaysSo() {
+        notesTree();
+
+        assertThat(ok(a -> tools.listFiles(a, "/notes", false, "*.pdf"))).isEqualTo("Nothing below /notes matches *.pdf");
+        assertThat(error(a -> tools.listFiles(a, "/notes", false, "[abc"))).contains("[ without a ]").doesNotContain("Exception");
+        assertThat(error(a -> tools.listFiles(a, "/notes", false, "{a,b"))).contains("{ without a }");
+        assertThat(error(a -> tools.listFiles(a, "/notes", false, "x".repeat(300)))).contains("longer");
+    }
+
+    @Test
+    void grepSearchesOnlyTheFilesThatMatchThePattern() {
+        notesTree();
+
+        assertThat(ok(a -> tools.grepFiles(a, "dragon", "/", false, false, "*.md")))
+                .isEqualTo("/notes/deep/chapter-1.md:1: dragon here\n/notes/Plot-2.MD:1: second dragon\n/notes/plot.md:1: dragon plot");
+        assertThat(ok(a -> tools.grepFiles(a, "dragon", "/notes", false, false, "*.txt"))).isEqualTo("/notes/ideas.txt:1: dragon idea");
+        assertThat(ok(a -> tools.grepFiles(a, "dragon", "/", false, false, "*.pdf")))
+                .isEqualTo("No match for \"dragon\" in / (no file matches *.pdf)");
+        // a single file is searched whatever the pattern
+        assertThat(ok(a -> tools.grepFiles(a, "dragon", "/notes/ideas.txt", false, false, "*.md"))).isEqualTo("/notes/ideas.txt:1: dragon idea");
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // copy
+    // ---------------------------------------------------------------------------------------------------------------
+
+    @Test
+    void copiesAFileAndLeavesTheOriginal() {
+        write("/a.md", "alpha\n");
+
+        assertThat(ok(a -> tools.copyFile(a, "/a.md", "/backup/a-copy.md"))).isEqualTo("Copied /a.md to /backup/a-copy.md (1 file, 6 bytes)");
+
+        assertThat(fsText("/a.md")).isEqualTo("alpha\n");
+        assertThat(fsText("/backup/a-copy.md")).isEqualTo("alpha\n");
+    }
+
+    @Test
+    void copiesAFolderWithEverythingInIt() {
+        notesTree();
+
+        assertThat(ok(a -> tools.copyFile(a, "/notes", "/snapshots/before")))
+                .isEqualTo("Copied /notes to /snapshots/before (5 files, 58 bytes)");
+
+        assertThat(fsText("/snapshots/before/deep/chapter-1.md")).isEqualTo("dragon here\n");
+        assertThat(ok(a -> tools.listFiles(a, "/notes", true, null))).hasLineCount(6);
+        assertThat(ok(a -> tools.listFiles(a, "/snapshots/before", true, null))).hasLineCount(6);
+    }
+
+    @Test
+    void aCopyThatCannotBeMadeChangesNothing() {
+        notesTree();
+        String before = ok(a -> tools.listFiles(a, "/", true, null));
+
+        assertThat(error(a -> tools.copyFile(a, "/notes", "/notes/inside"))).contains("into itself");
+        assertThat(error(a -> tools.copyFile(a, "/notes", "/notes"))).contains("the same");
+        assertThat(error(a -> tools.copyFile(a, "/notes/plot.md", "/readme.md"))).contains("exists already");
+        assertThat(error(a -> tools.copyFile(a, "/missing", "/other"))).contains("nothing at /missing");
+        assertThat(error(a -> tools.copyFile(a, "/", "/other"))).contains("workspace itself");
+        assertThat(error(a -> tools.copyFile(a, "/notes", "/checkpoints/notes"))).contains("read only");
+        assertThat(error(a -> tools.copyFile(a, "/checkpoints", "/notes2"))).contains("can't be copied");
+
+        assertThat(ok(a -> tools.listFiles(a, "/", true, null))).isEqualTo(before);
+    }
+
+    @Test
+    void aCopyThatDoesNotFitTheLimitsIsNotMadeAtAll() {
+        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(100, 100, 10), new ReentrantLock());
+        tools = new AgentFileToolsImpl(fs);
+        write("/d/a.md", "x".repeat(40));
+        write("/d/b.md", "y".repeat(40));
+        assertThat(error(a -> tools.copyFile(a, "/d", "/e"))).contains("larger than its limit");
+
+        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(100, 1000, 3), new ReentrantLock());
+        tools = new AgentFileToolsImpl(fs);
+        write("/d/c.md", "z");
+        assertThat(error(a -> tools.copyFile(a, "/d", "/e"))).contains("6 files").contains("room for 3");
+
+        assertThat(error(a -> tools.listFiles(a, "/e", false, null))).contains("no folder");
+        assertThat(ok(a -> tools.listFiles(a, "/", true, null))).doesNotContain("/e");
+    }
+
+    @Test
+    void aCopyCannotGoDeeperThanAPathMay() {
+        String deep = "/a/b/c/d/e/f/g/h";
+        write(deep + "/note.md", "x");
+
+        assertThat(error(a -> tools.copyFile(a, "/a", "/1/2/3/4/a"))).contains("deeper than");
+        assertThat(ok(a -> tools.listFiles(a, "/", false, null))).doesNotContain("/1");
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // the results of the commands
+    // ---------------------------------------------------------------------------------------------------------------
+
+    @Test
+    void aCommandResultIsSavedToAFileWithoutTheModelWritingItOut() {
+        CommandResults results = new CommandResults();
+        tools = new AgentFileToolsImpl(fs, results);
+        results.add("generate_lore_entry", "prompt=Dragons", "The dragons\nsleep.");
+        results.add("get_part", "part=3", "Part three.");
+
+        assertThat(ok(a -> tools.saveCommandResult(a, "/drafts/part.md", null, false)))
+                .isEqualTo("Saved the result #2 of get_part (11 bytes) as /drafts/part.md");
+        assertThat(read("/drafts/part.md")).isEqualTo("Part three.");
+        assertThat(ok(a -> tools.saveCommandResult(a, "/drafts/dragons.md", 1, false))).startsWith("Saved the result #1 of generate_lore_entry");
+        assertThat(fsText("/drafts/dragons.md")).isEqualTo("The dragons\nsleep.");
+
+        assertThat(ok(a -> tools.saveCommandResult(a, "/drafts/dragons.md", 2, true)))
+                .isEqualTo("Added the result #2 of get_part (11 bytes) to /drafts/dragons.md");
+        assertThat(fsText("/drafts/dragons.md")).isEqualTo("The dragons\nsleep.Part three.");
+        assertThat(ok(a -> tools.saveCommandResult(a, "/drafts/dragons.md", 1, false)).length()).isPositive();
+        assertThat(fsText("/drafts/dragons.md")).as("replaced").isEqualTo("The dragons\nsleep.");
+    }
+
+    @Test
+    void theResultsAreListedNewestFirstWithTheirCalls() {
+        CommandResults results = new CommandResults();
+        tools = new AgentFileToolsImpl(fs, results);
+        assertThat(ok(a -> tools.listCommandResults(a))).isEqualTo("No command result is kept yet");
+
+        results.add("generate_lore_entry", "prompt=Dragons, entry=2", "x".repeat(4321));
+        results.add("get_part", "part=3", "Part three.");
+
+        assertThat(ok(a -> tools.listCommandResults(a))).isEqualTo("""
+                #2 get_part(part=3): 11 characters
+                #1 generate_lore_entry(prompt=Dragons, entry=2): 4321 characters
+                The newest is first, the last 10 are kept.""");
+    }
+
+    @Test
+    void savingAResultFailsWithTheReason() {
+        assertThat(error(a -> tools.saveCommandResult(a, "/x.md", null, false))).isEqualTo("There is no result to save yet: call a command first");
+
+        CommandResults results = new CommandResults();
+        tools = new AgentFileToolsImpl(fs, results);
+        assertThat(error(a -> tools.saveCommandResult(a, "/x.md", null, false))).contains("no result to save yet");
+        results.add("get_part", "", "text");
+        assertThat(error(a -> tools.saveCommandResult(a, "/x.md", 7, false))).isEqualTo("There is no result #7, list_command_results shows the ones that are kept");
+        assertThat(error(a -> tools.saveCommandResult(a, "/a*.md", null, false))).isNotBlank();
+        assertThat(error(a -> tools.saveCommandResult(a, "/checkpoints/x.md", null, false))).contains("read only");
+
+        fs = VirtualFileSystem.ofRun(folder, new WorkspaceLimits(3, 1_000, 10), new ReentrantLock());
+        tools = new AgentFileToolsImpl(fs, results);
+        assertThat(error(a -> tools.saveCommandResult(a, "/x.md", null, false))).contains("the limit of a file is 3 bytes");
+        assertThat(ok(a -> tools.listFiles(a, "/", true, null))).doesNotContain("x.md");
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // merge
+    // ---------------------------------------------------------------------------------------------------------------
+
+    @Test
+    void joinsFilesInTheOrderGivenWithADelimiter() {
+        write("/one.md", "one");
+        write("/two.md", "two");
+        write("/three.md", "three");
+
+        assertThat(ok(a -> tools.mergeFiles(a, List.of("/three.md", "/one.md", "/two.md"), "/out/all.md", "\n---\n")))
+                .isEqualTo("Joined 3 files into /out/all.md (21 bytes)");
+        assertThat(fsText("/out/all.md")).isEqualTo("three\n---\none\n---\ntwo");
+
+        ok(a -> tools.mergeFiles(a, List.of("/one.md", "/two.md"), "/out/all.md", null));
+        assertThat(fsText("/out/all.md")).isEqualTo("one\ntwo");
+        ok(a -> tools.mergeFiles(a, List.of("/one.md"), "/out/all.md", ""));
+        assertThat(fsText("/out/all.md")).isEqualTo("one");
+    }
+
+    @Test
+    void aPatternInTheLastNameStandsForTheFilesOfAFolderInTheOrderOfTheirNames() {
+        write("/ch/10.md", "ten");
+        write("/ch/2.md", "two");
+        write("/ch/1.md", "one");
+        write("/ch/notes.txt", "no");
+        write("/ch/sub/3.md", "deep");
+
+        ok(a -> tools.mergeFiles(a, List.of("/ch/*.md"), "/book.md", "|"));
+
+        assertThat(fsText("/book.md")).isEqualTo("one|ten|two");
+    }
+
+    @Test
+    void theTargetIsLeftOutOfAPatternSoAMergeCanBeRepeated() {
+        write("/ch/1.md", "one");
+        write("/ch/2.md", "two");
+
+        ok(a -> tools.mergeFiles(a, List.of("/ch/*.md"), "/ch/all.md", "+"));
+        ok(a -> tools.mergeFiles(a, List.of("/ch/*.md"), "/ch/all.md", "+"));
+
+        assertThat(fsText("/ch/all.md")).isEqualTo("one+two");
+    }
+
+    @Test
+    void aMergeThatCannotBeMadeWritesNothing() {
+        write("/one.md", "one");
+        write("/target.md", "keep");
+        write("/dir/x.md", "x");
+
+        assertThat(error(a -> tools.mergeFiles(a, List.of("/one.md", "/missing.md"), "/target.md", null))).contains("/missing.md");
+        assertThat(error(a -> tools.mergeFiles(a, List.of("/one.md", "/dir"), "/target.md", null))).contains("folder");
+        assertThat(error(a -> tools.mergeFiles(a, List.of("/none/*.md"), "/target.md", null))).contains("no folder");
+        assertThat(error(a -> tools.mergeFiles(a, List.of("/dir/*.pdf"), "/target.md", null))).contains("matches *.pdf");
+        assertThat(error(a -> tools.mergeFiles(a, List.of("/*/x.md"), "/target.md", null))).contains("last name");
+        assertThat(error(a -> tools.mergeFiles(a, List.of(), "/target.md", null))).contains("paths is empty");
+        assertThat(error(a -> tools.mergeFiles(a, null, "/target.md", null))).contains("paths is empty");
+        assertThat(error(a -> tools.mergeFiles(a, List.of("/one.md"), "/checkpoints/x", null))).contains("read only");
+
+        assertThat(fsText("/target.md")).isEqualTo("keep");
+    }
+
+    @Test
+    void aMergeIsLimitedLikeAnyOtherFile() {
+        write("/big1.md", "a".repeat(60_000));
+        write("/big2.md", "b".repeat(60_000));
+
+        assertThat(error(a -> tools.mergeFiles(a, List.of("/big1.md", "/big2.md"), "/out.md", null))).contains("larger than the limit");
+        assertThat(error(a -> tools.mergeFiles(a, java.util.Collections.nCopies(101, "/big1.md"), "/out.md", null)))
+                .contains("At most 100");
+        assertThat(error(a -> tools.readFile(a, "/out.md", 0, 0))).isNotBlank();
     }
 
     private String fsText(String path) {

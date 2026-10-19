@@ -29,11 +29,14 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     public static final int MAX_MATCH_LINE = 300;
     // files looked at by one grep
     public static final int MAX_SEARCHED = 1_000;
+    // files joined by one merge_files
+    public static final int MAX_MERGED = 100;
     // how long the regular expressions of one call may run, unless told otherwise
     public static final long REGEX_MILLIS = 3_000;
 
     private final VirtualFileSystem fs;
     private final long regexMillis;
+    private final CommandResults commandResults;
 
     public AgentFileToolsImpl(VirtualFileSystem fs) {
         this(fs, REGEX_MILLIS);
@@ -43,8 +46,20 @@ public final class AgentFileToolsImpl implements AgentFileTools {
      * @param regexMillis how long the regular expressions of one call may run
      */
     public AgentFileToolsImpl(VirtualFileSystem fs, long regexMillis) {
+        this(fs, regexMillis, null);
+    }
+
+    /**
+     * @param commandResults the results of the commands of the run, for list_command_results and save_command_result; null when there are none
+     */
+    public AgentFileToolsImpl(VirtualFileSystem fs, CommandResults commandResults) {
+        this(fs, REGEX_MILLIS, commandResults);
+    }
+
+    public AgentFileToolsImpl(VirtualFileSystem fs, long regexMillis, CommandResults commandResults) {
         this.fs = fs;
         this.regexMillis = regexMillis;
+        this.commandResults = commandResults;
     }
 
     private void run(FunctionContinuation<String> done, String tool, Supplier<String> action) {
@@ -62,9 +77,10 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     }
 
     @Override
-    public void listFiles(FunctionContinuation<String> done, String path, boolean recursive) {
+    public void listFiles(FunctionContinuation<String> done, String path, boolean recursive, String glob) {
         run(done, "list_files", () -> {
             VirtualPath folder = pathOrRoot(path);
+            VirtualGlob pattern = VirtualGlob.parse(glob);
             VirtualEntry entry = fs.stat(folder);
             if (entry == null) {
                 throw new VirtualFileException("There is no folder " + folder);
@@ -73,7 +89,18 @@ public final class AgentFileToolsImpl implements AgentFileTools {
                 throw new VirtualFileException(folder + " is a file, not a folder");
             }
             List<VirtualEntry> entries = new ArrayList<>(fs.list(folder));
-            if (recursive) {
+            String note = "";
+            if (pattern != null) {
+                List<VirtualEntry> walked = fs.walk(folder, MAX_SEARCHED + 1);
+                if (walked.size() > MAX_SEARCHED) {
+                    walked = walked.subList(0, MAX_SEARCHED);
+                    note = "\n[only the first " + MAX_SEARCHED + " entries were looked at, give a folder below]";
+                }
+                entries = walked.stream().filter(e -> pattern.matches(folder, e.path())).toList();
+                if (entries.isEmpty()) {
+                    return "Nothing below " + folder + " matches " + VirtualPath.printable(glob.strip()) + note;
+                }
+            } else if (recursive) {
                 entries = fs.walk(folder, MAX_LISTED + 1);
                 if (folder.isRoot()) {
                     entries.addAll(0, fs.list(folder).stream().filter(e -> e.directory() && !isWorkspaceEntry(e)).toList());
@@ -89,9 +116,11 @@ public final class AgentFileToolsImpl implements AgentFileTools {
                 out.append(e.path()).append(e.directory() ? "/  (folder)" : "  (" + e.size() + " bytes)").append('\n');
             }
             if (entries.size() > shown) {
-                out.append("[more than ").append(MAX_LISTED).append(" entries, list a folder below to see the rest]\n");
+                out.append("[more than ").append(MAX_LISTED).append(" entries, ")
+                        .append(pattern != null ? "make the pattern narrower or list a folder below" : "list a folder below to see the rest")
+                        .append("]\n");
             }
-            return out.toString().stripTrailing();
+            return out.toString().stripTrailing() + note;
         });
     }
 
@@ -174,6 +203,38 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     }
 
     @Override
+    public void listCommandResults(FunctionContinuation<String> done) {
+        run(done, "list_command_results", () -> {
+            List<CommandResults.Entry> kept = commandResults == null ? List.of() : commandResults.list();
+            if (kept.isEmpty()) {
+                return "No command result is kept yet";
+            }
+            StringBuilder out = new StringBuilder();
+            for (CommandResults.Entry entry : kept.reversed()) {
+                out.append('#').append(entry.id()).append(' ').append(entry.function()).append('(').append(entry.arguments())
+                        .append("): ").append(entry.text().length()).append(" characters\n");
+            }
+            return out.append("The newest is first, the last ").append(CommandResults.KEEP).append(" are kept.").toString();
+        });
+    }
+
+    @Override
+    public void saveCommandResult(FunctionContinuation<String> done, String path, Integer id, boolean append) {
+        run(done, "save_command_result", () -> {
+            CommandResults.Entry result = commandResults == null ? null : id == null ? commandResults.last() : commandResults.get(id);
+            if (result == null) {
+                throw new VirtualFileException(id == null ? "There is no result to save yet: call a command first"
+                        : "There is no result #" + id + ", list_command_results shows the ones that are kept");
+            }
+            VirtualPath file = fs.parse(path);
+            fs.writeText(file, result.text(), append);
+            return (append ? "Added" : "Saved") + " the result #" + result.id() + " of " + result.function() + " ("
+                    + result.text().getBytes(java.nio.charset.StandardCharsets.UTF_8).length + " bytes) "
+                    + (append ? "to " : "as ") + file;
+        });
+    }
+
+    @Override
     public void appendFile(FunctionContinuation<String> done, String path, String content) {
         run(done, "append_file", () -> {
             VirtualPath file = fs.parse(path);
@@ -239,16 +300,19 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     }
 
     @Override
-    public void grepFiles(FunctionContinuation<String> done, String pattern, String path, boolean regex, boolean ignoreCase) {
+    public void grepFiles(FunctionContinuation<String> done, String pattern, String path, boolean regex, boolean ignoreCase,
+                          String glob) {
         run(done, "grep_files", () -> {
             TextSearch search = compile(pattern, null, regex, !ignoreCase);
+            VirtualGlob names = VirtualGlob.parse(glob);
             VirtualPath start = pathOrRoot(path);
             VirtualEntry entry = fs.stat(start);
             if (entry == null) {
                 throw new VirtualFileException("There is nothing at " + start);
             }
+            List<VirtualEntry> walked = entry.directory() ? fs.walk(start, MAX_SEARCHED + 1) : List.of();
             List<VirtualEntry> files = entry.directory()
-                    ? fs.walk(start, MAX_SEARCHED + 1).stream().filter(e -> !e.directory()).toList()
+                    ? walked.stream().filter(e -> !e.directory() && (names == null || names.matches(start, e.path()))).toList()
                     : List.of(entry);
             long deadline = DeadlineCharSequence.deadlineIn(regexMillis);
             Function<String, CharSequence> view = t -> new DeadlineCharSequence(t, deadline);
@@ -285,12 +349,15 @@ public final class AgentFileToolsImpl implements AgentFileTools {
                     }
                 }
             }
+            boolean capped = walked.size() > MAX_SEARCHED;
             if (matches == 0) {
-                return "No match for \"" + VirtualPath.printable(pattern) + "\" in " + start;
+                return "No match for \"" + VirtualPath.printable(pattern) + "\" in " + start
+                        + (names != null && files.isEmpty() ? " (no file matches " + VirtualPath.printable(glob.strip()) + ")" : "")
+                        + (capped ? " [only the first " + MAX_SEARCHED + " entries were looked at]" : "");
             }
             if (more) {
                 out.append("[more than ").append(MAX_MATCHES).append(" matches, narrow the search]\n");
-            } else if (files.size() > MAX_SEARCHED) {
+            } else if (files.size() > MAX_SEARCHED || capped) {
                 out.append("[only the first ").append(MAX_SEARCHED).append(" files were searched]\n");
             }
             return out.toString().stripTrailing();
@@ -305,6 +372,79 @@ public final class AgentFileToolsImpl implements AgentFileTools {
             fs.move(source, target);
             return "Moved " + source + " to " + target;
         });
+    }
+
+    @Override
+    public void copyFile(FunctionContinuation<String> done, String from, String to) {
+        run(done, "copy_file", () -> {
+            VirtualPath source = fs.parse(from);
+            VirtualPath target = fs.parse(to);
+            WorkspaceUsage copied = fs.copy(source, target);
+            return "Copied " + source + " to " + target + " (" + copied.files() + (copied.files() == 1 ? " file, " : " files, ")
+                    + copied.bytes() + " bytes)";
+        });
+    }
+
+    @Override
+    public void mergeFiles(FunctionContinuation<String> done, List<String> paths, String target, String delimiter) {
+        run(done, "merge_files", () -> {
+            if (paths == null || paths.isEmpty()) {
+                throw new VirtualFileException("paths is empty; name the files to join");
+            }
+            VirtualPath result = fs.parse(target);
+            List<VirtualPath> sources = new ArrayList<>();
+            for (String path : paths) {
+                sources.addAll(expand(path, result));
+                if (sources.size() > MAX_MERGED) {
+                    throw new VirtualFileException("At most " + MAX_MERGED + " files can be joined at once; join them in "
+                            + "groups and then join the results");
+                }
+            }
+            String between = delimiter == null ? "\n" : delimiter;
+            long limit = fs.getLimits().maxFileBytes();
+            StringBuilder text = new StringBuilder();
+            for (int i = 0; i < sources.size(); i++) {
+                if (i > 0) {
+                    text.append(between);
+                }
+                text.append(fs.readText(sources.get(i)));
+                if (text.length() > limit) {
+                    throw new VirtualFileException("The joined file would be larger than the limit of " + limit
+                            + " bytes; join fewer files");
+                }
+            }
+            fs.writeText(result, text.toString(), false);
+            return "Joined " + sources.size() + (sources.size() == 1 ? " file into " : " files into ") + result + " ("
+                    + text.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length + " bytes)";
+        });
+    }
+
+    /**
+     * The files a path of merge_files stands for: the file itself, or for a pattern in the last name the files of the
+     * folder that match it, in the order of their names, the target left out (so a merge can be repeated).
+     */
+    private List<VirtualPath> expand(String path, VirtualPath target) {
+        if (path == null || (path.indexOf('*') < 0 && path.indexOf('?') < 0)) {
+            return List.of(fs.parse(path));
+        }
+        int slash = path.lastIndexOf('/');
+        String folderText = slash < 0 ? "/" : path.substring(0, Math.max(slash, 1));
+        String name = path.substring(slash + 1);
+        if (folderText.indexOf('*') >= 0 || folderText.indexOf('?') >= 0) {
+            throw new VirtualFileException("A pattern can be only in the last name of a path: " + VirtualPath.printable(path));
+        }
+        VirtualPath folder = fs.parse(folderText);
+        VirtualGlob glob = VirtualGlob.parse(name);
+        VirtualEntry entry = fs.stat(folder);
+        if (entry == null || !entry.directory()) {
+            throw new VirtualFileException("There is no folder " + folder);
+        }
+        List<VirtualPath> found = fs.list(folder).stream().filter(e -> !e.directory() && !e.path().equals(target))
+                .filter(e -> glob.matches(folder, e.path())).map(VirtualEntry::path).toList();
+        if (found.isEmpty()) {
+            throw new VirtualFileException("No file in " + folder + " matches " + VirtualPath.printable(name));
+        }
+        return found;
     }
 
     @Override
