@@ -12,9 +12,9 @@ import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
+import com.github.enerccio.marginalia.domain.service.impl.LorebookActivationServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
-import com.github.enerccio.marginalia.domain.service.impl.generation.impl.ProcessLorebookStep;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables.Scope;
 import com.github.enerccio.marginalia.test.ExpectedLog;
@@ -438,7 +438,7 @@ class LorebookActivationTest extends GenerationTestBase {
         });
         entry(book, "fine");
 
-        try (ExpectedLog log = ExpectedLog.capture(ProcessLorebookStep.class)) {
+        try (ExpectedLog log = ExpectedLog.capture(LorebookActivationServiceImpl.class)) {
             assertThat(activate(book(book), "([unclosed").activated()).containsExactly("fine");
 
             assertThat(log.warnings()).singleElement().asString().contains("([unclosed").contains("broken");
@@ -613,7 +613,7 @@ class LorebookActivationTest extends GenerationTestBase {
         });
         entry(book, "fine", e -> e.setOrder(2));
 
-        try (ExpectedLog log = ExpectedLog.capture(ProcessLorebookStep.class)) {
+        try (ExpectedLog log = ExpectedLog.capture(LorebookActivationServiceImpl.class)) {
             Lore lore = activate(book(book));
 
             assertThat(lore.lore()).isEqualTo("{{#each}} raw {{user}}\n\n<fine>");

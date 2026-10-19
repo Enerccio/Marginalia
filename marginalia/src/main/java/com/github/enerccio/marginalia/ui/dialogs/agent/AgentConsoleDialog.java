@@ -2,24 +2,26 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentApprovalService.PendingApproval;
-import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
-import com.github.enerccio.marginalia.domain.service.agent.VirtualFileException;
-import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
-import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
+import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.components.CommandBar;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -58,6 +60,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
      * How often the open console looks at the run.
      */
     static final int POLL_MILLIS = 2000;
+    // after a command: the answer of a run that waits comes in a moment, looked for faster for a while
+    static final int COMMAND_POLL_MILLIS = 500;
+    static final long COMMAND_POLL_FOR_MILLIS = 15_000;
 
     /**
      * How much of a result of a command is shown; the model got it whole, up to its own cut.
@@ -98,6 +103,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private AgentRunner agentRunner;
 
     @Autowired
+    private CommandService commandService;
+
+    @Autowired
     private AgentVirtualFileSystemService fileSystemService;
 
     @Autowired
@@ -116,20 +124,19 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private int shown;
     // the bodies of the folded commands by the id of the call, where their results go when they come
     private final Map<String, VerticalLayout> callBodies = new HashMap<>();
+    // the calls shown as the report or the question of the agent
+    private final Set<String> specialCalls = new HashSet<>();
     // the messages that wait for the agent: their bubbles are the last ones of the transcript, and the ids they show
     private final List<Div> queuedBubbles = new ArrayList<>();
     private List<String> shownQueued = List.of();
 
     private Span statusLabel;
     private Span usageLabel;
-    private Div banner;
-    private Div bannerHeading;
-    // whether the banner is to be shown: the question or the report of the agent
-    private boolean bannerWanted;
-    private Markdown bannerText;
     private VerticalLayout transcriptBox;
     private TextArea messageField;
     private Button sendButton;
+    // the command line of the author for the agent
+    private CommandBar commandBar;
     private Upload imageUpload;
     private HorizontalLayout pendingRow;
     private final List<PendingImage> pendingImages = new ArrayList<>();
@@ -148,6 +155,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private AgentApprovalDialog approvalDialog;
     private Registration pollRegistration;
     private int previousPollInterval = -1;
+    private long fastPollUntil;
 
     public AgentConsoleDialog(Agent agent) {
         this.agent = agent;
@@ -163,8 +171,12 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_AGENT_CONSOLE) + " - " + agent.getName());
-        setWidth("900px");
+        setWidth("1100px");
+        setMaxWidth("96%");
         setHeight("90%");
+        setModality(ModalityMode.STRICT);
+        setCloseOnOutsideClick(false);
+        setCloseOnEsc(false);
 
         statusLabel = new Span();
         statusLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
@@ -172,13 +184,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         usageLabel.addClassNames(CssStyles.HINT_TEXT);
         HorizontalLayout statusRow = new HorizontalLayout(statusLabel, usageLabel);
         statusRow.setWidthFull();
+        statusRow.setPadding(false);
         statusRow.setAlignItems(FlexComponent.Alignment.CENTER);
         statusRow.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-
-        bannerHeading = text("", true);
-        bannerText = new Markdown();
-        banner = new Div(bannerHeading, bannerText);
-        banner.addClassName(CssStyles.HELP_MESSAGE);
 
         transcriptBox = new VerticalLayout();
         transcriptBox.setPadding(false);
@@ -186,8 +194,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         transcriptBox.addClassNames(CssStyles.HELP_MESSAGES, CssStyles.FULL_WIDTH, CssStyles.MIN_HEIGHT_0);
 
         messageField = new TextArea();
-        messageField.setLabel(loc.getValue(L.ENUM_DOMAIN_MESSAGE));
+        messageField.setPlaceholder(loc.getValue(L.ENUM_DOMAIN_MESSAGE));
+        messageField.setAriaLabel(loc.getValue(L.ENUM_DOMAIN_MESSAGE));
         messageField.setWidthFull();
+        messageField.setMinRows(2);
         messageField.setMaxHeight("120px");
         sendButton = new Button(loc.getValue(L.LABEL_SEND), Solid.PAPER_PLANE.create(), event -> send());
         sendButton.setThemeName("primary");
@@ -201,7 +211,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         Button attachButton = new Button(loc.getValue(L.LABEL_ATTACH_IMAGE), Solid.IMAGE.create());
         imageUpload = new Upload(new InMemoryUploadHandler((metadata, data) -> attachImage(metadata.fileName(), data)));
         imageUpload.setAcceptedFileTypes("image/png", "image/jpeg", "image/gif", "image/webp");
-        imageUpload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, fileSystemService.getLimits().maxImageBytes()));
+        imageUpload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, imageLimit()));
         imageUpload.setUploadButton(attachButton);
         imageUpload.setDropLabel(new Span());
         imageUpload.setVisible(seesImages());
@@ -213,17 +223,31 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         pendingRow.setWrap(true);
         pendingRow.setAlignItems(FlexComponent.Alignment.CENTER);
         pendingRow.setVisible(false);
+        // the command line of the application, offering the commands of the agent and running them on it
+        commandBar = new CommandBar();
+        commandBar.addClassName(CssStyles.FULL_WIDTH);
+        commandBar.setCommands(() -> AgentConsoleCommands.of(commandService, agentRunner.consoleCommands(agent)));
+        commandBar.setLineRunner(this::runCommand);
+        Span commandHint = new Span(loc.getValue(L.HELP_AGENT_COMMAND));
+        commandHint.addClassName(CssStyles.HINT_TEXT);
+        VerticalLayout commandRow = new VerticalLayout(commandBar, commandHint);
+        commandRow.setPadding(false);
+        commandRow.setSpacing(false);
+        commandRow.setWidthFull();
+
         HorizontalLayout inputRow = new HorizontalLayout(messageField, imageUpload, sendButton);
         inputRow.setWidthFull();
+        inputRow.setPadding(false);
         inputRow.setAlignItems(FlexComponent.Alignment.END);
         inputRow.expand(messageField);
 
         // the state and the box that answers stay where they are, the transcript between them scrolls; what the agent
-        // waits for (its question, its report) is the last bubble of the transcript, see placeBanner
-        VerticalLayout runTab = new VerticalLayout(statusRow, transcriptBox, pendingRow, inputRow);
+        // waits for (its question, its report) stays in the transcript where it was asked, see specialCall
+        VerticalLayout runTab = new VerticalLayout(statusRow, transcriptBox, commandRow, pendingRow, inputRow);
         runTab.setSizeFull();
         runTab.setPadding(false);
-        runTab.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
+        runTab.setSpacing(false);
+        runTab.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN, CssStyles.GAP_S);
         runTab.expand(transcriptBox);
 
         workspaceBrowser = new AgentWorkspaceBrowser(agent, this::isWorking);
@@ -321,6 +345,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         if (statusLabel == null) {
             return;
         }
+        if (fastPollUntil != 0 && System.currentTimeMillis() > fastPollUntil) {
+            fastPollUntil = 0;
+            getUI().ifPresent(ui -> ui.setPollInterval(POLL_MILLIS));
+        }
         try {
             List<AgentRun> runs = agentRunService.findForAgent(agent);
             // the run the user picked in the history, else the latest run that was not thrown away: a failed or finished
@@ -349,13 +377,13 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         if (run == null) {
             statusLabel.setText(loc.getValue(L.MSG_AGENT_NO_RUN_YET));
             usageLabel.setText("");
-            bannerWanted = false;
         } else {
             AgentRunStatus status = run.getStatus();
             String reason = StringUtils.trimToEmpty(run.getStatusReason());
-            boolean bannerStatus = status == AgentRunStatus.IDLE || status == AgentRunStatus.DONE;
+            // the question and the report are in the transcript, where the agent put them
+            boolean inTranscript = status == AgentRunStatus.IDLE || status == AgentRunStatus.DONE;
             statusLabel.setText(loc.getValue(loc.getAgentRunStatus(status))
-                    + (!reason.isEmpty() && !bannerStatus ? ": " + reason : ""));
+                    + (!reason.isEmpty() && !inTranscript ? ": " + reason : ""));
             long budget = agentRunService.getTokenBudget(run);
             long context = agentMessageService.getContextTokens(run);
             long contextCap = agentRunService.getContextCap(run);
@@ -366,10 +394,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
                     + loc.getValue(L.LABEL_TOKEN_CONTEXT) + ": " + context + (contextCap > 0 ? " / " + contextCap : "") + "   "
                     + loc.getValue(L.LABEL_TOKENS_TOTAL) + ": " + run.getTotalTokens()
                     + (budget > 0 ? " / " + budget : ""));
-            // the question the agent waits an answer to, or the report it ended with
-            bannerWanted = bannerStatus && !reason.isEmpty();
-            bannerHeading.setText(loc.getValue(status == AgentRunStatus.DONE ? L.LABEL_AGENT_REPORT : L.LABEL_AGENT_WAITS));
-            bannerText.setContent(reason);
         }
         AgentRunStatus status = run == null ? null : run.getStatus();
         boolean queueing = run != null && run.isInteractive() && QUEUEING.contains(status);
@@ -377,6 +401,8 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         messageField.setEnabled(writable);
         messageField.setHelperText(queueing ? loc.getValue(L.HELP_AGENT_MESSAGE_QUEUED) : null);
         sendButton.setEnabled(writable);
+        // a command is run for a run that waits or is paused as well; where it works it is queued like a message
+        commandBar.setEnabled(writable || status == AgentRunStatus.PAUSED);
         imageUpload.setEnabled(writable && pendingImages.size() < AgentRunner.MAX_ATTACHED_IMAGES);
         pauseButton.setEnabled(status != null && PAUSABLE.contains(status));
         resumeButton.setEnabled(status != null && status.isResumable());
@@ -414,6 +440,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             // another run: start the transcript again
             transcriptBox.removeAll();
             callBodies.clear();
+            specialCalls.clear();
             shown = 0;
             shownRunId = runId;
             queuedBubbles.clear();
@@ -422,7 +449,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         // the messages that wait stay the last bubbles: they come off while the transcript grows and go back after it
         List<AgentRunner.QueuedMessage> queued = run == null ? List.of() : agentRunner.queued(run);
         boolean queuedChanged = !queued.stream().map(AgentRunner.QueuedMessage::id).toList().equals(shownQueued)
-                || run != null && (agentMessageService.count(run) != shown || bannerWanted != banner.getParent().isPresent());
+                || run != null && agentMessageService.count(run) != shown;
         if (queuedChanged) {
             queuedBubbles.forEach(transcriptBox::remove);
             queuedBubbles.clear();
@@ -443,18 +470,14 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     private void showMessages() throws Exception {
         if (run == null || agentMessageService.count(run) == shown) {
-            if (placeBanner()) {
-                JavascriptLibrary.scrollToBottomIfAtBottom(transcriptBox.getElement());
-            }
             return;
         }
         List<AgentMessage> messages = agentMessageService.messages(run);
         boolean first = shown == 0;
         for (AgentMessage row : messages.subList(Math.min(shown, messages.size()), messages.size())) {
-            render(row.toChatMessage(), row.getReasoning());
+            render(row.toChatMessage(), row.getReasoning(), row.isSummary());
         }
         shown = messages.size();
-        placeBanner();
         if (first) {
             JavascriptLibrary.scrollToBottomAfterLayout(transcriptBox.getElement());
         } else {
@@ -462,31 +485,11 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
-    /**
-     * What the agent waits for (its question, its report) is the last bubble of the transcript, under the steps that led
-     * to it: after the messages that were added, and gone again when the run goes on.
-     *
-     * @return whether the banner is there as a new last bubble
-     */
-    private boolean placeBanner() {
-        // the bubbles of the queued messages come after it
-        int end = transcriptBox.getComponentCount() - 1 - queuedBubbles.size();
-        boolean last = bannerWanted && end >= 0 && transcriptBox.getComponentAt(end) == banner;
-        if (last) {
-            return false;
-        }
-        if (banner.getParent().isPresent()) {
-            transcriptBox.remove(banner);
-        }
-        if (bannerWanted) {
-            transcriptBox.add(banner);
-        }
-        return bannerWanted;
-    }
-
-    private void render(LLMChatMessage message, String reasoning) {
+    private void render(LLMChatMessage message, String reasoning, boolean summary) {
         switch (message.getRole()) {
-            case USER -> transcriptBox.add(bubble(loc.getValue(L.LABEL_YOU), message.getContent(), true));
+            case USER -> transcriptBox.add(summary ? summaryBubble(message.getContent())
+                    : isAuthorCommand(message.getContent()) ? authorCommandBubble(message.getContent())
+                    : bubble(loc.getValue(L.LABEL_YOU), message.getContent(), true));
             case ASSISTANT -> {
                 if (StringUtils.isNotBlank(reasoning)) {
                     transcriptBox.add(reasoningBlock(reasoning));
@@ -495,11 +498,21 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
                     transcriptBox.add(bubble(loc.getValue(L.ENUM_DOMAIN_AGENT), message.getContent(), false));
                 }
                 for (LLMToolCall call : message.getToolCalls()) {
-                    transcriptBox.add(callBlock(call));
+                    Div special = specialCall(call);
+                    if (special == null) {
+                        transcriptBox.add(callBlock(call));
+                    } else {
+                        specialCalls.add(call.getId());
+                        transcriptBox.add(special);
+                    }
                 }
             }
             case TOOL -> {
                 VerticalLayout body = callBodies.get(message.getToolCallId());
+                if (specialCalls.contains(message.getToolCallId()) && RunToolsImpl.isAcknowledgement(message.getContent())) {
+                    // the report or the question is shown as itself, its acknowledgement says nothing more
+                    return;
+                }
                 if (body != null) {
                     body.add(text(loc.getValue(L.LABEL_RESULT), true), text(cut(message.getContent()), false));
                 } else {
@@ -512,9 +525,59 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         }
     }
 
+    private static boolean isAuthorCommand(String content) {
+        return content != null && content.startsWith(Defaults.AGENT_AUTHOR_COMMAND_NOTE);
+    }
+
     /**
-     * A message of the author that waits for the agent: a bubble marked as queued, with the small button that gives it to
-     * the agent now.
+     * A command the user ran from the bar: the line and what it answered, not the note the agent reads with it.
+     */
+    private Div authorCommandBubble(String content) {
+        String body = content.substring(Defaults.AGENT_AUTHOR_COMMAND_NOTE.length()).strip();
+        int result = body.indexOf("\n\nResult:\n");
+        String line = (result < 0 ? body : body.substring(0, result)).replaceFirst("^Command:\\s*", "");
+        Div bubble = new Div(text(loc.getValue(L.LABEL_COMMAND) + ": " + line, true));
+        if (result >= 0) {
+            bubble.add(text(cut(body.substring(result + "\n\nResult:\n".length())), false));
+        }
+        bubble.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER);
+        return bubble;
+    }
+
+    /**
+     * What a compaction left of the earlier work: folded to one line, the summary is long and for looking up.
+     */
+    private Div summaryBubble(String content) {
+        Details details = new Details(loc.getValue(L.LABEL_AGENT_SUMMARY), new Markdown(StringUtils.defaultString(content)));
+        Div block = new Div(details);
+        block.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER);
+        return block;
+    }
+
+    /**
+     * The author ran a command from the bar: given to the agent as the author's, see {@link AgentRunner#command}.
+     */
+    private void runCommand(String line) {
+        if (run == null) {
+            return;
+        }
+        // deletes the notes of the agent, as the button of the workspace does
+        if (line.strip().equals("/" + AgentRunner.CLEAR_WORKSPACE) || line.strip().startsWith("/" + AgentRunner.CLEAR_WORKSPACE + " ")) {
+            ConfirmDialog.open(loc.getValue(L.MSG_AGENT_CONFIRM_CLEAR_WORKSPACE), () -> runCommandNow(line), () -> {});
+            return;
+        }
+        runCommandNow(line);
+    }
+
+    private void runCommandNow(String line) {
+        perform(() -> agentRunner.command(run, line));
+        fastPollUntil = System.currentTimeMillis() + COMMAND_POLL_FOR_MILLIS;
+        getUI().ifPresent(ui -> ui.setPollInterval(COMMAND_POLL_MILLIS));
+    }
+
+    /**
+     * A message or a command of the author that waits for the agent: a bubble marked as queued, with the small button that
+     * gives it to the agent now.
      */
     private Div queuedBubble(AgentRunner.QueuedMessage message) {
         Button force = new Button(Solid.BOLT.create(), event -> perform(() -> {
@@ -522,15 +585,18 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             return null;
         }));
         force.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-        force.setTooltipText(loc.getValue(L.LABEL_AGENT_SEND_NOW) + ": " + loc.getValue(L.HELP_AGENT_SEND_NOW));
-        force.setAriaLabel(loc.getValue(L.LABEL_AGENT_SEND_NOW));
-        Div heading = text(loc.getValue(L.LABEL_YOU) + " (" + loc.getValue(L.LABEL_AGENT_QUEUED) + ")", true);
+        L now = message.command() ? L.LABEL_AGENT_RUN_NOW : L.LABEL_AGENT_SEND_NOW;
+        force.setTooltipText(loc.getValue(now) + ": " + loc.getValue(message.command() ? L.HELP_AGENT_RUN_NOW : L.HELP_AGENT_SEND_NOW));
+        force.setAriaLabel(loc.getValue(now));
+        Div heading = text(loc.getValue(message.command() ? L.LABEL_COMMAND : L.LABEL_YOU) + " ("
+                + loc.getValue(L.LABEL_AGENT_QUEUED) + ")", true);
         HorizontalLayout header = new HorizontalLayout(heading, force);
         header.setWidthFull();
         header.setPadding(false);
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        Div bubble = new Div(header, new Markdown(StringUtils.defaultString(message.text())));
+        Div bubble = new Div(header, message.command() ? text(StringUtils.defaultString(message.text()), false)
+                : new Markdown(StringUtils.defaultString(message.text())));
         bubble.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER, CssStyles.HELP_MESSAGE_QUEUED);
         return bubble;
     }
@@ -553,6 +619,40 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         Div block = new Div(details);
         block.addClassName(CssStyles.HELP_MESSAGE);
         return block;
+    }
+
+    /**
+     * The report ({@code finish}) or the question ({@code ask_user}) of the agent as a bubble of its own, where it was
+     * written: it stays in the transcript when the run goes on, unlike the state of the run, which holds only the last.
+     *
+     * @return null for any other call, and for these when the call has no text (it failed, the result says why)
+     */
+    private Div specialCall(LLMToolCall call) {
+        boolean report = "finish".equals(call.getName());
+        if (!report && !"ask_user".equals(call.getName())) {
+            return null;
+        }
+        String text;
+        try {
+            JsonObject arguments = JsonParser.parseString(StringUtils.defaultString(call.getArguments())).getAsJsonObject();
+            if (report) {
+                text = arguments.has("summary") ? arguments.get("summary").getAsString() : null;
+            } else {
+                List<String> options = new ArrayList<>();
+                if (arguments.has("options") && arguments.get("options").isJsonArray()) {
+                    arguments.getAsJsonArray("options").forEach(option -> options.add(option.getAsString()));
+                }
+                text = arguments.has("question") ? RunToolsImpl.questionText(arguments.get("question").getAsString(), options) : null;
+            }
+        } catch (RuntimeException e) {
+            return null;
+        }
+        if (StringUtils.isBlank(text)) {
+            return null;
+        }
+        Div bubble = new Div(text(loc.getValue(report ? L.LABEL_AGENT_REPORT : L.LABEL_AGENT_QUESTION), true), new Markdown(text.strip()));
+        bubble.addClassName(CssStyles.HELP_MESSAGE);
+        return bubble;
     }
 
     private Div callBlock(LLMToolCall call) {
@@ -597,6 +697,17 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             showPendingImages();
             return null;
         });
+    }
+
+    /**
+     * The largest image of the workspace of the agent, the default limit when it can't be read.
+     */
+    private long imageLimit() {
+        try {
+            return fileSystemService.getLimits(agent).maxImageBytes();
+        } catch (Exception e) {
+            return fileSystemService.getLimits().maxImageBytes();
+        }
     }
 
     private boolean seesImages() {
@@ -704,6 +815,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         return messageField;
     }
 
+    CommandBar getCommandBar() {
+        return commandBar;
+    }
+
     Button getSendButton() {
         return sendButton;
     }
@@ -734,18 +849,6 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     List<Div> getQueuedBubbles() {
         return queuedBubbles;
-    }
-
-    Div getBanner() {
-        return banner;
-    }
-
-    Div getBannerHeading() {
-        return bannerHeading;
-    }
-
-    Markdown getBannerText() {
-        return bannerText;
     }
 
     Span getStatusLabel() {

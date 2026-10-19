@@ -8,7 +8,7 @@ administrators [share](../inference-providers.md#shared-providers)).
 |---|---|---|
 | **Create own models** | Adding [inference providers](../inference-providers.md): without it the user can only use the providers the administrators share, the providers they already have keep working and can still be edited. | |
 | **Help assistant** | Asking the [help assistant](help-assistant.md), the chat that answers from the manual. | **Apply limits** and **Allow navigating the interface**, see [Settings of a permission](#settings-of-a-permission). |
-| **Agents** | The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs** and **Token budget of a run**, see [Settings of a permission](#settings-of-a-permission). |
+| **Agents** | The [Agents](../agents.md) tab: creating agents, cloning them and running them on a book. | **Most agents**, **Concurrent runs**, **Token budget of a run** and the quotas of copies and files, see [Settings of a permission](#settings-of-a-permission). |
 
 Administrators always have every permission, they need none, so there is nothing to give them (the buttons and sections
 of an administrator never depend on a permission). New users have no permission: give them what they need right after
@@ -65,6 +65,10 @@ The ones of the agents; an empty field is the default:
 | **Most agents** | How many agents the user can have, the clones of an agent included. Five when empty. Zero lets the user keep and run their agents, but not create or clone another one. A deleted agent frees its place. |
 | **Concurrent runs** | How many runs of the user can work at the same time. One when empty. |
 | **Token budget of a run** | The most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit. |
+| **Working copies** | How many working copies of books the runs of the user keep at the same time. A run that is not finished keeps its copy, a paused one too, and gives it back when it is finished, stopped or deleted. Empty or zero is no limit besides the number of agents. |
+| **Largest file (KB)** | The largest file an agent of the user can write to its workspace. 1024 (1 MB) when empty. |
+| **Workspace size (MB)** | How much all the files in the workspace of one agent of the user can take. 20 when empty. |
+| **Files in a workspace** | How many files the workspace of one agent of the user can hold, folders are free. 500 when empty. |
 
 ## When permissions were introduced
 

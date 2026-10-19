@@ -1,16 +1,20 @@
 package com.github.enerccio.marginalia.domain.agents;
 
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.AgentService.AgentGrant;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
+import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -317,5 +321,156 @@ class AgentServiceTest extends AgentTestBase {
         Manuscript own = manuscript();
         assertThatThrownBy(() -> agentService.cloneAgent(source, null, own)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> agentService.cloneAgent(null, null, own)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // --- the system prompt ---
+
+    @Autowired
+    private SettingService settingService;
+
+    /** The application settings outlive a test in the shared database. */
+    private void clearApplicationPrompt() throws Exception {
+        loginAdmin();
+        agentService.setAppSystemPrompt(null);
+    }
+
+    @Test
+    void aBlankPromptFollowsTheUsersDefaultThenTheApplicationsThenTheBuiltInOne() throws Exception {
+        try {
+            loginAgentUser();
+            Agent agent = agent();
+            assertThat(agent.getSystemPrompt()).isBlank();
+            assertThat(agentService.getSystemPrompt(agent)).as("nothing set").isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+            assertThat(agentService.getDefaultSystemPrompt()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+
+            loginAdmin();
+            agentService.setAppSystemPrompt("The application's prompt");
+            loginAs(agent.getOwner());
+            assertThat(agentService.getSystemPrompt(agent)).isEqualTo("The application's prompt");
+            assertThat(agentService.getDefaultSystemPrompt()).isEqualTo("The application's prompt");
+            assertThat(agentService.getAppDefaultSystemPrompt()).isEqualTo("The application's prompt");
+
+            UserSetting setting = settingService.getOrCreate(UserSetting.class);
+            setting.setDefaultAgentPrompt("The user's prompt");
+            settingService.save(setting);
+            assertThat(agentService.getSystemPrompt(agent)).as("the user's beats the application's").isEqualTo("The user's prompt");
+            assertThat(agentService.getDefaultSystemPrompt()).isEqualTo("The user's prompt");
+            assertThat(agentService.getAppDefaultSystemPrompt()).as("what a user without one gets").isEqualTo("The application's prompt");
+
+            agent.setSystemPrompt("Its own");
+            agent = agentService.save(agent);
+            assertThat(agentService.getSystemPrompt(agent)).isEqualTo("Its own");
+        } finally {
+            clearApplicationPrompt();
+        }
+    }
+
+    @Test
+    void theDefaultOfAnotherUserDoesNotReachTheAgent() throws Exception {
+        try {
+            loginAgentUser();
+            Agent agent = agent();
+            User other = login();
+            UserSetting setting = settingService.getOrCreate(UserSetting.class);
+            setting.setDefaultAgentPrompt("Somebody else's prompt");
+            settingService.save(setting);
+            assertThat(other.getId()).isNotEqualTo(agent.getOwner().getId());
+
+            assertThat(agentService.getSystemPrompt(agent)).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+        } finally {
+            clearApplicationPrompt();
+        }
+    }
+
+    @Test
+    void onlyAnAdministratorReadsAndSetsTheApplicationPrompt() throws Exception {
+        try {
+            loginAgentUser();
+
+            assertThatThrownBy(() -> agentService.setAppSystemPrompt("mine")).isInstanceOf(SecurityException.class);
+            assertThatThrownBy(() -> agentService.getAppSystemPrompt()).isInstanceOf(SecurityException.class);
+            assertThat(agentService.getAppDefaultSystemPrompt()).as("every user gets what applies").isNotBlank();
+
+            loginAdmin();
+            agentService.setAppSystemPrompt("The application's prompt");
+            assertThat(agentService.getAppSystemPrompt()).isEqualTo("The application's prompt");
+            agentService.setAppSystemPrompt("  ");
+            assertThat(agentService.getAppSystemPrompt()).as("blank removes it").isEmpty();
+            assertThat(agentService.getAppDefaultSystemPrompt()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+        } finally {
+            clearApplicationPrompt();
+        }
+    }
+
+    // --- quotas ---
+
+    @Test
+    void grantReadsTheQuotasOfThePermission() throws Exception {
+        User user = loginAgentUser();
+        updatePermission(user, PermissionType.AGENTS, permission -> {
+            permission.setAgentsMaxCopies(2);
+            permission.setAgentsMaxFileKb(100);
+            permission.setAgentsMaxWorkspaceMb(5);
+            permission.setAgentsMaxWorkspaceFiles(50);
+        });
+
+        AgentGrant grant = agentService.getGrant(user);
+
+        assertThat(grant).isEqualTo(new AgentGrant(true, 1, 0, AgentService.DEFAULT_MAX_AGENTS, 2, 100 * 1024L, 5L * 1024 * 1024, 50));
+        Permission stored = permissionService.getPermission(user, PermissionType.AGENTS);
+        assertThat(stored.getAgentsMaxCopies()).isEqualTo(2);
+        assertThat(stored.getAgentsMaxFileKb()).isEqualTo(100);
+        assertThat(stored.getAgentsMaxWorkspaceMb()).isEqualTo(5);
+        assertThat(stored.getAgentsMaxWorkspaceFiles()).isEqualTo(50);
+    }
+
+    @Test
+    void aQuotaThatIsNotSetOrNotPositiveIsTheDefault() throws Exception {
+        User user = loginAgentUser();
+        updatePermission(user, PermissionType.AGENTS, permission -> {
+            permission.setAgentsMaxCopies(-1);
+            permission.setAgentsMaxFileKb(0);
+        });
+
+        AgentGrant grant = agentService.getGrant(user);
+
+        assertThat(grant.maxCopies()).isZero();
+        assertThat(grant.maxFileBytes()).isZero();
+        assertThat(grant.maxWorkspaceBytes()).isZero();
+        assertThat(grant.maxWorkspaceFiles()).isZero();
+    }
+
+    @Test
+    void aBlankCompactionPromptFollowsTheSameChainAsTheSystemPrompt() throws Exception {
+        try {
+            loginAgentUser();
+            Agent agent = agent();
+            assertThat(agentService.getCompactionPrompt(agent)).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT);
+            assertThat(agentService.getDefaultCompactionPrompt()).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT);
+
+            loginAdmin();
+            agentService.setAppCompactionPrompt("The application's compaction");
+            assertThat(agentService.getAppCompactionPrompt()).isEqualTo("The application's compaction");
+            loginAs(agent.getOwner());
+            assertThat(agentService.getCompactionPrompt(agent)).isEqualTo("The application's compaction");
+            assertThat(agentService.getAppDefaultCompactionPrompt()).isEqualTo("The application's compaction");
+            assertThatThrownBy(() -> agentService.setAppCompactionPrompt("mine")).isInstanceOf(SecurityException.class);
+            assertThatThrownBy(() -> agentService.getAppCompactionPrompt()).isInstanceOf(SecurityException.class);
+
+            UserSetting setting = settingService.getOrCreate(UserSetting.class);
+            setting.setDefaultAgentCompactionPrompt("The user's compaction");
+            settingService.save(setting);
+            assertThat(agentService.getCompactionPrompt(agent)).isEqualTo("The user's compaction");
+            assertThat(agentService.getDefaultCompactionPrompt()).isEqualTo("The user's compaction");
+            assertThat(agentService.getAppDefaultCompactionPrompt()).isEqualTo("The application's compaction");
+
+            agent.setCompactionPrompt("Its own compaction");
+            agent = agentService.save(agent);
+            assertThat(agentService.getCompactionPrompt(agent)).isEqualTo("Its own compaction");
+            assertThat(agentService.cloneAgent(agent, "copy", manuscript()).getCompactionPrompt()).isEqualTo("Its own compaction");
+        } finally {
+            loginAdmin();
+            agentService.setAppCompactionPrompt(null);
+        }
     }
 }

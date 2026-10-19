@@ -169,8 +169,12 @@ manuscript of an existing agent is not changed, the instructions are at most `MA
 `MAX_MODEL_PROFILES` profiles with unique non-blank roles and positive limits; names, roles and the allowed commands are trimmed (commands
 also de-duplicated). It does not check that the AI and protocol of a profile exist: `resolveProfile(profile)` does, when the agent is used.
 An existing agent can be edited after the permission was taken away, it can't run. `getGrant(user)` is an `AgentGrant(allowed,
-maxConcurrentRuns, runTokenBudget, maxAgents)`: everything for an administrator, else the settings of the `AGENTS` permission (1 run, no budget,
-`DEFAULT_MAX_AGENTS` = 5 agents when not set). `save` of a **new** agent (so `cloneAgent` too) refuses with an `IllegalStateException` when the user already
+maxConcurrentRuns, runTokenBudget, maxAgents, maxCopies, maxFileBytes, maxWorkspaceBytes, maxWorkspaceFiles)`: everything for an administrator (the
+quotas are the defaults), else the settings of the `AGENTS` permission (1 run, no budget, `DEFAULT_MAX_AGENTS` = 5 agents when not set; the **quotas** are
+`Permission.agentsMaxCopies`, `agentsMaxFileKb`, `agentsMaxWorkspaceMb`, `agentsMaxWorkspaceFiles`, where none, zero or below is the default: no limit of copies,
+and the `WorkspaceLimits` of the application for the files; the four argument constructor of the record keeps the old callers). `AgentRunService.start` (and
+`resume` of a run that lost its copy) refuses with an `IllegalStateException` when `countWithWorkingCopy` of the user has reached `maxCopies`: every run that
+is not finished keeps its copy, paused and stopped-and-kept ones too. `save` of a **new** agent (so `cloneAgent` too) refuses with an `IllegalStateException` when the user already
 has `maxAgents` agents (the deleted ones don't count); `canCreate()` is the same rule for the UI. `cloneAgent(source, name, manuscript)` copies the definition to another manuscript of the user, `findForManuscript`,
 `deleteForManuscript(manuscript, hard)` (called by `ManuscriptService.delete`) and `delete`, which deletes the runs first.
 
@@ -244,7 +248,15 @@ message is never left queued on an `IDLE` run (it is sent as usual there). A res
 wish in the `Inbox` (or sends at once if the run is `IDLE`): `await` sees it every `POLL_MILLIS` and throws `Forced`, which cancels the request or the call; the calls of the round that
 were written to the transcript get `AGENT_FORCED_CALL` (the one in flight) / `AGENT_SKIPPED_CALL` results, `rejectAll` refuses a waiting approval (the worker moves the run back to
 `RUNNING` itself first: two writers of SQLite at once fail), and the messages up to the forced one are appended (`deliverForced`). An answer of the model that was not complete is not
-written and not counted. A stopped or finished run drops its inbox (`queued` and the worker's end). The UI calls `run` after
+written and not counted. `command(run, line)` is the same queue for **commands of the author**: `consoleCommands(agent)` names what may be run (`compact`, `clear-workspace` and the agent's allowed commands that are not
+destructive: a destructive command asks the browser for a confirmation, which a run does not have), an item of the `Inbox` is a `Queued(id, message, command)` and `QueuedMessage` says `command`. Where the run is `RUNNING`
+(a conversation), `WAITING_APPROVAL` or `PAUSING` the command is queued; where it is `IDLE` or `PAUSED` a worker with `initial` items does only that (`start(run, initial)`, the run stays as it was,
+`send` refuses while it is registered because the worker writes the transcript; after the commands it goes on into the loop only if the run became `RUNNING` meanwhile). `deliver(due, transcript)` runs the items in order
+outside of the lock of the `Inbox` (a command can take long): messages go in as one message, a command is `runCommand` - `/compact` is `compact`, `/clear-workspace` is `VirtualFileSystem.clearWorkspace(keep)` (paths and globs, all or nothing, answer `Deleted N file(s) and M folder(s)`; the console asks `ConfirmDialog` first), anything else `CommandService.executeLine` in the context of the run -
+and its answer (or `Error:`, cut like a result of a call) is a `USER` message that starts with `Defaults.AGENT_AUTHOR_COMMAND_NOTE`, not a tool call of the agent. `endTurn` goes `IDLE` after commands alone, it
+continues the loop when a message of the author was among them; a forced item (`deliverForced`) always continues. `ignoreForce` keeps a forced message from cutting off the command that is run for it.
+`payload` merges messages of the author that follow each other (`coalesced`) because some chat templates refuse two of a role in a row, the transcript itself is not changed.
+A stopped or finished run drops its inbox (`queued` and the worker's end). The UI calls `run` after
 `start` and `resume` (`run(run, firstMessage)` appends that first message to the empty transcript of a run first, for the run started from the console, where the
 agent is told to ask the author at once). A worker (a daemon thread of a cached pool) does this, in `InRequestScope` of the `AgentRequestAttributes` of `openSession`, which it closes at the end:
 
@@ -283,8 +295,9 @@ The system message is **never stored**: it is made again for every round, so a c
 
 | Part | From |
 |---|---|
-| The system prompt of the agent | `Agent.systemPrompt`, a new agent starts with `Defaults.DEFAULT_AGENT_PROMPT` (the editorial role and working rules). |
+| The system prompt of the agent | `AgentService.getSystemPrompt(agent)`: `Agent.systemPrompt`; when that is blank the owner's `UserSetting.defaultAgentPrompt`, then `AppSettings.defaultAgentPrompt` (administrators, the Agents tab of the Admin page, `setAppSystemPrompt`), then `Defaults.DEFAULT_AGENT_PROMPT` (the editorial role and working rules). The same chain as the book prompts, so a new agent stores nothing and follows the default; `getDefaultSystemPrompt()` is what a blank prompt means for the current user (the placeholder and the **Insert Default Template** of the agent dialog), `getAppDefaultSystemPrompt()` what a user without own default gets (the placeholder in the settings). The runner reads it when the work starts, like the instructions. |
 | `# Instructions of the author` | `Agent.instructions`, the "agents.md" of the user. The agent can read it and never change it. |
+| A compacted run | The transcript the model reads starts with the summary of `compact`, a `USER` message that begins with `Defaults.AGENT_COMPACTED_NOTE`; see below. |
 | How this run works | `Defaults.AGENT_RUNNER_NOTE`: rounds, `finish` / `ask_user` / `update_plan`, the cost of writing, `@file:` and `@result`. This is where a rule for *all* agents goes. |
 | A conversation | `Defaults.AGENT_INTERACTIVE_NOTE`, only for a run started from the console: `finish` does not end it. |
 | Limits of the model | `limitsNote`: the context cap and `TokenLimits.responseTokens` (the longest answer), because a model that does not know it tries to write a 100 000 token file in one call and the call is cut off. |
@@ -298,6 +311,17 @@ The descriptions of the commands are part of the prompt in practice: a model dec
 `descriptionText` of the parameters, see [Writing commands for agents](#writing-commands-for-agents). The parameter descriptions of the text
 parameters also get `AGENT_FILE_ARGUMENT_HINT` and `AGENT_RESULT_ARGUMENT_HINT`.
 
+
+### Compaction
+
+`/compact [focus]` (`Worker.compact`) asks the model of the agent, with the transcript so far as the history and `AgentService.getCompactionPrompt(agent)` (the agent's, else `UserSetting.defaultAgentCompactionPrompt`,
+else `AppSettings.defaultAgentCompactionPrompt`, else `Defaults.DEFAULT_AGENT_COMPACTION_PROMPT`: the chain of the system prompt, edited in the agent dialog, the Templates tab of Settings and the Agents tab of Admin) as the last message,
+plus the focus, with the tools declared and no tool wanted: a request through `ask`, counted with `addUsage`. `fit` first leaves out the oldest messages, whole rounds and never the newest, until the history
+and the system message take at most 80% of the context cap, so a run that stopped on a full context can still be compacted (`Defaults.AGENT_COMPACTED_TRIMMED` tells the summary how many were left out). The summary text gets the
+plan appended (`Your plan when this summary was written`): `update_plan` calls are in the compacted rows and `planOf` would not find them after a resume. `AgentMessageService.compact` marks every row of the run
+`compacted` (extended attribute of `AgentMessage`, no migration) and appends the summary as a row with `summary`; `transcript` leaves the compacted rows out, `messages` and `count` keep them, so the console shows everything
+(the summary as a folded block) and the Markdown export keeps it. A failure (no model, no text, a tool call instead of text) changes nothing and is written to the transcript as a message of the author. Not built:
+compaction by itself at a threshold of the context, and a `request_compaction` tool for the agent.
 
 ## The tools of an agent
 
@@ -408,8 +432,9 @@ newest is always the one of the previous call.
 `AgentVirtualFileSystemService` hands out the files of agents. Two folders in the application folder (not in `data/`, which is named by logins):
 `agent-workspaces/<agent uuid>` is the **workspace**, which belongs to the agent and stays between its runs (the notes it keeps), and
 `agent-runs/<run uuid>` is the folder of a run (`base/` and `checkpoints/`, nothing writes them yet; `RunFolder` is the layout). The uuids are
-checked, so no value of the database makes a path leave these folders. `open(run)` is the file system of a run (the workspace and `/checkpoints`),
-`openWorkspace(agent)` the workspace alone for the user to look at; both refuse (`IllegalArgumentException`) what is not the user's own.
+checked, so no value of the database makes a path leave these folders. `open(run)` is the file system of a run (the workspace, `/checkpoints` and `/AGENTS.md`),
+`openWorkspace(agent)` the workspace alone for the user to look at; both refuse (`IllegalArgumentException`) what is not the user's own. Both use the
+`WorkspaceLimits` of `getLimits(agent)`: the defaults of the service (`getLimits()`) with the quotas of the permission of the agent's owner over them.
 `getFileTools(fileSystem)` binds `AgentFileTools` to it (a `FunctionSet`, to be put with the other tools of the run). `clearWorkspace` refuses
 while the agent works, `copyWorkspace` is what `AgentService.cloneAgent` calls, and a workspace is deleted with an agent that is deleted for good
 (not with a soft deleted one: it can be restored) and by the cleanup (the service is a `CleanupContributor`), a run folder with its run; the
@@ -426,14 +451,16 @@ text -> VirtualPath.parse -> VirtualFileSystem (mounts) -> WorkspaceMount: check
   Windows device names and too long names, paths and depth. That takes drive letters and UNC paths with it. Percent encoded or full width dots are
   letters: names like any other, leading nowhere. Every method that builds a path from a name checks the name again.
 - `VirtualFileSystem` routes a path to a `VirtualMount` (`stat`, `list`, `read`, `write`, `writeImage`, `createFolder`, `delete`, `move`, `toVirtual`): the workspace is the root,
-  `/checkpoints` (`CheckpointsMount`) lists the checkpoints and is read only. Other mounts, backed by services, can be added the same way. `toVirtual(Path)`
+  `/checkpoints` (`CheckpointsMount`) lists the checkpoints and is read only, `/AGENTS.md` (`InstructionsMount`, only in the file system of a run) is one read only file with
+  the instructions of the agent as `open(run)` read them. A mount is a folder or a file (`mountEntries()` gives how each shows at the root); a file of the workspace
+  with the name of a mount is hidden by it. Other mounts, backed by services, can be added the same way. `toVirtual(Path)`
   is the reverse mapping for everything that goes to the model and throws for a path outside every mount.
 - `WorkspaceMount` is where the cage is made of real checks: it walks the path name by name from the real root and refuses a symbolic link, anything
   but a file or a folder, and a name present in another spelling (also on a case sensitive file system, so `Notes.md` and `notes.md` are never both there);
   a workspace folder that is itself a link is refused when it is opened. Files are written whole to a temporary file (`.marginalia-tmp-` prefix, not listed,
   not creatable) and moved over the target, so a reader sees the old or the new content. Writes and deletes of one workspace take one lock (kept by the
   service per agent), which makes the limits of `WorkspaceLimits` (file size, total size, number of files) true under parallel threads. The name
-  `checkpoints` is reserved at the root.
+  `checkpoints` and `AGENTS.md` are reserved at the root.
 - Errors are `VirtualFileException`s whose message names virtual paths only; the cause (with real paths) goes to the log. The tools pass nothing else to the model.
 
 `AgentFileToolsImpl` implements the functions: `list_files`, `read_file` (line ranges, cut at 20 000 characters at a line with the line to go on from),
@@ -457,8 +484,8 @@ Agents work while the user is away, so nothing here depends on an open browser.
   the oldest pending command in `AgentApprovalDialog`; **Approve** / **Deny** complete the future, and the continuation runs on a thread of the run in its
   own context, **never** in the session of the user's browser. `backToWork` moves the run to `RUNNING` when nothing else waits. Pausing, stopping, finishing or failing
   the run refuses every pending command (`rejectAll`).
-- **Questions.** `ask_user`, or a reply with no call, ends the round with `IDLE`; the question is the status reason and the console shows it as the
-  last bubble. `AgentRunner.send(run, text)` appends the answer, moves `IDLE` to `RUNNING` and starts a worker.
+- **Questions.** `ask_user`, or a reply with no call, ends the round with `IDLE`; the question is the status reason. The console does not show the status reason (it holds only the last one): the calls of `finish` and
+  `ask_user` are rendered as bubbles of their own (`specialCall`) at their place in the transcript, their acknowledgement (`RunToolsImpl.isAcknowledgement`) hidden, so they stay when the run goes on. `AgentRunner.send(run, text)` appends the answer, moves `IDLE` to `RUNNING` and starts a worker.
 
 ## The screens
 
@@ -471,7 +498,7 @@ runner's internals.
 | `AgentDialog`, `AgentCommandsEditor`, `AgentCommandPreset` | Create / edit an agent. The editor lists every registered command with its severity; the presets (all, none, non-destructive) tick them at once. An allowed command that is not registered now (its extension is not loaded) stays allowed when saved. |
 | `AgentCloneDialog` | Copies the definition and the workspace (not the runs) to a new agent of another book. |
 | `AgentStopDialog` | Keep or discard the result. |
-| `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. Messages the author queued while the agent works (`AgentRunner.queued`) are dashed bubbles after the last row, each with a small **Send now** button (`AgentRunner.force`); they come off while the transcript grows and go back after it. In the **Workspace** tab the list and the viewer split the height (`flex 3 : 2`), so only they scroll. |
+| `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. The command line is the `CommandBar` of the story tab (list, help popover, severity badges), set to the commands of `AgentConsoleCommands.of(commandService, AgentRunner.consoleCommands(agent))` (`setCommands`: the registered ones the agent is allowed and the definition of `/compact`, which no suite registers) and to hand its line to `AgentRunner.command` (`setLineRunner`) instead of running it as the user in their browser session; it sits, with a one line hint, between the transcript and the message box, enabled for a run that waits, is paused or is a conversation that works. Messages and commands the author queued while the agent works (`AgentRunner.queued`) are dashed bubbles after the last row, each with a small **Send now** / **Run now** button (`AgentRunner.force`); they come off while the transcript grows and go back after it. In the **Workspace** tab the list and the viewer split the height (`flex 3 : 2`), so only they scroll. |
 | `AgentRunHistory` | The **Runs** tab: every run, open one in the Run tab, download it (`AgentTranscriptExport`, the transcript as Markdown, nothing cut), delete it. |
 | `AgentWorkspaceBrowser` | The **Workspace** tab: the folders and files of the agent over `AgentVirtualFileSystemService.openWorkspace`. A text file is shown cut at `VIEW_LIMIT` (2 000 characters) in a text area of a fixed height (otherwise Lumo grows it with the content), the whole file is the download; nothing can be changed while the agent works. **New folder** (`VirtualFileSystem.createFolder`, `WorkspaceMount.createFolder`) and **Upload file** (an `InMemoryUploadHandler`; a file that starts like an image goes to `writeImage`, anything else through `VirtualFileSystem.decodeText`, the same UTF-8 without NUL as `readText`, then `writeText`) keep the cage, the names and the limits of the agent's own writes; an existing file is not replaced, and both are refused while the agent works. |
 | `AgentApprovalDialog` | One pending command, Approve / Deny. |

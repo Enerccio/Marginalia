@@ -41,8 +41,20 @@ public interface AgentService extends ExtendableService<Agent, AgentRepository> 
      * @param maxConcurrentRuns how many runs of the user can work at once
      * @param runTokenBudget    most tokens a run can spend, zero is no limit
      * @param maxAgents         how many agents the user can have, clones included
+     * @param maxCopies         how many working copies the runs of the user keep at once, zero is no limit
+     * @param maxFileBytes      the largest file in a workspace of the user, zero is the default of the application
+     * @param maxWorkspaceBytes the most all the files of one workspace of the user take, zero is the default
+     * @param maxWorkspaceFiles the most files in one workspace of the user, zero is the default
      */
-    record AgentGrant(boolean allowed, int maxConcurrentRuns, long runTokenBudget, int maxAgents) {
+    record AgentGrant(boolean allowed, int maxConcurrentRuns, long runTokenBudget, int maxAgents, int maxCopies,
+                      long maxFileBytes, long maxWorkspaceBytes, int maxWorkspaceFiles) {
+
+        /**
+         * A grant with no quotas of copies and files: the default ones of the application.
+         */
+        public AgentGrant(boolean allowed, int maxConcurrentRuns, long runTokenBudget, int maxAgents) {
+            this(allowed, maxConcurrentRuns, runTokenBudget, maxAgents, 0, 0, 0, 0);
+        }
     }
 
     /**
@@ -70,6 +82,66 @@ public interface AgentService extends ExtendableService<Agent, AgentRepository> 
      * fail.
      */
     boolean canCreate() throws Exception;
+
+    /**
+     * The system prompt an agent runs with: its own, and when that is blank the default prompt of its owner in the
+     * settings, then the one of the application settings, then {@link com.github.enerccio.marginalia.Defaults#DEFAULT_AGENT_PROMPT}.
+     * Resolved at every request, so a changed default applies to the agents that follow it.
+     */
+    String getSystemPrompt(Agent agent) throws Exception;
+
+    /**
+     * What a blank system prompt of an agent of the current user means: their default prompt in the settings, else
+     * {@link #getAppDefaultSystemPrompt()}. The placeholder of the agent's prompt, and what it is filled with to
+     * edit a copy of it.
+     */
+    String getDefaultSystemPrompt() throws Exception;
+
+    /**
+     * What a user who has no default prompt of their own gets: the prompt of the application settings, else
+     * {@link com.github.enerccio.marginalia.Defaults#DEFAULT_AGENT_PROMPT}. The placeholder of the user's default prompt.
+     */
+    String getAppDefaultSystemPrompt() throws Exception;
+
+    /**
+     * The default prompt as the administrator stored it, blank when there is none. Administrators only.
+     */
+    String getAppSystemPrompt() throws Exception;
+
+    /**
+     * Stores the default prompt of the application settings, blank removes it. Administrators only.
+     */
+    void setAppSystemPrompt(String prompt) throws Exception;
+
+    /**
+     * What the model is asked to write the summary of a compaction with: the prompt of the agent, and when that is blank the
+     * default of its owner in the settings, then the one of the application settings, then
+     * {@link com.github.enerccio.marginalia.Defaults#DEFAULT_AGENT_COMPACTION_PROMPT}; the same chain as
+     * {@link #getSystemPrompt}.
+     */
+    String getCompactionPrompt(Agent agent) throws Exception;
+
+    /**
+     * What a blank compaction prompt of an agent of the current user means: their default in the settings, else
+     * {@link #getAppDefaultCompactionPrompt()}.
+     */
+    String getDefaultCompactionPrompt() throws Exception;
+
+    /**
+     * What a user who has no default compaction prompt of their own gets: the one of the application settings, else the
+     * built-in one.
+     */
+    String getAppDefaultCompactionPrompt() throws Exception;
+
+    /**
+     * The default compaction prompt as the administrator stored it, blank when there is none. Administrators only.
+     */
+    String getAppCompactionPrompt() throws Exception;
+
+    /**
+     * Stores the default compaction prompt of the application settings, blank removes it. Administrators only.
+     */
+    void setAppCompactionPrompt(String prompt) throws Exception;
 
     /**
      * The agent of the manuscript of the current user, null when there is none.

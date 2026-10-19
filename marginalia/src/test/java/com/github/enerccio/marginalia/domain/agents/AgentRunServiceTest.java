@@ -522,4 +522,37 @@ class AgentRunServiceTest extends AgentTestBase {
 
         assertThat(agentRunService.start(mine).getId()).as("another user has their own limit").isNotNull();
     }
+
+    // --- the quota of working copies ---
+
+    @Test
+    void theNumberOfWorkingCopiesIsLimitedByThePermissionAndAPausedRunKeepsItsCopy() throws Exception {
+        updatePermission(user, PermissionType.AGENTS, permission -> permission.setAgentsMaxCopies(1));
+        Agent second = agentService.save(newAgent(manuscript()));
+        AgentRun first = agentRunService.start(agent);
+        first = agentRunService.pause(first);
+        assertThat(first.getStatus()).isEqualTo(PAUSED);
+
+        assertThatThrownBy(() -> agentRunService.start(second)).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("working copies");
+
+        agentRunService.stop(first, false);
+        assertThat(agentRunService.start(second).getWorkingCopy()).isNotNull();
+    }
+
+    @Test
+    void withoutAQuotaOfCopiesOnlyTheNumberOfAgentsLimits() throws Exception {
+        Agent second = agentService.save(newAgent(manuscript()));
+        agentRunService.pause(agentRunService.start(agent));
+
+        assertThat(agentRunService.start(second).getStatus()).isEqualTo(RUNNING);
+    }
+
+    @Test
+    void resumingARunThatKeepsItsCopyNeedsNoNewOne() throws Exception {
+        updatePermission(user, PermissionType.AGENTS, permission -> permission.setAgentsMaxCopies(1));
+        AgentRun run = agentRunService.pause(agentRunService.start(agent));
+
+        assertThat(agentRunService.resume(run).getStatus()).isEqualTo(RUNNING);
+    }
 }

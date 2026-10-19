@@ -42,6 +42,31 @@ public final class RunToolsImpl implements RunTools {
         this.interactive = interactive;
     }
 
+    public static final String REPORT_ACK_INTERACTIVE = "Your report is passed to the author. The run waits for their next message; do not call anything else.";
+    public static final String REPORT_ACK = "The run ends after this round. Your report is passed to the author.";
+    public static final String QUESTION_ACK = "The question is passed to the author. The run waits here; the answer comes as the next message.";
+
+    /**
+     * Whether a result of a call is the plain acknowledgement of {@code finish} or {@code ask_user}, which the author
+     * reads as the report or the question itself and not as a result.
+     */
+    public static boolean isAcknowledgement(String result) {
+        return REPORT_ACK_INTERACTIVE.equals(result) || REPORT_ACK.equals(result) || QUESTION_ACK.equals(result);
+    }
+
+    /**
+     * The question of {@code ask_user} as the author reads it: the text and the answers suggested.
+     */
+    public static String questionText(String question, List<String> options) {
+        StringBuilder text = new StringBuilder(StringUtils.abbreviate(question.strip(), MAX_QUESTION_LENGTH));
+        if (options != null && !options.isEmpty()) {
+            text.append("\n\nSuggested answers:");
+            options.stream().filter(StringUtils::isNotBlank).limit(MAX_OPTIONS)
+                    .forEach(option -> text.append("\n- ").append(StringUtils.abbreviate(option.strip(), MAX_ITEM_LENGTH)));
+        }
+        return text.toString();
+    }
+
     /**
      * The report of the model when it called {@code finish}, null when it did not.
      */
@@ -82,9 +107,7 @@ public final class RunToolsImpl implements RunTools {
             return;
         }
         this.summary = summary.strip();
-        done.complete(interactive
-                ? "Your report is passed to the author. The run waits for their next message; do not call anything else."
-                : "The run ends after this round. Your report is passed to the author.");
+        done.complete(interactive ? REPORT_ACK_INTERACTIVE : REPORT_ACK);
     }
 
     @Override
@@ -93,14 +116,8 @@ public final class RunToolsImpl implements RunTools {
             done.fail("Write the question");
             return;
         }
-        StringBuilder text = new StringBuilder(StringUtils.abbreviate(question.strip(), MAX_QUESTION_LENGTH));
-        if (options != null && !options.isEmpty()) {
-            text.append("\n\nSuggested answers:");
-            options.stream().filter(StringUtils::isNotBlank).limit(MAX_OPTIONS)
-                    .forEach(option -> text.append("\n- ").append(StringUtils.abbreviate(option.strip(), MAX_ITEM_LENGTH)));
-        }
-        this.question = text.toString();
-        done.complete("The question is passed to the author. The run waits here; the answer comes as the next message.");
+        this.question = questionText(question, options);
+        done.complete(QUESTION_ACK);
     }
 
     @Override

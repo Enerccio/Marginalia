@@ -54,6 +54,37 @@ public class AgentMessage extends ExtendableEntity {
     @ExtendedAttribute
     private String reasoning;
 
+    /**
+     * Whether a compaction replaced this message by a summary: it stays in the transcript the user reads and in the
+     * export, and is no longer sent to the model.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean compacted;
+
+    /**
+     * Whether this message is the summary a compaction wrote, the start of what the model reads now.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean summary;
+
+    public boolean isCompacted() {
+        return compacted != null && compacted;
+    }
+
+    public void setCompacted(boolean compacted) {
+        this.compacted = compacted ? Boolean.TRUE : null;
+    }
+
+    public boolean isSummary() {
+        return summary != null && summary;
+    }
+
+    public void setSummary(boolean summary) {
+        this.summary = summary ? Boolean.TRUE : null;
+    }
+
     public AgentRun getRun() {
         return run;
     }

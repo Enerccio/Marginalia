@@ -46,7 +46,20 @@ public interface AgentMessageService extends ExtendableService<AgentMessage, Age
     long getContextTokens(AgentRun run) throws Exception;
 
     /**
-     * The messages of the run in order, ready to be sent to the model (without the system prompt).
+     * Compacts the transcript: every message there is now is marked compacted - it stays in {@link #messages} for the user
+     * and the export and is no longer sent to the model - and the summary is appended as the message the model reads
+     * first from now on.
+     *
+     * @param summary       the message of the user that holds the summary
+     * @param contextTokens about how big the context of the run is now, for the console
+     * @return the row of the summary
+     * @throws IllegalArgumentException when the run is not a run of the current user
+     */
+    AgentMessage compact(AgentRun run, LLMChatMessage summary, long contextTokens) throws Exception;
+
+    /**
+     * The messages of the run in order, ready to be sent to the model (without the system prompt), the ones a
+     * compaction replaced left out.
      *
      * @throws IllegalArgumentException when the run is not a run of the current user
      */

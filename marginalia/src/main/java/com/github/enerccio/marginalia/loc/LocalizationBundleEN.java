@@ -414,7 +414,6 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_DISABLED, "Disabled");
         setValue(L.LABEL_AGENT_SYSTEM_PROMPT, "System prompt");
         setValue(L.LABEL_AGENT_INSTRUCTIONS, "Instructions (agents.md)");
-        setValue(L.LABEL_RESTORE_DEFAULT, "Restore default");
         setValue(L.LABEL_DESTRUCTIVE_COMMANDS, "Destructive commands");
         setValue(L.LABEL_MAX_ROUNDS, "Most rounds");
         setValue(L.LABEL_RUN_TOKEN_BUDGET, "Token budget of a run");
@@ -437,7 +436,6 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_YOU, "You");
         setValue(L.LABEL_RESULT, "Result");
         setValue(L.LABEL_AGENT_REPORT, "Report of the agent");
-        setValue(L.LABEL_AGENT_WAITS, "The agent waits for you");
         setValue(L.LABEL_UP, "Up");
         setValue(L.LABEL_AGENT_APPROVAL, "The agent asks for approval");
         setValue(L.LABEL_APPROVE, "Approve");
@@ -456,6 +454,19 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ATTACH_IMAGE, "Attach image");
         setValue(L.LABEL_AGENT_QUEUED, "Queued");
         setValue(L.LABEL_AGENT_SEND_NOW, "Send now");
+        setValue(L.LABEL_AGENT_DEFAULT_PROMPT, "System prompt of agents");
+        setValue(L.LABEL_AGENTS_MAX_FILE_KB, "Largest file (KB)");
+        setValue(L.LABEL_AGENTS_MAX_WORKSPACE_MB, "Workspace size (MB)");
+        setValue(L.LABEL_AGENTS_MAX_WORKSPACE_FILES, "Files in a workspace");
+        setValue(L.LABEL_AGENTS_MAX_COPIES, "Working copies");
+        setValue(L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION, "Preview lore activation");
+        setValue(L.LABEL_AGENT_COMPACTION_PROMPT, "Compaction prompt");
+        setValue(L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT, "Compaction prompt of agents");
+        setValue(L.LABEL_AGENT_RUN_NOW, "Run now");
+        setValue(L.LABEL_AGENT_SUMMARY, "Summary of the earlier work");
+        setValue(L.LABEL_COMMAND_COMPACT, "Compact");
+        setValue(L.LABEL_COMMAND_CLEAR_WORKSPACE, "Clear workspace");
+        setValue(L.LABEL_AGENT_QUESTION, "Question of the agent");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -749,7 +760,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_AGENTS, "How many agents the user can have, clones included. Empty is five, zero lets the user keep and run their agents but not create or clone another one.");
         setValue(L.HELP_AGENTS_MAX_CONCURRENT_RUNS, "How many runs of the user can work at once. Empty is one.");
         setValue(L.HELP_AGENTS_RUN_TOKEN_BUDGET, "Most tokens (sent and generated) one run of the user can spend. Empty or zero is no limit.");
-        setValue(L.HELP_AGENT_SYSTEM_PROMPT, "What the agent is told to be, before your instructions. A new agent starts with the default.");
+        setValue(L.HELP_AGENT_SYSTEM_PROMPT, "What the agent is told to be, before your instructions. Blank follows the default (your default in the settings, else the administrator's, else the built-in one), which is the placeholder; the info icon fills it in so you can edit a copy.");
         setValue(L.HELP_AGENT_INSTRUCTIONS, "Your instructions for the agent, added to its prompt in every run. The agent can read them but not change them.");
         setValue(L.HELP_AGENT_DESTRUCTIVE, "What happens when the agent wants to run a command that changes or removes data.");
         setValue(L.HELP_AGENT_MAX_ROUNDS, "Most requests to the model in one run. Empty is no limit of the agent.");
@@ -758,6 +769,17 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_SEES_IMAGES, "Tick it when the model takes images. The agent then gets a tool that shows it the images of its workspace (you put them there with Upload). Commands that send images to a model of their own, like the Lore Generator, take images from the workspace whatever this says.");
         setValue(L.HELP_AGENT_MESSAGE_QUEUED, "The agent is working. Your message waits until the agent is ready to read it.");
         setValue(L.HELP_AGENT_SEND_NOW, "Throws away what the agent is doing in this round and sends the message right now.");
+        setValue(L.HELP_AGENT_DEFAULT_PROMPT_USER, "Used by your agents that have no system prompt of their own. Empty follows the default of the administrator, else the built-in prompt.");
+        setValue(L.HELP_AGENT_DEFAULT_PROMPT_APP, "Used by the agents that have no system prompt of their own and whose user has no default prompt in their settings. Empty is the built-in prompt.");
+        setValue(L.HELP_AGENTS_MAX_FILE_KB, "Largest file an agent of the user can write, in KB. Empty is 1024 (1 MB).");
+        setValue(L.HELP_AGENTS_MAX_WORKSPACE_MB, "How much all the files in the workspace of one agent can take, in MB. Empty is 20.");
+        setValue(L.HELP_AGENTS_MAX_WORKSPACE_FILES, "How many files the workspace of one agent can hold (folders are free). Empty is 500.");
+        setValue(L.HELP_AGENTS_MAX_COPIES, "How many working copies of books the runs of the user can keep at once. A run that is not finished (also a paused one) keeps its copy. Empty or zero is no limit besides the number of agents.");
+        setValue(L.HELP_AGENT_COMPACTION_PROMPT, "What the agent is asked when its work is compacted (/compact in the console): it writes the summary that replaces the earlier rounds. Blank follows the default (your default in the settings, else the administrator's, else the built-in one), which is the placeholder; the info icon fills it in so you can edit a copy.");
+        setValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_USER, "Used by your agents that have no compaction prompt of their own. Empty follows the default of the administrator, else the built-in prompt.");
+        setValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_APP, "Used by the agents that have no compaction prompt of their own and whose user has no default in their settings. Empty is the built-in prompt.");
+        setValue(L.HELP_AGENT_COMMAND, "You run the command, not the agent: it is told that you did and what came out. While the agent works the command waits for the end of its turn.");
+        setValue(L.HELP_AGENT_RUN_NOW, "Throws away what the agent is doing in this round and runs the command right now.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
@@ -922,6 +944,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SEARCH_LORE, "Searches the names, texts and comments of the lorebook entries.");
         setValue(L.DESC_COMMAND_SEARCH_LORE_LLM, "Finds the entries of all the lorebooks of the book whose name, text or comment contain the query (case does not matter; with regex the query is a regular expression). Each hit gives the lorebook number, the entry number, the name, which of name, text and comment match and a snippet around the first match; found is the number of entries that match, hits is limited. Reads only. Options are positional and optional, in the order listed.");
         setValue(L.DESC_COMMAND_SEARCH_LORE_RETURN, "JSON with found and the hits: lorebook, entry, name, matchedIn, snippet");
+        setValue(L.DESC_COMMAND_PREVIEW_TEXT_PARAM, "The text the filters of the entries are looked for in, as the user prompt of a turn is");
+        setValue(L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, "Shows which lorebook entries a generation would use for a text or for a part, and why.");
+        setValue(L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM, "Tells which entries of the lorebooks of the book the generation would put into the prompt for a text, or for a turn like the one that made a part (given by position and, optionally, branch number): the filter of an entry is looked for in the text, or, with a part, in the user prompt of the book rendered from the instructions, scene, point of view and present characters stored with the part. Each entry used has its lorebook number, entry number, name and the reason (CONSTANT: no filter; FILTER_MATCHED); the ones not used have the reason too (DISABLED, NEGATIVE_TAG or MISSING_TAG against the tags of the book, FILTER_NOT_MATCHED). Also the lore text that would be inserted, with its tokens, split into the lore block and the lore that goes before the user prompt. The rest of the story is not available to the templates of the entries here. Reads only. Options are positional and optional, in the order listed.");
+        setValue(L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN, "JSON with the entries used and not used (with the reasons) and the lore text with its tokens");
+        setValue(L.DESC_AGENT_COMMAND_COMPACT, "Summarizes everything so far and replaces the earlier rounds with the summary, to free the context. The argument, if any, is what the summary should stress.");
+        setValue(L.DESC_AGENT_COMMAND_CLEAR_WORKSPACE, "Deletes all the files and folders of the workspace of the agent. The arguments are the files, folders (with what is in them) or patterns such as *.md to keep, separated by spaces (a path with spaces in double quotes); the folders above a kept file stay. If something to keep is not there, nothing is deleted.");
 
     }
 

@@ -242,13 +242,21 @@ Tests: `ManuscriptReadCommandsTest` runs them in an agent session (`AgenticReque
 
 ### Commands that read the lorebooks
 
-The package `domain.service.impl.commands.lorebook.read` has `ListLorebooksCommand`, `ListLoreEntriesCommand`, `GetLoreEntryCommand` and
-`SearchLoreCommand` on `LorebookReadSupport`, which extends `ManuscriptReadSupport` (so the `Book`, the paging and the slices are the same).
+The package `domain.service.impl.commands.lorebook.read` has `ListLorebooksCommand`, `ListLoreEntriesCommand`, `GetLoreEntryCommand`,
+`SearchLoreCommand` and `PreviewLoreActivationCommand` on `LorebookReadSupport`, which extends `ManuscriptReadSupport` (so the `Book`, the paging and the slices are the same).
 Its `Lore` is the lorebook tree of the open book: the root lorebook of the manuscript, then the subbooks level by level, each once
 (`LorebookService.getSubbooks` skips the deleted ones). A lorebook is its **number** in that order (the root is 1), an entry its **number in
 the lorebook** (`LorebookEntryService.getEntriesForLorebook`: by `ordinal`, then by id, deleted ones left out). Nothing outside the tree is
 reachable, so an agent never sees the other lorebooks of the user, and no uuid is given out or accepted. `list-lore-entries` filters by
 name and tag in Java and keeps the numbers of the whole lorebook; `search-lore` scans name, text and comment case-insensitively
 (plain text or a regular expression) and reports one hit per entry with the fields that match.
+
+`preview-lore-activation` asks `LorebookActivationService` (`domain.service`), the rules the generation step `ProcessLorebookStep` uses too: `collectLorebooks` (the enabled
+tree with the entries filled in), `orderedEntries` (by `order`, the older first), `evaluate(entry, bookTags, text)` (a `Verdict` with a `Reason`: `CONSTANT`,
+`FILTER_MATCHED`, `DISABLED`, `NEGATIVE_TAG`, `MISSING_TAG`, `FILTER_NOT_MATCHED`) and `renderPayload`. The step only adds its events around them, so what the command
+shows is what a generation does. With a part the filters are looked for in the user prompt of the book rendered from the turn input stored with the part, in a
+fresh `TemplateContext` (the book, the narration settings, the variables of the book and of the part; not the story), so a payload that reads the story renders
+without it. The form with `text` and the form with `part` both have one argument, a number on the command line is taken for the text: give a part as a number
+to `executePositional`, or by name as an agent does.
 
 Tests: `LorebookReadCommandsTest`, the same way, with a lorebook tree, a lorebook the book does not use and a deleted entry.

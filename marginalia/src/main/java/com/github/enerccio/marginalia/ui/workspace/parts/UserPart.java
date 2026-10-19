@@ -76,6 +76,9 @@ public class UserPart implements WorkspaceComponent {
     @Autowired
     private BackupService backupService;
 
+    @Autowired
+    private AgentService agentService;
+
     private final Workspace workspace;
 
     private VerticalLayout mainLayout;
@@ -97,6 +100,8 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultUserPromptField;
     private TextAreaPopoverComponent defaultSummaryPromptField;
     private TextAreaPopoverComponent defaultMetaSummaryPromptField;
+    private TextAreaPopoverComponent defaultAgentPromptField;
+    private TextAreaPopoverComponent defaultAgentCompactionPromptField;
 
     // Tab 3 Tags, not a setting: acts at once, outside of the save and discard of the part
     private TagsView tagsView;
@@ -167,6 +172,12 @@ public class UserPart implements WorkspaceComponent {
 
         templatesFormLayout.add(defaultMetaSummaryPromptField);
         templatesFormLayout.setColspan(defaultMetaSummaryPromptField, 2);
+
+        templatesFormLayout.add(defaultAgentPromptField);
+        templatesFormLayout.setColspan(defaultAgentPromptField, 2);
+
+        templatesFormLayout.add(defaultAgentCompactionPromptField);
+        templatesFormLayout.setColspan(defaultAgentCompactionPromptField, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_TEMPLATES), templatesFormLayout);
 
@@ -328,6 +339,34 @@ public class UserPart implements WorkspaceComponent {
         defaultMetaSummaryPromptField.setPlaceholder(Defaults.DEFAULT_META_SUMMARY);
         defaultMetaSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultMetaSummaryPromptField, defaultMetaSummaryPromptField.getPopover(), MetaSummaryTemplateData.class, Defaults.DEFAULT_META_SUMMARY));
+
+        // plain text, not a template; what it follows is the placeholder (see refreshAgentPrompt)
+        defaultAgentPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_PROMPT));
+        defaultAgentPromptField.setWidthFull();
+        defaultAgentPromptField.setHelperText(loc.getValue(L.HELP_AGENT_DEFAULT_PROMPT_USER));
+        ResizableTextArea.install(loc, defaultAgentPromptField, "160px");
+
+        defaultAgentCompactionPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT));
+        defaultAgentCompactionPromptField.setWidthFull();
+        defaultAgentCompactionPromptField.setHelperText(loc.getValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_USER));
+        ResizableTextArea.install(loc, defaultAgentCompactionPromptField, "160px");
+    }
+
+    /**
+     * The prompt of the agents is for the users who may use agents; its placeholder is what a user without a prompt of
+     * their own gets (the administrator's default, else the built-in one), and the info popover fills it in.
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class))
+    private void refreshAgentPrompt() throws Exception {
+        defaultAgentPromptField.setVisible(agentService.isAllowed());
+        defaultAgentPromptField.setPlaceholder(agentService.getAppDefaultSystemPrompt());
+        defaultAgentPromptField.setPopoverContent(TemplateHints.create(loc, defaultAgentPromptField,
+                defaultAgentPromptField.getPopover(), null, agentService.getAppDefaultSystemPrompt()));
+        defaultAgentCompactionPromptField.setVisible(defaultAgentPromptField.isVisible());
+        defaultAgentCompactionPromptField.setPlaceholder(agentService.getAppDefaultCompactionPrompt());
+        defaultAgentCompactionPromptField.setPopoverContent(TemplateHints.create(loc, defaultAgentCompactionPromptField,
+                defaultAgentCompactionPromptField.getPopover(), null, agentService.getAppDefaultCompactionPrompt()));
     }
 
     @PublicAPI(from = "1.1.0",
@@ -419,6 +458,9 @@ public class UserPart implements WorkspaceComponent {
             defaultUserPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultUserPrompt()));
             defaultSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultSummaryPrompt()));
             defaultMetaSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultMetaSummaryPrompt()));
+            defaultAgentPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentPrompt()));
+            defaultAgentCompactionPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentCompactionPrompt()));
+            refreshAgentPrompt();
             validateTemplate(masterTemplateField, "masterTemplate", MasterTemplateData.class);
             validateTemplate(defaultUserPromptField, "defaultUserPrompt", UserPromptData.class);
             validateTemplate(defaultSummaryPromptField, "defaultSummaryPrompt", SummaryTemplateData.class);
@@ -554,6 +596,11 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultUserPrompt(userPrompt);
             userSetting.setDefaultSummaryPrompt(summaryPrompt);
             userSetting.setDefaultMetaSummaryPrompt(metaSummaryPrompt);
+            if (defaultAgentPromptField.isVisible()) {
+                // hidden for a user who may not use agents: what they once set stays
+                userSetting.setDefaultAgentPrompt(defaultAgentPromptField.getValue());
+                userSetting.setDefaultAgentCompactionPrompt(defaultAgentCompactionPromptField.getValue());
+            }
 
             settingService.save(userSetting);
             setChanged(false);

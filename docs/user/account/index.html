@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845725078135">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845730957074">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845725078135" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845730957074" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845725078135" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845730957074" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845725078135" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845730957074" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -327,7 +327,9 @@ books. The <a href="../extensions/lore-generator/">Lore Generator</a> extension 
 | **Style** | Style and tone guidelines. |
 | **Default User Prompt** | The request for each part, see [User prompt](books/prompts.md#user-prompt). |
 | **Default Summary Prompt** | The request for a [summary](books/summaries.md#the-summary-prompt). |
-| **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |">
+| **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |
+| **Compaction prompt of agents** | Only for users who may use [agents](agents.md). What your agents are asked when you [`/compact`](agents.md#running-a-command-yourself) them, if their own compaction prompt is empty; empty here is the one your administrator set, else the built-in one. |
+| **System prompt of agents** | Only for users who may use [agents](agents.md). What your agents are told to be when their own system prompt is empty; empty here is the one your administrator set, else the built-in one. Plain text, not a template. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -360,6 +362,14 @@ books. The <a href="../extensions/lore-generator/">Lore Generator</a> extension 
 <tr>
 <td><strong>Default Meta Summary Prompt</strong></td>
 <td>The request for a <a href="../books/summaries/#the-meta-summary-prompt">meta summary</a>, which merges summaries.</td>
+</tr>
+<tr>
+<td><strong>Compaction prompt of agents</strong></td>
+<td>Only for users who may use <a href="../agents/">agents</a>. What your agents are asked when you <a href="../agents/#running-a-command-yourself"><code translate="no" v-pre>/compact</code></a> them, if their own compaction prompt is empty; empty here is the one your administrator set, else the built-in one.</td>
+</tr>
+<tr>
+<td><strong>System prompt of agents</strong></td>
+<td>Only for users who may use <a href="../agents/">agents</a>. What your agents are told to be when their own system prompt is empty; empty here is the one your administrator set, else the built-in one. Plain text, not a template.</td>
 </tr>
 </tbody>
 </table>
@@ -464,7 +474,7 @@ settings is installed.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (e2b1b419).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (0c35856c).</p></div>
             </footer>
         </div>
     </div>

@@ -422,7 +422,6 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_DISABLED, "已禁用");
         setValue(L.LABEL_AGENT_SYSTEM_PROMPT, "系统提示词");
         setValue(L.LABEL_AGENT_INSTRUCTIONS, "指令 (agents.md)");
-        setValue(L.LABEL_RESTORE_DEFAULT, "恢复默认");
         setValue(L.LABEL_DESTRUCTIVE_COMMANDS, "破坏性命令");
         setValue(L.LABEL_MAX_ROUNDS, "最大轮数");
         setValue(L.LABEL_RUN_TOKEN_BUDGET, "单次运行的令牌预算");
@@ -445,7 +444,6 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_YOU, "你");
         setValue(L.LABEL_RESULT, "结果");
         setValue(L.LABEL_AGENT_REPORT, "智能体的报告");
-        setValue(L.LABEL_AGENT_WAITS, "智能体正在等待你");
         setValue(L.LABEL_UP, "上一级");
         setValue(L.LABEL_AGENT_APPROVAL, "智能体请求批准");
         setValue(L.LABEL_APPROVE, "批准");
@@ -464,6 +462,19 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_ATTACH_IMAGE, "附加图片");
         setValue(L.LABEL_AGENT_QUEUED, "排队中");
         setValue(L.LABEL_AGENT_SEND_NOW, "立即发送");
+        setValue(L.LABEL_AGENT_DEFAULT_PROMPT, "智能体的系统提示");
+        setValue(L.LABEL_AGENTS_MAX_FILE_KB, "最大文件 (KB)");
+        setValue(L.LABEL_AGENTS_MAX_WORKSPACE_MB, "工作区大小 (MB)");
+        setValue(L.LABEL_AGENTS_MAX_WORKSPACE_FILES, "工作区文件数");
+        setValue(L.LABEL_AGENTS_MAX_COPIES, "工作副本数");
+        setValue(L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION, "预览设定激活");
+        setValue(L.LABEL_AGENT_COMPACTION_PROMPT, "压缩提示");
+        setValue(L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT, "智能体的压缩提示");
+        setValue(L.LABEL_AGENT_RUN_NOW, "立即运行");
+        setValue(L.LABEL_AGENT_SUMMARY, "此前工作的摘要");
+        setValue(L.LABEL_COMMAND_COMPACT, "压缩");
+        setValue(L.LABEL_COMMAND_CLEAR_WORKSPACE, "清空工作区");
+        setValue(L.LABEL_AGENT_QUESTION, "智能体的问题");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -757,7 +768,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_AGENTS, "用户可拥有的智能体数量（含克隆）。留空为五个；为零则只能保留并运行现有智能体，不能新建或克隆。");
         setValue(L.HELP_AGENTS_MAX_CONCURRENT_RUNS, "用户可同时运行的次数。留空为一次。");
         setValue(L.HELP_AGENTS_RUN_TOKEN_BUDGET, "用户单次运行最多可消耗的令牌数（发送与生成）。留空或为零表示不限制。");
-        setValue(L.HELP_AGENT_SYSTEM_PROMPT, "在您的指令之前告诉智能体它的角色。新建的智能体以默认内容开始。");
+        setValue(L.HELP_AGENT_SYSTEM_PROMPT, "在您的指令之前告诉智能体它的角色。留空则采用默认内容(您在设置中的默认,否则是管理员的,否则是内置的),默认内容显示为占位符;点击信息图标可填入以便编辑副本。");
         setValue(L.HELP_AGENT_INSTRUCTIONS, "给智能体的指令，会加入每次运行的提示词。智能体可以读取但不能修改。");
         setValue(L.HELP_AGENT_DESTRUCTIVE, "智能体要运行会修改或删除数据的命令时如何处理。");
         setValue(L.HELP_AGENT_MAX_ROUNDS, "单次运行向模型发出的最大请求数。留空表示智能体不设限。");
@@ -766,6 +777,17 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_SEES_IMAGES, "当模型可以接收图片时勾选。智能体将获得一个工具，用来查看其工作区中的图片（通过上传放入）。像 Lore Generator 这样把图片发给自己模型的命令，无论此项如何设置，都可以使用工作区中的图片。");
         setValue(L.HELP_AGENT_MESSAGE_QUEUED, "智能体正在工作。你的消息会等到智能体可以读取时再送达。");
         setValue(L.HELP_AGENT_SEND_NOW, "丢弃智能体在本轮正在做的工作，并立即发送这条消息。");
+        setValue(L.HELP_AGENT_DEFAULT_PROMPT_USER, "用于没有自己系统提示的您的智能体。留空则采用管理员的默认,否则采用内置提示。");
+        setValue(L.HELP_AGENT_DEFAULT_PROMPT_APP, "用于没有自己系统提示、且其用户在设置中也没有默认提示的智能体。留空则使用内置提示。");
+        setValue(L.HELP_AGENTS_MAX_FILE_KB, "该用户的智能体可写入的最大文件,单位 KB。留空为 1024 (1 MB)。");
+        setValue(L.HELP_AGENTS_MAX_WORKSPACE_MB, "单个智能体工作区内所有文件的总大小,单位 MB。留空为 20。");
+        setValue(L.HELP_AGENTS_MAX_WORKSPACE_FILES, "单个智能体工作区可容纳的文件数(文件夹不计)。留空为 500。");
+        setValue(L.HELP_AGENTS_MAX_COPIES, "该用户的运行可同时保留的书籍工作副本数。未结束的运行(含已暂停的)会保留其副本。留空或为零表示除智能体数量外不限制。");
+        setValue(L.HELP_AGENT_COMPACTION_PROMPT, "压缩智能体的工作时(控制台中的 /compact)对它的要求:它写出取代此前各轮的摘要。留空则采用默认内容(您在设置中的默认,否则是管理员的,否则是内置的),默认内容显示为占位符;点击信息图标可填入以便编辑副本。");
+        setValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_USER, "用于没有自己压缩提示的您的智能体。留空则采用管理员的默认,否则采用内置提示。");
+        setValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_APP, "用于没有自己压缩提示、且其用户在设置中也没有默认值的智能体。留空则使用内置提示。");
+        setValue(L.HELP_AGENT_COMMAND, "命令由您运行,而不是智能体:它会得知您运行了命令及其结果。智能体工作时,命令会等到它这一轮结束。");
+        setValue(L.HELP_AGENT_RUN_NOW, "丢弃智能体在这一轮正在做的事,立即运行该命令。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -930,6 +952,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SEARCH_LORE, "搜索世界书条目的名称、正文和备注。");
         setValue(L.DESC_COMMAND_SEARCH_LORE_LLM, "在本书所有世界书中查找名称、正文或备注包含查询文本的条目（不区分大小写；指定 regex 时查询为正则表达式）。每个命中包含世界书编号、条目编号、名称、名称/正文/备注中哪些匹配，以及首个匹配周围的片段；found 为匹配的条目数，hits 有数量限制。只读。选项为位置参数，可省略，按所列顺序。");
         setValue(L.DESC_COMMAND_SEARCH_LORE_RETURN, "包含 found 和命中的 JSON：世界书、条目、名称、匹配位置、片段");
+        setValue(L.DESC_COMMAND_PREVIEW_TEXT_PARAM, "在其中查找条目过滤器的文本(相当于一轮的用户提示)");
+        setValue(L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, "显示一次生成会为某段文字或某个部分使用哪些设定集条目,以及原因。");
+        setValue(L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM, "说明对于一段文字,或对于与产生某个部分(按位置及可选的分支编号指定)相同的一轮,生成会把书的哪些设定集条目放入提示:条目的过滤器在该文字中查找;若是部分,则在由该部分保存的指令、场景、视角和在场人物渲染出的书的用户提示中查找。被使用的条目给出设定集编号、条目编号、名称和原因(CONSTANT:无过滤器;FILTER_MATCHED);未使用的条目也给出原因(DISABLED,与书的标签相关的 NEGATIVE_TAG 或 MISSING_TAG,FILTER_NOT_MATCHED)。同时返回将被插入的设定文本及其词元数。只读。选项按位置给出,顺序如列表所示。");
+        setValue(L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN, "包含已使用和未使用条目(附原因)以及设定文本及其词元数的 JSON");
+        setValue(L.DESC_AGENT_COMMAND_COMPACT, "总结到目前为止的全部内容,并用摘要取代此前各轮,以腾出上下文。若有参数,则为摘要应着重的内容。");
+        setValue(L.DESC_AGENT_COMMAND_CLEAR_WORKSPACE, "删除智能体工作区中的所有文件和文件夹。参数为要保留的文件、文件夹(连同其内容)或 *.md 之类的模式,以空格分隔(含空格的路径用双引号括起)。保留文件所在的上级文件夹也会保留。若要保留的内容不存在,则不会删除任何内容。");
     }
 
     @Override

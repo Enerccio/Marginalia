@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 
 import java.util.List;
@@ -26,6 +27,18 @@ public interface AgentRunner {
     int MAX_ATTACHED_IMAGES = 8;
 
     /**
+     * The command of the console the runner does itself: {@code /compact [focus]} replaces the transcript the model reads
+     * by a summary the model writes, see {@link #command}.
+     */
+    String COMPACT = "compact";
+
+    /**
+     * The other command of the console the runner does itself: {@code /clear-workspace [what to keep]} deletes the files
+     * and folders of the workspace of the run except the paths and patterns named, see {@link #command}.
+     */
+    String CLEAR_WORKSPACE = "clear-workspace";
+
+    /**
      * Takes the run up: a worker works on it in the background until the run leaves {@code RUNNING}. Call it after
      * {@link AgentRunService#start} and {@link AgentRunService#resume}, and after {@link #send}.
      *
@@ -42,12 +55,18 @@ public interface AgentRunner {
     void run(AgentRun run, String firstMessage) throws Exception;
 
     /**
-     * A message of the author that waits for the agent to be ready to read it, see {@link #send(AgentRun, String, List)}.
+     * A message or a command of the author that waits for the agent to be ready, see {@link #send(AgentRun, String, List)}
+     * and {@link #command}.
      *
-     * @param id   names the message for {@link #force}
-     * @param text what the message says, with the note about its images
+     * @param id      names the message for {@link #force}
+     * @param text    what the message says, with the note about its images; for a command the line that will be run
+     * @param command whether this is a command (its line is the text), not a message
      */
-    record QueuedMessage(String id, String text) {
+    record QueuedMessage(String id, String text, boolean command) {
+
+        public QueuedMessage(String id, String text) {
+            this(id, text, false);
+        }
     }
 
     /**
@@ -78,6 +97,37 @@ public interface AgentRunner {
      *                                  see images ({@code AgentModelProfile#isImages})
      */
     AgentRun send(AgentRun run, String text, List<String> images) throws Exception;
+
+    /**
+     * The commands the author can run on the agent from the console: {@link #COMPACT}, {@link #CLEAR_WORKSPACE} and the commands the agent is
+     * allowed that only read or add data. A command that changes or removes data is not offered: it asks the user to
+     * confirm in a window of the book, which a run does not have.
+     *
+     * @return the command names, {@code compact} and {@code clear-workspace} first and then the others by name
+     */
+    List<String> consoleCommands(Agent agent);
+
+    /**
+     * Runs a command as the author, not as the agent: {@code /compact [focus]} or {@code /name arguments} of one of the
+     * {@link #consoleCommands}, in the working copy of the run. The agent does not make the call: it reads, as a message of
+     * the author, that the author ran the command and what it answered (its tool calls are its own), and a command that
+     * changes the copy tells it that what it read may be out of date. {@code /compact} asks the model of the agent, with
+     * its compaction prompt ({@code AgentService#getCompactionPrompt}) and the optional focus, to summarize everything so
+     * far; the summary becomes the start of what the model reads, the rest stays in the transcript of the user marked as
+     * compacted.
+     * <p>
+     * Where the run waits ({@code IDLE}) or is paused the command runs at once in the background, and the run stays as it
+     * is. Where a conversation works, the command is queued like a message of the author and runs at the end of the
+     * turn of the agent, where the agent would have waited (the agent then goes on to wait, it is not asked to answer);
+     * {@link #force} runs it now and the agent goes on from there. The queue is in memory.
+     *
+     * @param line the command as typed, with the slash
+     * @return the run in its status when the command was queued or started
+     * @throws IllegalArgumentException when the line is not a command of {@link #consoleCommands}
+     * @throws IllegalStateException    when the run is working and is not a conversation, a command is running already, or
+     *                                  the run is in a status in which nothing can be done to it (stopped, done)
+     */
+    AgentRun command(AgentRun run, String line) throws Exception;
 
     /**
      * The messages the author wrote while the run worked, that wait for the end of its turn, the oldest first. They are

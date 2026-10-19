@@ -1,19 +1,18 @@
 package com.github.enerccio.marginalia.domain.service.agent;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 
 /**
  * The files an agent sees: one tree of {@link VirtualPath}s over a few {@link VirtualMount}s. The workspace of the
- * agent is the root, and {@code /checkpoints} (when there is a run) is a read only mount next to it. This is the only
+ * agent is the root, and {@code /checkpoints} and {@code /AGENTS.md} (when there is a run) are read only mounts next to it. This is the only
  * thing the file tools of the model hold; there is no way from here to a {@code File} or a {@code Path} that is
  * returned, and nothing outside the mounts can be named.
  * <pre>
@@ -25,6 +24,11 @@ import java.util.concurrent.locks.Lock;
 public final class VirtualFileSystem {
 
     public static final String CHECKPOINTS = "checkpoints";
+
+    /**
+     * The read only file with the instructions of the user to the agent; the name is reserved at the root of the workspace.
+     */
+    public static final String INSTRUCTIONS = "AGENTS.md";
 
     private final WorkspaceMount workspace;
     private final Map<VirtualPath, VirtualMount> mounts = new LinkedHashMap<>();
@@ -42,16 +46,30 @@ public final class VirtualFileSystem {
      * @param lock   shared by everything that changes this workspace
      */
     public static VirtualFileSystem ofWorkspace(Path folder, WorkspaceLimits limits, Lock lock) {
-        return new VirtualFileSystem(new WorkspaceMount(folder, limits, lock, java.util.Set.of(CHECKPOINTS)), limits);
+        return new VirtualFileSystem(new WorkspaceMount(folder, limits, lock, java.util.Set.of(CHECKPOINTS, INSTRUCTIONS)), limits);
     }
 
     /**
      * The files of a run: the workspace of its agent and the list of its checkpoints.
      */
     public static VirtualFileSystem ofRun(RunFolder folder, WorkspaceLimits limits, Lock lock) {
+        return ofRun(folder, limits, lock, null);
+    }
+
+    /**
+     * The files of a run: the workspace of its agent, the list of its checkpoints and, when there are instructions,
+     * {@code /AGENTS.md} with them.
+     *
+     * @param instructions the text of the file, null when the file is not there
+     */
+    public static VirtualFileSystem ofRun(RunFolder folder, WorkspaceLimits limits, Lock lock, String instructions) {
         VirtualFileSystem fs = ofWorkspace(folder.workspace(), limits, lock);
         VirtualPath mountPoint = VirtualPath.ROOT.resolve(CHECKPOINTS);
         fs.mounts.put(mountPoint, new CheckpointsMount(mountPoint, folder.checkpoints()));
+        if (instructions != null) {
+            VirtualPath file = VirtualPath.ROOT.resolve(INSTRUCTIONS);
+            fs.mounts.put(file, new InstructionsMount(file, instructions));
+        }
         return fs;
     }
 
@@ -99,10 +117,30 @@ public final class VirtualFileSystem {
     public List<VirtualEntry> list(VirtualPath folder) {
         List<VirtualEntry> entries = new ArrayList<>(mountFor(folder).list(folder));
         if (folder.isRoot()) {
-            List<VirtualEntry> mountPoints = new ArrayList<>();
-            mounts.keySet().forEach(point -> mountPoints.add(new VirtualEntry(point, true, 0, null)));
-            entries.addAll(0, mountPoints);
+            // a file of the workspace the name of a mount is hidden by it
+            entries.removeIf(entry -> mounts.keySet().stream().anyMatch(point -> point.getName().equalsIgnoreCase(entry.path().getName())));
+            // the folders of the other mounts come first, their files by name among the files
+            List<VirtualEntry> mountEntries = mountEntries();
+            entries.addAll(0, mountEntries.stream().filter(VirtualEntry::directory).toList());
+            for (VirtualEntry file : mountEntries.stream().filter(e -> !e.directory()).toList()) {
+                String name = file.path().getName().toLowerCase(Locale.ROOT);
+                int at = 0;
+                while (at < entries.size() && (entries.get(at).directory()
+                        || entries.get(at).path().getName().toLowerCase(Locale.ROOT).compareTo(name) < 0)) {
+                    at++;
+                }
+                entries.add(at, file);
+            }
         }
+        return entries;
+    }
+
+    /**
+     * The other mounts as they appear at the root: {@code /checkpoints} a folder, {@code /AGENTS.md} a file.
+     */
+    public List<VirtualEntry> mountEntries() {
+        List<VirtualEntry> entries = new ArrayList<>();
+        mounts.forEach((point, mount) -> entries.add(mount.stat(point)));
         return entries;
     }
 
@@ -292,6 +330,78 @@ public final class VirtualFileSystem {
      */
     public void clearWorkspace() {
         workspace.clear();
+    }
+
+    /**
+     * Deletes the files and all the folders of the workspace except what is kept: a file or folder named by its path, or
+     * the ones a pattern ({@link VirtualGlob}) matches. A kept folder keeps what is in it, a kept file keeps the folders
+     * above it. Nothing is deleted when something to keep is not there.
+     *
+     * @param keep paths or patterns, may be empty
+     * @throws VirtualFileException when something to keep is not in the workspace
+     */
+    public Cleared clearWorkspace(List<String> keep) {
+        List<VirtualPath> kept = new ArrayList<>();
+        List<VirtualEntry> everything = null;
+        for (String item : keep) {
+            if (StringUtils.containsAny(item, '*', '?', '[', '{')) {
+                VirtualGlob glob = VirtualGlob.parse(item);
+                if (everything == null) {
+                    everything = walk(VirtualPath.ROOT, Integer.MAX_VALUE);
+                }
+                List<VirtualPath> matched = everything.stream().map(VirtualEntry::path)
+                        .filter(path -> glob.matches(VirtualPath.ROOT, path)).toList();
+                if (matched.isEmpty()) {
+                    throw new VirtualFileException("Nothing in the workspace matches " + VirtualPath.printable(item));
+                }
+                kept.addAll(matched);
+                continue;
+            }
+            VirtualPath path = parse(item);
+            if (path.isRoot()) {
+                throw new VirtualFileException("The workspace itself can't be kept, name what to keep in it");
+            }
+            if (mountFor(path) != workspace) {
+                throw new VirtualFileException(path + " is not in the workspace");
+            }
+            if (stat(path) == null) {
+                throw new VirtualFileException("There is nothing at " + path + " to keep");
+            }
+            kept.add(path);
+        }
+        int[] counts = new int[2];
+        clear(VirtualPath.ROOT, kept, counts);
+        return new Cleared(counts[0], counts[1], List.copyOf(kept));
+    }
+
+    private void clear(VirtualPath folder, List<VirtualPath> kept, int[] counts) {
+        for (VirtualEntry entry : workspace.list(folder)) {
+            VirtualPath path = entry.path();
+            if (kept.stream().anyMatch(path::startsWith)) {
+                continue;
+            }
+            if (entry.directory() && kept.stream().anyMatch(keep -> keep.startsWith(path))) {
+                clear(path, kept, counts);
+                continue;
+            }
+            if (entry.directory()) {
+                for (VirtualEntry inside : walk(path, Integer.MAX_VALUE)) {
+                    counts[inside.directory() ? 1 : 0]++;
+                }
+                counts[1]++;
+            } else {
+                counts[0]++;
+            }
+            workspace.delete(path, true);
+        }
+    }
+
+    /**
+     * What {@link #clearWorkspace(List)} deleted and what it left.
+     *
+     * @param kept the files and folders that were named to be kept, as paths
+     */
+    public record Cleared(int files, int folders, List<VirtualPath> kept) {
     }
 
     /**

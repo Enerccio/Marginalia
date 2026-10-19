@@ -53,6 +53,26 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     }
 
     @Override
+    @CommonTx
+    public AgentMessage compact(AgentRun run, LLMChatMessage summary, long contextTokens) throws Exception {
+        AgentRun stored = ownRun(run);
+        List<AgentMessage> rows = getRepository().findAllByRun(stored);
+        for (AgentMessage row : rows) {
+            if (!row.isCompacted()) {
+                row.setCompacted(true);
+                save(row);
+            }
+        }
+        AgentMessage message = new AgentMessage();
+        message.setRun(stored);
+        message.setOrdinal(rows.size());
+        message.setChatMessage(summary);
+        message.setSummary(true);
+        message.setContextTokens(contextTokens);
+        return save(message);
+    }
+
+    @Override
     @CommonTxReadOnly
     public List<AgentMessage> messages(AgentRun run) throws Exception {
         return getRepository().findAllByRun(ownRun(run));
@@ -75,7 +95,9 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     public List<LLMChatMessage> transcript(AgentRun run) throws Exception {
         List<LLMChatMessage> messages = new ArrayList<>();
         for (AgentMessage message : getRepository().findAllByRun(ownRun(run))) {
-            messages.add(message.toChatMessage());
+            if (!message.isCompacted()) {
+                messages.add(message.toChatMessage());
+            }
         }
         return messages;
     }

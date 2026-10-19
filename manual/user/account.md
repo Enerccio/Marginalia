@@ -103,6 +103,8 @@ The defaults for the [book prompts](books/prompts.md):
 | **Default User Prompt** | The request for each part, see [User prompt](books/prompts.md#user-prompt). |
 | **Default Summary Prompt** | The request for a [summary](books/summaries.md#the-summary-prompt). |
 | **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |
+| **Compaction prompt of agents** | Only for users who may use [agents](agents.md). What your agents are asked when you [`/compact`](agents.md#running-a-command-yourself) them, if their own compaction prompt is empty; empty here is the one your administrator set, else the built-in one. |
+| **System prompt of agents** | Only for users who may use [agents](agents.md). What your agents are told to be when their own system prompt is empty; empty here is the one your administrator set, else the built-in one. Plain text, not a template. |
 
 ![The Templates tab](../images/settings-templates.png)
 

@@ -127,8 +127,9 @@ Execute Level-2 Context Consolidation Protocol. Aggregate sequential event ledge
 """;
 
     /**
-     * What a new agent is told to be (its system prompt), the user may change it in the agent dialog. Plain text, the
-     * instructions of the user ("agents.md") come after it.
+     * What an agent is told to be (its system prompt) when neither the agent nor the user's settings nor the
+     * application settings say otherwise, see {@code AgentService.getSystemPrompt}. Plain text, the instructions of the
+     * user ("agents.md") come after it.
      */
     public static final String DEFAULT_AGENT_PROMPT = """
 You are an editorial agent working on a long work of fiction ("MANUSCRIPT CHRONICLE") for its author. You work on your own for a long time, step by step, using the tools you are given, and you report to the author.
@@ -145,6 +146,43 @@ When you are done, or when you cannot go on, answer with a short report: what yo
 """;
 
     /**
+     * What the model is asked when the author compacts a run ({@code /compact}): it reads its whole transcript and writes
+     * the summary that takes its place. Plain text, the focus the author gave comes after it. A default of
+     * {@code AgentService.getCompactionPrompt}.
+     */
+    public static final String DEFAULT_AGENT_COMPACTION_PROMPT = """
+Your work so far is going to be compacted: everything above this message will be dropped from your memory and replaced by the summary you write now. Write that summary for yourself, so that you can go on exactly where you are without the conversation.
+
+Write it as plain text, in sections, and keep what you would need and cannot find again quickly:
+- The task: what the author asked, their instructions and every decision or preference they stated, in their words where the exact wording matters.
+- Done so far: what you did and changed, which parts, lorebook entries and files, and with which result.
+- Findings: facts, names, numbers, part and entry numbers, problems and open questions you found, with where you found them.
+- State and plan: the files in your workspace that hold your notes (give their paths), what is left to do, what you were doing at this moment and the next step.
+- Warnings: calls that failed and why, ways that did not work, anything the author told you not to do.
+
+Do not call any tool and do not do any of the work now, only write the summary. Be complete but compact; leave out what you can read again with a tool.
+""";
+
+    /**
+     * Starts the message that holds the summary of a compacted run, in the transcript the model reads.
+     */
+    public static final String AGENT_COMPACTED_NOTE = "Your earlier work on this run was compacted at the author's request. "
+            + "This summary, written by you, is all that is left of it:";
+
+    /**
+     * Added to the summary when the oldest part of the run did not fit the context of the model and was left out of it.
+     */
+    public static final String AGENT_COMPACTED_TRIMMED = "(The oldest %d message(s) of the run did not fit the context of the model "
+            + "when this summary was written, they are not in it.)";
+
+    /**
+     * Starts the message that tells the agent about a command the author ran from the console; the text of the command and
+     * its result follow.
+     */
+    public static final String AGENT_AUTHOR_COMMAND_NOTE = "The author ran a command from the console. You did not call it. "
+            + "What it read is below, what it changed (if anything) is changed in your working copy, so what you read earlier may be out of date.";
+
+    /**
      * What the runner adds to the system prompt of an agent: how the run ends and what the tools are for. The prompt
      * and the instructions of the author come before it.
      */
@@ -154,6 +192,7 @@ How this run works:
 - When the task is done, call finish with your report. If you need a decision that only the author can make, call ask_user.
 - Keep your to-do list with update_plan, and look at get_run_status before a long step: your rounds, tokens and context are limited.
 - A tool that fails returns an error text. Read it and correct the call; do not repeat the same call unchanged.
+- The instructions of the author, as they are in your system prompt, are also the read-only file /AGENTS.md. Read it again when you are unsure what the author asked for; you cannot change it.
 - What you write costs time and counts against the limit of your answer, so do not write out text you already have: do not copy a result or a file into a call (use save_command_result or @file:/path), do not repeat a result back, and keep what you say between calls to a sentence. The long texts belong in the files you write and in your report.
 - A text argument of a command, and the content of write_file and append_file, can be given as @file:/path (the whole value): the contents of that file of your workspace are used. Write a long text to a file once, check it, and pass it that way instead of writing it again in the call. A result of a command you pass to the next command as @result (the result of the last call) or @result:3 (the result with that number; list_command_results shows the last ten), the same in write_file and append_file, so you never write it out again. A result you want to keep (a generated text) is saved with save_command_result right after the call; then pass the file as @file:/path. To join several files into one use merge_files, to copy a file or a folder copy_file, to find files by name pass a glob such as *.md to list_files or grep_files.
 """;

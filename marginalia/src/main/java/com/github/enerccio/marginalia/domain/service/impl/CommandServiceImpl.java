@@ -6,10 +6,7 @@ import com.github.enerccio.marginalia.domain.service.impl.commands.BackupCommand
 import com.github.enerccio.marginalia.domain.service.impl.commands.HelloWorldCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceChatMessageCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
-import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.GetLoreEntryCommand;
-import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.ListLoreEntriesCommand;
-import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.ListLorebooksCommand;
-import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.SearchLoreCommand;
+import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
@@ -72,6 +69,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         registerCommands(new ListLoreEntriesCommand());
         registerCommands(new GetLoreEntryCommand());
         registerCommands(new SearchLoreCommand());
+        registerCommands(new PreviewLoreActivationCommand());
     }
 
     private void registerManuscriptReadCommands() {

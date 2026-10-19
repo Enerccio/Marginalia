@@ -4,12 +4,14 @@ import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.AgentService.AgentGrant;
 import com.github.enerccio.marginalia.domain.service.CleanupService.CleanupContributor;
 import com.github.enerccio.marginalia.domain.service.CleanupService.EntityKey;
 import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import jakarta.persistence.EntityManager;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -81,6 +83,25 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
         return limits;
     }
 
+    @Override
+    @CommonTxReadOnly
+    public WorkspaceLimits getLimits(Agent agent) throws Exception {
+        return limitsOf(storedAgent(agent));
+    }
+
+    /**
+     * The default limits with the quotas of the permission of the agent's owner put over them.
+     */
+    private WorkspaceLimits limitsOf(Agent stored) throws Exception {
+        AgentGrant grant = agentService.getGrant(stored.getOwner());
+        long fileBytes = grant.maxFileBytes() > 0 ? grant.maxFileBytes() : limits.maxFileBytes();
+        long totalBytes = grant.maxWorkspaceBytes() > 0 ? grant.maxWorkspaceBytes() : limits.maxTotalBytes();
+        int files = grant.maxWorkspaceFiles() > 0 ? grant.maxWorkspaceFiles() : limits.maxFiles();
+        // an image may be as large as the default allows, or as any file when that is more
+        long imageBytes = grant.maxFileBytes() > 0 ? Math.max(fileBytes, limits.maxImageBytes()) : limits.maxImageBytes();
+        return new WorkspaceLimits(fileBytes, totalBytes, files, imageBytes);
+    }
+
     private Path home() {
         return configuration.getFolder().toPath();
     }
@@ -96,15 +117,18 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
         if (stored == null) {
             throw new IllegalArgumentException("The run does not exist");
         }
-        String agentUuid = stored.getAgent().getUuid();
-        return VirtualFileSystem.ofRun(RunFolder.of(home(), stored.getUuid(), agentUuid), limits, lockOf(agentUuid));
+        Agent agent = storedAgent(stored.getAgent());
+        // the instructions are read here: a changed text applies when the run is opened again, as in the system prompt
+        return VirtualFileSystem.ofRun(RunFolder.of(home(), stored.getUuid(), agent.getUuid()), limitsOf(agent),
+                lockOf(agent.getUuid()), StringUtils.defaultString(agent.getInstructions()));
     }
 
     @Override
     @CommonTxReadOnly
     public VirtualFileSystem openWorkspace(Agent agent) throws Exception {
         Agent stored = storedAgent(agent);
-        return VirtualFileSystem.ofWorkspace(RunFolder.workspaceOf(home(), stored.getUuid()), limits, lockOf(stored.getUuid()));
+        return VirtualFileSystem.ofWorkspace(RunFolder.workspaceOf(home(), stored.getUuid()), limitsOf(stored),
+                lockOf(stored.getUuid()));
     }
 
     private Agent storedAgent(Agent agent) throws Exception {

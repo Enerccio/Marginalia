@@ -80,6 +80,18 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
      * @param agent the agent whose workspace it is
      * @param busy  whether the agent works now, the files are then only to look at
      */
+    /**
+     * What the workspace may hold, with the quotas of the owner; the default limits when they can't be read (only the
+     * size of the upload box depends on it, the file system checks every file).
+     */
+    private WorkspaceLimits limits() {
+        try {
+            return fileSystemService.getLimits(agent);
+        } catch (Exception e) {
+            return fileSystemService.getLimits();
+        }
+    }
+
     public AgentWorkspaceBrowser(Agent agent, BooleanSupplier busy) {
         this.agent = agent;
         this.busy = busy;
@@ -111,7 +123,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         Button uploadButton = new Button(loc.getValue(L.LABEL_UPLOAD_FILE), Solid.UPLOAD.create());
         uploadButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         upload = new Upload(new InMemoryUploadHandler((metadata, data) -> upload(metadata.fileName(), data)));
-        WorkspaceLimits limits = fileSystemService.getLimits();
+        WorkspaceLimits limits = limits();
         upload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, Math.max(limits.maxFileBytes(), limits.maxImageBytes())));
         upload.setUploadButton(uploadButton);
         upload.setDropLabel(new Span());

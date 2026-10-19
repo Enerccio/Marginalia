@@ -103,7 +103,7 @@ public final class AgentFileToolsImpl implements AgentFileTools {
             } else if (recursive) {
                 entries = fs.walk(folder, MAX_LISTED + 1);
                 if (folder.isRoot()) {
-                    entries.addAll(0, fs.list(folder).stream().filter(e -> e.directory() && !isWorkspaceEntry(e)).toList());
+                    entries.addAll(0, fs.mountEntries());
                 }
             }
             if (entries.isEmpty()) {
@@ -122,10 +122,6 @@ public final class AgentFileToolsImpl implements AgentFileTools {
             }
             return out.toString().stripTrailing() + note;
         });
-    }
-
-    private boolean isWorkspaceEntry(VirtualEntry entry) {
-        return !VirtualFileSystem.CHECKPOINTS.equals(entry.path().getFirst());
     }
 
     @Override

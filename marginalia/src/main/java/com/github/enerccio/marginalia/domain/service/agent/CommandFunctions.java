@@ -637,7 +637,7 @@ public final class CommandFunctions {
     }
 
     /** What went wrong, from the cause of the command for the model: no class names, no "Command x failed". */
-    private static String messageOf(Throwable error) {
+    public static String messageOf(Throwable error) {
         Throwable cause = error;
         while ((cause instanceof CommandException || cause instanceof java.util.concurrent.CompletionException
                 || cause instanceof java.util.concurrent.ExecutionException) && cause.getCause() != null) {
@@ -654,7 +654,7 @@ public final class CommandFunctions {
     }
 
     /** The result cut at the end of a line within {@link #MAX_RESULT_LENGTH}, with a note of how much there was. */
-    static String bound(String text) {
+    public static String bound(String text) {
         if (text.length() <= MAX_RESULT_LENGTH) {
             return text;
         }

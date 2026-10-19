@@ -56,6 +56,22 @@ public class UserSetting extends Setting {
     @Transient
     private String defaultMetaSummaryPrompt;
 
+    /**
+     * The system prompt of the agents of the user that have none of their own; blank is the one of the application
+     * settings, and then {@code Defaults.DEFAULT_AGENT_PROMPT}.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String defaultAgentPrompt;
+
+    /**
+     * The compaction prompt of the agents of the user that have none of their own; blank is the one of the application
+     * settings, and then {@code Defaults.DEFAULT_AGENT_COMPACTION_PROMPT}.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String defaultAgentCompactionPrompt;
+
     @ExtendedAttribute
     @Transient
     private BackupStrategy backupStrategy;
@@ -149,6 +165,22 @@ public class UserSetting extends Setting {
 
     public void setDefaultMetaSummaryPrompt(String defaultMetaSummaryPrompt) {
         this.defaultMetaSummaryPrompt = defaultMetaSummaryPrompt;
+    }
+
+    public String getDefaultAgentCompactionPrompt() {
+        return defaultAgentCompactionPrompt;
+    }
+
+    public void setDefaultAgentCompactionPrompt(String defaultAgentCompactionPrompt) {
+        this.defaultAgentCompactionPrompt = defaultAgentCompactionPrompt;
+    }
+
+    public String getDefaultAgentPrompt() {
+        return defaultAgentPrompt;
+    }
+
+    public void setDefaultAgentPrompt(String defaultAgentPrompt) {
+        this.defaultAgentPrompt = defaultAgentPrompt;
     }
 
     public BackupStrategy getBackupStrategy() {

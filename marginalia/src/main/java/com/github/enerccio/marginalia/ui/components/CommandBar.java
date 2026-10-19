@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Input line for the commands of the {@link CommandService}, to place anywhere: a combo box where the user types
@@ -62,6 +64,9 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
     private Div help;
     private boolean focused;
     private CommandResultTarget resultTarget;
+    // where the commands come from (the command service when null) and what runs a line (the command service when null)
+    private Supplier<List<CommandDefinition>> commands;
+    private Consumer<String> lineRunner;
 
     // what the user has typed, as far as the server knows
     private String text = "";
@@ -78,6 +83,31 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
 
     public CommandResultTarget getResultTarget() {
         return resultTarget;
+    }
+
+    /**
+     * Makes the bar offer, and show the help of, these commands instead of all the registered ones, for a place that
+     * runs only some of them or has commands of its own (the console of an agent).
+     */
+    public void setCommands(Supplier<List<CommandDefinition>> commands) {
+        this.commands = commands;
+    }
+
+    /**
+     * Makes the bar hand a line to the runner instead of running it with the {@link CommandService} as the user in their
+     * session: for a place that runs the commands somewhere else, or in another way. The line is the command with its
+     * slash, a known one; the result and the progress are the runner's business, so the result target is not used.
+     */
+    public void setLineRunner(Consumer<String> lineRunner) {
+        this.lineRunner = lineRunner;
+    }
+
+    private List<CommandDefinition> definitions() {
+        return commands == null ? commandService.getCommands() : commands.get();
+    }
+
+    private List<CommandDefinition> definitions(String name) {
+        return definitions().stream().filter(definition -> definition.commandName().equals(name)).toList();
     }
 
     @Override
@@ -101,7 +131,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             CommandLine line = CommandLine.parse(filter);
             // once the name is complete the user types arguments: no list to cover the help and the run button
             List<String> names = line.command() && !line.typingName() ? List.of()
-                    : CommandHelp.matchingNames(commandService.getCommands(), filter, loc::getValue);
+                    : CommandHelp.matchingNames(definitions(), filter, loc::getValue);
             // the data provider contract: the offset and the limit of the query are always applied
             return names.stream().map(name -> "/" + name).skip(query.getOffset()).limit(query.getLimit());
         });
@@ -160,7 +190,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
 
     private Div renderItem(String item) {
         String name = item.startsWith("/") ? item.substring(1) : item;
-        List<CommandDefinition> overloads = commandService.getCommands(name);
+        List<CommandDefinition> overloads = definitions(name);
         Div row = new Div();
         Span nameSpan = new Span(item);
         nameSpan.addClassName(CssStyles.COMMAND_ITEM_NAME);
@@ -234,7 +264,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             return;
         }
         pickedByEnter = true;
-        List<CommandDefinition> overloads = commandService.getCommands(CommandLine.parse(value).name());
+        List<CommandDefinition> overloads = definitions(CommandLine.parse(value).name());
         boolean takesNothingOnly = !overloads.isEmpty()
                 && overloads.stream().allMatch(d -> !d.anyArguments() && d.parameters().isEmpty());
         if (takesNothingOnly) {
@@ -264,7 +294,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             helpPopover.setOpened(focused);
             return;
         }
-        CommandHelp info = CommandHelp.of(commandService.getCommands(), text, loc::getValue);
+        CommandHelp info = CommandHelp.of(definitions(), text, loc::getValue);
         if (info.commandName() == null) {
             help.add(new Div(loc.getValue(L.HELP_COMMAND_NO_MATCH)));
             helpPopover.setOpened(focused);
@@ -336,7 +366,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             Notification.error(loc.getValue(L.ERROR_COMMAND_NEEDS_SLASH));
             return;
         }
-        List<CommandDefinition> overloads = commandService.getCommands(parsed.name());
+        List<CommandDefinition> overloads = definitions(parsed.name());
         if (overloads.isEmpty()) {
             Notification.error(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN), parsed.name()));
             return;
@@ -348,6 +378,10 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             resultTarget.clearCommandResult();
         }
         clearInput();
+        if (lineRunner != null) {
+            lineRunner.accept(line);
+            return;
+        }
         CommandRun future = commandService.executeLine(line);
         if (future.isDone()) {
             finished(parsed.name(), humanName, future);

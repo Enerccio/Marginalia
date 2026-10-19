@@ -578,6 +578,39 @@ class VirtualFileSystemTest {
         assertThat(other.getUsage().files()).isEqualTo(2);
     }
 
+    @Test
+    void clearingTheWorkspaceKeepsWhatIsNamedAndTheFoldersAboveIt() {
+        write("/a.md", "A");
+        write("/keep/x.md", "X");
+        write("/keep/deep/y.md", "Y");
+        write("/chapters/one.md", "1");
+        write("/chapters/two.txt", "2");
+        write("/other/z.txt", "Z");
+        fs.createFolder(p("/empty"));
+
+        VirtualFileSystem.Cleared cleared = fs.clearWorkspace(List.of("/keep", "chapters/*.md"));
+
+        assertThat(fs.walk(VirtualPath.ROOT, 100)).extracting(e -> e.path().toString())
+                .containsExactlyInAnyOrder("/keep", "/keep/x.md", "/keep/deep", "/keep/deep/y.md", "/chapters", "/chapters/one.md");
+        assertThat(cleared.files()).isEqualTo(3);
+        assertThat(cleared.folders()).isEqualTo(2);
+        assertThat(cleared.kept()).extracting(VirtualPath::toString).containsExactly("/keep", "/chapters/one.md");
+    }
+
+    @Test
+    void clearingTheWorkspaceDeletesNothingWhenSomethingToKeepIsMissing() {
+        write("/a.md", "A");
+
+        assertThatThrownBy(() -> fs.clearWorkspace(List.of("/a.md", "/b.md"))).isInstanceOf(VirtualFileException.class)
+                .hasMessageContaining("/b.md");
+        assertThatThrownBy(() -> fs.clearWorkspace(List.of("*.zip"))).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> fs.clearWorkspace(List.of("/"))).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> fs.clearWorkspace(List.of("/checkpoints"))).isInstanceOf(VirtualFileException.class);
+        assertThat(read("/a.md")).isEqualTo("A");
+        assertThat(fs.clearWorkspace(List.of())).extracting(VirtualFileSystem.Cleared::files).isEqualTo(1);
+        assertThat(fs.getUsage().files()).isZero();
+    }
+
     // ---------------------------------------------------------------------------------------------------------------
     // images
     // ---------------------------------------------------------------------------------------------------------------

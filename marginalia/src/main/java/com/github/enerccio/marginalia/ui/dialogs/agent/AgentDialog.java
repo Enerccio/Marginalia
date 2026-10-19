@@ -1,7 +1,5 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
-import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
@@ -15,9 +13,7 @@ import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -39,8 +35,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Creates or edits an agent. A new agent starts with the default system prompt ({@link Defaults#DEFAULT_AGENT_PROMPT})
- * and picks the book it works on (a book has at most one agent, and the book of an agent is not changed). The main
+ * Creates or edits an agent. The system prompt of a new agent is blank, which means it follows the default (the prompt
+ * of the user's settings, the one of the application settings, then {@code Defaults.DEFAULT_AGENT_PROMPT}): the default
+ * is the placeholder of the field and the info popover fills it in to edit a copy. A new agent picks the book it works on (a book has at most one agent, and the book of an agent is not changed). The main
  * model is the AI and the protocol of the first model profile; other profiles an agent may have are left as they are.
  */
 @Configurable
@@ -78,7 +75,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private IntegerField maxRoundsField;
     private IntegerField tokenBudgetField;
     private IntegerField contextLimitField;
-    private TextArea systemPromptField;
+    private TextAreaPopoverComponent systemPromptField;
+    private TextAreaPopoverComponent compactionPromptField;
     private TextArea instructionsField;
     private AgentCommandsEditor commandsEditor;
     private Button saveButton;
@@ -115,7 +113,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         form.setWidthFull();
         form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox);
         form.add(destructiveCombo, maxRoundsField, tokenBudgetField, contextLimitField);
-        form.add(systemPromptField, createRestoreButton(), instructionsField, commandsEditor);
+        form.add(systemPromptField, compactionPromptField, instructionsField, commandsEditor);
         add(form);
 
         Button cancelButton = new Button(loc.getValue(L.LABEL_CANCEL), event -> close());
@@ -158,10 +156,15 @@ public class AgentDialog extends Dialog implements LLMInteract {
         tokenBudgetField = positiveField(L.LABEL_RUN_TOKEN_BUDGET, L.HELP_AGENT_TOKEN_BUDGET);
         contextLimitField = positiveField(L.LABEL_CONTEXT_LIMIT, L.HELP_AGENT_CONTEXT_LIMIT);
 
-        systemPromptField = new TextArea(loc.getValue(L.LABEL_AGENT_SYSTEM_PROMPT));
+        systemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_SYSTEM_PROMPT));
         systemPromptField.setHelperText(loc.getValue(L.HELP_AGENT_SYSTEM_PROMPT));
         systemPromptField.setWidthFull();
         ResizableTextArea.install(loc, systemPromptField, "220px");
+
+        compactionPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_COMPACTION_PROMPT));
+        compactionPromptField.setHelperText(loc.getValue(L.HELP_AGENT_COMPACTION_PROMPT));
+        compactionPromptField.setWidthFull();
+        ResizableTextArea.install(loc, compactionPromptField, "160px");
 
         instructionsField = new TextArea(loc.getValue(L.LABEL_AGENT_INSTRUCTIONS));
         instructionsField.setHelperText(loc.getValue(L.HELP_AGENT_INSTRUCTIONS));
@@ -183,15 +186,23 @@ public class AgentDialog extends Dialog implements LLMInteract {
         return field;
     }
 
-    private Button createRestoreButton() {
-        Button restore = new Button(loc.getValue(L.LABEL_RESTORE_DEFAULT), Solid.UNDO.create(),
-                event -> systemPromptField.setValue(Defaults.DEFAULT_AGENT_PROMPT));
-        restore.setThemeName("tertiary");
-        return restore;
+    /**
+     * The default a blank prompt follows is the placeholder, and the popover fills it into the field.
+     */
+    private void showDefaultPrompt() throws Exception {
+        String defaultPrompt = agentService.getDefaultSystemPrompt();
+        systemPromptField.setPlaceholder(defaultPrompt);
+        systemPromptField.setPopoverContent(TemplateHints.create(loc, systemPromptField, systemPromptField.getPopover(),
+                null, defaultPrompt));
+        String defaultCompaction = agentService.getDefaultCompactionPrompt();
+        compactionPromptField.setPlaceholder(defaultCompaction);
+        compactionPromptField.setPopoverContent(TemplateHints.create(loc, compactionPromptField,
+                compactionPromptField.getPopover(), null, defaultCompaction));
     }
 
     private void load() {
         try {
+            showDefaultPrompt();
             Agent agent = isEdit() ? agentService.findForUser(source.getUuid()) : null;
             List<Manuscript> books = new ArrayList<>();
             if (agent != null) {
@@ -207,8 +218,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             manuscriptCombo.setItems(books);
 
             if (agent == null) {
-                // the defaults of a new agent
-                systemPromptField.setValue(Defaults.DEFAULT_AGENT_PROMPT);
+                // the defaults of a new agent; the prompt stays blank and follows the default
                 destructiveCombo.setValue(DestructiveCommandMode.ASK);
                 commandsEditor.select(AgentCommandPreset.NON_DESTRUCTIVE);
                 if (books.size() == 1) {
@@ -236,6 +246,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             tokenBudgetField.setValue(agent.getTokenBudget() == null ? null : (int) Math.min(Integer.MAX_VALUE, agent.getTokenBudget()));
             contextLimitField.setValue(agent.getContextCap());
             systemPromptField.setValue(StringUtils.defaultString(agent.getSystemPrompt()));
+            compactionPromptField.setValue(StringUtils.defaultString(agent.getCompactionPrompt()));
             instructionsField.setValue(StringUtils.defaultString(agent.getInstructions()));
             commandsEditor.setAllowed(agent.getAllowedCommands());
         } catch (Exception e) {
@@ -267,6 +278,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             agent.setTokenBudget(tokenBudgetField.getValue() == null ? null : tokenBudgetField.getValue().longValue());
             agent.setContextCap(contextLimitField.getValue());
             agent.setSystemPrompt(systemPromptField.getValue());
+            agent.setCompactionPrompt(compactionPromptField.getValue());
             agent.setInstructions(StringUtils.isBlank(instructionsField.getValue()) ? null : instructionsField.getValue());
             agent.setAllowedCommands(commandsEditor.getAllowed());
             agentService.save(agent);
@@ -350,8 +362,12 @@ public class AgentDialog extends Dialog implements LLMInteract {
         return contextLimitField;
     }
 
-    TextArea getSystemPromptField() {
+    TextAreaPopoverComponent getSystemPromptField() {
         return systemPromptField;
+    }
+
+    TextAreaPopoverComponent getCompactionPromptField() {
+        return compactionPromptField;
     }
 
     TextArea getInstructionsField() {

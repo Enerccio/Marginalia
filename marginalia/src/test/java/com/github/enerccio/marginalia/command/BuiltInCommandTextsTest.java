@@ -56,7 +56,7 @@ class BuiltInCommandTextsTest extends MarginaliaTestBase {
         for (String name : List.of("get-book-info", "list-parts", "get-part", "list-swipes", "list-branches",
                 "get-part-metrics", "show-prompt", "search-parts", "find-occurrences", "compare-parts", "count-tokens",
                 "list-summaries", "get-summary", "check-summaries", "get-template-variables",
-                "list-lorebooks", "list-lore-entries", "get-lore-entry", "search-lore")) {
+                "list-lorebooks", "list-lore-entries", "get-lore-entry", "search-lore", "preview-lore-activation")) {
             expected.put(name, CommandDataSeverity.NON_DESTRUCTIVE);
         }
         for (CommandDefinition definition : commandService.getCommands()) {

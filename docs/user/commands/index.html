@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845725078135">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845730957074">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845725078135" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845730957074" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845725078135" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845730957074" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845725078135" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845730957074" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -367,7 +367,8 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 | `/list-lorebooks` | The lorebooks of the open book (the root and its subbooks) with their numbers, entry counts, tags and subbooks. |
 | `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
 | `/get-lore-entry &lt;entry&gt; [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
-| `/search-lore &lt;query&gt; [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |">
+| `/search-lore &lt;query&gt; [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
+| `/preview-lore-activation &lt;text&gt; [limit]`, `/preview-lore-activation &lt;part&gt; [branch] [limit]` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -477,6 +478,10 @@ changes the book; <strong>No</strong> leaves everything as it was. The question 
 <td><code translate="no" v-pre>/search-lore &lt;query&gt; [regex] [limit]</code></td>
 <td>The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets.</td>
 </tr>
+<tr>
+<td><code translate="no" v-pre>/preview-lore-activation &lt;text&gt; [limit]</code>, <code translate="no" v-pre>/preview-lore-activation &lt;part&gt; [branch] [limit]</code></td>
+<td>Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -488,7 +493,7 @@ so an agent can use them as well. They never show ids: a part is its <strong>pos
 change when a branch is added or deleted). Without a branch number the commands work on the active branch. Lists are paged with
 <code translate="no" v-pre>offset</code> and <code translate="no" v-pre>limit</code>, long texts are cut into slices (<code translate="no" v-pre>offset</code>, <code translate="no" v-pre>length</code>) and the answer says the total length. As with the other
 commands the options are positional: to set one, give those before it too.</p>
-<p>The commands that read the lorebooks (<code translate="no" v-pre>/list-lorebooks</code> to <code translate="no" v-pre>/search-lore</code>) work the same way and reach only the lorebooks of the open
+<p>The commands that read the lorebooks (<code translate="no" v-pre>/list-lorebooks</code> to <code translate="no" v-pre>/preview-lore-activation</code>) work the same way and reach only the lorebooks of the open
 book: the root lorebook and its subbooks. A lorebook is its <strong>number</strong> from <code translate="no" v-pre>/list-lorebooks</code> (the root is <code translate="no" v-pre>1</code>), an entry its
 <strong>number in the lorebook</strong>, in the order of the lorebook (the first entry is <code translate="no" v-pre>1</code>); the numbers change when entries or subbooks are
 added or removed. Without a lorebook number the root lorebook is used.</p>
@@ -584,7 +589,7 @@ into an entry.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (e2b1b419).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (0c35856c).</p></div>
             </footer>
         </div>
     </div>
