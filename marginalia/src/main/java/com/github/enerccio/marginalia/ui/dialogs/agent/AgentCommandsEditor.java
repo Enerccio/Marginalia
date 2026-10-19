@@ -85,7 +85,9 @@ public class AgentCommandsEditor extends VerticalLayout {
     private void loadCommands() {
         Map<String, CommandDefinition> byName = new LinkedHashMap<>();
         for (CommandDefinition definition : commandService.getCommands()) {
-            byName.putIfAbsent(definition.commandName(), definition);
+            if (definition.availableForAgent()) {
+                byName.putIfAbsent(definition.commandName(), definition);
+            }
         }
         rows.clear();
         for (CommandDefinition definition : byName.values()) {

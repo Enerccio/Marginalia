@@ -77,6 +77,14 @@ class CommandFunctionsTest {
         }
     }
 
+    public static class UserOnly {
+        @Command(commandName = "user-only", humanNameText = "User only", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+                availableForAgent = false, signature = @CommandParameterSignature)
+        public void run(CommandContext context) {
+            context.setReturn("done");
+        }
+    }
+
     public static class Others {
         @Command(commandName = "get.part", humanNameText = "Get part", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
                 signature = @CommandParameterSignature({
@@ -207,6 +215,18 @@ class CommandFunctionsTest {
 
         assertThat(set.getDefinitions()).extracting(FunctionDefinition::getName).containsExactlyInAnyOrder("list-things", "data");
         assertThat(functions().isEmpty()).isTrue();
+    }
+
+    @Test
+    void aCommandNotAvailableForAgentsIsNotOfferedEvenWhenAllowed() {
+        commands.registerCommands(new UserOnly());
+        commands.registerCommands(new Others());
+
+        FunctionSet set = functions("user-only", "long");
+
+        assertThat(set.getDefinitions()).extracting(FunctionDefinition::getName).containsExactly("long");
+        assertThat(commands.getCommands()).extracting(definition -> definition.commandName() + ":" + definition.availableForAgent())
+                .contains("user-only:false", "long:true");
     }
 
     @Test

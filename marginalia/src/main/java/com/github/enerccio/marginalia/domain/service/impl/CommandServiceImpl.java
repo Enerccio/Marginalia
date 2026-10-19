@@ -167,7 +167,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         return new CommandDefinition(name, CommandText.of(where, "humanName", meta.humanName(), meta.humanNameText(), true),
                 CommandText.of(where, "description", meta.description(), meta.descriptionText(), false),
                 CommandText.of(where, "llmDescription", meta.llmDescription(), meta.llmDescriptionText(), false), meta.async(),
-                meta.dataSeverity(), suite, signature.any(), List.copyOf(parameters),
+                meta.dataSeverity(), meta.availableForAgent(), suite, signature.any(), List.copyOf(parameters),
                 new CommandReturnDefinition(returns.name(), returns.type(),
                         CommandText.of(where, "description of the return value", returns.description(), returns.descriptionText(), false)));
     }
@@ -185,6 +185,10 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
                 // what the command does to the data is a property of the command, not of a form of it
                 throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()
                         + " have different data severities");
+            }
+            if (definition.availableForAgent() != overloads.getFirst().definition().availableForAgent()) {
+                throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()
+                        + " differ in availableForAgent");
             }
             List<Object> key = definition.anyArguments() ? List.of("any")
                     : List.copyOf(definition.parameters().stream().map(CommandParameterDefinition::type).toList());

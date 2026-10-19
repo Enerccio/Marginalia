@@ -793,6 +793,12 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
     opacity: 0.8;
 }
 
+/* A message that holds a Details: pre-wrap would reach the blank lines of its shadow DOM and show them as line breaks */
+.help-message-folded {
+    align-self: stretch;
+    white-space: normal;
+}
+
 .help-message-error {
     background: var(--lumo-error-color-10pct);
     color: var(--lumo-error-text-color);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845730957074">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845732137321">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845730957074" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845732137321" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845730957074" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845730957074" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845730957074" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845732137321" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.845732137321" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -319,6 +319,14 @@ restore, import over a book). When in doubt it is destructive: the safe assumpti
 asks itself, see <doc-anchor-trigger to="#asking-the-user">Asking the user</doc-anchor-trigger>.</p>
 </li>
 </ul>
+<h3 id="available-for-agents">Available for agents</h3>
+<p><code translate="no" v-pre>@Command(availableForAgent = false)</code> keeps a command from agents (the default is <code translate="no" v-pre>true</code>). Use it for a command that only
+makes sense for the user at the book window, such as <code translate="no" v-pre>/take-backup</code>, which backs up the book the user has open: an agent works on
+a copy, and its backups are the checkpoints. A command that is not available is not in the allowlist editor of the agent dialog,
+is never turned into a function for the model (<code translate="no" v-pre>CommandFunctions</code>, even when the allowlist of an older agent names it) and is not
+offered in the command box of the console; the user still runs it from the command bar. All forms of one command share the value
+(<code translate="no" v-pre>registerCommands</code> throws when they differ), <code translate="no" v-pre>CommandDefinition.availableForAgent()</code> returns it. It is independent of the
+severity, and such a command needs no <code translate="no" v-pre>llmDescription</code>.</p>
 <p>The label is shown by the command bar in the list and in the help, with an explanation as its tooltip; the texts are the keys
 <code translate="no" v-pre>LABEL_COMMAND_DESTRUCTIVE</code>, <code translate="no" v-pre>LABEL_COMMAND_NON_DESTRUCTIVE</code>, <code translate="no" v-pre>HELP_COMMAND_DESTRUCTIVE</code> and <code translate="no" v-pre>HELP_COMMAND_NON_DESTRUCTIVE</code>,
 carried by <code translate="no" v-pre>CommandDataSeverity.getLabel()</code>/<code translate="no" v-pre>getDescription()</code>.</p>
@@ -488,7 +496,7 @@ only after the answer. <code translate="no" v-pre>/search-replace-parts</code> a
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (0c35856c).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5607ccef).</p></div>
             </footer>
         </div>
     </div>

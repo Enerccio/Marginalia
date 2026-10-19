@@ -100,4 +100,12 @@ public @interface Command {
      */
     CommandDataSeverity dataSeverity() default CommandDataSeverity.DESTRUCTIVE;
 
+    /**
+     * Whether an agent (LLM) can be given the command. {@code false} for a command that only makes sense for the user
+     * at the book window, such as one that acts on the book the user has open: it is not offered in the allowlist of an
+     * agent and an agent never gets it as a function, even when an older allowlist names it. The user can still run it
+     * from the command bar. The same for all the overloads of a command.
+     */
+    boolean availableForAgent() default true;
+
 }

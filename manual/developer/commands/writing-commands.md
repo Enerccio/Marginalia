@@ -104,6 +104,16 @@ annotation attribute needs an enum constant, so use `L.X` directly there, not a 
 - It is information. The service does not ask or refuse because of it, so a destructive command that has no preview still
   asks itself, see [Asking the user](#asking-the-user).
 
+### Available for agents
+
+`@Command(availableForAgent = false)` keeps a command from agents (the default is `true`). Use it for a command that only
+makes sense for the user at the book window, such as `/take-backup`, which backs up the book the user has open: an agent works on
+a copy, and its backups are the checkpoints. A command that is not available is not in the allowlist editor of the agent dialog,
+is never turned into a function for the model (`CommandFunctions`, even when the allowlist of an older agent names it) and is not
+offered in the command box of the console; the user still runs it from the command bar. All forms of one command share the value
+(`registerCommands` throws when they differ), `CommandDefinition.availableForAgent()` returns it. It is independent of the
+severity, and such a command needs no `llmDescription`.
+
 The label is shown by the command bar in the list and in the help, with an explanation as its tooltip; the texts are the keys
 `LABEL_COMMAND_DESTRUCTIVE`, `LABEL_COMMAND_NON_DESTRUCTIVE`, `HELP_COMMAND_DESTRUCTIVE` and `HELP_COMMAND_NON_DESTRUCTIVE`,
 carried by `CommandDataSeverity.getLabel()`/`getDescription()`.

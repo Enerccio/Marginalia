@@ -852,7 +852,6 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN, "挨拶（Hello world）");
         setValue(L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN, "引数");
         setValue(L.DESC_COMMAND_TAKE_BACKUP, "開いている本のバックアップを作成します。バックアップは本の「バックアップ」タブに表示されます。");
-        setValue(L.DESC_COMMAND_TAKE_BACKUP_LLM, "ユーザーが開いている本（メッセージ、パート、ロアブック、設定）をバックアップし、その本の他のバックアップと一緒に保存します。本が開かれていない場合は失敗します。本自体は変更されませんが、バックアップが1件追加され、その本の保存バックアップ数に含まれます。非同期です。");
         setValue(L.DESC_COMMAND_TAKE_BACKUP_RETURN, "バックアップされた内容：本の名前と、メッセージ数および画像数");
         setValue(L.DESC_COMMAND_SEARCH_PARAM, "検索するテキスト（regex 指定時は正規表現）");
         setValue(L.DESC_COMMAND_REPLACE_PARAM, "置き換え後のテキスト（空でも可。regex 指定時は $1 などのグループを使用可能）");
