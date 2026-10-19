@@ -504,6 +504,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_REGENERATE, "重写部分");
         setValue(L.LABEL_COMMAND_REGENERATE_SUMMARY, "生成摘要");
         setValue(L.LABEL_COMMAND_CREATE_META_SUMMARY, "生成元摘要");
+        setValue(L.LABEL_AGENTS_MAX_CHECKPOINT_MB, "单次运行的检查点容量 (MB)");
+        setValue(L.LABEL_AGENT_CHECKPOINTS, "检查点");
+        setValue(L.LABEL_SAVE_CHECKPOINT, "保存检查点");
+        setValue(L.LABEL_CHECKPOINT_LABEL, "标签（可选）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -573,6 +577,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_COMMAND_PRESET_ALL, "全部");
         setValue(L.ENUM_COMMAND_PRESET_NONE, "无");
         setValue(L.ENUM_COMMAND_PRESET_NON_DESTRUCTIVE, "所有非破坏性命令");
+        setValue(L.ENUM_CHECKPOINT_START, "运行开始");
+        setValue(L.ENUM_CHECKPOINT_AUTOMATIC, "自动");
+        setValue(L.ENUM_CHECKPOINT_MANUAL, "手动");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -804,6 +811,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_REGENERATE_CONFIRM, "要重写故事的第 %s 部分吗？其文本会被新文本替换。");
         setValue(L.MSG_COMMAND_GENERATING, "正在生成");
         setValue(L.MSG_COMMAND_SUMMARIZING, "正在生成摘要");
+        setValue(L.MSG_AGENT_CONFIRM_RESTORE_CHECKPOINT, "要回到检查点 %s 吗？书的工作副本和代理的工作区将被替换为保存的内容，之后的更改会丢失。如有空间，当前状态会先保存为自动检查点。");
+        setValue(L.MSG_AGENT_CHECKPOINT_RESTORED, "已还原检查点 %s。从工作区删除的文件：%d。");
+        setValue(L.MSG_AGENT_CHECKPOINT_SAVED, "已保存检查点 %s。");
+        setValue(L.MSG_AGENT_CHECKPOINTS_USAGE, "检查点占用 %s / %s（其中 %s 留给自动检查点）。");
+        setValue(L.MSG_AGENT_CHECKPOINTS_EMPTY, "还没有检查点。运行开始时会创建一个。");
+        setValue(L.MSG_AGENT_CHECKPOINT_BUSY, "代理正在工作。请先暂停再保存或还原检查点。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -850,6 +863,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_APP, "用于没有自己压缩提示、且其用户在设置中也没有默认值的智能体。留空则使用内置提示。");
         setValue(L.HELP_AGENT_COMMAND, "命令由您运行,而不是智能体:它会得知您运行了命令及其结果。智能体工作时,命令会等到它这一轮结束。");
         setValue(L.HELP_AGENT_RUN_NOW, "丢弃智能体在这一轮正在做的事,立即运行该命令。");
+        setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "单次运行的所有检查点占用的总容量 (MB)：工作副本及其工作区的还原点，包括代理自己创建的和自动创建的。留空为 100。");
+        setValue(L.HELP_AGENT_CHECKPOINTS, "书的工作副本和工作区的还原点。运行开始时以及每次会产生更改的回合之前都会自动创建（保留最近五个）；代理也可以自己保存。它们共用管理员设置的配额。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

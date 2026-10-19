@@ -28,7 +28,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
     private static final int SNIPPET_RADIUS = 40;
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM)}),
@@ -38,7 +38,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
@@ -49,7 +49,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
@@ -61,7 +61,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
@@ -74,7 +74,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),
@@ -88,7 +88,7 @@ public class FindOccurrencesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_FIND_OCCURRENCES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_FIND_OCCURRENCES, llmDescription = L.DESC_COMMAND_FIND_OCCURRENCES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "terms", type = Object.class, description = L.DESC_COMMAND_TERMS_PARAM),

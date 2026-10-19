@@ -8,6 +8,9 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
+import com.github.enerccio.marginalia.domain.service.CheckpointService;
+import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
+import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Kind;
 import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
 import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
@@ -48,6 +51,9 @@ class AgentRunnerTest extends AgentTestBase {
 
     @Autowired
     private AgentVirtualFileSystemService fileSystemService;
+
+    @Autowired
+    private CheckpointService checkpointService;
 
     /**
      * An agent that may read the book information and does not mind the rest.
@@ -589,6 +595,93 @@ class AgentRunnerTest extends AgentTestBase {
 
         assertThat(messageService.getContextTokens(run)).as("of the last request").isEqualTo(320);
         assertThat(agentRunService.getContextCap(run)).isEqualTo(5_000);
+    }
+
+    // --- checkpoints ---
+
+    private Agent writingAgent() throws Exception {
+        Agent agent = readingAgent();
+        agent.setAllowedCommands(List.of("get-book-info", "set-book-info"));
+        return agentService.save(agent);
+    }
+
+    private String nameOfCopy(AgentRun run) throws Exception {
+        return agentRunService.find(run.getId()).getWorkingCopy().getName();
+    }
+
+    @Test
+    void theRunStartsWithACheckpointOfItsOwn() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.text("Done."));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(checkpointService.list(run)).as("a round of reads makes no other").hasSize(1);
+        assertThat(checkpointService.list(run).getFirst().kind()).isEqualTo(Kind.START);
+    }
+
+    @Test
+    void aCheckpointIsMadeBeforeARoundThatChangesWhatChangedSinceTheLastOne() throws Exception {
+        Agent agent = writingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("set-book-info", "{\"name\":\"One\"}"),
+                MockLLMResponse.toolCall("set-book-info", "{\"name\":\"Two\"}"),
+                MockLLMResponse.toolCall("get-book-info", "{}"),
+                MockLLMResponse.toolCall("get-book-info", "{}"),
+                MockLLMResponse.toolCall("set-book-info", "{\"name\":\"Three\"}"),
+                MockLLMResponse.text("Done."));
+
+        AgentRun run = await(startRun(agent));
+
+        // the first change starts from the state of the start checkpoint; before the second and the third the copy had changed
+        List<Info> checkpoints = checkpointService.list(run);
+        assertThat(checkpoints).extracting(Info::kind).containsExactly(Kind.START, Kind.AUTOMATIC, Kind.AUTOMATIC);
+        assertThat(checkpoints.get(1).label()).startsWith("before round");
+        assertThat(nameOfCopy(run)).isEqualTo("Three");
+    }
+
+    @Test
+    void theAgentSavesAndRestoresACheckpointAndIsToldWhatCameBack() throws Exception {
+        Agent agent = writingAgent();
+        String original = agentService.findForUser(agent.getUuid()).getManuscript().getName();
+        llm.enqueue(MockLLMResponse.toolCall("write_file", "{\"path\":\"/notes.txt\",\"content\":\"keep\"}"),
+                MockLLMResponse.toolCall("checkpoint", "{\"label\":\"before renaming\"}"),
+                MockLLMResponse.toolCall("set-book-info", "{\"name\":\"Ruined\"}"),
+                MockLLMResponse.toolCall("write_file", "{\"path\":\"/later.txt\",\"content\":\"x\"}"),
+                MockLLMResponse.toolCall("checkpoint_restore", "{\"id\":\"2\"}"),
+                MockLLMResponse.toolCall("checkpoint_list", "{}"),
+                MockLLMResponse.text("Done."));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(nameOfCopy(run)).as("the copy is the one that was saved").isEqualTo(original);
+        VirtualFileSystem fs = fileSystemService.open(run);
+        assertThat(fs.readText(fs.parse("/notes.txt"))).isEqualTo("keep");
+        assertThat(fs.stat(fs.parse("/later.txt"))).isNull();
+        // the agent reads what happened
+        List<String> users = transcript(run).stream().filter(m -> m.getRole() == LLMRole.USER).map(LLMChatMessage::getContent).toList();
+        assertThat(users).anyMatch(text -> text.contains("went back to checkpoint 0002") && text.contains("/later.txt")
+                && text.contains("The state before the restore is checkpoint"));
+        List<String> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
+        assertThat(results).anyMatch(text -> text.contains("Checkpoint 0002 saved"));
+        assertThat(results).anyMatch(text -> text.contains("goes back to checkpoint 0002 when this round ends"));
+        assertThat(results.getLast()).contains("0001 start").contains("0002 manual").contains("\"before renaming\"")
+                .contains("before restoring 0002");
+    }
+
+    @Test
+    void aRestoreOfACheckpointThatIsNotThereIsAnErrorForTheAgent() throws Exception {
+        Agent agent = writingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("checkpoint_restore", "{\"id\":\"0077\"}"),
+                MockLLMResponse.toolCall("checkpoint_delete", "{\"id\":\"1\"}"),
+                MockLLMResponse.text("Done."));
+
+        AgentRun run = await(startRun(agent));
+
+        List<String> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
+        assertThat(results.get(0)).startsWith("Error:").contains("There is no checkpoint 0077").contains("0001 start");
+        assertThat(results.get(1)).startsWith("Error:").contains("start of the run can't be deleted");
+        assertThat(checkpointService.list(run)).hasSize(1);
     }
 
     // --- the context fills up ---

@@ -108,4 +108,12 @@ public @interface Command {
      */
     boolean availableForAgent() default true;
 
+    /**
+     * Whether the command only reads: it changes nothing of the book, the lorebooks or the data of extensions (and
+     * nothing else the user keeps), however often it is run. The runner of an agent takes a checkpoint of the working copy
+     * before a round that changes something, so a command that is not declared read only is taken to change data. The same
+     * for all the overloads of a command.
+     */
+    boolean readOnly() default false;
+
 }

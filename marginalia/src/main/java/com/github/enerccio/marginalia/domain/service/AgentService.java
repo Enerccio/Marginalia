@@ -45,9 +45,19 @@ public interface AgentService extends ExtendableService<Agent, AgentRepository> 
      * @param maxFileBytes      the largest file in a workspace of the user, zero is the default of the application
      * @param maxWorkspaceBytes the most all the files of one workspace of the user take, zero is the default
      * @param maxWorkspaceFiles the most files in one workspace of the user, zero is the default
+     * @param maxCheckpointBytes the most the checkpoints of one run of the user take, zero is the default of the application
      */
     record AgentGrant(boolean allowed, int maxConcurrentRuns, long runTokenBudget, int maxAgents, int maxCopies,
-                      long maxFileBytes, long maxWorkspaceBytes, int maxWorkspaceFiles) {
+                      long maxFileBytes, long maxWorkspaceBytes, int maxWorkspaceFiles, long maxCheckpointBytes) {
+
+        /**
+         * A grant with no quota of checkpoints: the default one of the application.
+         */
+        public AgentGrant(boolean allowed, int maxConcurrentRuns, long runTokenBudget, int maxAgents, int maxCopies,
+                          long maxFileBytes, long maxWorkspaceBytes, int maxWorkspaceFiles) {
+            this(allowed, maxConcurrentRuns, runTokenBudget, maxAgents, maxCopies, maxFileBytes, maxWorkspaceBytes,
+                    maxWorkspaceFiles, 0);
+        }
 
         /**
          * A grant with no quotas of copies and files: the default ones of the application.

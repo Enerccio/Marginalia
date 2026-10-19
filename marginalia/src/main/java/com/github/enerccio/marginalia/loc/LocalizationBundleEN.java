@@ -496,6 +496,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_REGENERATE, "Write a part again");
         setValue(L.LABEL_COMMAND_REGENERATE_SUMMARY, "Make a summary");
         setValue(L.LABEL_COMMAND_CREATE_META_SUMMARY, "Make a meta summary");
+        setValue(L.LABEL_AGENTS_MAX_CHECKPOINT_MB, "Checkpoints of a run (MB)");
+        setValue(L.LABEL_AGENT_CHECKPOINTS, "Checkpoints");
+        setValue(L.LABEL_SAVE_CHECKPOINT, "Save a checkpoint");
+        setValue(L.LABEL_CHECKPOINT_LABEL, "Label (optional)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -565,6 +569,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_COMMAND_PRESET_ALL, "All");
         setValue(L.ENUM_COMMAND_PRESET_NONE, "None");
         setValue(L.ENUM_COMMAND_PRESET_NON_DESTRUCTIVE, "All non-destructive");
+        setValue(L.ENUM_CHECKPOINT_START, "Start of the run");
+        setValue(L.ENUM_CHECKPOINT_AUTOMATIC, "Automatic");
+        setValue(L.ENUM_CHECKPOINT_MANUAL, "Made on purpose");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -796,6 +803,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_REGENERATE_CONFIRM, "Write part %s of the story again? Its text is replaced by the new one.");
         setValue(L.MSG_COMMAND_GENERATING, "Generating");
         setValue(L.MSG_COMMAND_SUMMARIZING, "Making the summary");
+        setValue(L.MSG_AGENT_CONFIRM_RESTORE_CHECKPOINT, "Go back to checkpoint %s? The working copy of the book and the workspace of the agent are replaced by what was saved, and what was changed after it is lost. The state now is saved as an automatic checkpoint first, if there is room.");
+        setValue(L.MSG_AGENT_CHECKPOINT_RESTORED, "Restored checkpoint %s. Files removed from the workspace: %d.");
+        setValue(L.MSG_AGENT_CHECKPOINT_SAVED, "Checkpoint %s saved.");
+        setValue(L.MSG_AGENT_CHECKPOINTS_USAGE, "The checkpoints take %s of %s; %s of it is kept for the automatic ones.");
+        setValue(L.MSG_AGENT_CHECKPOINTS_EMPTY, "There are no checkpoints yet. The run makes one when it starts.");
+        setValue(L.MSG_AGENT_CHECKPOINT_BUSY, "The agent is working. Pause it to save or restore a checkpoint.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -842,6 +855,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_APP, "Used by the agents that have no compaction prompt of their own and whose user has no default in their settings. Empty is the built-in prompt.");
         setValue(L.HELP_AGENT_COMMAND, "You run the command, not the agent: it is told that you did and what came out. While the agent works the command waits for the end of its turn.");
         setValue(L.HELP_AGENT_RUN_NOW, "Throws away what the agent is doing in this round and runs the command right now.");
+        setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "How much all the checkpoints of one run can take, in MB; the restore points of the working copy and its workspace, the ones the agent makes and the automatic ones. Empty is 100.");
+        setValue(L.HELP_AGENT_CHECKPOINTS, "Restore points of the working copy of the book and the workspace. The run makes one when it starts and one before the rounds that change something (the last five are kept); the agent can save its own. They share a quota set by the administrator.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

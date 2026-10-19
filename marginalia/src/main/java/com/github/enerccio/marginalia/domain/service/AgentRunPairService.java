@@ -20,7 +20,8 @@ import java.util.Optional;
 public interface AgentRunPairService {
 
     /**
-     * Stores the pairs of the copy the run has just been given, in place of whatever the run had.
+     * Stores the pairs of the copy the run has just been given, in place of whatever the run had. A pair that has a
+     * handle keeps it (a copy restored from a checkpoint continues the handles of the run).
      *
      * @throws IllegalArgumentException when the run is not a run of the user, or the pairs name one item of the copy twice
      */

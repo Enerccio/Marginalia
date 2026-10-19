@@ -22,7 +22,7 @@ public class GetBookInfoCommand extends ManuscriptReadSupport {
     static final String NAME = "get-book-info";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_BOOK_INFO,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_BOOK_INFO, llmDescription = L.DESC_COMMAND_GET_BOOK_INFO_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_GET_BOOK_INFO_RETURN))

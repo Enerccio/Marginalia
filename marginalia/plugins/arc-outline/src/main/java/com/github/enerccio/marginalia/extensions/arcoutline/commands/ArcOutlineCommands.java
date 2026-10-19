@@ -77,7 +77,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
 
     // --- get-arc-outline ---
 
-    @Command(commandName = GET, humanNameText = "Get arc outline", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GET, humanNameText = "Get arc outline", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = GET_TEXT, llmDescriptionText = GET_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = GET_RETURN))
@@ -85,7 +85,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runGet(context);
     }
 
-    @Command(commandName = GET, humanNameText = "Get arc outline", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GET, humanNameText = "Get arc outline", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = GET_TEXT, llmDescriptionText = GET_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, optional = true,
@@ -95,7 +95,7 @@ public class ArcOutlineCommands extends ArcOutlineCommandSupport {
         runGet(context);
     }
 
-    @Command(commandName = GET, humanNameText = "Get arc outline", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+    @Command(commandName = GET, humanNameText = "Get arc outline", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = GET_TEXT, llmDescriptionText = GET_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, optional = true,

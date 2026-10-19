@@ -57,6 +57,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             AgentRunStatus.WAITING_APPROVAL, AgentRunStatus.PAUSING, AgentRunStatus.PAUSED);
     // the status reason holds this much of the report of a finished run
     private static final int MAX_REASON = 2_000;
+
+    // the tools that change neither the working copy nor the workspace; every other call may, and a round of them needs a checkpoint first
+    private static final Set<String> NO_CHANGE_TOOLS = Set.of("finish", "ask_user", "update_plan", "get_run_status", "request_compaction",
+            "checkpoint", "checkpoint_list", "checkpoint_restore", "checkpoint_delete", "view_image", "list_files", "read_file",
+            "grep_files", "list_command_results");
     // images the model is shown at once: the newest ones; an older one is a note that view_image shows it again
     static final int MAX_SHOWN_IMAGES = 4;
 
@@ -87,6 +92,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     @Autowired
     @Lazy
     private AgentRunPairService pairService;
+
+    @Autowired
+    @Lazy
+    private CheckpointService checkpointService;
 
     @Autowired
     @Lazy
@@ -560,6 +569,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private final Progress progress = new Progress();
         // made again when the run is loaded, it depends on whether the run is a conversation
         private RunToolsImpl runTools = new RunToolsImpl(progress::render);
+        // the checkpoint tools of the run, and the commands that change nothing (a round of those needs no checkpoint)
+        private CheckpointToolsImpl checkpointTools;
+        private Set<String> readOnlyCommands = Set.of();
+        // whether the working copy or the workspace may have changed since the last checkpoint
+        private boolean dirty;
+        // whether the agent was told that no automatic checkpoint fits, until one is made again
+        private boolean fullNoticeGiven;
         // the files of the run, opened with the tools; the images the model asked to see in this round
         private VirtualFileSystem files;
         private final ShownImages shown = new ShownImages();
@@ -646,6 +662,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 repairCalls(transcript);
             }
             runTools.restorePlan(planOf(transcript));
+            checkpointTools = new CheckpointToolsImpl(() -> run, checkpointService);
+            readOnlyCommands = commandService.getCommands().stream().filter(CommandDefinition::readOnly)
+                    .map(CommandDefinition::commandName).collect(Collectors.toSet());
             tools = tools();
 
             progress.maxRounds = agent.getMaxRounds() == null ? 0 : agent.getMaxRounds();
@@ -671,6 +690,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 // somebody wrote to the run or resumed it meanwhile: the work goes on from here
                 prepare(transcript);
             }
+
+            startCheckpoint(transcript);
 
             while (true) {
                 // the stable point: a pause or a stop asked meanwhile ends here
@@ -728,6 +749,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
 
                 runTools.clearRequests();
+                // the state the changes of this round start from is saved first; the notice for the agent, if any, comes after the results
+                boolean changes = round.calls().stream().anyMatch(this::changes);
+                String notice = changes ? checkpointBeforeChanges() : null;
                 List<LLMChatMessage> results = new ArrayList<>();
                 boolean forced = false;
                 for (LLMToolCall call : round.calls()) {
@@ -760,6 +784,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 if (!looked.isEmpty()) {
                     append(transcript, imagesMessage(looked));
                 }
+                if (notice != null) {
+                    append(transcript, LLMChatMessage.of(LLMRole.USER, notice));
+                }
+                dirty |= changes;
 
                 if (runTools.getSummary() != null) {
                     // a conversation goes on after the report, only the user ends it
@@ -775,11 +803,102 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     }
                     return;
                 }
+                String restore = checkpointTools.takeRestore();
+                if (restore != null) {
+                    restoreForAgent(restore, transcript);
+                }
                 if (runTools.isCompactionRequested()) {
                     compactForAgent(runTools.getCompactionFocus(), transcript);
                 } else {
                     warnAboutContext(transcript);
                 }
+            }
+        }
+
+        /**
+         * The checkpoint of the start of the run, if it has none; a run with others (resumed) may have changed since the last.
+         */
+        private void startCheckpoint(List<LLMChatMessage> transcript) throws Exception {
+            try {
+                boolean first = checkpointService.list(run).isEmpty();
+                checkpointService.ensureStart(run);
+                dirty = !first;
+            } catch (Discarded e) {
+                throw e;
+            } catch (Exception e) {
+                log.warn("Agent run {}: no checkpoint of the start: {}", run.getUuid(), e.getMessage());
+                dirty = true;
+                append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_NO_START_CHECKPOINT + " " + e.getMessage()));
+            }
+        }
+
+        /**
+         * Whether a call of the model may change the working copy or the workspace: everything but the tools that only look
+         * (the run tools, the checkpoint tools, the reading file tools) and the commands that are declared read only.
+         */
+        private boolean changes(LLMToolCall call) {
+            String name = call.getName();
+            return !NO_CHANGE_TOOLS.contains(name) && !readOnlyCommands.contains(name);
+        }
+
+        /**
+         * Before the calls of a round that changes something: an automatic checkpoint, when something changed since the last
+         * one. The run goes on without it when there is no room, and the agent is told once.
+         *
+         * @return what the agent should be told after the results of the round, null for nothing
+         */
+        private String checkpointBeforeChanges() {
+            if (!dirty) {
+                return null;
+            }
+            try {
+                checkpointService.makeAutomatic(run, "before round " + (run.getRounds()));
+                dirty = false;
+                fullNoticeGiven = false;
+                return null;
+            } catch (Exception e) {
+                log.info("Agent run {}: no automatic checkpoint: {}", run.getUuid(), e.getMessage());
+                if (fullNoticeGiven) {
+                    return null;
+                }
+                fullNoticeGiven = true;
+                return Defaults.AGENT_NO_AUTOMATIC_CHECKPOINT + " " + e.getMessage();
+            }
+        }
+
+        /**
+         * The agent asked to go back to a checkpoint with {@code checkpoint_restore}: done between two rounds, with every call
+         * of the round answered. The working copy is another book afterwards, so the tools are made again. A failure changes
+         * nothing and the agent is told.
+         */
+        private void restoreForAgent(String id, List<LLMChatMessage> transcript) throws Exception {
+            boolean before = ignoreForce;
+            ignoreForce = true;
+            try {
+                CheckpointService.Restored restored = checkpointService.restore(run, id);
+                run = restored.run();
+                tools = tools();
+                dirty = false;
+                StringBuilder text = new StringBuilder(String.format(Defaults.AGENT_RESTORED, restored.checkpoint().id(),
+                        restored.checkpoint().round()));
+                if (!restored.removedFiles().isEmpty()) {
+                    text.append(" The files you wrote after it are gone: ")
+                            .append(restored.removedFiles().stream().limit(20).collect(Collectors.joining(", ")))
+                            .append(restored.removedFiles().size() > 20 ? " and " + (restored.removedFiles().size() - 20) + " more" : "")
+                            .append('.');
+                }
+                text.append(restored.safety() == null ? " There was no room to save the state before the restore."
+                        : " The state before the restore is checkpoint " + restored.safety().id() + ".");
+                log.info("Agent run {}: the agent restored checkpoint {}", run.getUuid(), restored.checkpoint().id());
+                append(transcript, LLMChatMessage.of(LLMRole.USER, text.toString()));
+            } catch (Discarded e) {
+                throw e;
+            } catch (Exception e) {
+                log.warn("Agent run {}: restore of checkpoint {} failed: {}", run.getUuid(), id, e.getMessage());
+                append(transcript, LLMChatMessage.of(LLMRole.USER, "You asked to go back to checkpoint " + id + ", but it failed: "
+                        + CommandFunctions.messageOf(e) + "\nNothing was changed."));
+            } finally {
+                ignoreForce = before;
             }
         }
 
@@ -1161,7 +1280,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                             path -> files.readText(VirtualPath.parse(path)), commandResults,
                             path -> files.readImage(VirtualPath.parse(path)).toAttachment(path), cage)
                     .and(fileSystemService.getFileTools(files, commandResults))
-                    .and(inferenceServices.getFunctionRegistry().bind(RunTools.class, runTools));
+                    .and(inferenceServices.getFunctionRegistry().bind(RunTools.class, runTools))
+                    .and(inferenceServices.getFunctionRegistry().bind(CheckpointTools.class, checkpointTools));
             return seesImages ? tools.and(inferenceServices.getFunctionRegistry().bind(ImageTools.class, new ImageToolsImpl(files, shown)))
                     : tools;
         }

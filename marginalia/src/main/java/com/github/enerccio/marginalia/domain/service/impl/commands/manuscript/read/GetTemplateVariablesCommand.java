@@ -18,7 +18,7 @@ public class GetTemplateVariablesCommand extends ManuscriptReadSupport {
     static final String NAME = "get-template-variables";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, llmDescription = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "scope", type = String.class, description = L.DESC_COMMAND_SCOPE_PARAM)}),
@@ -28,7 +28,7 @@ public class GetTemplateVariablesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, llmDescription = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "scope", type = String.class, description = L.DESC_COMMAND_SCOPE_PARAM),
@@ -39,7 +39,7 @@ public class GetTemplateVariablesCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_TEMPLATE_VARIABLES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, llmDescription = L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "scope", type = String.class, description = L.DESC_COMMAND_SCOPE_PARAM),

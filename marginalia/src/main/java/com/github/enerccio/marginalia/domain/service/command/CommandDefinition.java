@@ -16,6 +16,7 @@ import java.util.List;
  * @param async          whether the command runs on a worker thread and answers when it likes
  * @param dataSeverity   whether the command changes or removes the data that exists, the same for all the overloads
  * @param availableForAgent whether an agent can be given the command, the same for all the overloads
+ * @param readOnly       whether the command changes no data at all, the same for all the overloads
  * @param instance       the registered suite object, the one that has the method
  * @param anyArguments   whether the command takes any arguments (it declares no signature); then {@code parameters} is
  *                       empty
@@ -23,7 +24,7 @@ import java.util.List;
  * @param returns        what the command returns
  */
 public record CommandDefinition(String commandName, CommandText humanName, CommandText description, CommandText llmDescription,
-                                boolean async, CommandDataSeverity dataSeverity, boolean availableForAgent, Object instance, boolean anyArguments,
+                                boolean async, CommandDataSeverity dataSeverity, boolean availableForAgent, boolean readOnly, Object instance, boolean anyArguments,
                                 List<CommandParameterDefinition> parameters, CommandReturnDefinition returns) {
 
 }

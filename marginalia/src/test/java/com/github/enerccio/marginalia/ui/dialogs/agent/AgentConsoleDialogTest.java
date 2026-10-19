@@ -564,7 +564,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(runsOf(dialog)).extracting(AgentRun::getUuid).containsExactly(third.getUuid(), second.getUuid(), first.getUuid());
         // the console itself reads the latest run that was not thrown away
         assertThat(dialog.getStatusLabel().getText()).isEqualTo("Running");
-        assertThat(dialog.getTabs().getTabCount()).isEqualTo(3);
+        assertThat(dialog.getTabs().getTabCount()).isEqualTo(4);
     }
 
     @Test

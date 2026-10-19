@@ -21,7 +21,7 @@ public class ComparePartsCommand extends ManuscriptReadSupport {
     static final int MAX_DIFF_LINE_LENGTH = 300;
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_COMPARE_PARTS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_COMPARE_PARTS, llmDescription = L.DESC_COMMAND_COMPARE_PARTS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "a", type = String.class, description = L.DESC_COMMAND_PART_A_PARAM),
@@ -32,7 +32,7 @@ public class ComparePartsCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_COMPARE_PARTS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_COMPARE_PARTS, llmDescription = L.DESC_COMMAND_COMPARE_PARTS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "a", type = String.class, description = L.DESC_COMMAND_PART_A_PARAM),
@@ -44,7 +44,7 @@ public class ComparePartsCommand extends ManuscriptReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_COMPARE_PARTS,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_COMPARE_PARTS, llmDescription = L.DESC_COMMAND_COMPARE_PARTS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "a", type = String.class, description = L.DESC_COMMAND_PART_A_PARAM),

@@ -133,6 +133,16 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
 
     @Override
     @CommonTxReadOnly
+    public RunFolder getFolder(AgentRun run) throws Exception {
+        AgentRun stored = run == null ? null : agentRunService.findForUser(run.getUuid());
+        if (stored == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        return RunFolder.of(home(), stored.getUuid(), storedAgent(stored.getAgent()).getUuid());
+    }
+
+    @Override
+    @CommonTxReadOnly
     public VirtualFileSystem openWorkspace(Agent agent) throws Exception {
         Agent stored = storedAgent(agent);
         return VirtualFileSystem.ofWorkspace(RunFolder.workspaceOf(home(), stored.getUuid()), limitsOf(stored),
@@ -238,6 +248,13 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
     public void deleteBase(AgentRun run) {
         if (run != null && run.getUuid() != null) {
             deleteAfterCommit(RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.BASE));
+        }
+    }
+
+    @Override
+    public void deleteCheckpoints(AgentRun run) {
+        if (run != null && run.getUuid() != null) {
+            deleteAfterCommit(RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.CHECKPOINTS));
         }
     }
 

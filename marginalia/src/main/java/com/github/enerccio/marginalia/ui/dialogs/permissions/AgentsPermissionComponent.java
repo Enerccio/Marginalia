@@ -33,6 +33,7 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
     private IntegerField maxFileKb;
     private IntegerField maxWorkspaceMb;
     private IntegerField maxWorkspaceFiles;
+    private IntegerField maxCheckpointMb;
     private boolean loading;
 
     // texts need the injected localization, which is there only after the constructor
@@ -47,8 +48,9 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         maxFileKb = field(L.LABEL_AGENTS_MAX_FILE_KB, L.HELP_AGENTS_MAX_FILE_KB);
         maxWorkspaceMb = field(L.LABEL_AGENTS_MAX_WORKSPACE_MB, L.HELP_AGENTS_MAX_WORKSPACE_MB);
         maxWorkspaceFiles = field(L.LABEL_AGENTS_MAX_WORKSPACE_FILES, L.HELP_AGENTS_MAX_WORKSPACE_FILES);
+        maxCheckpointMb = field(L.LABEL_AGENTS_MAX_CHECKPOINT_MB, L.HELP_AGENTS_MAX_CHECKPOINT_MB);
         layout = new VerticalLayout(maxAgents, maxConcurrentRuns, runTokenBudget, maxCopies, maxFileKb, maxWorkspaceMb,
-                maxWorkspaceFiles);
+                maxWorkspaceFiles, maxCheckpointMb);
         layout.setPadding(false);
     }
 
@@ -88,6 +90,7 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
             maxFileKb.setValue(permission.getAgentsMaxFileKb());
             maxWorkspaceMb.setValue(permission.getAgentsMaxWorkspaceMb());
             maxWorkspaceFiles.setValue(permission.getAgentsMaxWorkspaceFiles());
+            maxCheckpointMb.setValue(permission.getAgentsMaxCheckpointMb());
         } finally {
             loading = false;
         }
@@ -103,6 +106,7 @@ public class AgentsPermissionComponent implements PermissionUIComponent {
         permission.setAgentsMaxFileKb(maxFileKb.getValue());
         permission.setAgentsMaxWorkspaceMb(maxWorkspaceMb.getValue());
         permission.setAgentsMaxWorkspaceFiles(maxWorkspaceFiles.getValue());
+        permission.setAgentsMaxCheckpointMb(maxCheckpointMb.getValue());
     }
 
     @Override

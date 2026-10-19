@@ -23,7 +23,7 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
     static final String NAME = "list-lore-entries";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LORE_ENTRIES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_LORE_ENTRIES, llmDescription = L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_LIST_LORE_ENTRIES_RETURN))
@@ -32,7 +32,7 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LORE_ENTRIES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_LORE_ENTRIES, llmDescription = L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM)}),
@@ -42,7 +42,7 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LORE_ENTRIES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_LORE_ENTRIES, llmDescription = L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
@@ -53,7 +53,7 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LORE_ENTRIES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_LORE_ENTRIES, llmDescription = L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),
@@ -65,7 +65,7 @@ public class ListLoreEntriesCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_LIST_LORE_ENTRIES,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_LIST_LORE_ENTRIES, llmDescription = L.DESC_COMMAND_LIST_LORE_ENTRIES_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "lorebook", type = String.class, description = L.DESC_COMMAND_LOREBOOK_PARAM),

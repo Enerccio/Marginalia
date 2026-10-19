@@ -81,7 +81,8 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
                 positive(permission.getAgentsMaxCopies()),
                 positive(permission.getAgentsMaxFileKb()) * 1024L,
                 positive(permission.getAgentsMaxWorkspaceMb()) * 1024L * 1024L,
-                positive(permission.getAgentsMaxWorkspaceFiles()));
+                positive(permission.getAgentsMaxWorkspaceFiles()),
+                positive(permission.getAgentsMaxCheckpointMb()) * 1024L * 1024L);
     }
 
     /**

@@ -49,7 +49,7 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
     private TemplateService templateService;
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_PREVIEW_TEXT_PARAM)}),
@@ -59,7 +59,7 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, description = L.DESC_COMMAND_PREVIEW_TEXT_PARAM),
@@ -70,7 +70,7 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, llmDescription = L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, description = L.DESC_COMMAND_PART_PARAM),

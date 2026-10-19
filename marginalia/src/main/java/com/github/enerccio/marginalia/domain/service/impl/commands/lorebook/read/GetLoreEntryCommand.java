@@ -17,7 +17,7 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
     static final String NAME = "get-lore-entry";
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM)}),
@@ -27,7 +27,7 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
@@ -38,7 +38,7 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),
@@ -50,7 +50,7 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_GET_LORE_ENTRY,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             description = L.DESC_COMMAND_GET_LORE_ENTRY, llmDescription = L.DESC_COMMAND_GET_LORE_ENTRY_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_PARAM),

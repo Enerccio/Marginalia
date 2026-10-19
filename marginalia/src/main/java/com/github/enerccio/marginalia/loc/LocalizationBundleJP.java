@@ -496,6 +496,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_REGENERATE, "パートを書き直す");
         setValue(L.LABEL_COMMAND_REGENERATE_SUMMARY, "要約を作成");
         setValue(L.LABEL_COMMAND_CREATE_META_SUMMARY, "メタ要約を作成");
+        setValue(L.LABEL_AGENTS_MAX_CHECKPOINT_MB, "実行のチェックポイントの容量 (MB)");
+        setValue(L.LABEL_AGENT_CHECKPOINTS, "チェックポイント");
+        setValue(L.LABEL_SAVE_CHECKPOINT, "チェックポイントを保存");
+        setValue(L.LABEL_CHECKPOINT_LABEL, "ラベル (任意)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -565,6 +569,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_COMMAND_PRESET_ALL, "すべて");
         setValue(L.ENUM_COMMAND_PRESET_NONE, "なし");
         setValue(L.ENUM_COMMAND_PRESET_NON_DESTRUCTIVE, "破壊的でないものすべて");
+        setValue(L.ENUM_CHECKPOINT_START, "実行の開始");
+        setValue(L.ENUM_CHECKPOINT_AUTOMATIC, "自動");
+        setValue(L.ENUM_CHECKPOINT_MANUAL, "手動");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -796,6 +803,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_COMMAND_REGENERATE_CONFIRM, "ストーリーのパート %s を書き直しますか？ テキストは新しいものに置き換えられます。");
         setValue(L.MSG_COMMAND_GENERATING, "生成中");
         setValue(L.MSG_COMMAND_SUMMARIZING, "要約を作成中");
+        setValue(L.MSG_AGENT_CONFIRM_RESTORE_CHECKPOINT, "チェックポイント %s に戻しますか? 本の作業コピーとエージェントのワークスペースは保存された内容に置き換わり、その後の変更は失われます。現在の状態は、空きがあれば先に自動チェックポイントとして保存されます。");
+        setValue(L.MSG_AGENT_CHECKPOINT_RESTORED, "チェックポイント %s を復元しました。ワークスペースから削除されたファイル: %d。");
+        setValue(L.MSG_AGENT_CHECKPOINT_SAVED, "チェックポイント %s を保存しました。");
+        setValue(L.MSG_AGENT_CHECKPOINTS_USAGE, "チェックポイントの使用量: %s / %s (うち %s は自動チェックポイント用に確保)。");
+        setValue(L.MSG_AGENT_CHECKPOINTS_EMPTY, "チェックポイントはまだありません。実行の開始時に作られます。");
+        setValue(L.MSG_AGENT_CHECKPOINT_BUSY, "エージェントが作業中です。チェックポイントの保存や復元は一時停止してから行ってください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -842,6 +855,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_APP, "独自の圧縮プロンプトを持たず、ユーザーも設定に既定を持たないエージェントが使います。空欄は組み込みのプロンプトです。");
         setValue(L.HELP_AGENT_COMMAND, "コマンドを実行するのはあなたで、エージェントではありません。実行したことと結果がエージェントに伝わります。エージェントが作業中の間、コマンドはそのターンの終わりまで待ちます。");
         setValue(L.HELP_AGENT_RUN_NOW, "エージェントがこのラウンドで行っていることを破棄して、今すぐコマンドを実行します。");
+        setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "1回の実行のすべてのチェックポイントの合計容量 (MB)。作業コピーとワークスペースの復元ポイントで、エージェントが作るものと自動のものを含みます。空欄は 100。");
+        setValue(L.HELP_AGENT_CHECKPOINTS, "本の作業コピーとワークスペースの復元ポイントです。実行の開始時と、変更を伴うラウンドの前に自動で作られます (最新の5つを保持)。エージェントも自分で保存できます。管理者が設定した容量を共有します。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
