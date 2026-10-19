@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845750346453">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845752922550">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845750346453" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845752922550" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845750346453" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845752922550" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845750346453" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845752922550" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -689,7 +689,7 @@ calls <code translate="no" v-pre>AgentMergeService.sync(run)</code> before the s
 changed get the value of the book), otherwise a later change of the agent to a value that came from the user would look like a change both sides made. A field both changed (<code translate="no" v-pre>Field.conflict</code>) is left to the copy and reported; an item the copy lacks
 (<code translate="no" v-pre>PROBLEM_GONE</code>, <code translate="no" v-pre>PROBLEM_NEEDS_PARENT</code>) is a conflict line too. The items the sync creates in the copy are recorded as pairs (<code translate="no" v-pre>Applier.created</code>), so they have handles, and <code translate="no" v-pre>BaseAdvance</code> and the pairs are stored in the same transaction as the changes (the base file
 is replaced when it commits: <code translate="no" v-pre>AgentVirtualFileSystemService.updateBase</code>). The result is a <code translate="no" v-pre>SyncReport</code> (lines by handle, <code translate="no" v-pre>text()</code> for the model); it is written to <code translate="no" v-pre>base/sync-report.txt</code> with a <code translate="no" v-pre>base/sync-pending</code> mark
-(<code translate="no" v-pre>writeSyncReport</code>, after the commit), the runner&#x27;s <code translate="no" v-pre>prepare</code> takes the mark (<code translate="no" v-pre>takePendingSync</code>) and puts the report in front of the model as a user message, with the &quot;go on&quot; sentence, and the tool <code translate="no" v-pre>get_sync_report</code> (<code translate="no" v-pre>SyncTools</code>) reads the file. A resume of a run
+(<code translate="no" v-pre>writeSyncReport</code>, after the commit), the runner&#x27;s <code translate="no" v-pre>prepare</code> takes the mark (<code translate="no" v-pre>takePendingSync</code>) and puts the report in front of the model as a user message, with the &quot;go on&quot; sentence, and the tool <code translate="no" v-pre>get_sync_report</code> (<code translate="no" v-pre>SyncTools</code>, offered only while the run has a report) reads the file. A resume of a run
 whose book did not change takes 0.1 s and writes nothing; one with a hundred changed parts of a book of 2000 parts takes about 3.5 s. A lorebook the sync makes in the copy is <code translate="no" v-pre>agentic</code>.</p>
 <p>The screen is <code translate="no" v-pre>AgentMergeDialog</code>: a multi-select grid of the items beside the detail of the one clicked (the text of the book and an editable box of the text to apply, the added and removed values of a set), opened from
 the Agents tab and the console (<code translate="no" v-pre>Review changes</code>). It keeps the picks consistent with <code translate="no" v-pre>dependsOn</code> and refuses to pick a <code translate="no" v-pre>problem</code> item.</p>
@@ -1112,7 +1112,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (a6325c5c).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b8c37a9e).</p></div>
             </footer>
         </div>
     </div>

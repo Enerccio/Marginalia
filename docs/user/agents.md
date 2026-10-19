@@ -55,7 +55,7 @@ these of its own:
 | `update_plan` | Its to-do list. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
 | `checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete` | Its [checkpoints](#checkpoints): saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need. |
-| `get_sync_report` | Lists again what you changed in the book while the run was paused and what of it came into the agent's copy, see [Resuming a run](#resuming-a-run). |
+| `get_sync_report` | Only after a resume that took over changes of yours: lists again what you changed in the book while the run was paused and what of it came into the agent's copy, see [Resuming a run](#resuming-a-run). |
 | `request_compaction` | Compacts its own context: when the round ends it writes the summary of its earlier work, as with `/compact`. It is told to save its notes to a file first. See [Context filling up](#running-a-command-yourself). |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
 | `finish` | Its report: the run is *Done*. The report is shown as the reason of the status. |

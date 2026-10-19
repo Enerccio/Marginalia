@@ -1287,14 +1287,18 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                             path -> files.readImage(VirtualPath.parse(path)).toAttachment(path), cage)
                     .and(fileSystemService.getFileTools(files, commandResults))
                     .and(inferenceServices.getFunctionRegistry().bind(RunTools.class, runTools))
-                    .and(inferenceServices.getFunctionRegistry().bind(CheckpointTools.class, checkpointTools))
-                    .and(inferenceServices.getFunctionRegistry().bind(SyncTools.class, new SyncToolsImpl(() -> {
-                        try {
-                            return fileSystemService.readSyncReport(run);
-                        } catch (Exception e) {
-                            throw new IllegalStateException(e);
-                        }
-                    })));
+                    .and(inferenceServices.getFunctionRegistry().bind(CheckpointTools.class, checkpointTools));
+            // a run the user did not change the book of has nothing to ask about: a tool that always answers "nothing" only
+            // invites the model to call it again and again
+            if (StringUtils.isNotBlank(fileSystemService.readSyncReport(run))) {
+                tools = tools.and(inferenceServices.getFunctionRegistry().bind(SyncTools.class, new SyncToolsImpl(() -> {
+                    try {
+                        return fileSystemService.readSyncReport(run);
+                    } catch (Exception e) {
+                        throw new IllegalStateException(e);
+                    }
+                })));
+            }
             return seesImages ? tools.and(inferenceServices.getFunctionRegistry().bind(ImageTools.class, new ImageToolsImpl(files, shown)))
                     : tools;
         }

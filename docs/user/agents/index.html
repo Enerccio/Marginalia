@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845750346453">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845752922550">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845750346453" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845752922550" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845750346453" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845752922550" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845750346453" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845752922550" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -293,7 +293,7 @@ these of its own:</p>
 | `update_plan` | Its to-do list. |
 | `get_run_status` | How many rounds and tokens it has used, how much context, and the longest answer it can write. The agent is also told these limits of its model in its prompt, so it writes a long text in parts. |
 | `checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete` | Its [checkpoints](#checkpoints): saves a restore point of the working copy and its workspace (with a label), lists them, goes back to one (when the round ends) and deletes one it does not need. |
-| `get_sync_report` | Lists again what you changed in the book while the run was paused and what of it came into the agent's copy, see [Resuming a run](#resuming-a-run). |
+| `get_sync_report` | Only after a resume that took over changes of yours: lists again what you changed in the book while the run was paused and what of it came into the agent's copy, see [Resuming a run](#resuming-a-run). |
 | `request_compaction` | Compacts its own context: when the round ends it writes the summary of its earlier work, as with `/compact`. It is told to save its notes to a file first. See [Context filling up](#running-a-command-yourself). |
 | `ask_user` | A question for you. The run waits (*Waiting for you*). |
 | `finish` | Its report: the run is *Done*. The report is shown as the reason of the status. |">
@@ -340,7 +340,7 @@ these of its own:</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>get_sync_report</code></td>
-<td>Lists again what you changed in the book while the run was paused and what of it came into the agent&#x27;s copy, see <doc-anchor-trigger to="#resuming-a-run">Resuming a run</doc-anchor-trigger>.</td>
+<td>Only after a resume that took over changes of yours: lists again what you changed in the book while the run was paused and what of it came into the agent&#x27;s copy, see <doc-anchor-trigger to="#resuming-a-run">Resuming a run</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>request_compaction</code></td>
@@ -631,7 +631,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (a6325c5c).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b8c37a9e).</p></div>
             </footer>
         </div>
     </div>
