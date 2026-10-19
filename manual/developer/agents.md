@@ -177,6 +177,8 @@ The copy has **new uuids**, so the run records how it relates to the original, i
   `agent-runs/<run uuid>/base/manuscript.json` by `AgentVirtualFileSystemService.writeBase` (deleted again when the transaction rolls back) and read with `readBase`. It is deleted
   with the copy (`deleteBase`) and with the run folder.
 
+**The model of the copy.** The copy is made from the backup, so it has the AI and the protocol of the book (or none). `AgentRunnerImpl.Worker.work` calls `AgentRunService.useAgentModel(run)` every time a worker starts, when the main profile of the agent resolves: it writes the AI and the protocol of that profile into the copy (`ManuscriptService.setAgenticCopyModel`, refuses a book that is not `agentic`), so the generation commands without a `profile` (`options` of `StoryGenerationCommands`) use the agent's model, and a profile the author edited between a pause and a resume is picked up. The two are not in `MergeDiff.BOOK_FIELDS`, so neither the review nor `apply` nor the sync on resume ever touches the AI and the protocol of the original; a restore of a checkpoint keeps what the snapshot had, the next worker start writes them again.
+
 While a run `holdsLock()` the **original book is locked**: `AgentRunService.checkNotLocked(manuscript)` throws `ManuscriptLockedException`, and the services
 that change a book call it (`ManuscriptService.save/delete/restoreBackup`, `ChatMessageService`, `SummaryService`, `ManuscriptReplaceService.apply`,
 `StoryGenerationService.generateNextTurn`). Reading is free. The screens that open a book ask `AgentLockCheck` first

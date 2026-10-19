@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
@@ -104,6 +106,15 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
      * @throws IllegalArgumentException when the manuscript is not a working copy of an agent
      */
     void deleteAgenticCopy(Manuscript copy) throws Exception;
+
+    /**
+     * Gives the working copy of an agent the model of the agent, so that what the copy writes with, when no model profile is
+     * named, is the agent's and not the one of the book. The AI and the protocol are not compared when a run is merged back,
+     * so the original keeps its own.
+     *
+     * @throws IllegalArgumentException when the manuscript is not a working copy of an agent
+     */
+    void setAgenticCopyModel(Manuscript copy, AI ai, Protocol protocol) throws Exception;
 
     /**
      * Changes the settings of the book that are named in {@code changes} (the others are left as they are) and saves it. The
