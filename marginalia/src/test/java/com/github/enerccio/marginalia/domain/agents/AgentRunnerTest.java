@@ -7,12 +7,10 @@ import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.AgentMessageService;
-import com.github.enerccio.marginalia.domain.service.AgentRunner;
-import com.github.enerccio.marginalia.domain.service.CheckpointService;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Kind;
-import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
 import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
@@ -46,6 +44,12 @@ class AgentRunnerTest extends AgentTestBase {
 
     @Autowired
     private AgentRunner runner;
+
+    @Autowired
+    private AIGate aiGate;
+
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.SettingService settingService;
 
     @Autowired
     private AgentMessageService messageService;
@@ -93,6 +97,105 @@ class AgentRunnerTest extends AgentTestBase {
 
     private List<LLMChatMessage> transcript(AgentRun run) throws Exception {
         return messageService.transcript(run);
+    }
+
+    @Test
+    void aRunWaitsForAPlaceAtAnAIWithACapAndGoesOnWhenItIsFree() throws Exception {
+        Agent agent = readingAgent();
+        var main = agentService.resolveProfile(agent.getMainProfile());
+        main.ai().setMaxConcurrentRequests(1);
+        aiService.save(main.ai());
+        // another run (here: the test) is using the only place
+        AIGate.Permit taken = aiGate.acquire(main.ai()).get();
+        llm.reply("Nothing to do.");
+
+        AgentRun run = startRun(agent);
+        Thread.sleep(600);
+
+        assertThat(llm.getCompletionRequests()).as("nothing was sent to the model").isEmpty();
+        assertThat(agentRunService.find(run.getId()).getStatus()).isEqualTo(AgentRunStatus.RUNNING);
+        assertThat(aiGate.waiting(main.ai())).isEqualTo(1);
+
+        taken.close();
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(llm.getCompletionRequests()).hasSize(1);
+        assertThat(aiGate.active(main.ai())).as("the place was given back").isZero();
+    }
+
+    @Test
+    void aPauseEndsTheWaitForAPlaceAtOnce() throws Exception {
+        Agent agent = readingAgent();
+        var main = agentService.resolveProfile(agent.getMainProfile());
+        main.ai().setMaxConcurrentRequests(1);
+        aiService.save(main.ai());
+        AIGate.Permit taken = aiGate.acquire(main.ai()).get();
+        llm.reply("Nothing to do.");
+
+        AgentRun run = startRun(agent);
+        Thread.sleep(300);
+        agentRunService.pause(agentRunService.find(run.getId()));
+
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+        assertThat(llm.getCompletionRequests()).isEmpty();
+        assertThat(aiGate.waiting(main.ai())).as("the run left the queue").isZero();
+        taken.close();
+        assertThat(aiGate.active(main.ai())).isZero();
+    }
+
+    @Test
+    void pausingAtOnceCancelsTheRequestThatIsGoingOn() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch never = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("A very slow answer").waitFor(never, Duration.ofSeconds(30)));
+
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        long began = System.currentTimeMillis();
+        runner.pauseNow(agentRunService.find(run.getId()));
+
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+        never.countDown();
+
+        assertThat(System.currentTimeMillis() - began).as("did not wait for the model").isLessThan(10_000);
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(transcript(run)).as("the answer that was not waited for is not in the transcript")
+                .extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER);
+    }
+
+    @Test
+    void aPlainPauseWaitsForTheRequestAndKeepsItsAnswer() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch release = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("Slow but kept").waitFor(release, Duration.ofSeconds(30)));
+
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        agentRunService.pause(agentRunService.find(run.getId()));
+        Thread.sleep(500);
+        assertThat(agentRunService.find(run.getId()).getStatus()).isEqualTo(AgentRunStatus.PAUSING);
+
+        release.countDown();
+        run = await(run, Set.of(AgentRunStatus.PAUSED, AgentRunStatus.IDLE));
+
+        assertThat(transcript(run).getLast().getContent()).isEqualTo("Slow but kept");
+    }
+
+    @Test
+    void anAgentWithoutInstructionsGetsTheDefaultOfItsUserInThePrompt() throws Exception {
+        Agent agent = readingAgent();
+        agent.setInstructions(null);
+        agent = agentService.save(agent);
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDefaultAgentInstructions("Never rename a character.");
+        settingService.save(setting);
+        llm.reply("Nothing to do.");
+
+        await(startRun(agent));
+
+        String system = llm.lastCompletionRequest().getMessages("system").getFirst();
+        assertThat(system).contains("# Instructions of the author").contains("Never rename a character.");
     }
 
     @Test
@@ -824,6 +927,8 @@ class AgentRunnerTest extends AgentTestBase {
     void theWarningSaysThatTheRunStopsWhenTheContextIsNearlyFull() throws Exception {
         Agent agent = readingAgent();
         agent.setContextCap(10_000);
+        // the runner would compact the run at 90%
+        agent.setAutoCompactPercent(0);
         agent = agentService.save(agent);
         llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").usage(9_000, 300),
                 MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}").usage(100, 10));
@@ -832,6 +937,61 @@ class AgentRunnerTest extends AgentTestBase {
 
         assertThat(llm.getCompletionRequests().get(1).getMessages("user")).anyMatch(text -> text.contains("context is 93% full")
                 && text.contains("stops when it is full"));
+    }
+
+    @Test
+    void theRunnerCompactsTheRunWhenTheContextPassesNinetyPercentAndTheAgentDidNot() throws Exception {
+        Agent agent = readingAgent();
+        agent.setContextCap(10_000);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").usage(9_000, 300),
+                MockLLMResponse.text("Task: count parts. Done so far: the book info."),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}").usage(100, 10));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).as(run.getStatusReason()).isEqualTo(AgentRunStatus.DONE);
+        List<MockLLMRequest> requests = llm.getCompletionRequests();
+        assertThat(requests).hasSize(3);
+        assertThat(requests.get(1).getMessages("user").getLast()).as("the request for the summary").startsWith(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT.strip());
+        assertThat(requests.get(2).getMessages("tool")).as("the earlier rounds are gone").isEmpty();
+        assertThat(requests.get(2).getMessages("user")).anyMatch(text -> text.startsWith(Defaults.AGENT_AUTO_COMPACTED_NOTE)
+                && text.contains("the book info"));
+        assertThat(requests.get(2).getMessages("user")).as("no warning on top of it").noneMatch(text -> text.contains("Notice from the run"));
+    }
+
+    @Test
+    void theShareAtWhichTheRunnerCompactsIsTheOneOfTheAgent() throws Exception {
+        Agent agent = readingAgent();
+        agent.setContextCap(10_000);
+        agent.setAutoCompactPercent(80);
+        agent = agentService.save(agent);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").usage(8_200, 300),
+                MockLLMResponse.text("A summary."),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}").usage(100, 10));
+
+        await(startRun(agent));
+
+        assertThat(llm.getCompletionRequests().get(2).getMessages("user")).anyMatch(text -> text.startsWith(Defaults.AGENT_AUTO_COMPACTED_NOTE));
+    }
+
+    @Test
+    void anAutomaticCompactionThatFailsIsReportedAndNotTriedAgainAtOnce() throws Exception {
+        Agent agent = readingAgent();
+        agent.setContextCap(10_000);
+        agent = agentService.save(agent);
+        // the model calls a tool in place of writing the summary
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").usage(9_000, 300),
+                MockLLMResponse.toolCall("get-book-info", "{}"),
+                MockLLMResponse.toolCall("get-book-info", "{}").usage(9_100, 300),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}").usage(100, 10));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).as(run.getStatusReason()).isEqualTo(AgentRunStatus.DONE);
+        assertThat(llm.getCompletionRequests()).as("no second try in the very next round").hasSize(4);
+        assertThat(llm.lastCompletionRequest().getMessages("user")).anyMatch(text -> text.contains("The run tried to compact your work")
+                && text.contains("Nothing was changed"));
     }
 
     @Test

@@ -10,15 +10,13 @@ An **agent** is a model that works on one of your books on its own, for a long t
 you allow it as its tools: it can read the story, check it against the lorebook and report to you. The **Agents** tab is
 where you create them, set what each may do, start and stop their runs, talk to them in the [console](#the-console) and clone them.
 
-!!!warning What this version can do
-**Start** now runs the agent: it works in the background, one round at a time, calling the commands you allowed and its own file tools, until it
+**Start** runs the agent: it works in the background, one round at a time, calling the commands you allowed and its own file tools, until it
 finishes, asks you something, reaches a limit or you pause or stop it (see [A run](#a-run)). It works on a hidden [copy](#the-working-copy) of the
-book, so your book is never touched; the book itself is [locked](#the-book-is-locked) while it works. Bringing the changes of the agent back
-into your book (the review) is not in this version yet, so use it to read the book and the lorebooks and to keep notes in its files.
-!!!
+book, so your book is never touched while it works (the book itself is [locked](#the-book-is-locked)); when it is done you
+[review its result](#reviewing-the-result) and take over what you want.
 
 The tab is there only if an administrator gave you the **Agents** [permission](administration/permissions.md) (administrators always
-have it). It is not in the phone layout yet.
+have it). On a phone each agent is a card with the same buttons, see [On a phone](#on-a-phone).
 
 ## The table
 
@@ -35,6 +33,7 @@ The buttons at the end of a row depend on the run:
 | **Start** | Opens a menu. **Start immediately**: the agent works on its task (its instructions) on its own and you hear of it when it asks or finishes. **Start in console**: opens the [console](#the-console) and tells the agent not to work yet but to ask you at once what you want it to do; the run is then a [conversation](#a-run) that goes on until you press **Finish**. |
 | **Resume** | Goes on with a paused or stopped run (shown instead of **Start**). |
 | **Pause** | Pauses a run that works or waits for you. |
+| **Pause now** | Shown while the agent works: pauses it without waiting for the round to end, see [Pause and Stop](#a-run). |
 | **Console** | Opens the [console](#the-console) of the agent. |
 | **Stop** | Asks whether to **keep the result** (the run can be resumed later) or **discard** it. |
 | **Edit** | Opens the agent. |
@@ -75,7 +74,13 @@ How a run ends a stretch of work:
   server stopped is reported to the model as "outcome unknown".
 - **Failed:** the runner itself broke; the reason says what.
 
-**Pause** and **Stop** take effect between two rounds: the model request and the calls that are going on finish first.
+**Pause** and **Stop** take effect between two rounds: the model request and the calls that are going on finish first. That can take
+long (a slow model, a long generation), so there is **Pause now**: it cancels the request to the model, whose answer is thrown away, and the call
+that is going on (it is told to stop; a command that can't be stopped may still finish, so the agent is told that it is not known whether the call was done and checks
+the state when it goes on), answers the calls of the round that were not made as such, and the run is *Paused* in a moment. What the thrown away request would have
+cost is lost; resume as usual.
+
+While the agent waits for a free place at its model (see [One model, several agents](#one-model-several-agents)) it is *Running*; a **Pause** or **Stop** ends that wait at once.
 
 ## The console
 
@@ -114,7 +119,7 @@ not fit, the oldest messages are left out of it (the summary says how many). Do 
 
 **Context filling up.** Once the context of the model passes 75% of its cap the agent gets a notice after every round (a message of the run, you see it in the
 transcript): how full it is, and that it should save what it must not lose to a file of its workspace, update its plan and call `request_compaction`. Above 90% the notice says that the run
-stops when the context is full. The compaction the agent asks for is the same as yours (its **Compaction prompt**, see [Creating and editing an agent](#creating-and-editing-an-agent), its tokens count against the run); if it fails, nothing is changed and the agent is told.
+stops when the context is full. If the agent does not compact before the context passes the **Compact at** share of its definition (90% unless you say otherwise), the run does it by itself: the same compaction, the summary begins "compacted automatically" and the agent is not warned on top of it. A compaction that fails changes nothing, the agent is told, and the run tries again only some rounds later. The compaction the agent asks for is the same as yours (its **Compaction prompt**, see [Creating and editing an agent](#creating-and-editing-an-agent), its tokens count against the run); if it fails, nothing is changed and the agent is told.
 The notices need a context cap: the lowest of the cap of the agent and the limits of its model.
 
 **Runaway calls.** A model can fall into a loop and write the same call hundreds of times in one answer; the results would fill the context before the next request. The run makes at most 32 calls of an answer, and a repeat of a call that only reads (the same tool with the same arguments, in the same answer) is made once. The calls that are left out are not in the transcript, and the agent gets a notice that says so.
@@ -149,6 +154,16 @@ up to 5 MB, and it counts against the total and the number of files like any fil
 Files can't be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files, which your administrator can set in your [permission](administration/permissions.md#settings-of-a-permission); the line
 under the table says how much is used. The name `AGENTS.md` at the top is taken by your instructions, which the agent sees there (the file can't be written or deleted).
 
+## One model, several agents
+
+A local server often has one slot (one GPU): ask it for two answers at once and both crawl or time out. Set **Concurrent requests of agents** in the [settings of the model](inference-providers.md#general-settings) (1 for one slot) and the requests of your agents to it take turns, in the order they came: the others wait, their runs stay *Running*, and a **Pause** or **Stop** ends the wait. It counts the model requests of all the agents of all users who use that model, the commands that write with it included. It does not hold up your own writing in the story window, and that does not count against the agents either.
+
+## When you are not there
+
+An agent that needs you, finishes or fails tells the open screens of the application (the badge on the tab, a notice). When no screen of yours is open it can also send a short message to an address you give in [Settings](account.md) ("Message to a URL when an agent needs you"): your **ntfy** topic (the ntfy app on the phone shows it at once), a **Gotify** message URL or a **Discord** webhook; pick the **Format** the service wants. **Send a test message** tries it with what is in the fields. The message names the agent and says what it wants ("waits for you", "finished", "asks for the approval of the command ...", "failed", "was paused: reason") in your language. **Also when the application is open** sends it in any case.
+
+The server calls the address, so an administrator can turn this off for everybody (Admin, *Agents*). Treat the address as a password when it holds a secret: anyone who knows it can read what is sent, the server never writes it to its log, redirects are not followed, and only `http` and `https` are called.
+
 ## Asking you
 
 When the agent needs you, you are told wherever you are in the app:
@@ -173,9 +188,9 @@ Every run works on a **copy of your book** and of its lorebooks that the app mak
 as they are at that moment, and the lorebook with its sub-lorebooks. The copy is hidden: it is not in the lists of books and lorebooks. Whatever the
 agent does, it does to the copy; your book stays as it was.
 
-The copy also gets the **model of the agent** (the AI and the protocol of its main model profile) in place of the AI and the protocol of your book, every time the run starts or
-is resumed. So the commands that write with a model (`/next`, `/swipe`, `/regenerate`, the summaries) use the agent's model even when your book is set to another one, or to none;
-a `profile` named in the call still wins. This is not a change of your book: the review does not list it and applying the result leaves the AI and the protocol of your book as they are.
+When the agent has **Write the book with the model of the agent** on (the default), the copy also gets the **model of the agent** (the AI and the protocol of its main model profile) in place of the AI and the protocol of your book, every time the run starts or
+is resumed. So the commands that write with a model (`/next`, `/swipe`, `/regenerate`, the summaries) and the model commands of extensions (the Lore Generator, the Arc Outline) use the agent's model even when your book is set to another one, or to none;
+a `profile` named in the call still wins. With the setting off they use the model of the book. This is not a change of your book: the review does not list it and applying the result leaves the AI and the protocol of your book as they are.
 
 A paused run keeps its copy and works on it again when you resume it. A run that is *Done*, or that you stopped and kept, keeps it until you
 [take over its result or discard it](#reviewing-the-result). When the run is *Failed*, you discard its result, or its changes are applied, the copy is deleted for good, and the next run
@@ -249,20 +264,37 @@ of two thousand parts). You can restore while the agent does not work; the agent
 | **Enabled** | A disabled agent can't be started; its runs that exist are not touched. |
 | **Book** | The book the agent works on, required. Only books that have no agent are offered, and the book of an agent can't be changed later. |
 | **Model**, **Protocols** | The model and the protocol the agent talks with. Both, or neither; an agent without them can't be started. |
+| **Write the book with the model of the agent** | On (the default): the commands that have a model write something - the next turn, swipes, summaries, and the commands of extensions such as the Lore Generator and the Arc Outline - use the model above, whatever model your book has. Off: they use the model of your book (an extension command falls back to your default model from [Settings](account.md) when the book has none). That is how you mix models: a strong one that thinks and a cheaper or more fluent one that writes. A command can still name another model profile of the agent. |
 | **The model sees images** | Tick it when the model takes images (the API of the model does not say, so you do). The agent then has `view_image` and you can attach images to your messages; without it it never gets a picture. |
 | **Destructive commands** | What happens when the agent wants a command that changes or removes data: *Run them*, *Ask first* (a [window](#asking-you) asks you to approve it) or *Refuse them*. |
 | **Most rounds**, **Token budget of a run**, **Context limit** | Optional limits of one run. The limit your administrator gave you applies in any case. |
+| **Compact at (% of context)** | When the context of the model passes this share of its limit and the agent did not [compact its work](#running-a-command-yourself) itself, the run does it: the agent writes the summary of its earlier work, which replaces it. Empty is 90, zero never (the run then stops when the context is full), otherwise 50 to 99. |
 | **System prompt** | What the agent is told to be. Leave it empty and the agent follows the default - yours from [Settings](account.md#templates), else your administrator's, else the built-in one - which is shown in grey. The info icon has **Insert Default Template**, which fills the default in so you can edit a copy of it; clear the field again to follow the default. |
 | **Compaction prompt** | What the agent is asked when you [`/compact`](#running-a-command-yourself) it: to write the summary that replaces its earlier work. Empty follows the default, like the system prompt, with the same info icon. |
-| **Instructions (agents.md)** | Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. |
+| **Instructions (agents.md)** | Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. Empty follows your default from [Settings](account.md#templates), if you have one (it is shown in grey), else there are none. |
 | **Allowed commands** | See below. |
 
 ### Allowed commands
 
 The agent is offered only the commands you tick. The table lists every command with its effect (*Destructive* changes or removes
 data, *Non-destructive* only reads or adds). The **Selection** box ticks many at once: **All**, **None** or **All non-destructive**
-(the default for a new agent); ticking a command yourself makes the selection *Custom*. Commands that an extension brings stay allowed
+(the default for a new agent), or a role; ticking a command yourself makes the selection *Custom*. Commands that an extension brings stay allowed
 when the extension is not loaded, you just don't see them.
+
+The roles are sets of commands for a job. All of them can read the book and the lorebooks (every command that only reads, those of extensions too), and none can remove data:
+
+| Role | Besides reading |
+|---|---|
+| **Auditor** | Nothing: continuity checks, name and term audits, reports. |
+| **Lore keeper** | Creates and updates lorebook entries and lorebooks, their tags and sub-lorebooks. |
+| **Editor** | Edits and appends to parts, sets their fields, keeps the summaries (also has the model write them again) and the book information and tags. |
+| **Drafter** | Adds parts and branches, edits and appends, lets the model write the next turn (`/next`, `/swipe`), keeps the summaries, creates and updates lorebook entries of what it invents. |
+
+Every command ticked adds its definition to every request, so a role is also the cheapest way to a small prompt for a weak model.
+
+## On a phone
+
+The phone layout has an **Agents** tab in the drawer, for users who may use agents, with the count of the agents that need you beside its name. Each agent is a card with its name, its state and the buttons of the table (they wrap onto more lines). The windows - the console, the review, the agent's settings - fill the screen, their buttons wrap, and the review shows the table above the detail of the item. Everything works as on the desktop, only smaller; for long work with the transcript or the review a larger screen is more comfortable.
 
 ## Cloning
 

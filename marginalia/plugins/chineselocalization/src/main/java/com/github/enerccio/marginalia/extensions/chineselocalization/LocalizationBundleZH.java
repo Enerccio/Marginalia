@@ -525,6 +525,16 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SUBBOOKS, "子设定集");
         setValue(L.LABEL_STATE, "状态");
         setValue(L.LABEL_REWIND, "回退");
+        setValue(L.LABEL_MAX_CONCURRENT_REQUESTS, "智能体并发请求数");
+        setValue(L.LABEL_PAUSE_NOW, "立即暂停");
+        setValue(L.LABEL_AGENT_DEFAULT_INSTRUCTIONS, "智能体指令（agents.md）");
+        setValue(L.LABEL_AGENT_AUTO_COMPACT, "压缩阈值（上下文百分比）");
+        setValue(L.LABEL_AGENT_USE_OWN_MODEL, "使用智能体的模型撰写书籍");
+        setValue(L.LABEL_AGENT_WEBHOOK_URL, "智能体需要您时向 URL 发送消息");
+        setValue(L.LABEL_AGENT_WEBHOOK_FORMAT, "消息格式");
+        setValue(L.LABEL_AGENT_WEBHOOK_ALWAYS, "应用打开时也发送");
+        setValue(L.LABEL_AGENT_WEBHOOK_TEST, "发送测试消息");
+        setValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED, "允许智能体向用户的 Webhook 发送消息");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -607,6 +617,13 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_MERGE_STATE_CONFLICT, "冲突");
         setValue(L.ENUM_MERGE_STATE_SHARED, "共享");
         setValue(L.ENUM_MERGE_STATE_BLOCKED, "无法应用");
+        setValue(L.ENUM_COMMAND_PRESET_AUDITOR, "审计员（只读）");
+        setValue(L.ENUM_COMMAND_PRESET_LORE_KEEPER, "设定管理员");
+        setValue(L.ENUM_COMMAND_PRESET_EDITOR, "编辑");
+        setValue(L.ENUM_COMMAND_PRESET_DRAFTER, "撰稿人");
+        setValue(L.ENUM_WEBHOOK_FORMAT_PLAIN, "纯文本（ntfy）");
+        setValue(L.ENUM_WEBHOOK_FORMAT_DISCORD, "Discord");
+        setValue(L.ENUM_WEBHOOK_FORMAT_GOTIFY, "Gotify");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -861,6 +878,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CHECKPOINT_REWOUND, "已回退到检查点 %s。智能体忘记的消息：%d。从工作区删除的文件：%d。");
         setValue(L.MSG_AGENT_REWIND_PAUSE_FIRST, "请先暂停或停止运行再回退。");
         setValue(L.MSG_AGENT_REWIND_UNAVAILABLE, "对话无法回到此检查点：它不记得自己在对话中的位置，或已被之前的回退撤销。请改用还原。");
+        setValue(L.MSG_COMMAND_WAITING_FOR_MODEL, "正在等待模型空闲……");
+        setValue(L.MSG_AGENT_WEBHOOK_TEST_TEXT, "这是来自 Marginalia 的测试消息。智能体需要您时会在这里通知您。");
+        setValue(L.MSG_AGENT_WEBHOOK_TEST_OK, "服务已接受测试消息。");
+        setValue(L.MSG_AGENT_WEBHOOK_TEST_FAILED, "测试消息未能发送：%s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -888,7 +909,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_CONCURRENT_RUNS, "用户可同时运行的次数。留空为一次。");
         setValue(L.HELP_AGENTS_RUN_TOKEN_BUDGET, "用户单次运行最多可消耗的令牌数（发送与生成）。留空或为零表示不限制。");
         setValue(L.HELP_AGENT_SYSTEM_PROMPT, "在您的指令之前告诉智能体它的角色。留空则采用默认内容(您在设置中的默认,否则是管理员的,否则是内置的),默认内容显示为占位符;点击信息图标可填入以便编辑副本。");
-        setValue(L.HELP_AGENT_INSTRUCTIONS, "给智能体的指令，会加入每次运行的提示词。智能体可以读取但不能修改。");
+        setValue(L.HELP_AGENT_INSTRUCTIONS, "给智能体的指令，会加入每次运行的提示词。智能体可以读取但不能修改。留空时使用设置中的默认指令。");
         setValue(L.HELP_AGENT_DESTRUCTIVE, "智能体要运行会修改或删除数据的命令时如何处理。");
         setValue(L.HELP_AGENT_MAX_ROUNDS, "单次运行向模型发出的最大请求数。留空表示智能体不设限。");
         setValue(L.HELP_AGENT_TOKEN_BUDGET, "单次运行最多可消耗的令牌数。留空或为零表示智能体不设限；管理员给您的上限始终有效。");
@@ -910,6 +931,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "单次运行的所有检查点占用的总容量 (MB)：工作副本及其工作区的还原点，包括代理自己创建的和自动创建的。留空为 100。");
         setValue(L.HELP_AGENT_CHECKPOINTS, "书籍工作副本和工作区的还原点。运行开始时以及每次会修改内容的回合之前都会创建一个（保留最近五个）；智能体也可以保存自己的检查点。它们共用管理员设置的配额。“还原”会恢复书籍和工作区；“回退”还会让对话回到创建检查点的位置，使智能体不会记得已不在书中的工作（需暂停或停止的运行）。");
         setValue(L.HELP_MERGE, "智能体在书籍的副本上工作。请选择要采纳的内容,应用前会先保存书籍。右侧的文本就是将写入的内容,可以编辑。冲突是指你和智能体都修改过的文本。");
+        setValue(L.HELP_COMMAND_PRESETS, "角色：审计员只读；设定管理员还可编写设定集；编辑还可修订正文、摘要和书籍信息；撰稿人还可添加新段落并让模型撰写下一回合。任何角色都不能删除数据。");
+        setValue(L.HELP_AI_MAX_CONCURRENT_REQUESTS, "可同时发往该模型的智能体请求数，超出的请求排队等待。留空表示不限。只有一个槽位的服务器（例如一块 GPU）请设为 1。故事窗口中您自己的生成不会排队。");
+        setValue(L.HELP_AGENT_PAUSE_NOW, "取消正在进行的模型请求和调用并立即暂停。它们本应产生的结果将丢失；无法中止的调用可能仍会完成，智能体在继续时会检查状态。");
+        setValue(L.HELP_AGENT_DEFAULT_INSTRUCTIONS_USER, "用于没有自己指令的智能体，会加入每次运行的提示词。留空表示没有指令。");
+        setValue(L.HELP_AGENT_AUTO_COMPACT, "当模型上下文超过其上限的这一比例且智能体没有自行压缩时，运行会对之前的回合进行摘要。留空为 %d。0 表示从不压缩（上下文满时运行将停止）。否则取 %d 到 99。");
+        setValue(L.HELP_AGENT_USE_OWN_MODEL, "开启：智能体通过命令生成的内容（下一回合、摘要，以及设定生成器等扩展的命令）无论书籍使用何种模型，都使用上面的模型。关闭：使用书籍的模型，这样可以混用模型：一个负责思考，一个负责写作。命令仍可指定智能体的其他模型配置。");
+        setValue(L.HELP_AGENT_WEBHOOK_URL, "当智能体提问、等待、完成或失败而您没有打开应用时，服务器会向此地址发送一条简短消息：例如您的 ntfy 主题（https://ntfy.sh/your-topic）、Gotify 消息 URL 或 Discord webhook。知道该地址的人都能读取消息。留空则不发送。");
+        setValue(L.HELP_AGENT_WEBHOOKS_ALLOWED, "服务器会调用用户在设置中填写的地址。如果这不可接受（例如服务器能访问用户不应访问的网络），请关闭。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

@@ -37,6 +37,9 @@ class AgentVirtualFileSystemServiceTest extends AgentTestBase {
     private AgentVirtualFileSystemService fileSystemService;
 
     @Autowired
+    private com.github.enerccio.marginalia.domain.service.SettingService settingService;
+
+    @Autowired
     private CleanupService cleanupService;
 
     @Autowired
@@ -411,6 +414,18 @@ class AgentVirtualFileSystemServiceTest extends AgentTestBase {
         assertThatThrownBy(() -> fs.writeText(fs.parse("/agents.md"), "mine", false)).as("the name is taken in any spelling")
                 .isInstanceOf(VirtualFileException.class);
         assertThat(other.getId()).isNotNull();
+    }
+
+    @Test
+    void anAgentWithoutInstructionsReadsTheDefaultOfItsUserInTheFile() throws Exception {
+        com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting setting = settingService
+                .getOrCreate(com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting.class);
+        setting.setDefaultAgentInstructions("From the settings.");
+        settingService.save(setting);
+
+        VirtualFileSystem fs = fileSystemService.open(run);
+
+        assertThat(fs.readText(fs.parse("/AGENTS.md"))).isEqualTo("From the settings.");
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.utils;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.LorebookLockedException;
@@ -45,6 +46,10 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class UIUtils {
+
+    /** The screens narrower than this (in pixels) get the phone workspace. */
+    public static final int PHONE_MAX_WIDTH_PX = 768;
+
     private static final Logger log = LoggerFactory.getLogger(UIUtils.class);
 
     private static final ThreadLocal<SimpleDateFormat> simpleDateFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd.MM.yyyy HH:mm:ss"));
@@ -279,6 +284,37 @@ public class UIUtils {
             return Integer.parseInt(position.substring(0, position.lastIndexOf("px")).trim());
         }
         return -1;
+    }
+
+    /**
+     * Whether the user's screen is a phone: the same width the application picks its phone workspace by. False where the
+     * size is not known (no browser yet).
+     */
+    public static boolean isPhone() {
+        UI ui = UI.getCurrent();
+        if (ui == null) {
+            return false;
+        }
+        com.vaadin.flow.component.page.ExtendedClientDetails details = ui.getPage().getExtendedClientDetails();
+        return details != null && details.getBodyClientWidth() < PHONE_MAX_WIDTH_PX;
+    }
+
+    /**
+     * On a phone the dialog fills the screen (and has no rounded corners or margin, like the phone book window); elsewhere
+     * it is left as it is.
+     *
+     * @param fullHeight whether the dialog is as high as the screen too, for a dialog with a transcript or a table that wants room
+     */
+    public static void fitPhone(Dialog dialog, boolean fullHeight) {
+        if (!isPhone()) {
+            return;
+        }
+        dialog.addClassName(CssStyles.PHONE_DIALOG);
+        dialog.setWidth("100%");
+        dialog.setMaxWidth("100%");
+        if (fullHeight) {
+            dialog.setHeight("100%");
+        }
     }
 
     /**

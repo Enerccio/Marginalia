@@ -158,6 +158,11 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         if (agent.getContextCap() != null && agent.getContextCap() <= 0) {
             throw new IllegalArgumentException("The context limit must be positive");
         }
+        if (agent.getAutoCompactPercent() != null && agent.getAutoCompactPercent() != 0
+                && (agent.getAutoCompactPercent() < MIN_AUTO_COMPACT_PERCENT || agent.getAutoCompactPercent() > MAX_AUTO_COMPACT_PERCENT)) {
+            throw new IllegalArgumentException("The share of the context at which the run is compacted must be zero (never) or between "
+                    + MIN_AUTO_COMPACT_PERCENT + " and " + MAX_AUTO_COMPACT_PERCENT + " percent");
+        }
         if (agent.getTokenBudget() != null && agent.getTokenBudget() < 0) {
             throw new IllegalArgumentException("The token budget can't be negative");
         }
@@ -221,6 +226,25 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
             }
         }
         return getAppDefaultSystemPrompt();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getInstructions(Agent agent) throws Exception {
+        if (agent != null && StringUtils.isNotBlank(agent.getInstructions())) {
+            return agent.getInstructions();
+        }
+        User owner = agent == null ? null : agent.getOwner();
+        if (owner != null) {
+            return StringUtils.defaultString(settingService.getOrCreate(UserSetting.class, owner).getDefaultAgentInstructions());
+        }
+        return "";
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getDefaultInstructions() throws Exception {
+        return StringUtils.defaultString(settingService.getOrCreate(UserSetting.class).getDefaultAgentInstructions());
     }
 
     @Override
@@ -351,6 +375,8 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         copy.setMaxRounds(original.getMaxRounds());
         copy.setTokenBudget(original.getTokenBudget());
         copy.setContextCap(original.getContextCap());
+        copy.setAutoCompactPercent(original.getAutoCompactPercent());
+        copy.setUseAgentModel(original.getUseAgentModel());
         Agent saved = save(copy);
         fileSystemService.copyWorkspace(original, saved);
         return saved;

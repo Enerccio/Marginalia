@@ -382,6 +382,30 @@ class AgentMergeTest extends AgentTestBase {
         assertThat(after.getProtocol().getUuid()).isEqualTo(bookProtocol.getUuid());
     }
 
+    @Test
+    void anAgentThatDoesNotUseItsModelLeavesTheCopyWithTheModelOfTheBook() throws Exception {
+        finish();
+        AI bookAi = createAI();
+        Protocol bookProtocol = protocol();
+        Manuscript stored = manuscriptService.find(book.getId());
+        stored.setAi(bookAi);
+        stored.setProtocol(bookProtocol);
+        manuscriptService.save(stored);
+        var main = agentService.resolveProfile(agentService.findForUser(agent.getUuid()).getMainProfile());
+
+        agentRunService.useAgentModel(run);
+        assertThat(manuscriptService.find(copy().getId()).getAi().getUuid()).as("the flag is on").isEqualTo(main.ai().getUuid());
+
+        Agent changed = agentService.findForUser(agent.getUuid());
+        changed.setUseAgentModel(false);
+        agentService.save(changed);
+        agentRunService.useAgentModel(run);
+
+        Manuscript copied = manuscriptService.find(copy().getId());
+        assertThat(copied.getAi().getUuid()).as("back to the book's").isEqualTo(bookAi.getUuid());
+        assertThat(copied.getProtocol().getUuid()).isEqualTo(bookProtocol.getUuid());
+    }
+
     // --- the apply
 
     @Test

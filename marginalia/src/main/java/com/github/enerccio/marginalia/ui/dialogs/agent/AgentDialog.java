@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
@@ -71,10 +72,12 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private ComboBox<Manuscript> manuscriptCombo;
     private ModelProtocolPicker modelPicker;
     private Checkbox imagesCheckbox;
+    private Checkbox useOwnModelCheckbox;
     private ComboBox<DestructiveCommandMode> destructiveCombo;
     private IntegerField maxRoundsField;
     private IntegerField tokenBudgetField;
     private IntegerField contextLimitField;
+    private IntegerField autoCompactField;
     private TextAreaPopoverComponent systemPromptField;
     private TextAreaPopoverComponent compactionPromptField;
     private TextArea instructionsField;
@@ -104,6 +107,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         setHeaderTitle(loc.getValue(isEdit() ? L.LABEL_EDIT_AGENT : L.LABEL_NEW_AGENT));
         setWidth("860px");
         setHeight("90%");
+        UIUtils.fitPhone(this, true);
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
 
@@ -111,8 +115,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
         FormLayout form = new FormLayout();
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
         form.setWidthFull();
-        form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox);
-        form.add(destructiveCombo, maxRoundsField, tokenBudgetField, contextLimitField);
+        form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox, useOwnModelCheckbox);
+        form.add(destructiveCombo, maxRoundsField, tokenBudgetField, contextLimitField, autoCompactField);
         form.add(systemPromptField, compactionPromptField, instructionsField, commandsEditor);
         add(form);
 
@@ -121,6 +125,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         saveButton.setThemeName("primary");
         HorizontalLayout footer = new HorizontalLayout(cancelButton, saveButton);
         footer.setWidthFull();
+        footer.setWrap(true);
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
 
@@ -144,6 +149,9 @@ public class AgentDialog extends Dialog implements LLMInteract {
         imagesCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_SEES_IMAGES));
         imagesCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_SEES_IMAGES));
 
+        useOwnModelCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_USE_OWN_MODEL), true);
+        useOwnModelCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_USE_OWN_MODEL));
+
         destructiveCombo = new ComboBox<>(loc.getValue(L.LABEL_DESTRUCTIVE_COMMANDS));
         destructiveCombo.setItems(DestructiveCommandMode.values());
         destructiveCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getDestructiveCommandMode(mode)));
@@ -155,6 +163,16 @@ public class AgentDialog extends Dialog implements LLMInteract {
         maxRoundsField = positiveField(L.LABEL_MAX_ROUNDS, L.HELP_AGENT_MAX_ROUNDS);
         tokenBudgetField = positiveField(L.LABEL_RUN_TOKEN_BUDGET, L.HELP_AGENT_TOKEN_BUDGET);
         contextLimitField = positiveField(L.LABEL_CONTEXT_LIMIT, L.HELP_AGENT_CONTEXT_LIMIT);
+
+        // empty follows the default, zero is never
+        autoCompactField = new IntegerField(loc.getValue(L.LABEL_AGENT_AUTO_COMPACT));
+        autoCompactField.setMin(0);
+        autoCompactField.setMax(AgentService.MAX_AUTO_COMPACT_PERCENT);
+        autoCompactField.setStepButtonsVisible(false);
+        autoCompactField.setPlaceholder(String.valueOf(Defaults.AGENT_AUTO_COMPACT_PERCENT));
+        autoCompactField.setHelperText(String.format(loc.getValue(L.HELP_AGENT_AUTO_COMPACT), Defaults.AGENT_AUTO_COMPACT_PERCENT,
+                AgentService.MIN_AUTO_COMPACT_PERCENT));
+        autoCompactField.setWidthFull();
 
         systemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_SYSTEM_PROMPT));
         systemPromptField.setHelperText(loc.getValue(L.HELP_AGENT_SYSTEM_PROMPT));
@@ -194,6 +212,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         systemPromptField.setPlaceholder(defaultPrompt);
         systemPromptField.setPopoverContent(TemplateHints.create(loc, systemPromptField, systemPromptField.getPopover(),
                 null, defaultPrompt));
+        instructionsField.setPlaceholder(agentService.getDefaultInstructions());
         String defaultCompaction = agentService.getDefaultCompactionPrompt();
         compactionPromptField.setPlaceholder(defaultCompaction);
         compactionPromptField.setPopoverContent(TemplateHints.create(loc, compactionPromptField,
@@ -245,6 +264,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
             maxRoundsField.setValue(agent.getMaxRounds());
             tokenBudgetField.setValue(agent.getTokenBudget() == null ? null : (int) Math.min(Integer.MAX_VALUE, agent.getTokenBudget()));
             contextLimitField.setValue(agent.getContextCap());
+            autoCompactField.setValue(agent.getAutoCompactPercent());
+            useOwnModelCheckbox.setValue(agent.isUsingAgentModel());
             systemPromptField.setValue(StringUtils.defaultString(agent.getSystemPrompt()));
             compactionPromptField.setValue(StringUtils.defaultString(agent.getCompactionPrompt()));
             instructionsField.setValue(StringUtils.defaultString(agent.getInstructions()));
@@ -257,7 +278,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private void save() {
         if (StringUtils.isBlank(nameField.getValue()) || manuscriptCombo.getValue() == null
                 || (modelPicker.getAi() == null) != (modelPicker.getProtocol() == null)
-                || fieldInvalid(maxRoundsField) || fieldInvalid(tokenBudgetField) || fieldInvalid(contextLimitField)
+                || fieldInvalid(maxRoundsField) || fieldInvalid(tokenBudgetField) || fieldInvalid(contextLimitField) || fieldInvalid(autoCompactField)
                 || instructionsField.getValue().length() > AgentService.MAX_INSTRUCTIONS_LENGTH) {
             Notification.warning(loc.getValue(L.MSG_VALIDATION_FAILED_CANT_SAVE));
             return;
@@ -277,6 +298,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
             agent.setMaxRounds(maxRoundsField.getValue());
             agent.setTokenBudget(tokenBudgetField.getValue() == null ? null : tokenBudgetField.getValue().longValue());
             agent.setContextCap(contextLimitField.getValue());
+            agent.setAutoCompactPercent(autoCompactField.getValue());
+            agent.setUseAgentModel(useOwnModelCheckbox.getValue());
             agent.setSystemPrompt(systemPromptField.getValue());
             agent.setCompactionPrompt(compactionPromptField.getValue());
             agent.setInstructions(StringUtils.isBlank(instructionsField.getValue()) ? null : instructionsField.getValue());
@@ -368,6 +391,14 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
     TextAreaPopoverComponent getCompactionPromptField() {
         return compactionPromptField;
+    }
+
+    Checkbox getUseOwnModelCheckbox() {
+        return useOwnModelCheckbox;
+    }
+
+    IntegerField getAutoCompactField() {
+        return autoCompactField;
     }
 
     TextArea getInstructionsField() {

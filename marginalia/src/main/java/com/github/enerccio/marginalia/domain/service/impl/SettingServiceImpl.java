@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.repository.SettingRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
+import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 
 public class SettingServiceImpl extends ExtendableServiceImpl<Setting, SettingRepository> implements SettingService {
 
@@ -18,6 +19,12 @@ public class SettingServiceImpl extends ExtendableServiceImpl<Setting, SettingRe
     @CommonTx
     public <T extends Setting> T getOrCreateApp(Class<T> clazz) throws Exception {
         return getOrCreate(clazz, null);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public <T extends Setting> T find(Class<T> clazz, User user) throws Exception {
+        return getRepository().findSetting(clazz, user);
     }
 
     @SuppressWarnings("unchecked")

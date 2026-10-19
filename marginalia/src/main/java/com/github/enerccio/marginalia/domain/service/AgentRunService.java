@@ -55,10 +55,10 @@ public interface AgentRunService extends ExtendableService<AgentRun, AgentRunRep
     long getContextCap(AgentRun run) throws Exception;
 
     /**
-     * Writes the AI and the protocol of the main model profile of the agent into the working copy of the run, so the agent writes
-     * with its own model even when the book has another (or none). Done every time a worker starts, so a profile the author
-     * changed in the meantime is used. The two are not merged back into the book. Nothing happens for a run without a copy or a
-     * model that can't be resolved.
+     * Sets the model the working copy of the run writes with: the AI and the protocol of the main model profile of the agent when
+     * the agent uses its own model ({@code Agent.useAgentModel}, the default), else the AI and the protocol the book has now. Done
+     * every time a worker starts, so a profile or a flag the author changed in the meantime is used. The two are not merged back
+     * into the book. Nothing happens for a run without a copy or a model that can't be resolved.
      */
     void useAgentModel(AgentRun run) throws Exception;
 

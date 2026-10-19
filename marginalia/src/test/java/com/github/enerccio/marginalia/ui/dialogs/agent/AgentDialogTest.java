@@ -116,6 +116,9 @@ class AgentDialogTest extends AgentTestBase {
         dialog.getMaxRoundsField().setValue(40);
         dialog.getTokenBudgetField().setValue(200_000);
         dialog.getContextLimitField().setValue(8000);
+        dialog.getAutoCompactField().setValue(80);
+        assertThat(dialog.getUseOwnModelCheckbox().getValue()).as("on for a new agent").isTrue();
+        dialog.getUseOwnModelCheckbox().setValue(false);
         dialog.getInstructionsField().setValue("Check the names.");
         dialog.getCommandsEditor().select(AgentCommandPreset.NONE);
         button(dialog, "OK").click();
@@ -130,6 +133,8 @@ class AgentDialogTest extends AgentTestBase {
         assertThat(agent.getMaxRounds()).isEqualTo(40);
         assertThat(agent.getTokenBudget()).isEqualTo(200_000L);
         assertThat(agent.getContextCap()).isEqualTo(8000);
+        assertThat(agent.getAutoCompactPercent()).isEqualTo(80);
+        assertThat(agent.isUsingAgentModel()).isFalse();
         assertThat(agent.getInstructions()).isEqualTo("Check the names.");
         assertThat(agent.getSystemPrompt()).as("blank: it follows the default").isBlank();
         assertThat(agent.getAllowedCommands()).isEmpty();
@@ -264,6 +269,19 @@ class AgentDialogTest extends AgentTestBase {
     }
 
     @Test
+    void theInstructionsFollowTheDefaultOfTheUserAsTheirPlaceholder() throws Exception {
+        manuscript();
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDefaultAgentInstructions("Keep the names.");
+        settingService.save(setting);
+
+        AgentDialog dialog = dialog(null);
+
+        assertThat(dialog.getInstructionsField().getValue()).isEmpty();
+        assertThat(dialog.getInstructionsField().getPlaceholder()).isEqualTo("Keep the names.");
+    }
+
+    @Test
     void theDefaultPromptIsTheUsersOwnWhenTheSettingsHaveOne() throws Exception {
         manuscript();
         UserSetting setting = settingService.getOrCreate(UserSetting.class);
@@ -306,6 +324,40 @@ class AgentDialogTest extends AgentTestBase {
             editor.select(AgentCommandPreset.NON_DESTRUCTIVE);
             editor.setSelected(destructive.getFirst(), true);
             assertThat(editor.getPreset()).as("one destructive command more than the preset").isNotEqualTo(AgentCommandPreset.NON_DESTRUCTIVE);
+        }
+    }
+
+    @Test
+    void theRolesReadEverythingAndWriteOnlyWhatTheirJobNeeds() throws Exception {
+        manuscript();
+        AgentCommandsEditor editor = dialog(null).getCommandsEditor();
+        List<String> destructive = commandService.getCommands().stream().filter(c -> c.dataSeverity().isDestructive())
+                .map(CommandDefinition::commandName).toList();
+
+        editor.select(AgentCommandPreset.AUDITOR);
+        assertThat(editor.getAllowed()).containsExactlyInAnyOrderElementsOf(
+                commandService.getCommands().stream().filter(c -> c.readOnly() && c.availableForAgent()).map(CommandDefinition::commandName).distinct().toList());
+        assertThat(editor.getPreset()).isEqualTo(AgentCommandPreset.AUDITOR);
+
+        editor.select(AgentCommandPreset.LORE_KEEPER);
+        assertThat(editor.getAllowed()).contains("get-lore-entry", "create-lore-entry", "update-lore-entry", "add-subbook")
+                .doesNotContain("edit-part", "next", "delete-lore-entry");
+        assertThat(editor.getPreset()).isEqualTo(AgentCommandPreset.LORE_KEEPER);
+
+        editor.select(AgentCommandPreset.EDITOR);
+        assertThat(editor.getAllowed()).contains("get-part", "edit-part", "set-summary", "set-book-info")
+                .doesNotContain("create-part", "next", "update-lore-entry", "replace-part-text");
+        assertThat(editor.getPreset()).isEqualTo(AgentCommandPreset.EDITOR);
+
+        editor.select(AgentCommandPreset.DRAFTER);
+        assertThat(editor.getAllowed()).contains("get-part", "create-part", "next", "swipe", "create-lore-entry")
+                .doesNotContain("regenerate", "delete-part", "set-book-prompts");
+        assertThat(editor.getPreset()).isEqualTo(AgentCommandPreset.DRAFTER);
+
+        for (AgentCommandPreset role : List.of(AgentCommandPreset.AUDITOR, AgentCommandPreset.LORE_KEEPER, AgentCommandPreset.EDITOR,
+                AgentCommandPreset.DRAFTER)) {
+            editor.select(role);
+            assertThat(editor.getAllowed()).as(role + " removes no data").doesNotContainAnyElementsOf(destructive);
         }
     }
 

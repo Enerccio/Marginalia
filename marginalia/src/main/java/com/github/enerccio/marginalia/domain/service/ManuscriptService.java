@@ -108,9 +108,8 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     void deleteAgenticCopy(Manuscript copy) throws Exception;
 
     /**
-     * Gives the working copy of an agent the model of the agent, so that what the copy writes with, when no model profile is
-     * named, is the agent's and not the one of the book. The AI and the protocol are not compared when a run is merged back,
-     * so the original keeps its own.
+     * Sets the AI and the protocol of the working copy of an agent (null clears), which is what the copy writes with when no model
+     * profile is named. The AI and the protocol are not compared when a run is merged back, so the original keeps its own.
      *
      * @throws IllegalArgumentException when the manuscript is not a working copy of an agent
      */

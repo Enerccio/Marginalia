@@ -106,6 +106,22 @@ public class Agent extends ExtendableEntity {
     @ExtendedAttribute
     private Integer contextCap;
 
+    /**
+     * Share of the context cap (in percent) at which the runner compacts the run by itself when the agent did not do it;
+     * null is {@code Defaults.AGENT_AUTO_COMPACT_PERCENT}, zero is never (the run then stops when the context is full).
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer autoCompactPercent;
+
+    /**
+     * Whether the working copy of a run (and what is asked of the scope of its commands, for example by the Lore Generator) writes
+     * with the model of the agent. Off, it writes with the model of the book. Null is on.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean useAgentModel;
+
     public String getName() {
         return name;
     }
@@ -199,6 +215,29 @@ public class Agent extends ExtendableEntity {
 
     public void setTokenBudget(Long tokenBudget) {
         this.tokenBudget = tokenBudget;
+    }
+
+    public Boolean getUseAgentModel() {
+        return useAgentModel;
+    }
+
+    public void setUseAgentModel(Boolean useAgentModel) {
+        this.useAgentModel = useAgentModel;
+    }
+
+    /**
+     * Whether the commands of a run write with the model of the agent and not the one of the book (the default).
+     */
+    public boolean isUsingAgentModel() {
+        return !Boolean.FALSE.equals(useAgentModel);
+    }
+
+    public Integer getAutoCompactPercent() {
+        return autoCompactPercent;
+    }
+
+    public void setAutoCompactPercent(Integer autoCompactPercent) {
+        this.autoCompactPercent = autoCompactPercent;
     }
 
     public Integer getContextCap() {

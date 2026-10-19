@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.arcoutline.commands;
 
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
@@ -95,7 +96,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
     private void runGenerateArc(CommandContext context) throws Exception {
         Book book = new Book(context);
         ArcOutline outline = outline(book);
-        ModelSelection model = requireModel(book);
+        ModelSelection model = requireModel(context, book);
         String prompt = service.buildPrompt(book.manuscript, outline,
                 service.generationPrompt(service.getSettings()), context.get("specification", String.class), null);
 
@@ -203,7 +204,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
             throw new IllegalArgumentException("The count is 1 to " + MAX_CHAPTERS);
         }
         ChapterContext chapterContext = option(ChapterContext.class, context.get("context", String.class), ChapterContext.EVERYTHING, "context");
-        ModelSelection model = requireModel(book);
+        ModelSelection model = requireModel(context, book);
         String prompt = service.buildChapterPrompt(book.manuscript, outline, arc, chapterContext,
                 service.chapterGenerationPrompt(service.getSettings()),
                 count != null ? "exactly " + count : "as many as the arc needs",
@@ -357,7 +358,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
             throw new IllegalArgumentException("The count is 1 to " + MAX_CHAPTERS);
         }
         OutlineState state = state(context.get("state", String.class), OutlineState.FINISHED);
-        ModelSelection model = requireModel(book);
+        ModelSelection model = requireModel(context, book);
         String prompt = service.buildImportPrompt(book.manuscript, outline, service.importPrompt(service.getSettings()),
                 messages.subList(first - 1, last), count);
         int available = TokenLimits.promptTokens(model.ai(), model.protocol());
@@ -409,7 +410,12 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
 
     // --- helpers ---
 
-    private ModelSelection requireModel(Book book) throws Exception {
+    private ModelSelection requireModel(CommandContext context, Book book) throws Exception {
+        // an agent works with the model its scope names, see CommandScope.getModel
+        CommandScope.ModelChoice scoped = context.getScope().getModel();
+        if (scoped != null && scoped.ai() != null) {
+            return new ModelSelection(scoped.ai(), scoped.protocol());
+        }
         ModelSelection model = service.resolveModel(book.manuscript);
         if (model == null) {
             throw new IllegalStateException("Neither the book nor the user settings have a model, choose one");

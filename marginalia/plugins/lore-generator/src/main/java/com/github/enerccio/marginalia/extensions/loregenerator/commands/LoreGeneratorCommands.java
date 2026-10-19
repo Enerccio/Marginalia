@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.loregenerator.commands;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
+import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.LorebookReadSupport;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -260,7 +261,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
                 : StringUtils.isBlank(prompt) ? data.getGenerationPrompts().get(name)
                 : data.getGenerationPrompts().get(name).strip() + TASK_HEADER + prompt.strip();
         LLMAttachment[] images = context.get("images", LLMAttachment[].class);
-        ModelSelection model = requireModel();
+        ModelSelection model = requireModel(context);
 
         context.setStatus("Generating the text of a lore entry");
         String generated;
@@ -366,7 +367,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         if (StringUtils.isBlank(source)) {
             throw new IllegalArgumentException("There is nothing to compact: pass the text, for example the result of " + GENERATE);
         }
-        ModelSelection model = requireModel();
+        ModelSelection model = requireModel(context);
 
         context.setStatus("Compacting the text of a lore entry");
         String compacted;
@@ -405,7 +406,15 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
     private record Target(Lorebook book, LorebookEntry entry) {
     }
 
-    private ModelSelection requireModel() throws Exception {
+    /**
+     * The model of the scope of the command (the model an agent works with, see {@code CommandScope.getModel}), else the default
+     * model of the user.
+     */
+    private ModelSelection requireModel(CommandContext context) throws Exception {
+        CommandScope.ModelChoice scoped = context.getScope().getModel();
+        if (scoped != null && scoped.ai() != null) {
+            return new ModelSelection(scoped.ai(), scoped.protocol());
+        }
         ModelSelection model = service.resolveModel();
         if (model == null) {
             throw new IllegalStateException("The user has no default model, choose one in the user settings");

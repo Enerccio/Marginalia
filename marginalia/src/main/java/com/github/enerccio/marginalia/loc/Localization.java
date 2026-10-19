@@ -24,6 +24,12 @@ public interface Localization {
      * language.
      */
     String getValue(L l);
+
+    /**
+     * The text in the language, for what is said outside of a session (a message to a webhook): the default language when the
+     * language has no bundle or the bundle lacks the text.
+     */
+    String getValue(Language language, L l);
     L parseValue(String text);
     Locale getLocale();
     DateFormat getDateFormat();

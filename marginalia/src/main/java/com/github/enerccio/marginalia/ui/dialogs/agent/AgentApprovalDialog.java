@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.AgentApprovalService.Pendin
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -53,6 +54,7 @@ public class AgentApprovalDialog extends Dialog implements LLMInteract {
     public void create() {
         setHeaderTitle(loc.getValue(L.LABEL_AGENT_APPROVAL));
         setWidth("560px");
+        UIUtils.fitPhone(this, false);
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
 

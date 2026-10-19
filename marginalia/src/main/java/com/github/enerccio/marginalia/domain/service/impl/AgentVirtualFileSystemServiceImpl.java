@@ -14,7 +14,6 @@ import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.persistence.EntityManager;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -24,15 +23,11 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Set;
@@ -130,7 +125,7 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
         Agent agent = storedAgent(stored.getAgent());
         // the instructions are read here: a changed text applies when the run is opened again, as in the system prompt
         return VirtualFileSystem.ofRun(RunFolder.of(home(), stored.getUuid(), agent.getUuid()), limitsOf(agent),
-                lockOf(agent.getUuid()), StringUtils.defaultString(agent.getInstructions()));
+                lockOf(agent.getUuid()), agentService.getInstructions(agent));
     }
 
     @Override

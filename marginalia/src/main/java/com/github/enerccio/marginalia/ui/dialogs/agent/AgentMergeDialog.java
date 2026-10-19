@@ -9,11 +9,7 @@ import com.github.enerccio.marginalia.domain.service.AgentMergeService.MergeSele
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.agent.MergeDiff;
 import com.github.enerccio.marginalia.domain.service.agent.MergePlan;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Change;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Field;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Item;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Kind;
-import com.github.enerccio.marginalia.domain.service.agent.MergePlan.Type;
+import com.github.enerccio.marginalia.domain.service.agent.MergePlan.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -37,14 +33,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -99,6 +88,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         setHeight("92%");
         setModality(ModalityMode.STRICT);
         setCloseOnOutsideClick(false);
+        UIUtils.fitPhone(this, true);
 
         summaryLabel = new Span();
         summaryLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
@@ -141,6 +131,10 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         SplitLayout split = new SplitLayout(grid, detail);
         split.setSizeFull();
         split.setSplitterPosition(42);
+        if (UIUtils.isPhone()) {
+            // the table above, the detail of the item below: side by side neither would have room
+            split.setOrientation(SplitLayout.Orientation.VERTICAL);
+        }
         split.addClassName(CssStyles.MIN_HEIGHT_0);
 
         VerticalLayout content = new VerticalLayout(summaryLabel, hintLabel, toolbar, split);
@@ -159,6 +153,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
         applyButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         HorizontalLayout footer = new HorizontalLayout(discardButton, closeButton, applyButton);
         footer.setWidthFull();
+        footer.setWrap(true);
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
 

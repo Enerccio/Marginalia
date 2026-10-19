@@ -2,11 +2,11 @@ package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.w
 
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
-import com.github.enerccio.marginalia.domain.model.impl.*;
-import com.github.enerccio.marginalia.domain.service.AgentService;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.GenerationListener;
-import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
+import com.github.enerccio.marginalia.domain.model.impl.Agent;
+import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
@@ -15,6 +15,9 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
@@ -22,8 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 
 /**
  * {@code /next [scene [pov [present [instructions [after [profile]]]]]]}, {@code /swipe [part [scene [pov [present [instructions
@@ -359,9 +360,12 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
             CompletableFuture<ChatMessage> done = new CompletableFuture<>();
             List<String> warnings = new CopyOnWriteArrayList<>();
             Manuscript fresh = context.getScope().getManuscript();
-            CancellationToken token = storyGenerationService.generateNextTurn(fresh, input, request,
-                    listener(context, done, warnings), options);
-            ChatMessage created = await(context, done, token);
+            ChatMessage created;
+            try (AIGate.Permit _ = placeAt(context, options.ai() != null ? options.ai() : fresh.getAi())) {
+                CancellationToken token = storyGenerationService.generateNextTurn(fresh, input, request,
+                        listener(context, done, warnings), options);
+                created = await(context, done, token);
+            }
             if (created == null) {
                 return;
             }

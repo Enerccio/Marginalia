@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.workspace.parts.admin;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.service.AgentService;
+import com.github.enerccio.marginalia.domain.service.AgentWebhookService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -13,6 +14,7 @@ import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,11 @@ public class AgentSettingsPanel implements LLMInteract {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private AgentWebhookService webhookService;
+
+    private Checkbox webhooksAllowed;
 
     private TextAreaPopoverComponent promptField;
     private TextAreaPopoverComponent compactionField;
@@ -59,10 +66,13 @@ public class AgentSettingsPanel implements LLMInteract {
                 Defaults.DEFAULT_AGENT_COMPACTION_PROMPT));
         ResizableTextArea.install(loc, compactionField, "240px");
 
+        webhooksAllowed = new Checkbox(loc.getValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED));
+        webhooksAllowed.setHelperText(loc.getValue(L.HELP_AGENT_WEBHOOKS_ALLOWED));
+
         Button save = new Button(loc.getValue(L.LABEL_SAVE), e -> save());
         save.setThemeName("primary");
 
-        layout.add(description, promptField, compactionDescription, compactionField, save);
+        layout.add(description, promptField, compactionDescription, compactionField, webhooksAllowed, save);
         load();
         return layout;
     }
@@ -70,12 +80,14 @@ public class AgentSettingsPanel implements LLMInteract {
     private void load() throws Exception {
         promptField.setValue(agentService.getAppSystemPrompt());
         compactionField.setValue(agentService.getAppCompactionPrompt());
+        webhooksAllowed.setValue(webhookService.isAllowed());
     }
 
     private void save() {
         try {
             agentService.setAppSystemPrompt(promptField.getValue());
             agentService.setAppCompactionPrompt(compactionField.getValue());
+            webhookService.setAllowed(webhooksAllowed.getValue());
             Notification.success(loc.getValue(L.MSG_SETTINGS_SAVED));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

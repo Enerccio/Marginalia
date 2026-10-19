@@ -123,6 +123,47 @@ class CommandScopeTest extends AgentTestBase {
     }
 
     @Test
+    void theModelOfTheScopeOfARunIsTheModelOfTheAgentOrTheOneOfTheBook() throws Exception {
+        OpenAICompatible bookAi = createAI();
+        Protocol bookProtocol = protocol();
+        Manuscript stored = manuscriptService.find(book.getId());
+        stored.setAi(bookAi);
+        stored.setProtocol(bookProtocol);
+        manuscriptService.save(stored);
+        var main = agentService.resolveProfile(agent.getMainProfile());
+
+        CommandScope own = scopeOfNewRun();
+        assertThat(own.getModel().ai().getUuid()).as("the default: the model of the agent").isEqualTo(main.ai().getUuid());
+        assertThat(own.getModel().protocol().getUuid()).isEqualTo(main.protocol().getUuid());
+        assertThat(commandScopes.session().getModel()).as("the user at the command bar has their own defaults").isNull();
+    }
+
+    @Test
+    void anAgentThatDoesNotUseItsModelHasTheModelOfTheBookInItsScope() throws Exception {
+        OpenAICompatible bookAi = createAI();
+        Protocol bookProtocol = protocol();
+        Manuscript stored = manuscriptService.find(book.getId());
+        stored.setAi(bookAi);
+        stored.setProtocol(bookProtocol);
+        manuscriptService.save(stored);
+        agent.setUseAgentModel(false);
+        agent = agentService.save(agent);
+
+        CommandScope scope = scopeOfNewRun();
+
+        assertThat(scope.getModel().ai().getUuid()).isEqualTo(bookAi.getUuid());
+        assertThat(scope.getModel().protocol().getUuid()).isEqualTo(bookProtocol.getUuid());
+    }
+
+    @Test
+    void withoutAModelOfTheBookTheScopeNamesNoneAndTheCommandUsesItsOwnDefault() throws Exception {
+        agent.setUseAgentModel(false);
+        agent = agentService.save(agent);
+
+        assertThat(scopeOfNewRun().getModel()).isNull();
+    }
+
+    @Test
     void theScopeOfARunIsItsWorkingCopy() throws Exception {
         AgentRun run = agentRunService.start(agent);
         CommandScope scope = commandScopes.forRun(run);

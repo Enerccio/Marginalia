@@ -19,11 +19,7 @@ import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.dialogs.agent.AgentCloneDialog;
-import com.github.enerccio.marginalia.ui.dialogs.agent.AgentConsoleDialog;
-import com.github.enerccio.marginalia.ui.dialogs.agent.AgentDialog;
-import com.github.enerccio.marginalia.ui.dialogs.agent.AgentMergeDialog;
-import com.github.enerccio.marginalia.ui.dialogs.agent.AgentStopDialog;
+import com.github.enerccio.marginalia.ui.dialogs.agent.*;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
@@ -36,6 +32,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -61,6 +58,12 @@ public class AgentPart implements WorkspaceComponent {
      */
     private static final Set<AgentRunStatus> PAUSABLE = Set.of(AgentRunStatus.RUNNING, AgentRunStatus.IDLE,
             AgentRunStatus.WAITING_APPROVAL);
+
+    /**
+     * The statuses of a run in which the user can ask for a pause at once: the request to the model and the call that go on are
+     * cut off. The others pause at once anyway.
+     */
+    private static final Set<AgentRunStatus> PAUSABLE_NOW = Set.of(AgentRunStatus.RUNNING, AgentRunStatus.PAUSING);
 
     /**
      * The statuses of a run the user can end: not one that is stopping already, and not one that is over.
@@ -108,8 +111,19 @@ public class AgentPart implements WorkspaceComponent {
     private final Span attentionBadge = new Span();
     private Runnable unsubscribe;
 
+    // the phone shows each agent as a card (name, state, buttons) in a single column
+    private final boolean phone;
+
     public AgentPart(Workspace workspace) {
+        this(workspace, false);
+    }
+
+    /**
+     * @param phone whether the tab is the one of the phone workspace: a card for each agent in place of a table
+     */
+    public AgentPart(Workspace workspace, boolean phone) {
         this.workspace = workspace;
+        this.phone = phone;
         attentionBadge.getElement().getThemeList().add("badge error pill small");
         attentionBadge.setVisible(false);
     }
@@ -155,10 +169,15 @@ public class AgentPart implements WorkspaceComponent {
 
         grid = new Grid<>(Agent.class, false);
         grid.setSizeFull();
-        grid.addColumn(Agent::getUuid).setHeader(loc.getValue(L.LABEL_AGENT_ID)).setFlexGrow(2).setResizable(true);
-        grid.addColumn(Agent::getName).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(2);
-        grid.addColumn(this::statusText).setHeader(loc.getValue(L.LABEL_STATUS)).setFlexGrow(1);
-        grid.addComponentColumn(this::createActions).setHeader("").setFlexGrow(0).setWidth("410px");
+        if (phone) {
+            grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
+            grid.addComponentColumn(this::createCard).setHeader(loc.getValue(L.LABEL_AGENTS));
+        } else {
+            grid.addColumn(Agent::getUuid).setHeader(loc.getValue(L.LABEL_AGENT_ID)).setFlexGrow(2).setResizable(true);
+            grid.addColumn(Agent::getName).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(2);
+            grid.addColumn(this::statusText).setHeader(loc.getValue(L.LABEL_STATUS)).setFlexGrow(1);
+            grid.addComponentColumn(this::createActions).setHeader("").setFlexGrow(0).setWidth("410px");
+        }
 
         mainLayout.add(headerLayout, grid);
         mainLayout.setFlexGrow(1, grid);
@@ -258,6 +277,31 @@ public class AgentPart implements WorkspaceComponent {
         return loc.getValue(agent.isEnabled() ? L.LABEL_AGENT_NO_RUN : L.LABEL_AGENT_DISABLED);
     }
 
+    /**
+     * An agent on the phone: its name and state above, the buttons below them, wrapping onto more lines when they do not fit.
+     */
+    private Component createCard(Agent agent) {
+        Span name = new Span(agent.getName());
+        name.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
+        Span state = new Span(statusText(agent));
+        state.addClassName(CssStyles.HINT_TEXT);
+        HorizontalLayout title = new HorizontalLayout(name, state);
+        title.setWidthFull();
+        title.setWrap(true);
+        title.setAlignItems(FlexComponent.Alignment.BASELINE);
+        title.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        Component actions = createActions(agent);
+        if (actions instanceof HorizontalLayout row) {
+            row.setWrap(true);
+            row.setWidthFull();
+        }
+        VerticalLayout card = new VerticalLayout(title, actions);
+        card.setPadding(false);
+        card.setSpacing(false);
+        card.addClassName(CssStyles.GAP_S);
+        return card;
+    }
+
     private Component createActions(Agent agent) {
         AgentRun run = runs.get(agent.getUuid());
         AgentRunStatus status = run == null ? null : run.getStatus();
@@ -286,6 +330,9 @@ public class AgentPart implements WorkspaceComponent {
 
         Button pauseButton = button(Solid.PAUSE, L.LABEL_PAUSE, () -> agentRunService.pause(run));
         pauseButton.setVisible(status != null && PAUSABLE.contains(status));
+
+        Button pauseNowButton = button(Solid.BOLT, L.LABEL_PAUSE_NOW, () -> agentRunner.pauseNow(run));
+        pauseNowButton.setVisible(status != null && PAUSABLE_NOW.contains(status));
 
         Button stopButton = new Button(Solid.STOP.create(), event -> new StopAction(agent, run).run());
         stopButton.setTooltipText(loc.getValue(L.LABEL_STOP));
@@ -335,7 +382,7 @@ public class AgentPart implements WorkspaceComponent {
         deleteButton.setThemeName("error tertiary");
         deleteButton.setTooltipText(loc.getValue(L.LABEL_DELETE));
 
-        HorizontalLayout actions = new HorizontalLayout(startControl, pauseButton, stopButton, reviewButton, consoleButton, editButton, cloneButton, deleteButton);
+        HorizontalLayout actions = new HorizontalLayout(startControl, pauseButton, pauseNowButton, stopButton, reviewButton, consoleButton, editButton, cloneButton, deleteButton);
         actions.setSpacing(true);
         return actions;
     }

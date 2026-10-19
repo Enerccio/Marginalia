@@ -489,12 +489,22 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
     @CommonTx
     public void useAgentModel(AgentRun run) throws Exception {
         AgentRun stored = run == null || run.getId() == null ? null : find(run.getId());
-        if (stored == null || stored.getWorkingCopy() == null || stored.getAgent().getMainProfile() == null) {
+        if (stored == null || stored.getWorkingCopy() == null) {
             return;
         }
-        ResolvedProfile resolved = agentService.resolveProfile(stored.getAgent().getMainProfile());
-        if (resolved != null) {
-            manuscriptService.setAgenticCopyModel(stored.getWorkingCopy(), resolved.ai(), resolved.protocol());
+        Agent agent = stored.getAgent();
+        if (agent.isUsingAgentModel()) {
+            ResolvedProfile resolved = agent.getMainProfile() == null ? null : agentService.resolveProfile(agent.getMainProfile());
+            if (resolved != null) {
+                manuscriptService.setAgenticCopyModel(stored.getWorkingCopy(), resolved.ai(), resolved.protocol());
+            }
+            return;
+        }
+        // the book's own, as it is now (the flag may have been on in an earlier session of the run)
+        Manuscript original = agent.getManuscript();
+        Manuscript book = original == null ? null : manuscriptService.find(original);
+        if (book != null) {
+            manuscriptService.setAgenticCopyModel(stored.getWorkingCopy(), book.getAi(), book.getProtocol());
         }
     }
 
