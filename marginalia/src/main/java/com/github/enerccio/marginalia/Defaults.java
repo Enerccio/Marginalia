@@ -238,23 +238,11 @@ This run is a conversation with the author, who is in the console. Calling finis
 """;
 
     /**
-     * Added to the description of every text parameter of a command the agent may call, when it has files.
-     */
-    public static final String AGENT_FILE_ARGUMENT_HINT = "Instead of the text you can pass @file:/path (the whole value) "
-            + "to use the contents of that file of your workspace.";
-
-    /**
      * Added to the description of every parameter that takes images, of a command the agent may call.
      */
     public static final String AGENT_IMAGES_ARGUMENT_HINT = "A list of paths of image files of your workspace (PNG, JPEG, GIF "
             + "or WebP; the user uploads them), at most " + com.github.enerccio.marginalia.domain.service.agent.CommandFunctions.MAX_IMAGES
             + ". The model of the command looks at them; it must be able to.";
-
-    /**
-     * Added to the description of every text parameter of a command the agent may call, when its results are kept.
-     */
-    public static final String AGENT_RESULT_ARGUMENT_HINT = "Or @result (the whole value) for the whole result of your last "
-            + "command call, @result:3 for the result with that number (list_command_results).";
 
     /**
      * The first message of a run, the task is in the system prompt and the instructions.

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845755322987">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845756359891">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845755322987" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845756359891" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845755322987" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845756359891" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845755322987" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845756359891" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -624,7 +624,7 @@ word being the model&#x27;s gets <code translate="no" v-pre>DEFAULT_AGENT_RESUME
 <code translate="no" v-pre>AGENT_INTERRUPTED_CALL</code>.</p>
 <p>The descriptions of the commands are part of the prompt in practice: a model decides what to call from <code translate="no" v-pre>llmDescriptionText</code> and the
 <code translate="no" v-pre>descriptionText</code> of the parameters, see <doc-anchor-trigger to="#writing-commands-for-agents">Writing commands for agents</doc-anchor-trigger>. The parameter descriptions of the text
-parameters also get <code translate="no" v-pre>AGENT_FILE_ARGUMENT_HINT</code> and <code translate="no" v-pre>AGENT_RESULT_ARGUMENT_HINT</code>.</p>
+parameters do not repeat that a value can be given as <code translate="no" v-pre>@file:/path</code> or <code translate="no" v-pre>@result</code> (it was in every one, more than half of the size of the definitions of all the tools, 20k tokens for the whole set): <code translate="no" v-pre>AGENT_RUNNER_NOTE</code> in the system prompt says it once.</p>
 <h3 id="compaction">Compaction</h3>
 <p><code translate="no" v-pre>/compact [focus]</code> (<code translate="no" v-pre>Worker.compact</code>) asks the model of the agent, with the transcript so far as the history and <code translate="no" v-pre>AgentService.getCompactionPrompt(agent)</code> (the agent&#x27;s, else <code translate="no" v-pre>UserSetting.defaultAgentCompactionPrompt</code>,
 else <code translate="no" v-pre>AppSettings.defaultAgentCompactionPrompt</code>, else <code translate="no" v-pre>Defaults.DEFAULT_AGENT_COMPACTION_PROMPT</code>: the chain of the system prompt, edited in the agent dialog, the Templates tab of Settings and the Agents tab of Admin) as the last message,
@@ -1113,7 +1113,7 @@ older rounds when the context is full (the run pauses instead), &quot;Pause now&
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (cb5da128).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (5e73f145).</p></div>
             </footer>
         </div>
     </div>

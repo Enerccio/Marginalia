@@ -245,7 +245,7 @@ public final class CommandFunctions {
                 continue;
             }
             String functionName = functionName(entry.getKey());
-            FunctionDefinition definition = FunctionDefinition.dynamic(functionName, describe(forms, lookup), schema(forms, lookup, files != null, commandResults != null, images != null),
+            FunctionDefinition definition = FunctionDefinition.dynamic(functionName, describe(forms, lookup), schema(forms, lookup, images != null),
                     (continuation, arguments) -> call(commands, entry.getKey(), destructive ? mode : DestructiveCommandMode.AUTO,
                             approval, files, commandResults, images, cage, continuation, arguments));
             if (functions.putIfAbsent(functionName, definition) != null) {
@@ -297,8 +297,7 @@ public final class CommandFunctions {
         return required;
     }
 
-    private static ObjectNode schema(List<CommandDefinition> forms, Function<L, String> lookup, boolean files, boolean results,
-                                     boolean images) {
+    private static ObjectNode schema(List<CommandDefinition> forms, Function<L, String> lookup, boolean images) {
         ObjectNode properties = JSON.createObjectNode();
         parametersOf(forms).forEach((name, parameters) -> {
             if (isImages(parameters)) {
@@ -307,7 +306,7 @@ public final class CommandFunctions {
                 }
                 return;
             }
-            properties.set(name, parameterSchema(parameters, lookup, files, results));
+            properties.set(name, parameterSchema(parameters, lookup));
         });
         ObjectNode root = JSON.createObjectNode();
         root.put("type", "object");
@@ -321,8 +320,12 @@ public final class CommandFunctions {
         return root;
     }
 
-    private static ObjectNode parameterSchema(List<CommandParameterDefinition> forms, Function<L, String> lookup, boolean files,
-                                                boolean results) {
+    /**
+     * The schema of a parameter. The way a text argument can be given as {@code @file:} or {@code @result} is not repeated in the
+     * description of every text parameter (it was half of the size of the definitions of the tools): the note of the runner in
+     * the system prompt tells it once, see {@link Defaults#AGENT_RUNNER_NOTE}.
+     */
+    private static ObjectNode parameterSchema(List<CommandParameterDefinition> forms, Function<L, String> lookup) {
         CommandParameterDefinition first = forms.getFirst();
         // forms that disagree about the type take anything
         Class<?> type = forms.stream().allMatch(p -> p.type() == first.type()) ? first.type() : Object.class;
@@ -330,11 +333,6 @@ public final class CommandFunctions {
         forms.stream().map(p -> p.description().get(lookup)).filter(text -> !text.isBlank()).findFirst()
                 .ifPresent(text -> schema.put("description", text));
         List<String> allowed = forms.stream().map(CommandParameterDefinition::allowed).filter(a -> !a.isEmpty()).findFirst().orElse(List.of());
-        if ((files || results) && allowed.isEmpty() && isText(forms)) {
-            String text = schema.path("description").asText("");
-            schema.put("description", (text.isEmpty() ? "" : text + " ") + (files ? Defaults.AGENT_FILE_ARGUMENT_HINT : "")
-                    + (files && results ? " " : "") + (results ? Defaults.AGENT_RESULT_ARGUMENT_HINT : ""));
-        }
         if (!allowed.isEmpty()) {
             ArrayNode values = JSON.createArrayNode();
             allowed.forEach(value -> values.add(valueNode(type, value)));
