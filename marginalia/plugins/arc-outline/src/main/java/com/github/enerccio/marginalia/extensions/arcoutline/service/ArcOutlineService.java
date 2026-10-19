@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 @Configurable
 public class ArcOutlineService {
@@ -36,6 +38,15 @@ public class ArcOutlineService {
      * @param tokens the approximate number of tokens of the text
      */
     public record StoryMessage(int number, String text, long tokens) {
+    }
+
+    /**
+     * What a blocking generation returned.
+     *
+     * @param value  the answer, read into the class asked for
+     * @param answer the answer of the model as it came (JSON)
+     */
+    public record Generated<T>(T value, String answer) {
     }
 
     /** The logger of the extension (Admin → Extensions → Log), set when the extension loads. */
@@ -75,6 +86,9 @@ public class ArcOutlineService {
     private OsgiService osgiService;
 
     private final Gson gson = new Gson();
+
+    /** Who wants to know that the outline of a book was changed from outside of its view, by the uuid of the book. */
+    private final Map<String, Set<Runnable>> changeListeners = new ConcurrentHashMap<>();
 
     public void setLogger(Logger log) {
         this.log = log;
@@ -125,6 +139,39 @@ public class ArcOutlineService {
         }
         attrs.add(ArcOutlineData.KEY, gson.toJsonTree(outline.toData()));
         manuscriptService.save(manuscript);
+    }
+
+    /**
+     * Tells {@code listener} whenever {@link #changed} is called for the book, from the thread of the caller. For a view
+     * that keeps the outline in memory and has to read it again when a command changed it.
+     *
+     * @return what removes the listener
+     */
+    public Runnable onChange(Manuscript manuscript, Runnable listener) {
+        String key = manuscript.getUuid();
+        changeListeners.computeIfAbsent(key, _ -> new CopyOnWriteArraySet<>()).add(listener);
+        return () -> changeListeners.computeIfPresent(key, (_, set) -> {
+            set.remove(listener);
+            return set.isEmpty() ? null : set;
+        });
+    }
+
+    /**
+     * Tells the views of the book that its outline was stored by someone else than the view (a command).
+     */
+    public void changed(Manuscript manuscript) {
+        Set<Runnable> listeners = changeListeners.get(manuscript.getUuid());
+        if (listeners != null) {
+            listeners.forEach(listener -> {
+                try {
+                    listener.run();
+                } catch (RuntimeException e) {
+                    if (log != null) {
+                        log.warn("A view of the outline failed to refresh: {}", e.getMessage());
+                    }
+                }
+            });
+        }
     }
 
     // --- settings of the user ---
@@ -241,6 +288,57 @@ public class ArcOutlineService {
             protocol = null;
         }
         return new ModelSelection(ai, protocol);
+    }
+
+    /**
+     * Asks the model for an answer in the schema and waits for it (the dialogs stream it; a command has no one to show
+     * it to).
+     *
+     * @param type the class the answer is read into, the one the schema was made of
+     * @throws CancellationException when the request was cancelled
+     * @throws IllegalStateException when the answer does not match the schema
+     */
+    public <T> Generated<T> generate(ModelSelection model, String prompt, JsonNode schema, Class<T> type) throws Exception {
+        record Answer(String text, SchemaCheck check) {
+        }
+        CompletableFuture<Answer> answer = new CompletableFuture<>();
+        CancellationToken token = inferenceServices.forAIOrThrow(model.ai()).infer(toPayload(prompt), model.protocol(), schema,
+                new InferenceService.InferenceResultCallback() {
+                    @Override
+                    public void onResult(String text, SchemaCheck check) {
+                        answer.complete(new Answer(text, check));
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        answer.cancel(false);
+                    }
+
+                    @Override
+                    public void onError(Throwable exception) {
+                        answer.completeExceptionally(exception);
+                    }
+
+                    @Override
+                    public boolean isDead() {
+                        return answer.isDone();
+                    }
+                });
+        Answer result;
+        try {
+            result = answer.get();
+        } catch (InterruptedException e) {
+            token.cancel();
+            Thread.currentThread().interrupt();
+            throw new CancellationException("The request was stopped");
+        } catch (ExecutionException e) {
+            throw e.getCause() instanceof Exception cause ? cause : e;
+        }
+        SchemaCheck check = StructuredOutputs.validate(schema, result.text());
+        if (!check.valid()) {
+            throw new IllegalStateException("The model's answer does not match what was asked for: " + String.join("; ", check.errors()));
+        }
+        return new Generated<>(StructuredOutputs.parse(result.text(), type), result.text());
     }
 
     /**

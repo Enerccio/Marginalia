@@ -553,7 +553,7 @@ apply; for an agent these matter most:
 
 Extensions bring commands the same way for the command bar and for agents: register a suite in `onExtensionLoad`, unregister it in `onExtensionUnload`.
 `lore-generator` (`list-lore-templates`, `generate-lore-entry`, `compact-lore-entry`), `name-generator` (`list-name-categories`, `generate-names`)
-and `name-provider` (`list-real-name-lists`, `pick-real-names`) are examples; the [example plugin](plugins/example.md) shows the registration.
+`name-provider` (`list-real-name-lists`, `pick-real-names`), `arc-outline` (the outline and its generators) and `character-tracker` (characters and relationships) are examples; the [example plugin](plugins/example.md) shows the registration.
 
 ## Logging
 

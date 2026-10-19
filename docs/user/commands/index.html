@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845735820612">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845737720540">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845735820612" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845737720540" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -505,7 +505,14 @@ added or removed. Without a lorebook number the root lorebook is used.</p>
 | `/generate-lore-entry [&lt;prompt&gt; ...]` | [Lore Generator](../extensions/lore-generator.md) | Generates the text of a lore entry with the lore of the lorebook and returns it. Stores nothing. |
 | `/compact-lore-entry &lt;text&gt; [...]` | [Lore Generator](../extensions/lore-generator.md) | Compacts a generated text into a dense lore entry text and returns it. Stores nothing. |
 | `/list-name-categories`, `/generate-names &lt;category&gt; &lt;count&gt; [...]` | [Name generator](../extensions/name-generator.md) | The categories of made up names, and names of one of them. |
-| `/list-real-name-lists`, `/pick-real-names &lt;list&gt; &lt;count&gt;` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |">
+| `/list-real-name-lists`, `/pick-real-names &lt;list&gt; &lt;count&gt;` | [Name provider](../extensions/name-provider.md) | The lists of real names, and names picked from one of them. |
+| `/get-arc-outline [&lt;arc&gt; [&lt;notes&gt;]]` | [Arc Outline](../extensions/arc-outline.md) | The arcs and chapters of the outline. |
+| `/add-arc`, `/update-arc`, `/move-arc`, `/delete-arc` | [Arc Outline](../extensions/arc-outline.md) | Add, change, move and delete an arc (`&lt;arc&gt;` is its number). |
+| `/add-outline-chapter`, `/update-outline-chapter`, `/move-outline-chapter`, `/delete-outline-chapter` | [Arc Outline](../extensions/arc-outline.md) | The same for the chapters of an arc. |
+| `/generate-arc`, `/generate-outline-chapters &lt;arc&gt;`, `/import-arc-from-story` | [Arc Outline](../extensions/arc-outline.md) | The generators of the Arcs tab. They return the result and add it to the outline only with `save`. |
+| `/list-characters`, `/get-character &lt;character&gt;` | [Character Tracker](../extensions/character-tracker.md) | The characters of the book, and one with its note and relationships. |
+| `/create-character`, `/update-character`, `/delete-character` | [Character Tracker](../extensions/character-tracker.md) | Add, change and delete a character. |
+| `/list-character-relations`, `/add-character-relation`, `/update-character-relation`, `/delete-character-relation` | [Character Tracker](../extensions/character-tracker.md) | The relationships between characters. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -541,12 +548,48 @@ added or removed. Without a lorebook number the root lorebook is used.</p>
 <td><a href="../extensions/name-provider/">Name provider</a></td>
 <td>The lists of real names, and names picked from one of them.</td>
 </tr>
+<tr>
+<td><code translate="no" v-pre>/get-arc-outline [&lt;arc&gt; [&lt;notes&gt;]]</code></td>
+<td><a href="../extensions/arc-outline/">Arc Outline</a></td>
+<td>The arcs and chapters of the outline.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-arc</code>, <code translate="no" v-pre>/update-arc</code>, <code translate="no" v-pre>/move-arc</code>, <code translate="no" v-pre>/delete-arc</code></td>
+<td><a href="../extensions/arc-outline/">Arc Outline</a></td>
+<td>Add, change, move and delete an arc (<code translate="no" v-pre>&lt;arc&gt;</code> is its number).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-outline-chapter</code>, <code translate="no" v-pre>/update-outline-chapter</code>, <code translate="no" v-pre>/move-outline-chapter</code>, <code translate="no" v-pre>/delete-outline-chapter</code></td>
+<td><a href="../extensions/arc-outline/">Arc Outline</a></td>
+<td>The same for the chapters of an arc.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/generate-arc</code>, <code translate="no" v-pre>/generate-outline-chapters &lt;arc&gt;</code>, <code translate="no" v-pre>/import-arc-from-story</code></td>
+<td><a href="../extensions/arc-outline/">Arc Outline</a></td>
+<td>The generators of the Arcs tab. They return the result and add it to the outline only with <code translate="no" v-pre>save</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-characters</code>, <code translate="no" v-pre>/get-character &lt;character&gt;</code></td>
+<td><a href="../extensions/character-tracker/">Character Tracker</a></td>
+<td>The characters of the book, and one with its note and relationships.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-character</code>, <code translate="no" v-pre>/update-character</code>, <code translate="no" v-pre>/delete-character</code></td>
+<td><a href="../extensions/character-tracker/">Character Tracker</a></td>
+<td>Add, change and delete a character.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-character-relations</code>, <code translate="no" v-pre>/add-character-relation</code>, <code translate="no" v-pre>/update-character-relation</code>, <code translate="no" v-pre>/delete-character-relation</code></td>
+<td><a href="../extensions/character-tracker/">Character Tracker</a></td>
+<td>The relationships between characters.</td>
+</tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p>These commands only read: the generating ones return text and leave it to you, or to the agent that called them, to put it
-into an entry.</p>
+<p>The commands of the Lore Generator, the Name generator and the Name provider only read: the generating ones return text and
+leave it to you, or to the agent that called them, to put it into an entry. The commands of the Arc Outline and the
+Character Tracker also change the outline and the characters of the open book; only their <code translate="no" v-pre>delete</code> commands are destructive.</p>
 <h2 id="limits">Limits</h2>
 <ul>
 <li>The command line is in the story tab of the desktop layout. The <a href="../phone/">phone view</a> does not have it yet.</li>
@@ -589,7 +632,7 @@ into an entry.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (aeac9e2b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fe6ffde3).</p></div>
             </footer>
         </div>
     </div>

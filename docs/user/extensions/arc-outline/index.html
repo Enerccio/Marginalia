@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845735820612">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845737720540">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845735820612" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845737720540" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -465,6 +465,95 @@ opens them in a small popover, out of the way.</p>
     <img src="../../../images/plugin-arcoutline-generated.png" alt="What the model wrote for an arc" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="436" height="567" />
     <figcaption class="caption">What the model wrote for an arc</figcaption>
 </figure>
+<h2 id="commands">Commands</h2>
+<p>The outline and its generators are also <a href="../../commands/">commands</a>, for the command line and for
+<a href="../../agents/">agents</a>. They work on the book that is open (an agent: on its working copy), and an open Arcs tab shows
+the change at once. Arcs and chapters are given by <strong>number</strong>, as the outline shows them: the first arc is <code translate="no" v-pre>1</code>, the first
+chapter of an arc is <code translate="no" v-pre>1</code> (the numbers change when something before them is added, removed or moved). A command that
+changes an arc or a chapter takes only the fields you give it; an empty text clears a description or a note.</p>
+<retype-table copy-text="| Command | What it does |
+|---|---|
+| `/get-arc-outline [arc [notes]]` | The arcs with their chapters, states and descriptions as JSON. The private notes only with `notes` `true`; `arc` returns that arc alone. Reads only. |
+| `/add-arc title [description [note [state [position]]]]` | Adds an arc, at the end or at `position`. |
+| `/update-arc arc [title [description [note [state]]]]` | Changes an arc. `state` is `PLANNED`, `CURRENT` or `FINISHED` (finishing an arc finishes its chapters). |
+| `/move-arc arc position` | Moves an arc to the place `position` (1 is the first). |
+| `/delete-arc arc` | Deletes an arc with its chapters, after a confirmation. |
+| `/add-outline-chapter arc title [description [note [state [position]]]]` | Adds a chapter to an arc. |
+| `/update-outline-chapter arc chapter [title [description [note [state]]]]` | Changes a chapter. |
+| `/move-outline-chapter arc chapter position [to_arc]` | Moves a chapter inside its arc, or into the arc `to_arc`. |
+| `/delete-outline-chapter arc chapter` | Deletes a chapter, after a confirmation. |
+| `/generate-arc [specification [save]]` | Asks the model for a new arc, as *Generate an arc* does. |
+| `/generate-outline-chapters arc [specification [count [context [save]]]]` | Asks the model for the chapters of an arc, as the wand of the arc does. `count` is an exact number of chapters, `context` is `EVERYTHING` (the default), `ARCS_ONLY` or `ARCS_AND_FINISHED`, as the choice *What the model knows of the story*. |
+| `/import-arc-from-story [from [to [count [state [save]]]]]` | Asks the model to summarize the messages `from` to `to` of the active branch (numbered among the messages with text, as in *Import from story*) as an arc with chapters. `state` (default `FINISHED`) is the state of the saved arc and its chapters. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/get-arc-outline [arc [notes]]</code></td>
+<td>The arcs with their chapters, states and descriptions as JSON. The private notes only with <code translate="no" v-pre>notes</code> <code translate="no" v-pre>true</code>; <code translate="no" v-pre>arc</code> returns that arc alone. Reads only.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-arc title [description [note [state [position]]]]</code></td>
+<td>Adds an arc, at the end or at <code translate="no" v-pre>position</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/update-arc arc [title [description [note [state]]]]</code></td>
+<td>Changes an arc. <code translate="no" v-pre>state</code> is <code translate="no" v-pre>PLANNED</code>, <code translate="no" v-pre>CURRENT</code> or <code translate="no" v-pre>FINISHED</code> (finishing an arc finishes its chapters).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/move-arc arc position</code></td>
+<td>Moves an arc to the place <code translate="no" v-pre>position</code> (1 is the first).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-arc arc</code></td>
+<td>Deletes an arc with its chapters, after a confirmation.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-outline-chapter arc title [description [note [state [position]]]]</code></td>
+<td>Adds a chapter to an arc.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/update-outline-chapter arc chapter [title [description [note [state]]]]</code></td>
+<td>Changes a chapter.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/move-outline-chapter arc chapter position [to_arc]</code></td>
+<td>Moves a chapter inside its arc, or into the arc <code translate="no" v-pre>to_arc</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-outline-chapter arc chapter</code></td>
+<td>Deletes a chapter, after a confirmation.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/generate-arc [specification [save]]</code></td>
+<td>Asks the model for a new arc, as <em>Generate an arc</em> does.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/generate-outline-chapters arc [specification [count [context [save]]]]</code></td>
+<td>Asks the model for the chapters of an arc, as the wand of the arc does. <code translate="no" v-pre>count</code> is an exact number of chapters, <code translate="no" v-pre>context</code> is <code translate="no" v-pre>EVERYTHING</code> (the default), <code translate="no" v-pre>ARCS_ONLY</code> or <code translate="no" v-pre>ARCS_AND_FINISHED</code>, as the choice <em>What the model knows of the story</em>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/import-arc-from-story [from [to [count [state [save]]]]]</code></td>
+<td>Asks the model to summarize the messages <code translate="no" v-pre>from</code> to <code translate="no" v-pre>to</code> of the active branch (numbered among the messages with text, as in <em>Import from story</em>) as an arc with chapters. <code translate="no" v-pre>state</code> (default <code translate="no" v-pre>FINISHED</code>) is the state of the saved arc and its chapters.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>The three generating commands use the same prompts as the dialogs (your <em>Extension Settings → Arc Outline</em>, or the
+defaults), the model and protocol of the book (your default model when the book has none) and no name tools: a caller that
+wants names gets them with the commands of the <a href="../name-generator/">Name generator</a> or the <a href="../name-provider/">Name provider</a>
+and writes them into the specification. Like the dialogs they save only when asked: with <code translate="no" v-pre>save</code> <code translate="no" v-pre>false</code> (the default) they
+return the arc or the chapters as JSON and store nothing, with <code translate="no" v-pre>save</code> <code translate="no" v-pre>true</code> they add them to the outline (an arc at the end,
+chapters at the end of the arc) and the answer has their numbers. A story that is too long for the model is refused by
+<code translate="no" v-pre>/import-arc-from-story</code>: choose fewer messages. The generating commands take a while, and stop when the run is stopped.</p>
+<p>Adding and changing is not destructive; only the two <code translate="no" v-pre>delete</code> commands are, which an agent may be set to ask you about.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -502,7 +591,7 @@ opens them in a small popover, out of the way.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (aeac9e2b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fe6ffde3).</p></div>
             </footer>
         </div>
     </div>

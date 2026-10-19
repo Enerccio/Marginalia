@@ -87,6 +87,29 @@ The characters are arranged in rings around one character - at first the one wit
 characters it is related to are on the first ring, theirs on the second and so on. **Double-click a character** to
 arrange the map around it. You can also drag the characters, move the map and zoom with the mouse wheel.
 
+## Commands
+
+The characters are also [commands](../commands/index.md), for the command line and for [agents](../agents.md). They work on
+the book that is open (an agent: on its working copy), and an open Characters tab shows the change at once. A character is
+given by its **name** (the case does not matter), or by its **number** in `/list-characters` (the order of the names) when two
+characters have the same name. A relationship is given by its number in `/list-character-relations`. A command that changes a
+character takes only the fields you give it; an empty text clears a tagline or a note. The icon can only be set in the
+dialog.
+
+| Command | What it does |
+|---|---|
+| `/list-characters` | The characters ordered by name: tagline, color, whether there is a note, number of relationships. Reads only. |
+| `/get-character character` | One character with its note and its relationships. Reads only. |
+| `/create-character name [tagline [note [color]]]` | Adds a character. `color` is `#rrggbb`. |
+| `/update-character character [name [tagline [note [color]]]]` | Changes a character. |
+| `/delete-character character` | Deletes a character with its relationships, after a confirmation. |
+| `/list-character-relations [character]` | The relationships, or those of one character. Reads only. |
+| `/add-character-relation source target name [tagline [bidirectional]]` | Adds a relationship from `source` to `target` (*employs*), or with `bidirectional` `true` one in which they are equal (*friends*). |
+| `/update-character-relation relationship [name [tagline]]` | Changes the name or the tagline of a relationship. |
+| `/delete-character-relation relationship` | Deletes a relationship, after a confirmation. |
+
+Adding and changing is not destructive; only the `delete` commands are, which an agent may be set to ask you about.
+
 ## Phone
 
 The tab is in the drawer of the story, next to the outline, like the [Author's Note](authors-note.md).

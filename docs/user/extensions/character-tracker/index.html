@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845735820612">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845737720540">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.845735820612" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.845737720540" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845735820612" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.845737720540" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -300,6 +300,74 @@ arrow at both ends. Characters without relationships are not in the map.</p>
 <p>The characters are arranged in rings around one character - at first the one with the most relationships: the
 characters it is related to are on the first ring, theirs on the second and so on. <strong>Double-click a character</strong> to
 arrange the map around it. You can also drag the characters, move the map and zoom with the mouse wheel.</p>
+<h2 id="commands">Commands</h2>
+<p>The characters are also <a href="../../commands/">commands</a>, for the command line and for <a href="../../agents/">agents</a>. They work on
+the book that is open (an agent: on its working copy), and an open Characters tab shows the change at once. A character is
+given by its <strong>name</strong> (the case does not matter), or by its <strong>number</strong> in <code translate="no" v-pre>/list-characters</code> (the order of the names) when two
+characters have the same name. A relationship is given by its number in <code translate="no" v-pre>/list-character-relations</code>. A command that changes a
+character takes only the fields you give it; an empty text clears a tagline or a note. The icon can only be set in the
+dialog.</p>
+<retype-table copy-text="| Command | What it does |
+|---|---|
+| `/list-characters` | The characters ordered by name: tagline, color, whether there is a note, number of relationships. Reads only. |
+| `/get-character character` | One character with its note and its relationships. Reads only. |
+| `/create-character name [tagline [note [color]]]` | Adds a character. `color` is `#rrggbb`. |
+| `/update-character character [name [tagline [note [color]]]]` | Changes a character. |
+| `/delete-character character` | Deletes a character with its relationships, after a confirmation. |
+| `/list-character-relations [character]` | The relationships, or those of one character. Reads only. |
+| `/add-character-relation source target name [tagline [bidirectional]]` | Adds a relationship from `source` to `target` (*employs*), or with `bidirectional` `true` one in which they are equal (*friends*). |
+| `/update-character-relation relationship [name [tagline]]` | Changes the name or the tagline of a relationship. |
+| `/delete-character-relation relationship` | Deletes a relationship, after a confirmation. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/list-characters</code></td>
+<td>The characters ordered by name: tagline, color, whether there is a note, number of relationships. Reads only.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/get-character character</code></td>
+<td>One character with its note and its relationships. Reads only.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/create-character name [tagline [note [color]]]</code></td>
+<td>Adds a character. <code translate="no" v-pre>color</code> is <code translate="no" v-pre>#rrggbb</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/update-character character [name [tagline [note [color]]]]</code></td>
+<td>Changes a character.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-character character</code></td>
+<td>Deletes a character with its relationships, after a confirmation.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/list-character-relations [character]</code></td>
+<td>The relationships, or those of one character. Reads only.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-character-relation source target name [tagline [bidirectional]]</code></td>
+<td>Adds a relationship from <code translate="no" v-pre>source</code> to <code translate="no" v-pre>target</code> (<em>employs</em>), or with <code translate="no" v-pre>bidirectional</code> <code translate="no" v-pre>true</code> one in which they are equal (<em>friends</em>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/update-character-relation relationship [name [tagline]]</code></td>
+<td>Changes the name or the tagline of a relationship.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-character-relation relationship</code></td>
+<td>Deletes a relationship, after a confirmation.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Adding and changing is not destructive; only the <code translate="no" v-pre>delete</code> commands are, which an agent may be set to ask you about.</p>
 <h2 id="phone">Phone</h2>
 <p>The tab is in the drawer of the story, next to the outline, like the <a href="../authors-note/">Author&#x27;s Note</a>.</p>
 
@@ -339,7 +407,7 @@ arrange the map around it. You can also drag the characters, move the map and zo
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (aeac9e2b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (fe6ffde3).</p></div>
             </footer>
         </div>
     </div>
