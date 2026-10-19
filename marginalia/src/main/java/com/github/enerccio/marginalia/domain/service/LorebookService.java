@@ -2,9 +2,11 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.repository.LorebookRepository;
+import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 
 import com.google.gson.JsonArray;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +38,13 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
     JsonArray marshalLorebooks(Lorebook root) throws Exception;
 
     /**
+     * As {@link #marshalLorebooks(Lorebook)}, the entries optionally with their {@code uuid}. The backup and export
+     * format has none (the entries are matched by position when they are restored), a snapshot of the lorebooks to be
+     * compared with the lorebooks later has to.
+     */
+    JsonArray marshalLorebooks(Lorebook root, boolean entryUuids) throws Exception;
+
+    /**
      * Matches marshalled lorebooks against lorebooks of current user, first by uuid then by name.
      */
     List<LorebookImportCandidate> analyzeImport(JsonArray lorebooks, String rootUuid) throws Exception;
@@ -53,6 +62,15 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
      * marshalled uuid.
      */
     Map<String, Lorebook> copyLorebooks(JsonArray lorebooks) throws Exception;
+
+    /**
+     * As {@link #copyLorebooks(JsonArray)}, reporting to {@code pairs} which lorebook and which entry of the copies was made
+     * from which one of the marshalled ones (the uuids in it; an entry only has one when it was marshalled with
+     * {@link #marshalLorebooks(Lorebook, boolean) entryUuids}).
+     *
+     * @param pairs where to add the pairs, null when nobody wants them
+     */
+    Map<String, Lorebook> copyLorebooks(JsonArray lorebooks, Collection<UuidPair> pairs) throws Exception;
 
     /**
      * Deletes for good the working copy of an agent, the lorebook and its subbooks with their entries and tags.

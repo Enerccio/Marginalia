@@ -155,6 +155,14 @@
         <property name="repository" ref="agentMessageRepository" />
     </bean>
 
+    <bean id="agentRunPairRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRunPairRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentRunPairServiceImpl">
+        <property name="repository" ref="agentRunPairRepository" />
+    </bean>
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentApprovalServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AgentAttentionServiceImpl" />

@@ -9,7 +9,10 @@ import com.github.enerccio.marginalia.domain.service.CleanupService.CleanupContr
 import com.github.enerccio.marginalia.domain.service.CleanupService.EntityKey;
 import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import jakarta.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -21,6 +24,9 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +45,8 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
     private static final Logger log = LoggerFactory.getLogger(AgentVirtualFileSystemServiceImpl.class);
 
     private static final int CHUNK_SIZE = 500;
+
+    private static final Gson GSON = new Gson();
 
     @Autowired
     private Configuration configuration;
@@ -181,6 +189,55 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
         if (agent != null && agent.getUuid() != null) {
             deleteAfterCommit(RunFolder.workspaceOf(home(), agent.getUuid()));
             locks.remove(agent.getUuid());
+        }
+    }
+
+    @Override
+    @CommonTx
+    public void writeBase(AgentRun run, JsonObject base) throws Exception {
+        AgentRun stored = run == null ? null : agentRunService.findForUser(run.getUuid());
+        if (stored == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        RunFolder folder = RunFolder.of(home(), stored.getUuid(), storedAgent(stored.getAgent()).getUuid());
+        deleteTree(folder.base());
+        Files.createDirectories(folder.base());
+        try (Writer writer = Files.newBufferedWriter(folder.baseManuscript(), StandardCharsets.UTF_8)) {
+            GSON.toJson(base, writer);
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            // the files are not brought back by a rollback, the base of a run that was not stored is not wanted
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status != STATUS_COMMITTED) {
+                        deleteTree(folder.base());
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public JsonObject readBase(AgentRun run) throws Exception {
+        AgentRun stored = run == null ? null : agentRunService.findForUser(run.getUuid());
+        if (stored == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        Path file = RunFolder.runOf(home(), stored.getUuid()).resolve(RunFolder.BASE).resolve(RunFolder.BASE_MANUSCRIPT);
+        if (!Files.isRegularFile(file)) {
+            return null;
+        }
+        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            return GSON.fromJson(reader, JsonObject.class);
+        }
+    }
+
+    @Override
+    public void deleteBase(AgentRun run) {
+        if (run != null && run.getUuid() != null) {
+            deleteAfterCommit(RunFolder.runOf(home(), run.getUuid()).resolve(RunFolder.BASE));
         }
     }
 

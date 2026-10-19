@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -10,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TagService;
+import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.google.gson.*;
@@ -229,7 +231,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             lorebook.setName(StringUtils.defaultIfBlank(getString(rootObj, "name"), StringUtils.defaultIfBlank(name, "Imported Lorebook")));
             lorebook.setEnabled(getBoolean(rootObj, "enabled", true));
             lorebook = save(lorebook);
-            unmarshalContent(lorebook, rootObj);
+            unmarshalContent(lorebook, rootObj, null);
             return lorebook;
         }
 
@@ -253,6 +255,12 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     @Override
     @CommonTxReadOnly
     public JsonArray marshalLorebooks(Lorebook root) throws Exception {
+        return marshalLorebooks(root, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public JsonArray marshalLorebooks(Lorebook root, boolean entryUuids) throws Exception {
         JsonArray array = new JsonArray();
         Set<Long> visited = new HashSet<>();
         Deque<Lorebook> queue = new ArrayDeque<>();
@@ -279,7 +287,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             bookObj.add("subbooks", subbookRefs);
             JsonArray entries = new JsonArray();
             for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book)) {
-                entries.add(marshalEntry(entry));
+                entries.add(marshalEntry(entry, entryUuids));
             }
             bookObj.add("entries", entries);
             array.add(bookObj);
@@ -331,12 +339,18 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     @Override
     @CommonTx
     public Map<String, Lorebook> importLorebooks(JsonArray lorebooks, Map<String, LorebookDecision> decisions) throws Exception {
-        return importLorebooks(lorebooks, decisions, false);
+        return importLorebooks(lorebooks, decisions, false, null);
     }
 
     @Override
     @CommonTx
     public Map<String, Lorebook> copyLorebooks(JsonArray lorebooks) throws Exception {
+        return copyLorebooks(lorebooks, null);
+    }
+
+    @Override
+    @CommonTx
+    public Map<String, Lorebook> copyLorebooks(JsonArray lorebooks, Collection<UuidPair> pairs) throws Exception {
         Map<String, LorebookDecision> decisions = new HashMap<>();
         if (lorebooks != null) {
             for (JsonElement element : lorebooks) {
@@ -346,7 +360,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
                 }
             }
         }
-        return importLorebooks(lorebooks, decisions, true);
+        return importLorebooks(lorebooks, decisions, true, pairs);
     }
 
     @Override
@@ -392,7 +406,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         }
     }
 
-    private Map<String, Lorebook> importLorebooks(JsonArray lorebooks, Map<String, LorebookDecision> decisions, boolean agentic) throws Exception {
+    private Map<String, Lorebook> importLorebooks(JsonArray lorebooks, Map<String, LorebookDecision> decisions, boolean agentic,
+                                                  Collection<UuidPair> pairs) throws Exception {
         Map<String, Lorebook> resolved = new HashMap<>();
         if (lorebooks == null) {
             return resolved;
@@ -435,7 +450,10 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
                 lorebook.setUuid(uuid);
             }
             lorebook = save(lorebook);
-            unmarshalContent(lorebook, bookObj);
+            if (pairs != null) {
+                pairs.add(new UuidPair(AgentRunPairKind.LOREBOOK, lorebook.getUuid(), uuid));
+            }
+            unmarshalContent(lorebook, bookObj, pairs);
             resolved.put(uuid, lorebook);
             processed.put(uuid, bookObj);
         }
@@ -462,8 +480,11 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         return resolved;
     }
 
-    private JsonObject marshalEntry(LorebookEntry entry) throws Exception {
+    private JsonObject marshalEntry(LorebookEntry entry, boolean uuid) throws Exception {
         JsonObject entryObj = new JsonObject();
+        if (uuid) {
+            entryObj.addProperty("uuid", entry.getUuid());
+        }
         entryObj.addProperty("name", entry.getName());
         entryObj.addProperty("payload", entry.getPayload());
         entryObj.addProperty("comment", entry.getComment());
@@ -480,7 +501,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     /**
      * Imports tags and entries of marshalled lorebook into already saved lorebook.
      */
-    private void unmarshalContent(Lorebook lorebook, JsonObject bookObj) throws Exception {
+    private void unmarshalContent(Lorebook lorebook, JsonObject bookObj, Collection<UuidPair> pairs) throws Exception {
         for (String tagStr : extractStrings(bookObj, "tags")) {
             Tag tag = getOrCreateTag(tagStr);
             if (tag != null) {
@@ -518,6 +539,9 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             }
 
             entry = lorebookEntryService.save(entry);
+            if (pairs != null && getString(entryObj, "uuid") != null) {
+                pairs.add(new UuidPair(AgentRunPairKind.ENTRY, entry.getUuid(), getString(entryObj, "uuid")));
+            }
 
             for (String tagStr : extractStrings(entryObj, "tags")) {
                 Tag tag = getOrCreateTag(tagStr);

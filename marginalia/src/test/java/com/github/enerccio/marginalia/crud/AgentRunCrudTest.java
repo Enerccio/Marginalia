@@ -15,8 +15,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,9 +59,6 @@ class AgentRunCrudTest extends ExtendableCrudContract<AgentRun> {
         run.setGeneratedTokens(30);
         run.setRounds(2);
         run.setLanguage(Language.JAPANESE);
-        Map<String, String> pairs = new HashMap<>();
-        pairs.put("copy-1", "original-1");
-        run.setUuidPairs(pairs);
         return run;
     }
 
@@ -80,13 +75,11 @@ class AgentRunCrudTest extends ExtendableCrudContract<AgentRun> {
         assertThat(loaded.getTotalTokens()).isEqualTo(150);
         assertThat(loaded.getRounds()).isEqualTo(2);
         assertThat(loaded.getLanguage()).isEqualTo(Language.JAPANESE);
-        assertThat(loaded.getUuidPairs()).containsExactly(Map.entry("copy-1", "original-1"));
     }
 
     @Override
     protected void modify(AgentRun entity) {
         entity.setLanguage(Language.ENGLISH);
-        entity.getUuidPairs().put("copy-2", "original-2");
         // the status and the counters are not written by a save, only the service changes them
         entity.setStatus(AgentRunStatus.APPLIED);
         entity.setPrefillTokens(1);
@@ -95,7 +88,6 @@ class AgentRunCrudTest extends ExtendableCrudContract<AgentRun> {
     @Override
     protected void assertModified(AgentRun loaded) {
         assertThat(loaded.getLanguage()).isEqualTo(Language.ENGLISH);
-        assertThat(loaded.getUuidPairs()).containsOnlyKeys("copy-1", "copy-2");
         assertThat(loaded.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
         assertThat(loaded.getPrefillTokens()).isEqualTo(120);
     }
