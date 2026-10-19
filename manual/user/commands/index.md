@@ -144,6 +144,7 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
 | `/get-lore-entry <entry> [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
 | `/search-lore <query> [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
+| `/preview-lore-activation <text> [limit]`, `/preview-lore-activation <part> [branch] [limit]` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found, or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. |
 
 ### Reading the story
 
@@ -154,7 +155,7 @@ change when a branch is added or deleted). Without a branch number the commands 
 `offset` and `limit`, long texts are cut into slices (`offset`, `length`) and the answer says the total length. As with the other
 commands the options are positional: to set one, give those before it too.
 
-The commands that read the lorebooks (`/list-lorebooks` to `/search-lore`) work the same way and reach only the lorebooks of the open
+The commands that read the lorebooks (`/list-lorebooks` to `/preview-lore-activation`) work the same way and reach only the lorebooks of the open
 book: the root lorebook and its subbooks. A lorebook is its **number** from `/list-lorebooks` (the root is `1`), an entry its
 **number in the lorebook**, in the order of the lorebook (the first entry is `1`); the numbers change when entries or subbooks are
 added or removed. Without a lorebook number the root lorebook is used.

@@ -3,10 +3,7 @@ package com.github.enerccio.marginalia.command;
 import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Tag;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.test.AgenticRequestAttributes;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
@@ -41,6 +38,9 @@ class LorebookReadCommandsTest extends GenerationTestBase {
 
     @Autowired
     private CommandService commands;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
 
     @Autowired
     private LorebookService lorebookService;
@@ -364,5 +364,140 @@ class LorebookReadCommandsTest extends GenerationTestBase {
 
         assertThat(lorebookEntryService.getEntriesForLorebook(world)).hasSize((int) before);
         assertThat(lorebookEntryService.find(anna.getId()).getModification()).isEqualTo(modified);
+    }
+
+    // --- preview-lore-activation ---
+
+    /**
+     * A book of its own with entries for each reason an entry is or is not used: constant (order 10), a text filter
+     * (20), a regular expression (30), a negative tag of the book (40), a tag the book lacks (50), switched off (60),
+     * lore that goes before the user prompt (70) and a payload that uses a variable of the turn (80).
+     */
+    private Manuscript filteredBook() throws Exception {
+        Lorebook filtered = lorebookService.save(lorebook("Filtered"));
+        entry(filtered, "Always", 10, e -> e.setPayload("Always there."));
+        entry(filtered, "Dragon", 20, e -> {
+            e.setPayload("Dragons breathe fire.");
+            e.setFiltering("dragon");
+        });
+        entry(filtered, "Wolves", 30, e -> {
+            e.setPayload("Wolves hunt in packs.");
+            e.setFiltering("w(o|0)lf");
+            e.setFilteringMode(FilteringMode.REGEX);
+        });
+        LorebookEntry blocked = entry(filtered, "Blocked", 40, e -> e.setPayload("Never in a horror book."));
+        tagRelationService.createRelation(tag("horror"), blocked, true);
+        LorebookEntry needsTag = entry(filtered, "Needs tag", 50, e -> e.setPayload("Only for a sea book."));
+        tagRelationService.createRelation(tag("sea"), needsTag);
+        entry(filtered, "Off", 60, e -> {
+            e.setPayload("Switched off.");
+            e.setEnabled(false);
+        });
+        entry(filtered, "Before", 70, e -> {
+            e.setPayload("Before the prompt.");
+            e.setInsertionMode(InsertionMode.BEFORE_USER_PROMPT);
+        });
+        entry(filtered, "Pov", 80, e -> e.setPayload("Seen by {{povCharacter}}."));
+
+        Manuscript book = newManuscript();
+        book.setLorebook(filtered);
+        book = manuscriptService.save(book);
+        tagRelationService.createRelation(tag("horror"), book);
+        return book;
+    }
+
+    private JsonObject positional(String name, List<Object> arguments) throws Exception {
+        return JsonParser.parseString((String) commands.executePositional(name, arguments).get(30, TimeUnit.SECONDS)).getAsJsonObject();
+    }
+
+    private static List<String> names(JsonArray rows) {
+        return rows.asList().stream().map(e -> e.getAsJsonObject().get("name").getAsString()).toList();
+    }
+
+    @Test
+    void previewTellsWhichEntriesAreUsedForATextAndWhy() throws Exception {
+        sessionPoint.setManuscript(filteredBook());
+
+        JsonObject result = run("/preview-lore-activation \"A DRAGON and a w0lf\"");
+
+        assertThat(result.get("source").getAsString()).isEqualTo("text");
+        assertThat(names(result.getAsJsonArray("activated"))).containsExactly("Always", "Dragon", "Wolves", "Before", "Pov");
+        assertThat(at(result.getAsJsonArray("activated"), 0).get("reason").getAsString()).isEqualTo("CONSTANT");
+        assertThat(at(result.getAsJsonArray("activated"), 1).get("reason").getAsString()).as("case does not matter")
+                .isEqualTo("FILTER_MATCHED");
+        assertThat(at(result.getAsJsonArray("activated"), 1).get("entry").getAsInt()).isEqualTo(2);
+        assertThat(at(result.getAsJsonArray("activated"), 1).get("lorebook").getAsInt()).isEqualTo(1);
+        assertThat(result.get("activatedCount").getAsInt()).isEqualTo(5);
+
+        assertThat(names(result.getAsJsonArray("notActivated"))).containsExactly("Blocked", "Needs tag", "Off");
+        JsonObject reasons = result.getAsJsonObject("notActivatedByReason");
+        assertThat(reasons.get("NEGATIVE_TAG").getAsInt()).isEqualTo(1);
+        assertThat(reasons.get("MISSING_TAG").getAsInt()).isEqualTo(1);
+        assertThat(reasons.get("DISABLED").getAsInt()).isEqualTo(1);
+        assertThat(at(result.getAsJsonArray("notActivated"), 0).get("detail").getAsString()).isEqualTo("horror");
+
+        assertThat(result.get("loreBlock").getAsString())
+                .isEqualTo("Always there.\n\nDragons breathe fire.\n\nWolves hunt in packs.\n\nSeen by .");
+        assertThat(result.get("userPromptLore").getAsString()).isEqualTo("Before the prompt.");
+        assertThat(result.get("loreBlockTokens").getAsLong()).isPositive();
+        assertThat(result.get("userPromptLoreTokens").getAsLong()).isPositive();
+    }
+
+    @Test
+    void aFilterThatIsNotInTheTextDoesNotActivate() throws Exception {
+        sessionPoint.setManuscript(filteredBook());
+
+        JsonObject result = run("/preview-lore-activation nothing");
+
+        assertThat(names(result.getAsJsonArray("activated"))).containsExactly("Always", "Before", "Pov");
+        assertThat(result.getAsJsonObject("notActivatedByReason").get("FILTER_NOT_MATCHED").getAsInt()).isEqualTo(2);
+    }
+
+    @Test
+    void theLimitCutsTheListsNotTheCounts() throws Exception {
+        sessionPoint.setManuscript(filteredBook());
+
+        JsonObject result = run("/preview-lore-activation dragon 1");
+
+        assertThat(result.getAsJsonArray("activated")).hasSize(1);
+        assertThat(result.get("activatedCount").getAsInt()).isEqualTo(4);
+        assertThat(result.getAsJsonArray("notActivated")).hasSize(1);
+        assertThat(result.get("notActivatedCount").getAsInt()).isEqualTo(4);
+    }
+
+    @Test
+    void aPartIsPreviewedWithTheTurnItWasMadeFrom() throws Exception {
+        Manuscript book = filteredBook();
+        book.setUserPrompt("{{instructions}} / {{sceneSetting}}");
+        book = manuscriptService.save(book);
+        ChatMessage message = new ChatMessage();
+        message.setResponse("The story.");
+        message.setInstructions("Let a wolf appear");
+        message.setSceneSetting("A cold forest");
+        message.setPovCharacter("Anna");
+        ChatMessage root = chatMessageService.createRoot(book, message);
+        Manuscript loaded = manuscriptService.find(book.getId());
+        loaded.setActiveLeaf(root);
+        sessionPoint.setManuscript(manuscriptService.save(loaded));
+
+        // a number on the command line is taken for the text, a part is given as a number
+        JsonObject result = positional("preview-lore-activation", List.of(1));
+
+        assertThat(result.get("source").getAsString()).isEqualTo("part");
+        assertThat(result.get("matchedTextLength").getAsInt()).isEqualTo("Let a wolf appear / A cold forest".length());
+        assertThat(names(result.getAsJsonArray("activated"))).as("the wolf is in the instructions, the dragon is not")
+                .containsExactly("Always", "Wolves", "Before", "Pov");
+        assertThat(result.get("loreBlock").getAsString()).endsWith("Seen by Anna.");
+        assertThatThrownBy(() -> positional("preview-lore-activation", List.of(2))).isInstanceOf(ExecutionException.class)
+                .hasRootCauseInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void previewOnlyReads() throws Exception {
+        long before = lorebookEntryService.getEntriesForLorebook(world).size();
+
+        run("/preview-lore-activation anna");
+
+        assertThat(lorebookEntryService.getEntriesForLorebook(world)).hasSize((int) before);
     }
 }

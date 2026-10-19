@@ -414,7 +414,6 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_DISABLED, "無効");
         setValue(L.LABEL_AGENT_SYSTEM_PROMPT, "システムプロンプト");
         setValue(L.LABEL_AGENT_INSTRUCTIONS, "指示 (agents.md)");
-        setValue(L.LABEL_RESTORE_DEFAULT, "既定に戻す");
         setValue(L.LABEL_DESTRUCTIVE_COMMANDS, "破壊的コマンド");
         setValue(L.LABEL_MAX_ROUNDS, "最大ラウンド数");
         setValue(L.LABEL_RUN_TOKEN_BUDGET, "実行あたりのトークン予算");
@@ -437,7 +436,6 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_YOU, "あなた");
         setValue(L.LABEL_RESULT, "結果");
         setValue(L.LABEL_AGENT_REPORT, "エージェントの報告");
-        setValue(L.LABEL_AGENT_WAITS, "エージェントはあなたの返信を待っています");
         setValue(L.LABEL_UP, "上へ");
         setValue(L.LABEL_AGENT_APPROVAL, "エージェントが承認を求めています");
         setValue(L.LABEL_APPROVE, "承認");
@@ -456,6 +454,19 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_ATTACH_IMAGE, "画像を添付");
         setValue(L.LABEL_AGENT_QUEUED, "待機中");
         setValue(L.LABEL_AGENT_SEND_NOW, "今すぐ送信");
+        setValue(L.LABEL_AGENT_DEFAULT_PROMPT, "エージェントのシステムプロンプト");
+        setValue(L.LABEL_AGENTS_MAX_FILE_KB, "最大ファイルサイズ (KB)");
+        setValue(L.LABEL_AGENTS_MAX_WORKSPACE_MB, "ワークスペースの容量 (MB)");
+        setValue(L.LABEL_AGENTS_MAX_WORKSPACE_FILES, "ワークスペース内のファイル数");
+        setValue(L.LABEL_AGENTS_MAX_COPIES, "作業用コピー数");
+        setValue(L.LABEL_COMMAND_PREVIEW_LORE_ACTIVATION, "ロア有効化のプレビュー");
+        setValue(L.LABEL_AGENT_COMPACTION_PROMPT, "圧縮プロンプト");
+        setValue(L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT, "エージェントの圧縮プロンプト");
+        setValue(L.LABEL_AGENT_RUN_NOW, "今すぐ実行");
+        setValue(L.LABEL_AGENT_SUMMARY, "これまでの作業の要約");
+        setValue(L.LABEL_COMMAND_COMPACT, "圧縮");
+        setValue(L.LABEL_COMMAND_CLEAR_WORKSPACE, "ワークスペースを空にする");
+        setValue(L.LABEL_AGENT_QUESTION, "エージェントの質問");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -749,7 +760,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENTS_MAX_AGENTS, "ユーザーが持てるエージェントの数（複製を含む）。空欄は5、0は既存のエージェントの保持と実行のみ可能で、新規作成や複製はできません。");
         setValue(L.HELP_AGENTS_MAX_CONCURRENT_RUNS, "ユーザーの実行を同時に動かせる数。空欄は1です。");
         setValue(L.HELP_AGENTS_RUN_TOKEN_BUDGET, "ユーザーの1回の実行で使えるトークン（送信と生成）の上限。空欄または0は無制限です。");
-        setValue(L.HELP_AGENT_SYSTEM_PROMPT, "指示の前にエージェントに伝える役割。新しいエージェントは既定の内容で始まります。");
+        setValue(L.HELP_AGENT_SYSTEM_PROMPT, "指示の前にエージェントに伝える役割。空欄は既定(設定の既定、なければ管理者の既定、なければ組み込みの内容)に従います。既定はプレースホルダーに表示され、情報アイコンから入力して編集できます。");
         setValue(L.HELP_AGENT_INSTRUCTIONS, "エージェントへの指示。毎回の実行でプロンプトに追加されます。エージェントは読めますが変更できません。");
         setValue(L.HELP_AGENT_DESTRUCTIVE, "エージェントがデータを変更・削除するコマンドを実行しようとしたときの動作。");
         setValue(L.HELP_AGENT_MAX_ROUNDS, "1回の実行でのモデルへのリクエストの最大数。空欄はエージェント側の制限なしです。");
@@ -758,6 +769,17 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_SEES_IMAGES, "モデルが画像を受け取れる場合にチェックします。エージェントはワークスペースの画像（アップロードで置いたもの）を見るツールを使えるようになります。Lore Generator のように独自のモデルへ画像を送るコマンドは、この設定に関係なくワークスペースの画像を使えます。");
         setValue(L.HELP_AGENT_MESSAGE_QUEUED, "エージェントは作業中です。メッセージは、エージェントが読める状態になるまで待機します。");
         setValue(L.HELP_AGENT_SEND_NOW, "エージェントが今のラウンドで行っている作業を破棄し、メッセージを今すぐ送信します。");
+        setValue(L.HELP_AGENT_DEFAULT_PROMPT_USER, "独自のシステムプロンプトを持たないあなたのエージェントが使います。空欄の場合は管理者の既定、なければ組み込みの内容に従います。");
+        setValue(L.HELP_AGENT_DEFAULT_PROMPT_APP, "独自のシステムプロンプトを持たず、ユーザーも設定に既定のプロンプトを持たないエージェントが使います。空欄は組み込みのプロンプトです。");
+        setValue(L.HELP_AGENTS_MAX_FILE_KB, "このユーザーのエージェントが書き込めるファイルの最大サイズ (KB)。空欄は 1024 (1 MB)。");
+        setValue(L.HELP_AGENTS_MAX_WORKSPACE_MB, "エージェント1つのワークスペース内の全ファイルの合計容量 (MB)。空欄は 20。");
+        setValue(L.HELP_AGENTS_MAX_WORKSPACE_FILES, "エージェント1つのワークスペースに置けるファイル数 (フォルダは数えません)。空欄は 500。");
+        setValue(L.HELP_AGENTS_MAX_COPIES, "このユーザーの実行が同時に保持できる書籍の作業用コピーの数。未完了の実行 (一時停止中も) はコピーを保持します。空欄または 0 はエージェント数以外の制限なし。");
+        setValue(L.HELP_AGENT_COMPACTION_PROMPT, "作業を圧縮するとき (コンソールの /compact) にエージェントへ出す依頼。エージェントは以前のラウンドに代わる要約を書きます。空欄は既定(設定の既定、なければ管理者の既定、なければ組み込みの内容)に従い、プレースホルダーに表示されます。情報アイコンから入力して編集できます。");
+        setValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_USER, "独自の圧縮プロンプトを持たないあなたのエージェントが使います。空欄の場合は管理者の既定、なければ組み込みの内容に従います。");
+        setValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_APP, "独自の圧縮プロンプトを持たず、ユーザーも設定に既定を持たないエージェントが使います。空欄は組み込みのプロンプトです。");
+        setValue(L.HELP_AGENT_COMMAND, "コマンドを実行するのはあなたで、エージェントではありません。実行したことと結果がエージェントに伝わります。エージェントが作業中の間、コマンドはそのターンの終わりまで待ちます。");
+        setValue(L.HELP_AGENT_RUN_NOW, "エージェントがこのラウンドで行っていることを破棄して、今すぐコマンドを実行します。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
@@ -922,6 +944,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_SEARCH_LORE, "ロアブックエントリの名前、本文、コメントを検索します。");
         setValue(L.DESC_COMMAND_SEARCH_LORE_LLM, "この本のすべてのロアブックから、名前、本文、コメントにクエリを含むエントリを探します（大文字小文字は区別しません。regex を指定するとクエリは正規表現）。各ヒットにはロアブック番号、エントリ番号、名前、名前・本文・コメントのどれが一致したか、最初の一致の前後のスニペットが含まれます。found は一致したエントリ数で、hits は件数が制限されます。読み取りのみ。オプションは位置引数で、省略可能、記載順です。");
         setValue(L.DESC_COMMAND_SEARCH_LORE_RETURN, "found とヒットを含む JSON：ロアブック、エントリ、名前、一致箇所、スニペット");
+        setValue(L.DESC_COMMAND_PREVIEW_TEXT_PARAM, "エントリーのフィルターを探すテキスト (ターンのユーザープロンプトに相当)");
+        setValue(L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION, "テキストまたはパートに対して、生成がどのロアブックエントリーを使うか、その理由とともに表示します。");
+        setValue(L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_LLM, "テキスト、またはパート(位置と任意でブランチ番号で指定)を作ったターンと同様のターンに対して、生成がプロンプトに入れるロアブックのエントリーを示します。エントリーのフィルターはテキスト、パートの場合はパートに保存された指示・場面・視点・登場人物から作られたユーザープロンプトの中で探されます。使われるエントリーにはロアブック番号・エントリー番号・名前・理由 (CONSTANT: フィルターなし、FILTER_MATCHED) があり、使われないものにも理由 (DISABLED、書籍のタグに対する NEGATIVE_TAG または MISSING_TAG、FILTER_NOT_MATCHED) があります。挿入されるロアテキストとそのトークン数も返します。読み取りのみ。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_PREVIEW_LORE_ACTIVATION_RETURN, "使われた/使われないエントリー (理由付き) とロアテキスト (トークン数付き) を含む JSON");
+        setValue(L.DESC_AGENT_COMMAND_COMPACT, "これまでのすべてを要約し、以前のラウンドを要約で置き換えてコンテキストを空けます。引数があれば、要約で重視する内容です。");
+        setValue(L.DESC_AGENT_COMMAND_CLEAR_WORKSPACE, "エージェントのワークスペースのすべてのファイルとフォルダを削除します。引数は残すファイル、フォルダ(中身ごと)、または *.md のようなパターンで、スペースで区切ります(スペースを含むパスは二重引用符で囲みます)。残すファイルの上位フォルダは残ります。残すものが見つからない場合は何も削除されません。");
     }
 
     @Override

@@ -73,6 +73,38 @@ public class Permission extends ExtendableEntity {
     @ExtendedAttribute
     private Integer agentsMaxAgents;
 
+    /**
+     * {@link PermissionType#AGENTS}: how many working copies of books the runs of the user keep at once (a run that is
+     * not finished keeps its copy, a paused one too); none or zero is no limit besides the number of agents.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer agentsMaxCopies;
+
+    /**
+     * {@link PermissionType#AGENTS}: the largest file an agent of the user can write to its workspace, in KB; the
+     * default of the application when not set.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer agentsMaxFileKb;
+
+    /**
+     * {@link PermissionType#AGENTS}: how much all the files in the workspace of one agent of the user can take, in MB;
+     * the default of the application when not set.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer agentsMaxWorkspaceMb;
+
+    /**
+     * {@link PermissionType#AGENTS}: how many files the workspace of one agent of the user can hold; the default of the
+     * application when not set.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer agentsMaxWorkspaceFiles;
+
     public PermissionType getPermissionType() {
         return permissionType;
     }
@@ -127,6 +159,38 @@ public class Permission extends ExtendableEntity {
 
     public void setAgentsMaxAgents(Integer agentsMaxAgents) {
         this.agentsMaxAgents = agentsMaxAgents;
+    }
+
+    public Integer getAgentsMaxCopies() {
+        return agentsMaxCopies;
+    }
+
+    public void setAgentsMaxCopies(Integer agentsMaxCopies) {
+        this.agentsMaxCopies = agentsMaxCopies;
+    }
+
+    public Integer getAgentsMaxFileKb() {
+        return agentsMaxFileKb;
+    }
+
+    public void setAgentsMaxFileKb(Integer agentsMaxFileKb) {
+        this.agentsMaxFileKb = agentsMaxFileKb;
+    }
+
+    public Integer getAgentsMaxWorkspaceMb() {
+        return agentsMaxWorkspaceMb;
+    }
+
+    public void setAgentsMaxWorkspaceMb(Integer agentsMaxWorkspaceMb) {
+        this.agentsMaxWorkspaceMb = agentsMaxWorkspaceMb;
+    }
+
+    public Integer getAgentsMaxWorkspaceFiles() {
+        return agentsMaxWorkspaceFiles;
+    }
+
+    public void setAgentsMaxWorkspaceFiles(Integer agentsMaxWorkspaceFiles) {
+        this.agentsMaxWorkspaceFiles = agentsMaxWorkspaceFiles;
     }
 
     public Long getAgentsRunTokenBudget() {

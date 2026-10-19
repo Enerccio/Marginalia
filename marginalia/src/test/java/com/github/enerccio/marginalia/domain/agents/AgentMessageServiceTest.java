@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.agents;
 
+import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -97,5 +98,30 @@ class AgentMessageServiceTest extends AgentTestBase {
         assertThat(messageService.getContextTokens(run)).isEqualTo(4800);
         assertThat(messageService.transcript(run)).extracting(LLMChatMessage::getRole)
                 .containsExactly(LLMRole.USER, LLMRole.ASSISTANT, LLMRole.TOOL, LLMRole.ASSISTANT, LLMRole.USER);
+    }
+
+    @Test
+    void compactingMarksEverythingAndTheSummaryIsAllTheModelReads() throws Exception {
+        AgentRun run = run();
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "first"), LLMChatMessage.of(LLMRole.ASSISTANT, "second")));
+
+        AgentMessage summary = messageService.compact(run, LLMChatMessage.of(LLMRole.USER, "the summary"), 7);
+
+        assertThat(summary.isSummary()).isTrue();
+        assertThat(summary.getOrdinal()).isEqualTo(2);
+        assertThat(messageService.transcript(run)).extracting(LLMChatMessage::getContent).containsExactly("the summary");
+        List<AgentMessage> rows = messageService.messages(run);
+        assertThat(rows).extracting(AgentMessage::isCompacted).containsExactly(true, true, false);
+        assertThat(rows).extracting(AgentMessage::isSummary).containsExactly(false, false, true);
+        assertThat(messageService.count(run)).as("the user still has all of it").isEqualTo(3);
+        assertThat(messageService.getContextTokens(run)).isEqualTo(7);
+
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "after")));
+        assertThat(messageService.transcript(run)).extracting(LLMChatMessage::getContent).containsExactly("the summary", "after");
+        assertThat(messageService.messages(run).getLast().getOrdinal()).isEqualTo(3);
+
+        messageService.compact(run, LLMChatMessage.of(LLMRole.USER, "the second summary"), 5);
+        assertThat(messageService.transcript(run)).extracting(LLMChatMessage::getContent).containsExactly("the second summary");
+        assertThat(messageService.messages(run)).extracting(AgentMessage::isCompacted).containsExactly(true, true, true, true, false);
     }
 }

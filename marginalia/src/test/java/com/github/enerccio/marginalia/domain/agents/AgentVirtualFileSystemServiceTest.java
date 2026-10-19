@@ -334,4 +334,124 @@ class AgentVirtualFileSystemServiceTest extends AgentTestBase {
 
         assertThat(folderOf(run).resolve("left.txt")).as("it can be restored").exists();
     }
+
+    // --- quotas ---
+
+    @Test
+    void theLimitsAreTheDefaultsWithTheQuotasOfThePermissionOverThem() throws Exception {
+        assertThat(fileSystemService.getLimits(agent)).as("no quota set").isEqualTo(fileSystemService.getLimits());
+
+        updatePermission(user, PermissionType.AGENTS, permission -> {
+            permission.setAgentsMaxFileKb(10);
+            permission.setAgentsMaxWorkspaceMb(2);
+            permission.setAgentsMaxWorkspaceFiles(7);
+        });
+
+        WorkspaceLimits limits = fileSystemService.getLimits(agent);
+        assertThat(limits.maxFileBytes()).isEqualTo(10 * 1024);
+        assertThat(limits.maxTotalBytes()).isEqualTo(2L * 1024 * 1024);
+        assertThat(limits.maxFiles()).isEqualTo(7);
+        assertThat(limits.maxImageBytes()).as("images keep their own limit").isEqualTo(fileSystemService.getLimits().maxImageBytes());
+        assertThat(fileSystemService.open(run).getLimits()).isEqualTo(limits);
+        assertThat(fileSystemService.openWorkspace(agent).getLimits()).isEqualTo(limits);
+    }
+
+    @Test
+    void theQuotasAreEnforcedInTheWorkspace() throws Exception {
+        updatePermission(user, PermissionType.AGENTS, permission -> {
+            permission.setAgentsMaxFileKb(1);
+            permission.setAgentsMaxWorkspaceFiles(2);
+        });
+        VirtualFileSystem fs = fileSystemService.open(run);
+
+        fs.writeText(fs.parse("/a.txt"), "x".repeat(1024), false);
+        assertThatThrownBy(() -> fs.writeText(fs.parse("/big.txt"), "x".repeat(1025), false))
+                .isInstanceOf(VirtualFileException.class);
+        fs.writeText(fs.parse("/b.txt"), "b", false);
+        assertThatThrownBy(() -> fs.writeText(fs.parse("/c.txt"), "c", false)).isInstanceOf(VirtualFileException.class);
+    }
+
+    @Test
+    void aLargerFileQuotaRaisesWhatTheDefaultAllows() throws Exception {
+        long defaultFile = fileSystemService.getLimits().maxFileBytes();
+        updatePermission(user, PermissionType.AGENTS, permission -> permission.setAgentsMaxFileKb((int) (defaultFile / 1024 * 2)));
+
+        assertThat(fileSystemService.getLimits(agent).maxFileBytes()).isEqualTo(defaultFile * 2);
+    }
+
+    @Test
+    void theOwnerOfTheAgentDecidesNotWhoLooks() throws Exception {
+        updatePermission(user, PermissionType.AGENTS, permission -> permission.setAgentsMaxWorkspaceFiles(3));
+
+        assertThat(fileSystemService.getLimits(agent).maxFiles()).isEqualTo(3);
+        loginAdmin();
+        assertThatThrownBy(() -> fileSystemService.getLimits(agent)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // --- /AGENTS.md ---
+
+    @Test
+    void theInstructionsOfTheAgentAreARunFileThatCanOnlyBeRead() throws Exception {
+        agent.setInstructions("Check the names.\nAnd the dates.");
+        agent = agentService.save(agent);
+        AgentRun other = agentRunService.stop(run, false);
+        AgentRun fresh = agentRunService.start(agent);
+
+        VirtualFileSystem fs = fileSystemService.open(fresh);
+
+        VirtualPath file = fs.parse("/AGENTS.md");
+        assertThat(fs.stat(file).directory()).isFalse();
+        assertThat(fs.readText(file)).isEqualTo("Check the names.\nAnd the dates.");
+        assertThat(fs.stat(file).size()).isEqualTo("Check the names.\nAnd the dates.".length());
+        assertThat(fs.list(VirtualPath.ROOT)).extracting(e -> e.path().toString()).contains("/AGENTS.md", "/checkpoints");
+        assertThatThrownBy(() -> fs.writeText(file, "mine", false)).isInstanceOf(VirtualFileException.class).hasMessageContaining("read only");
+        assertThatThrownBy(() -> fs.writeText(file, "mine", true)).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> fs.delete(file, false)).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> fs.move(file, fs.parse("/copy.md"))).isInstanceOf(VirtualFileException.class);
+        assertThatThrownBy(() -> fs.writeText(fs.parse("/agents.md"), "mine", false)).as("the name is taken in any spelling")
+                .isInstanceOf(VirtualFileException.class);
+        assertThat(other.getId()).isNotNull();
+    }
+
+    @Test
+    void anAgentWithoutInstructionsHasAnEmptyFile() throws Exception {
+        VirtualFileSystem fs = fileSystemService.open(run);
+
+        assertThat(fs.readText(fs.parse("/AGENTS.md"))).isEmpty();
+    }
+
+    @Test
+    void theFileSaysWhatTheInstructionsWereWhenTheRunWasOpened() throws Exception {
+        agent.setInstructions("First.");
+        agent = agentService.save(agent);
+        VirtualFileSystem before = fileSystemService.open(run);
+        agent.setInstructions("Second.");
+        agent = agentService.save(agent);
+
+        VirtualFileSystem after = fileSystemService.open(run);
+
+        assertThat(before.readText(before.parse("/AGENTS.md"))).isEqualTo("First.");
+        assertThat(after.readText(after.parse("/AGENTS.md"))).isEqualTo("Second.");
+    }
+
+    @Test
+    void theWorkspaceFileOfThatNameIsHiddenByTheMount() throws Exception {
+        Files.createDirectories(workspaceOf(agent));
+        Files.writeString(workspaceOf(agent).resolve("AGENTS.md"), "left in the workspace");
+        agent.setInstructions("The real ones.");
+        agent = agentService.save(agent);
+
+        VirtualFileSystem fs = fileSystemService.open(run);
+
+        assertThat(fs.readText(fs.parse("/AGENTS.md"))).isEqualTo("The real ones.");
+        assertThat(fs.list(VirtualPath.ROOT).stream().filter(e -> e.path().getName().equalsIgnoreCase("AGENTS.md"))).hasSize(1);
+    }
+
+    @Test
+    void thePathToTheFileCannotBeUsedAsAFolder() throws Exception {
+        VirtualFileSystem fs = fileSystemService.open(run);
+
+        assertThat(fs.stat(fs.parse("/AGENTS.md/inside"))).isNull();
+        assertThatThrownBy(() -> fs.list(fs.parse("/AGENTS.md"))).isInstanceOf(VirtualFileException.class);
+    }
 }

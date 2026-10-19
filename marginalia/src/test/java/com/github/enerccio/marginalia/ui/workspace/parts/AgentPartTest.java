@@ -70,6 +70,16 @@ class AgentPartTest extends AgentTestBase {
             }
 
             @Override
+            public java.util.List<String> consoleCommands(com.github.enerccio.marginalia.domain.model.impl.Agent agent) {
+                return java.util.List.of(COMPACT);
+            }
+
+            @Override
+            public AgentRun command(AgentRun run, String line) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
             public java.util.List<QueuedMessage> queued(AgentRun run) {
                 return java.util.List.of();
             }

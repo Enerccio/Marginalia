@@ -88,7 +88,7 @@ public abstract class ManuscriptReadSupport {
         /**
          * The parts of the branch, the first part of the story first. The active branch when {@code branch} is null.
          */
-        List<ChatMessage> path(Integer branch) throws Exception {
+        public List<ChatMessage> path(Integer branch) throws Exception {
             if (branch == null) {
                 return chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf());
             }
@@ -103,7 +103,7 @@ public abstract class ManuscriptReadSupport {
         /**
          * @param position the position of the part on the path, the first part of the story is 1
          */
-        ChatMessage part(List<ChatMessage> path, Integer position) {
+        public ChatMessage part(List<ChatMessage> path, Integer position) {
             if (path.isEmpty()) {
                 throw new IllegalStateException(loc.getValue(L.ERROR_COMMAND_NO_STORY));
             }

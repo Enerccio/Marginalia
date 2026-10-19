@@ -15,7 +15,7 @@ Administrators are also normal users with their own books - they don't see other
 ## The Admin page
 
 Administrators have an **Admin** button at the bottom of the workspace. It is only in the normal layout: the
-[phone layout](../phone.md) (a window narrower than 768 pixels) has no Admin page, so open Marginalia in a wider window (and reload the page) for administration. It opens the admin page with five tabs:
+[phone layout](../phone.md) (a window narrower than 768 pixels) has no Admin page, so open Marginalia in a wider window (and reload the page) for administration. It opens the admin page with six tabs:
 
 | Tab | |
 |---|---|
@@ -23,6 +23,7 @@ Administrators have an **Admin** button at the bottom of the workspace. It is on
 | **Database Backups** | Backups of the whole database, on demand or on a schedule, and restoring them. See [Database backups](database-backups.md). |
 | **Cleanup** | Permanently removing deleted data. See [Cleanup](cleanup.md). |
 | **Help assistant** | The chat that answers questions from the manual: the model, the prompts and who pays for it. See [Help assistant](help-assistant.md). |
+| **Agents** | The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has **Insert Default Template**, which fills it in so you can edit a copy. What users may do with agents is their [permission](permissions.md). |
 | **Extensions** | Installing and removing extensions. See [Managing extensions](extensions.md). |
 
 ## The data folder

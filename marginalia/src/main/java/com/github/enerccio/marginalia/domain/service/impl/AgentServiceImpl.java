@@ -1,11 +1,15 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.repository.AgentRepository;
+import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.security.model.Permission;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
@@ -42,6 +46,12 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
     @Autowired
     private PermissionService permissionService;
 
+    @Autowired
+    private SettingService settingService;
+
+    @Autowired
+    private AdminGuard adminGuard;
+
     @Override
     @CommonTxReadOnly
     public boolean isAllowed() throws Exception {
@@ -67,7 +77,18 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         Long budget = permission.getAgentsRunTokenBudget();
         Integer agents = permission.getAgentsMaxAgents();
         return new AgentGrant(true, runs == null ? 1 : Math.max(0, runs), budget == null ? 0 : Math.max(0, budget),
-                agents == null ? DEFAULT_MAX_AGENTS : Math.max(0, agents));
+                agents == null ? DEFAULT_MAX_AGENTS : Math.max(0, agents),
+                positive(permission.getAgentsMaxCopies()),
+                positive(permission.getAgentsMaxFileKb()) * 1024L,
+                positive(permission.getAgentsMaxWorkspaceMb()) * 1024L * 1024L,
+                positive(permission.getAgentsMaxWorkspaceFiles()));
+    }
+
+    /**
+     * A quota that was set: the number, zero for none or a number below one.
+     */
+    private static int positive(Integer value) {
+        return value == null ? 0 : Math.max(0, value);
     }
 
     @Override
@@ -187,6 +208,105 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
 
     @Override
     @CommonTxReadOnly
+    public String getSystemPrompt(Agent agent) throws Exception {
+        if (agent != null && StringUtils.isNotBlank(agent.getSystemPrompt())) {
+            return agent.getSystemPrompt();
+        }
+        User owner = agent == null ? null : agent.getOwner();
+        if (owner != null) {
+            UserSetting userSetting = settingService.getOrCreate(UserSetting.class, owner);
+            if (StringUtils.isNotBlank(userSetting.getDefaultAgentPrompt())) {
+                return userSetting.getDefaultAgentPrompt();
+            }
+        }
+        return getAppDefaultSystemPrompt();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getDefaultSystemPrompt() throws Exception {
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultAgentPrompt())) {
+            return userSetting.getDefaultAgentPrompt();
+        }
+        return getAppDefaultSystemPrompt();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getAppDefaultSystemPrompt() throws Exception {
+        AppSettings app = settingService.getOrCreateApp(AppSettings.class);
+        return StringUtils.isNotBlank(app.getDefaultAgentPrompt()) ? app.getDefaultAgentPrompt() : Defaults.DEFAULT_AGENT_PROMPT;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getAppSystemPrompt() throws Exception {
+        adminGuard.requireAdmin();
+        return StringUtils.defaultString(settingService.getOrCreateApp(AppSettings.class).getDefaultAgentPrompt());
+    }
+
+    @Override
+    @CommonTx
+    public void setAppSystemPrompt(String prompt) throws Exception {
+        adminGuard.requireAdmin();
+        AppSettings app = settingService.getOrCreateApp(AppSettings.class);
+        app.setDefaultAgentPrompt(StringUtils.isBlank(prompt) ? null : prompt);
+        settingService.save(app);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getCompactionPrompt(Agent agent) throws Exception {
+        if (agent != null && StringUtils.isNotBlank(agent.getCompactionPrompt())) {
+            return agent.getCompactionPrompt();
+        }
+        User owner = agent == null ? null : agent.getOwner();
+        if (owner != null) {
+            UserSetting userSetting = settingService.getOrCreate(UserSetting.class, owner);
+            if (StringUtils.isNotBlank(userSetting.getDefaultAgentCompactionPrompt())) {
+                return userSetting.getDefaultAgentCompactionPrompt();
+            }
+        }
+        return getAppDefaultCompactionPrompt();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getDefaultCompactionPrompt() throws Exception {
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        if (StringUtils.isNotBlank(userSetting.getDefaultAgentCompactionPrompt())) {
+            return userSetting.getDefaultAgentCompactionPrompt();
+        }
+        return getAppDefaultCompactionPrompt();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getAppDefaultCompactionPrompt() throws Exception {
+        AppSettings app = settingService.getOrCreateApp(AppSettings.class);
+        return StringUtils.isNotBlank(app.getDefaultAgentCompactionPrompt())
+                ? app.getDefaultAgentCompactionPrompt() : Defaults.DEFAULT_AGENT_COMPACTION_PROMPT;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String getAppCompactionPrompt() throws Exception {
+        adminGuard.requireAdmin();
+        return StringUtils.defaultString(settingService.getOrCreateApp(AppSettings.class).getDefaultAgentCompactionPrompt());
+    }
+
+    @Override
+    @CommonTx
+    public void setAppCompactionPrompt(String prompt) throws Exception {
+        adminGuard.requireAdmin();
+        AppSettings app = settingService.getOrCreateApp(AppSettings.class);
+        app.setDefaultAgentCompactionPrompt(StringUtils.isBlank(prompt) ? null : prompt);
+        settingService.save(app);
+    }
+
+    @Override
+    @CommonTxReadOnly
     public Agent findForManuscript(Manuscript manuscript) throws Exception {
         Agent agent = getRepository().findByManuscript(manuscript);
         return agent != null && agent.getOwner() != null && Objects.equals(agent.getOwner().getId(), currentUser.getId())
@@ -223,6 +343,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
         copy.setManuscript(manuscript);
         copy.setModelProfiles(original.getModelProfiles().stream().map(AgentServiceImpl::copyProfile).toList());
         copy.setSystemPrompt(original.getSystemPrompt());
+        copy.setCompactionPrompt(original.getCompactionPrompt());
         copy.setInstructions(original.getInstructions());
         copy.setAllowedCommands(new ArrayList<>(original.getAllowedCommands()));
         copy.setDestructiveMode(original.getDestructiveMode());

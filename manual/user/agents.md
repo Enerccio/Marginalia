@@ -53,7 +53,7 @@ these of its own:
 
 | Tool | |
 |---|---|
-| Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `delete_file` in its own workspace (notes it keeps between runs). `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`). `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
+| Files | `list_files`, `read_file`, `write_file`, `append_file`, `replace_in_file`, `regex_replace_in_file`, `grep_files`, `move_file`, `copy_file`, `merge_files`, `delete_file` in its own workspace (notes it keeps between runs). Next to the workspace it sees the read-only file `/AGENTS.md`, your instructions as the run started with them, which it can read again whenever it likes and never change. `list_files` and `grep_files` take a name pattern (`glob`, for example `*.md` or `chapters/*.md`), `copy_file` copies a folder with everything in it (a quick way to keep a version of the notes), `merge_files` joins several files into one without the text passing through the model (the last name of a path may be a pattern such as `/chapters/*.md`). `list_command_results` and `save_command_result` keep the long result of a command without the agent writing it out again: the last ten results are kept whole (the agent sees a long one cut), and one is saved to a file by its number, the newest when none is given; it then passes the file on as `@file:/path`. |
 | `@file:/path` | Not a tool but a way to call one: a text argument of a command that is exactly `@file:/notes/chapter.md` is replaced by the contents of that file of the agent's workspace, so the agent can write a long text to a file once, check it, and pass it to a command (the result shows the short reference in the call, the command gets the text). `write_file` and `append_file` take it as their content too, which copies a file or adds it to another: a long file can be written in parts, each part within the longest answer of the model, and put together this way. |
 | `@result` | Like `@file:`, for the result of a command: a text argument that is exactly `@result` is replaced by the whole result of the last command the agent called, `@result:3` by the result with that number (`list_command_results` shows the numbers). A generated text goes from one command to the next, or into `write_file` and `append_file`, without the agent writing it out. |
 | `view_image` | Looks at an image file of its workspace (PNG, JPEG, GIF or WebP): the picture is shown to the model in the next message. Only an agent whose model is marked as seeing images (**The model sees images** in the agent) has it. A large image is scaled down before it is sent, a GIF shows its first frame, and only the newest four images stay in front of the model (an older one becomes a note, and the agent can look again). The images come from you (**Upload file**, or [attached to a message](#the-console)); the agent can't make one. |
@@ -80,16 +80,39 @@ How a run ends a stretch of work:
 
 **Run** shows the *transcript*: what you told the agent, what it said (both as [Markdown](https://commonmark.org/help/), so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its **reasoning** (what it thought before it answered), a folded *Reasoning* block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. The state of the run, the **context** (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
-is one) stay above it and the box for your message under it, while the transcript scrolls. The last bubble of the transcript is what the agent waits for:
+is one) stay above it and the box for your message under it, while the transcript scrolls. What the agent waits for is in the transcript where it was written, as a bubble of its own that stays there when the run goes on:
 
-- when the run is *Waiting for you*, the question of the agent; write the answer in the box and press **Send** (or **Ctrl+Enter**), and the agent goes on;
-- when the run is *Done*, the report of the agent.
+- a **Question of the agent**, when the run is *Waiting for you*; write the answer in the box and press **Send** (or **Ctrl+Enter**), and the agent goes on;
+- a **Report of the agent**, when it called `finish`.
 
 In a conversation you can also write while the agent **works**. The message is **queued**: it appears as a dashed bubble at the end of the transcript and the agent
 reads it at the end of its current turn (instead of stopping to wait for you); several queued messages go together as one. When it should not wait, press the
 small **Send now** (lightning) button on the bubble: the agent drops the round it is in (the request to the model is canceled, a command that waited for your approval
 is refused, calls that were not made are marked as skipped) and reads your message next. Commands that already ran stay done. Queued messages are lost when the server restarts, and
 a run that is not a conversation (started *immediately*) does not take messages while it works.
+
+### Running a command yourself
+
+Under the transcript is the command line of the application (the one of the story tab: type `/`, the list and the help of the command appear above it) with what you can run on the agent: `/compact`, `/clear-workspace` and the
+[commands the agent may call](#allowed-commands) that only read or add data (a command that changes or removes data is not offered, it would ask you to confirm
+in a window of the book, which a run does not have). You run the command, not the agent: it is told, in a message of yours, that you ran it and what it answered
+(and that what it read earlier may be out of date if the command changed the working copy), so it never believes it made a call it did not. It works as a message:
+where the run waits (*Waiting for you*) or is *Paused* the command runs at once and the run stays as it is; where a [conversation](#the-console) works it is
+queued, a dashed bubble marked *Command*, and runs at the end of the agent's turn, where the agent would have waited (the agent does not go on because of it).
+The small **Run now** button on the bubble drops the round the agent is in, runs the command and lets the agent go on from there. A command that takes long
+holds the box: wait for it before you write to the agent.
+
+**`/compact [what to stress]`** frees the context. The agent is asked to read everything so far and write a summary (what you asked, what is done, what it found,
+its notes and its plan, what it was about to do); that summary replaces everything before it in what the model reads. In the transcript you still see all of it,
+and the summary as a folded block, **Summary of the earlier work**; the export keeps it too. The text after the command, if any, is what the summary should stress.
+The request is the agent's own and its tokens count against the run. The question the agent is asked is its **Compaction prompt**: the one of the agent, else your
+default in [Settings](account.md#templates), else the one of the administrator, else the built-in one. If the context is already so full that the request does
+not fit, the oldest messages are left out of it (the summary says how many). Do it before the context is full, the usage line shows how close it is. Right after the compaction the context shown is an estimate of what the next request will hold (the summary, the system prompt and the definitions of the tools); the first answer of the model after it replaces it with the real number.
+
+**`/clear-workspace [what to keep]`** deletes the files and all the folders of the [workspace](#the-working-copy) of the run (after you confirm, as with the button of the workspace). Name what
+to keep after it, separated by spaces: files, folders (with everything in them) or patterns such as `*.md` or `chapters/*.md`, a path with spaces in double quotes
+(`/clear-workspace /notes.md "/my drafts" *.png`). The folders above a kept file stay. If something named is not there nothing is deleted. `/AGENTS.md` and the checkpoints are not
+part of the workspace and are never touched. The agent is told what was deleted and what was kept. In the transcript a command you ran is a bubble with the command and what it answered.
 
 When the model of the agent sees images (see [Creating and editing an agent](#creating-and-editing-an-agent)), **Attach image** is next to **Send**: pick a PNG, JPEG, GIF or WebP file, or paste a picture from the clipboard
 into the message box (**Ctrl+V**), and it waits above the box (the cross takes it back) until you send. Up to eight images go with a message; the text may be empty.
@@ -113,8 +136,8 @@ a brief, a style guide or a draft. The same rules hold as for the agent's own fi
 or space, or be too long or too deep, the limits of file size and number of files apply, and an uploaded file must be text (UTF-8),
 because the agent can only read text, or an image (PNG, JPEG, GIF or WebP, recognised by what the file contains, not by its name;
 up to 5 MB, and it counts against the total and the number of files like any file). A file is never replaced by an upload: delete the old one first.
-Files can't be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files; the line
-under the table says how much is used.
+Files can't be changed while the agent works, pause it first. The workspace has a limit of size, file size and number of files, which your administrator can set in your [permission](administration/permissions.md#settings-of-a-permission); the line
+under the table says how much is used. The name `AGENTS.md` at the top is taken by your instructions, which the agent sees there (the file can't be written or deleted).
 
 ## Asking you
 
@@ -157,7 +180,8 @@ book yet.
 | **The model sees images** | Tick it when the model takes images (the API of the model does not say, so you do). The agent then has `view_image` and you can attach images to your messages; without it it never gets a picture. |
 | **Destructive commands** | What happens when the agent wants a command that changes or removes data: *Run them*, *Ask first* (a [window](#asking-you) asks you to approve it) or *Refuse them*. |
 | **Most rounds**, **Token budget of a run**, **Context limit** | Optional limits of one run. The limit your administrator gave you applies in any case. |
-| **System prompt** | What the agent is told to be. A new agent starts with the default one; **Restore default** puts it back. |
+| **System prompt** | What the agent is told to be. Leave it empty and the agent follows the default - yours from [Settings](account.md#templates), else your administrator's, else the built-in one - which is shown in grey. The info icon has **Insert Default Template**, which fills the default in so you can edit a copy of it; clear the field again to follow the default. |
+| **Compaction prompt** | What the agent is asked when you [`/compact`](#running-a-command-yourself) it: to write the summary that replaces its earlier work. Empty follows the default, like the system prompt, with the same info icon. |
 | **Instructions (agents.md)** | Your instructions to the agent, added to its prompt in every run. The agent can read them, never change them. |
 | **Allowed commands** | See below. |
 

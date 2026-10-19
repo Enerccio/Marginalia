@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
@@ -8,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.AgentApprovalService;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
+import com.github.enerccio.marginalia.domain.service.agent.RunToolsImpl;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
@@ -61,6 +63,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
     // what the fake runner reports as queued, and the ids it was told to force
     private List<AgentRunner.QueuedMessage> queued = List.of();
     private final List<String> forced = new ArrayList<>();
+    private final List<String> commandLines = new ArrayList<>();
     private boolean changed;
 
     @BeforeEach
@@ -95,6 +98,17 @@ class AgentConsoleDialogTest extends AgentTestBase {
                 sent.add(text);
                 sentImages.add(images);
                 return agentRunService.transition(run, AgentRunStatus.RUNNING, null);
+            }
+
+            @Override
+            public List<String> consoleCommands(Agent agent) {
+                return List.of(COMPACT, "get-book-info");
+            }
+
+            @Override
+            public AgentRun command(AgentRun run, String line) {
+                commandLines.add(line);
+                return run;
             }
 
             @Override
@@ -182,7 +196,6 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(dialog.getPauseButton().isEnabled()).isFalse();
         assertThat(dialog.getResumeButton().isEnabled()).isFalse();
         assertThat(dialog.getStopButton().isEnabled()).isFalse();
-        assertThat(dialog.getBanner().getParent().isPresent()).isFalse();
     }
 
     @Test
@@ -240,15 +253,16 @@ class AgentConsoleDialogTest extends AgentTestBase {
     @Test
     void anIdleRunShowsItsQuestionAndTakesAnAnswer() throws Exception {
         AgentRun run = startedRun();
-        say(run, LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("q1", "ask_user", "{}"))),
-                LLMChatMessage.ofToolResult("q1", "waiting"));
+        say(run, LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("q1", "ask_user",
+                        "{\"question\": \"Which chapter is first?\", \"options\": [\"One\", \"Two\"]}"))),
+                LLMChatMessage.ofToolResult("q1", RunToolsImpl.QUESTION_ACK));
         agentRunService.transition(run, AgentRunStatus.IDLE, "Which chapter is first?");
 
         AgentConsoleDialog dialog = console();
 
-        assertThat(dialog.getBanner().getParent().isPresent() && dialog.getBanner().isVisible()).isTrue();
-        assertThat(dialog.getBannerHeading().getText()).isEqualTo("The agent waits for you");
-        assertThat(dialog.getBannerText().getContent()).isEqualTo("Which chapter is first?");
+        List<Component> bubbles = dialog.getTranscriptBox().getChildren().toList();
+        assertThat(bubbles).as("the question, its acknowledgement says nothing more").hasSize(1);
+        assertThat(textOf(bubbles.getFirst())).contains("Question of the agent", "Which chapter is first?", "- One", "- Two");
         assertThat(dialog.getSendButton().isEnabled()).isTrue();
         assertThat(dialog.getMessageField().isEnabled()).isTrue();
 
@@ -294,13 +308,15 @@ class AgentConsoleDialogTest extends AgentTestBase {
     @Test
     void aFinishedRunShowsItsReport() throws Exception {
         AgentRun run = startedRun();
+        say(run, LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("f1", "finish", "{\"summary\": \"No contradictions found.\"}"))),
+                LLMChatMessage.ofToolResult("f1", RunToolsImpl.REPORT_ACK));
         agentRunService.transition(run, AgentRunStatus.DONE, "No contradictions found.");
 
         AgentConsoleDialog dialog = console();
 
-        assertThat(dialog.getBanner().getParent().isPresent() && dialog.getBanner().isVisible()).isTrue();
-        assertThat(dialog.getBannerHeading().getText()).isEqualTo("Report of the agent");
-        assertThat(dialog.getBannerText().getContent()).isEqualTo("No contradictions found.");
+        List<Component> bubbles = dialog.getTranscriptBox().getChildren().toList();
+        assertThat(bubbles).hasSize(1);
+        assertThat(textOf(bubbles.getFirst())).contains("Report of the agent", "No contradictions found.");
         assertThat(dialog.getSendButton().isEnabled()).isFalse();
         assertThat(dialog.getStopButton().isEnabled()).as("a finished run can be discarded").isTrue();
     }
@@ -465,62 +481,54 @@ class AgentConsoleDialogTest extends AgentTestBase {
 
         AgentConsoleDialog dialog = console();
 
-        // the state, the transcript that scrolls, the images waiting to be sent, the box that answers; what the agent waits
-        // for is the last bubble of the transcript, under the steps
+        // the state, the transcript that scrolls, the command box, the images waiting to be sent, the box that answers
         List<Component> tab = dialog.getTranscriptBox().getParent().orElseThrow().getChildren().toList();
         assertThat(tab.indexOf(dialog.getTranscriptBox())).isEqualTo(1);
-        assertThat(tab.indexOf(dialog.getMessageField().getParent().orElseThrow())).isEqualTo(3);
+        assertThat(tab.indexOf(dialog.getCommandBar().getParent().orElseThrow())).isEqualTo(2);
+        assertThat(tab.indexOf(dialog.getMessageField().getParent().orElseThrow())).isEqualTo(4);
         List<Component> bubbles = dialog.getTranscriptBox().getChildren().toList();
-        assertThat(bubbles.getLast()).isSameAs(dialog.getBanner());
         assertThat(textOf(bubbles.getFirst())).contains("first");
     }
 
     @Test
-    void theReportIsTheLastBubbleUnderAllTheSteps() throws Exception {
+    void theReportAndTheQuestionStayInTheTranscriptWhereTheyWereWritten() throws Exception {
         AgentRun run = startedRun();
         say(run, LLMChatMessage.of(LLMRole.USER, "first"),
-                LLMChatMessage.ofToolCalls("looking", List.of(LLMToolCall.of("c1", "list-parts", "{}"))),
-                LLMChatMessage.ofToolResult("c1", "parts"));
-        agentRunService.transition(run, AgentRunStatus.DONE, "the long report");
-
+                LLMChatMessage.ofToolCalls("looking", List.of(LLMToolCall.of("q1", "ask_user", "{\"question\": \"Which one?\"}"))),
+                LLMChatMessage.ofToolResult("q1", RunToolsImpl.QUESTION_ACK));
+        agentRunService.transition(run, AgentRunStatus.IDLE, "Which one?");
         AgentConsoleDialog dialog = console();
+        assertThat(dialog.getTranscriptBox().getChildren().count()).isEqualTo(3);
+
+        AgentRun working = agentRunService.transition(agentRunService.find(run.getId()), AgentRunStatus.RUNNING, null);
+        say(working, LLMChatMessage.of(LLMRole.USER, "the second"),
+                LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("f1", "finish", "{\"summary\": \"the long report\"}"))),
+                LLMChatMessage.ofToolResult("f1", RunToolsImpl.REPORT_ACK_INTERACTIVE), LLMChatMessage.of(LLMRole.USER, "and then"));
+        agentRunService.transition(agentRunService.find(run.getId()), AgentRunStatus.IDLE, "the long report");
+        dialog.refreshRun();
 
         List<Component> bubbles = dialog.getTranscriptBox().getChildren().toList();
-        assertThat(bubbles).hasSize(4);
-        assertThat(bubbles.getLast()).isSameAs(dialog.getBanner());
-        assertThat(dialog.getBannerText().getContent()).isEqualTo("the long report");
-        // attached and shown: a hidden bubble in the transcript is as good as none
-        assertThat(dialog.getBanner().isVisible()).isTrue();
+        assertThat(bubbles).hasSize(6);
+        assertThat(textOf(bubbles.get(2))).as("the question is not gone when the run went on").contains("Question of the agent", "Which one?");
+        assertThat(textOf(bubbles.get(3))).contains("the second");
+        assertThat(textOf(bubbles.get(4))).contains("Report of the agent", "the long report");
+        assertThat(textOf(bubbles.get(5))).contains("and then");
         // the input box is not in the part that scrolls
         assertThat(dialog.getMessageField().getParent().orElseThrow().getParent().orElseThrow())
                 .isNotSameAs(dialog.getTranscriptBox());
     }
 
     @Test
-    void theBannerStaysLastWhenMessagesComeAndIsGoneWhenTheRunGoesOn() throws Exception {
+    void aReportThatFailedIsAnOrdinaryCallWithItsResult() throws Exception {
         AgentRun run = startedRun();
-        say(run, LLMChatMessage.of(LLMRole.USER, "first"));
-        agentRunService.transition(run, AgentRunStatus.IDLE, "Which one?");
+        say(run, LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("f1", "finish", "{}"))),
+                LLMChatMessage.ofToolResult("f1", "Error: write your report"));
+
         AgentConsoleDialog dialog = console();
-        assertThat(dialog.getTranscriptBox().getChildren().toList().getLast()).isSameAs(dialog.getBanner());
-        assertThat(dialog.getBanner().isVisible()).isTrue();
 
-        AgentRun working = agentRunService.transition(agentRunService.find(run.getId()), AgentRunStatus.RUNNING, null);
-        say(working, LLMChatMessage.of(LLMRole.USER, "the answer"));
-        dialog.refreshRun();
-
-        List<Component> bubbles = dialog.getTranscriptBox().getChildren().toList();
-        assertThat(bubbles).hasSize(2);
-        assertThat(bubbles).doesNotContain(dialog.getBanner());
-
-        agentRunService.transition(agentRunService.find(run.getId()), AgentRunStatus.IDLE, "Anything else?");
-        say(working, LLMChatMessage.of(LLMRole.ASSISTANT, "it was"));
-        dialog.refreshRun();
-
-        bubbles = dialog.getTranscriptBox().getChildren().toList();
-        assertThat(bubbles).hasSize(4);
-        assertThat(bubbles.getLast()).isSameAs(dialog.getBanner());
-        assertThat(textOf(bubbles.get(2))).contains("it was");
+        Details call = ComponentTree.all(dialog.getTranscriptBox(), Details.class).findFirst().orElseThrow();
+        assertThat(call.getSummaryText()).startsWith("finish");
+        assertThat(textOf(call)).contains("write your report");
     }
 
     @Test
@@ -718,5 +726,96 @@ class AgentConsoleDialogTest extends AgentTestBase {
         dialog.getSendButton().click();
 
         assertThat(sentImages).containsExactly(List.of("/uploads/map.png"), List.of("/uploads/map-2.png"));
+    }
+
+    // --- commands of the author ---
+
+    @Test
+    void theAuthorRunsACommandFromTheCommandBar() throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
+        agentRunService.transition(run, AgentRunStatus.IDLE, null);
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getCommandBar().isEnabled()).isTrue();
+        // the bar offers what the runner says, with /compact among them as a command of its own
+        List<com.github.enerccio.marginalia.domain.service.command.CommandDefinition> offered = ReflectionTestUtils
+                .invokeMethod(dialog.getCommandBar(), "definitions");
+        assertThat(offered).extracting(d -> d.commandName()).contains("compact", "get-book-info").doesNotContain("hello-world");
+
+        ReflectionTestUtils.invokeMethod(dialog.getCommandBar(), "run", "/compact the names");
+
+        assertThat(commandLines).containsExactly("/compact the names");
+    }
+
+    @Test
+    void aCommandIsTakenWhereTheRunWaitsIsPausedOrWorksAsAConversation() throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getCommandBar().isEnabled()).as("a conversation that works queues it").isTrue();
+
+        agentRunService.transition(agentRunService.find(run.getId()), AgentRunStatus.PAUSING, null);
+        agentRunService.transition(agentRunService.find(run.getId()), AgentRunStatus.PAUSED, null);
+        dialog.refreshRun();
+        assertThat(dialog.getCommandBar().isEnabled()).as("a paused run takes one too").isTrue();
+
+        agentRunService.stop(agentRunService.find(run.getId()), true);
+        dialog.refreshRun();
+        assertThat(dialog.getCommandBar().isEnabled()).isFalse();
+    }
+
+    @Test
+    void aCommandTheAgentDoesNotOfferIsNotRun() throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
+        AgentConsoleDialog dialog = console();
+
+        ReflectionTestUtils.invokeMethod(dialog.getCommandBar(), "run", "/hello-world");
+
+        assertThat(commandLines).isEmpty();
+    }
+
+    @Test
+    void aQueuedCommandShowsAsACommandWithAButtonToRunItNow() throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."));
+        queued = List.of(new AgentRunner.QueuedMessage("c1", "/get-book-info", true));
+        AgentConsoleDialog dialog = console();
+
+        assertThat(dialog.getQueuedBubbles()).hasSize(1);
+        com.vaadin.flow.component.html.Div bubble = dialog.getQueuedBubbles().getFirst();
+        assertThat(textOf(bubble)).contains("/get-book-info").contains("Queued").contains("Command");
+        Button now = ComponentTree.all(bubble, Button.class).findFirst().orElseThrow();
+        assertThat(now.getTooltip().getText()).startsWith("Run now");
+        now.click();
+
+        assertThat(forced).containsExactly("c1");
+    }
+
+    @Test
+    void aCommandTheAuthorRanShowsAsTheCommandAndItsResultNotAsTheNoteTheAgentReads() throws Exception {
+        AgentRun run = agentRunService.start(agent, true);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."),
+                LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_AUTHOR_COMMAND_NOTE + "\n\nCommand: /get-book-info\n\nResult:\nThe Book"));
+        AgentConsoleDialog dialog = console();
+
+        List<Component> bubbles = dialog.getTranscriptBox().getChildren().toList();
+        assertThat(bubbles).hasSize(2);
+        assertThat(textOf(bubbles.get(1))).contains("Command: /get-book-info", "The Book").doesNotContain("You did not call it");
+    }
+
+    @Test
+    void theSummaryOfACompactionIsFoldedInTheTranscript() throws Exception {
+        AgentRun run = agentRunService.start(agent);
+        say(run, LLMChatMessage.of(LLMRole.USER, "Start."), LLMChatMessage.of(LLMRole.ASSISTANT, "Working on it."));
+        agentMessageService.compact(run, LLMChatMessage.of(LLMRole.USER, "Earlier: counted parts."), 12);
+        AgentConsoleDialog dialog = console();
+
+        Details summary = ComponentTree.all(dialog.getTranscriptBox(), Details.class)
+                .filter(details -> "Summary of the earlier work".equals(details.getSummaryText())).findFirst().orElseThrow();
+        assertThat(textOf(summary)).contains("Earlier: counted parts.");
+        assertThat(textOf(dialog.getTranscriptBox())).as("what was compacted is still there for the user").contains("Working on it.");
     }
 }

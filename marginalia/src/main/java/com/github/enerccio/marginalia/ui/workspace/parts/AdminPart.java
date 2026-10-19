@@ -21,6 +21,7 @@ import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.dialogs.permissions.PermissionsDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.ui.workspace.parts.admin.AgentSettingsPanel;
 import com.github.enerccio.marginalia.ui.workspace.parts.admin.CleanupPanel;
 import com.github.enerccio.marginalia.ui.workspace.parts.admin.DatabaseBackupPanel;
 import com.github.enerccio.marginalia.ui.workspace.parts.admin.HelpAssistantPanel;
@@ -80,6 +81,7 @@ public class AdminPart implements WorkspaceComponent {
     private final DatabaseBackupPanel databaseBackupPanel = new DatabaseBackupPanel();
     private final CleanupPanel cleanupPanel = new CleanupPanel();
     private final HelpAssistantPanel helpAssistantPanel = new HelpAssistantPanel();
+    private final AgentSettingsPanel agentSettingsPanel = new AgentSettingsPanel();
 
     public AdminPart(Workspace workspace) {
         this.workspace = workspace;
@@ -93,6 +95,7 @@ public class AdminPart implements WorkspaceComponent {
                     @APILocals(name = "databaseTab", type = Tab.class),
                     @APILocals(name = "cleanupTab", type = Tab.class),
                     @APILocals(name = "helpTab", type = Tab.class),
+                    @APILocals(name = "agentsTab", type = Tab.class),
                     @APILocals(name = "extensionsTab", type = Tab.class),
                     @APILocals(name = "extensionsContent", type = Component.class),
                     @APILocals(name = "container", type = Div.class)})
@@ -114,10 +117,14 @@ public class AdminPart implements WorkspaceComponent {
         Tab helpTab = new Tab(loc.getValue(L.LABEL_HELP_ASSISTANT));
         tabSheet.add(helpTab, helpAssistantPanel.create());
 
+        Tab agentsTab = new Tab(loc.getValue(L.LABEL_AGENTS));
+        tabSheet.add(agentsTab, agentSettingsPanel.create());
+
         adminTabs = tabSheet;
         adminPanels.put(databaseTab, databaseBackupPanel);
         adminPanels.put(cleanupTab, cleanupPanel);
         adminPanels.put(helpTab, helpAssistantPanel);
+        adminPanels.put(agentsTab, agentSettingsPanel);
 
         Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
         Component extensionsContent = createExtensionsTab();
@@ -137,7 +144,7 @@ public class AdminPart implements WorkspaceComponent {
             return "";
         }
         Tab selected = adminTabs.getSelectedTab();
-        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Help assistant, Extensions. "
+        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Help assistant, Agents, Extensions. "
                 + "The open tab is **" + (selected == null ? "" : selected.getLabel()) + "**."
                 + (selected != null && !adminPanels.containsKey(selected)
                 ? " (The user and extension lists are tables with buttons to add, edit and delete.)" : "");

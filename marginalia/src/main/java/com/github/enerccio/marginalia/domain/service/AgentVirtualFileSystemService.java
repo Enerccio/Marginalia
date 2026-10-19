@@ -22,9 +22,17 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 public interface AgentVirtualFileSystemService {
 
     /**
-     * What a workspace may hold.
+     * What a workspace may hold when the administrator does not say otherwise.
      */
     WorkspaceLimits getLimits();
+
+    /**
+     * What the workspace of the agent may hold: the default limits, except what the permission {@code AGENTS} of the
+     * agent's owner sets (the largest file, the size of the workspace, the number of files).
+     *
+     * @throws IllegalArgumentException when the agent is not an agent of the user
+     */
+    WorkspaceLimits getLimits(Agent agent) throws Exception;
 
     /**
      * The files of a run: the workspace of its agent and {@code /checkpoints}.

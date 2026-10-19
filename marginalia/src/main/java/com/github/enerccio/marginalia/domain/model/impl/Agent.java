@@ -53,6 +53,14 @@ public class Agent extends ExtendableEntity {
     private String systemPrompt;
 
     /**
+     * What the model is asked when the author compacts the run; blank follows the default of the user, then of the
+     * application, then {@code Defaults.DEFAULT_AGENT_COMPACTION_PROMPT}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String compactionPrompt;
+
+    /**
      * The instructions of the user for the agent ("agents.md", markdown), added to the system prompt of every run and
      * every thread of it. Written by the user only, the agent can't change them; the size is capped
      * ({@code AgentService#MAX_INSTRUCTIONS_LENGTH}).
@@ -143,6 +151,14 @@ public class Agent extends ExtendableEntity {
 
     public void setSystemPrompt(String systemPrompt) {
         this.systemPrompt = systemPrompt;
+    }
+
+    public String getCompactionPrompt() {
+        return compactionPrompt;
+    }
+
+    public void setCompactionPrompt(String compactionPrompt) {
+        this.compactionPrompt = compactionPrompt;
     }
 
     public String getInstructions() {

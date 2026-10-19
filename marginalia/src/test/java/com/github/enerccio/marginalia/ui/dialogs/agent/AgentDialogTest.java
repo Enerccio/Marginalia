@@ -7,10 +7,12 @@ import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.CommandService;
+import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.UI;
@@ -26,13 +28,16 @@ import static com.github.enerccio.marginalia.test.ComponentTree.button;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The dialog an agent is created and edited in: a new agent starts with the default prompt, picks a book that has no
+ * The dialog an agent is created and edited in: a new agent has a blank prompt that follows the default, picks a book that has no
  * agent, and the allowed commands are chosen with the check boxes or a preset.
  */
 class AgentDialogTest extends AgentTestBase {
 
     @Autowired
     private CommandService commandService;
+
+    @Autowired
+    private SettingService settingService;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -68,12 +73,13 @@ class AgentDialogTest extends AgentTestBase {
     }
 
     @Test
-    void aNewAgentStartsWithTheDefaultPromptAndTheCommandsThatOnlyRead() throws Exception {
+    void aNewAgentHasABlankPromptThatFollowsTheDefaultAndTheCommandsThatOnlyRead() throws Exception {
         manuscript();
 
         AgentDialog dialog = dialog(null);
 
-        assertThat(dialog.getSystemPromptField().getValue()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+        assertThat(dialog.getSystemPromptField().getValue()).isEmpty();
+        assertThat(dialog.getSystemPromptField().getPlaceholder()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
         assertThat(dialog.getDestructiveCombo().getValue()).isEqualTo(DestructiveCommandMode.ASK);
         assertThat(dialog.getEnabledCheckbox().getValue()).isTrue();
         assertThat(dialog.getCommandsEditor().getPreset()).isEqualTo(AgentCommandPreset.NON_DESTRUCTIVE);
@@ -124,7 +130,7 @@ class AgentDialogTest extends AgentTestBase {
         assertThat(agent.getTokenBudget()).isEqualTo(200_000L);
         assertThat(agent.getContextCap()).isEqualTo(8000);
         assertThat(agent.getInstructions()).isEqualTo("Check the names.");
-        assertThat(agent.getSystemPrompt()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+        assertThat(agent.getSystemPrompt()).as("blank: it follows the default").isBlank();
         assertThat(agent.getAllowedCommands()).isEmpty();
     }
 
@@ -227,14 +233,48 @@ class AgentDialogTest extends AgentTestBase {
     }
 
     @Test
-    void resettingTheSystemPromptRestoresTheDefault() throws Exception {
+    void theInfoPopoverFillsTheDefaultPromptIn() throws Exception {
         manuscript();
         AgentDialog dialog = dialog(null);
         dialog.getSystemPromptField().setValue("something else");
 
-        button(dialog, "Restore default").click();
+        button(dialog.getSystemPromptField().getPopover(), "Insert Default Template").click();
 
         assertThat(dialog.getSystemPromptField().getValue()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+    }
+
+    @Test
+    void theCompactionPromptIsBlankFollowsTheDefaultAndIsSaved() throws Exception {
+        Manuscript book = manuscript();
+        AgentDialog dialog = dialog(null);
+        dialog.getManuscriptCombo().setValue(dialog.getManuscriptCombo().getListDataView().getItems()
+                .filter(m -> m.getId().equals(book.getId())).findFirst().orElseThrow());
+        assertThat(dialog.getCompactionPromptField().getValue()).isEmpty();
+        assertThat(dialog.getCompactionPromptField().getPlaceholder()).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT);
+        dialog.getNameField().setValue("Compacting");
+        dialog.getModelPicker().setSelection(createAI(), protocol());
+        button(dialog.getCompactionPromptField().getPopover(), "Insert Default Template").click();
+        assertThat(dialog.getCompactionPromptField().getValue()).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT);
+        dialog.getCompactionPromptField().setValue("Short summary please.");
+
+        button(dialog, "OK").click();
+
+        assertThat(agentService.findForManuscript(book).getCompactionPrompt()).isEqualTo("Short summary please.");
+    }
+
+    @Test
+    void theDefaultPromptIsTheUsersOwnWhenTheSettingsHaveOne() throws Exception {
+        manuscript();
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDefaultAgentPrompt("My own prompt for agents");
+        settingService.save(setting);
+
+        AgentDialog dialog = dialog(null);
+
+        assertThat(dialog.getSystemPromptField().getValue()).isEmpty();
+        assertThat(dialog.getSystemPromptField().getPlaceholder()).isEqualTo("My own prompt for agents");
+        button(dialog.getSystemPromptField().getPopover(), "Insert Default Template").click();
+        assertThat(dialog.getSystemPromptField().getValue()).isEqualTo("My own prompt for agents");
     }
 
     @Test

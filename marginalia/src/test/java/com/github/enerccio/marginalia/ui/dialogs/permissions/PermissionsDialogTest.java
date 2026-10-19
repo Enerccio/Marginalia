@@ -209,6 +209,31 @@ class PermissionsDialogTest extends MarginaliaTestBase {
         assertThat(stored.getAgentsRunTokenBudget()).isEqualTo(100_000L);
     }
 
+    @Test
+    void theAgentsPermissionHasTheQuotas() throws Exception {
+        permissionService.setGranted(user, PermissionType.AGENTS, true);
+        PermissionsDialog dialog = dialog();
+        dialog.setExpanded(PermissionType.AGENTS, true);
+        AgentsPermissionComponent settings = (AgentsPermissionComponent) dialog.getSettings(PermissionType.AGENTS);
+        assertThat(field(settings, "Working copies").getValue()).as("empty is the default").isNull();
+
+        field(settings, "Working copies").setValue(2);
+        field(settings, "Largest file (KB)").setValue(512);
+        field(settings, "Workspace size (MB)").setValue(40);
+        field(settings, "Files in a workspace").setValue(250);
+        button(dialog, "Save").click();
+
+        Permission stored = permissionService.getPermission(user, PermissionType.AGENTS);
+        assertThat(stored.getAgentsMaxCopies()).isEqualTo(2);
+        assertThat(stored.getAgentsMaxFileKb()).isEqualTo(512);
+        assertThat(stored.getAgentsMaxWorkspaceMb()).isEqualTo(40);
+        assertThat(stored.getAgentsMaxWorkspaceFiles()).isEqualTo(250);
+
+        AgentsPermissionComponent reopened = (AgentsPermissionComponent) dialog().getSettings(PermissionType.AGENTS);
+        assertThat(field(reopened, "Working copies").getValue()).isEqualTo(2);
+        assertThat(field(reopened, "Largest file (KB)").getValue()).isEqualTo(512);
+    }
+
     private static IntegerField field(AgentsPermissionComponent settings, String label) {
         return all(settings.getComponent()).filter(IntegerField.class::isInstance).map(IntegerField.class::cast)
                 .filter(f -> label.equals(f.getLabel())).findFirst().orElseThrow();

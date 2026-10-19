@@ -91,6 +91,17 @@ public class JpaAgentRunRepository extends JpaExtendableRepository<AgentRun> imp
     }
 
     @Override
+    public long countWithWorkingCopy(User user) throws Exception {
+        if (user == null || user.getId() == null) {
+            return 0;
+        }
+        return entityManager
+                .createQuery("SELECT COUNT(r) FROM AgentRun r WHERE r.deleted = false AND r.owner.id = :owner AND r.workingCopy IS NOT NULL", Long.class)
+                .setParameter("owner", user.getId())
+                .getSingleResult();
+    }
+
+    @Override
     public int updateStatus(Long runId, Long ownerId, AgentRunStatus from, AgentRunStatus to, String reason, Date finishedAt) throws Exception {
         return statusUpdate("r.id = :id AND r.status = :from AND r.deleted = false"
                 + (ownerId != null ? " AND r.owner.id = :owner" : ""), runId, ownerId, from, to, reason, finishedAt);

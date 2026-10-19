@@ -12,7 +12,10 @@ import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfil
 import com.github.enerccio.marginalia.domain.service.InferenceService.RoundUsage;
 import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
+import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
+import com.github.enerccio.marginalia.domain.service.command.CommandRun;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException;
+import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -36,6 +39,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton, DisposableBean {
 
@@ -144,19 +148,30 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         if (run.getStatus() != AgentRunStatus.RUNNING) {
             throw new IllegalStateException("A run that is " + run.getStatus() + " is not taken up");
         }
+        start(run, null);
+    }
+
+    /**
+     * Gives the run a worker unless it has one.
+     *
+     * @param initial what the worker delivers before it goes on: queued messages and commands of the author, null for none
+     * @return whether the run got a worker, false when one is busy with it already
+     */
+    private boolean start(AgentRun run, List<Queued> initial) {
         if (!working.add(run.getId())) {
-            return;
+            return false;
         }
         // before the thread starts: a pause asked right now has to wait for the worker
         runService.workerStarted(run);
         try {
             log.info("Agent run {} is taken up by a worker", run.getUuid());
-            executor.execute(new Worker(run));
+            executor.execute(new Worker(run, initial));
         } catch (RuntimeException e) {
             working.remove(run.getId());
             runService.workerFinished(run);
             throw e;
         }
+        return true;
     }
 
     @Override
@@ -171,6 +186,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         boolean queue = run.isInteractive() && QUEUEING.contains(run.getStatus());
         if (run.getStatus() != AgentRunStatus.IDLE && !queue) {
             throw new IllegalStateException("A run that is " + run.getStatus() + " does not wait for a message");
+        }
+        if (!queue && working.contains(run.getId())) {
+            // a command of the author is being run for the run that waits: it writes the transcript
+            throw new IllegalStateException("A command is running, the message can be sent when it is done");
         }
         LLMChatMessage message = LLMChatMessage.of(LLMRole.USER, StringUtils.defaultString(text).strip());
         if (!attached.isEmpty()) {
@@ -199,7 +218,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         synchronized (inbox) {
             AgentRun current = runService.find(run.getId());
             if (QUEUEING.contains(current.getStatus())) {
-                inbox.add(new Queued(UUID.randomUUID().toString(), message));
+                inbox.add(new Queued(UUID.randomUUID().toString(), message, null));
                 log.info("Agent run {}: a message of the user ({} characters) waits for the end of the turn", run.getUuid(),
                         message.getContent().length());
                 return current;
@@ -213,6 +232,110 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             run(running);
             return running;
         }
+    }
+
+    @Override
+    public List<String> consoleCommands(Agent agent) {
+        List<String> names = new ArrayList<>();
+        names.add(COMPACT);
+        names.add(CLEAR_WORKSPACE);
+        Set<String> allowed = agent == null ? Set.of() : new HashSet<>(agent.getAllowedCommands());
+        commandService.getCommands().stream()
+                .filter(definition -> allowed.contains(definition.commandName()) && !definition.dataSeverity().isDestructive())
+                .map(CommandDefinition::commandName).distinct().sorted().forEach(names::add);
+        return names;
+    }
+
+    @Override
+    public AgentRun command(AgentRun run, String line) throws Exception {
+        if (run == null || run.getId() == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        String text = StringUtils.strip(line);
+        if (text == null || text.length() < 2 || text.charAt(0) != '/') {
+            throw new IllegalArgumentException("A command starts with a slash");
+        }
+        Agent agent = agentService.findForUser(run.getAgent().getUuid());
+        String name = commandName(text);
+        if (agent == null || !consoleCommands(agent).contains(name)) {
+            throw new IllegalArgumentException("The command /" + name + " is not one the author can run on this agent");
+        }
+        Queued item = new Queued(UUID.randomUUID().toString(), null, text);
+        AgentRun current = runService.find(run.getId());
+        if (current == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        if (QUEUEING.contains(current.getStatus())) {
+            if (!current.isInteractive()) {
+                throw new IllegalStateException("A command can be queued only for a conversation, the agent is working on its own");
+            }
+            Inbox inbox = inboxes.computeIfAbsent(current.getId(), id -> new Inbox());
+            synchronized (inbox) {
+                AgentRun again = runService.find(current.getId());
+                if (QUEUEING.contains(again.getStatus())) {
+                    inbox.add(item);
+                    log.info("Agent run {}: the command /{} of the user waits for the end of the turn", current.getUuid(), name);
+                    return again;
+                }
+                current = again;
+            }
+        }
+        if (current.getStatus() != AgentRunStatus.IDLE && current.getStatus() != AgentRunStatus.PAUSED) {
+            throw new IllegalStateException("A run that is " + current.getStatus() + " can't be given a command");
+        }
+        // the run waits: a worker that only does the command, the run stays as it is
+        log.info("Agent run {}: the command /{} of the user is run", current.getUuid(), name);
+        if (!start(current, List.of(item))) {
+            throw new IllegalStateException("A command is running, the next one can be given when it is done");
+        }
+        return current;
+    }
+
+    /**
+     * The name of the command in the line, without the slash.
+     */
+    private static String commandName(String line) {
+        int end = 1;
+        while (end < line.length() && !Character.isWhitespace(line.charAt(end))) {
+            end++;
+        }
+        return line.substring(1, end);
+    }
+
+    /**
+     * What follows the name of the command in the line, trimmed.
+     */
+    private static String commandArguments(String line) {
+        return line.substring(commandName(line).length() + 1).strip();
+    }
+
+    /**
+     * The words of the arguments, a word with spaces in double quotes.
+     */
+    private static List<String> words(String arguments) {
+        List<String> words = new ArrayList<>();
+        StringBuilder word = new StringBuilder();
+        boolean quoted = false;
+        boolean started = false;
+        for (char c : arguments.toCharArray()) {
+            if (c == '"') {
+                quoted = !quoted;
+                started = true;
+            } else if (Character.isWhitespace(c) && !quoted) {
+                if (started) {
+                    words.add(word.toString());
+                    word.setLength(0);
+                    started = false;
+                }
+            } else {
+                word.append(c);
+                started = true;
+            }
+        }
+        if (started) {
+            words.add(word.toString());
+        }
+        return words;
     }
 
     @Override
@@ -249,10 +372,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             switch (current.getStatus()) {
                 case RUNNING, WAITING_APPROVAL -> inbox.force(id);
                 case IDLE -> {
-                    // the turn ended meanwhile, nothing to throw away
-                    AgentRun running = runService.transition(current, AgentRunStatus.RUNNING, null);
-                    messageService.append(running, List.of(merged(inbox.takeThrough(id))));
-                    run(running);
+                    // the turn ended meanwhile, nothing to throw away; a message makes the agent answer, commands alone do not
+                    List<Queued> due = inbox.takeThrough(id);
+                    boolean message = due.stream().anyMatch(item -> item.command() == null);
+                    AgentRun running = message ? runService.transition(current, AgentRunStatus.RUNNING, null) : current;
+                    if (!start(running, due)) {
+                        throw new IllegalStateException("The agent is busy, try again in a moment");
+                    }
                 }
                 default -> throw new IllegalStateException("A run that is " + current.getStatus() + " can't be given a message now");
             }
@@ -275,7 +401,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     /**
      * A message the author wrote while the run worked.
      */
-    private record Queued(String id, LLMChatMessage message) {
+    private record Queued(String id, LLMChatMessage message, String command) {
     }
 
     /**
@@ -296,7 +422,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
 
         synchronized List<QueuedMessage> snapshot() {
-            return queued.stream().map(message -> new QueuedMessage(message.id(), message.message().getContent())).toList();
+            return queued.stream().map(item -> item.command() != null ? new QueuedMessage(item.id(), item.command(), true)
+                    : new QueuedMessage(item.id(), item.message().getContent())).toList();
         }
 
         synchronized void force(String id) {
@@ -418,6 +545,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private AgentRun run;
         private AgentRequestAttributes attributes;
         private Agent agent;
+        // the prompt of the agent or the default it follows, resolved when the work starts (like the instructions)
+        private String systemPrompt;
         private final Progress progress = new Progress();
         // made again when the run is loaded, it depends on whether the run is a conversation
         private RunToolsImpl runTools = new RunToolsImpl(progress::render);
@@ -428,10 +557,20 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private boolean seesImages;
         // the messages of the author, only for a conversation
         private Inbox inbox;
+        // the model of the run and its tools, set when the work starts (the compaction asks the model too)
+        private ResolvedProfile profile;
+        private InferenceService inference;
+        private FunctionSet tools;
+        // set while a command of the author runs: a message the author forces in then waits for it
+        private boolean ignoreForce;
+        // the queued messages and commands of the author to deliver before the work goes on, null for none; a worker
+        // for a run that waits only does these and leaves the run as it is
+        private final List<Queued> initial;
 
-        Worker(AgentRun run) {
+        Worker(AgentRun run, List<Queued> initial) {
             this.runId = run.getId();
             this.run = run;
+            this.initial = initial;
         }
 
         @Override
@@ -479,29 +618,49 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             runTools = new RunToolsImpl(progress::render, run.isInteractive());
             inbox = run.isInteractive() ? inboxes.computeIfAbsent(runId, id -> new Inbox()) : null;
             agent = agentService.findForUser(run.getAgent().getUuid());
-            ResolvedProfile profile = agentService.resolveProfile(agent.getMainProfile());
-            if (profile == null) {
+            systemPrompt = agentService.getSystemPrompt(agent);
+            profile = agentService.resolveProfile(agent.getMainProfile());
+            if (profile == null && initial == null) {
                 pause("The model of the agent is not available");
                 return;
             }
-            InferenceService inference = inferenceServices.forAIOrThrow(profile.ai());
-            seesImages = profile.profile().isImages();
+            // a command of the author that does not ask the model needs none
+            inference = profile == null ? null : inferenceServices.forAIOrThrow(profile.ai());
+            seesImages = profile != null && profile.profile().isImages();
 
             List<LLMChatMessage> transcript = new ArrayList<>(messageService.transcript(run));
-            prepare(transcript);
+            if (initial == null) {
+                prepare(transcript);
+            } else {
+                // the run waits: no "go on", the calls of an interrupted round only get their answer
+                repairCalls(transcript);
+            }
             runTools.restorePlan(planOf(transcript));
-            FunctionSet tools = tools();
+            tools = tools();
 
             progress.maxRounds = agent.getMaxRounds() == null ? 0 : agent.getMaxRounds();
             progress.contextCap = runService.getContextCap(run);
-            progress.responseCap = TokenLimits.responseTokens(profile.ai(), profile.protocol());
+            progress.responseCap = profile == null ? 0 : TokenLimits.responseTokens(profile.ai(), profile.protocol());
             progress.rounds = run.getRounds();
             progress.tokens = run.getTotalTokens();
             progress.tokenBudget = runService.getTokenBudget(run);
             log.info("Agent run {} of agent \"{}\" works: AI \"{}\", protocol \"{}\", {} message(s) so far, round {}, limits: {} rounds, {} tokens, {} context",
-                    run.getUuid(), agent.getName(), profile.ai().getName(), profile.protocol().getName(),
+                    run.getUuid(), agent.getName(), profile == null ? "none" : profile.ai().getName(),
+                    profile == null ? "none" : profile.protocol().getName(),
                     transcript.size(), run.getRounds(), progress.maxRounds > 0 ? progress.maxRounds : "no",
                     progress.tokenBudget > 0 ? progress.tokenBudget : "no", progress.contextCap > 0 ? progress.contextCap : "no");
+
+            if (initial != null) {
+                deliver(initial, transcript);
+                run = runService.find(runId);
+                if (run.getStatus() != AgentRunStatus.RUNNING) {
+                    // the run waits still, or a pause or a stop was asked meanwhile
+                    settleRequested();
+                    return;
+                }
+                // somebody wrote to the run or resumed it meanwhile: the work goes on from here
+                prepare(transcript);
+            }
 
             while (true) {
                 // the stable point: a pause or a stop asked meanwhile ends here
@@ -621,33 +780,231 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 reach(target, reason);
                 return false;
             }
-            synchronized (inbox) {
-                if (deliverQueued(transcript)) {
+            while (true) {
+                List<Queued> due;
+                synchronized (inbox) {
+                    due = inbox.takeThrough(null);
+                    if (due.isEmpty()) {
+                        reach(target, reason);
+                        return false;
+                    }
+                }
+                // outside of the lock: a command can take long, and the author must be able to write meanwhile
+                if (deliver(due, transcript)) {
                     return true;
                 }
-                reach(target, reason);
-                return false;
+                // only commands, they do not make the agent answer: look again before the turn ends
             }
         }
 
         /**
-         * Appends the queued messages, all of them, to the transcript as one message of the author.
+         * Delivers the queued messages and commands, all of them, in the order they came.
          *
-         * @return false when nothing was queued
+         * @return true when a message of the author was among them, so that the agent reads it and goes on; false when
+         * nothing was queued or only commands
          */
         private boolean deliverQueued(List<LLMChatMessage> transcript) throws Exception {
             if (inbox == null) {
                 return false;
             }
+            List<Queued> due;
             synchronized (inbox) {
-                List<Queued> due = inbox.takeThrough(null);
-                if (due.isEmpty()) {
-                    return false;
-                }
-                log.info("Agent run {}: {} queued message(s) of the user go to the agent", run.getUuid(), due.size());
-                append(transcript, merged(due));
-                return true;
+                due = inbox.takeThrough(null);
             }
+            return !due.isEmpty() && deliver(due, transcript);
+        }
+
+        /**
+         * Puts what the author queued into the transcript, in order: the messages as one message of the author, a command
+         * is run (as the author, the agent did not call it) and what it said is a message of the author too.
+         *
+         * @return whether a message of the author (not a command) was among them
+         */
+        private boolean deliver(List<Queued> due, List<LLMChatMessage> transcript) throws Exception {
+            log.info("Agent run {}: {} queued message(s) and command(s) of the user go to the agent", run.getUuid(), due.size());
+            boolean message = false;
+            List<Queued> messages = new ArrayList<>();
+            for (Queued item : due) {
+                if (item.command() == null) {
+                    messages.add(item);
+                    message = true;
+                    continue;
+                }
+                if (!messages.isEmpty()) {
+                    append(transcript, merged(messages));
+                    messages.clear();
+                }
+                runCommand(item.command(), transcript);
+            }
+            if (!messages.isEmpty()) {
+                append(transcript, merged(messages));
+            }
+            return message;
+        }
+
+        /**
+         * Runs a command of the author. {@code /compact} summarizes the transcript, the others are run in the working copy
+         * as any command; the answer, or the error, is written to the transcript as a message of the author that says
+         * they ran it.
+         */
+        private void runCommand(String line, List<LLMChatMessage> transcript) throws Exception {
+            String name = commandName(line);
+            boolean before = ignoreForce;
+            ignoreForce = true;
+            try {
+                log.info("Agent run {}: the user runs /{}", run.getUuid(), name);
+                if (COMPACT.equals(name)) {
+                    try {
+                        compact(commandArguments(line), transcript);
+                    } catch (Discarded e) {
+                        throw e;
+                    } catch (Exception e) {
+                        log.warn("Agent run {}: compaction failed: {}", run.getUuid(), e.getMessage());
+                        append(transcript, LLMChatMessage.of(LLMRole.USER, "The author asked to compact your work, but it failed: "
+                                + CommandFunctions.messageOf(e) + "\nNothing was changed."));
+                    }
+                    return;
+                }
+                if (CLEAR_WORKSPACE.equals(name)) {
+                    append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_AUTHOR_COMMAND_NOTE + "\n\nCommand: " + line
+                            + "\n\nResult:\n" + clearWorkspace(commandArguments(line))));
+                    return;
+                }
+                String result;
+                try {
+                    CommandRun commandRun = commandService.executeLine(line);
+                    result = CommandFunctions.bound(FunctionDefinition.render(await(commandRun, () -> commandRun.cancel(true))));
+                } catch (Discarded e) {
+                    throw e;
+                } catch (Exception e) {
+                    result = "Error: " + CommandFunctions.messageOf(e);
+                }
+                log.info("Agent run {}: /{} {} ({} characters)", run.getUuid(), name,
+                        result.startsWith("Error:") ? "failed" : "done", result.length());
+                append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_AUTHOR_COMMAND_NOTE + "\n\nCommand: " + line
+                        + "\n\nResult:\n" + result));
+            } finally {
+                ignoreForce = before;
+            }
+        }
+
+        /**
+         * {@code /clear-workspace}: the files and folders of the workspace are deleted but for the paths and patterns in the
+         * arguments. The answer is what the model reads, a failure leaves the workspace as it was.
+         */
+        private String clearWorkspace(String arguments) {
+            try {
+                VirtualFileSystem.Cleared cleared = files.clearWorkspace(words(arguments));
+                log.info("Agent run {}: workspace cleared, {} file(s) and {} folder(s) deleted, {} kept", run.getUuid(),
+                        cleared.files(), cleared.folders(), cleared.kept().size());
+                StringBuilder result = new StringBuilder("Deleted ").append(cleared.files()).append(" file(s) and ")
+                        .append(cleared.folders()).append(" folder(s) from the workspace.");
+                if (!cleared.kept().isEmpty()) {
+                    result.append(" Kept: ").append(cleared.kept().stream().map(VirtualPath::toString).collect(Collectors.joining(", ")))
+                            .append('.');
+                }
+                return result.toString();
+            } catch (Exception e) {
+                log.warn("Agent run {}: the workspace could not be cleared: {}", run.getUuid(), e.getMessage());
+                return "Error: " + CommandFunctions.messageOf(e) + "\nNothing was deleted.";
+            }
+        }
+
+        /**
+         * The compaction: the model reads the whole transcript and writes the summary, which becomes the start of what it
+         * reads from now on. The rounds before stay in the transcript of the user, marked as compacted.
+         *
+         * @param focus what the author wants the summary to stress, may be empty
+         */
+        private void compact(String focus, List<LLMChatMessage> transcript) throws Exception {
+            if (profile == null || inference == null) {
+                throw new IllegalStateException("The model of the agent is not available");
+            }
+            if (transcript.isEmpty()) {
+                throw new IllegalStateException("There is nothing to compact");
+            }
+            List<LLMChatMessage> history = new ArrayList<>(transcript);
+            int dropped = fit(history);
+            String prompt = agentService.getCompactionPrompt(agent).strip();
+            history.add(LLMChatMessage.of(LLMRole.USER, focus.isEmpty() ? prompt
+                    : prompt + "\n\nThe author wants the summary to stress: " + focus));
+
+            Round round = ask(inference, profile, payload(history), tools);
+            run = runService.addUsage(run, round.usage().promptTokens(), round.usage().completionTokens());
+            progress.rounds = run.getRounds();
+            progress.tokens = run.getTotalTokens();
+            String text = StringUtils.defaultString(round.text()).strip();
+            if (text.isEmpty()) {
+                throw new IllegalStateException(round.calls().isEmpty() ? "The model wrote no summary"
+                        : "The model called a tool instead of writing the summary");
+            }
+            StringBuilder message = new StringBuilder(Defaults.AGENT_COMPACTED_NOTE).append("\n\n").append(text);
+            if (dropped > 0) {
+                message.append("\n\n").append(String.format(Defaults.AGENT_COMPACTED_TRIMMED, dropped));
+            }
+            if (!runTools.getPlan().isEmpty()) {
+                message.append("\n\nYour plan when this summary was written:\n").append(RunToolsImpl.render(runTools.getPlan()));
+            }
+            LLMChatMessage summary = LLMChatMessage.of(LLMRole.USER, message.toString());
+            long summaryTokens = inference.countTokensApprox(summary.getContent());
+            // what the next request will be: the system prompt and the tools as well, the model reports the real number then
+            long tokens = estimate(payload(List.of(summary))) + toolTokens();
+            messageService.compact(run, summary, tokens);
+            log.info("Agent run {}: {} message(s) compacted to a summary of {} tokens, about {} with the prompt and the tools ({} + {} tokens spent)",
+                    run.getUuid(), transcript.size(), summaryTokens, tokens, round.usage().promptTokens(), round.usage().completionTokens());
+            transcript.clear();
+            transcript.add(summary);
+            progress.contextTokens = tokens;
+        }
+
+        /**
+         * Leaves out of the messages the oldest ones, whole rounds, until the rest and the prompt fit the context of the
+         * model with room for the summary it writes (80% of the cap of the context); a compaction that is asked for
+         * after the context is full can still be done this way.
+         *
+         * @return how many messages were left out
+         */
+        private int fit(List<LLMChatMessage> history) throws Exception {
+            long cap = progress.contextCap;
+            if (cap <= 0) {
+                return 0;
+            }
+            long room = cap * 8 / 10;
+            long used = estimate(payload(history)) + toolTokens();
+            int dropped = 0;
+            while (used > room && history.size() > 1) {
+                used -= estimate(List.of(history.removeFirst()));
+                dropped++;
+                // results of calls that are gone are gone too
+                while (history.size() > 1 && history.getFirst().getRole() == LLMRole.TOOL) {
+                    used -= estimate(List.of(history.removeFirst()));
+                    dropped++;
+                }
+            }
+            return dropped;
+        }
+
+        /**
+         * What the definitions of the tools add to every request.
+         */
+        private long toolTokens() throws Exception {
+            long tokens = 0;
+            for (FunctionDefinition definition : tools.getDefinitions()) {
+                tokens += inference.countTokensApprox(definition.getName() + " " + StringUtils.defaultString(definition.getDescription())
+                        + " " + definition.getParametersSchema());
+            }
+            return tokens;
+        }
+
+        private long estimate(List<LLMChatMessage> messages) throws Exception {
+            long tokens = 0;
+            for (LLMChatMessage message : messages) {
+                tokens += inference.countTokensApprox(StringUtils.defaultString(message.getContent()));
+                for (LLMToolCall call : message.getToolCalls()) {
+                    tokens += inference.countTokensApprox(StringUtils.defaultString(call.getArguments()));
+                }
+            }
+            return tokens;
         }
 
         /**
@@ -675,12 +1032,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (!results.isEmpty()) {
                 append(transcript, results.toArray(new LLMChatMessage[0]));
             }
+            List<Queued> due;
             synchronized (inbox) {
-                String id = inbox.forcedId();
-                List<Queued> due = inbox.takeThrough(id);
-                if (!due.isEmpty()) {
-                    append(transcript, merged(due));
-                }
+                due = inbox.takeThrough(inbox.forcedId());
+            }
+            if (!due.isEmpty()) {
+                deliver(due, transcript);
             }
         }
 
@@ -692,8 +1049,21 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.DEFAULT_AGENT_START_MESSAGE));
                 return;
             }
-            // a round interrupted between the calls and their results: the calls get an answer, the model is not left
-            // with calls nobody answered (providers refuse that)
+            repairCalls(transcript);
+            LLMChatMessage last = transcript.getLast();
+            if (last.getRole() == LLMRole.ASSISTANT && !last.hasToolCalls() && !deliverQueued(transcript)) {
+                append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.DEFAULT_AGENT_RESUME_MESSAGE));
+            }
+        }
+
+        /**
+         * A round interrupted between the calls and their results: the calls get an answer, the model is not left with
+         * calls nobody answered (providers refuse that).
+         */
+        private void repairCalls(List<LLMChatMessage> transcript) throws Exception {
+            if (transcript.isEmpty()) {
+                return;
+            }
             int lastCalls = -1;
             for (int i = transcript.size() - 1; i >= 0; i--) {
                 if (transcript.get(i).getRole() == LLMRole.ASSISTANT) {
@@ -715,10 +1085,6 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 if (!missing.isEmpty()) {
                     append(transcript, missing.toArray(new LLMChatMessage[0]));
                 }
-            }
-            LLMChatMessage last = transcript.getLast();
-            if (last.getRole() == LLMRole.ASSISTANT && !last.hasToolCalls() && !deliverQueued(transcript)) {
-                append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.DEFAULT_AGENT_RESUME_MESSAGE));
             }
         }
 
@@ -855,8 +1221,30 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             return note.append("\nget_run_status tells how much of this is used.").toString();
         }
 
+        /**
+         * The transcript with messages of the author that follow each other made one: a command the author ran is a message
+         * of the author, so is the summary of a compaction, and some chat templates refuse two of one role in a row. The
+         * transcript itself is not changed.
+         */
+        private List<LLMChatMessage> coalesced(List<LLMChatMessage> transcript) {
+            List<LLMChatMessage> result = new ArrayList<>();
+            for (LLMChatMessage message : transcript) {
+                LLMChatMessage previous = result.isEmpty() ? null : result.getLast();
+                if (previous != null && previous.getRole() == LLMRole.USER && message.getRole() == LLMRole.USER) {
+                    LLMChatMessage joined = LLMChatMessage.of(LLMRole.USER, StringUtils.defaultString(previous.getContent())
+                            + "\n\n" + StringUtils.defaultString(message.getContent()));
+                    previous.getAttachments().forEach(joined::addAttachment);
+                    message.getAttachments().forEach(joined::addAttachment);
+                    result.set(result.size() - 1, joined);
+                } else {
+                    result.add(message);
+                }
+            }
+            return result;
+        }
+
         private List<LLMChatMessage> payload(List<LLMChatMessage> transcript) {
-            StringBuilder system = new StringBuilder(StringUtils.defaultString(agent.getSystemPrompt()).strip());
+            StringBuilder system = new StringBuilder(StringUtils.defaultString(systemPrompt).strip());
             if (StringUtils.isNotBlank(agent.getInstructions())) {
                 system.append("\n\n# Instructions of the author\n\n").append(agent.getInstructions().strip());
             }
@@ -869,7 +1257,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             List<LLMChatMessage> payload = new ArrayList<>();
             payload.add(LLMChatMessage.of(LLMRole.SYSTEM, system.toString()));
-            payload.addAll(withImages(transcript));
+            payload.addAll(withImages(coalesced(transcript)));
             return payload;
         }
 
@@ -888,7 +1276,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             if (progress.contextCap > 0) {
                 if (progress.contextTokens == 0) {
-                    long estimate = 0;
+                    long estimate = toolTokens();
                     for (LLMChatMessage message : payload(transcript)) {
                         estimate += inference.countTokensApprox(StringUtils.defaultString(message.getContent()));
                     }
@@ -965,7 +1353,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          */
         private <T> T await(CompletableFuture<T> future, Runnable cancel) throws Exception {
             while (true) {
-                if (inbox != null && inbox.isForced()) {
+                if (!ignoreForce && inbox != null && inbox.isForced()) {
                     cancel.run();
                     throw new Forced();
                 }

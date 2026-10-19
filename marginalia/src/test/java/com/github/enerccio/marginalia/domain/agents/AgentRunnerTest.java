@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.AgentVirtualFileSystemService;
 import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
+import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
@@ -783,5 +784,381 @@ class AgentRunnerTest extends AgentTestBase {
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("at most 8");
         // nothing was sent: the run still waits
         assertThat(agentRunService.find(run.getId()).getStatus()).isEqualTo(AgentRunStatus.IDLE);
+    }
+
+    // --- commands of the author ---
+
+    @Test
+    void theConsoleOffersCompactAndTheReadingCommandsTheAgentMay() throws Exception {
+        loginAgentUser();
+        Agent asking = newAgent(manuscript());
+        asking.setAllowedCommands(List.of("get-book-info", "search-replace-parts", "no-such-command"));
+        Agent agent = agentService.save(asking);
+
+        assertThat(runner.consoleCommands(agent)).as("compact and clear-workspace, then what only reads, search-replace changes data")
+                .containsExactly("compact", "clear-workspace", "get-book-info");
+    }
+
+    @Test
+    void aCommandThatIsNotOfferedIsRefused() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Hello.");
+        AgentRun run = await(startConversation(agent));
+
+        assertThatThrownBy(() -> runner.command(run, "/list-lorebooks")).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("list-lorebooks");
+        assertThatThrownBy(() -> runner.command(run, "get-book-info")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> runner.command(run, "/")).isInstanceOf(IllegalArgumentException.class);
+        assertThat(llm.getCompletionRequests()).hasSize(1);
+    }
+
+    @Test
+    void aCommandOfTheAuthorIsAMessageOfTheAuthorNotACallOfTheAgent() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Hello.");
+        AgentRun run = await(startConversation(agent));
+
+        runner.command(agentRunService.find(run.getId()), "/get-book-info");
+        run = await(run);
+
+        assertThat(run.getStatus()).as("the run stays as it was").isEqualTo(AgentRunStatus.IDLE);
+        assertThat(llm.getCompletionRequests()).as("the agent is not asked to answer").hasSize(1);
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT, LLMRole.USER);
+        assertThat(transcript.getLast().getContent()).startsWith(Defaults.AGENT_AUTHOR_COMMAND_NOTE)
+                .contains("Command: /get-book-info").contains(agent.getManuscript().getName());
+        assertThat(transcript).flatExtracting(LLMChatMessage::getToolCalls).as("no call of the agent").isEmpty();
+    }
+
+    @Test
+    void theAgentReadsTheCommandAndTheNextMessageAsOneMessageOfTheAuthor() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.text("Hello."), MockLLMResponse.text("Seen."));
+        AgentRun run = await(startConversation(agent));
+        runner.command(agentRunService.find(run.getId()), "/get-book-info");
+        run = await(run);
+
+        runner.send(agentRunService.find(run.getId()), "What did it say?");
+        await(run);
+
+        List<String> users = llm.lastCompletionRequest().getMessages("user");
+        assertThat(users).hasSize(2);
+        assertThat(users.getLast()).contains("Command: /get-book-info").endsWith("What did it say?");
+    }
+
+    @Test
+    void aFailingCommandIsTheErrorInTheMessage() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Hello.");
+        AgentRun run = await(startConversation(agent));
+
+        runner.command(agentRunService.find(run.getId()), "/get-book-info too many arguments");
+        run = await(run);
+
+        assertThat(transcript(run).getLast().getContent()).contains("Command: /get-book-info too many arguments").contains("Result:\nError:");
+    }
+
+    @Test
+    void aCommandIsQueuedWhileAConversationWorksAndRunsWhereTheAgentWouldHaveWaited() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("Counted.").waitFor(gate, Duration.ofSeconds(20)));
+        AgentRun run = startConversation(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+
+        runner.command(agentRunService.find(run.getId()), "/get-book-info");
+
+        assertThat(runner.queued(run)).containsExactly(new AgentRunner.QueuedMessage(runner.queued(run).getFirst().id(),
+                "/get-book-info", true));
+        assertThat(transcript(run)).as("nothing is written yet").hasSize(1);
+        gate.countDown();
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(runner.queued(run)).isEmpty();
+        assertThat(llm.getCompletionRequests()).as("a command does not make the agent answer").hasSize(1);
+        assertThat(transcript(run)).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT, LLMRole.USER);
+        assertThat(transcript(run).getLast().getContent()).contains("Command: /get-book-info");
+    }
+
+    @Test
+    void aMessageAndACommandQueuedTogetherAreDeliveredInOrderAndTheAgentAnswers() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("Counted.").waitFor(gate, Duration.ofSeconds(20)), MockLLMResponse.text("Understood."));
+        AgentRun run = startConversation(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        runner.send(agentRunService.find(run.getId()), "Look at the book.");
+        runner.command(agentRunService.find(run.getId()), "/get-book-info");
+
+        gate.countDown();
+        run = await(run);
+
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT, LLMRole.USER,
+                LLMRole.USER, LLMRole.ASSISTANT);
+        assertThat(transcript.get(2).getContent()).isEqualTo("Look at the book.");
+        assertThat(transcript.get(3).getContent()).contains("Command: /get-book-info");
+        assertThat(llm.getCompletionRequests()).hasSize(2);
+    }
+
+    @Test
+    void aForcedCommandThrowsAwayTheRoundAndTheAgentGoesOn() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("The answer nobody reads.").waitFor(gate, Duration.ofSeconds(20)),
+                MockLLMResponse.text("Seen the book."));
+        AgentRun run = startConversation(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        runner.command(agentRunService.find(run.getId()), "/get-book-info");
+
+        runner.force(agentRunService.find(run.getId()), runner.queued(run).getFirst().id());
+        run = await(run);
+        gate.countDown();
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.USER, LLMRole.ASSISTANT);
+        assertThat(transcript.get(1).getContent()).contains("Command: /get-book-info");
+        assertThat(transcript.getLast().getContent()).isEqualTo("Seen the book.");
+    }
+
+    @Test
+    void aCommandIsNotQueuedForAnAutonomousRunAndNotGivenToAnEndedOne() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("Done.").waitFor(gate, Duration.ofSeconds(20)));
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+
+        AgentRun working = agentRunService.find(run.getId());
+        assertThatThrownBy(() -> runner.command(working, "/get-book-info")).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("conversation");
+        gate.countDown();
+        run = await(run);
+
+        runner.command(run, "/get-book-info");
+        run = await(run);
+        assertThat(run.getStatus()).as("an autonomous run that waits takes a command").isEqualTo(AgentRunStatus.IDLE);
+
+        AgentRun stopped = agentRunService.stop(run, true);
+        assertThatThrownBy(() -> runner.command(await(stopped, Set.of(AgentRunStatus.STOPPED_KEPT)), "/get-book-info"))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void aPausedRunTakesACommandAndStaysPaused() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Hello.");
+        AgentRun run = await(startConversation(agent));
+        run = agentRunService.pause(run);
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+
+        runner.command(run, "/get-book-info");
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(transcript(run).getLast().getContent()).contains("Command: /get-book-info");
+        assertThat(llm.getCompletionRequests()).hasSize(1);
+    }
+
+    @Test
+    void aMessageWaitsWhileACommandIsRun() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("Hello."), MockLLMResponse.text("The summary.").waitFor(gate, Duration.ofSeconds(20)));
+        AgentRun run = await(startConversation(agent));
+        runner.command(agentRunService.find(run.getId()), "/compact");
+        llm.awaitCompletionRequests(2, Duration.ofSeconds(10));
+
+        AgentRun idle = agentRunService.find(run.getId());
+        assertThatThrownBy(() -> runner.send(idle, "Too early.")).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("command is running");
+        assertThatThrownBy(() -> runner.command(idle, "/get-book-info")).isInstanceOf(IllegalStateException.class);
+        gate.countDown();
+        await(run);
+    }
+
+    // --- /compact ---
+
+    @Test
+    void compactReplacesTheTranscriptTheModelReadsByASummaryItWrote() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.text("Counted."),
+                MockLLMResponse.text("Task: count parts. Done: counted."), MockLLMResponse.text("Carrying on."));
+        AgentRun run = await(startConversation(agent));
+        assertThat(transcript(run)).hasSize(4);
+
+        runner.command(agentRunService.find(run.getId()), "/compact the counting");
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        // the request: everything so far, and the compaction prompt with the focus as the last message, no tools called
+        MockLLMRequest request = llm.lastCompletionRequest();
+        String ask = request.getMessages("user").getLast();
+        assertThat(ask).startsWith(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT.strip()).endsWith("The author wants the summary to stress: the counting");
+        assertThat(request.getMessages("tool")).hasSize(1);
+        // what the model reads now is the summary alone
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript).hasSize(1);
+        assertThat(transcript.getFirst().getRole()).isEqualTo(LLMRole.USER);
+        assertThat(transcript.getFirst().getContent()).startsWith(Defaults.AGENT_COMPACTED_NOTE)
+                .contains("Task: count parts. Done: counted.");
+        // the user still has all of it, marked
+        List<AgentMessage> rows = messageService.messages(run);
+        assertThat(rows).hasSize(5);
+        assertThat(rows.subList(0, 4)).allMatch(AgentMessage::isCompacted).noneMatch(AgentMessage::isSummary);
+        assertThat(rows.getLast().isSummary()).isTrue();
+        assertThat(rows.getLast().isCompacted()).isFalse();
+        assertThat(messageService.count(run)).isEqualTo(5);
+        assertThat(messageService.getContextTokens(run)).as("the summary with the system prompt and the tools, not the summary alone")
+                .isGreaterThan(transcript.getFirst().getContent().length() / 4 + Defaults.AGENT_RUNNER_NOTE.length() / 4);
+
+        // the agent goes on from the summary, with the next message of the author after it as one message
+        runner.send(agentRunService.find(run.getId()), "Now the chapters.");
+        run = await(run);
+        List<String> users = llm.lastCompletionRequest().getMessages("user");
+        assertThat(users).hasSize(1);
+        assertThat(users.getFirst()).startsWith(Defaults.AGENT_COMPACTED_NOTE).endsWith("Now the chapters.");
+        assertThat(llm.lastCompletionRequest().getMessages("tool")).isEmpty();
+    }
+
+    @Test
+    void compactWithoutAFocusAsksJustThePrompt() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.text("Hello."), MockLLMResponse.text("The summary."));
+        AgentRun run = await(startConversation(agent));
+
+        runner.command(agentRunService.find(run.getId()), "/compact");
+        await(run);
+
+        assertThat(llm.lastCompletionRequest().getMessages("user").getLast()).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT.strip());
+    }
+
+    @Test
+    void theCompactionPromptFollowsTheAgentThenTheDefaults() throws Exception {
+        Agent agent = readingAgent();
+        agent.setCompactionPrompt("Write three lines.");
+        agentService.save(agent);
+        llm.enqueue(MockLLMResponse.text("Hello."), MockLLMResponse.text("One. Two. Three."));
+        AgentRun run = await(startConversation(agent));
+
+        runner.command(agentRunService.find(run.getId()), "/compact");
+        await(run);
+
+        assertThat(llm.lastCompletionRequest().getMessages("user").getLast()).isEqualTo("Write three lines.");
+    }
+
+    @Test
+    void thePlanSurvivesACompactionInTheSummary() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("update_plan", "{\"items\":[{\"text\":\"Count parts\",\"status\":\"done\"},"
+                        + "{\"text\":\"Count lore\",\"status\":\"pending\"}]}"),
+                MockLLMResponse.text("Planned."), MockLLMResponse.text("The summary."));
+        AgentRun run = await(startConversation(agent));
+
+        runner.command(agentRunService.find(run.getId()), "/compact");
+        run = await(run);
+
+        assertThat(transcript(run).getFirst().getContent()).contains("The summary.").contains("Your plan when this summary was written")
+                .contains("Count parts").contains("Count lore");
+    }
+
+    @Test
+    void whenTheOldestPartDoesNotFitTheContextItIsLeftOutOfTheSummaryRequest() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}"), MockLLMResponse.text("Counted."),
+                MockLLMResponse.text("The summary."));
+        AgentRun run = await(startConversation(agent));
+        assertThat(transcript(run)).hasSize(4);
+        agent = agentService.findForUser(agent.getUuid());
+        agent.setContextCap(50);
+        agentService.save(agent);
+
+        runner.command(agentRunService.find(run.getId()), "/compact");
+        run = await(run);
+
+        // the newest message always stays, so the model sees at least what it answered last
+        assertThat(llm.lastCompletionRequest().getMessages("user")).as("only the compaction prompt was left").hasSize(1);
+        assertThat(transcript(run).getFirst().getContent()).contains(String.format(Defaults.AGENT_COMPACTED_TRIMMED, 3));
+    }
+
+    @Test
+    void aCompactionThatFailsLeavesTheTranscriptAndSaysSo() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.text("Hello."), MockLLMResponse.toolCall("get-book-info", "{}"));
+        AgentRun run = await(startConversation(agent));
+
+        runner.command(agentRunService.find(run.getId()), "/compact");
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        List<LLMChatMessage> transcript = transcript(run);
+        assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT, LLMRole.USER);
+        assertThat(transcript.getLast().getContent()).contains("compact your work, but it failed").contains("called a tool")
+                .contains("Nothing was changed");
+        assertThat(messageService.messages(run)).noneMatch(AgentMessage::isCompacted);
+    }
+
+    @Test
+    void compactIsQueuedLikeAnyCommandAndTheAgentWaitsAfterIt() throws Exception {
+        Agent agent = readingAgent();
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("Counted.").waitFor(gate, Duration.ofSeconds(20)), MockLLMResponse.text("The summary."));
+        AgentRun run = startConversation(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+        runner.command(agentRunService.find(run.getId()), "/compact");
+
+        gate.countDown();
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(llm.getCompletionRequests()).hasSize(2);
+        assertThat(transcript(run)).hasSize(1);
+        assertThat(transcript(run).getFirst().getContent()).contains("The summary.");
+    }
+
+    @Test
+    void clearWorkspaceDeletesTheRestAndTellsTheAgentWhatWasKept() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Hello.");
+        AgentRun run = await(startConversation(agent));
+        VirtualFileSystem files = fileSystemService.open(run);
+        files.writeText(VirtualPath.parse("/notes.md"), "n", false);
+        files.writeText(VirtualPath.parse("/keep.md"), "k", false);
+        files.writeText(VirtualPath.parse("/drafts/one.md"), "1", false);
+        files.writeText(VirtualPath.parse("/drafts/two.txt"), "2", false);
+        files.writeText(VirtualPath.parse("/my notes/a.md"), "a", false);
+        files.createFolder(VirtualPath.parse("/empty"));
+
+        runner.command(agentRunService.find(run.getId()), "/clear-workspace /keep.md /drafts/two.txt \"/my notes\"");
+        run = await(run);
+
+        assertThat(run.getStatus()).as("the run stays as it was").isEqualTo(AgentRunStatus.IDLE);
+        assertThat(llm.getCompletionRequests()).as("the agent is not asked to answer").hasSize(1);
+        assertThat(files.walk(VirtualPath.ROOT, 100)).extracting(e -> e.path().toString())
+                .containsExactlyInAnyOrder("/keep.md", "/drafts", "/drafts/two.txt", "/my notes", "/my notes/a.md");
+        assertThat(transcript(run).getLast().getContent()).startsWith(Defaults.AGENT_AUTHOR_COMMAND_NOTE)
+                .contains("Command: /clear-workspace").contains("Deleted 2 file(s) and 1 folder(s)").contains("/keep.md, /drafts/two.txt, /my notes");
+    }
+
+    @Test
+    void clearWorkspaceWithoutArgumentsEmptiesItAndAMissingKeepDeletesNothing() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Hello.");
+        AgentRun run = await(startConversation(agent));
+        VirtualFileSystem files = fileSystemService.open(run);
+        files.writeText(VirtualPath.parse("/a.md"), "a", false);
+        files.writeText(VirtualPath.parse("/dir/b.md"), "b", false);
+
+        runner.command(agentRunService.find(run.getId()), "/clear-workspace /missing.md");
+        run = await(run);
+        assertThat(files.walk(VirtualPath.ROOT, 100)).hasSize(3);
+        assertThat(transcript(run).getLast().getContent()).contains("Error:").contains("/missing.md").contains("Nothing was deleted");
+
+        runner.command(agentRunService.find(run.getId()), "/clear-workspace");
+        run = await(run);
+        assertThat(files.walk(VirtualPath.ROOT, 100)).isEmpty();
+        assertThat(transcript(run).getLast().getContent()).contains("Deleted 2 file(s) and 1 folder(s) from the workspace.").doesNotContain("Kept");
     }
 }

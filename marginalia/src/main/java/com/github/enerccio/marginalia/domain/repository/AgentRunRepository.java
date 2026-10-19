@@ -40,6 +40,11 @@ public interface AgentRunRepository extends ExtendableRepository<AgentRun> {
     long countByStatus(User user, Collection<AgentRunStatus> statuses) throws Exception;
 
     /**
+     * Number of the non-deleted runs of the user that keep a working copy of a book.
+     */
+    long countWithWorkingCopy(User user) throws Exception;
+
+    /**
      * Changes the status of the run only if it still has the expected one, in one SQL update.
      *
      * @param ownerId    only a run of this user is changed; null is a run of anybody

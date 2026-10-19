@@ -87,6 +87,7 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
             throw new IllegalArgumentException("The agent does not exist");
         }
         checkCanWork(stored, true);
+        checkCopyQuota(userService.find(currentUser.getId()));
 
         AgentRun run = new AgentRun();
         run.setAgent(stored);
@@ -131,6 +132,18 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         }
     }
 
+    /**
+     * A run needs a working copy of the book, and the user may keep only so many (unfinished runs keep theirs, also
+     * the paused ones): refused when the copy would be one too many.
+     */
+    private void checkCopyQuota(User user) throws Exception {
+        int maxCopies = agentService.getGrant(user).maxCopies();
+        if (maxCopies > 0 && getRepository().countWithWorkingCopy(user) >= maxCopies) {
+            throw new IllegalStateException("The user has all the working copies they are allowed (" + maxCopies
+                    + "); finish, stop or delete a run that keeps one");
+        }
+    }
+
     @Override
     @CommonTx
     public AgentRun resume(AgentRun run) throws Exception {
@@ -148,6 +161,7 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         AgentRun current = find(run.getId());
         if (current != null && current.getWorkingCopy() == null) {
             // a run from before the copies, or one whose copy is gone
+            checkCopyQuota(userService.find(currentUser.getId()));
             getRepository().updateWorkingCopy(run.getId(), manuscriptService.createAgenticCopy(stored.getManuscript()));
         }
         return transition(run, AgentRunStatus.RUNNING, null);

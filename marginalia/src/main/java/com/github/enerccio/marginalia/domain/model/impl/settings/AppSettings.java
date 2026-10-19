@@ -135,6 +135,24 @@ public class AppSettings extends Setting {
     @ExtendedAttribute
     private String helpPromptUser;
 
+    // agents
+
+    /**
+     * The system prompt of the agents that have none of their own and whose user has none in the settings; blank is
+     * {@code Defaults.DEFAULT_AGENT_PROMPT}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String defaultAgentPrompt;
+
+    /**
+     * The compaction prompt of the agents that have none of their own and whose user has none in the settings; blank is
+     * {@code Defaults.DEFAULT_AGENT_COMPACTION_PROMPT}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private String defaultAgentCompactionPrompt;
+
     public Integer getDbVersion() {
         return dbVersion;
     }
@@ -245,6 +263,22 @@ public class AppSettings extends Setting {
 
     public void setHelpInteractions(Boolean helpInteractions) {
         this.helpInteractions = helpInteractions;
+    }
+
+    public String getDefaultAgentCompactionPrompt() {
+        return defaultAgentCompactionPrompt;
+    }
+
+    public void setDefaultAgentCompactionPrompt(String defaultAgentCompactionPrompt) {
+        this.defaultAgentCompactionPrompt = defaultAgentCompactionPrompt;
+    }
+
+    public String getDefaultAgentPrompt() {
+        return defaultAgentPrompt;
+    }
+
+    public void setDefaultAgentPrompt(String defaultAgentPrompt) {
+        this.defaultAgentPrompt = defaultAgentPrompt;
     }
 
     public Boolean getHelpAdminData() {
