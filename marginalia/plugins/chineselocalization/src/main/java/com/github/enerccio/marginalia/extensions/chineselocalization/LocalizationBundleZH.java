@@ -860,7 +860,6 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN, "问候语 Hello world");
         setValue(L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN, "参数");
         setValue(L.DESC_COMMAND_TAKE_BACKUP, "为当前打开的书创建备份。备份会显示在该书的“备份”选项卡中。");
-        setValue(L.DESC_COMMAND_TAKE_BACKUP_LLM, "备份用户当前打开的书（其消息、部分、世界书和设置），并与该书的其他备份一起保存。没有打开的书时会失败。不会更改书本身；会增加一个备份，计入该书已保存的备份数量。异步。");
         setValue(L.DESC_COMMAND_TAKE_BACKUP_RETURN, "备份的内容：书名以及其消息和图片的数量");
         setValue(L.DESC_COMMAND_SEARCH_PARAM, "要查找的文本（使用 regex 时为正则表达式）");
         setValue(L.DESC_COMMAND_REPLACE_PARAM, "用于替换的文本（可以为空；使用 regex 时可以使用 $1 等分组）");

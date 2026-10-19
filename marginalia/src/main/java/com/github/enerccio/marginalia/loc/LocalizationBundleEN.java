@@ -852,7 +852,6 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_HELLO_WORLD_GREETING_RETURN, "The greeting, Hello world");
         setValue(L.DESC_COMMAND_HELLO_WORLD_ECHO_RETURN, "The argument");
         setValue(L.DESC_COMMAND_TAKE_BACKUP, "Takes a backup of the book that is open. The backup is listed in the Backups tab of the book.");
-        setValue(L.DESC_COMMAND_TAKE_BACKUP_LLM, "Backs up the book the user has open (its messages, parts, lorebooks and settings) and keeps the backup with the other backups of that book. Fails when no book is open. Changes nothing in the book; it adds one backup, which counts against the book's stored backups. Asynchronous.");
         setValue(L.DESC_COMMAND_TAKE_BACKUP_RETURN, "What was backed up: the name of the book and how many messages and images it has");
         setValue(L.DESC_COMMAND_SEARCH_PARAM, "The text to find (a regular expression with regex)");
         setValue(L.DESC_COMMAND_REPLACE_PARAM, "The text to put in its place (may be empty; with regex it can use $1 groups)");

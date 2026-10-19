@@ -120,6 +120,7 @@ public final class CssStyles {
     public static final String HELP_MESSAGE = "help-message";
     public static final String HELP_MESSAGE_USER = "help-message-user";
     public static final String HELP_MESSAGE_QUEUED = "help-message-queued";
+    public static final String HELP_MESSAGE_FOLDED = "help-message-folded";
     public static final String HELP_MESSAGE_ERROR = "help-message-error";
     public static final String HELP_INPUT = "help-input";
 

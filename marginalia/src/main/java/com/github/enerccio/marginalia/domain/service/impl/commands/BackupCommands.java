@@ -33,8 +33,8 @@ public class BackupCommands {
     private Localization loc;
 
     @Command(commandName = "take-backup", humanName = L.LABEL_COMMAND_TAKE_BACKUP, async = true,
-            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
-            description = L.DESC_COMMAND_TAKE_BACKUP, llmDescription = L.DESC_COMMAND_TAKE_BACKUP_LLM,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, availableForAgent = false,
+            description = L.DESC_COMMAND_TAKE_BACKUP,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "message", type = String.class,
                     description = L.DESC_COMMAND_TAKE_BACKUP_RETURN))

@@ -550,7 +550,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private Div summaryBubble(String content) {
         Details details = new Details(loc.getValue(L.LABEL_AGENT_SUMMARY), new Markdown(StringUtils.defaultString(content)));
         Div block = new Div(details);
-        block.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER);
+        block.addClassNames(CssStyles.HELP_MESSAGE, CssStyles.HELP_MESSAGE_USER, CssStyles.HELP_MESSAGE_FOLDED);
         return block;
     }
 

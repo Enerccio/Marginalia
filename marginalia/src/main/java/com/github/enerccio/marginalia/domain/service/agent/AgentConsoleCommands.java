@@ -24,7 +24,7 @@ public final class AgentConsoleCommands {
      */
     public static final CommandDefinition COMPACT = new CommandDefinition(AgentRunner.COMPACT,
             CommandText.of(L.LABEL_COMMAND_COMPACT), CommandText.of(L.DESC_AGENT_COMMAND_COMPACT), CommandText.NONE, false,
-            CommandDataSeverity.NON_DESTRUCTIVE, null, true, List.of(),
+            CommandDataSeverity.NON_DESTRUCTIVE, true, null, true, List.of(),
             new CommandReturnDefinition("", void.class, CommandText.NONE));
 
     /**
@@ -32,7 +32,7 @@ public final class AgentConsoleCommands {
      */
     public static final CommandDefinition CLEAR_WORKSPACE = new CommandDefinition(AgentRunner.CLEAR_WORKSPACE,
             CommandText.of(L.LABEL_COMMAND_CLEAR_WORKSPACE), CommandText.of(L.DESC_AGENT_COMMAND_CLEAR_WORKSPACE), CommandText.NONE,
-            false, CommandDataSeverity.DESTRUCTIVE, null, true, List.of(),
+            false, CommandDataSeverity.DESTRUCTIVE, true, null, true, List.of(),
             new CommandReturnDefinition("", void.class, CommandText.NONE));
 
     private AgentConsoleCommands() {

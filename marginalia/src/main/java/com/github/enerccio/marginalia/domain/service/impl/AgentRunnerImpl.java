@@ -241,7 +241,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         names.add(CLEAR_WORKSPACE);
         Set<String> allowed = agent == null ? Set.of() : new HashSet<>(agent.getAllowedCommands());
         commandService.getCommands().stream()
-                .filter(definition -> allowed.contains(definition.commandName()) && !definition.dataSeverity().isDestructive())
+                .filter(definition -> allowed.contains(definition.commandName()) && definition.availableForAgent()
+                        && !definition.dataSeverity().isDestructive())
                 .map(CommandDefinition::commandName).distinct().sorted().forEach(names::add);
         return names;
     }

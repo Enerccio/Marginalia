@@ -210,7 +210,7 @@ public final class CommandFunctions {
         Set<String> names = new HashSet<>(allowed);
         Map<String, List<CommandDefinition>> byName = new TreeMap<>();
         for (CommandDefinition definition : commands.getCommands()) {
-            if (names.contains(definition.commandName())) {
+            if (definition.availableForAgent() && names.contains(definition.commandName())) {
                 byName.computeIfAbsent(definition.commandName(), _ -> new ArrayList<>()).add(definition);
             }
         }

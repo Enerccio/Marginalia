@@ -64,11 +64,12 @@ class AgentDialogTest extends AgentTestBase {
     }
 
     private List<String> commandNames() {
-        return commandService.getCommands().stream().map(CommandDefinition::commandName).distinct().toList();
+        return commandService.getCommands().stream().filter(CommandDefinition::availableForAgent).map(CommandDefinition::commandName)
+                .distinct().toList();
     }
 
     private List<String> readOnlyCommandNames() {
-        return commandService.getCommands().stream().filter(c -> !c.dataSeverity().isDestructive())
+        return commandService.getCommands().stream().filter(CommandDefinition::availableForAgent).filter(c -> !c.dataSeverity().isDestructive())
                 .map(CommandDefinition::commandName).distinct().toList();
     }
 
