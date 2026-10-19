@@ -500,6 +500,22 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_CHECKPOINTS, "チェックポイント");
         setValue(L.LABEL_SAVE_CHECKPOINT, "チェックポイントを保存");
         setValue(L.LABEL_CHECKPOINT_LABEL, "ラベル (任意)");
+        setValue(L.LABEL_REVIEW_CHANGES, "変更を確認");
+        setValue(L.LABEL_APPLY_PICKED_CHANGES, "選択した変更を適用");
+        setValue(L.LABEL_DISCARD_RESULT, "結果を破棄");
+        setValue(L.LABEL_SELECT_ALL, "すべて選択");
+        setValue(L.LABEL_SELECT_NONE, "選択を解除");
+        setValue(L.LABEL_SELECT_NEW_PARTS, "新しいパートのみ");
+        setValue(L.LABEL_SELECT_WITHOUT_CONFLICTS, "競合なし");
+        setValue(L.LABEL_MERGE_IN_BOOK_NOW, "現在のブックの内容");
+        setValue(L.LABEL_MERGE_TO_APPLY, "適用する内容(編集可)");
+        setValue(L.LABEL_MERGE_BEFORE_RUN, "実行開始時");
+        setValue(L.LABEL_USE_BOOK_VERSION, "ブックの内容を使う");
+        setValue(L.LABEL_USE_AGENT_VERSION, "エージェントの内容を使う");
+        setValue(L.LABEL_SWITCH_TO_AGENT_BRANCH, "エージェントが終えたブランチを表示する");
+        setValue(L.LABEL_PART_TEXT, "パートの本文");
+        setValue(L.LABEL_SUBBOOKS, "サブブック");
+        setValue(L.LABEL_STATE, "状態");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -572,6 +588,16 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_CHECKPOINT_START, "実行の開始");
         setValue(L.ENUM_CHECKPOINT_AUTOMATIC, "自動");
         setValue(L.ENUM_CHECKPOINT_MANUAL, "手動");
+        setValue(L.ENUM_MERGE_KIND_BOOK, "ブック");
+        setValue(L.ENUM_MERGE_KIND_MESSAGE, "パート");
+        setValue(L.ENUM_MERGE_KIND_LOREBOOK, "ロアブック");
+        setValue(L.ENUM_MERGE_KIND_ENTRY, "エントリ");
+        setValue(L.ENUM_MERGE_CHANGE_ADDED, "追加");
+        setValue(L.ENUM_MERGE_CHANGE_CHANGED, "変更");
+        setValue(L.ENUM_MERGE_CHANGE_DELETED, "削除");
+        setValue(L.ENUM_MERGE_STATE_CONFLICT, "競合");
+        setValue(L.ENUM_MERGE_STATE_SHARED, "共有");
+        setValue(L.ENUM_MERGE_STATE_BLOCKED, "適用不可");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -809,6 +835,19 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CHECKPOINTS_USAGE, "チェックポイントの使用量: %s / %s (うち %s は自動チェックポイント用に確保)。");
         setValue(L.MSG_AGENT_CHECKPOINTS_EMPTY, "チェックポイントはまだありません。実行の開始時に作られます。");
         setValue(L.MSG_AGENT_CHECKPOINT_BUSY, "エージェントが作業中です。チェックポイントの保存や復元は一時停止してから行ってください。");
+        setValue(L.MSG_MERGE_SUMMARY, "%d 件の変更: パート %d、ロアブック %d、エントリ %d、ブック設定 %d。競合: %d。");
+        setValue(L.MSG_MERGE_BOOK_CHANGED, "実行開始後にブックが変更されました。競合とは、あなたとエージェントの両方が変更したテキストです。どちらを残すか選ぶか、結果を自分で書いてください。");
+        setValue(L.MSG_MERGE_NO_CHANGES, "エージェントはブックを変更しませんでした。");
+        setValue(L.MSG_MERGE_APPLIED, "%d 件の変更をブックに適用しました。変更前のブックはバックアップに保存されています。");
+        setValue(L.MSG_MERGE_SKIPPED, "選択した変更のうち %d 件は適用できませんでした: %s");
+        setValue(L.MSG_MERGE_CONFIRM_CONFLICTS, "選択した変更のうち %d 件は競合です。ブックのテキストはエージェントのテキスト、またはあなたが書いたテキストで置き換えられます。続行しますか?");
+        setValue(L.MSG_MERGE_CONFIRM_DISCARD, "エージェントの作業をすべて破棄しますか?ブックはそのままです。");
+        setValue(L.MSG_MERGE_PROBLEM_GONE, "この項目はブックにありません。実行開始後に削除されました。");
+        setValue(L.MSG_MERGE_PROBLEM_NEEDS_PARENT, "このパートの前のパートがブックから削除されました。");
+        setValue(L.MSG_MERGE_PROBLEM_NEEDS_LOREBOOK, "このエントリのロアブックがブックから削除されました。");
+        setValue(L.MSG_MERGE_SHARED, "次でも使われています: %s。変更するとそちらも変わります。");
+        setValue(L.MSG_MERGE_NOTHING_PICKED, "何も選択されていません。");
+        setValue(L.MSG_MERGE_ADDED_NEEDS_OTHERS, "これを選択すると、必要な項目も選択されます。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -857,6 +896,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_RUN_NOW, "エージェントがこのラウンドで行っていることを破棄して、今すぐコマンドを実行します。");
         setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "1回の実行のすべてのチェックポイントの合計容量 (MB)。作業コピーとワークスペースの復元ポイントで、エージェントが作るものと自動のものを含みます。空欄は 100。");
         setValue(L.HELP_AGENT_CHECKPOINTS, "本の作業コピーとワークスペースの復元ポイントです。実行の開始時と、変更を伴うラウンドの前に自動で作られます (最新の5つを保持)。エージェントも自分で保存できます。管理者が設定した容量を共有します。");
+        setValue(L.HELP_MERGE, "エージェントはブックのコピーで作業しました。引き継ぐ内容を選んでください。適用前にブックが保存されます。右側のテキストが書き込まれる内容で、編集できます。競合とは、あなたとエージェントの両方が変更したテキストです。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

@@ -117,6 +117,15 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception;
 
     /**
+     * As {@link #updateResponse}, without the work of finding the summaries the edit made outdated (it reads the whole branch
+     * of the part): for the code that changes many parts at once and does not tell about the summaries.
+     *
+     * @return the saved part
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     */
+    ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text) throws Exception;
+
+    /**
      * Adds a part the author (or an agent) wrote as a child of {@code parent}, or as the first part of an empty book when
      * the parent is null: counts its tokens and words and makes it the active leaf of the book, which is saved. The part is
      * not flagged as edited, nobody changed a text of the model.

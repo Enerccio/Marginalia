@@ -222,14 +222,23 @@ class AgentWorkingCopyTest extends AgentTestBase {
     }
 
     @Test
-    void doneRunDeletesItsCopy() throws Exception {
-        assertRunEndsWithoutCopy(DONE, run -> {
-            try {
-                return agentRunService.transition(run, DONE, "report");
-            } catch (Exception e) {
-                throw new IllegalStateException(e);
-            }
-        });
+    void doneRunKeepsItsCopyUntilTheResultIsDiscarded() throws Exception {
+        AgentRun run = agentRunService.start(agent);
+        Manuscript copy = copyOf(run);
+        Lorebook lorebookCopy = lorebookService.find(copy.getLorebook());
+        ChatMessage copiedMessage = chatMessageService.getAllMessages(copy).getFirst();
+
+        AgentRun done = agentRunService.transition(run, DONE, "report");
+
+        assertThat(done.getWorkingCopy()).as("it waits for the review").isNotNull();
+        assertThat(manuscriptService.find(copy.getId())).isNotNull();
+        assertThat(agentRunService.findUnfinished(agent)).as("and blocks the agent").isNotNull();
+
+        AgentRun discarded = agentRunService.stop(done, false);
+
+        assertThat(discarded.getStatus()).isEqualTo(STOPPED_DISCARDED);
+        assertThat(discarded.getWorkingCopy()).isNull();
+        assertCopyIsGone(run, copy, lorebookCopy, copiedMessage);
     }
 
     @Test

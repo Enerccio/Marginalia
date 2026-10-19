@@ -11,6 +11,8 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AgentAttentionService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AgentVirtualFileSystemService.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AgentRunPairService.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/AgentMergeService.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AgentMergeServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AgentRunPairServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AgentRunnerImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AgentRunServiceImpl.java
@@ -67,6 +69,7 @@ flowchart LR
 | `AgentFileTools`, `AgentVirtualFileSystemService` | `domain.service.agent`, `domain.service` | The workspace and the file tools; paths are virtual. |
 | `RunTools` | `domain.service.agent` | `finish`, `ask_user`, `update_plan`, `request_compaction`, `get_run_status`. |
 | `CheckpointTools`, `CheckpointService`, `CheckpointStore` | `domain.service.agent`, `domain.service` | The checkpoint tools (`checkpoint`, `checkpoint_list`, `checkpoint_restore`, `checkpoint_delete`), the service behind them and the console, and the ZIP files; see [Checkpoints](#checkpoints). |
+| `AgentMergeService`, `MergeDiff`, `MergePlan` | `domain.service`, `domain.service.agent` | Compares the copy with the base and the book now and applies the changes the user picked; see [Merge and apply](#merge-and-apply). |
 | `ImageTools`, `ImageFiles`, `ShownImages` | `domain.service.agent` | `view_image` (only for a profile with `images`), the image checks and scaling, and the images asked for in a round; see [Images](#images). |
 | `CommandResults` | `domain.service.agent` | The last 10 results of the commands of a run, whole. |
 | `AgentApprovalService`, `AgentAttentionService` | `domain.service` | Bring the user in: approve a command, a notice that a run needs them. |
@@ -103,7 +106,8 @@ stateDiagram-v2
     RUNNING --> DONE: finish
     IDLE --> DONE: Finish in the console
     RUNNING --> FAILED: the runner broke
-    DONE --> APPLIED: the review (not built yet)
+    DONE --> APPLIED: the review, AgentMergeService.apply
+    STOPPED_KEPT --> APPLIED: the review
 ```
 
 (The complete table of the allowed changes is `AgentRunStatus.next()`; the diagram leaves out the discards.)
@@ -155,8 +159,8 @@ owns the book.
 A run never touches the book of the user. `AgentRunService.start` makes a hidden **working copy** (`ManuscriptService.createAgenticCopy`: the
 book through its backup JSON, with its own copy of the lorebook tree; everything has `agentic = true`, new uuids, nothing shared) and stores
 it as `AgentRun.workingCopy`. The lists of the UI leave the `agentic` books out (`findAllRegular...`), the services that delete a copy refuse a book that is not
-`agentic`, so a path that deletes the book of a user does not exist. `DONE`, `FAILED` and a discarded stop delete the copy for good; a pause or a kept stop
-keeps it. Bringing the changes back into the book (the review, `APPLIED`) is not built yet.
+`agentic`, so a path that deletes the book of a user does not exist. `FAILED`, a discarded stop and `APPLIED` delete the copy for good (`COPY_ENDING`); a pause, a kept stop and `DONE` keep it,
+`DONE` until the result is applied or discarded (see [Merge and apply](#merge-and-apply)).
 
 The copy has **new uuids**, so the run records how it relates to the original, in the transaction that makes the copy:
 
@@ -379,6 +383,35 @@ In the runner (`Worker`): `startCheckpoint` before the loop (`ensureStart`; a re
 `CheckpointToolsImpl`: `checkpoint`, `checkpoint_list` and `checkpoint_delete` are done at once; `checkpoint_restore` only notes the id, and the worker restores after the round (`restoreForAgent`), makes the tools again (the
 scope of the commands holds the copy) and tells the agent what came back (`Defaults.AGENT_RESTORED`, the files removed, the checkpoint of the state before). The console tab is `AgentCheckpointBrowser`.
 
+## Merge and apply
+
+What a run changed is taken over by `AgentMergeService` (`AgentMergeServiceImpl`), for a run that is `DONE` or `STOPPED_KEPT` (it has its copy). `plan(run)` returns a `MergePlan`, `apply(run, MergeSelection)` applies what
+the user picked. The book is never restored from a backup (that would change the uuid of every part): the items are changed one by one, in place.
+
+**The comparison** is `MergeDiff` (`domain.service.agent`), plain code on JSON without the database. Its three inputs are snapshots in the format of `ManuscriptService.createBackup` plus the lorebooks with the uuids of
+their entries: the **base** (`AgentVirtualFileSystemService.readBase`, the book as the run started), the **copy** (`ManuscriptService.snapshotAgenticCopy`) and the **book now** (`createBackup` + `marshalLorebooks(root, true)`).
+The copy is read through the pairs of the run (`AgentRunPairService.getAll`, copy uuid -> original uuid): every uuid of the copy, also the ones inside a text (`nextSummaryUuid`, `replacedSummary`, the data of a plugin;
+`MergeDiff.translate`), becomes the uuid of its original, and an item without a pair gets the key `new:<uuid in the copy>`. Each item is a map of properties (a part: `response`, `instructions`, `sceneSetting`,
+`povCharacter`, `presentCharacters`, `summary` - one canonical string of the text, type, hash and the links of the summary; a lorebook: `name`, `enabled`, `tags`, `subbooks`; an entry: its fields, tags and the lorebook it is in;
+the book: its settings, `tags` and every `attributes_*` key, the data of the plugins) and is compared **field by field**: the field the agent changed (copy differs from base) and the book did not (book equals base) is a change to
+take over, both changed to different values is a `conflict`, the same value on both sides is nothing. `SET` fields (tags, subbooks) are merged by what each side added and removed and never conflict. A key only in the copy is
+`ADDED`, one only in the base and still in the book is `DELETED` (a conflict when the book changed it since), the ones the user deleted from the book are `problem`s (`PROBLEM_GONE`, `PROBLEM_NEEDS_PARENT`,
+`PROBLEM_NEEDS_LOREBOOK`) and can't be applied. `Item.dependsOn` is the item that must be applied first (the new part a new part follows, the new lorebook a new entry is in); `MergeDiff.chain` and `dependents` follow it.
+The service adds `sharedWith` (the other books whose lorebook tree holds the lorebook).
+
+**Apply** runs as two transactions (a `TransactionTemplate` of the `common` manager, `apply` has no `@CommonTx`): the changes, all or nothing, and then `AgentRunService.transition(run, APPLIED)`, which deletes the copy, the pairs, the
+base and the checkpoints (the 2000-part measurement: 150 changes on a book of 2000 parts of 4 KB: the plan 0.2 s, the changes and the delete of the copy a few seconds each, the whole apply 5-9 s; a restore is 30 s because it also
+makes a copy). The plan is made again inside the transaction, so the picked ids are applied to the book as it is at that moment, and an item whose prerequisite is not picked is skipped (`Skipped`). A backup of the book
+(`BackupService.takeBackup`) is taken first. The order: the settings of the book (`ManuscriptService.updateSettings`, the plugin data into `getAttributes()`, the tags), new lorebooks, changed lorebooks and their subbooks
+(`addSubbook`/`removeSubbook` with the cycle check), new / changed / deleted entries (`LorebookEntryService.create/update/move/deleteEntry`), deleted lorebooks, then parts: new ones in the tree order
+(`ChatMessage.copyOf` + `createRoot`/`addChild`), changed ones (the text through `ChatMessageService.storeResponse`: tokens and words are counted again only for a text the user wrote, the agent's text comes with the counts
+of its part), deleted ones (`deleteNodeAndMigrateChildren`, to the trash), and the summaries (the summary a part already has is written in place so that meta summaries still find it by uuid; the links inside new
+ones are translated at the end). The picked text of the user comes in `MergeSelection.edits` (item id -> field -> text), only for the `editable` fields. The services are called as for an edit by the user (their events are
+sent). Anything that fails rolls the changes back and the run stays `DONE`; if only the second transaction fails the changes are in and the run still waits, discarding it ends it.
+
+The screen is `AgentMergeDialog`: a multi-select grid of the items beside the detail of the one clicked (the text of the book and an editable box of the text to apply, the added and removed values of a set), opened from
+the Agents tab and the console (`Review changes`). It keeps the picks consistent with `dependsOn` and refuses to pick a `problem` item.
+
 ## The tools of an agent
 
 `AgentRunnerImpl.Worker.tools()` puts three function sets together with `FunctionSet.and` (a function name used twice fails the run):
@@ -554,6 +587,7 @@ runner's internals.
 | `AgentDialog`, `AgentCommandsEditor`, `AgentCommandPreset` | Create / edit an agent. The editor lists every registered command with its severity; the presets (all, none, non-destructive) tick them at once. An allowed command that is not registered now (its extension is not loaded) stays allowed when saved. |
 | `AgentCloneDialog` | Copies the definition and the workspace (not the runs) to a new agent of another book. |
 | `AgentStopDialog` | Keep or discard the result. |
+| `AgentMergeDialog` | The review of the result of a finished or kept run: the changes in a grid to tick, the detail with the text to apply, apply and discard, see [Merge and apply](#merge-and-apply). |
 | `AgentCheckpointBrowser` | The **Checkpoints** tab of the console (`AgentConsoleDialog.CHECKPOINTS_TAB`, read again only while shown): the list with who made each, the usage of the quota, save / restore / download / delete. Saving and restoring wait until the agent does not work. |
 | `AgentConsoleDialog` | The window of a run: three tabs (**Run**, **Runs**, **Workspace**), the state above, the box and the buttons below. It **polls** (`ui.setPollInterval(2000)` while it is attached, restored on detach) and reads only the rows of the transcript it has not rendered (`shown`), so a long run costs no more than a short one; the model's reasoning is a folded block, a command is a folded line that opens to its arguments and result. The command line is the `CommandBar` of the story tab (list, help popover, severity badges), set to the commands of `AgentConsoleCommands.of(commandService, AgentRunner.consoleCommands(agent))` (`setCommands`: the registered ones the agent is allowed and the definition of `/compact`, which no suite registers) and to hand its line to `AgentRunner.command` (`setLineRunner`) instead of running it as the user in their browser session; it sits, with a one line hint, between the transcript and the message box, enabled for a run that waits, is paused or is a conversation that works. Messages and commands the author queued while the agent works (`AgentRunner.queued`) are dashed bubbles after the last row, each with a small **Send now** / **Run now** button (`AgentRunner.force`); they come off while the transcript grows and go back after it. In the **Workspace** tab the list and the viewer split the height (`flex 3 : 2`), so only they scroll. |
 | `AgentRunHistory` | The **Runs** tab: every run, open one in the Run tab, download it (`AgentTranscriptExport`, the transcript as Markdown, nothing cut), delete it. |
@@ -616,6 +650,6 @@ model, so a whole run is tested without a network. The main classes: `AgentRunne
 | A status | Add it to `AgentRunStatus` and to `next()` (stored by name, do not rename), decide `isActive` / `holdsLock` / `needsAttention`, handle it in `AgentRunServiceImpl` and the localization of the status (`Localization.getAgentRunStatus`). |
 | A screen | A class in `ui.dialogs.agent`, a poll in the console when it shows run data. |
 
-Not done: the review that brings the changes of the working copy back into the book (`APPLIED`), summaries of
+Not done: a read only window of the working copy, the sync of the changes of the book into the copy on resume, summaries of
 older rounds when the context is full (the run pauses instead), "Pause now" (the request in the air is waited for), a limit of concurrent requests per AI, threads
 (sub-agents) and handles, stopping a running `async` command when its run stops.

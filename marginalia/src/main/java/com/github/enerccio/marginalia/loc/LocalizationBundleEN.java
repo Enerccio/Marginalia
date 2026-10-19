@@ -500,6 +500,22 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_CHECKPOINTS, "Checkpoints");
         setValue(L.LABEL_SAVE_CHECKPOINT, "Save a checkpoint");
         setValue(L.LABEL_CHECKPOINT_LABEL, "Label (optional)");
+        setValue(L.LABEL_REVIEW_CHANGES, "Review changes");
+        setValue(L.LABEL_APPLY_PICKED_CHANGES, "Apply the picked changes");
+        setValue(L.LABEL_DISCARD_RESULT, "Discard the result");
+        setValue(L.LABEL_SELECT_ALL, "Select all");
+        setValue(L.LABEL_SELECT_NONE, "Select none");
+        setValue(L.LABEL_SELECT_NEW_PARTS, "Only new parts");
+        setValue(L.LABEL_SELECT_WITHOUT_CONFLICTS, "Without conflicts");
+        setValue(L.LABEL_MERGE_IN_BOOK_NOW, "In the book now");
+        setValue(L.LABEL_MERGE_TO_APPLY, "To apply (you can edit it)");
+        setValue(L.LABEL_MERGE_BEFORE_RUN, "When the run started");
+        setValue(L.LABEL_USE_BOOK_VERSION, "Use the book's");
+        setValue(L.LABEL_USE_AGENT_VERSION, "Use the agent's");
+        setValue(L.LABEL_SWITCH_TO_AGENT_BRANCH, "Show the branch the agent ended on");
+        setValue(L.LABEL_PART_TEXT, "Text of the part");
+        setValue(L.LABEL_SUBBOOKS, "Subbooks");
+        setValue(L.LABEL_STATE, "State");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -572,6 +588,16 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_CHECKPOINT_START, "Start of the run");
         setValue(L.ENUM_CHECKPOINT_AUTOMATIC, "Automatic");
         setValue(L.ENUM_CHECKPOINT_MANUAL, "Made on purpose");
+        setValue(L.ENUM_MERGE_KIND_BOOK, "Book");
+        setValue(L.ENUM_MERGE_KIND_MESSAGE, "Part");
+        setValue(L.ENUM_MERGE_KIND_LOREBOOK, "Lorebook");
+        setValue(L.ENUM_MERGE_KIND_ENTRY, "Entry");
+        setValue(L.ENUM_MERGE_CHANGE_ADDED, "Added");
+        setValue(L.ENUM_MERGE_CHANGE_CHANGED, "Changed");
+        setValue(L.ENUM_MERGE_CHANGE_DELETED, "Deleted");
+        setValue(L.ENUM_MERGE_STATE_CONFLICT, "Conflict");
+        setValue(L.ENUM_MERGE_STATE_SHARED, "Shared");
+        setValue(L.ENUM_MERGE_STATE_BLOCKED, "Cannot apply");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -809,6 +835,19 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_CHECKPOINTS_USAGE, "The checkpoints take %s of %s; %s of it is kept for the automatic ones.");
         setValue(L.MSG_AGENT_CHECKPOINTS_EMPTY, "There are no checkpoints yet. The run makes one when it starts.");
         setValue(L.MSG_AGENT_CHECKPOINT_BUSY, "The agent is working. Pause it to save or restore a checkpoint.");
+        setValue(L.MSG_MERGE_SUMMARY, "%d changes: %d parts, %d lorebooks, %d entries, %d settings of the book. Conflicts: %d.");
+        setValue(L.MSG_MERGE_BOOK_CHANGED, "The book changed since the run started. A conflict is a text both you and the agent changed: pick whose stays, or write the result yourself.");
+        setValue(L.MSG_MERGE_NO_CHANGES, "The agent changed nothing in the book.");
+        setValue(L.MSG_MERGE_APPLIED, "%d changes were applied to the book. The book as it was is saved in its backups.");
+        setValue(L.MSG_MERGE_SKIPPED, "%d picked changes could not be applied: %s");
+        setValue(L.MSG_MERGE_CONFIRM_CONFLICTS, "%d of the picked changes are conflicts: the text of the book is replaced by the agent's, or by the text you wrote. Go on?");
+        setValue(L.MSG_MERGE_CONFIRM_DISCARD, "Throw away everything the agent did? The book stays as it is.");
+        setValue(L.MSG_MERGE_PROBLEM_GONE, "The book no longer has this item, it was deleted after the run started.");
+        setValue(L.MSG_MERGE_PROBLEM_NEEDS_PARENT, "The part this one follows was deleted from the book.");
+        setValue(L.MSG_MERGE_PROBLEM_NEEDS_LOREBOOK, "The lorebook of this entry was deleted from the book.");
+        setValue(L.MSG_MERGE_SHARED, "Also used by: %s. Changing it changes them too.");
+        setValue(L.MSG_MERGE_NOTHING_PICKED, "Nothing is picked.");
+        setValue(L.MSG_MERGE_ADDED_NEEDS_OTHERS, "Picking this also picks what it needs.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -857,6 +896,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_RUN_NOW, "Throws away what the agent is doing in this round and runs the command right now.");
         setValue(L.HELP_AGENTS_MAX_CHECKPOINT_MB, "How much all the checkpoints of one run can take, in MB; the restore points of the working copy and its workspace, the ones the agent makes and the automatic ones. Empty is 100.");
         setValue(L.HELP_AGENT_CHECKPOINTS, "Restore points of the working copy of the book and the workspace. The run makes one when it starts and one before the rounds that change something (the last five are kept); the agent can save its own. They share a quota set by the administrator.");
+        setValue(L.HELP_MERGE, "The agent worked on a copy of the book. Pick what to take over, the book is saved first. The text on the right is what will be written: edit it to change it. A conflict is a text that both you and the agent changed.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

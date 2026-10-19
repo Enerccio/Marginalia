@@ -39,18 +39,18 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
             AgentRunStatus.STOPPED_DISCARDED, AgentRunStatus.FAILED);
 
     /**
-     * The statuses a run has no use for its working copy in: nothing resumes it and nothing merges it back (yet), so
-     * the copy is deleted for good when the run gets there, and the next run makes a new one. A paused or kept run
-     * keeps the copy, it is resumed on it.
-     */
-    /**
      * The statuses in which the run asks nobody anything: the commands that wait for the approval of the user are
      * refused, so the calls in the air end.
      */
     private static final Set<AgentRunStatus> REFUSING = Set.of(AgentRunStatus.PAUSED, AgentRunStatus.STOPPING,
             AgentRunStatus.STOPPED_KEPT, AgentRunStatus.STOPPED_DISCARDED, AgentRunStatus.DONE, AgentRunStatus.FAILED);
 
-    private static final Set<AgentRunStatus> COPY_ENDING = Set.of(AgentRunStatus.DONE, AgentRunStatus.FAILED,
+    /**
+     * The statuses a run has no use for its working copy in: nothing resumes it and nothing merges it back, so the copy is
+     * deleted for good when the run gets there, and the next run makes a new one. A paused or kept run keeps the copy, it is
+     * resumed on it; a finished one keeps it until its result is applied or discarded.
+     */
+    private static final Set<AgentRunStatus> COPY_ENDING = Set.of(AgentRunStatus.FAILED,
             AgentRunStatus.STOPPED_DISCARDED, AgentRunStatus.APPLIED);
 
     @Autowired

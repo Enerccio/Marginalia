@@ -20,7 +20,7 @@ have it). It is not in the phone layout yet.
 |---|---|
 | **Agent ID** | The identifier of the agent. |
 | **Name** | The name you gave it. |
-| **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |
+| **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*, *Applied*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |
 
 The buttons at the end of a row depend on the run:
 
@@ -62,7 +62,7 @@ these of its own:
 How a run ends a stretch of work:
 
 - **Waiting for you:** the agent answered without a tool call, or asked you something. Answer it in the [console](#the-console).
-- **Done:** the agent called `finish` (in a run you started *immediately*). A run you started *in the console* is a conversation: the report of the agent comes to you like a question, the run waits for your next message, and only **Finish** in the console (or **Stop**) ends it.
+- **Done:** the agent called `finish` (in a run you started *immediately*). A run you started *in the console* is a conversation: the report of the agent comes to you like a question, the run waits for your next message, and only **Finish** in the console (or **Stop**) ends it. The result of a *Done* run waits for your [review](#reviewing-the-result).
 - **Paused**, with the reason: the limit of rounds, the token budget or the context limit is reached, the model could not be asked (an error of
   the provider, your limit on the AI), or the server was restarted. **Resume** goes on from the last complete round; a call that was in the air when the
   server stopped is reported to the model as "outcome unknown".
@@ -164,9 +164,36 @@ Every run works on a **copy of your book** and of its lorebooks that the app mak
 as they are at that moment, and the lorebook with its sub-lorebooks. The copy is hidden: it is not in the lists of books and lorebooks. Whatever the
 agent does, it does to the copy; your book stays as it was.
 
-A paused run keeps its copy and works on it again when you resume it. When the run ends (it is *Done*, *Failed* or you stop it and discard the result)
-the copy is deleted for good, and the next run makes a new one from the book as it is then. Nothing brings the changes of the copy back into your
-book yet.
+A paused run keeps its copy and works on it again when you resume it. A run that is *Done*, or that you stopped and kept, keeps it until you
+[take over its result or discard it](#reviewing-the-result). When the run is *Failed*, you discard its result, or its changes are applied, the copy is deleted for good, and the next run
+makes a new one from the book as it is then.
+
+## Reviewing the result
+
+When a run is *Done* (or you stopped it with **Stop and keep the result**) the agent row and the console have a **Review changes** button. It opens a window with
+everything the agent changed, compared with your book **as it is now**, one line each:
+
+- **Book:** its name, description, language, point of view, tense, style and templates, its tags, and the data an extension keeps in the book (an arc outline, the character tracker).
+- **Part:** a part whose text, instructions, scene setting, point-of-view character, present characters or summary the agent changed, a part it wrote, a part it deleted.
+- **Lorebook** and **Entry:** a lorebook or an entry the agent made, changed (also moved, renamed, or with other tags, or other subbooks) or deleted.
+
+Tick the lines you want, then **Apply the picked changes**. The buttons above the list tick **all** of them, **none**, **only new parts** (the new branch the agent wrote, nothing else) or everything
+**without conflicts**. A line that needs another (a new part needs the part it follows if that is new too) brings it along when you tick it, and loses its followers when you untick it. Click a line to see it
+on the right: the text of your book now and the text that will be written, **which you can edit** before you apply. If you write nothing, the agent's text is applied.
+
+Your book may have changed since the run started (you can edit it as soon as the run is not working). What only you changed is not in the list and stays. What both of you changed to the same thing is no
+change. What both changed to **different** texts is a **conflict**: it starts unticked, and when you tick it the text you see on the right replaces the text of the book. **Use the book's** puts the book's text
+into the box (the line then changes nothing for that field), **Use the agent's** puts the agent's back; or write the result yourself. A line that can't be taken over (the part it follows, or the lorebook it
+is in, was deleted from your book) says so and can't be ticked.
+
+A lorebook that other books use is marked **Shared**: the change goes to the lorebook itself, so the other books get it too. It starts unticked.
+
+Applying is done to the book **in place**: the parts keep their addresses, other books keep their links to a lorebook, and what the agent deleted goes to the trash. A **backup of the book as it was** is taken first
+(it is among the backups of the book, with its lorebooks), and the changes are made all together or not at all. **Show the branch the agent ended on** also switches the book to the branch the agent was on, when it is
+among what you applied. The summaries of parts that were edited are outdated as after an edit by hand; the agent's own summaries are taken over as they are.
+
+When the changes are applied the run is *Applied* and its copy and checkpoints are deleted. **Discard the result** throws the copy away and leaves the book as it is. Until you do one of the two the agent has an unfinished run and
+can't start another.
 
 ## Checkpoints
 

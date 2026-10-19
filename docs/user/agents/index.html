@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845744601829">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845747437228">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845744601829" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845747437228" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845744601829" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845747437228" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845744601829" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845747437228" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -195,7 +195,7 @@ have it). It is not in the phone layout yet.</p>
 |---|---|
 | **Agent ID** | The identifier of the agent. |
 | **Name** | The name you gave it. |
-| **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |">
+| **Status** | What its run is doing: *Running*, *Waiting for you*, *Waiting for approval*, *Pausing*, *Paused*, *Stopping*, *Stopped, result kept*, *Done, waits for the review*, *Applied*. An agent without a run says *Not running*, or *Disabled* when it is switched off. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -215,7 +215,7 @@ have it). It is not in the phone layout yet.</p>
 </tr>
 <tr>
 <td><strong>Status</strong></td>
-<td>What its run is doing: <em>Running</em>, <em>Waiting for you</em>, <em>Waiting for approval</em>, <em>Pausing</em>, <em>Paused</em>, <em>Stopping</em>, <em>Stopped, result kept</em>, <em>Done, waits for the review</em>. An agent without a run says <em>Not running</em>, or <em>Disabled</em> when it is switched off.</td>
+<td>What its run is doing: <em>Running</em>, <em>Waiting for you</em>, <em>Waiting for approval</em>, <em>Pausing</em>, <em>Paused</em>, <em>Stopping</em>, <em>Stopped, result kept</em>, <em>Done, waits for the review</em>, <em>Applied</em>. An agent without a run says <em>Not running</em>, or <em>Disabled</em> when it is switched off.</td>
 </tr>
 </tbody>
 </table>
@@ -359,7 +359,7 @@ these of its own:</p>
 <p><strong>Waiting for you:</strong> the agent answered without a tool call, or asked you something. Answer it in the <doc-anchor-trigger to="#the-console">console</doc-anchor-trigger>.</p>
 </li>
 <li>
-<p><strong>Done:</strong> the agent called <code translate="no" v-pre>finish</code> (in a run you started <em>immediately</em>). A run you started <em>in the console</em> is a conversation: the report of the agent comes to you like a question, the run waits for your next message, and only <strong>Finish</strong> in the console (or <strong>Stop</strong>) ends it.</p>
+<p><strong>Done:</strong> the agent called <code translate="no" v-pre>finish</code> (in a run you started <em>immediately</em>). A run you started <em>in the console</em> is a conversation: the report of the agent comes to you like a question, the run waits for your next message, and only <strong>Finish</strong> in the console (or <strong>Stop</strong>) ends it. The result of a <em>Done</em> run waits for your <doc-anchor-trigger to="#reviewing-the-result">review</doc-anchor-trigger>.</p>
 </li>
 <li>
 <p><strong>Paused</strong>, with the reason: the limit of rounds, the token budget or the context limit is reached, the model could not be asked (an error of
@@ -446,9 +446,30 @@ closed, the window is there as soon as you open it.</p>
 <p>Every run works on a <strong>copy of your book</strong> and of its lorebooks that the app makes when the run starts: the messages, summaries, tags and settings
 as they are at that moment, and the lorebook with its sub-lorebooks. The copy is hidden: it is not in the lists of books and lorebooks. Whatever the
 agent does, it does to the copy; your book stays as it was.</p>
-<p>A paused run keeps its copy and works on it again when you resume it. When the run ends (it is <em>Done</em>, <em>Failed</em> or you stop it and discard the result)
-the copy is deleted for good, and the next run makes a new one from the book as it is then. Nothing brings the changes of the copy back into your
-book yet.</p>
+<p>A paused run keeps its copy and works on it again when you resume it. A run that is <em>Done</em>, or that you stopped and kept, keeps it until you
+<doc-anchor-trigger to="#reviewing-the-result">take over its result or discard it</doc-anchor-trigger>. When the run is <em>Failed</em>, you discard its result, or its changes are applied, the copy is deleted for good, and the next run
+makes a new one from the book as it is then.</p>
+<h2 id="reviewing-the-result">Reviewing the result</h2>
+<p>When a run is <em>Done</em> (or you stopped it with <strong>Stop and keep the result</strong>) the agent row and the console have a <strong>Review changes</strong> button. It opens a window with
+everything the agent changed, compared with your book <strong>as it is now</strong>, one line each:</p>
+<ul>
+<li><strong>Book:</strong> its name, description, language, point of view, tense, style and templates, its tags, and the data an extension keeps in the book (an arc outline, the character tracker).</li>
+<li><strong>Part:</strong> a part whose text, instructions, scene setting, point-of-view character, present characters or summary the agent changed, a part it wrote, a part it deleted.</li>
+<li><strong>Lorebook</strong> and <strong>Entry:</strong> a lorebook or an entry the agent made, changed (also moved, renamed, or with other tags, or other subbooks) or deleted.</li>
+</ul>
+<p>Tick the lines you want, then <strong>Apply the picked changes</strong>. The buttons above the list tick <strong>all</strong> of them, <strong>none</strong>, <strong>only new parts</strong> (the new branch the agent wrote, nothing else) or everything
+<strong>without conflicts</strong>. A line that needs another (a new part needs the part it follows if that is new too) brings it along when you tick it, and loses its followers when you untick it. Click a line to see it
+on the right: the text of your book now and the text that will be written, <strong>which you can edit</strong> before you apply. If you write nothing, the agent&#x27;s text is applied.</p>
+<p>Your book may have changed since the run started (you can edit it as soon as the run is not working). What only you changed is not in the list and stays. What both of you changed to the same thing is no
+change. What both changed to <strong>different</strong> texts is a <strong>conflict</strong>: it starts unticked, and when you tick it the text you see on the right replaces the text of the book. <strong>Use the book&#x27;s</strong> puts the book&#x27;s text
+into the box (the line then changes nothing for that field), <strong>Use the agent&#x27;s</strong> puts the agent&#x27;s back; or write the result yourself. A line that can&#x27;t be taken over (the part it follows, or the lorebook it
+is in, was deleted from your book) says so and can&#x27;t be ticked.</p>
+<p>A lorebook that other books use is marked <strong>Shared</strong>: the change goes to the lorebook itself, so the other books get it too. It starts unticked.</p>
+<p>Applying is done to the book <strong>in place</strong>: the parts keep their addresses, other books keep their links to a lorebook, and what the agent deleted goes to the trash. A <strong>backup of the book as it was</strong> is taken first
+(it is among the backups of the book, with its lorebooks), and the changes are made all together or not at all. <strong>Show the branch the agent ended on</strong> also switches the book to the branch the agent was on, when it is
+among what you applied. The summaries of parts that were edited are outdated as after an edit by hand; the agent&#x27;s own summaries are taken over as they are.</p>
+<p>When the changes are applied the run is <em>Applied</em> and its copy and checkpoints are deleted. <strong>Discard the result</strong> throws the copy away and leaves the book as it is. Until you do one of the two the agent has an unfinished run and
+can&#x27;t start another.</p>
 <h2 id="checkpoints">Checkpoints</h2>
 <p>A <strong>checkpoint</strong> is a restore point of the working copy of the run (the parts, summaries, lorebooks and the data of the extensions, with the handles the agent was given) and of the
 workspace of the agent, so that a job that went wrong can be undone: the agent goes back with <code translate="no" v-pre>checkpoint_restore</code>, or you do it in the <strong>Checkpoints</strong> tab of the console. Who makes them:</p>
@@ -596,7 +617,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3e9bd026).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (8c133fab).</p></div>
             </footer>
         </div>
     </div>
