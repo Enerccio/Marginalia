@@ -9,8 +9,6 @@ import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * One execution of an {@link Agent}: the whole job, whatever threads (sub-agents) it spawns. A run is a normal object
@@ -105,14 +103,6 @@ public class AgentRun extends ExtendableEntity {
     @Transient
     @ExtendedAttribute
     private boolean interactive;
-
-    /**
-     * Uuid of the item of the working copy to the uuid of the item of the original manuscript (messages, summaries,
-     * lorebooks, lorebook entries), written when the copy is made. Needed to merge the copy back.
-     */
-    @Transient
-    @ExtendedAttribute(inject = true, injectPrefix = "uuidPairs")
-    private Map<String, String> uuidPairs = new HashMap<>();
 
     public Agent getAgent() {
         return agent;
@@ -215,13 +205,5 @@ public class AgentRun extends ExtendableEntity {
 
     public void setLanguage(Language language) {
         this.language = language;
-    }
-
-    public Map<String, String> getUuidPairs() {
-        return uuidPairs;
-    }
-
-    public void setUuidPairs(Map<String, String> uuidPairs) {
-        this.uuidPairs = uuidPairs == null ? new HashMap<>() : uuidPairs;
     }
 }

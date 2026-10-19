@@ -36,6 +36,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `User` | `users` | User |
 | `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
 | `Agent`, `AgentRun`, `AgentMessage` | `agents`, `agent_runs`, `agent_messages` | Agents, see [Agent and AgentRun](#agent-and-agentrun-agents) |
+| `AgentRunPair` | `agent_run_pairs` | A plain entity (not a `BaseEntity`): which item of the working copy of a run is which item of the original, see [Agent and AgentRun](#agent-and-agentrun-agents) |
 | `Resource` | `resources` | Resources tab, image attachments of a part (story editor, exports) |
 
 ## Overview
@@ -542,7 +543,7 @@ extend `ExtendableEntity`. The services are in [Services](agents.md#the-services
 | `workingCopy` | Column `workingCopy_id`, the hidden copy of the manuscript the agent works on, `@CleanupReference(OWNS)`: deleted for good when the run ends (`DONE`, `FAILED`, `STOPPED_DISCARDED`, `APPLIED`) and purged with the run. Eager (the runner takes the book from it on its own threads). Made by `AgentRunService.start`; null only after it ended or before a resumed old run gets one. |
 | `prefillTokens`, `generatedTokens`, `rounds` | What the run spent, all its threads. |
 | `startedAt`, `finishedAt` | `finishedAt` is set when the run stops working (done, stopped, failed) and cleared when it is resumed. |
-| `language`, `interactive`, `uuidPairs` | Extended attributes: the language of the texts the agent sees (the language of the book when the run started), whether the run is a conversation (`AgentRunService.start(agent, true)`, from the console: `finish` makes the run `IDLE` with the report, only `AgentRunService.finish` ends it), and the uuid of every item of the working copy to the uuid of the item of the original. |
+| `language`, `interactive` | Extended attributes: the language of the texts the agent sees (the language of the book when the run started) and whether the run is a conversation (`AgentRunService.start(agent, true)`, from the console: `finish` makes the run `IDLE` with the report, only `AgentRunService.finish` ends it). |
 
 The columns `status`, `statusReason`, the counters and `finishedAt` are **not `updatable`** in the mapping: they are changed
 only by the SQL updates of `AgentRunRepository` (through `AgentRunService`), so a `save` of a stale copy of the run (what a
@@ -554,6 +555,12 @@ per agent that is not over, see [Database](database.md#migrations).
 `LLMChatMessage` as JSON in the extended attribute `message` (`toChatMessage`/`setChatMessage`). Rows are only appended; the system prompt is not stored. The answer of the model also
 carries the extended attribute `contextTokens` (the tokens of the request and the answer, `AgentMessageService.appendAnswer`); and `reasoning` (what the provider sent as the reasoning of the round, kept beside the answer for the console and the download, never sent back to the model); the last `contextTokens` is the current context of the run
 (`getContextTokens`, shown by the console), kept on the row and not on the run because an extended attribute of a row that is never updated needs no SQL update and no migration.
+
+`AgentRunPair` (table `agent_run_pairs`, V17) is **not a `BaseEntity`**: a row says which item of the working copy of a run is which item of the original, and a
+book of thousands of parts is thousands of rows that are only looked up by the run, so there is no uuid, no soft delete, no extended content and no owner. Columns:
+`runId` (`run_id`, the id of the run, not a reference), `kind` (`AgentRunPairKind`: `MESSAGE`, `SUMMARY`, `LOREBOOK`, `ENTRY`), `copyUuid` (unique in the run),
+`originalUuid` (null for an item the agent made) and `handle` (unique in the run, null until the agent is given one). The cleanup does not see it, so the rows are deleted
+by `AgentRunPairService.deleteForRun` when the run lets go of its copy. Reach them through the service, which checks that the run is the user's.
 
 A soft deleted manuscript takes its agent with it, and a soft deleted agent its runs (`ManuscriptService.delete`,
 `AgentService.delete`); a run that is deleted while it is not over is discarded first. All three are in the trash and

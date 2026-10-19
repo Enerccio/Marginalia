@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentService.AgentGrant;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService.AgenticCopy;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.apache.commons.lang3.StringUtils;
@@ -63,6 +64,10 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
 
     @Autowired
     @Lazy
+    private AgentRunPairService pairService;
+
+    @Autowired
+    @Lazy
     private AgentMessageService messageService;
 
     @Autowired
@@ -92,16 +97,27 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         AgentRun run = new AgentRun();
         run.setAgent(stored);
         // every run works on a copy of its own, never on the book of the user
-        run.setWorkingCopy(manuscriptService.createAgenticCopy(stored.getManuscript()));
+        AgenticCopy copy = manuscriptService.createAgenticCopy(stored.getManuscript());
+        run.setWorkingCopy(copy.manuscript());
         run.setStatus(AgentRunStatus.RUNNING);
         run.setInteractive(interactive);
         run.setStartedAt(new Date());
         run.setLanguage(stored.getManuscript().getLanguage());
         AgentRun started = save(run);
+        storeCopyRecords(started, copy);
         log.info("Agent run {} started: agent \"{}\" of user {}, {}", started.getUuid(), stored.getName(), currentUser.getId(),
                 interactive ? "a conversation" : "autonomous");
         publishAfterCommit(started);
         return started;
+    }
+
+    /**
+     * What the run keeps about the copy it was just given, in the transaction that made the copy: which item of it is
+     * which item of the original (the pairs) and the original as it was (the base snapshot).
+     */
+    private void storeCopyRecords(AgentRun run, AgenticCopy copy) throws Exception {
+        pairService.replace(run, copy.pairs());
+        fileSystemService.writeBase(run, copy.base());
     }
 
     /**
@@ -162,7 +178,9 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         if (current != null && current.getWorkingCopy() == null) {
             // a run from before the copies, or one whose copy is gone
             checkCopyQuota(userService.find(currentUser.getId()));
-            getRepository().updateWorkingCopy(run.getId(), manuscriptService.createAgenticCopy(stored.getManuscript()));
+            AgenticCopy copy = manuscriptService.createAgenticCopy(stored.getManuscript());
+            getRepository().updateWorkingCopy(run.getId(), copy.manuscript());
+            storeCopyRecords(current, copy);
         }
         return transition(run, AgentRunStatus.RUNNING, null);
     }
@@ -493,6 +511,9 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         }
         // the run lets go of the copy first, then the copy can be deleted
         getRepository().updateWorkingCopy(run.getId(), null);
+        // what says how the copy relates to the original goes with it
+        pairService.deleteForRun(run);
+        fileSystemService.deleteBase(run);
         AgentRun released = reload(run.getId());
         run.setWorkingCopy(null);
         manuscriptService.deleteAgenticCopy(copy);

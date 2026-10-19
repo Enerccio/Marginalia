@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.WorkspaceLimits;
 import com.github.enerccio.marginalia.domain.service.agent.WorkspaceUsage;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.google.gson.JsonObject;
 
 /**
  * The files of agents: the <b>workspace</b> of an agent ({@code agent-workspaces/<agent uuid>} in the application
@@ -86,6 +87,28 @@ public interface AgentVirtualFileSystemService {
      * The files go when the transaction commits.
      */
     void deleteWorkspace(Agent agent);
+
+    /**
+     * Stores the base snapshot of the run, the original book as it was when the working copy was made (see
+     * {@link com.github.enerccio.marginalia.domain.service.ManuscriptService.AgenticCopy#base()}), in its folder, in place of
+     * the one it had. The file is deleted again when the transaction it is written in rolls back.
+     *
+     * @throws IllegalArgumentException when the run is not a run of the user
+     */
+    void writeBase(AgentRun run, JsonObject base) throws Exception;
+
+    /**
+     * The base snapshot of the run; null when it has none.
+     *
+     * @throws IllegalArgumentException when the run is not a run of the user
+     */
+    JsonObject readBase(AgentRun run) throws Exception;
+
+    /**
+     * Deletes the base snapshot of a run that has let go of its working copy, nothing is compared with it any more. The
+     * file goes when the transaction commits.
+     */
+    void deleteBase(AgentRun run);
 
     /**
      * Deletes the folder of a run that is deleted for good, see {@link #deleteWorkspace}.

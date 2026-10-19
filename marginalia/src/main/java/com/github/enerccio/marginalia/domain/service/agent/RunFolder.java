@@ -18,6 +18,10 @@ public final class RunFolder {
     public static final String WORKSPACES = "agent-workspaces";
     public static final String BASE = "base";
     public static final String CHECKPOINTS = "checkpoints";
+    /**
+     * The file of the base folder with the snapshot of the original book (the backup with its lorebooks).
+     */
+    public static final String BASE_MANUSCRIPT = "manuscript.json";
 
     private final Path run;
     private final Path workspace;
@@ -70,6 +74,10 @@ public final class RunFolder {
 
     public Path base() {
         return run.resolve(BASE);
+    }
+
+    public Path baseManuscript() {
+        return base().resolve(BASE_MANUSCRIPT);
     }
 
     public Path checkpoints() {

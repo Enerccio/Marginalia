@@ -28,6 +28,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.Agent</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.AgentRun</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.AgentMessage</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.AgentRunPair</class>
         <class>com.github.enerccio.marginalia.domain.security.model.Permission</class>
 
         <class>com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible</class>

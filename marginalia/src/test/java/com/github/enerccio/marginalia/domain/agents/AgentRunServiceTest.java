@@ -362,14 +362,14 @@ class AgentRunServiceTest extends AgentTestBase {
         AgentRun moved = agentRunService.transition(stale, IDLE, "waiting");
         agentRunService.addUsage(moved, 700, 70);
 
-        stale.getUuidPairs().put("copy", "original");
+        stale.setLanguage(Language.JAPANESE);
         agentRunService.save(stale);
 
         AgentRun loaded = reload(stale);
         assertThat(loaded.getStatus()).isEqualTo(IDLE);
         assertThat(loaded.getStatusReason()).isEqualTo("waiting");
         assertThat(loaded.getTotalTokens()).isEqualTo(770);
-        assertThat(loaded.getUuidPairs()).containsKey("copy");
+        assertThat(loaded.getLanguage()).isEqualTo(Language.JAPANESE);
     }
 
     @Test
