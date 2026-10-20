@@ -554,6 +554,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_SUBAGENT_CANCELLED, "キャンセル済み");
         setValue(L.LABEL_AGENT_SUBAGENT_REWOUND, "エージェントは忘れました");
         setValue(L.LABEL_AGENT_CONTEXT_REPORTED, "モデルが報告した値");
+        setValue(L.LABEL_TAG_BOOKS, "本にタグを付ける");
+        setValue(L.LABEL_TAG_LOREBOOKS, "ロアブックにタグを付ける");
+        setValue(L.LABEL_TAG_ENTRIES, "エントリにタグを付ける");
+        setValue(L.LABEL_APPLY_TAG, "タグを付ける");
+        setValue(L.LABEL_REMOVE_TAG, "タグを外す");
+        setValue(L.LABEL_APPLY_TAG_TO_CHECKED, "チェックした項目にタグを付ける");
+        setValue(L.LABEL_REMOVE_TAG_FROM_CHECKED, "チェックした項目からタグを外す");
+        setValue(L.LABEL_LOCKED_BY_AGENT, "作業中のエージェントによりロックされています");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -912,6 +920,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NO_SUBAGENTS, "この実行ではサブエージェントは開始されませんでした。");
         setValue(L.MSG_AGENT_SUBAGENT_NOT_FOUND, "そのサブエージェントの会話は保存されていません(保存機能より前の実行、または巻き戻しで削除されました)。");
         setValue(L.MSG_AGENT_PROMPT_SIZE, "すべてのリクエストに約%dトークンが付きます:プロンプト%d、指示%d、下でチェックしたコマンド%d。ランナーのメモとファイル用・実行用のツールは別途加算されます。");
+        setValue(L.MSG_TAG_APPLIED, "タグ「%s」を%d件に付けました。");
+        setValue(L.MSG_TAG_REMOVED, "タグ「%s」を%d件から外しました。");
+        setValue(L.MSG_TAG_PICK_FIRST, "先にタグを選んでください。");
+        setValue(L.MSG_TAG_CHECK_FIRST, "先に項目をチェックしてください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -977,6 +989,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_COPY, "エージェントが作業しているブックのコピーです(閲覧専用で、ここでは何も変更されません)。ストーリーはブランチごと、ロアブックはエントリーとともに表示されます。このタブを表示したとき、または「更新」を押したときに読み込まれます。");
         setValue(L.HELP_AGENT_SUBAGENTS, "この実行のサブエージェントに伝えられた内容、発言、呼び出したコマンド、終了の仕方です。実行中は更新され、過去の実行は「実行」タブで選ぶと読めます。");
         setValue(L.HELP_AGENT_COMMAND_TOKENS, "このコマンドの定義(名前、説明、パラメータ)がエージェントのすべてのリクエストに加える量の推定値です。コマンドを絞るほど作業に使える余地が増えます。");
+        setValue(L.HELP_MULTI_TAG, "タグを選び(新しいタグは入力して作成)、項目ごとに、または下でチェックしたすべての項目に付ける/外すことができます。そのタグを持つ項目は先頭に並び、タグが強調表示されます。エージェントが作業中の項目はグレー表示になり、変更できません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

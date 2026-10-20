@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.MultiTagDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.LorebookSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -86,6 +87,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private Button addLorebookButton;
     private Button deleteLorebookButton;
     private Button importLorebookButton;
+    private Button tagLorebooksButton;
+    private Button tagEntriesButton;
     private Anchor exportLorebookAnchor;
     private Button exportLorebookButton;
 
@@ -110,6 +113,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
     // what an agent that works on the book of the lorebook takes away: the lorebook is shown by the read only phone view
     private HorizontalLayout controlsRow;
+    private HorizontalLayout entriesRow;
     private PhoneLorebookView lockedView;
     private final List<Component> hiddenByLock = new ArrayList<>();
 
@@ -192,6 +196,13 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         exportLorebookButton.setTooltipText(loc.getValue(L.LABEL_EXPORT_LOREBOOK));
         exportLorebookAnchor.add(exportLorebookButton);
 
+        tagLorebooksButton = new Button(Solid.TAGS.create(), event -> openTagDialog(false));
+        tagLorebooksButton.setTooltipText(loc.getValue(L.LABEL_TAG_LOREBOOKS));
+        tagLorebooksButton.setVisible(!pinnedLorebook);
+
+        tagEntriesButton = new Button(Solid.TAGS.create(), event -> openTagDialog(true));
+        tagEntriesButton.setTooltipText(loc.getValue(L.LABEL_TAG_ENTRIES));
+
         addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createNewEntry());
         addEntryButton.setThemeName("primary");
 
@@ -205,8 +216,16 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, addEntryButton, searchReplaceButton, refreshButton);
+        controlsLayout.add(lorebookCombo, addLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookAnchor, tagLorebooksButton);
         controlsLayout.setAlignItems(Alignment.END);
+        // the buttons are many: in a narrow window (a book, a small screen) they go to the next line instead of off the edge
+        controlsLayout.setWrap(true);
+
+        // what is done with the entries of the selected lorebook is a row of its own, apart from what is done with the lorebooks
+        entriesRow = new HorizontalLayout(addEntryButton, searchReplaceButton, tagEntriesButton, refreshButton);
+        entriesRow.setWidthFull();
+        entriesRow.setAlignItems(Alignment.END);
+        entriesRow.setWrap(true);
 
         HorizontalLayout lorebookHeaderLayout = new HorizontalLayout();
         lorebookHeaderLayout.setWidthFull();
@@ -277,7 +296,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
         setupGrid();
 
-        add(controlsLayout, lorebookHeaderLayout, lorebookTokensSpan, grid);
+        add(controlsLayout, entriesRow, lorebookHeaderLayout, lorebookTokensSpan, grid);
         setFlexGrow(1, grid);
         controlsRow = controlsLayout;
 
@@ -666,6 +685,10 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         }
         showLocked(locking);
         if (locking != null) {
+            // read only, but it can be exported, and refreshed to see when the lock is gone
+            exportLorebookButton.setEnabled(true);
+            exportLorebookAnchor.setEnabled(true);
+            refreshButton.setEnabled(true);
             return;
         }
 
@@ -675,6 +698,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         subLorebooksCombo.setEnabled(hasLorebook);
         addEntryButton.setEnabled(hasLorebook);
         searchReplaceButton.setEnabled(hasLorebook);
+        tagEntriesButton.setEnabled(hasLorebook);
         deleteLorebookButton.setEnabled(hasLorebook);
         exportLorebookButton.setEnabled(hasLorebook);
         exportLorebookAnchor.setEnabled(hasLorebook);
@@ -745,18 +769,20 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         hiddenByLock.clear();
 
         boolean locked = locking != null;
-        boolean visible = !locked && !pinnedLorebook;
-        addLorebookButton.setVisible(visible);
-        deleteLorebookButton.setVisible(visible);
-        importLorebookButton.setVisible(visible);
+        // a new or imported lorebook has nothing to do with the lock, so with every lorebook locked these are the way out;
+        // only the delete of the locked one is refused
+        addLorebookButton.setVisible(!pinnedLorebook);
+        importLorebookButton.setVisible(!pinnedLorebook);
+        deleteLorebookButton.setVisible(!locked && !pinnedLorebook);
         addEntryButton.setVisible(!locked);
         searchReplaceButton.setVisible(!locked);
+        tagEntriesButton.setVisible(!locked);
         if (!locked) {
             return;
         }
 
-        // everything but the selection of the lorebook, also what an extension added
-        for (Component child : getChildren().filter(c -> c != controlsRow && c.isVisible()).toList()) {
+        // everything but the two rows of buttons, also what an extension added
+        for (Component child : getChildren().filter(c -> c != controlsRow && c != entriesRow && c.isVisible()).toList()) {
             child.setVisible(false);
             hiddenByLock.add(child);
         }
@@ -861,6 +887,26 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * Opens the dialog that puts a tag on many lorebooks at once, or on many entries of the lorebook; the list of entries
+     * is shown again with the new tags when something was changed.
+     *
+     * @param entries true for the entries of the lorebook, false for the lorebooks
+     */
+    @PublicAPI(from = "1.4.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entries", type = boolean.class)},
+            locals = {@APILocals(name = "dialog", type = MultiTagDialog.class)})
+    private void openTagDialog(boolean entries) {
+        if (entries && currentLorebook == null) {
+            return;
+        }
+        MultiTagDialog dialog = entries ? new MultiTagDialog(currentLorebook, this::refreshEntries)
+                : new MultiTagDialog(MultiTagDialog.Kind.LOREBOOKS, () -> tagMultiComboBox.setForEntity(currentLorebook));
+        dialog.create();
+        dialog.open();
     }
 
     /**

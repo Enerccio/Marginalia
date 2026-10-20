@@ -4,14 +4,13 @@ import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.model.impl.TagRelation;
 import com.github.enerccio.marginalia.domain.repository.TagRelationRepository;
-
 import com.github.enerccio.marginalia.domain.security.model.User;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JpaTagRelationRepository extends JpaExtendableRepository<TagRelation> implements TagRelationRepository {
+
+    private static final int IN_CHUNK = 500;
 
     @Override
     protected Class<TagRelation> getEntityClass() {
@@ -64,6 +63,24 @@ public class JpaTagRelationRepository extends JpaExtendableRepository<TagRelatio
                 .setParameter("clazz", clazz)
                 .setParameter("negative", negative)
                 .getResultList();
+    }
+
+    @Override
+    public Map<Long, List<Tag>> findTagsForObjects(Collection<Long> objectIds, String clazz) throws Exception {
+        Map<Long, List<Tag>> tags = new HashMap<>();
+        List<Long> ids = new ArrayList<>(objectIds);
+        // a bounded number of parameters in one query
+        for (int from = 0; from < ids.size(); from += IN_CHUNK) {
+            List<Object[]> rows = getEntityManager().createQuery(
+                            "SELECT tr.objectId, tr.tag FROM TagRelation tr WHERE tr.objectId IN :ids AND tr.clazz = :clazz AND tr.negative = false AND tr.deleted = false AND tr.tag.deleted = false", Object[].class)
+                    .setParameter("ids", ids.subList(from, Math.min(ids.size(), from + IN_CHUNK)))
+                    .setParameter("clazz", clazz)
+                    .getResultList();
+            for (Object[] row : rows) {
+                tags.computeIfAbsent((Long) row[0], id -> new ArrayList<>()).add((Tag) row[1]);
+            }
+        }
+        return tags;
     }
 
     @Override

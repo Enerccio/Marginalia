@@ -10,11 +10,13 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -109,6 +111,65 @@ class LorebookLockViewTest extends AgentTestBase {
 
         assertThat(all(view).anyMatch(PhoneLorebookView.class::isInstance)).isFalse();
         assertThat(visibleButton(view, loc.getValue(L.LABEL_ADD_ENTRY))).isTrue();
+    }
+
+    @Test
+    void withTheLorebookLockedANewOneCanStillBeAddedOrImported() throws Exception {
+        agentRunService.start(agent);
+        LorebookView view = new LorebookView(false);
+        view.create();
+        view.setLorebook(lorebook);
+        view.refresh();
+
+        assertThat(all(view).anyMatch(PhoneLorebookView.class::isInstance)).as("the locked one is read only").isTrue();
+        assertThat(visibleButton(view, loc.getValue(L.LABEL_ADD_LOREBOOK))).as("add").isTrue();
+        List<Button> imports = all(view).filter(Button.class::isInstance).map(Button.class::cast)
+                .filter(b -> b.getIcon() != null && b.getIcon().getElement().getAttribute("icon") != null
+                        && b.getIcon().getElement().getAttribute("icon").contains("file-import")).toList();
+        assertThat(imports).as("the import button").isNotEmpty().allMatch(Button::isVisible);
+        assertThat(visibleButton(view, loc.getValue(L.LABEL_DELETE_LOREBOOK))).as("a locked lorebook is not deleted").isFalse();
+        assertThat(visibleButton(view, loc.getValue(L.LABEL_ADD_ENTRY))).isFalse();
+    }
+
+    private static HorizontalLayout rowOf(LorebookView view, String text) {
+        return all(view).filter(HorizontalLayout.class::isInstance).map(HorizontalLayout.class::cast)
+                .filter(row -> row.getChildren().anyMatch(c -> c instanceof Button b && text.equals(b.getText())))
+                .findFirst().orElseThrow();
+    }
+
+    @Test
+    void theButtonsForTheEntriesAreARowOfTheirOwnAndTheRowsWrap() throws Exception {
+        LorebookView view = new LorebookView(false);
+        view.create();
+
+        HorizontalLayout lorebooks = rowOf(view, loc.getValue(L.LABEL_ADD_LOREBOOK));
+        HorizontalLayout entries = rowOf(view, loc.getValue(L.LABEL_ADD_ENTRY));
+        assertThat(entries).isNotSameAs(lorebooks);
+        assertThat(entries.getChildren().filter(Button.class::isInstance).map(c -> ((Button) c).getText()))
+                .contains(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), loc.getValue(L.LABEL_REFRESH));
+        assertThat(all(entries).filter(Button.class::isInstance).map(Button.class::cast)
+                .anyMatch(b -> b.getTooltip() != null && loc.getValue(L.LABEL_TAG_ENTRIES).equals(b.getTooltip().getText())))
+                .as("tag entries is with the entries").isTrue();
+        assertThat(all(lorebooks).filter(Button.class::isInstance).map(Button.class::cast)
+                .anyMatch(b -> b.getTooltip() != null && loc.getValue(L.LABEL_TAG_LOREBOOKS).equals(b.getTooltip().getText())))
+                .as("tag lorebooks is with the lorebooks").isTrue();
+        assertThat(all(lorebooks).anyMatch(c -> c instanceof Button b && loc.getValue(L.LABEL_REFRESH).equals(b.getText()))).isFalse();
+        assertThat(lorebooks.isWrap()).isTrue();
+        assertThat(entries.isWrap()).isTrue();
+    }
+
+    @Test
+    void withTheLorebookLockedTheRowOfTheEntriesKeepsOnlyRefresh() throws Exception {
+        agentRunService.start(agent);
+        LorebookView view = new LorebookView(false);
+        view.create();
+        view.setLorebook(lorebook);
+        view.refresh();
+
+        HorizontalLayout entries = rowOf(view, loc.getValue(L.LABEL_REFRESH));
+        assertThat(entries.isVisible()).isTrue();
+        assertThat(entries.getChildren().filter(Button.class::isInstance).filter(Component::isVisible)
+                .map(c -> ((Button) c).getText())).containsExactly(loc.getValue(L.LABEL_REFRESH));
     }
 
     @Test

@@ -157,6 +157,11 @@ public final class CssStyles {
     // --- Agent console (ui.dialogs.agent) ---
     public static final String WORKSPACE_BROWSER = "workspace-browser";
 
+    // --- Tags of many items at once (ui.dialogs.MultiTagDialog) ---
+    public static final String MULTI_TAG_LOCKED = "multi-tag-locked";
+    public static final String MULTI_TAG_CHIP = "multi-tag-chip";
+    public static final String MULTI_TAG_CHIP_MARKED = "multi-tag-chip-marked";
+
     // --- Version footer (ui.components.BuildInfoFooter) ---
     public static final String BUILD_INFO_FOOTER = "build-info-footer";
 

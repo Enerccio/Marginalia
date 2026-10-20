@@ -554,6 +554,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_SUBAGENT_CANCELLED, "Cancelled");
         setValue(L.LABEL_AGENT_SUBAGENT_REWOUND, "forgotten by the agent");
         setValue(L.LABEL_AGENT_CONTEXT_REPORTED, "Reported by the model");
+        setValue(L.LABEL_TAG_BOOKS, "Tag books");
+        setValue(L.LABEL_TAG_LOREBOOKS, "Tag lorebooks");
+        setValue(L.LABEL_TAG_ENTRIES, "Tag entries");
+        setValue(L.LABEL_APPLY_TAG, "Apply the tag");
+        setValue(L.LABEL_REMOVE_TAG, "Remove the tag");
+        setValue(L.LABEL_APPLY_TAG_TO_CHECKED, "Apply the tag to the checked");
+        setValue(L.LABEL_REMOVE_TAG_FROM_CHECKED, "Remove the tag from the checked");
+        setValue(L.LABEL_LOCKED_BY_AGENT, "Locked by an agent that works on it");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -912,6 +920,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NO_SUBAGENTS, "This run did not start a sub-agent.");
         setValue(L.MSG_AGENT_SUBAGENT_NOT_FOUND, "The conversation of that sub-agent is not stored (the run is older than the stored conversations, or it was started before a rewind that removed it).");
         setValue(L.MSG_AGENT_PROMPT_SIZE, "About %d tokens with every request: the prompt %d, the instructions %d, the commands ticked below %d. The notes of the runner and the tools for files and for the run come on top.");
+        setValue(L.MSG_TAG_APPLIED, "The tag \"%s\" was applied to %d item(s).");
+        setValue(L.MSG_TAG_REMOVED, "The tag \"%s\" was removed from %d item(s).");
+        setValue(L.MSG_TAG_PICK_FIRST, "Pick the tag first.");
+        setValue(L.MSG_TAG_CHECK_FIRST, "Check the items first.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -977,6 +989,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_COPY, "The copy of the book the agent works on, to read: nothing here changes it. The story is shown branch by branch, the lorebooks with their entries. It is read when this tab is shown or when you press Refresh.");
         setValue(L.HELP_AGENT_SUBAGENTS, "What the sub-agents of the run were told, said and called, and how they ended. It follows the run while it works; the ones of an older run are read by picking that run in Runs.");
         setValue(L.HELP_AGENT_COMMAND_TOKENS, "What the definition of the command (its name, description and parameters) adds to every request of the agent, as an estimate. A smaller selection of commands leaves more room for the work.");
+        setValue(L.HELP_MULTI_TAG, "Pick a tag (or type a new one), then apply it to or remove it from the items one by one, or from all the checked ones at the bottom. The items that have the tag are listed first and show it marked. Items an agent works on are grayed out and can't be changed.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
