@@ -26,9 +26,9 @@ and how to write a migration. What the tables contain is described in [Domain mo
 | | |
 |---|---|
 | File | `<user.home>/.marginalia/marginalia.sqlite`, with `marginalia.sqlite-wal` and `-shm` while it runs |
-| JDBC URL | `jdbc:sqlite:<file>?busy_timeout=10000&journal_mode=WAL` (built by `Configuration.resolveDb`) |
+| JDBC URL | `jdbc:sqlite:<file>?busy_timeout=10000&journal_mode=WAL` (built by `Configuration.resolveDb`); the pool of read-write transactions adds `&transaction_mode=IMMEDIATE` (`Configuration.resolveWriteDb`) |
 | Driver | `org.sqlite.JDBC` (`sqlite-jdbc`) |
-| Pool | commons-dbcp `BasicDataSource`, 10-20 connections, validated with `SELECT 1` |
+| Pool | commons-dbcp `BasicDataSource`, 10-20 connections, validated with `SELECT 1`; a second one (`writeDataSource`, 2-20) for read-write transactions |
 | Journal | WAL - readers don't block the writer; writers wait up to 10 s (`busy_timeout`) for each other |
 | Foreign keys | Not enforced (`PRAGMA foreign_keys` is off), see [Conventions](#schema-conventions) |
 
@@ -37,8 +37,11 @@ The beans are in `src/main/resources/META-INF/spring/datasources-config.xml`:
 ```mermaid
 flowchart LR
     conf["configuration<br/>resolveDb()"] --> ds["dataSource<br/>BasicDataSource"]
+    conf --> wds["writeDataSource<br/>BEGIN IMMEDIATE"]
     ds --> fw["flyway<br/>init-method=migrate"]
-    ds --> proxy["ds<br/>TransactionAwareDataSourceProxy"]
+    ds --> routing["routingDataSource<br/>ReadWriteRoutingDataSource"]
+    wds --> routing
+    routing --> proxy["ds<br/>TransactionAwareDataSourceProxy"]
     fw -. "depends-on" .-> emf
     proxy --> emf["emf<br/>EntityManagerFactory (PU)"]
     proxy --> jdbc["jdbcTemplate"]
@@ -50,6 +53,15 @@ flowchart LR
   schema.
 - Hibernate and `jdbcTemplate` use the data source through `TransactionAwareDataSourceProxy`, so plain JDBC code
   joins the current JPA transaction.
+- **Read-write transactions take the write lock when they begin.** A deferred transaction reads, takes its snapshot and
+  needs the lock at its first write; when another connection has committed in between, the write fails at once with
+  `SQLITE_BUSY` or `SQLITE_BUSY_SNAPSHOT` and `busy_timeout` does not help. So `routingDataSource`
+  (`ReadWriteRoutingDataSource`) gives a read-write transaction a connection of `writeDataSource`
+  (`transaction_mode=IMMEDIATE`, writers queue for the busy timeout) and a read-only one
+  (`@CommonTxReadOnly`) a plain connection of `dataSource` (never waits for a writer). The transaction manager asks for
+  the connection before it publishes the read-only flag, so the `jpaDialect` bean (`ReadWriteRoutingDataSource.Dialect`)
+  notes it while the transaction begins. Flyway and code outside a transaction use `dataSource`. `ConcurrentTransactionsTest`
+  covers both sides.
 - The persistence unit `PU` is defined in `src/main/webapp/config/persistence.xml`: the list of entity classes
   (`exclude-unlisted-classes`), the dialect and `hibernate.hbm2ddl.auto=validate`.
 
@@ -317,7 +329,7 @@ means the index is used. `FlywayMigrationTest.tagRelationLookupsUseIndexes` does
 
 | Limitation | Consequence |
 |---|---|
-| One writer at a time | Writes are serialized; long transactions block other users' writes (up to `busy_timeout`, then `SQLITE_BUSY`). Keep transactions short and never call a model inside one - generation runs outside transactions (`@NoTx`). |
+| One writer at a time | Writes are serialized; a read-write transaction holds the write lock from its start (see above), so a long one blocks other users' writes (up to `busy_timeout`, then `SQLITE_BUSY`); read-only transactions are not blocked. Keep transactions short and never call a model inside one - generation runs outside transactions (`@NoTx`). |
 | `ALTER TABLE` is limited | Type, nullability and constraint changes need a table rebuild. |
 | DDL in transactions | SQLite supports transactional DDL, so a failing migration is rolled back completely. |
 | No `VACUUM` inside a transaction | `VACUUM INTO` for backups runs with `@NoTx`. |

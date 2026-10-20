@@ -237,6 +237,15 @@ public class Configuration implements InitializingBean {
     }
 
     /**
+     * The URL of the connections for read-write transactions (see {@code ReadWriteRoutingDataSource}): they begin with
+     * the write lock, so writers wait for each other for the busy timeout instead of failing when a connection that
+     * has read tries to write after another one has committed. {@link #resolveDb} must have run before.
+     */
+    public String resolveWriteDb() {
+        return jdbcUrl(databaseFile) + "&transaction_mode=IMMEDIATE";
+    }
+
+    /**
      * Restore can't be done on live database, so it is staged next to database file and swapped in before
      * datasource is created. Current database (with its WAL files) is kept in backup folder.
      * <p>
