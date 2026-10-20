@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845833007319">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845836177566">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845833007319" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845836177566" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845833007319" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845836177566" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845833007319" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845836177566" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -374,7 +374,7 @@ done so far. One that can&#x27;t be stopped may still finish; either way the age
 command when it goes on. The commands of the sub-agents are cancelled the same way when the run is paused, stopped or sent a message at once.</p>
 <p>While the agent waits for a free place at its model (see <doc-anchor-trigger to="#one-model-several-agents">One model, several agents</doc-anchor-trigger>) it is <em>Running</em>; a <strong>Pause</strong> or <strong>Stop</strong> ends that wait at once.</p>
 <h2 id="the-console">The console</h2>
-<p><strong>Console</strong> opens a window for the latest run of the agent, with seven tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>, <strong>Checkpoints</strong>, <strong>Context</strong>, <strong>Book copy</strong> and <strong>Sub-agents</strong>.</p>
+<p><strong>Console</strong> opens a window for the latest run of the agent, with eight tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>, <strong>Checkpoints</strong>, <strong>Context</strong>, <strong>Book copy</strong>, <strong>Sub-agents</strong> and <strong>Diagnostics</strong>.</p>
 <p><strong>Run</strong> shows the <em>transcript</em>: what you told the agent, what it said (both as <a href="https://commonmark.org/help/">Markdown</a>, so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its <strong>reasoning</strong> (what it thought before it answered), a folded <em>Reasoning</em> block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. Every message has the time it was written at the right of its first line (the time of day, with the date when it was another day; hover for the whole time), so you can tell how long the agent worked and when it stopped. The state of the run, the <strong>context</strong> (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
 is one) stay above it and the box for your message under it, while the transcript scrolls. What the agent waits for is in the transcript where it was written, as a bubble of its own that stays there when the run goes on:</p>
@@ -539,6 +539,15 @@ can&#x27;t start another.</p>
 point of view and, folded, its instructions and summary), and the <strong>lorebooks</strong> with their entries (pick one to see its content, note, tags and settings). It is not a window of your book: nothing in it can be changed, no backup is
 made of the copy and no extension sees a book open. It is read when you open the tab and when you press <strong>Refresh</strong>, also while the agent works, so it shows what the agent has written so far. It is there while the run has its copy
 (not after the result was applied or discarded).</p>
+<h3 id="diagnostics">Diagnostics</h3>
+<p>The <strong>Diagnostics</strong> tab counts what the run did from its transcript, to find out what an agent needs from its tools and its prompt. It works for any run, an old one too (pick it in <strong>Runs</strong> first), and is made when you open the tab and when you press <strong>Refresh</strong>.</p>
+<ul>
+<li><strong>Overview</strong>: rounds and calls, how many calls failed, the time of the model, of the calls and of pauses (a gap of 30 minutes or more between two steps is a pause, not work), the context at its peak and at the end, the tokens, compactions, your messages and the notices the runner gave the agent (an unreadable call, too many calls, a full context).</li>
+<li><strong>Tools</strong>: for each tool the calls, the errors, the results that were cut, how often it was the only call of a round, the characters the agent wrote and the tokens of its results (about, from the characters), the share of all results, the longest result and the time.</li>
+<li><strong>Rounds lost to a pattern</strong>: the same tool called round after round (three or more), marked when a search came right before it; and the calls made again with the same arguments. These show where a tool that takes many items, or more calls in one answer, would save rounds.</li>
+<li><strong>Errors</strong>, the <strong>biggest results</strong>, the <strong>slowest rounds</strong>, the <strong>compactions</strong> and the <strong>sub-agents</strong> with the tools each one called.</li>
+</ul>
+<p><strong>Download</strong> gives the report as Markdown, <strong>Download JSON</strong> as JSON, <strong>Copy</strong> puts the Markdown on the clipboard. The times are the gaps between the stored rows, so they are approximate: the time of an answer includes waiting for a free place at the model.</p>
 <h3 id="the-context">The context</h3>
 <p>The <strong>Context</strong> tab shows what the model reads with its <strong>next request</strong>, taken apart, so you can see where the tokens go and debug an agent that behaves oddly. It is made when you open the tab and when you press <strong>Refresh</strong> (not while the run works: it counts the tokens of every part).</p>
 <ul>
@@ -751,7 +760,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (f61da541).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (0430fed0).</p></div>
             </footer>
         </div>
     </div>

@@ -82,7 +82,7 @@ While the agent waits for a free place at its model (see [One model, several age
 
 ## The console
 
-**Console** opens a window for the latest run of the agent, with seven tabs: **Run**, **Runs**, **Workspace**, **Checkpoints**, **Context**, **Book copy** and **Sub-agents**.
+**Console** opens a window for the latest run of the agent, with eight tabs: **Run**, **Runs**, **Workspace**, **Checkpoints**, **Context**, **Book copy**, **Sub-agents** and **Diagnostics**.
 
 **Run** shows the *transcript*: what you told the agent, what it said (both as [Markdown](https://commonmark.org/help/), so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its **reasoning** (what it thought before it answered), a folded *Reasoning* block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. Every message has the time it was written at the right of its first line (the time of day, with the date when it was another day; hover for the whole time), so you can tell how long the agent worked and when it stopped. The state of the run, the **context** (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
@@ -280,6 +280,17 @@ The **Book copy** tab shows the book the agent works on, to read: the **story**,
 point of view and, folded, its instructions and summary), and the **lorebooks** with their entries (pick one to see its content, note, tags and settings). It is not a window of your book: nothing in it can be changed, no backup is
 made of the copy and no extension sees a book open. It is read when you open the tab and when you press **Refresh**, also while the agent works, so it shows what the agent has written so far. It is there while the run has its copy
 (not after the result was applied or discarded).
+
+### Diagnostics
+
+The **Diagnostics** tab counts what the run did from its transcript, to find out what an agent needs from its tools and its prompt. It works for any run, an old one too (pick it in **Runs** first), and is made when you open the tab and when you press **Refresh**.
+
+- **Overview**: rounds and calls, how many calls failed, the time of the model, of the calls and of pauses (a gap of 30 minutes or more between two steps is a pause, not work), the context at its peak and at the end, the tokens, compactions, your messages and the notices the runner gave the agent (an unreadable call, too many calls, a full context).
+- **Tools**: for each tool the calls, the errors, the results that were cut, how often it was the only call of a round, the characters the agent wrote and the tokens of its results (about, from the characters), the share of all results, the longest result and the time.
+- **Rounds lost to a pattern**: the same tool called round after round (three or more), marked when a search came right before it; and the calls made again with the same arguments. These show where a tool that takes many items, or more calls in one answer, would save rounds.
+- **Errors**, the **biggest results**, the **slowest rounds**, the **compactions** and the **sub-agents** with the tools each one called.
+
+**Download** gives the report as Markdown, **Download JSON** as JSON, **Copy** puts the Markdown on the clipboard. The times are the gaps between the stored rows, so they are approximate: the time of an answer includes waiting for a free place at the model.
 
 ### The context
 

@@ -184,6 +184,16 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     }
 
     @Override
+    public AgentDiagnostics.Report diagnostics(AgentRun run) throws Exception {
+        AgentRun stored = run == null || run.getUuid() == null ? null : runService.findForUser(run.getUuid());
+        if (stored == null) {
+            throw new IllegalArgumentException("The run does not exist");
+        }
+        return AgentDiagnostics.analyze(stored.getAgent() == null ? null : stored.getAgent().getName(), stored,
+                messageService.messages(stored), messageService.threads(stored));
+    }
+
+    @Override
     public boolean isWorking(AgentRun run) {
         return run != null && run.getId() != null && working.contains(run.getId());
     }

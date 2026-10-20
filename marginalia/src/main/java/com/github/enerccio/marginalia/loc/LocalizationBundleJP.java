@@ -562,6 +562,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_APPLY_TAG_TO_CHECKED, "チェックした項目にタグを付ける");
         setValue(L.LABEL_REMOVE_TAG_FROM_CHECKED, "チェックした項目からタグを外す");
         setValue(L.LABEL_LOCKED_BY_AGENT, "作業中のエージェントによりロックされています");
+        setValue(L.LABEL_AGENT_DIAGNOSTICS, "診断");
+        setValue(L.LABEL_DOWNLOAD_JSON, "JSONをダウンロード");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -990,6 +992,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_SUBAGENTS, "この実行のサブエージェントに伝えられた内容、発言、呼び出したコマンド、終了の仕方です。実行中は更新され、過去の実行は「実行」タブで選ぶと読めます。");
         setValue(L.HELP_AGENT_COMMAND_TOKENS, "このコマンドの定義(名前、説明、パラメータ)がエージェントのすべてのリクエストに加える量の推定値です。コマンドを絞るほど作業に使える余地が増えます。");
         setValue(L.HELP_MULTI_TAG, "タグを選び(新しいタグは入力して作成)、項目ごとに、または下でチェックしたすべての項目に付ける/外すことができます。そのタグを持つ項目は先頭に並び、タグが強調表示されます。エージェントが作業中の項目はグレー表示になり、変更できません。");
+        setValue(L.HELP_AGENT_DIAGNOSTICS, "実行の内容を記録から集計したものです。ツールごとの呼び出し数、エラー、結果、時間、同じツールを続けて呼んだラウンド、大きな結果、遅いラウンド、コンテキスト、サブエージェントを表示します。古い実行でも使えます。MarkdownまたはJSONでダウンロードして、エディタで読んだり他の人に渡したりできます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

@@ -562,6 +562,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_APPLY_TAG_TO_CHECKED, "Apply the tag to the checked");
         setValue(L.LABEL_REMOVE_TAG_FROM_CHECKED, "Remove the tag from the checked");
         setValue(L.LABEL_LOCKED_BY_AGENT, "Locked by an agent that works on it");
+        setValue(L.LABEL_AGENT_DIAGNOSTICS, "Diagnostics");
+        setValue(L.LABEL_DOWNLOAD_JSON, "Download JSON");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -990,6 +992,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_SUBAGENTS, "What the sub-agents of the run were told, said and called, and how they ended. It follows the run while it works; the ones of an older run are read by picking that run in Runs.");
         setValue(L.HELP_AGENT_COMMAND_TOKENS, "What the definition of the command (its name, description and parameters) adds to every request of the agent, as an estimate. A smaller selection of commands leaves more room for the work.");
         setValue(L.HELP_MULTI_TAG, "Pick a tag (or type a new one), then apply it to or remove it from the items one by one, or from all the checked ones at the bottom. The items that have the tag are listed first and show it marked. Items an agent works on are grayed out and can't be changed.");
+        setValue(L.HELP_AGENT_DIAGNOSTICS, "What the run did, counted from its transcript: the calls by tool with their errors, results and times, the rounds spent calling one tool after the other, the biggest results, the slowest rounds, the context and the sub-agents. It works for any run, an old one too. Download it as Markdown or JSON to read it in an editor or to give it to somebody.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
