@@ -114,6 +114,29 @@ class AgentFileToolsTest {
     }
 
     @Test
+    void aWholeFileThatIsReadIsFollowedByTheHintToPassItAsAReference() {
+        String chapter = "Lily laughed and slipped in to the tub.\n".repeat(20);
+        write("/chunked/0566.md", chapter);
+
+        String hint = "[To use this text in a command or in write_file, pass @file:/chunked/0566.md as the argument instead of writing the text out.]";
+        assertThat(read("/chunked/0566.md")).isEqualTo(chapter.stripTrailing() + "\n" + hint);
+        assertThat(ok(a -> tools.readFile(a, "/chunked/0566.md", 1, 0))).as("from the first line to the end is the whole file")
+                .endsWith(hint);
+    }
+
+    @Test
+    void aPartOfAFileAShortFileAndACutFileGetNoHint() {
+        write("/chapter.md", "A line of the chapter that goes on and on.\n".repeat(20));
+        write("/short.md", "A short note.\n");
+        write("/one.md", "x".repeat(60_000));
+
+        assertThat(ok(a -> tools.readFile(a, "/chapter.md", 2, 0))).as("a part").doesNotContain("@file:");
+        assertThat(ok(a -> tools.readFile(a, "/chapter.md", 0, 5))).as("the first lines").doesNotContain("@file:");
+        assertThat(read("/short.md")).as("too short to bother").isEqualTo("A short note.");
+        assertThat(read("/one.md")).as("cut: the file is not what the model has").doesNotContain("@file:");
+    }
+
+    @Test
     void readsPartsOfAFileByLine() {
         write("/long.md", lines(50));
 

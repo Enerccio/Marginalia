@@ -7,8 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -36,6 +35,15 @@ public final class AgentDiagnostics {
     /** Rounds of the same tool in a row from which it is reported as a series. */
     public static final int SERIES_FROM = 3;
 
+    /** A text argument this long is a text the model wrote out, not a name or a number. */
+    public static final int LONG_TEXT = 300;
+
+    /** Rounds in a block of the timeline. */
+    public static final int BLOCK = 25;
+
+    // the results before a call that its long texts are looked for in: what the model has just read is what it copies
+    private static final int RECENT_RESULTS = 60;
+    private static final int SAMPLE = 80;
     private static final int TOP = 10;
     private static final int PREVIEW = 120;
     private static final int CHARS_PER_TOKEN = 4;
@@ -69,11 +77,15 @@ public final class AgentDiagnostics {
      * @param promptTokens     what the requests of the run used for their prompts, as reported
      * @param generatedTokens  what the model generated, as reported
      * @param avgCallsPerRound calls divided by the answers
+     * @param argChars         the characters of the arguments of all the calls the model wrote
+     * @param textChars        the characters of the text the model wrote besides its calls
+     * @param reasoningChars   the characters of the reasoning the provider sent
      */
     public record Overview(long rounds, long textAnswers, long calls, long errors, long interrupted, long authorMessages,
                            Map<String, Long> notices, long rewound, long compactions, long wallMillis, long modelMillis,
                            long toolMillis, long idleMillis, long peakContext, long lastContext, long growthPerRound,
-                           long promptTokens, long generatedTokens, double avgCallsPerRound) {
+                           long promptTokens, long generatedTokens, double avgCallsPerRound, long argChars, long textChars,
+                           long reasoningChars) {
     }
 
     /**
@@ -90,9 +102,14 @@ public final class AgentDiagnostics {
      * @param maxResult    the longest result
      * @param millis       the time of its calls
      * @param maxMillis    the longest call
+     * @param referenced   the calls with a text argument given as {@code @file:} or {@code @result}
+     * @param longTexts    the calls with a text argument written out in full ({@value #LONG_TEXT} characters or more)
+     * @param copied       the calls whose long text is in one of the results the model had just been given (it copied it)
+     * @param copiedChars  the characters of those texts
      */
     public record ToolStat(String name, long calls, long errors, long interrupted, long cut, long soloRounds, long argChars,
-                           long resultChars, long maxResult, long millis, long maxMillis) {
+                           long resultChars, long maxResult, long millis, long maxMillis, long referenced, long longTexts,
+                           long copied, long copiedChars) {
 
         /** Estimated tokens of all its results. */
         public long resultTokens() {
@@ -130,8 +147,10 @@ public final class AgentDiagnostics {
 
     /**
      * An error message of a tool and how often it came.
+     *
+     * @param example the start of the arguments of the first call that got it
      */
-    public record ErrorStat(String tool, String message, int times) {
+    public record ErrorStat(String tool, String message, int times, String example) {
     }
 
     /**
@@ -148,6 +167,37 @@ public final class AgentDiagnostics {
         public long tokens() {
             return chars / CHARS_PER_TOKEN;
         }
+    }
+
+    /**
+     * One of the calls with the longest arguments.
+     *
+     * @param round     the round of the call
+     * @param tool      the tool
+     * @param arguments the start of the arguments (the path of a file tool is in it)
+     * @param chars     the characters of the arguments
+     * @param copied    whether it is a text the model had just been given in a result
+     */
+    public record BigArgument(int round, String tool, String arguments, long chars, boolean copied) {
+    }
+
+    /**
+     * What the model wrote in {@value #BLOCK} rounds.
+     *
+     * @param firstRound     the first round of the block
+     * @param lastRound      the last
+     * @param calls          its calls
+     * @param argChars       the characters of their arguments
+     * @param textChars      the characters of the text besides the calls
+     * @param reasoningChars the characters of the reasoning
+     * @param referenced     the calls with a text argument given as a reference
+     * @param longTexts      the calls with a long text written out
+     * @param copied         the calls whose long text was in a result just given
+     * @param errors         the calls that failed
+     * @param modelMillis    the requests
+     */
+    public record Block(int firstRound, int lastRound, long calls, long argChars, long textChars, long reasoningChars,
+                        long referenced, long longTexts, long copied, long errors, long modelMillis) {
     }
 
     /**
@@ -200,13 +250,15 @@ public final class AgentDiagnostics {
      * @param repeats       the calls made again, the most often first
      * @param errorMessages the errors, the most frequent first
      * @param biggest       the biggest results
+     * @param bigArguments  the calls with the longest arguments
+     * @param blocks        what the model wrote, {@value #BLOCK} rounds at a time
      * @param slowest       the slowest rounds
      * @param compactions   the compactions
      * @param subAgents     the sub-agents
      */
     public record Report(String agentName, AgentRunStatus status, String started, Overview overview, List<ToolStat> tools,
                          List<Series> series, List<Repeat> repeats, List<ErrorStat> errorMessages, List<Biggest> biggest,
-                         List<Slow> slowest, List<Compaction> compactions, List<SubAgent> subAgents) {
+                         List<BigArgument> bigArguments, List<Block> blocks, List<Slow> slowest, List<Compaction> compactions, List<SubAgent> subAgents) {
 
         /** The report as JSON, for a file to keep or to hand to somebody. */
         public String toJson() {
@@ -225,10 +277,20 @@ public final class AgentDiagnostics {
         final LLMToolCall call;
         String result;
         long millis;
+        // what the arguments carry
+        int references;
+        int longTexts;
+        // the characters of the long texts
+        long longChars;
+        boolean copied;
 
         Call(int round, LLMToolCall call) {
             this.round = round;
             this.call = call;
+        }
+
+        int argChars() {
+            return call.getArguments().length();
         }
 
         boolean answered() {
@@ -258,6 +320,8 @@ public final class AgentDiagnostics {
         final List<Call> calls = new ArrayList<>();
         long modelMillis;
         long contextTokens;
+        long textChars;
+        long reasoningChars;
 
         Round(int number) {
             this.number = number;
@@ -323,11 +387,16 @@ public final class AgentDiagnostics {
                 scan.idleMillis, contexts.stream().mapToLong(Long::longValue).max().orElse(0),
                 contexts.isEmpty() ? 0 : contexts.getLast(), steps == 0 ? 0 : grown / steps,
                 run == null ? 0 : run.getPrefillTokens(), run == null ? 0 : run.getGeneratedTokens(),
-                scan.rounds.isEmpty() ? 0 : calls.size() * 1.0 / scan.rounds.size());
+                scan.rounds.isEmpty() ? 0 : calls.size() * 1.0 / scan.rounds.size(), calls.stream().mapToLong(Call::argChars).sum(),
+                scan.rounds.stream().mapToLong(round -> round.textChars).sum(),
+                scan.rounds.stream().mapToLong(round -> round.reasoningChars).sum());
 
         List<Biggest> biggest = calls.stream().filter(Call::answered)
                 .sorted(Comparator.comparingInt(Call::resultChars).reversed()).limit(TOP)
                 .map(call -> new Biggest(call.round, call.call.getName(), preview(call.call.getArguments()), call.resultChars(), call.cut()))
+                .toList();
+        List<BigArgument> bigArguments = calls.stream().sorted(Comparator.comparingInt(Call::argChars).reversed()).limit(TOP)
+                .map(call -> new BigArgument(call.round, call.call.getName(), preview(call.call.getArguments()), call.argChars(), call.copied))
                 .toList();
         List<Slow> slowest = scan.rounds.stream()
                 .sorted(Comparator.comparingLong((Round round) -> round.modelMillis + round.toolMillis()).reversed()).limit(5)
@@ -347,12 +416,14 @@ public final class AgentDiagnostics {
 
         return new Report(agentName, run == null ? null : run.getStatus(),
                 run == null || run.getStartedAt() == null ? null : new SimpleDateFormat("yyyy-MM-dd HH:mm").format(run.getStartedAt()),
-                overview, tools, series(scan.rounds), repeats(calls), errors(calls), biggest, slowest, scan.compactions, subAgents);
+                overview, tools, series(scan.rounds), repeats(calls), errors(calls), biggest, bigArguments, blocks(scan.rounds), slowest,
+                scan.compactions, subAgents);
     }
 
     private static Scan scan(List<AgentMessage> rows) {
         Scan scan = new Scan();
         Map<String, Call> open = new HashMap<>();
+        Deque<String> recent = new ArrayDeque<>();
         Round round = null;
         Date previous = null;
         Date first = null;
@@ -389,6 +460,8 @@ public final class AgentDiagnostics {
                     round.modelMillis = idle ? 0 : gap;
                     scan.modelMillis += round.modelMillis;
                     round.contextTokens = row.getContextTokens() == null ? 0 : row.getContextTokens();
+                    round.textChars = StringUtils.length(message.getContent());
+                    round.reasoningChars = StringUtils.length(row.getReasoning());
                     lastContext = round.contextTokens > 0 ? round.contextTokens : lastContext;
                     scan.rounds.add(round);
                     if (message.getToolCalls().isEmpty()) {
@@ -396,6 +469,7 @@ public final class AgentDiagnostics {
                     }
                     for (LLMToolCall toolCall : message.getToolCalls()) {
                         Call call = new Call(round.number, toolCall);
+                        arguments(call, recent);
                         round.calls.add(call);
                         open.put(toolCall.getId(), call);
                     }
@@ -404,6 +478,10 @@ public final class AgentDiagnostics {
                     Call call = open.remove(message.getToolCallId());
                     if (call != null) {
                         call.result = StringUtils.defaultString(message.getContent());
+                        recent.addLast(call.result);
+                        if (recent.size() > RECENT_RESULTS) {
+                            recent.removeFirst();
+                        }
                         call.millis = idle ? 0 : gap;
                         scan.toolMillis += call.millis;
                     }
@@ -423,6 +501,43 @@ public final class AgentDiagnostics {
         }
         scan.wallMillis = first == null ? 0 : last.getTime() - first.getTime();
         return scan;
+    }
+
+    // what the text arguments of a call are: references to a file or a result, short values, or long texts written out (and whether
+    // such a text is in one of the results the model was just given)
+    private static void arguments(Call call, Collection<String> recent) {
+        JsonElement parsed;
+        try {
+            parsed = JsonParser.parseString(call.call.getArguments());
+        } catch (RuntimeException e) {
+            // cut off in the middle of the text: what is there counts as written
+            call.longTexts = call.argChars() >= LONG_TEXT ? 1 : 0;
+            call.longChars = call.longTexts > 0 ? call.argChars() : 0;
+            return;
+        }
+        if (!parsed.isJsonObject()) {
+            return;
+        }
+        JsonObject object = parsed.getAsJsonObject();
+        for (Map.Entry<String, JsonElement> argument : object.entrySet()) {
+            if (!argument.getValue().isJsonPrimitive() || !argument.getValue().getAsJsonPrimitive().isString()) {
+                continue;
+            }
+            String text = argument.getValue().getAsString();
+            if (text.startsWith(CommandFunctions.FILE_PREFIX) || CommandResults.isReference(text)) {
+                call.references++;
+                continue;
+            }
+            if (text.length() >= LONG_TEXT) {
+                call.longTexts++;
+                call.longChars += text.length();
+                int from = text.length() / 2 - SAMPLE / 2;
+                String sample = text.substring(from, from + SAMPLE);
+                if (recent.stream().anyMatch(result -> result.contains(sample))) {
+                    call.copied = true;
+                }
+            }
+        }
     }
 
     // the kinds of the notices of the runner (the text of each with its values left open), null for a message of the author
@@ -463,7 +578,24 @@ public final class AgentDiagnostics {
         return new ToolStat(name, calls.size(), calls.stream().filter(Call::failed).count(), calls.stream().filter(Call::interrupted).count(),
                 calls.stream().filter(Call::cut).count(), solo, calls.stream().mapToLong(call -> call.call.getArguments().length()).sum(),
                 calls.stream().mapToLong(Call::resultChars).sum(), calls.stream().mapToLong(Call::resultChars).max().orElse(0),
-                calls.stream().mapToLong(call -> call.millis).sum(), calls.stream().mapToLong(call -> call.millis).max().orElse(0));
+                calls.stream().mapToLong(call -> call.millis).sum(), calls.stream().mapToLong(call -> call.millis).max().orElse(0),
+                calls.stream().filter(call -> call.references > 0).count(), calls.stream().filter(call -> call.longTexts > 0).count(),
+                calls.stream().filter(call -> call.copied).count(),
+                calls.stream().filter(call -> call.copied).mapToLong(call -> call.longChars).sum());
+    }
+
+    private static List<Block> blocks(List<Round> rounds) {
+        List<Block> blocks = new ArrayList<>();
+        for (int from = 0; from < rounds.size(); from += BLOCK) {
+            List<Round> part = rounds.subList(from, Math.min(rounds.size(), from + BLOCK));
+            List<Call> calls = part.stream().flatMap(round -> round.calls.stream()).toList();
+            blocks.add(new Block(part.getFirst().number, part.getLast().number, calls.size(),
+                    calls.stream().mapToLong(Call::argChars).sum(), part.stream().mapToLong(round -> round.textChars).sum(),
+                    part.stream().mapToLong(round -> round.reasoningChars).sum(), calls.stream().filter(call -> call.references > 0).count(),
+                    calls.stream().filter(call -> call.longTexts > 0).count(), calls.stream().filter(call -> call.copied).count(),
+                    calls.stream().filter(Call::failed).count(), part.stream().mapToLong(round -> round.modelMillis).sum()));
+        }
+        return blocks;
     }
 
     // rounds in a row whose calls are all of one tool
@@ -516,17 +648,21 @@ public final class AgentDiagnostics {
 
     private static List<ErrorStat> errors(List<Call> calls) {
         Map<String, Integer> counts = new LinkedHashMap<>();
+        Map<String, Call> first = new HashMap<>();
         for (Call call : calls) {
             if (call.failed()) {
                 String message = StringUtils.left(call.result.substring(ERROR.length()).strip().lines().findFirst().orElse("")
                         .replaceAll("\\d+", "N"), PREVIEW);
-                counts.merge(call.call.getName() + "\n" + message, 1, Integer::sum);
+                String key = call.call.getName() + "\n" + message;
+                counts.merge(key, 1, Integer::sum);
+                first.putIfAbsent(key, call);
             }
         }
         return counts.entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed()).limit(TOP * 2)
                 .map(entry -> {
                     int at = entry.getKey().indexOf('\n');
-                    return new ErrorStat(entry.getKey().substring(0, at), entry.getKey().substring(at + 1), entry.getValue());
+                    return new ErrorStat(entry.getKey().substring(0, at), entry.getKey().substring(at + 1), entry.getValue(),
+                            preview(first.get(entry.getKey()).call.getArguments()));
                 }).toList();
     }
 
@@ -571,6 +707,9 @@ public final class AgentDiagnostics {
         md.append("- Context: peak ").append(o.peakContext()).append(" tokens, ").append(o.lastContext()).append(" at the last answer, grows by about ")
                 .append(o.growthPerRound()).append(" per round; compactions: ").append(o.compactions()).append('\n');
         md.append("- Tokens as reported: ").append(o.promptTokens()).append(" prompt, ").append(o.generatedTokens()).append(" generated\n");
+        md.append("- Written by the model: ").append(o.argChars()).append(" characters in the arguments of calls, ").append(o.textChars())
+                .append(" of text beside them, ").append(o.reasoningChars()).append(" of reasoning (about ")
+                .append((o.argChars() + o.textChars() + o.reasoningChars()) / 4).append(" tokens together, at 4 characters a token)\n");
         md.append("- Messages of the author: ").append(o.authorMessages()).append(", rows rewound: ").append(o.rewound()).append('\n');
         if (!o.notices().isEmpty()) {
             md.append("- Notices from the run to the agent: ")
@@ -583,16 +722,43 @@ public final class AgentDiagnostics {
             md.append("No calls.\n\n");
         } else {
             long total = report.tools().stream().mapToLong(ToolStat::resultChars).sum();
-            md.append("| Tool | Calls | Errors | Cut | Alone in a round | Written (chars) | Results (~tokens) | Share of results | Longest result | Time | Longest |\n");
-            md.append("|---|---|---|---|---|---|---|---|---|---|---|\n");
+            md.append("| Tool | Calls | Errors | Cut | Alone in a round | Written (chars) | With @file / @result | Long text written | Copied from a result | Results (~tokens) | Share of results | Longest result | Time | Longest |\n");
+            md.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
             for (ToolStat tool : report.tools()) {
                 md.append("| ").append(cell(tool.name())).append(" | ").append(tool.calls()).append(" | ").append(tool.errors())
                         .append(tool.calls() > 0 && tool.errors() > 0 ? " (" + percent(tool.errors(), tool.calls()) + ")" : "")
                         .append(" | ").append(tool.cut()).append(" | ").append(tool.soloRounds()).append(" | ").append(tool.argChars())
+                        .append(" | ").append(tool.referenced()).append(" | ").append(tool.longTexts()).append(" | ").append(tool.copied())
                         .append(" | ").append(tool.resultTokens()).append(" | ").append(percent(tool.resultChars(), total))
                         .append(" | ").append(tool.maxResult()).append(" | ").append(duration(tool.millis()))
                         .append(" | ").append(duration(tool.maxMillis())).append(" |\n");
             }
+            md.append('\n');
+        }
+
+        md.append("## What the model wrote, by block of ").append(BLOCK).append(" rounds\n\n");
+        if (report.blocks().isEmpty()) {
+            md.append("None.\n\n");
+        } else {
+            md.append("A call counts as \"long text\" when an argument is a text of ").append(LONG_TEXT).append(" characters or more written out, as \"copied\" when ")
+                    .append("that text is in one of the 60 results before it (the model had just read it), as \"with reference\" when a text argument is @file: or @result. ")
+                    .append("Characters are of arguments, of the text beside the calls and of the reasoning.\n\n");
+            md.append("| Rounds | Calls | Arguments | Text | Reasoning | With reference | Long text | Copied | Errors | Model time |\n|---|---|---|---|---|---|---|---|---|---|\n");
+            report.blocks().forEach(block -> md.append("| ").append(block.firstRound()).append('-').append(block.lastRound()).append(" | ")
+                    .append(block.calls()).append(" | ").append(block.argChars()).append(" | ").append(block.textChars()).append(" | ")
+                    .append(block.reasoningChars()).append(" | ").append(block.referenced()).append(" | ").append(block.longTexts()).append(" | ")
+                    .append(block.copied()).append(" | ").append(block.errors()).append(" | ").append(duration(block.modelMillis())).append(" |\n"));
+            md.append('\n');
+        }
+
+        md.append("## Longest arguments\n\n");
+        if (report.bigArguments().isEmpty()) {
+            md.append("None.\n\n");
+        } else {
+            md.append("| Round | Tool | Start of the arguments | Characters | Copied |\n|---|---|---|---|---|\n");
+            report.bigArguments().forEach(big -> md.append("| ").append(big.round()).append(" | ").append(cell(big.tool())).append(" | `")
+                    .append(cell(big.arguments()).replace("`", "'")).append("` | ").append(big.chars()).append(" | ")
+                    .append(big.copied() ? "yes" : "").append(" |\n"));
             md.append('\n');
         }
 
@@ -621,9 +787,9 @@ public final class AgentDiagnostics {
         if (report.errorMessages().isEmpty()) {
             md.append("No call failed.\n\n");
         } else {
-            md.append("| Tool | Message (numbers as N) | Times |\n|---|---|---|\n");
+            md.append("| Tool | Message (numbers as N) | Times | Arguments of the first call |\n|---|---|---|---|\n");
             report.errorMessages().forEach(error -> md.append("| ").append(cell(error.tool())).append(" | ").append(cell(error.message()))
-                    .append(" | ").append(error.times()).append(" |\n"));
+                    .append(" | ").append(error.times()).append(" | `").append(cell(error.example()).replace("`", "'")).append("` |\n"));
             md.append('\n');
         }
 

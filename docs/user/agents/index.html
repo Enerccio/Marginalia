@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845836177566">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845839548532">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845836177566" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845839548532" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845836177566" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845839548532" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845836177566" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845839548532" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -543,9 +543,10 @@ made of the copy and no extension sees a book open. It is read when you open the
 <p>The <strong>Diagnostics</strong> tab counts what the run did from its transcript, to find out what an agent needs from its tools and its prompt. It works for any run, an old one too (pick it in <strong>Runs</strong> first), and is made when you open the tab and when you press <strong>Refresh</strong>.</p>
 <ul>
 <li><strong>Overview</strong>: rounds and calls, how many calls failed, the time of the model, of the calls and of pauses (a gap of 30 minutes or more between two steps is a pause, not work), the context at its peak and at the end, the tokens, compactions, your messages and the notices the runner gave the agent (an unreadable call, too many calls, a full context).</li>
-<li><strong>Tools</strong>: for each tool the calls, the errors, the results that were cut, how often it was the only call of a round, the characters the agent wrote and the tokens of its results (about, from the characters), the share of all results, the longest result and the time.</li>
+<li><strong>Tools</strong>: for each tool the calls, the errors, the results that were cut, how often it was the only call of a round, the characters the agent wrote, how many calls passed a text as <code translate="no" v-pre>@file:</code> or <code translate="no" v-pre>@result</code>, how many wrote a long text (300 characters or more) out and how many of those copied it from a result the agent had just been given, the tokens of its results (about, from the characters), the share of all results, the longest result and the time.</li>
+<li><strong>What the model wrote</strong>: the characters of the arguments, of the text beside the calls and of the reasoning, in all and for each block of 25 rounds with the time of the model, to see where its output goes and whether it stopped using <code translate="no" v-pre>@file</code> at some point. <strong>Longest arguments</strong> shows the start of the biggest calls, with the path of a file tool.</li>
 <li><strong>Rounds lost to a pattern</strong>: the same tool called round after round (three or more), marked when a search came right before it; and the calls made again with the same arguments. These show where a tool that takes many items, or more calls in one answer, would save rounds.</li>
-<li><strong>Errors</strong>, the <strong>biggest results</strong>, the <strong>slowest rounds</strong>, the <strong>compactions</strong> and the <strong>sub-agents</strong> with the tools each one called.</li>
+<li><strong>Errors</strong> with the arguments of the first call that got each message (to see what the model sent when a call failed), the <strong>biggest results</strong>, the <strong>slowest rounds</strong>, the <strong>compactions</strong> and the <strong>sub-agents</strong> with the tools each one called.</li>
 </ul>
 <p><strong>Download</strong> gives the report as Markdown, <strong>Download JSON</strong> as JSON, <strong>Copy</strong> puts the Markdown on the clipboard. The times are the gaps between the stored rows, so they are approximate: the time of an answer includes waiting for a free place at the model.</p>
 <h3 id="the-context">The context</h3>
@@ -760,7 +761,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (0430fed0).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (e074c926).</p></div>
             </footer>
         </div>
     </div>

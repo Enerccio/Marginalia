@@ -404,6 +404,19 @@ You are a sub-agent: another agent started you for one task, which is your first
     public static final String AGENT_STOPPED_SKIPPED_CALL = "Error: this call was not made because the author stopped the run.";
 
     /**
+     * Added to the result of {@code read_file} when the whole file is shown and has at least {@link #AGENT_FILE_HINT_FROM}
+     * characters: the model is about to use the text in a call, and writing it out again costs it the time of every token, while
+     * the reference to the file costs nothing. {@code %s} is the path of the file.
+     */
+    public static final String AGENT_FILE_HINT = "[To use this text in a command or in write_file, pass @file:%s as the argument "
+            + "instead of writing the text out.]";
+
+    /**
+     * The shortest file (in characters) whose {@code read_file} result gets the {@link #AGENT_FILE_HINT}.
+     */
+    public static final int AGENT_FILE_HINT_FROM = 500;
+
+    /**
      * What the agent is told when the model server could not read the arguments of a call it wrote (an answer that ended in the middle
      * of the text, by the limit of one answer or because the model stopped, is the usual reason; not the size of the context): the answer is gone, so nothing was done, and the same request would fail the same way.
      */
