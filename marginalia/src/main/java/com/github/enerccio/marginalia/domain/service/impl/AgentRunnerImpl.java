@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.bound.AgentRequestAttributes;
+import com.github.enerccio.marginalia.domain.collections.AgentBatchMode;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
@@ -25,6 +26,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAtta
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.google.gson.Gson;
@@ -676,18 +678,37 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
     /**
      * What of an answer is made: the repeats of calls that read are dropped, and no more than
-     * {@link Defaults#AGENT_MAX_CALLS_PER_ROUND} calls are kept, one when the agent makes one call per round. The dropped calls are not in the transcript either, so no
+     * {@link Defaults#AGENT_MAX_CALLS_PER_ROUND} calls are kept, one when the agent is not batched, and the answer ends at a call of
+     * a command that is made alone ({@code BatchPolicy.SINGLE}) unless the agent ignores the policies. The dropped calls are not in the transcript either, so no
      * result is owed for them.
      */
-    private static Round limitCalls(Round round, boolean oneCall) {
+    private static Round limitCalls(Round round, AgentBatchMode mode, Set<String> singles) {
         List<LLMToolCall> kept = withoutRepeats(round.calls());
-        if (oneCall && kept.size() > 1) {
+        if (mode == AgentBatchMode.NOT_BATCHED && kept.size() > 1) {
             kept = new ArrayList<>(kept.subList(0, 1));
+        } else if (mode == AgentBatchMode.BATCHED) {
+            int single = singleCall(kept, singles);
+            if (single >= 0 && kept.size() > 1) {
+                // a call that is made alone: it is the answer when it is the first, else the answer ends before it
+                kept = new ArrayList<>(kept.subList(0, Math.max(single, 1)));
+            }
         }
         if (kept.size() > Defaults.AGENT_MAX_CALLS_PER_ROUND) {
             kept = new ArrayList<>(kept.subList(0, Defaults.AGENT_MAX_CALLS_PER_ROUND));
         }
         return kept.size() == round.calls().size() ? round : new Round(round.text(), round.reasoning(), kept, round.usage());
+    }
+
+    /**
+     * The index of the first call of a command that is made alone in an answer, -1 when there is none.
+     */
+    private static int singleCall(List<LLMToolCall> calls, Set<String> singles) {
+        for (int i = 0; i < calls.size(); i++) {
+            if (singles.contains(calls.get(i).getName())) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -751,6 +772,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         // the checkpoint tools of the run, and the commands that change nothing (a round of those needs no checkpoint)
         private CheckpointToolsImpl checkpointTools;
         private Set<String> readOnlyCommands = Set.of();
+        // the commands and the tools that are called alone in an answer (BatchPolicy.SINGLE)
+        private Set<String> singleCalls = Set.of();
         // whether the working copy or the workspace may have changed since the last checkpoint
         private volatile boolean dirty;
         // whether the agent was told that no automatic checkpoint fits, until one is made again
@@ -880,7 +903,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             checkpointTools = new CheckpointToolsImpl(() -> run, checkpointService);
             readOnlyCommands = commandService.getCommands().stream().filter(CommandDefinition::readOnly)
                     .map(CommandDefinition::commandName).collect(Collectors.toSet());
+            singleCalls = commandService.getCommands().stream().filter(definition -> definition.batch() == BatchPolicy.SINGLE)
+                    .map(CommandDefinition::commandName).collect(Collectors.toSet());
             tools = tools();
+            Set<String> alone = new HashSet<>(singleCalls);
+            tools.getDefinitions().stream().filter(definition -> definition.getBatch() == BatchPolicy.SINGLE)
+                    .forEach(definition -> alone.add(definition.getName()));
+            singleCalls = Set.copyOf(alone);
             if (initial == null) {
                 // the sub-agents that were paused go on, and the call of the agent that waited for one waits again
                 restoreSubAgents(true);
@@ -989,10 +1018,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
                 int asked = round.calls().size();
                 int repeats = asked - withoutRepeats(round.calls()).size();
-                boolean oneCall = agent.isLimitedToOneCall();
-                round = limitCalls(round, oneCall);
+                AgentBatchMode mode = agent.batchModeOrDefault();
+                int single = mode == AgentBatchMode.BATCHED ? singleCall(withoutRepeats(round.calls()), singleCalls) : -1;
+                String singleName = single < 0 ? null : withoutRepeats(round.calls()).get(single).getName();
+                round = limitCalls(round, mode, singleCalls);
                 String callNotice = round.calls().size() == asked ? null
-                        : oneCall && asked - repeats > 1 ? String.format(Defaults.AGENT_ONE_CALL_NOTICE, asked - repeats)
+                        : mode == AgentBatchMode.NOT_BATCHED && asked - repeats > 1 ? String.format(Defaults.AGENT_ONE_CALL_NOTICE, asked - repeats)
+                        : singleName != null && round.calls().size() < asked - repeats
+                        ? String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, singleName, asked - repeats, round.calls().size())
                         : String.format(Defaults.AGENT_TOO_MANY_CALLS, asked, repeats, round.calls().size());
 
                 LLMChatMessage answer = round.calls().isEmpty()
@@ -2545,7 +2578,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
                 Round round;
                 try {
-                    round = limitCalls(ask(inference, profile, subPayload(conversation), subTools, waiter), agent.isLimitedToOneCall());
+                    round = limitCalls(ask(inference, profile, subPayload(conversation), subTools, waiter), agent.batchModeOrDefault(), singleCalls);
                     unreadable = 0;
                 } catch (SubStopped e) {
                     throw e;

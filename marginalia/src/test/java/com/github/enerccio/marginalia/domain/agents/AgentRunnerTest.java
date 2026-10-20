@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.agents;
 
 import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.collections.AgentBatchMode;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -725,9 +726,9 @@ class AgentRunnerTest extends AgentTestBase {
     }
 
     @Test
-    void anAgentThatMakesOneCallPerRoundKeepsTheFirstCallAndIsToldSo() throws Exception {
+    void anAgentThatIsNotBatchedKeepsTheFirstCallAndIsToldSo() throws Exception {
         Agent agent = readingAgent();
-        agent.setOneCallPerRound(true);
+        agent.setBatchMode(AgentBatchMode.NOT_BATCHED);
         agent = agentService.save(agent);
         llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").andToolCall("list_files", "{\"path\":\"/\"}"),
                 MockLLMResponse.text("Done."));
@@ -740,6 +741,58 @@ class AgentRunnerTest extends AgentTestBase {
                 .getToolCalls()).hasSize(1);
         assertThat(messages.stream().anyMatch(m -> m.getRole() == LLMRole.USER
                 && String.format(Defaults.AGENT_ONE_CALL_NOTICE, 2).equals(m.getContent()))).isTrue();
+    }
+
+    private Agent agentWithASingleCommand(AgentBatchMode mode) throws Exception {
+        Agent agent = readingAgent();
+        // regenerate-summary calls a model: its policy is SINGLE
+        agent.setAllowedCommands(List.of("get-book-info", "regenerate-summary"));
+        agent.setBatchMode(mode);
+        return agentService.save(agent);
+    }
+
+    private void answerWithTheSingleCommandLast() {
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").andToolCall("list_files", "{\"path\":\"/\"}")
+                .andToolCall("regenerate-summary", "{}"), MockLLMResponse.text("Done."));
+    }
+
+    @Test
+    void aCommandThatIsMadeAloneEndsTheAnswerBeforeItAndTheAgentIsToldSo() throws Exception {
+        Agent agent = agentWithASingleCommand(AgentBatchMode.BATCHED);
+        answerWithTheSingleCommandLast();
+
+        AgentRun run = await(startRun(agent));
+
+        List<LLMChatMessage> messages = transcript(run);
+        assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.TOOL)).hasSize(2);
+        assertThat(messages.stream().anyMatch(m -> m.getRole() == LLMRole.USER
+                && String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, "regenerate-summary", 3, 2).equals(m.getContent()))).isTrue();
+    }
+
+    @Test
+    void theRequestForACompactionIsMadeAloneToo() throws Exception {
+        Agent agent = agentService.save(readingAgent());
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").andToolCall("request_compaction", "{}"), MockLLMResponse.text("Done."));
+
+        AgentRun run = await(startRun(agent));
+
+        List<LLMChatMessage> messages = transcript(run);
+        assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.TOOL)).hasSize(1);
+        assertThat(messages.stream().anyMatch(m -> m.getRole() == LLMRole.USER
+                && String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, "request_compaction", 2, 1).equals(m.getContent()))).isTrue();
+    }
+
+    @Test
+    void anAgentThatIgnoresThePoliciesMakesAllTheCalls() throws Exception {
+        Agent agent = agentWithASingleCommand(AgentBatchMode.BATCHED_IGNORE_POLICIES);
+        answerWithTheSingleCommandLast();
+
+        AgentRun run = await(startRun(agent));
+
+        List<LLMChatMessage> messages = transcript(run);
+        assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.TOOL)).hasSize(3);
+        assertThat(messages.stream().noneMatch(m -> m.getRole() == LLMRole.USER && m.getContent() != null
+                && m.getContent().startsWith("Notice from the run: regenerate-summary"))).isTrue();
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.agent;
 
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
+import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
 import com.github.enerccio.marginalia.domain.traits.LLMFunction;
 import com.github.enerccio.marginalia.domain.traits.LLMParam;
 
@@ -42,10 +43,11 @@ public interface RunTools {
     void updatePlan(FunctionContinuation<String> done,
                     @LLMParam(description = "All the steps, in order; each has text and status") List<PlanItem> items);
 
-    @LLMFunction(name = "request_compaction", description = "Frees your context: when this round ends, everything you did so "
-            + "far is replaced by a summary that you write then. Use it when the run tells you the context is filling up, "
-            + "or before you start a new stage of the task. Save your notes to a file of your workspace and update your "
-            + "plan first; what is in neither is only in the summary if you write it there.")
+    @LLMFunction(name = "request_compaction", batch = BatchPolicy.SINGLE, description = "Frees your context: when this round ends, "
+            + "everything you did so far is replaced by a summary that you write then. Use it when the run tells you the context is "
+            + "filling up, or before you start a new stage of the task. Save your notes to a file of your workspace and update your "
+            + "plan first, in the answers before this one; what is in neither is only in the summary if you write it there. Call it in "
+            + "an answer of its own.")
     void requestCompaction(FunctionContinuation<String> done,
                            @LLMParam(description = "What the summary should stress, e.g. the stage you start next",
                                    required = false) String focus);

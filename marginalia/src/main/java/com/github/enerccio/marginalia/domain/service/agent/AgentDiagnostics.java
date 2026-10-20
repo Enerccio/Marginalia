@@ -547,6 +547,7 @@ public final class AgentDiagnostics {
         notice(Defaults.AGENT_UNREADABLE_CALL, "unreadable call");
         notice(Defaults.AGENT_TOO_MANY_CALLS, "too many calls");
         notice(Defaults.AGENT_ONE_CALL_NOTICE, "one call per round");
+        notice(Defaults.AGENT_SINGLE_CALL_NOTICE, "command made alone");
         notice(Defaults.AGENT_CONTEXT_WARNING, "context warning");
         notice(Defaults.AGENT_CONTEXT_CRITICAL, "context critical");
         notice(Defaults.AGENT_SUBAGENTS_STILL_WORKING, "sub-agents still work");
@@ -556,7 +557,7 @@ public final class AgentDiagnostics {
 
     private static void notice(String format, String kind) {
         // the parts of the text between the values, found one after the other from the start
-        String[] parts = format.replace("%%", "\0").split("%[-#+ 0,(\\d.]*[a-zA-Z]", -1);
+        String[] parts = format.replace("%%", "\0").split("%[-#+ 0,(\\d.$]*[a-zA-Z]", -1);
         String pattern = Arrays.stream(parts).map(part -> Pattern.quote(part.replace("\0", "%")))
                 .collect(Collectors.joining(".*?"));
         NOTICES.put(Pattern.compile(pattern, Pattern.DOTALL), kind);

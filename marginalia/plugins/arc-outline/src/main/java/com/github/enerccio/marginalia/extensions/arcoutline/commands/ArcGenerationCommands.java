@@ -66,7 +66,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
 
     // --- generate-arc ---
 
-    @Command(commandName = GENERATE_ARC, humanNameText = "Generate arc", async = true,
+    @Command(commandName = GENERATE_ARC, batch = BatchPolicy.SINGLE, humanNameText = "Generate arc", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_ARC_TEXT, llmDescriptionText = GENERATE_ARC_LLM,
             signature = @CommandParameterSignature,
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_GENERATED))
@@ -74,7 +74,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         runGenerateArc(context);
     }
 
-    @Command(commandName = GENERATE_ARC, humanNameText = "Generate arc", async = true,
+    @Command(commandName = GENERATE_ARC, batch = BatchPolicy.SINGLE, humanNameText = "Generate arc", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_ARC_TEXT, llmDescriptionText = GENERATE_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "specification", type = String.class, optional = true, descriptionText = PARAM_SPECIFICATION)}),
@@ -83,7 +83,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         runGenerateArc(context);
     }
 
-    @Command(commandName = GENERATE_ARC, humanNameText = "Generate arc", async = true,
+    @Command(commandName = GENERATE_ARC, batch = BatchPolicy.SINGLE, humanNameText = "Generate arc", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_ARC_TEXT, llmDescriptionText = GENERATE_ARC_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "specification", type = String.class, optional = true, descriptionText = PARAM_SPECIFICATION),
@@ -137,7 +137,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
 
     // --- generate-outline-chapters ---
 
-    @Command(commandName = GENERATE_CHAPTERS, humanNameText = "Generate outline chapters", async = true,
+    @Command(commandName = GENERATE_CHAPTERS, batch = BatchPolicy.SINGLE, humanNameText = "Generate outline chapters", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_CHAPTERS_TEXT, llmDescriptionText = GENERATE_CHAPTERS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC)}),
@@ -146,7 +146,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         runGenerateChapters(context);
     }
 
-    @Command(commandName = GENERATE_CHAPTERS, humanNameText = "Generate outline chapters", async = true,
+    @Command(commandName = GENERATE_CHAPTERS, batch = BatchPolicy.SINGLE, humanNameText = "Generate outline chapters", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_CHAPTERS_TEXT, llmDescriptionText = GENERATE_CHAPTERS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -156,7 +156,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         runGenerateChapters(context);
     }
 
-    @Command(commandName = GENERATE_CHAPTERS, humanNameText = "Generate outline chapters", async = true,
+    @Command(commandName = GENERATE_CHAPTERS, batch = BatchPolicy.SINGLE, humanNameText = "Generate outline chapters", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_CHAPTERS_TEXT, llmDescriptionText = GENERATE_CHAPTERS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -167,7 +167,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         runGenerateChapters(context);
     }
 
-    @Command(commandName = GENERATE_CHAPTERS, humanNameText = "Generate outline chapters", async = true,
+    @Command(commandName = GENERATE_CHAPTERS, batch = BatchPolicy.SINGLE, humanNameText = "Generate outline chapters", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_CHAPTERS_TEXT, llmDescriptionText = GENERATE_CHAPTERS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),
@@ -180,7 +180,7 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         runGenerateChapters(context);
     }
 
-    @Command(commandName = GENERATE_CHAPTERS, humanNameText = "Generate outline chapters", async = true,
+    @Command(commandName = GENERATE_CHAPTERS, batch = BatchPolicy.SINGLE, humanNameText = "Generate outline chapters", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = GENERATE_CHAPTERS_TEXT, llmDescriptionText = GENERATE_CHAPTERS_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "arc", type = Integer.class, descriptionText = PARAM_ARC),

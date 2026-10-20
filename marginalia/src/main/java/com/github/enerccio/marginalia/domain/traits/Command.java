@@ -116,4 +116,12 @@ public @interface Command {
      */
     boolean readOnly() default false;
 
+    /**
+     * How the command is used among the calls of one answer of an agent: with others ({@link BatchPolicy#BATCHABLE}, the default) or
+     * alone ({@link BatchPolicy#SINGLE}), for a command that makes a call to a model, for example. A policy is advice about use,
+     * and an agent can be set to ignore it. Declare it on every overload of the command (the runner takes the command as single when
+     * any of them is).
+     */
+    BatchPolicy batch() default BatchPolicy.BATCHABLE;
+
 }

@@ -41,7 +41,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
     static final String SWIPE = "swipe";
     static final String REGENERATE = "regenerate";
 
-    @Command(commandName = NEXT, humanName = L.LABEL_COMMAND_NEXT, async = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature,
@@ -50,7 +50,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         next(context, null, null, null, null, null, null);
     }
 
-    @Command(commandName = NEXT, humanName = L.LABEL_COMMAND_NEXT, async = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
@@ -60,7 +60,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         next(context, context.get("scene", String.class), null, null, null, null, null);
     }
 
-    @Command(commandName = NEXT, humanName = L.LABEL_COMMAND_NEXT, async = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
@@ -71,7 +71,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         next(context, context.get("scene", String.class), context.get("pov", String.class), null, null, null, null);
     }
 
-    @Command(commandName = NEXT, humanName = L.LABEL_COMMAND_NEXT, async = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
@@ -83,7 +83,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         next(context, context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), null, null, null);
     }
 
-    @Command(commandName = NEXT, humanName = L.LABEL_COMMAND_NEXT, async = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
@@ -96,7 +96,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         next(context, context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), null, null);
     }
 
-    @Command(commandName = NEXT, humanName = L.LABEL_COMMAND_NEXT, async = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
@@ -110,7 +110,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         next(context, context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), ref(context, "after"), null);
     }
 
-    @Command(commandName = NEXT, humanName = L.LABEL_COMMAND_NEXT, async = true,
+    @Command(commandName = NEXT, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_NEXT, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_NEXT, llmDescription = L.DESC_COMMAND_NEXT_LLM,
             signature = @CommandParameterSignature({
@@ -125,7 +125,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         next(context, context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), ref(context, "after"), ref(context, "profile"));
     }
 
-    @Command(commandName = SWIPE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature,
@@ -134,7 +134,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         swipe(context, null, null, null, null, null, null);
     }
 
-    @Command(commandName = SWIPE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
@@ -144,7 +144,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         swipe(context, ref(context, "part"), null, null, null, null, null);
     }
 
-    @Command(commandName = SWIPE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
@@ -155,7 +155,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         swipe(context, ref(context, "part"), context.get("scene", String.class), null, null, null, null);
     }
 
-    @Command(commandName = SWIPE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
@@ -167,7 +167,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         swipe(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), null, null, null);
     }
 
-    @Command(commandName = SWIPE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
@@ -180,7 +180,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         swipe(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), null, null);
     }
 
-    @Command(commandName = SWIPE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
@@ -194,7 +194,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         swipe(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), null);
     }
 
-    @Command(commandName = SWIPE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
+    @Command(commandName = SWIPE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_SWIPE, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_SWIPE, llmDescription = L.DESC_COMMAND_SWIPE_LLM,
             signature = @CommandParameterSignature({
@@ -209,7 +209,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         swipe(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), ref(context, "profile"));
     }
 
-    @Command(commandName = REGENERATE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature,
@@ -218,7 +218,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         regenerate(context, null, null, null, null, null, null);
     }
 
-    @Command(commandName = REGENERATE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
@@ -228,7 +228,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         regenerate(context, ref(context, "part"), null, null, null, null, null);
     }
 
-    @Command(commandName = REGENERATE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
@@ -239,7 +239,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         regenerate(context, ref(context, "part"), context.get("scene", String.class), null, null, null, null);
     }
 
-    @Command(commandName = REGENERATE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
@@ -251,7 +251,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         regenerate(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), null, null, null);
     }
 
-    @Command(commandName = REGENERATE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
@@ -264,7 +264,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         regenerate(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), null, null);
     }
 
-    @Command(commandName = REGENERATE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({
@@ -278,7 +278,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
         regenerate(context, ref(context, "part"), context.get("scene", String.class), context.get("pov", String.class), context.get("present", String.class), context.get("instructions", String.class), null);
     }
 
-    @Command(commandName = REGENERATE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
+    @Command(commandName = REGENERATE, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE, async = true,
             dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             description = L.DESC_COMMAND_REGENERATE, llmDescription = L.DESC_COMMAND_REGENERATE_LLM,
             signature = @CommandParameterSignature({

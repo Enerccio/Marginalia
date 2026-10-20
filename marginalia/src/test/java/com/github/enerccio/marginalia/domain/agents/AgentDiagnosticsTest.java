@@ -223,13 +223,16 @@ class AgentDiagnosticsTest {
         rows.user(Defaults.AGENT_UNREADABLE_CALL);
         rows.user(String.format(Defaults.AGENT_TOO_MANY_CALLS, 4, 3, 1));
         rows.user(String.format(Defaults.AGENT_TOO_MANY_CALLS, 5, 2, 3));
+        rows.user(String.format(Defaults.AGENT_ONE_CALL_NOTICE, 3));
+        rows.user(String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, "regenerate-summary", 3, 2));
         rows.user("Notice from the run: something else");
         rows.user("Please go on");
 
         AgentDiagnostics.Overview overview = report(rows).overview();
 
         assertThat(overview.authorMessages()).isEqualTo(2);
-        assertThat(overview.notices()).containsEntry("unreadable call", 1L).containsEntry("too many calls", 2L).containsEntry("other", 1L);
+        assertThat(overview.notices()).containsEntry("unreadable call", 1L).containsEntry("too many calls", 2L).containsEntry("other", 1L)
+                .containsEntry("one call per round", 1L).containsEntry("command made alone", 1L);
     }
 
     @Test

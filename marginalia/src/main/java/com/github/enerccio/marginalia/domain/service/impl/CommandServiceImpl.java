@@ -8,7 +8,8 @@ import com.github.enerccio.marginalia.domain.service.impl.commands.HelloWorldCom
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceChatMessageCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.*;
-import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.*;
+import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LoreEntryWriteCommands;
+import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LorebookWriteCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.*;
 import com.github.enerccio.marginalia.domain.traits.Command;
@@ -195,7 +196,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         return new CommandDefinition(name, CommandText.of(where, "humanName", meta.humanName(), meta.humanNameText(), true),
                 CommandText.of(where, "description", meta.description(), meta.descriptionText(), false),
                 CommandText.of(where, "llmDescription", meta.llmDescription(), meta.llmDescriptionText(), false), meta.async(),
-                meta.dataSeverity(), meta.availableForAgent(), meta.readOnly(), suite, signature.any(), List.copyOf(parameters),
+                meta.dataSeverity(), meta.availableForAgent(), meta.readOnly(), meta.batch(), suite, signature.any(), List.copyOf(parameters),
                 new CommandReturnDefinition(returns.name(), returns.type(),
                         CommandText.of(where, "description of the return value", returns.description(), returns.descriptionText(), false)));
     }

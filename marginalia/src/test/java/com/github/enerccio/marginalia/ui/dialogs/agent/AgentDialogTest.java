@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.collections.AgentBatchMode;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
@@ -14,6 +15,8 @@ import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.vaadin.flow.component.UI;
 import org.junit.jupiter.api.AfterEach;
@@ -32,6 +35,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * agent, and the allowed commands are chosen with the check boxes or a preset.
  */
 class AgentDialogTest extends AgentTestBase {
+
+    @Autowired
+    private Localization loc;
 
     @Autowired
     private CommandService commandService;
@@ -119,8 +125,8 @@ class AgentDialogTest extends AgentTestBase {
         dialog.getAutoCompactField().setValue(80);
         assertThat(dialog.getUseOwnModelCheckbox().getValue()).as("on for a new agent").isTrue();
         dialog.getUseOwnModelCheckbox().setValue(false);
-        assertThat(dialog.getOneCallCheckbox().getValue()).as("off for a new agent").isFalse();
-        dialog.getOneCallCheckbox().setValue(true);
+        assertThat(dialog.getBatchModeCombo().getValue()).as("batched for a new agent").isEqualTo(AgentBatchMode.BATCHED);
+        dialog.getBatchModeCombo().setValue(AgentBatchMode.NOT_BATCHED);
         dialog.getInstructionsField().setValue("Check the names.");
         dialog.getCommandsEditor().select(AgentCommandPreset.NONE);
         button(dialog, "OK").click();
@@ -137,6 +143,7 @@ class AgentDialogTest extends AgentTestBase {
         assertThat(agent.getContextCap()).isEqualTo(8000);
         assertThat(agent.getAutoCompactPercent()).isEqualTo(80);
         assertThat(agent.isUsingAgentModel()).isFalse();
+        assertThat(agent.getBatchMode()).isEqualTo(AgentBatchMode.NOT_BATCHED);
         assertThat(agent.getInstructions()).isEqualTo("Check the names.");
         assertThat(agent.getSystemPrompt()).as("blank: it follows the default").isBlank();
         assertThat(agent.getAllowedCommands()).isEmpty();
@@ -419,6 +426,20 @@ class AgentDialogTest extends AgentTestBase {
 
         assertThat(dialog.getCommandsEditor().getGrid().getListDataView().getItems()).allSatisfy(row -> assertThat(row.tokens()).isPositive());
         assertThat(dialog.getCommandsEditor().getSelectedTokens()).isPositive();
+    }
+
+    @Test
+    void theGridShowsTheBatchPolicyOfEachCommandAndItsColumnsCanBeResized() throws Exception {
+        manuscript();
+        AgentDialog dialog = dialog(null);
+
+        var rows = dialog.getCommandsEditor().getGrid().getListDataView().getItems().toList();
+
+        assertThat(rows.stream().filter(row -> row.name().equals("regenerate-summary")).findFirst().orElseThrow().batch())
+                .isEqualTo(loc.getValue(L.ENUM_BATCH_POLICY_SINGLE));
+        assertThat(rows.stream().filter(row -> row.name().equals("get-book-info")).findFirst().orElseThrow().batch())
+                .isEqualTo(loc.getValue(L.ENUM_BATCH_POLICY_BATCHABLE));
+        assertThat(dialog.getCommandsEditor().getGrid().getColumns()).allMatch(com.vaadin.flow.component.grid.Grid.Column::isResizable);
     }
 
     private static long tokensOf(String sizeText) {

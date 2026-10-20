@@ -22,7 +22,7 @@ public class SummaryGenerationCommands extends ManuscriptWriteSupport {
     static final String REGENERATE_SUMMARY = "regenerate-summary";
     static final String CREATE_META_SUMMARY = "create-meta-summary";
 
-    @Command(commandName = REGENERATE_SUMMARY, humanName = L.LABEL_COMMAND_REGENERATE_SUMMARY, async = true,
+    @Command(commandName = REGENERATE_SUMMARY, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_REGENERATE_SUMMARY, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_REGENERATE_SUMMARY, llmDescription = L.DESC_COMMAND_REGENERATE_SUMMARY_LLM,
             signature = @CommandParameterSignature({
@@ -32,7 +32,7 @@ public class SummaryGenerationCommands extends ManuscriptWriteSupport {
         regenerateSummary(context, ref(context, "part"));
     }
 
-    @Command(commandName = CREATE_META_SUMMARY, humanName = L.LABEL_COMMAND_CREATE_META_SUMMARY, async = true,
+    @Command(commandName = CREATE_META_SUMMARY, batch = BatchPolicy.SINGLE, humanName = L.LABEL_COMMAND_CREATE_META_SUMMARY, async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             description = L.DESC_COMMAND_CREATE_META_SUMMARY, llmDescription = L.DESC_COMMAND_CREATE_META_SUMMARY_LLM,
             signature = @CommandParameterSignature({

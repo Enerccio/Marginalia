@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
+import com.github.enerccio.marginalia.domain.collections.AgentBatchMode;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
@@ -123,12 +124,11 @@ public class Agent extends ExtendableEntity {
     private Boolean useAgentModel;
 
     /**
-     * Whether the runner keeps only the first call of an answer, so the model reads each result before it writes the next call.
-     * Null is off: all the calls of an answer are made (until one fails).
+     * How many calls of one answer of the model are made, see {@link AgentBatchMode}. Null is {@code BATCHED}.
      */
     @Transient
     @ExtendedAttribute
-    private Boolean oneCallPerRound;
+    private AgentBatchMode batchMode;
 
     /**
      * How many sub-agents the agent can have working at once; null or zero is none, the agent gets no tools to spawn them.
@@ -248,19 +248,19 @@ public class Agent extends ExtendableEntity {
         return !Boolean.FALSE.equals(useAgentModel);
     }
 
-    public Boolean getOneCallPerRound() {
-        return oneCallPerRound;
+    public AgentBatchMode getBatchMode() {
+        return batchMode;
     }
 
-    public void setOneCallPerRound(Boolean oneCallPerRound) {
-        this.oneCallPerRound = oneCallPerRound;
+    public void setBatchMode(AgentBatchMode batchMode) {
+        this.batchMode = batchMode;
     }
 
     /**
-     * Whether only the first call of an answer is made.
+     * How many calls of one answer are made; {@code BATCHED} unless the agent says otherwise.
      */
-    public boolean isLimitedToOneCall() {
-        return Boolean.TRUE.equals(oneCallPerRound);
+    public AgentBatchMode batchModeOrDefault() {
+        return batchMode == null ? AgentBatchMode.BATCHED : batchMode;
     }
 
     public Integer getAutoCompactPercent() {

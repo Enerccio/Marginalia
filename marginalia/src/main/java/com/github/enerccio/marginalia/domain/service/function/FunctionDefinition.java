@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.enerccio.marginalia.domain.service.function.FunctionCallException.Kind;
+import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
+import com.github.enerccio.marginalia.domain.traits.LLMFunction;
 
 import java.lang.invoke.MethodHandle;
 import java.util.List;
@@ -42,6 +44,7 @@ public final class FunctionDefinition {
     private final ObjectNode parametersSchema;
     private final List<Parameter> parameters;
     private final MethodHandle handle;
+    private final BatchPolicy batch;
     // set for a function that is not a method of an interface, see dynamic()
     private final Handler dynamic;
 
@@ -59,7 +62,8 @@ public final class FunctionDefinition {
 
     /** @param handle takes the target, the continuation and then the arguments as Objects, see {@link FunctionCompiler} */
     FunctionDefinition(String name, String description, ObjectNode parametersSchema, List<Parameter> parameters,
-                       MethodHandle handle) {
+                       MethodHandle handle, BatchPolicy batch) {
+        this.batch = batch;
         this.name = name;
         this.description = description;
         this.parametersSchema = parametersSchema;
@@ -69,6 +73,7 @@ public final class FunctionDefinition {
     }
 
     private FunctionDefinition(String name, String description, ObjectNode parametersSchema, Handler dynamic) {
+        this.batch = BatchPolicy.BATCHABLE;
         this.name = name;
         this.description = description;
         this.parametersSchema = parametersSchema;
@@ -98,6 +103,13 @@ public final class FunctionDefinition {
 
     public String getDescription() {
         return description;
+    }
+
+    /**
+     * How the function is used among the calls of one answer of an agent, see {@link LLMFunction#batch()}.
+     */
+    public BatchPolicy getBatch() {
+        return batch;
     }
 
     /**
