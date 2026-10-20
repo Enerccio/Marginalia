@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.domain.collections.AgentBatchMode;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
@@ -75,7 +76,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private ModelProtocolPicker modelPicker;
     private Checkbox imagesCheckbox;
     private Checkbox useOwnModelCheckbox;
-    private Checkbox oneCallCheckbox;
+    private ComboBox<AgentBatchMode> batchModeCombo;
     private ComboBox<DestructiveCommandMode> destructiveCombo;
     private IntegerField maxRoundsField;
     private IntegerField maxSubagentsField;
@@ -113,7 +114,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
     public void create() {
         setHeaderTitle(loc.getValue(isEdit() ? L.LABEL_EDIT_AGENT : L.LABEL_NEW_AGENT));
-        setWidth("860px");
+        setWidth("1100px");
+        setMaxWidth("96vw");
         setHeight("90%");
         UIUtils.fitPhone(this, true);
         setCloseOnEsc(false);
@@ -123,8 +125,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
         FormLayout form = new FormLayout();
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
         form.setWidthFull();
-        form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox, useOwnModelCheckbox, oneCallCheckbox);
-        form.add(destructiveCombo, maxRoundsField, maxSubagentsField, tokenBudgetField, contextLimitField, autoCompactField);
+        form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox, useOwnModelCheckbox);
+        form.add(destructiveCombo, batchModeCombo, maxRoundsField, maxSubagentsField, tokenBudgetField, contextLimitField, autoCompactField);
         form.add(systemPromptField, compactionPromptField, instructionsField, sizeLabel, commandsEditor);
         add(form);
 
@@ -161,8 +163,18 @@ public class AgentDialog extends Dialog implements LLMInteract {
         useOwnModelCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_USE_OWN_MODEL), true);
         useOwnModelCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_USE_OWN_MODEL));
 
-        oneCallCheckbox = new Checkbox(loc.getValue(L.LABEL_AGENT_ONE_CALL_PER_ROUND));
-        oneCallCheckbox.setHelperText(loc.getValue(L.HELP_AGENT_ONE_CALL_PER_ROUND));
+        batchModeCombo = new ComboBox<>(loc.getValue(L.LABEL_AGENT_BATCH_MODE));
+        batchModeCombo.setItems(AgentBatchMode.values());
+        batchModeCombo.setItemLabelGenerator(mode -> loc.getValue(switch (mode) {
+            case BATCHED_IGNORE_POLICIES -> L.ENUM_AGENT_BATCH_IGNORE_POLICIES;
+            case BATCHED -> L.ENUM_AGENT_BATCH_BATCHED;
+            case NOT_BATCHED -> L.ENUM_AGENT_BATCH_NOT_BATCHED;
+        }));
+        batchModeCombo.setAllowCustomValue(false);
+        batchModeCombo.setClearButtonVisible(false);
+        batchModeCombo.setValue(AgentBatchMode.BATCHED);
+        batchModeCombo.setHelperText(loc.getValue(L.HELP_AGENT_BATCH_MODE));
+        batchModeCombo.setWidthFull();
 
         destructiveCombo = new ComboBox<>(loc.getValue(L.LABEL_DESTRUCTIVE_COMMANDS));
         destructiveCombo.setItems(DestructiveCommandMode.values());
@@ -311,7 +323,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             contextLimitField.setValue(agent.getContextCap());
             autoCompactField.setValue(agent.getAutoCompactPercent());
             useOwnModelCheckbox.setValue(agent.isUsingAgentModel());
-            oneCallCheckbox.setValue(agent.isLimitedToOneCall());
+            batchModeCombo.setValue(agent.batchModeOrDefault());
             systemPromptField.setValue(StringUtils.defaultString(agent.getSystemPrompt()));
             compactionPromptField.setValue(StringUtils.defaultString(agent.getCompactionPrompt()));
             instructionsField.setValue(StringUtils.defaultString(agent.getInstructions()));
@@ -347,7 +359,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
             agent.setContextCap(contextLimitField.getValue());
             agent.setAutoCompactPercent(autoCompactField.getValue());
             agent.setUseAgentModel(useOwnModelCheckbox.getValue());
-            agent.setOneCallPerRound(oneCallCheckbox.getValue() ? Boolean.TRUE : null);
+            agent.setBatchMode(batchModeCombo.getValue() == AgentBatchMode.BATCHED ? null : batchModeCombo.getValue());
             agent.setSystemPrompt(systemPromptField.getValue());
             agent.setCompactionPrompt(compactionPromptField.getValue());
             agent.setInstructions(StringUtils.isBlank(instructionsField.getValue()) ? null : instructionsField.getValue());
@@ -449,8 +461,8 @@ public class AgentDialog extends Dialog implements LLMInteract {
         return useOwnModelCheckbox;
     }
 
-    Checkbox getOneCallCheckbox() {
-        return oneCallCheckbox;
+    ComboBox<AgentBatchMode> getBatchModeCombo() {
+        return batchModeCombo;
     }
 
     IntegerField getAutoCompactField() {

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
+import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -32,7 +33,7 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * A command as the table shows it.
      */
-    record Row(String name, String humanName, String effect, String description, boolean destructive, boolean readOnly, long tokens) {
+    record Row(String name, String humanName, String effect, String batch, String description, boolean destructive, boolean readOnly, long tokens) {
     }
 
     @Autowired
@@ -81,11 +82,13 @@ public class AgentCommandsEditor extends VerticalLayout {
                 changed();
             });
             return checkbox;
-        }).setHeader(loc.getValue(L.LABEL_ENABLED)).setFlexGrow(0).setWidth("100px");
+        }).setHeader(loc.getValue(L.LABEL_ENABLED)).setFlexGrow(0).setWidth("100px").setResizable(true);
         grid.addColumn(Row::humanName).setHeader(loc.getValue(L.LABEL_COMMAND)).setFlexGrow(2).setResizable(true);
-        grid.addColumn(Row::effect).setHeader(loc.getValue(L.LABEL_COMMAND_EFFECT)).setFlexGrow(1);
+        grid.addColumn(Row::effect).setHeader(loc.getValue(L.LABEL_COMMAND_EFFECT)).setFlexGrow(1).setResizable(true);
+        grid.addColumn(Row::batch).setHeader(loc.getValue(L.LABEL_COMMAND_BATCH_POLICY)).setFlexGrow(0).setWidth("110px")
+                .setResizable(true).setTooltipGenerator(row -> loc.getValue(L.HELP_COMMAND_BATCH_POLICY));
         grid.addColumn(Row::tokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setTextAlign(ColumnTextAlign.END).setFlexGrow(0)
-                .setWidth("100px").setTooltipGenerator(row -> loc.getValue(L.HELP_AGENT_COMMAND_TOKENS));
+                .setWidth("100px").setResizable(true).setTooltipGenerator(row -> loc.getValue(L.HELP_AGENT_COMMAND_TOKENS));
         grid.addColumn(Row::description).setHeader(loc.getValue(L.LABEL_DESCRIPTION)).setFlexGrow(4).setResizable(true);
 
         setPadding(false);
@@ -96,9 +99,14 @@ public class AgentCommandsEditor extends VerticalLayout {
 
     private void loadCommands() {
         Map<String, CommandDefinition> byName = new LinkedHashMap<>();
+        // a command is alone in its answer when any of its overloads says so, as the runner takes it
+        Set<String> single = new LinkedHashSet<>();
         for (CommandDefinition definition : commandService.getCommands()) {
             if (definition.availableForAgent()) {
                 byName.putIfAbsent(definition.commandName(), definition);
+                if (definition.batch() == BatchPolicy.SINGLE) {
+                    single.add(definition.commandName());
+                }
             }
         }
         rows.clear();
@@ -107,7 +115,9 @@ public class AgentCommandsEditor extends VerticalLayout {
             String description = definition.llmDescription().isEmpty()
                     ? definition.description().get(loc) : definition.llmDescription().get(loc);
             rows.add(new Row(definition.commandName(), definition.humanName().get(loc),
-                    loc.getValue(definition.dataSeverity().getLabel()), description == null ? "" : description, destructive,
+                    loc.getValue(definition.dataSeverity().getLabel()),
+                    loc.getValue((single.contains(definition.commandName()) ? BatchPolicy.SINGLE : BatchPolicy.BATCHABLE).getLabel()),
+                    description == null ? "" : description, destructive,
                     definition.readOnly(), tokensOf(definition.commandName())));
         }
         rows.sort(Comparator.comparing(Row::humanName, loc.createLocaleComparator()));

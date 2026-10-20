@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.command.CommandReturnDefinition;
 import com.github.enerccio.marginalia.domain.service.command.CommandText;
+import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
 import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.loc.L;
 
@@ -24,7 +25,7 @@ public final class AgentConsoleCommands {
      */
     public static final CommandDefinition COMPACT = new CommandDefinition(AgentRunner.COMPACT,
             CommandText.of(L.LABEL_COMMAND_COMPACT), CommandText.of(L.DESC_AGENT_COMMAND_COMPACT), CommandText.NONE, false,
-            CommandDataSeverity.NON_DESTRUCTIVE, true, false, null, true, List.of(),
+            CommandDataSeverity.NON_DESTRUCTIVE, true, false, BatchPolicy.SINGLE, null, true, List.of(),
             new CommandReturnDefinition("", void.class, CommandText.NONE));
 
     /**
@@ -32,7 +33,7 @@ public final class AgentConsoleCommands {
      */
     public static final CommandDefinition CLEAR_WORKSPACE = new CommandDefinition(AgentRunner.CLEAR_WORKSPACE,
             CommandText.of(L.LABEL_COMMAND_CLEAR_WORKSPACE), CommandText.of(L.DESC_AGENT_COMMAND_CLEAR_WORKSPACE), CommandText.NONE,
-            false, CommandDataSeverity.DESTRUCTIVE, true, false, null, true, List.of(),
+            false, CommandDataSeverity.DESTRUCTIVE, true, false, BatchPolicy.BATCHABLE, null, true, List.of(),
             new CommandReturnDefinition("", void.class, CommandText.NONE));
 
     private AgentConsoleCommands() {

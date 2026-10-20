@@ -390,6 +390,14 @@ You are a sub-agent: another agent started you for one task, which is your first
             + "this one.";
 
     /**
+     * Said to an agent whose answer had a call of a command that is made alone: the calls from it on (or only it, when it came
+     * first) were not made.
+     */
+    public static final String AGENT_SINGLE_CALL_NOTICE = "Notice from the run: %1$s is made alone in an answer, and your last answer "
+            + "had %2$d calls. Only %3$d were made, the ones from %1$s on were dropped. Call %1$s in an answer of its own; the other "
+            + "calls, if you still need them, in the answers after it.";
+
+    /**
      * The result given to the model for a call that had not begun when the author forced a message in.
      */
     public static final String AGENT_SKIPPED_CALL = "Error: this call was not made because the author sent a message and the "

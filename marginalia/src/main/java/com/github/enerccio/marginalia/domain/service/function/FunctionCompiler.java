@@ -137,7 +137,7 @@ public final class FunctionCompiler {
             root.set("$defs", definitions);
         }
 
-        return new FunctionDefinition(name, annotation.description(), root, parameters, handleOf(method));
+        return new FunctionDefinition(name, annotation.description(), root, parameters, handleOf(method), annotation.batch());
     }
 
     /** A function is asynchronous: {@code void name(FunctionContinuation<R> continuation, arguments...)}. */

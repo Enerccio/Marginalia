@@ -140,7 +140,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
 
     // --- generate-lore-entry ---
 
-    @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT)}),
@@ -149,7 +149,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -159,7 +159,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -170,7 +170,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -182,7 +182,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -195,7 +195,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -210,7 +210,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
@@ -227,7 +227,7 @@ public class LoreGeneratorCommands extends LorebookReadSupport {
         runGenerate(context);
     }
 
-    @Command(commandName = GENERATE, humanNameText = "Generate lore entry", async = true,
+    @Command(commandName = GENERATE, batch = BatchPolicy.SINGLE, humanNameText = "Generate lore entry", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, descriptionText = GENERATE_TEXT, llmDescriptionText = GENERATE_LLM,
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = PARAM_PROMPT),
