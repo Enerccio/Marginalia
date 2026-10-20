@@ -1,14 +1,20 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
+import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.service.CommandService;
+import com.github.enerccio.marginalia.domain.service.TokenizerService;
+import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
+import com.github.enerccio.marginalia.domain.service.function.FunctionDefinition;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -26,7 +32,7 @@ public class AgentCommandsEditor extends VerticalLayout {
     /**
      * A command as the table shows it.
      */
-    record Row(String name, String humanName, String effect, String description, boolean destructive, boolean readOnly) {
+    record Row(String name, String humanName, String effect, String description, boolean destructive, boolean readOnly, long tokens) {
     }
 
     @Autowired
@@ -34,6 +40,9 @@ public class AgentCommandsEditor extends VerticalLayout {
 
     @Autowired
     private CommandService commandService;
+
+    @Autowired
+    private TokenizerService tokenizerService;
 
     private final ComboBox<AgentCommandPreset> presetCombo;
     private final Grid<Row> grid;
@@ -75,6 +84,8 @@ public class AgentCommandsEditor extends VerticalLayout {
         }).setHeader(loc.getValue(L.LABEL_ENABLED)).setFlexGrow(0).setWidth("100px");
         grid.addColumn(Row::humanName).setHeader(loc.getValue(L.LABEL_COMMAND)).setFlexGrow(2).setResizable(true);
         grid.addColumn(Row::effect).setHeader(loc.getValue(L.LABEL_COMMAND_EFFECT)).setFlexGrow(1);
+        grid.addColumn(Row::tokens).setHeader(loc.getValue(L.LABEL_TOKENS)).setTextAlign(ColumnTextAlign.END).setFlexGrow(0)
+                .setWidth("100px").setTooltipGenerator(row -> loc.getValue(L.HELP_AGENT_COMMAND_TOKENS));
         grid.addColumn(Row::description).setHeader(loc.getValue(L.LABEL_DESCRIPTION)).setFlexGrow(4).setResizable(true);
 
         setPadding(false);
@@ -97,10 +108,35 @@ public class AgentCommandsEditor extends VerticalLayout {
                     ? definition.description().get(loc) : definition.llmDescription().get(loc);
             rows.add(new Row(definition.commandName(), definition.humanName().get(loc),
                     loc.getValue(definition.dataSeverity().getLabel()), description == null ? "" : description, destructive,
-                    definition.readOnly()));
+                    definition.readOnly(), tokensOf(definition.commandName())));
         }
         rows.sort(Comparator.comparing(Row::humanName, loc.createLocaleComparator()));
         grid.setItems(rows);
+    }
+
+    /**
+     * What the definition of the command adds to every request of the agent, in tokens: its name, description and parameters as the
+     * model reads them (the same estimate the runner makes).
+     */
+    private long tokensOf(String commandName) {
+        try {
+            long tokens = 0;
+            for (FunctionDefinition function : CommandFunctions.create(commandService, List.of(commandName), DestructiveCommandMode.AUTO,
+                    l -> loc.getValue(l), null).getDefinitions()) {
+                tokens += tokenizerService.countTokensApprox(function.getName() + " " + StringUtils.defaultString(function.getDescription())
+                        + " " + function.getParametersSchema());
+            }
+            return tokens;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /**
+     * What the definitions of the ticked commands add to every request of the agent, in tokens (estimated).
+     */
+    public long getSelectedTokens() {
+        return rows.stream().filter(row -> selected.contains(row.name())).mapToLong(Row::tokens).sum();
     }
 
     /**

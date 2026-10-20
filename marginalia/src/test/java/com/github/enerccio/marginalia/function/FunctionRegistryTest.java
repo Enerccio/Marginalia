@@ -349,4 +349,66 @@ class FunctionRegistryTest {
         assertThatThrownBy(() -> registry.definitionsOf(Interface.class)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("first parameter");
         assertThatThrownBy(() -> registry.definitionsOf(StoryImpl.class)).isInstanceOf(IllegalArgumentException.class);
     }
+
+    interface Waits {
+        @LLMFunction
+        void wait(FunctionContinuation<String> done);
+
+        @LLMFunction
+        void late(FunctionContinuation<String> done);
+    }
+
+    @Test
+    void aFunctionIsToldWhenItsCallIsCanceledAndOnlyOnce() throws Exception {
+        List<String> told = new ArrayList<>();
+        java.util.concurrent.CountDownLatch started = new java.util.concurrent.CountDownLatch(1);
+        FunctionSet functions = registry.bind(Waits.class, new Waits() {
+            @Override
+            public void wait(FunctionContinuation<String> done) {
+                done.onCancel(() -> told.add("first"));
+                done.onCancel(() -> told.add("second"));
+                started.countDown();
+            }
+
+            @Override
+            public void late(FunctionContinuation<String> done) {
+                started.countDown();
+            }
+        });
+        CompletableFuture<String> future = functions.call("wait", "{}", POOL, () -> false);
+        assertThat(started.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(told).as("nothing yet").isEmpty();
+
+        future.cancel(true);
+        future.cancel(true);
+
+        assertThat(told).containsExactly("first", "second");
+    }
+
+    @Test
+    void aHookAddedAfterTheCancelRunsAtOnceAndOneAfterTheAnswerNever() throws Exception {
+        List<String> told = new ArrayList<>();
+        FunctionContinuation<?>[] kept = new FunctionContinuation<?>[2];
+        FunctionSet functions = registry.bind(Waits.class, new Waits() {
+            @Override
+            public void wait(FunctionContinuation<String> done) {
+                kept[0] = done;
+                done.complete("answered");
+            }
+
+            @Override
+            public void late(FunctionContinuation<String> done) {
+                kept[1] = done;
+            }
+        });
+
+        assertThat(call(functions, "wait", "{}")).isEqualTo("answered");
+        kept[0].onCancel(() -> told.add("after the answer"));
+        CompletableFuture<String> pending = functions.call("late", "{}", POOL, () -> false);
+        Thread.sleep(200);
+        pending.cancel(true);
+        kept[1].onCancel(() -> told.add("after the cancel"));
+
+        assertThat(told).containsExactly("after the cancel");
+    }
 }

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.agent;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
@@ -7,10 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.AIService;
-import com.github.enerccio.marginalia.domain.service.AgentService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.ProtocolService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -21,6 +19,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -64,6 +63,9 @@ public class AgentDialog extends Dialog implements LLMInteract {
     @Autowired
     private ProtocolService protocolService;
 
+    @Autowired
+    private TokenizerService tokenizerService;
+
     private final Agent source;
     private Runnable onSave;
 
@@ -83,6 +85,10 @@ public class AgentDialog extends Dialog implements LLMInteract {
     private TextAreaPopoverComponent compactionPromptField;
     private TextArea instructionsField;
     private AgentCommandsEditor commandsEditor;
+    // what the prompt, the instructions and the commands weigh in every request
+    private Span sizeLabel;
+    private String defaultPrompt = "";
+    private String defaultInstructions = "";
     private Button saveButton;
 
     /**
@@ -118,7 +124,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         form.setWidthFull();
         form.add(nameField, enabledCheckbox, manuscriptCombo, modelPicker, imagesCheckbox, useOwnModelCheckbox);
         form.add(destructiveCombo, maxRoundsField, maxSubagentsField, tokenBudgetField, contextLimitField, autoCompactField);
-        form.add(systemPromptField, compactionPromptField, instructionsField, commandsEditor);
+        form.add(systemPromptField, compactionPromptField, instructionsField, sizeLabel, commandsEditor);
         add(form);
 
         Button cancelButton = new Button(loc.getValue(L.LABEL_CANCEL), event -> close());
@@ -131,6 +137,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
         getFooter().add(footer);
 
         load();
+        showSize();
     }
 
     private void createFields() {
@@ -201,6 +208,30 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
         commandsEditor = new AgentCommandsEditor();
         commandsEditor.setWidthFull();
+
+        // a blank prompt or blank instructions follow the default, which is what counts; the field of the prompt is not
+        // lazy by default
+        sizeLabel = new Span();
+        sizeLabel.addClassName(CssStyles.HINT_TEXT);
+        systemPromptField.setValueChangeMode(com.vaadin.flow.data.value.ValueChangeMode.LAZY);
+        systemPromptField.addValueChangeListener(event -> showSize());
+        instructionsField.addValueChangeListener(event -> showSize());
+        commandsEditor.onChange(this::showSize);
+    }
+
+    /**
+     * What the prompt, the instructions and the ticked commands add to every request, in tokens: an estimate, the notes of the
+     * runner and the tools for files and for the run come on top.
+     */
+    private void showSize() {
+        try {
+            long prompt = tokenizerService.countTokensApprox(StringUtils.defaultIfBlank(systemPromptField.getValue(), defaultPrompt));
+            long instructions = tokenizerService.countTokensApprox(StringUtils.defaultIfBlank(instructionsField.getValue(), defaultInstructions));
+            long commands = commandsEditor.getSelectedTokens();
+            sizeLabel.setText(String.format(loc.getValue(L.MSG_AGENT_PROMPT_SIZE), prompt + instructions + commands, prompt, instructions, commands));
+        } catch (Exception e) {
+            sizeLabel.setText("");
+        }
     }
 
     private IntegerField positiveField(L label, L help) {
@@ -216,11 +247,12 @@ public class AgentDialog extends Dialog implements LLMInteract {
      * The default a blank prompt follows is the placeholder, and the popover fills it into the field.
      */
     private void showDefaultPrompt() throws Exception {
-        String defaultPrompt = agentService.getDefaultSystemPrompt();
+        defaultPrompt = StringUtils.defaultString(agentService.getDefaultSystemPrompt());
         systemPromptField.setPlaceholder(defaultPrompt);
         systemPromptField.setPopoverContent(TemplateHints.create(loc, systemPromptField, systemPromptField.getPopover(),
                 null, defaultPrompt));
-        instructionsField.setPlaceholder(agentService.getDefaultInstructions());
+        defaultInstructions = StringUtils.defaultString(agentService.getDefaultInstructions());
+        instructionsField.setPlaceholder(defaultInstructions);
         String defaultCompaction = agentService.getDefaultCompactionPrompt();
         compactionPromptField.setPlaceholder(defaultCompaction);
         compactionPromptField.setPopoverContent(TemplateHints.create(loc, compactionPromptField,
@@ -421,6 +453,10 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
     AgentCommandsEditor getCommandsEditor() {
         return commandsEditor;
+    }
+
+    Span getSizeLabel() {
+        return sizeLabel;
     }
 
     Button getSaveButton() {

@@ -733,4 +733,65 @@ class CommandFunctionsTest {
         assertThat(failure(set, "describe", "{\"prompt\":\"x\",\"images\":[\"/refs/a.png\"]}").getMessage())
                 .contains("not available");
     }
+
+    /** An asynchronous command that works until it is stopped, as the commands of the generation do. */
+    public static class Slow {
+        final java.util.concurrent.CountDownLatch started = new java.util.concurrent.CountDownLatch(1);
+        final java.util.concurrent.CountDownLatch ended = new java.util.concurrent.CountDownLatch(1);
+        final java.util.concurrent.atomic.AtomicBoolean stopped = new java.util.concurrent.atomic.AtomicBoolean();
+
+        @Command(commandName = "slow", humanNameText = "Slow", async = true, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+                signature = @CommandParameterSignature)
+        public void slow(CommandContext context) {
+            started.countDown();
+            try {
+                for (int i = 0; i < 500; i++) {
+                    if (context.isTerminated()) {
+                        stopped.set(true);
+                        return;
+                    }
+                    Thread.sleep(10);
+                }
+            } catch (InterruptedException e) {
+                stopped.set(true);
+                return;
+            } finally {
+                ended.countDown();
+            }
+            context.setReturn("finished");
+        }
+    }
+
+    @Test
+    void cancelingTheCallStopsAnAsynchronousCommandThatIsGoingOn() throws Exception {
+        Slow slow = new Slow();
+        commands.registerCommands(slow);
+        FunctionSet set = functions("slow");
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newCachedThreadPool();
+        try {
+            CompletableFuture<String> answer = set.call("slow", "{}", pool, () -> false);
+            assertThat(slow.started.await(5, TimeUnit.SECONDS)).isTrue();
+
+            answer.cancel(true);
+
+            assertThat(slow.ended.await(5, TimeUnit.SECONDS)).as("the command ended long before its five seconds").isTrue();
+            assertThat(slow.stopped.get()).isTrue();
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void aCallThatWasCanceledBeforeItsApprovalStartsNothing() throws Exception {
+        Destructive suite = new Destructive();
+        commands.registerCommands(suite);
+        CompletableFuture<Boolean> approval = new CompletableFuture<>();
+        FunctionSet set = functions(DestructiveCommandMode.ASK, (name, arguments) -> approval, "wipe");
+
+        CompletableFuture<String> answer = set.call("wipe", "{\"what\":\"all\"}", Runnable::run, () -> true);
+        approval.complete(true);
+
+        assertThatThrownBy(() -> answer.get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(FunctionCallException.class);
+        assertThat(suite.runs).hasValue(0);
+    }
 }

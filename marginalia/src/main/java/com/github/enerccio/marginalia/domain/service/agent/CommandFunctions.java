@@ -617,9 +617,16 @@ public final class CommandFunctions {
     @SuppressWarnings("unchecked")
     private static void run(CommandService commands, String commandName, Map<String, Object> arguments, Map<String, String> references,
                             CommandResults commandResults, CommandCage cage, FunctionContinuation<Object> continuation) {
+        if (continuation.isCancelled()) {
+            // the run was paused at once, stopped or thrown away while the call waited for its approval: nothing is started
+            continuation.fail(new FunctionCallException(Kind.FAILED, "The call was canceled before the command " + commandName + " started"));
+            return;
+        }
         // the agent knows the items by handles, the command by uuids; the user was shown the handles
         CommandRun run = cage == null ? commands.execute(commandName, arguments)
                 : commands.execute(commandName, (Map<String, Object>) cage.handles().fromHandles(arguments), false, cage.scope());
+        // a command that is written to be stopped (it asks isTerminated between its steps) ends when the run does
+        continuation.onCancel(() -> run.cancel(true));
         run.whenComplete((value, error) -> {
             if (error != null) {
                 continuation.fail(new FunctionCallException(Kind.FAILED, messageOf(error), error));

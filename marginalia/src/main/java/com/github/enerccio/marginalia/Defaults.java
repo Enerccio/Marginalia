@@ -393,6 +393,17 @@ You are a sub-agent: another agent started you for one task, which is your first
     public static final String AGENT_PAUSED_SKIPPED_CALL = "Error: this call was not made because the author paused the run at once.";
 
     /**
+     * The result given to the call that was going on when the author stopped the run.
+     */
+    public static final String AGENT_STOPPED_CALL = "Error: this call was cut off because the author stopped the run, so it "
+            + "is unknown whether it was done. Check the state with a read tool before you repeat it.";
+
+    /**
+     * The result given to the calls of the round that were not made because the author stopped the run.
+     */
+    public static final String AGENT_STOPPED_SKIPPED_CALL = "Error: this call was not made because the author stopped the run.";
+
+    /**
      * What the agent is told when the model server could not read the arguments of a call it wrote (an answer that ended in the middle
      * of the text, by the limit of one answer or because the model stopped, is the usual reason; not the size of the context): the answer is gone, so nothing was done, and the same request would fail the same way.
      */

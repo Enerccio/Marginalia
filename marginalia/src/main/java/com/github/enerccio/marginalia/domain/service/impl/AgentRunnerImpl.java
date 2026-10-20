@@ -1018,9 +1018,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 boolean suspended = false;
                 for (int index = 0; index < round.calls().size() && !suspended; index++) {
                     LLMToolCall call = round.calls().get(index);
-                    if (paused || interrupts.contains(runId)) {
+                    if (paused || interrupts.contains(runId) || stopping()) {
                         paused = true;
-                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_PAUSED_SKIPPED_CALL));
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), stopping() ? Defaults.AGENT_STOPPED_SKIPPED_CALL
+                                : Defaults.AGENT_PAUSED_SKIPPED_CALL));
                         continue;
                     }
                     if (forced || inbox != null && inbox.isForced()) {
@@ -1039,7 +1040,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                             continue;
                         }
                         paused = true;
-                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_PAUSED_CALL));
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), stopping() ? Defaults.AGENT_STOPPED_CALL : Defaults.AGENT_PAUSED_CALL));
                         continue;
                     } catch (Forced e) {
                         forced = true;
@@ -2035,9 +2036,22 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 parts.addAll(messageParts(coalesced(messageService.transcript(run)), startsWithSummary));
                 List<AgentContext.Point> history = new ArrayList<>();
                 long reported = 0;
+                // what the prompt and the tools weigh is the same at every answer, as far as it is known
+                Map<AgentContext.Kind, Long> fixed = new EnumMap<>(AgentContext.Kind.class);
+                for (AgentContext.Part part : parts) {
+                    if (part.kind().isSystem() || part.kind() == AgentContext.Kind.TOOL) {
+                        fixed.merge(part.kind(), part.tokens(), Long::sum);
+                    }
+                }
+                List<LiveRow> live = new ArrayList<>();
                 for (AgentMessage row : rows) {
+                    live = replay(live, row);
                     if (row.getContextTokens() != null && row.getContextTokens() > 0) {
-                        history.add(new AgentContext.Point(history.size() + 1, row.getContextTokens()));
+                        Map<AgentContext.Kind, Long> estimated = new EnumMap<>(fixed);
+                        for (LiveRow read : live) {
+                            estimated.merge(read.kind(), read.tokens(), Long::sum);
+                        }
+                        history.add(new AgentContext.Point(history.size() + 1, row.getContextTokens(), estimated));
                         reported = row.getContextTokens();
                     }
                 }
@@ -2049,6 +2063,39 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
 
         private long count(String text) throws Exception {
             return inference == null ? text.length() / 4 : inference.countTokensApprox(text);
+        }
+
+        /**
+         * A message of the conversation the model read at some answer: its kind and its estimated tokens.
+         */
+        private record LiveRow(AgentMessage row, AgentContext.Kind kind, long tokens) {
+        }
+
+        /**
+         * What the model read once the row was in the transcript. A summary of a compaction replaced everything before it; the rows a
+         * rewind went back over were read until the next row that was kept was written (a rewound compaction is not brought back,
+         * the sizes after it are a little too small).
+         */
+        private List<LiveRow> replay(List<LiveRow> live, AgentMessage row) throws Exception {
+            List<LiveRow> next = new ArrayList<>(live);
+            if (!row.isRewound()) {
+                next.removeIf(read -> read.row().isRewound());
+            }
+            if (row.isSummary()) {
+                next.clear();
+            }
+            LLMChatMessage message = row.toChatMessage();
+            long tokens = count(StringUtils.defaultString(message.getContent()));
+            for (LLMToolCall call : message.getToolCalls()) {
+                tokens += count(call.getName() + " " + StringUtils.defaultString(call.getArguments()));
+            }
+            AgentContext.Kind kind = switch (message.getRole()) {
+                case ASSISTANT -> AgentContext.Kind.ASSISTANT;
+                case TOOL -> AgentContext.Kind.RESULT;
+                default -> row.isSummary() ? AgentContext.Kind.SUMMARY : AgentContext.Kind.USER;
+            };
+            next.add(new LiveRow(row, kind, tokens));
+            return next;
         }
 
         /**
@@ -2237,7 +2284,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             try {
                 try {
                     CompletableFuture<String> answer = tools.call(call.getName(), call.getArguments(), onThread, canceled::get);
-                    return await(answer, () -> canceled.set(true));
+                    // a command that runs on its own is stopped too, when it can be
+                    return await(answer, () -> {
+                        canceled.set(true);
+                        answer.cancel(true);
+                    });
                 } finally {
                     if (locked) {
                         changeLock.unlock();
@@ -2284,7 +2335,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         cancel.run();
                         throw new Discarded();
                     }
-                    if (queued && (current.getStatus() == AgentRunStatus.PAUSING || current.getStatus() == AgentRunStatus.STOPPING)) {
+                    if ((queued && current.getStatus() == AgentRunStatus.PAUSING) || current.getStatus() == AgentRunStatus.STOPPING) {
+                        // a stop does not wait for the request or the call that go on: they are canceled, a command that can be
+                        // stopped ends with them (a pause waits for them, it ends at a stable point)
                         cancel.run();
                         throw new Interrupted();
                     }
@@ -2295,6 +2348,19 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     }
                     throw new ExecutionException(e);
                 }
+            }
+        }
+
+        /**
+         * Whether the user asked to stop the run and it did not end yet.
+         */
+        private boolean stopping() {
+            try {
+                AgentRun current = runService.find(runId);
+                return current != null && current.getStatus() == AgentRunStatus.STOPPING;
+            } catch (Exception e) {
+                log.warn("Agent run {}: its status could not be read: {}", runId, e.getMessage());
+                return false;
             }
         }
 
@@ -2570,7 +2636,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             try {
                 CompletableFuture<String> answer = subTools.call(call.getName(), call.getArguments(), onThread, canceled::get);
-                return awaitSub(answer, () -> canceled.set(true), sub);
+                return awaitSub(answer, () -> {
+                    canceled.set(true);
+                    answer.cancel(true);
+                }, sub);
             } catch (ExecutionException e) {
                 Throwable error = e.getCause();
                 if (error instanceof FunctionCallException failure && failure.getKind() != FunctionCallException.Kind.FAILED) {

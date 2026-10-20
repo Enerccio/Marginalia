@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Everything the model of a run reads with its next request, taken apart: the sections of the system message, the
@@ -63,10 +64,23 @@ public record AgentContext(String agentName, AgentRunStatus status, long rounds,
     /**
      * The context at one answer of the model.
      *
-     * @param round  the number of the answer, from 1
-     * @param tokens the size of the context the model reported, the request and its answer
+     * @param round     the number of the answer, from 1
+     * @param tokens    the size of the context the model reported, the request and its answer
+     * @param estimated what the context was made of at that answer, estimated tokens by kind: the prompt and the tools as they are now,
+     *                  the conversation as it was then (the summaries a compaction wrote, what was said, the results); empty when unknown
      */
-    public record Point(int round, long tokens) {
+    public record Point(int round, long tokens, Map<Kind, Long> estimated) {
+
+        public Point(int round, long tokens) {
+            this(round, tokens, Map.of());
+        }
+
+        /**
+         * The estimated tokens of the context at this answer, all kinds together; 0 when they are unknown.
+         */
+        public long estimatedTokens() {
+            return estimated.values().stream().mapToLong(Long::longValue).sum();
+        }
     }
 
     /**
@@ -115,7 +129,33 @@ public record AgentContext(String agentName, AgentRunStatus status, long rounds,
         md.append("## Conversation (").append(conversation.size()).append(" message(s), about ")
                 .append(conversation.stream().mapToLong(Part::tokens).sum()).append(" tokens)\n\n");
         conversation.forEach(part -> append(md, part));
+        appendHistory(md);
         return md.toString();
+    }
+
+    /**
+     * One line per answer of the model: what it reported and what the context was made of, by kind.
+     */
+    private void appendHistory(StringBuilder md) {
+        if (history.stream().noneMatch(point -> !point.estimated().isEmpty())) {
+            return;
+        }
+        md.append("## Size at each answer\n\nWhat the model reported (the request and the answer) and what the context was made of then, "
+                + "estimated by kind. The prompt and the tools are as they are now.\n\n");
+        md.append("| Answer | Reported |");
+        Kind[] kinds = Kind.values();
+        for (Kind kind : kinds) {
+            md.append(' ').append(kind.name().toLowerCase()).append(" |");
+        }
+        md.append("\n|---|---|").append("---|".repeat(kinds.length)).append('\n');
+        for (Point point : history) {
+            md.append("| ").append(point.round()).append(" | ").append(point.tokens()).append(" |");
+            for (Kind kind : kinds) {
+                md.append(' ').append(point.estimated().getOrDefault(kind, 0L)).append(" |");
+            }
+            md.append('\n');
+        }
+        md.append('\n');
     }
 
     private static void append(StringBuilder md, Part part) {
