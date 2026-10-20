@@ -64,6 +64,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     static final int COPY_TAB = 5;
     // the conversations of the sub-agents are read again while their tab is shown, the run may be working
     static final int SUBAGENTS_TAB = 6;
+    static final int DIAGNOSTICS_TAB = 7;
     // after a command: the answer of a run that waits comes in a moment, looked for faster for a while
     static final int COMMAND_POLL_MILLIS = 500;
     static final long COMMAND_POLL_FOR_MILLIS = 15_000;
@@ -158,6 +159,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private AgentCheckpointBrowser checkpointBrowser;
     private AgentRunHistory history;
     private AgentContextView contextView;
+    private AgentDiagnosticsView diagnosticsView;
     private AgentCopyView copyView;
     private AgentSubAgentsView subAgentsView;
     private TabSheet tabs;
@@ -311,6 +313,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
         subAgentsView.create();
         subAgentsView.addClassName(CssStyles.PADDING_COMPACT);
         tabs.add(loc.getValue(L.LABEL_AGENT_SUBAGENTS), subAgentsView);
+        diagnosticsView = new AgentDiagnosticsView(() -> run);
+        diagnosticsView.create();
+        diagnosticsView.addClassName(CssStyles.PADDING_COMPACT);
+        tabs.add(loc.getValue(L.LABEL_AGENT_DIAGNOSTICS), diagnosticsView);
         tabs.addSelectedChangeListener(event -> {
             checkpointBrowser.refresh();
             if (tabs.getSelectedIndex() == COPY_TAB) {
@@ -321,6 +327,9 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
             }
             if (tabs.getSelectedIndex() == SUBAGENTS_TAB) {
                 subAgentsView.refresh();
+            }
+            if (tabs.getSelectedIndex() == DIAGNOSTICS_TAB) {
+                diagnosticsView.refresh();
             }
         });
         add(tabs);
@@ -905,6 +914,10 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     AgentSubAgentsView getSubAgentsView() {
         return subAgentsView;
+    }
+
+    AgentDiagnosticsView getDiagnosticsView() {
+        return diagnosticsView;
     }
 
     AgentWorkspaceBrowser getWorkspaceBrowser() {

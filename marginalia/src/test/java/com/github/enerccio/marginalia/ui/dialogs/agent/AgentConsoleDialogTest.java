@@ -147,6 +147,11 @@ class AgentConsoleDialogTest extends AgentTestBase {
             }
 
             @Override
+            public com.github.enerccio.marginalia.domain.service.agent.AgentDiagnostics.Report diagnostics(AgentRun run) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
             public boolean isWorking(AgentRun run) {
                 return false;
             }
@@ -695,7 +700,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(runsOf(dialog)).extracting(AgentRun::getUuid).containsExactly(third.getUuid(), second.getUuid(), first.getUuid());
         // the console itself reads the latest run that was not thrown away
         assertThat(dialog.getStatusLabel().getText()).isEqualTo("Running");
-        assertThat(dialog.getTabs().getTabCount()).isEqualTo(7);
+        assertThat(dialog.getTabs().getTabCount()).isEqualTo(8);
     }
 
     @Test

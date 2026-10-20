@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.agent.AgentContext;
+import com.github.enerccio.marginalia.domain.service.agent.AgentDiagnostics;
 
 import java.util.List;
 
@@ -184,6 +185,15 @@ public interface AgentRunner {
      * @throws IllegalArgumentException when the run is not a run of the current user
      */
     AgentContext context(AgentRun run) throws Exception;
+
+    /**
+     * What the run did, counted from its transcript: the calls by tool with their errors, results and times, the context at each
+     * answer, the rounds spent calling one tool after the other, the biggest results, the slowest rounds, the sub-agents. It needs
+     * only what is stored, so it works for a run of any state and an old one. Nothing is written and no worker is started.
+     *
+     * @throws IllegalArgumentException when the run is not a run of the current user
+     */
+    AgentDiagnostics.Report diagnostics(AgentRun run) throws Exception;
 
     /**
      * Whether a worker is busy with the run in this server.
