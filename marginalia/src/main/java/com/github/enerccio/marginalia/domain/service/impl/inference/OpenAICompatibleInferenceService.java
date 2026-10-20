@@ -225,6 +225,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     SortedMap<Long, PendingToolCall> pending = new TreeMap<>();
                     TokenUsage reported = null;
                     boolean stopped = false;
+                    RoundStatsCollector stats = new RoundStatsCollector();
                     try (StreamResponse<ChatCompletionChunk> stream = client.chat().completions().createStreaming(params)) {
                         Iterator<ChatCompletionChunk> chunks = stream.stream().iterator();
                         while (chunks.hasNext()) {
@@ -233,6 +234,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                                 break;
                             }
                             ChatCompletionChunk chunk = chunks.next();
+                            stats.chunk(chunk);
                             if (chunk.usage().isPresent()) {
                                 reported = new TokenUsage(chunk.usage().get().promptTokens(), chunk.usage().get().completionTokens());
                             }
@@ -268,7 +270,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                         callback.onCancel();
                     } else {
                         callback.onRound(text.toString(), StringUtils.isBlank(reasoning) ? null : reasoning.toString(), calls,
-                                new RoundUsage(counted.promptTokens(), counted.completionTokens()));
+                                new RoundUsage(counted.promptTokens(), counted.completionTokens(), stats.stats()));
                     }
                 });
             } catch (Throwable e) {
@@ -941,6 +943,63 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * Token counts the provider reported for a request.
      */
     private record TokenUsage(long promptTokens, long completionTokens) {}
+
+    /**
+     * What a streamed answer says about how it went, besides its text: when its first and last chunks came, why it ended and what
+     * the provider reports of its cache and reasoning (the usage of OpenAI, the {@code timings} of llama.cpp).
+     */
+    static final class RoundStatsCollector {
+
+        private final long began = System.nanoTime();
+        private long first = -1;
+        private long last = -1;
+        private String finishReason;
+        private long cached = -1;
+        private long reasoning = -1;
+        private long serverPrompt = -1;
+        private long serverPredicted = -1;
+
+        void chunk(ChatCompletionChunk chunk) {
+            long now = System.nanoTime();
+            if (first < 0) {
+                first = now;
+            }
+            last = now;
+            try {
+                chunk.usage().ifPresent(usage -> {
+                    usage.promptTokensDetails().flatMap(details -> details.cachedTokens()).ifPresent(tokens -> cached = tokens);
+                    usage.completionTokensDetails().flatMap(details -> details.reasoningTokens()).ifPresent(tokens -> reasoning = tokens);
+                });
+                for (ChatCompletionChunk.Choice choice : chunk.choices()) {
+                    choice.finishReason().ifPresent(reason -> finishReason = reason.asString());
+                }
+                // llama.cpp: {"timings": {"cache_n": 1234, "prompt_ms": 56.7, "predicted_ms": 8901.2, ...}}
+                JsonValue timings = chunk._additionalProperties().get("timings");
+                Optional<?> object = timings == null ? Optional.empty() : timings.asObject();
+                if (object.isPresent() && object.get() instanceof Map<?, ?> values) {
+                    number(values, "cache_n").ifPresent(value -> cached = Math.max(cached, value.longValue()));
+                    number(values, "prompt_ms").ifPresent(value -> serverPrompt = value.longValue());
+                    number(values, "predicted_ms").ifPresent(value -> serverPredicted = value.longValue());
+                }
+            } catch (RuntimeException e) {
+                // what a provider adds to a chunk is a bonus, not a reason to fail the round
+            }
+        }
+
+        private static Optional<Number> number(Map<?, ?> values, String name) {
+            Object value = values.get(name);
+            if (value instanceof JsonValue json) {
+                return json.asNumber();
+            }
+            return value instanceof Number number ? Optional.of(number) : Optional.empty();
+        }
+
+        InferenceService.RoundStats stats() {
+            return new InferenceService.RoundStats(cached, reasoning,
+                    first < 0 ? -1 : (first - began) / 1_000_000, first < 0 ? -1 : (Math.max(last, first) - first) / 1_000_000,
+                    finishReason, serverPrompt, serverPredicted);
+        }
+    }
 
     /**
      * Runs the functions the model called at the end of a stream and starts the next request.

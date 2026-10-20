@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.agent.AgentDiagnostics;
 import com.github.enerccio.marginalia.domain.service.agent.AgentDiagnostics.Report;
+import com.github.enerccio.marginalia.domain.service.agent.AgentTelemetry;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
@@ -55,6 +56,11 @@ class AgentDiagnosticsTest {
                 toolCalls.add(LLMToolCall.of("c" + ++calls, tool, "{\"path\":\"/n" + calls + ".md\"}"));
             }
             add(null, LLMChatMessage.ofToolCalls(null, toolCalls), modelMillis).setContextTokens(contextTokens);
+        }
+
+        // the telemetry of the answer that was added last
+        void told(AgentTelemetry telemetry) {
+            rows.getLast().setTelemetry(telemetry.toJson());
         }
 
         void result(String callId, String result, long millis) {
@@ -214,6 +220,75 @@ class AgentDiagnosticsTest {
         assertThat(report.overview().interrupted()).isEqualTo(1);
         assertThat(report.overview().errors()).as("a pause is not an error of the tool").isZero();
         assertThat(report.errorMessages()).isEmpty();
+    }
+
+    private static AgentTelemetry telemetry(long prompt, long completion, long cached, long reasoning, long first, long generation,
+                                            String finish, int asked, int kept) {
+        return new AgentTelemetry(prompt, completion, cached, reasoning, first, generation, finish, -1, -1, asked, kept, 0);
+    }
+
+    @Test
+    void whatTheRequestsReportedIsAddedUpWithTheCacheTheReasoningAndTheEndOfTheAnswers() {
+        Rows rows = new Rows();
+        rows.user("Go");
+        rows.round(1000, 2000, "read_file");
+        rows.told(telemetry(1000, 100, 0, 40, 500, 4000, "tool_calls", 3, 1));
+        rows.result("c1", "a", 10);
+        rows.round(1200, 2000, "read_file");
+        rows.told(telemetry(1200, 300, 1000, 100, 100, 6000, "length", 1, 1));
+        rows.result("c2", "b", 10);
+        rows.text(1300, 1000, "Done.");
+        rows.told(telemetry(1300, 50, 1200, -1, 50, 500, "stop", 0, 0));
+
+        AgentDiagnostics.Telemetry t = report(rows).telemetry();
+
+        assertThat(t.rounds()).isEqualTo(3);
+        assertThat(t.firstTokenMillis()).isEqualTo(650);
+        assertThat(t.generationMillis()).isEqualTo(10_500);
+        assertThat(t.tokensPerSecond()).isEqualTo(450 * 1000.0 / 10_500);
+        assertThat(t.promptTokens()).isEqualTo(3500);
+        assertThat(t.cachedTokens()).isEqualTo(2200);
+        assertThat(t.completionTokens()).as("only the answers that report reasoning").isEqualTo(400);
+        assertThat(t.reasoningTokens()).isEqualTo(140);
+        assertThat(t.finishReasons()).containsEntry("tool_calls", 1L).containsEntry("length", 1L).containsEntry("stop", 1L);
+        assertThat(t.droppedCalls()).isEqualTo(2);
+        assertThat(t.blocks()).singleElement().satisfies(block -> {
+            assertThat(block.rounds()).isEqualTo("1-3");
+            assertThat(block.cutOffs()).isEqualTo(1);
+            assertThat(block.cachePercent()).isEqualTo(63);
+            assertThat(block.reasoningPercent()).isEqualTo(35);
+        });
+        assertThat(report(rows).toMarkdown()).contains("What the requests reported").contains("From 3 answers")
+                .contains("Why the answers ended: length 1, stop 1, tool_calls 1");
+    }
+
+    @Test
+    void theAnswersOfARunWithoutTelemetryAreSaidToHaveNone() {
+        Rows rows = new Rows();
+        rows.user("Go");
+        rows.round(1000, 2000, "read_file");
+
+        Report report = report(rows);
+
+        assertThat(report.telemetry().rounds()).isZero();
+        assertThat(report.toMarkdown()).contains("have no telemetry");
+    }
+
+    @Test
+    void theRequestThatWroteASummaryIsCountedApart() {
+        Rows rows = new Rows();
+        rows.user("Go");
+        rows.round(1000, 2000, "read_file");
+        rows.result("c1", "a", 10);
+        rows.rows.forEach(row -> row.setCompacted(true));
+        rows.add(null, LLMChatMessage.of(LLMRole.USER, "Summary of the work"), 100).setSummary(true);
+        rows.told(telemetry(2000, 500, -1, -1, 3000, 9000, "stop", 0, 0));
+
+        AgentDiagnostics.Telemetry t = report(rows).telemetry();
+
+        assertThat(t.compactions()).isEqualTo(1);
+        assertThat(t.compactionMillis()).isEqualTo(12_000);
+        assertThat(t.rounds()).as("a summary is not an answer of the run").isZero();
     }
 
     @Test

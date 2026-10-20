@@ -658,7 +658,19 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     /**
      * What one request to the model answered.
      */
-    private record Round(String text, String reasoning, List<LLMToolCall> calls, RoundUsage usage) {
+    private record Round(String text, String reasoning, List<LLMToolCall> calls, RoundUsage usage, long waitMillis) {
+
+        Round(String text, String reasoning, List<LLMToolCall> calls, RoundUsage usage) {
+            this(text, reasoning, calls, usage, 0);
+        }
+
+        Round withCalls(List<LLMToolCall> kept) {
+            return new Round(text, reasoning, kept, usage, waitMillis);
+        }
+
+        Round waited(long millis) {
+            return new Round(text, reasoning, calls, usage, millis);
+        }
     }
 
     /**
@@ -696,7 +708,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         if (kept.size() > Defaults.AGENT_MAX_CALLS_PER_ROUND) {
             kept = new ArrayList<>(kept.subList(0, Defaults.AGENT_MAX_CALLS_PER_ROUND));
         }
-        return kept.size() == round.calls().size() ? round : new Round(round.text(), round.reasoning(), kept, round.usage());
+        return kept.size() == round.calls().size() ? round : round.withCalls(kept);
     }
 
     /**
@@ -1033,7 +1045,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         : LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls());
                 changeLock.lock();
                 try {
-                    messageService.appendAnswer(run, answer, progress.contextTokens, round.reasoning());
+                    messageService.appendAnswer(run, answer, progress.contextTokens, round.reasoning(),
+                            AgentTelemetry.of(round.usage(), asked, round.calls().size(), round.waitMillis()).toJson());
                 } finally {
                     changeLock.unlock();
                 }
@@ -1565,7 +1578,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             long tokens = estimate(payload(List.of(summary))) + toolTokens();
             changeLock.lock();
             try {
-                messageService.compact(run, summary, tokens);
+                messageService.compact(run, summary, tokens, AgentTelemetry.of(round.usage(), 0, 0, round.waitMillis()).toJson());
             } finally {
                 changeLock.unlock();
             }
@@ -2276,6 +2289,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                           FunctionSet tools, Waiter waiter) throws Exception {
             // the run has a cap of requests in the air, its agent and sub-agents take turns (a wait in a queue is part of the round: a
             // pause, a stop and a forced message find it)
+            long asking = System.nanoTime();
             CompletableFuture<AIGate.Permit> turn = requestSlots.acquire();
             if (!turn.isDone()) {
                 log.info("Agent run {} waits for a turn to ask the model ({} waiting, {} in the air)", runId, requestSlots.waiting(), requestSlots.active());
@@ -2287,7 +2301,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     log.info("Agent run {} waits for a place at the AI {} ({} waiting)", runId, profile.ai().getUuid(), aiGate.waiting(profile.ai()));
                 }
                 try (AIGate.Permit _ = waiter.await(place, () -> place.cancel(true), true)) {
-                    return request(inference, profile, payload, tools, waiter);
+                    long waited = (System.nanoTime() - asking) / 1_000_000;
+                    return request(inference, profile, payload, tools, waiter).waited(waited);
                 }
             } catch (ExecutionException e) {
                 throw e.getCause() instanceof Exception cause ? cause : e;
@@ -2577,8 +2592,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                             + " tokens), the task is too big for one sub-agent.");
                 }
                 Round round;
+                int asked;
                 try {
-                    round = limitCalls(ask(inference, profile, subPayload(conversation), subTools, waiter), agent.batchModeOrDefault(), singleCalls);
+                    Round answered = ask(inference, profile, subPayload(conversation), subTools, waiter);
+                    asked = answered.calls().size();
+                    round = limitCalls(answered, agent.batchModeOrDefault(), singleCalls);
                     unreadable = 0;
                 } catch (SubStopped e) {
                     throw e;
@@ -2618,7 +2636,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 changeLock.lock();
                 try {
                     messageService.appendAnswerToThread(run, sub.handle(), said, round.usage().promptTokens() + round.usage().completionTokens(),
-                            round.reasoning());
+                            round.reasoning(), AgentTelemetry.of(round.usage(), asked, round.calls().size(), round.waitMillis()).toJson());
                 } finally {
                     changeLock.unlock();
                 }
