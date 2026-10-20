@@ -695,7 +695,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
         assertThat(runsOf(dialog)).extracting(AgentRun::getUuid).containsExactly(third.getUuid(), second.getUuid(), first.getUuid());
         // the console itself reads the latest run that was not thrown away
         assertThat(dialog.getStatusLabel().getText()).isEqualTo("Running");
-        assertThat(dialog.getTabs().getTabCount()).isEqualTo(6);
+        assertThat(dialog.getTabs().getTabCount()).isEqualTo(7);
     }
 
     @Test
@@ -976,5 +976,35 @@ class AgentConsoleDialogTest extends AgentTestBase {
 
         assertThat(dialog.getCopyView().getNoCopyLabel().isVisible()).isFalse();
         assertThat(dialog.getCopyView().getLoreGrid()).isNotNull();
+    }
+
+    @Test
+    void aSpawnCallInTheTranscriptOpensTheConversationOfItsSubAgent() throws Exception {
+        AgentRun run = startedRun();
+        say(run, LLMChatMessage.of(LLMRole.USER, "go"),
+                LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("c1", "spawn_agent", "{\"task\": \"check names\"}"))),
+                LLMChatMessage.ofToolResult("c1", "started sub1"));
+        agentMessageService.startThread(run, "sub1", "check names", "c1", LLMChatMessage.of(LLMRole.USER, "check names"));
+        agentMessageService.appendAnswerToThread(run, "sub1", LLMChatMessage.of(LLMRole.ASSISTANT, "The names are fine"), 50, null);
+        AgentConsoleDialog dialog = console();
+
+        Button open = ComponentTree.all(dialog.getTranscriptBox(), Button.class).filter(b -> "Sub-agent".equals(b.getText())).findFirst().orElseThrow();
+        open.click();
+
+        assertThat(dialog.getTabs().getSelectedIndex()).isEqualTo(AgentConsoleDialog.SUBAGENTS_TAB);
+        assertThat(dialog.getSubAgentsView().getPicker().getValue().handle()).isEqualTo("sub1");
+        assertThat(textOf(dialog.getSubAgentsView().getTranscriptBox())).contains("The names are fine");
+    }
+
+    @Test
+    void theSubAgentsTabListsTheSubAgentsWhenItIsPicked() throws Exception {
+        AgentRun run = startedRun();
+        agentMessageService.startThread(run, "sub1", "check names", "c1", LLMChatMessage.of(LLMRole.USER, "check names"));
+        AgentConsoleDialog dialog = console();
+        assertThat(dialog.getSubAgentsView().getPicker().getListDataView().getItemCount()).as("not read before the tab is picked").isZero();
+
+        dialog.getTabs().setSelectedIndex(AgentConsoleDialog.SUBAGENTS_TAB);
+
+        assertThat(dialog.getSubAgentsView().getPicker().getListDataView().getItemCount()).isEqualTo(1);
     }
 }

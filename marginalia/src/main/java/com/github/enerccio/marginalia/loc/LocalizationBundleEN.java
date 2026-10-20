@@ -548,6 +548,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_BOOK_COPY, "Book copy");
         setValue(L.LABEL_SHOW_IN_COPY, "Show in the copy");
         setValue(L.LABEL_BRANCH, "Branch");
+        setValue(L.LABEL_AGENT_SUBAGENTS, "Sub-agents");
+        setValue(L.LABEL_AGENT_SUBAGENT, "Sub-agent");
+        setValue(L.LABEL_AGENT_TASK, "Task");
+        setValue(L.LABEL_AGENT_SUBAGENT_CANCELLED, "Cancelled");
+        setValue(L.LABEL_AGENT_SUBAGENT_REWOUND, "forgotten by the agent");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -903,6 +908,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_MERGE_NO_DIFFERENCE, "No difference.");
         setValue(L.MSG_AGENT_COPY_NONE, "This run has no copy of the book (it has ended, or its result was discarded).");
         setValue(L.MSG_AGENT_COPY_BRANCH, "Branch %s: %s (%s parts)");
+        setValue(L.MSG_AGENT_NO_SUBAGENTS, "This run did not start a sub-agent.");
+        setValue(L.MSG_AGENT_SUBAGENT_NOT_FOUND, "The conversation of that sub-agent is not stored (the run is older than the stored conversations, or it was started before a rewind that removed it).");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -966,6 +973,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_CONTEXT, "What the model reads with its next request, part by part: the system message, the tool definitions and the conversation. Nothing is cut; download it as Markdown to read it in an editor. The token counts of the parts are estimates, the line of the chart is what the model reported.");
         setValue(L.HELP_AGENT_ROLLBACK_MESSAGE, "Go back in the conversation to before this message: the agent forgets it and everything after it, and the working copy and the workspace return to the closest checkpoint before it.");
         setValue(L.HELP_AGENT_COPY, "The copy of the book the agent works on, to read: nothing here changes it. The story is shown branch by branch, the lorebooks with their entries. It is read when this tab is shown or when you press Refresh.");
+        setValue(L.HELP_AGENT_SUBAGENTS, "What the sub-agents of the run were told, said and called, and how they ended. It follows the run while it works; the ones of an older run are read by picking that run in Runs.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

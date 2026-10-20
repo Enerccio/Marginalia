@@ -556,6 +556,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AGENT_BOOK_COPY, "书的副本");
         setValue(L.LABEL_SHOW_IN_COPY, "在副本中查看");
         setValue(L.LABEL_BRANCH, "分支");
+        setValue(L.LABEL_AGENT_SUBAGENTS, "子智能体");
+        setValue(L.LABEL_AGENT_SUBAGENT, "子智能体");
+        setValue(L.LABEL_AGENT_TASK, "任务");
+        setValue(L.LABEL_AGENT_SUBAGENT_CANCELLED, "已取消");
+        setValue(L.LABEL_AGENT_SUBAGENT_REWOUND, "智能体已遗忘");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -911,6 +916,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_MERGE_NO_DIFFERENCE, "没有差异。");
         setValue(L.MSG_AGENT_COPY_NONE, "此次运行没有书的副本(已结束,或其结果已被丢弃)。");
         setValue(L.MSG_AGENT_COPY_BRANCH, "分支 %s:%s(%s 个部分)");
+        setValue(L.MSG_AGENT_NO_SUBAGENTS, "此次运行没有启动子智能体。");
+        setValue(L.MSG_AGENT_SUBAGENT_NOT_FOUND, "该子智能体的对话未保存(该运行早于对话存储功能,或已被回退移除)。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -974,6 +981,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_CONTEXT, "模型下一次请求会读取的内容,按部分显示:系统消息、工具定义和对话。内容不会被截断;可下载为 Markdown 在编辑器中阅读。各部分的令牌数为估算值,图表中的折线是模型报告的值。");
         setValue(L.HELP_AGENT_ROLLBACK_MESSAGE, "将对话回退到此消息之前：智能体会忘记此消息及其后的所有内容，工作副本和工作区恢复到它之前最近的检查点。");
         setValue(L.HELP_AGENT_COPY, "智能体正在处理的书的副本,仅供阅读:在此不会改变任何内容。故事按分支显示,世界书连同其条目一起显示。显示此标签页或点击“刷新”时会重新读取。");
+        setValue(L.HELP_AGENT_SUBAGENTS, "此次运行的子智能体被告知的内容、说过的话、调用的命令以及结束方式。运行期间会随之更新;较早运行的对话可在“运行”中选择该运行后阅读。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
