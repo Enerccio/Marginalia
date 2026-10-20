@@ -52,6 +52,17 @@ public class UIUtils {
 
     private static final Logger log = LoggerFactory.getLogger(UIUtils.class);
 
+    /**
+     * Sets the text of a component only when it differs from what it shows. A screen that polls and sets the same text every
+     * time replaces the text node in the browser, which drops the selection the user was copying.
+     */
+    public static void setTextIfChanged(com.vaadin.flow.component.HasText component, String text) {
+        String wanted = text == null ? "" : text;
+        if (!wanted.equals(component.getText())) {
+            component.setText(wanted);
+        }
+    }
+
     private static final ThreadLocal<SimpleDateFormat> simpleDateFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd.MM.yyyy HH:mm:ss"));
 
     /**

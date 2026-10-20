@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845821188720">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845824933792">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845821188720" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845824933792" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845824933792" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845821188720" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845824933792" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845824933792" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1487,7 +1487,10 @@ per agent that is not over, see <a href="../database/#migrations">Database</a>.<
 <p><code translate="no" v-pre>AgentMessage</code> (table <code translate="no" v-pre>agent_messages</code>, V16) is a row of the transcript of a run: <code translate="no" v-pre>run</code> (column <code translate="no" v-pre>run_id</code>, <code translate="no" v-pre>OWNED_BY</code>), <code translate="no" v-pre>ordinal</code> (the place in the transcript) and the
 <code translate="no" v-pre>LLMChatMessage</code> as JSON in the extended attribute <code translate="no" v-pre>message</code> (<code translate="no" v-pre>toChatMessage</code>/<code translate="no" v-pre>setChatMessage</code>). Rows are only appended; the system prompt is not stored. The answer of the model also
 carries the extended attribute <code translate="no" v-pre>contextTokens</code> (the tokens of the request and the answer, <code translate="no" v-pre>AgentMessageService.appendAnswer</code>); and <code translate="no" v-pre>reasoning</code> (what the provider sent as the reasoning of the round, kept beside the answer for the console and the download, never sent back to the model); the last <code translate="no" v-pre>contextTokens</code> is the current context of the run
-(<code translate="no" v-pre>getContextTokens</code>, shown by the console), kept on the row and not on the run because an extended attribute of a row that is never updated needs no SQL update and no migration.</p>
+(<code translate="no" v-pre>getContextTokens</code>, shown by the console), kept on the row and not on the run because an extended attribute of a row that is never updated needs no SQL update and no migration.
+The column <code translate="no" v-pre>thread</code> (V18) is the handle of the sub-agent whose conversation the row belongs to (<code translate="no" v-pre>sub1</code>...), null for the agent&#x27;s own; the <code translate="no" v-pre>ordinal</code> counts per thread and the queries of the agent&#x27;s transcript read
+<code translate="no" v-pre>thread IS NULL</code>. The first row of a conversation has the extended attributes <code translate="no" v-pre>threadTask</code> and <code translate="no" v-pre>threadCall</code> (the id of the <code translate="no" v-pre>spawn_agent</code> call), the row that ends it <code translate="no" v-pre>threadEnd</code> (<code translate="no" v-pre>DONE</code>, <code translate="no" v-pre>FAILED</code>,
+<code translate="no" v-pre>CANCELLED</code>); a conversation without one was only paused. See <a href="../agents/#sub-agents">Sub-agents</a>.</p>
 <p><code translate="no" v-pre>AgentRunPair</code> (table <code translate="no" v-pre>agent_run_pairs</code>, V17) is <strong>not a <code translate="no" v-pre>BaseEntity</code></strong>: a row says which item of the working copy of a run is which item of the original, and a
 book of thousands of parts is thousands of rows that are only looked up by the run, so there is no uuid, no soft delete, no extended content and no owner. Columns:
 <code translate="no" v-pre>runId</code> (<code translate="no" v-pre>run_id</code>, the id of the run, not a reference), <code translate="no" v-pre>kind</code> (<code translate="no" v-pre>AgentRunPairKind</code>: <code translate="no" v-pre>MESSAGE</code>, <code translate="no" v-pre>SUMMARY</code>, <code translate="no" v-pre>LOREBOOK</code>, <code translate="no" v-pre>ENTRY</code>), <code translate="no" v-pre>copyUuid</code> (unique in the run),
@@ -1741,7 +1744,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b5118431).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3eb7ae53).</p></div>
             </footer>
         </div>
     </div>

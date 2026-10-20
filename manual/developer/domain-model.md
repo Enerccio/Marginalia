@@ -555,6 +555,9 @@ per agent that is not over, see [Database](database.md#migrations).
 `LLMChatMessage` as JSON in the extended attribute `message` (`toChatMessage`/`setChatMessage`). Rows are only appended; the system prompt is not stored. The answer of the model also
 carries the extended attribute `contextTokens` (the tokens of the request and the answer, `AgentMessageService.appendAnswer`); and `reasoning` (what the provider sent as the reasoning of the round, kept beside the answer for the console and the download, never sent back to the model); the last `contextTokens` is the current context of the run
 (`getContextTokens`, shown by the console), kept on the row and not on the run because an extended attribute of a row that is never updated needs no SQL update and no migration.
+The column `thread` (V18) is the handle of the sub-agent whose conversation the row belongs to (`sub1`...), null for the agent's own; the `ordinal` counts per thread and the queries of the agent's transcript read
+`thread IS NULL`. The first row of a conversation has the extended attributes `threadTask` and `threadCall` (the id of the `spawn_agent` call), the row that ends it `threadEnd` (`DONE`, `FAILED`,
+`CANCELLED`); a conversation without one was only paused. See [Sub-agents](agents.md#sub-agents).
 
 `AgentRunPair` (table `agent_run_pairs`, V17) is **not a `BaseEntity`**: a row says which item of the working copy of a run is which item of the original, and a
 book of thousands of parts is thousands of rows that are only looked up by the run, so there is no uuid, no soft delete, no extended content and no owner. Columns:

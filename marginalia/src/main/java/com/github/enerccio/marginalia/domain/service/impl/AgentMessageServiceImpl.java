@@ -6,13 +6,14 @@ import com.github.enerccio.marginalia.domain.repository.AgentMessageRepository;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage, AgentMessageRepository> implements AgentMessageService {
 
@@ -85,8 +86,12 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
             }
         }
         int forgotten = 0;
+        Set<String> goneCalls = new HashSet<>();
         for (AgentMessage row : rows) {
             if (row.getOrdinal() >= keep) {
+                for (LLMToolCall call : row.toChatMessage().getToolCalls()) {
+                    goneCalls.add(call.getId());
+                }
                 if (!row.isRewound()) {
                     row.setRewound(true);
                     save(row);
@@ -99,7 +104,122 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
                 save(row);
             }
         }
+        if (!goneCalls.isEmpty()) {
+            // the sub-agents those calls started were never started, as far as the agent knows
+            for (AgentMessage row : getRepository().findAllThreadRowsByRun(stored)) {
+                if (!row.isRewound() && goneCalls.contains(threadCallOf(stored, row.getThread()))) {
+                    row.setRewound(true);
+                    save(row);
+                }
+            }
+        }
         return forgotten;
+    }
+
+    private String threadCallOf(AgentRun run, String handle) throws Exception {
+        for (AgentMessage row : getRepository().findAllByRunAndThread(run, handle)) {
+            if (row.getThreadCall() != null) {
+                return row.getThreadCall();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    @CommonTx
+    public AgentMessage startThread(AgentRun run, String handle, String task, String callId, LLMChatMessage first) throws Exception {
+        AgentRun stored = ownRun(run);
+        AgentMessage message = new AgentMessage();
+        message.setRun(stored);
+        message.setThread(handle);
+        message.setOrdinal(getRepository().countByRunAndThread(stored, handle));
+        message.setChatMessage(first);
+        message.setThreadTask(task);
+        message.setThreadCall(callId);
+        return save(message);
+    }
+
+    @Override
+    @CommonTx
+    public List<AgentMessage> appendToThread(AgentRun run, String handle, List<LLMChatMessage> messages) throws Exception {
+        AgentRun stored = ownRun(run);
+        int ordinal = getRepository().countByRunAndThread(stored, handle);
+        List<AgentMessage> saved = new ArrayList<>();
+        for (LLMChatMessage chatMessage : messages) {
+            AgentMessage message = new AgentMessage();
+            message.setRun(stored);
+            message.setThread(handle);
+            message.setOrdinal(ordinal++);
+            message.setChatMessage(chatMessage);
+            saved.add(save(message));
+        }
+        return saved;
+    }
+
+    @Override
+    @CommonTx
+    public AgentMessage appendAnswerToThread(AgentRun run, String handle, LLMChatMessage answer, long contextTokens, String reasoning) throws Exception {
+        AgentRun stored = ownRun(run);
+        AgentMessage message = new AgentMessage();
+        message.setRun(stored);
+        message.setThread(handle);
+        message.setOrdinal(getRepository().countByRunAndThread(stored, handle));
+        message.setChatMessage(answer);
+        message.setContextTokens(contextTokens);
+        message.setReasoning(reasoning);
+        return save(message);
+    }
+
+    @Override
+    @CommonTx
+    public AgentMessage endThread(AgentRun run, String handle, String end, String text) throws Exception {
+        AgentRun stored = ownRun(run);
+        for (AgentMessage row : getRepository().findAllByRunAndThread(stored, handle)) {
+            if (row.getThreadEnd() != null) {
+                // the first end wins
+                return row;
+            }
+        }
+        AgentMessage message = new AgentMessage();
+        message.setRun(stored);
+        message.setThread(handle);
+        message.setOrdinal(getRepository().countByRunAndThread(stored, handle));
+        message.setChatMessage(LLMChatMessage.of(LLMRole.ASSISTANT, text == null ? "" : text));
+        message.setThreadEnd(end);
+        return save(message);
+    }
+
+    @Override
+    @CommonTx
+    public int endOpenThreads(AgentRun run, String end, String reason) throws Exception {
+        int ended = 0;
+        for (SubThread thread : threads(run)) {
+            if (!thread.isOver() && !thread.rewound()) {
+                endThread(run, thread.handle(), end, reason);
+                ended++;
+            }
+        }
+        return ended;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<SubThread> threads(AgentRun run) throws Exception {
+        Map<String, List<AgentMessage>> byHandle = new LinkedHashMap<>();
+        for (AgentMessage row : getRepository().findAllThreadRowsByRun(ownRun(run))) {
+            byHandle.computeIfAbsent(row.getThread(), handle -> new ArrayList<>()).add(row);
+        }
+        List<SubThread> threads = new ArrayList<>();
+        for (Map.Entry<String, List<AgentMessage>> entry : byHandle.entrySet()) {
+            List<AgentMessage> rows = entry.getValue();
+            rows.sort((a, b) -> Integer.compare(a.getOrdinal(), b.getOrdinal()));
+            AgentMessage first = rows.getFirst();
+            AgentMessage last = rows.getLast();
+            threads.add(new SubThread(entry.getKey(), first.getThreadTask(), first.getThreadCall(),
+                    last.getThreadEnd(), last.getThreadEnd() == null ? null : last.toChatMessage().getContent(),
+                    first.isRewound(), rows));
+        }
+        return threads;
     }
 
     @Override
@@ -148,7 +268,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     @Override
     @CommonTx
     public void deleteForRun(AgentRun run, boolean hard) throws Exception {
-        for (AgentMessage message : getRepository().findAllByRun(run)) {
+        for (AgentMessage message : getRepository().findEveryByRun(run)) {
             delete(message, hard);
         }
     }

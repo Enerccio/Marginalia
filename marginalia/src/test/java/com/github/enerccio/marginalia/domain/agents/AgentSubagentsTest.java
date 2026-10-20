@@ -21,6 +21,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -228,10 +230,14 @@ class AgentSubagentsTest extends AgentTestBase {
                 .map(LLMChatMessage::getContent).toList();
         assertThat(results.get(1)).contains("Cancel asked for sub1");
         assertThat(results.get(2)).contains("sub1").contains("was stopped").contains("canceled");
+        assertThat(messageService.threads(run)).singleElement().satisfies(thread -> {
+            assertThat(thread.end()).as("the end is stored").isEqualTo("CANCELLED");
+            assertThat(thread.result()).isEqualTo("It was canceled.");
+        });
     }
 
     @Test
-    void pausingTheRunStopsTheSubagentAndTheAgentWaitingForIt() throws Exception {
+    void pausingTheRunSuspendsTheSubagentAndLeavesTheCallOfTheAgentOpen() throws Exception {
         Agent agent = agentWith(1);
         CountDownLatch never = new CountDownLatch(1);
         llm.respondWith(request -> isSub(request) ? MockLLMResponse.text("never read").waitFor(never, Duration.ofSeconds(30))
@@ -245,9 +251,90 @@ class AgentSubagentsTest extends AgentTestBase {
         never.countDown();
 
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
-        String result = messageService.transcript(run).stream().filter(message -> message.getRole() == LLMRole.TOOL)
-                .map(LLMChatMessage::getContent).findFirst().orElseThrow();
-        assertThat(result).contains("sub1").contains("was stopped").contains("paused");
+        assertThat(messageService.transcript(run)).as("the call waits for its answer").noneMatch(message -> message.getRole() == LLMRole.TOOL);
+        assertThat(messageService.threads(run)).singleElement().satisfies(thread -> {
+            assertThat(thread.handle()).isEqualTo("sub1");
+            assertThat(thread.isOver()).as("only paused").isFalse();
+            assertThat(thread.task()).isEqualTo("slow job");
+            assertThat(thread.conversation()).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER);
+        });
+    }
+
+    @Test
+    void aResumedRunGoesOnWithTheSubagentAndTheCallThatWaitedForItWaitsAgain() throws Exception {
+        Agent agent = agentWith(1);
+        CountDownLatch never = new CountDownLatch(1);
+        AtomicInteger subRequests = new AtomicInteger();
+        llm.respondWith(request -> {
+            if (isSub(request)) {
+                return subRequests.incrementAndGet() == 1 ? MockLLMResponse.text("never read").waitFor(never, Duration.ofSeconds(30))
+                        : MockLLMResponse.text("The names are fine.");
+            }
+            return request.getMessages("tool").isEmpty() ? MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"check the names\"}")
+                    : MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}");
+        });
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(2, Duration.ofSeconds(10));
+        agentRunService.pause(agentRunService.find(run.getId()));
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+        never.countDown();
+
+        runner.run(agentRunService.resume(run));
+        run = await(run, Set.of(AgentRunStatus.DONE));
+
+        List<LLMChatMessage> transcript = messageService.transcript(run);
+        int call = IntStream.range(0, transcript.size()).filter(i -> transcript.get(i).hasToolCalls()).findFirst().orElseThrow();
+        assertThat(transcript.get(call + 1).getRole()).as("answered where the call is").isEqualTo(LLMRole.TOOL);
+        assertThat(transcript.get(call + 1).getContent()).contains("sub1").contains("is done").contains("The names are fine.");
+        assertThat(transcript).as("started once").filteredOn(LLMChatMessage::hasToolCalls)
+                .filteredOn(message -> message.getToolCalls().stream().anyMatch(c -> c.getName().equals("spawn_agent"))).hasSize(1);
+        assertThat(messageService.threads(run)).singleElement().satisfies(thread -> {
+            assertThat(thread.end()).isEqualTo("DONE");
+            assertThat(thread.result()).isEqualTo("The names are fine.");
+            assertThat(thread.conversation()).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER);
+        });
+        assertThat(subRequests.get()).isEqualTo(2);
+    }
+
+    @Test
+    void aSubagentThatWorkedBeforeThePauseKeepsItsConversationAndAnswerCallsAfterIt() throws Exception {
+        updatePermission(agentUser(), PermissionType.AGENTS, permission -> permission.setAgentsMaxConcurrency(2));
+        Agent agent = agentWith(2);
+        CountDownLatch never = new CountDownLatch(1);
+        AtomicInteger subRequests = new AtomicInteger();
+        llm.respondWith(request -> {
+            if (isSub(request)) {
+                return switch (subRequests.incrementAndGet()) {
+                    case 1 -> MockLLMResponse.toolCall("get-book-info", "{}");
+                    case 2 -> MockLLMResponse.text("never read").waitFor(never, Duration.ofSeconds(30));
+                    default -> MockLLMResponse.text("It is a short book.");
+                };
+            }
+            return switch (request.getMessages("tool").size()) {
+                case 0 -> MockLLMResponse.toolCall("spawn_agent", "{\"task\":\"describe the book\"}");
+                case 1 -> MockLLMResponse.toolCall("await_agent", "{\"handle\":\"sub1\"}");
+                default -> MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}");
+            };
+        });
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(4, Duration.ofSeconds(10));
+        agentRunService.pause(agentRunService.find(run.getId()));
+        run = await(run, Set.of(AgentRunStatus.PAUSED));
+        never.countDown();
+
+        assertThat(messageService.transcript(run)).as("spawn_agent is answered, await_agent waits").filteredOn(message -> message.getRole() == LLMRole.TOOL)
+                .hasSize(1);
+        assertThat(messageService.threads(run).getFirst().conversation()).extracting(LLMChatMessage::getRole)
+                .containsExactly(LLMRole.USER, LLMRole.ASSISTANT, LLMRole.TOOL);
+
+        runner.run(agentRunService.resume(run));
+        run = await(run, Set.of(AgentRunStatus.DONE));
+
+        List<String> results = messageService.transcript(run).stream().filter(message -> message.getRole() == LLMRole.TOOL)
+                .map(LLMChatMessage::getContent).toList();
+        assertThat(results).hasSize(3);
+        assertThat(results.get(1)).contains("sub1").contains("is done").contains("It is a short book.");
+        assertThat(messageService.threads(run).getFirst().conversation()).as("the conversation went on").hasSize(3);
     }
 
     @Test

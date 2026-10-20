@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.domain.agents;
 
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
+import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.agent.AgentTranscriptExport;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
@@ -68,5 +70,38 @@ class AgentTranscriptExportTest {
 
         assertThat(md).contains("### Reasoning\n\n```\nfirst I thought\n```\n\n## Agent\n\nAll good");
         assertThat(AgentTranscriptExport.toMarkdown("Checker", run(AgentRunStatus.IDLE, null), messages)).doesNotContain("Reasoning");
+    }
+
+    private static AgentMessage row(String thread, int ordinal, LLMChatMessage message, java.util.Date written) {
+        AgentMessage row = new AgentMessage();
+        row.setThread(thread);
+        row.setOrdinal(ordinal);
+        row.setChatMessage(message);
+        row.setCreation(written);
+        return row;
+    }
+
+    @Test
+    void theStoredRunHasTheTimeOfEveryMessageAndTheConversationOfEverySubagent() {
+        java.util.Date written = new java.util.GregorianCalendar(2026, java.util.Calendar.OCTOBER, 20, 16, 50, 23).getTime();
+        AgentMessage task = row("sub1", 0, LLMChatMessage.of(LLMRole.USER, "check names"), written);
+        task.setThreadTask("check names");
+        AgentMessage answer = row("sub1", 1, LLMChatMessage.of(LLMRole.ASSISTANT, "names are fine"), written);
+        AgentMessage end = row("sub1", 2, LLMChatMessage.of(LLMRole.ASSISTANT, "names are fine"), written);
+        end.setThreadEnd("DONE");
+        AgentMessageService.SubThread thread = new AgentMessageService.SubThread("sub1", "check names", "c1", "DONE", "names are fine", false,
+                List.of(task, answer, end));
+        AgentMessageService.SubThread gone = new AgentMessageService.SubThread("sub2", "rewound", "c2", null, null, true, List.of(task));
+
+        String md = AgentTranscriptExport.export("Checker", run(AgentRunStatus.DONE, null),
+                List.of(row(null, 0, LLMChatMessage.of(LLMRole.USER, "go"), written)), List.of(thread, gone));
+
+        assertThat(md).contains("## You · 2026-10-20 16:50:23\n\ngo")
+                .contains("## Sub-agent sub1\n\n- Task: check names\n- State: DONE")
+                .contains("### You · 2026-10-20 16:50:23\n\ncheck names")
+                .contains("### Agent · 2026-10-20 16:50:23\n\nnames are fine")
+                .contains("### DONE\n\nnames are fine")
+                .doesNotContain("sub2");
+        assertThat(md.indexOf("## You")).isLessThan(md.indexOf("## Sub-agent sub1"));
     }
 }

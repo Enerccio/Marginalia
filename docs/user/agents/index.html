@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845821188720">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845824933792">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845821188720" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845824933792" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845824933792" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845824933792" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -373,7 +373,7 @@ cost is lost; resume as usual.</p>
 <h2 id="the-console">The console</h2>
 <p><strong>Console</strong> opens a window for the latest run of the agent, with five tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>, <strong>Checkpoints</strong> and <strong>Context</strong>.</p>
 <p><strong>Run</strong> shows the <em>transcript</em>: what you told the agent, what it said (both as <a href="https://commonmark.org/help/">Markdown</a>, so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
-arguments (click it to see them and the result, shown as plain text). When the model sends its <strong>reasoning</strong> (what it thought before it answered), a folded <em>Reasoning</em> block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. The state of the run, the <strong>context</strong> (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
+arguments (click it to see them and the result, shown as plain text). When the model sends its <strong>reasoning</strong> (what it thought before it answered), a folded <em>Reasoning</em> block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. Every message has the time it was written at the right of its first line (the time of day, with the date when it was another day; hover for the whole time), so you can tell how long the agent worked and when it stopped. The state of the run, the <strong>context</strong> (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
 is one) stay above it and the box for your message under it, while the transcript scrolls. What the agent waits for is in the transcript where it was written, as a bubble of its own that stays there when the run goes on:</p>
 <ul>
 <li>a <strong>Question of the agent</strong>, when the run is <em>Waiting for you</em>; write the answer in the box and press <strong>Send</strong> (or <strong>Ctrl+Enter</strong>), and the agent goes on;</li>
@@ -405,6 +405,8 @@ not fit, the oldest messages are left out of it (the summary says how many). Do 
 transcript): how full it is, and that it should save what it must not lose to a file of its workspace, update its plan and call <code translate="no" v-pre>request_compaction</code>. Above 90% the notice says that the run
 stops when the context is full. If the agent does not compact before the context passes the <strong>Compact at</strong> share of its definition (90% unless you say otherwise), the run does it by itself: the same compaction, the summary begins &quot;compacted automatically&quot; and the agent is not warned on top of it. A compaction that fails changes nothing, the agent is told, and the run tries again only some rounds later. The compaction the agent asks for is the same as yours (its <strong>Compaction prompt</strong>, see <doc-anchor-trigger to="#creating-and-editing-an-agent">Creating and editing an agent</doc-anchor-trigger>, its tokens count against the run); if it fails, nothing is changed and the agent is told.
 The notices need a context cap: the lowest of the cap of the agent and the limits of its model.</p>
+<p><strong>A call the model server could not read.</strong> When a model writes a long text inside a call, its answer can end in the middle of the text (the limit of <em>one answer</em>, the <strong>reply tokens</strong> of the protocol or the <strong>max completion tokens</strong> of the AI, is reached, a server default applies when neither is set, or the model simply stops; the context, however full, is a different limit), and the server refuses the incomplete call (&quot;Failed to parse tool call arguments as JSON&quot;). Asking again with the same conversation would make the same mistake, so the run does not just pause: the agent is told in the transcript that its last answer could not be used and that nothing was done, and to write long text to a file of its workspace in several smaller steps; then it is asked again, up to three times in a row. If it keeps failing the run pauses, and what it was told stays in the transcript, so a <strong>Resume</strong> asks a different question than the one that failed. The same goes for a sub-agent.</p>
+<p>A call that was cut off but reached the application (the call result says &quot;not valid JSON ... cut off in the middle&quot;) stays in the transcript as the model wrote it, so you can read it, but it is sent back to the model with empty arguments: a server that reads the earlier calls again would otherwise refuse every following request, and the run could not go on without a rewind.</p>
 <p><strong>Runaway calls.</strong> A model can fall into a loop and write the same call hundreds of times in one answer; the results would fill the context before the next request. The run makes at most 32 calls of an answer, and a repeat of a call that only reads (the same tool with the same arguments, in the same answer) is made once. The calls that are left out are not in the transcript, and the agent gets a notice that says so.</p>
 <p><strong><code translate="no" v-pre>/clear-workspace [what to keep]</code></strong> deletes the files and all the folders of the <doc-anchor-trigger to="#the-working-copy">workspace</doc-anchor-trigger> of the run (after you confirm, as with the button of the workspace). Name what
 to keep after it, separated by spaces: files, folders (with everything in them) or patterns such as <code translate="no" v-pre>*.md</code> or <code translate="no" v-pre>chapters/*.md</code>, a path with spaces in double quotes
@@ -418,7 +420,7 @@ and the model is shown them with your message. Delete them in the <strong>Worksp
 <p>The window looks at the run every two seconds while it is open; <strong>Refresh</strong> does it at once. The <strong>Run</strong> tab shows the latest run that was not discarded, so a run that finished or failed can still be read there until the agent starts a new run; older runs are in <strong>Runs</strong>.</p>
 <p><strong>Runs</strong> is the history of the agent: every run it had, the latest first, with its date, status, rounds, tokens and result. Use the eye to <strong>open</strong> a
 run in the <strong>Run</strong> tab and read its steps and its report again (the run you open stays there until you open another one), the arrow to
-<strong>download</strong> its transcript as a Markdown file (what was said, every command with its arguments and result, the report), and the bin to <strong>delete</strong> it.
+<strong>download</strong> its transcript as a Markdown file (what was said and when, every command with its arguments and result, the report, the conversations of the sub-agents), and the bin to <strong>delete</strong> it.
 A deleted run goes to the <a href="../trash/">trash</a>. A run that is going on can&#x27;t be deleted, stop it first. Runs you stopped and <strong>discarded</strong> are in the list
 too, so you can read what they did or delete them; the <strong>Run</strong> tab shows them only when you open them.</p>
 <p><strong>Workspace</strong> shows the files of the agent: its notes and reports, which it keeps between runs. Click a folder to go in (<strong>Up</strong> goes back), click a
@@ -463,7 +465,8 @@ differing in case), a name that is both a file and a folder, more than 5 000 ent
 <li>Everything counts in the <strong>one budget of the run</strong>: rounds, tokens, the limits of the model. A sub-agent that hits a limit fails and says so; the agent then hits the same limit.</li>
 <li>How many requests are on their way to the model at once is the <strong>Requests to the model at once</strong> your administrator gave you (one when not set): with one, the agent and its sub-agent take turns.</li>
 <li>Calls that change the book or the workspace are done one at a time, whoever makes them, so two sub-agents never write at the same instant. Still, do not tell two of them to change the same part.</li>
-<li>A sub-agent lives as long as the work session does. When you <strong>pause</strong> or stop the run the sub-agents are stopped (what they changed stays), and the agent is told so; the sub-agents are not shown in the console, only what the agent does with their answers is in its transcript. An agent that ends its turn while sub-agents still work is told once; if it does it again they are stopped.</li>
+<li><strong>Pausing the run pauses the sub-agents too.</strong> They stop at their next stable point (between two requests or two calls, at once when you pause at once) and what they said and did is kept with the run, so a <strong>Resume</strong> goes on where everything was: the sub-agents go on with their conversation, and a call of the agent that waited for one (<code translate="no" v-pre>await_agent</code>, or <code translate="no" v-pre>spawn_agent</code> with a limit of one) waits again, as if nothing had happened. A sub-agent that was over before the pause is still there for the agent to ask about. Stopping a run and keeping it does the same; discarding it, a restore of a checkpoint (the book the sub-agents worked in is replaced) and the agent finishing or asking you something end them for good. An agent that ends its turn while sub-agents still work is told once; if it does it again they are stopped.</li>
+<li>Their conversations are not in the <strong>Run</strong> tab, but the <strong>download</strong> of the run (in the <strong>Runs</strong> tab) has a section for each sub-agent, with its task, its state and every message and call.</li>
 </ul>
 <h2 id="one-model-several-agents">One model, several agents</h2>
 <p>A local server often has one slot (one GPU): ask it for two answers at once and both crawl or time out. Set <strong>Concurrent requests of agents</strong> in the <a href="../inference-providers/#general-settings">settings of the model</a> (1 for one slot) and the requests of your agents to it take turns, in the order they came: the others wait, their runs stay <em>Running</em>, and a <strong>Pause</strong> or <strong>Stop</strong> ends the wait. It counts the model requests of all the agents of all users who use that model, the commands that write with it included. It does not hold up your own writing in the story window, and that does not count against the agents either.</p>
@@ -735,7 +738,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b5118431).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3eb7ae53).</p></div>
             </footer>
         </div>
     </div>

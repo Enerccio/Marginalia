@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845821188720">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845824933792">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845821188720" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845824933792" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845824933792" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845824933792" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -569,19 +569,26 @@ at 2 000 characters) and <code translate="no" v-pre>ask_user</code> makes it <co
 and ends; a pause and a stop wait.</p>
 </li>
 </ol>
+<p><strong>Calls cut off in the middle.</strong> When the answer of the model ends inside a call (the limit of one answer, see below), the call has arguments that are not valid JSON; the function layer answers it with an error, and the row keeps what the model
+wrote. The history is sent back at every request, and a provider that parses the arguments of the calls in it (LiteLLM in front of llama.cpp) refuses the <em>whole request</em> for the broken one, so from then on every request failed and
+only a rewind helped. <code translate="no" v-pre>Worker.coalesced</code> (it makes the payload of the agent and of a sub-agent) now sends such a call with <code translate="no" v-pre>{}</code> as its arguments (<code translate="no" v-pre>withReadableCalls</code>; the stored row is not changed), and the error result says that the answer was cut off.</p>
+<p><strong>Unreadable calls.</strong> A provider that parses the arguments of a call itself (LiteLLM and OpenAI-compatible proxies) refuses the whole answer when the JSON is cut off (the limit of one answer, <code translate="no" v-pre>TokenLimits.responseTokens</code>, sent as <code translate="no" v-pre>max_completion_tokens</code> only when the protocol or the AI sets one, or a default of the server, or the model stopping; not the context), so the request fails and the transcript did not change: a resume
+repeats it and fails the same way (the run was &quot;bricked&quot; until the user rewound). <code translate="no" v-pre>AgentRunnerImpl.isUnreadableCall</code> recognises the message (<code translate="no" v-pre>Failed to parse tool call arguments</code>, <code translate="no" v-pre>arguments as JSON</code>...,
+in the exception or its causes); the loop (and <code translate="no" v-pre>subLoop</code>) then appends <code translate="no" v-pre>Defaults.AGENT_UNREADABLE_CALL</code> as a user message and asks again, at most <code translate="no" v-pre>MAX_UNREADABLE_CALLS</code> = 3 times in a row (the counter is reset by an answer),
+and pauses with the notices in the transcript when it goes on failing.</p>
 <p><strong>Pause now.</strong> <code translate="no" v-pre>AgentRunner.pauseNow(run)</code> is a <code translate="no" v-pre>pause</code> that does not wait for the round: it puts the run id in the in-memory <code translate="no" v-pre>interrupts</code> set first, then asks <code translate="no" v-pre>AgentRunService.pause</code>. <code translate="no" v-pre>Worker.await</code> looks at the set before every wait (every second, like the discard check) and cancels what it waits for with <code translate="no" v-pre>Interrupted</code>, a subclass of <code translate="no" v-pre>Discarded</code> so that the places that rethrow a discard rethrow it too. In the loop <code translate="no" v-pre>ask</code> catching it drops the answer (nothing is written or counted) and goes to the stable point, which pauses; in a round whose calls are written the call in the air is answered <code translate="no" v-pre>Defaults.AGENT_PAUSED_CALL</code>, the rest <code translate="no" v-pre>AGENT_PAUSED_SKIPPED_CALL</code>, and the results are appended with the others of the round; anywhere else the exception reaches <code translate="no" v-pre>Worker.run</code>, which settles the requested pause. The set is cleared when the worker ends. An ordinary pause or stop ends the wait for a place at the AI too (<code translate="no" v-pre>await(..., queued = true)</code>), since nothing is lost by it.</p>
 <p>A status change that finds another status than it expected (the user paused meanwhile) is not an error: <code translate="no" v-pre>reach</code> and <code translate="no" v-pre>pause</code> then do the pause or stop that was asked.
 Anything the worker throws that is not one of these makes the run <code translate="no" v-pre>FAILED</code> with the message. <code translate="no" v-pre>RunTools</code> (<code translate="no" v-pre>domain.service.agent</code>) are <code translate="no" v-pre>finish</code>, <code translate="no" v-pre>ask_user</code>, <code translate="no" v-pre>update_plan</code>
 (statuses <code translate="no" v-pre>pending</code>, <code translate="no" v-pre>in_progress</code>, <code translate="no" v-pre>done</code>; the usual other spellings are mapped) <code translate="no" v-pre>request_compaction</code> (the focus is noted, <code translate="no" v-pre>isCompactionRequested</code>) and <code translate="no" v-pre>get_run_status</code>; <code translate="no" v-pre>RunToolsImpl</code> only notes the request of the model, the worker acts on
 it after the round, so every call of the round has its result in the transcript first.</p>
-<p>The transcript is <code translate="no" v-pre>AgentMessage</code> (table <code translate="no" v-pre>agent_messages</code>): the run, the <code translate="no" v-pre>ordinal</code> and the <code translate="no" v-pre>LLMChatMessage</code> as JSON in an extended attribute, only appended. The system
-message is not stored.</p>
+<p>The transcript is <code translate="no" v-pre>AgentMessage</code> (table <code translate="no" v-pre>agent_messages</code>): the run, the <code translate="no" v-pre>ordinal</code>, the <code translate="no" v-pre>thread</code> (null: the agent&#x27;s own conversation, otherwise the handle of a sub-agent, V18) and the <code translate="no" v-pre>LLMChatMessage</code>
+as JSON in an extended attribute, only appended; the <code translate="no" v-pre>creation</code> of the row is the time the console and the export show. The system message is not stored.</p>
 <p><code translate="no" v-pre>InferenceService.round(payload, protocol, functions, callback)</code> is what the runner uses instead of <code translate="no" v-pre>stream</code>/<code translate="no" v-pre>infer</code>: one request that is streamed to the provider and put together by the service (so the timeout is the wait for the next chunk, the reasoning included, not for the whole answer), and that reports the
 text, the calls the model asked for (they are not called) and the tokens (the provider&#x27;s, otherwise ours), with the limits and the usage of the user as for any
 request. Services that can&#x27;t do it throw <code translate="no" v-pre>UnsupportedOperationException</code>.</p>
 <h2 id="sub-agents">Sub-agents</h2>
-<p>A sub-agent is a thread of the run, not a run: same working copy, workspace, budgets, pause and stop state; only the conversation is its own, and it is <strong>not stored</strong>
-(it lives in the memory of the worker; the console shows nothing of it). Limits: <code translate="no" v-pre>Agent.maxSubagents</code> (an extended attribute, 0..<code translate="no" v-pre>AgentService.MAX_SUBAGENTS</code> = 10,
+<p>A sub-agent is a thread of the run, not a run: same working copy, workspace, budgets, pause and stop state; only the conversation is its own, and it is <strong>stored with the transcript</strong>
+(<code translate="no" v-pre>agent_messages</code>, V18: the column <code translate="no" v-pre>thread</code> = the handle, null for the agent&#x27;s own rows; the console does not show it, the export of the run does). Limits: <code translate="no" v-pre>Agent.maxSubagents</code> (an extended attribute, 0..<code translate="no" v-pre>AgentService.MAX_SUBAGENTS</code> = 10,
 checked in <code translate="no" v-pre>AgentServiceImpl.validate</code>; null or zero offers no tools) read by <code translate="no" v-pre>AgentRunService.getMaxSubagents(run)</code>, and the permission setting <strong>Requests to the model at once</strong>
 (<code translate="no" v-pre>Permission.agentsMaxConcurrency</code>, <code translate="no" v-pre>AgentGrant.maxConcurrency</code>, at least 1, one when not set, unlimited for an administrator) read by <code translate="no" v-pre>AgentRunService.getMaxConcurrency(run)</code>.</p>
 <ul>
@@ -597,8 +604,9 @@ The tools are <code translate="no" v-pre>FunctionContinuation</code>s: waiting h
 <p><strong>The loop</strong> is <code translate="no" v-pre>Worker.subLoop</code> on a thread of the pool, in <code translate="no" v-pre>InRequestScope</code> of the same <code translate="no" v-pre>AgentRequestAttributes</code>: system message of the agent plus <code translate="no" v-pre>Defaults.AGENT_SUBAGENT_NOTE</code>, the task as the
 first message, <code translate="no" v-pre>InferenceService.round</code> with <code translate="no" v-pre>subTools</code> (the commands and the file tools of the agent - <strong>no run tools, checkpoint tools, sync or image tools, and no sub-agent tools</strong>, so no sub-agent
 can spawn), the calls one after another, a round without calls is the answer. At most <code translate="no" v-pre>Defaults.AGENT_SUBAGENT_MAX_ROUNDS</code>, and the limits of the run (<code translate="no" v-pre>maxRounds</code>, <code translate="no" v-pre>isBudgetExceeded</code>, the context cap -
-no compaction) fail it with a reason; every request is added to the run (<code translate="no" v-pre>addUsage</code>). <code translate="no" v-pre>checkSub</code> runs before every request, call and poll: a cancel, <code translate="no" v-pre>interrupts</code>, a run that is not <code translate="no" v-pre>RUNNING</code> /
-<code translate="no" v-pre>WAITING_APPROVAL</code> or was thrown away ends it as <code translate="no" v-pre>CANCELLED</code> (<code translate="no" v-pre>SubStopped</code>).</p>
+no compaction) fail it with a reason; every request is added to the run (<code translate="no" v-pre>addUsage</code>). <code translate="no" v-pre>checkSub</code> runs before every request, call and poll: a cancel or a run that was thrown away ends it as <code translate="no" v-pre>CANCELLED</code>
+(<code translate="no" v-pre>SubStopped</code>), <code translate="no" v-pre>interrupts</code>, <code translate="no" v-pre>SubAgents.suspend</code> and a run that is <code translate="no" v-pre>PAUSING</code> / <code translate="no" v-pre>PAUSED</code> (or <code translate="no" v-pre>STOPPING</code> towards <code translate="no" v-pre>STOPPED_KEPT</code>) end it as <code translate="no" v-pre>SUSPENDED</code>, any other status that is not <code translate="no" v-pre>RUNNING</code> /
+<code translate="no" v-pre>WAITING_APPROVAL</code> as <code translate="no" v-pre>CANCELLED</code>.</p>
 </li>
 <li>
 <p><strong>Requests.</strong> <code translate="no" v-pre>Worker.ask</code> takes a place of the run&#x27;s <code translate="no" v-pre>RequestSlots</code> (the cap above; a FIFO queue like <code translate="no" v-pre>AIGate</code>, in memory) and then the <code translate="no" v-pre>AIGate</code> place of the AI, for the agent and the sub-agents alike (<code translate="no" v-pre>Waiter</code> abstracts how
@@ -611,11 +619,30 @@ pollable (<code translate="no" v-pre>lockChanges</code>, <code translate="no" v-
 (they run on the thread of the call).</p>
 </li>
 <li>
-<p><strong>End.</strong> <code translate="no" v-pre>stopSubAgents</code> (cancel all, wait up to 30 s: they use the session of the run) runs when the worker ends, before a <code translate="no" v-pre>checkpoint_restore</code> (they work in the book that is replaced; the agent is told) and <code translate="no" v-pre>finish</code> /
-<code translate="no" v-pre>ask_user</code> cancel them; a plain reply while some work gets <code translate="no" v-pre>Defaults.AGENT_SUBAGENTS_STILL_WORKING</code> once. After a pause the call of the agent that waited for a sub-agent has the result <code translate="no" v-pre>was stopped</code>.</p>
+<p><strong>End.</strong> <code translate="no" v-pre>stopSubAgents</code> (wait up to 30 s: they use the session of the run) runs when the worker ends, before a <code translate="no" v-pre>checkpoint_restore</code> (they work in the book that is replaced; the agent is told) and <code translate="no" v-pre>finish</code> /
+<code translate="no" v-pre>ask_user</code> cancel them; a plain reply while some work gets <code translate="no" v-pre>Defaults.AGENT_SUBAGENTS_STILL_WORKING</code> once. It <em>cancels</em> them, except when the run is paused or stopped to be kept (<code translate="no" v-pre>waitsForResume</code>): then it only
+calls <code translate="no" v-pre>SubAgents.suspend</code> and they stop where they are.</p>
+</li>
+<li>
+<p><strong>Stored conversations.</strong> <code translate="no" v-pre>AgentMessageService.startThread</code> (first row: <code translate="no" v-pre>threadTask</code>, <code translate="no" v-pre>threadCall</code> = the id of the <code translate="no" v-pre>spawn_agent</code> call), <code translate="no" v-pre>appendToThread</code>, <code translate="no" v-pre>appendAnswerToThread</code> (with the tokens of the
+request, so <code translate="no" v-pre>SubThread.rounds()</code> / <code translate="no" v-pre>tokens()</code> are read from the rows), <code translate="no" v-pre>endThread</code> (a row with <code translate="no" v-pre>threadEnd</code> = <code translate="no" v-pre>DONE</code> / <code translate="no" v-pre>FAILED</code> / <code translate="no" v-pre>CANCELLED</code> whose text is the answer or the reason; the first end wins),
+<code translate="no" v-pre>endOpenThreads</code> and <code translate="no" v-pre>threads</code> (the <code translate="no" v-pre>SubThread</code> records). A conversation without an end row is one that goes on. The ordinal counts per thread, and every query of the agent&#x27;s own transcript
+(<code translate="no" v-pre>findAllByRun</code>, <code translate="no" v-pre>countByRun</code>, <code translate="no" v-pre>findLatestByRun</code>) asks for <code translate="no" v-pre>thread IS NULL</code>, so <code translate="no" v-pre>transcript</code>, <code translate="no" v-pre>count</code>, <code translate="no" v-pre>compact</code>, <code translate="no" v-pre>rewind</code> and the checkpoints&#x27; <code translate="no" v-pre>after</code> / <code translate="no" v-pre>keep</code> are unchanged; only <code translate="no" v-pre>deleteForRun</code> reads
+every row. <code translate="no" v-pre>rewind</code> marks the rows of the sub-agents whose <code translate="no" v-pre>threadCall</code> is a call of a rewound row, and <code translate="no" v-pre>CheckpointService.restore</code> ends the open ones as <code translate="no" v-pre>CANCELLED</code> (the book is another one).
+<code translate="no" v-pre>endSub</code> stores the end under the <code translate="no" v-pre>changeLock</code> and the session of the run (it runs inside the <code translate="no" v-pre>InRequestScope</code> of <code translate="no" v-pre>runSub</code>).</p>
+</li>
+<li>
+<p><strong>Pause and resume.</strong> A paused sub-agent ends as <code translate="no" v-pre>State.SUSPENDED</code> (<code translate="no" v-pre>finished()</code> completes, nothing is stored); a call of the agent that waits for it (<code translate="no" v-pre>await_agent</code>, <code translate="no" v-pre>spawn_agent</code>, the report of
+<code translate="no" v-pre>SubAgentToolsImpl</code>) returns the sentinel <code translate="no" v-pre>SubAgentToolsImpl.SUSPENDED</code>, which the loop does <strong>not</strong> store: the rest of the round is left unanswered too (the stable point pauses) and a <code translate="no" v-pre>pause at once</code>
+that cuts such a call off does the same. A sub-agent that is cut off between its calls has the open calls answered (<code translate="no" v-pre>AGENT_PAUSED_CALL</code> / <code translate="no" v-pre>AGENT_PAUSED_SKIPPED_CALL</code>) before it ends. When the run
+is resumed <code translate="no" v-pre>Worker.work</code> makes the tools, then <code translate="no" v-pre>restoreSubAgents(true)</code> (the stored threads become <code translate="no" v-pre>Sub</code>s through <code translate="no" v-pre>SubAgents.restore</code>, the ones without an end continue with their conversation,
+after the unanswered calls of a crash got <code translate="no" v-pre>AGENT_INTERRUPTED_CALL</code>) and <code translate="no" v-pre>resumeParked</code>: when the first unanswered call of the last round is a <code translate="no" v-pre>WAITING_TOOLS</code> call it is <strong>made again</strong> (<code translate="no" v-pre>spawn_agent</code> finds
+its sub-agent by <code translate="no" v-pre>Worker.resumedCallId</code> and does not start another one) and the calls after it (never made) are answered as skipped; only then does <code translate="no" v-pre>prepare</code> go on. <code translate="no" v-pre>tools()</code> itself restores nothing
+(<code translate="no" v-pre>describe</code>, for the context view, makes tools too): only <code translate="no" v-pre>work</code> and <code translate="no" v-pre>restoreForAgent</code> (<code translate="no" v-pre>restoreSubAgents(false)</code>: everything is over, the agent can ask) do. <code translate="no" v-pre>openCalls</code> looks only at the results after
+the last message with calls: a model may use the same call id again in another round.</p>
 </li>
 </ul>
-<p>Not done: the transcript of a sub-agent in the console (it needs a thread column in <code translate="no" v-pre>agent_messages</code>), another profile (<code translate="no" v-pre>profile</code> argument) for a sub-agent, images for a sub-agent, <code translate="no" v-pre>message_agent</code>, a sub-agent that survives a pause.</p>
+<p>Not done: the conversations of the sub-agents in the console, another profile (<code translate="no" v-pre>profile</code> argument) for a sub-agent, images for a sub-agent, <code translate="no" v-pre>message_agent</code>, a sub-agent that survives a stop that discards.</p>
 <h2 id="what-the-model-is-told">What the model is told</h2>
 <p>The model gets, in every request, a system message built by <code translate="no" v-pre>AgentRunnerImpl.Worker.payload</code> from these parts, in this order, and the transcript after it.
 The system message is <strong>never stored</strong>: it is made again for every round, so a change in <code translate="no" v-pre>Defaults</code> reaches a run that is resumed.</p>
@@ -1207,7 +1234,7 @@ older rounds when the context is full (the run pauses instead), stopping a runni
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b5118431).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (3eb7ae53).</p></div>
             </footer>
         </div>
     </div>

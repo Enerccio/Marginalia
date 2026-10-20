@@ -124,4 +124,74 @@ class AgentMessageServiceTest extends AgentTestBase {
         assertThat(messageService.transcript(run)).extracting(LLMChatMessage::getContent).containsExactly("the second summary");
         assertThat(messageService.messages(run)).extracting(AgentMessage::isCompacted).containsExactly(true, true, true, true, false);
     }
+
+    @Test
+    void theConversationOfASubagentIsStoredApartFromTheOneOfTheAgent() throws Exception {
+        AgentRun run = run();
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "go"),
+                LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("c1", "spawn_agent", "{}")))));
+        messageService.startThread(run, "sub1", "check names", "c1", LLMChatMessage.of(LLMRole.USER, "check names"));
+        messageService.startThread(run, "sub2", "check dates", "c1b", LLMChatMessage.of(LLMRole.USER, "check dates"));
+        messageService.appendAnswerToThread(run, "sub1", LLMChatMessage.of(LLMRole.ASSISTANT, "names are fine"), 120, null);
+        messageService.appendToThread(run, "sub2", List.of(LLMChatMessage.of(LLMRole.ASSISTANT, "thinking")));
+
+        assertThat(messageService.count(run)).as("only the agent's own").isEqualTo(2);
+        assertThat(messageService.transcript(run)).hasSize(2);
+        assertThat(messageService.messages(run)).extracting(AgentMessage::getOrdinal).containsExactly(0, 1);
+        List<AgentMessageService.SubThread> threads = messageService.threads(run);
+        assertThat(threads).extracting(AgentMessageService.SubThread::handle).containsExactly("sub1", "sub2");
+        assertThat(threads.getFirst().task()).isEqualTo("check names");
+        assertThat(threads.getFirst().callId()).isEqualTo("c1");
+        assertThat(threads.getFirst().rounds()).isEqualTo(1);
+        assertThat(threads.getFirst().tokens()).isEqualTo(120);
+        assertThat(threads.getFirst().rows()).extracting(AgentMessage::getOrdinal).containsExactly(0, 1);
+        assertThat(threads.get(1).rows()).extracting(AgentMessage::getOrdinal).as("counted per conversation").containsExactly(0, 1);
+        assertThat(threads.getFirst().conversation()).extracting(LLMChatMessage::getContent).containsExactly("check names", "names are fine");
+    }
+
+    @Test
+    void aConversationThatWasNotEndedGoesOnAndOneThatWasEndedDoesNot() throws Exception {
+        AgentRun run = run();
+        messageService.startThread(run, "sub1", "a", "c1", LLMChatMessage.of(LLMRole.USER, "a"));
+        messageService.startThread(run, "sub2", "b", "c2", LLMChatMessage.of(LLMRole.USER, "b"));
+        messageService.endThread(run, "sub1", "DONE", "the answer");
+        messageService.endThread(run, "sub1", "FAILED", "the first end wins");
+
+        assertThat(messageService.endOpenThreads(run, "CANCELLED", "the book is another one")).isEqualTo(1);
+        assertThat(messageService.endOpenThreads(run, "CANCELLED", "again")).isZero();
+
+        List<AgentMessageService.SubThread> threads = messageService.threads(run);
+        assertThat(threads.getFirst().end()).isEqualTo("DONE");
+        assertThat(threads.getFirst().result()).isEqualTo("the answer");
+        assertThat(threads.getFirst().conversation()).as("without the end").extracting(LLMChatMessage::getContent).containsExactly("a");
+        assertThat(threads.get(1).end()).isEqualTo("CANCELLED");
+        assertThat(threads.get(1).result()).isEqualTo("the book is another one");
+    }
+
+    @Test
+    void goingBackOverTheCallThatStartedASubagentTakesTheSubagentAlong() throws Exception {
+        AgentRun run = run();
+        messageService.append(run, List.of(LLMChatMessage.of(LLMRole.USER, "go"),
+                LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("c1", "spawn_agent", "{}"))),
+                LLMChatMessage.ofToolResult("c1", "started sub1"),
+                LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of("c2", "spawn_agent", "{}"))),
+                LLMChatMessage.ofToolResult("c2", "started sub2")));
+        messageService.startThread(run, "sub1", "a", "c1", LLMChatMessage.of(LLMRole.USER, "a"));
+        messageService.startThread(run, "sub2", "b", "c2", LLMChatMessage.of(LLMRole.USER, "b"));
+
+        messageService.rewind(run, 3);
+
+        List<AgentMessageService.SubThread> threads = messageService.threads(run);
+        assertThat(threads).extracting(AgentMessageService.SubThread::rewound).containsExactly(false, true);
+    }
+
+    @Test
+    void deletingTheRunForGoodTakesTheConversationsOfItsSubagentsToo() throws Exception {
+        AgentRun run = run();
+        messageService.startThread(run, "sub1", "a", "c1", LLMChatMessage.of(LLMRole.USER, "a"));
+
+        messageService.deleteForRun(run, true);
+
+        assertThat(messageService.threads(run)).isEmpty();
+    }
 }

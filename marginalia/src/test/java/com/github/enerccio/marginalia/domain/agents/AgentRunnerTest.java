@@ -728,6 +728,68 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.STOPPED_KEPT);
     }
 
+    private static final String UNREADABLE = "litellm.InternalServerError: OpenAIException - Failed to parse tool call arguments as JSON: "
+            + "[json.exception.parse_error.101] parse error at line 1, column 2703: invalid string: missing closing quote";
+
+    @Test
+    void anAnswerWhoseCallTheServerCouldNotReadIsToldToTheAgentAndAskedAgain() throws Exception {
+        Agent agent = readingAgent();
+        llm.enqueue(MockLLMResponse.error(400, UNREADABLE));
+        llm.enqueue(MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}"));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).as("not paused").isEqualTo(AgentRunStatus.DONE);
+        assertThat(messageService.transcript(run)).filteredOn(message -> message.getRole() == LLMRole.USER)
+                .extracting(LLMChatMessage::getContent).anyMatch(text -> text.contains("could not be used") && text.contains("append_file"));
+        assertThat(llm.getCompletionRequests()).hasSize(2);
+        assertThat(llm.getCompletionRequests().getLast().getMessages("user").stream().anyMatch(text -> text.contains("could not be used")))
+                .as("the second request has the notice").isTrue();
+    }
+
+    @Test
+    void anAgentThatKeepsWritingUnreadableCallsPausesAfterAFewTriesAndTheResumeHasTheNotices() throws Exception {
+        Agent agent = readingAgent();
+        for (int i = 0; i < 4; i++) {
+            llm.enqueue(MockLLMResponse.error(400, UNREADABLE));
+        }
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
+        assertThat(run.getStatusReason()).startsWith("The model could not be asked");
+        assertThat(llm.getCompletionRequests()).hasSize(4);
+        assertThat(messageService.transcript(run)).filteredOn(message -> message.getRole() == LLMRole.USER
+                && message.getContent().contains("could not be used")).hasSize(4);
+    }
+
+    @Test
+    void aCallCutOffInTheMiddleIsNotSentBackBrokenAndTheRunGoesOn() throws Exception {
+        Agent agent = readingAgent();
+        String cut = "{\"summary\":\"the text ended in the mid";
+        llm.enqueue(MockLLMResponse.toolCall("finish", cut));
+        llm.enqueue(MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}"));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        // the row keeps what the model wrote, for the user to read
+        LLMToolCall stored = messageService.transcript(run).stream().filter(LLMChatMessage::hasToolCalls).findFirst().orElseThrow()
+                .getToolCalls().getFirst();
+        assertThat(stored.getArguments()).isEqualTo(cut);
+        // the model server reads the history again and refuses a broken call at every request: it gets valid JSON
+        com.google.gson.JsonObject sent = null;
+        for (com.google.gson.JsonElement message : llm.getCompletionRequests().get(1).getBody().getAsJsonArray("messages")) {
+            if (message.getAsJsonObject().has("tool_calls")) {
+                sent = message.getAsJsonObject().getAsJsonArray("tool_calls").get(0).getAsJsonObject().getAsJsonObject("function");
+            }
+        }
+        assertThat(sent).isNotNull();
+        assertThat(sent.get("arguments").getAsString()).isEqualTo("{}");
+        assertThat(messageService.transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).findFirst().orElseThrow().getContent())
+                .contains("not valid JSON").contains("cut off in the middle");
+    }
+
     @Test
     void aModelThatFailsPausesTheRun() throws Exception {
         Agent agent = readingAgent();

@@ -3,7 +3,6 @@ package com.github.enerccio.marginalia.ui.dialogs.agent;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
-import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
@@ -159,9 +158,7 @@ public class AgentRunHistory extends VerticalLayout implements LLMInteract {
     }
 
     String export(AgentRun run) throws Exception {
-        List<AgentMessage> rows = agentMessageService.messages(run);
-        return AgentTranscriptExport.toMarkdown(agent.getName(), run,
-                rows.stream().map(AgentMessage::toChatMessage).toList(), rows.stream().map(AgentMessage::getReasoning).toList());
+        return AgentTranscriptExport.export(agent.getName(), run, agentMessageService.messages(run), agentMessageService.threads(run));
     }
 
     static String fileName(AgentRun run) {

@@ -75,6 +75,8 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     private Button newFolderButton;
     private Upload upload;
     private Grid<VirtualEntry> grid;
+    // what the grid shows now, to leave it alone while nothing changed
+    private String shownRows;
     private TextArea viewer;
 
     /**
@@ -331,8 +333,13 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
                 folder = VirtualPath.ROOT;
                 entries = files.list(folder);
             }
-            grid.setItems(entries);
-            pathLabel.setText("/" + String.join("/", folder.getSegments()));
+            // the same rows again would replace them, and the selection of the user in them; the buttons of a row depend on busy
+            String shown = busy.getAsBoolean() + ":" + entries;
+            if (!shown.equals(shownRows)) {
+                shownRows = shown;
+                grid.setItems(entries);
+            }
+            UIUtils.setTextIfChanged(pathLabel, "/" + String.join("/", folder.getSegments()));
             upButton.setEnabled(!folder.isRoot());
             clearButton.setEnabled(!busy.getAsBoolean());
             clearButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(L.MSG_AGENT_WORKSPACE_BUSY) : null);
@@ -340,7 +347,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             newFolderButton.setTooltipText(busy.getAsBoolean() ? loc.getValue(L.MSG_AGENT_WORKSPACE_BUSY) : null);
             upload.setEnabled(!busy.getAsBoolean());
             WorkspaceUsage usage = files.getUsage();
-            usageLabel.setText(entries.isEmpty() && usage.files() == 0
+            UIUtils.setTextIfChanged(usageLabel, entries.isEmpty() && usage.files() == 0
                     ? loc.getValue(L.MSG_AGENT_WORKSPACE_EMPTY)
                     : String.format(loc.getValue(L.MSG_AGENT_WORKSPACE_USAGE), usage.files(),
                     FileUtils.byteCountToDisplaySize(usage.bytes()),

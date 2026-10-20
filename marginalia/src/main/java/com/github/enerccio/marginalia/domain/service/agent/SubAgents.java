@@ -8,14 +8,23 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * The sub-agents of one working run: threads of the run with a conversation of their own, started by the agent with
- * {@code spawn_agent}. In memory, one object per worker: a sub-agent does not outlive the worker that started it (a paused
- * run starts none again, the agent hears that its call was cut off). The object knows the handles, the state and the
- * result of each; the loop of a sub-agent is the runner's.
+ * {@code spawn_agent}. One object per worker, in memory; what a sub-agent said and was told is stored with the transcript of
+ * the run, so a pause does not lose it: the sub-agents stop at a stable point ({@link State#SUSPENDED}), and the worker of
+ * the resumed run makes the pool again from the stored conversations ({@link #restore}). The object knows the handles, the
+ * state and the result of each; the loop of a sub-agent is the runner's.
  */
 public final class SubAgents {
 
     public enum State {
-        RUNNING, DONE, FAILED, CANCELLED;
+        /**
+         * Works.
+         */
+        RUNNING,
+        DONE, FAILED, CANCELLED,
+        /**
+         * Stopped because the run was paused. Over for this worker; the conversation goes on when the run does.
+         */
+        SUSPENDED;
 
         public boolean isFinished() {
             return this != RUNNING;
@@ -28,6 +37,7 @@ public final class SubAgents {
     public static final class Sub {
         private final String handle;
         private final String task;
+        private final String callId;
         private volatile State state = State.RUNNING;
         private volatile String result;
         private volatile int rounds;
@@ -36,9 +46,20 @@ public final class SubAgents {
         private volatile boolean cancelRequested;
         private final CompletableFuture<Sub> finished = new CompletableFuture<>();
 
-        private Sub(String handle, String task) {
+        private final SubAgents owner;
+
+        private Sub(String handle, String task, String callId, SubAgents owner) {
             this.handle = handle;
             this.task = task;
+            this.callId = callId;
+            this.owner = owner;
+        }
+
+        /**
+         * Whether the sub-agent is asked to stop at its next stable point to go on with the run.
+         */
+        public boolean isSuspendRequested() {
+            return owner.suspending;
         }
 
         public String handle() {
@@ -47,6 +68,13 @@ public final class SubAgents {
 
         public String task() {
             return task;
+        }
+
+        /**
+         * The id of the {@code spawn_agent} call that started it, null when it is not known.
+         */
+        public String callId() {
+            return callId;
         }
 
         public State state() {
@@ -103,6 +131,7 @@ public final class SubAgents {
     private final Map<String, Sub> subs = new LinkedHashMap<>();
     private final List<Runnable> slotWaiters = new ArrayList<>();
     private int counter;
+    private volatile boolean suspending;
 
     /**
      * @param max how many sub-agents can work at once
@@ -123,21 +152,72 @@ public final class SubAgents {
     }
 
     /**
+     * Makes a sub-agent that no call is known to have started, see {@link #create(String, String)}.
+     */
+    public Sub create(String task) {
+        return create(task, null);
+    }
+
+    /**
      * Makes a sub-agent; the caller starts its loop.
+     *
+     * @param callId the id of the {@code spawn_agent} call that asked for it, null when there is none
      *
      * @throws IllegalStateException when {@code max} sub-agents work already
      */
-    public synchronized Sub create(String task) {
+    public synchronized Sub create(String task, String callId) {
         if (live() >= max) {
             throw new IllegalStateException("The limit of " + max + " sub-agents working at once is reached");
         }
-        Sub sub = new Sub("sub" + (++counter), task);
+        Sub sub = new Sub("sub" + (++counter), task, callId, this);
         subs.put(sub.handle, sub);
         return sub;
     }
 
+    /**
+     * Brings back a sub-agent of a run that was paused (or of one the server was stopped under). Not limited by {@code max}.
+     *
+     * @param state  how it ended, null when it did not end: the caller continues its conversation
+     * @param result its answer or the reason it did not give one, for a state that is not null
+     */
+    public synchronized Sub restore(String handle, String task, String callId, State state, String result, int rounds, long tokens) {
+        Sub sub = new Sub(handle, task, callId, this);
+        sub.rounds = rounds;
+        sub.tokens = tokens;
+        subs.put(handle, sub);
+        try {
+            counter = Math.max(counter, Integer.parseInt(handle.substring("sub".length())));
+        } catch (RuntimeException e) {
+            // not a handle this class made: it only keeps its own
+        }
+        if (state != null) {
+            sub.state = state;
+            sub.result = result;
+            sub.finished.complete(sub);
+        }
+        return sub;
+    }
+
+    /**
+     * Makes the sub-agents that work stop at their next stable point as {@link State#SUSPENDED}, to go on with the run.
+     */
+    public void suspend() {
+        suspending = true;
+    }
+
+    public boolean isSuspending() {
+        return suspending;
+    }
+
     public synchronized List<Sub> all() {
         return new ArrayList<>(subs.values());
+    }
+
+    /**
+     * The sub-agent a {@code spawn_agent} call started, null when that call started none.
+     */
+    public synchronized Sub findByCall(String callId) {
+        return callId == null ? null : subs.values().stream().filter(sub -> callId.equals(sub.callId)).findFirst().orElse(null);
     }
 
     public synchronized Sub find(String handle) {

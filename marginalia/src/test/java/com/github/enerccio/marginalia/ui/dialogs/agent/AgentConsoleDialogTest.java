@@ -305,6 +305,23 @@ class AgentConsoleDialogTest extends AgentTestBase {
     }
 
     @Test
+    void everyMessageShowsWhenItWasWritten() throws Exception {
+        AgentRun run = startedRun();
+        say(run, LLMChatMessage.of(LLMRole.USER, "first"), LLMChatMessage.of(LLMRole.ASSISTANT, "second"));
+        AgentConsoleDialog dialog = console();
+
+        List<Component> shown = dialog.getTranscriptBox().getChildren().toList();
+
+        assertThat(shown).hasSize(2);
+        for (Component block : shown) {
+            Component time = block.getChildren().findFirst().orElseThrow();
+            assertThat(time.hasClassName(CssStyles.AGENT_TIME)).as("the time comes first in the block").isTrue();
+            assertThat(textOf(time).strip()).as("today: the time of day only").matches("\\d{1,2}:\\d{2}:\\d{2}.*");
+            assertThat(time.getElement().getAttribute("title")).isNotBlank();
+        }
+    }
+
+    @Test
     void newMessagesAreAddedWhenTheConsoleLooksAgain() throws Exception {
         AgentRun run = startedRun();
         say(run, LLMChatMessage.of(LLMRole.USER, "first"));
@@ -742,7 +759,8 @@ class AgentConsoleDialogTest extends AgentTestBase {
 
         String md = dialog.getHistory().export(run);
 
-        assertThat(md).contains("# " + agent.getName(), "## You\n\nCheck the dragon", "## Agent\n\nAll good");
+        assertThat(md).contains("# " + agent.getName()).containsPattern("## You · \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\n\nCheck the dragon")
+                .containsPattern("## Agent · \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\n\nAll good");
         assertThat(AgentRunHistory.fileName(run)).startsWith("agent-run-").endsWith(".md");
     }
 
