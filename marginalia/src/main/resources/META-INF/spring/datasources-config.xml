@@ -19,6 +19,17 @@
         <property name="maxActive" value="20" />
     </bean>
 
+    <!-- the connections of read-write transactions begin with the write lock, see ReadWriteRoutingDataSource -->
+    <bean id="writeDataSource" parent="dataSource" depends-on="configuration,dataSource">
+        <property name="url" value="#{configuration.resolveWriteDb()}"/>
+        <property name="initialSize" value="2" />
+    </bean>
+
+    <bean id="routingDataSource" class="com.github.enerccio.marginalia.ReadWriteRoutingDataSource">
+        <constructor-arg index="0" ref="dataSource"/>
+        <constructor-arg index="1" ref="writeDataSource"/>
+    </bean>
+
     <!-- shared with the database restore on start (Configuration.applyPendingRestore) -->
     <bean id="flywayConfiguration" class="com.github.enerccio.marginalia.DatabaseCheck" factory-method="flywayConfiguration">
         <constructor-arg index="0" ref="dataSource"/>
@@ -47,7 +58,7 @@
     </bean>
 
     <bean id="ds" class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy">
-        <constructor-arg ref="dataSource" />
+        <constructor-arg ref="routingDataSource" />
     </bean>
 
     <bean id="em" class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
@@ -56,7 +67,7 @@
 
     <tx:annotation-driven/>
 
-    <bean id="jpaDialect" class="org.springframework.orm.jpa.vendor.HibernateJpaDialect" />
+    <bean id="jpaDialect" class="com.github.enerccio.marginalia.ReadWriteRoutingDataSource$Dialect" />
 
     <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager" >
         <property name="entityManagerFactory" ref="emf"/>

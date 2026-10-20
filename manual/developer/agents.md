@@ -321,7 +321,7 @@ it after the round, so every call of the round has its result in the transcript 
 The transcript is `AgentMessage` (table `agent_messages`): the run, the `ordinal` and the `LLMChatMessage` as JSON in an extended attribute, only appended. The system
 message is not stored.
 
-`InferenceService.round(payload, protocol, functions, callback)` is what the runner uses instead of `stream`/`infer`: one non-streaming request that reports the
+`InferenceService.round(payload, protocol, functions, callback)` is what the runner uses instead of `stream`/`infer`: one request that is streamed to the provider and put together by the service (so the timeout is the wait for the next chunk, the reasoning included, not for the whole answer), and that reports the
 text, the calls the model asked for (they are not called) and the tokens (the provider's, otherwise ours), with the limits and the usage of the user as for any
 request. Services that can't do it throw `UnsupportedOperationException`.
 
@@ -346,7 +346,7 @@ checked in `AgentServiceImpl.validate`; null or zero offers no tools) read by `A
   `WAITING_APPROVAL` or was thrown away ends it as `CANCELLED` (`SubStopped`).
 - **Requests.** `Worker.ask` takes a place of the run's `RequestSlots` (the cap above; a FIFO queue like `AIGate`, in memory) and then the `AIGate` place of the AI, for the agent and the sub-agents alike (`Waiter` abstracts how
   each waits: the agent reacts to a pause at once and a forced message, a sub-agent to `checkSub`). A sub-agent that waits for a turn is cancelable.
-- **One writer.** SQLite fails the second writer at once (`SQLITE_BUSY`), and the sub-agents are threads of one run. So `Worker.changeLock` (a fair `ReentrantLock`) is held by every call that `changes(call)`
+- **One writer.** SQLite can fail the second writer at once (`SQLITE_BUSY`; read-write transactions begin with the write lock now, see [Database](database.md), but the lock keeps the changes of a call in order), and the sub-agents are threads of one run. So `Worker.changeLock` (a fair `ReentrantLock`) is held by every call that `changes(call)`
   (not the run tools, not the reading commands, not the sub-agent tools), by the automatic checkpoint, and by the small writes of the run (`append`, `appendAnswer`, `addUsage`, `compact`). A wait for it is
   pollable (`lockChanges`, `checkSub`). A sub-agent that changes something sets `dirty`, so the next round of the agent gets its automatic checkpoint. The status changes of an `ASK` approval are still not under the lock
   (they run on the thread of the call).
@@ -480,7 +480,7 @@ CommandFunctions.forAgent(...)                    the commands the agent is allo
   .and(registry.bind(ImageTools.class, ...))             view_image, only when the main profile has images
 ```
 
-A round is one **non-streaming** request (`InferenceService.round`) that answers with text, the calls the model asked for (they are not called by the
+A round is one request (`InferenceService.round`, streamed to the provider and returned whole) that answers with text, the calls the model asked for (they are not called by the
 inference service) and the tokens. The runner calls them itself, **one after another in the order the model wrote them**, each on a thread of its pool inside
 the context of the run, and appends all the results together as the next messages; a failure is the text `Error: <message>` so the model can correct the
 call. Because the order is kept, a call may use what an earlier call of the same answer did (`save_command_result` right after a command).

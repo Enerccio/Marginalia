@@ -3,10 +3,7 @@ package com.github.enerccio.marginalia.domain.agents;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
-import com.github.enerccio.marginalia.domain.model.impl.Agent;
-import com.github.enerccio.marginalia.domain.model.impl.AgentMessage;
-import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
@@ -502,6 +499,46 @@ class AgentRunnerTest extends AgentTestBase {
         List<String> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).map(LLMChatMessage::getContent).toList();
         assertThat(results.get(0)).startsWith("Plan saved.").contains("1. [~] Read the book").contains("2. [ ] Report");
         assertThat(results.get(1)).contains("Rounds: 2").contains("Plan:").contains("[~] Read the book");
+    }
+
+    @Test
+    void aModelThatThinksLongerThanTheTimeoutIsNotCutWhileItSendsItsReasoning() throws Exception {
+        Agent agent = readingAgent();
+        var main = agentService.resolveProfile(agent.getMainProfile());
+        OpenAICompatible ai = (OpenAICompatible) main.ai();
+        // the timeout is the wait for the next chunk: the whole answer takes longer than it, the gaps do not
+        ai.setRequestTimeoutSeconds(1);
+        ai.setMaxRetries(0);
+        aiService.save(ai);
+        llm.enqueue(MockLLMResponse.text("Nothing to do.").withReasoning("Let me think. ", "Still thinking. ", "Done thinking. ")
+                .chunkDelay(Duration.ofMillis(500)));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(llm.getCompletionRequests().getFirst().isStream()).as("the round is streamed").isTrue();
+        assertThat(transcript(run).getLast().getContent()).isEqualTo("Nothing to do.");
+    }
+
+    @Test
+    void theNextRequestOfARunThatWorksUsesTheSettingsOfTheModelAsTheyAreNow() throws Exception {
+        Agent agent = readingAgent();
+        var main = agentService.resolveProfile(agent.getMainProfile());
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").waitFor(gate, Duration.ofSeconds(20)),
+                MockLLMResponse.text("Finished reading."));
+        AgentRun run = startRun(agent);
+        llm.awaitCompletionRequests(1, Duration.ofSeconds(10));
+
+        OpenAICompatible ai = (OpenAICompatible) main.ai();
+        String before = ai.getModel();
+        ai.setModel("changed-model");
+        aiService.save(ai);
+        gate.countDown();
+        run = await(run);
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
+        assertThat(llm.getCompletionRequests()).extracting(MockLLMRequest::getModel).containsExactly(before, "changed-model");
     }
 
     @Test

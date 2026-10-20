@@ -732,8 +732,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         // the messages of the author, only for a conversation
         private Inbox inbox;
         // the model of the run and its tools, set when the work starts (the compaction asks the model too)
-        private ResolvedProfile profile;
-        private InferenceService inference;
+        // (volatile: refreshed between the rounds, the sub-agents read them from their threads)
+        private volatile ResolvedProfile profile;
+        private volatile InferenceService inference;
         private FunctionSet tools;
         // set while a command of the author runs: a message the author forces in then waits for it
         private boolean ignoreForce;
@@ -884,6 +885,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     return;
                 }
 
+                refreshModel();
                 Round round;
                 try {
                     round = ask(inference, profile, payload(transcript), tools);
@@ -1840,6 +1842,21 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
 
         // ------------------------------------------------------------------ requests and calls
+
+        /**
+         * Reads the model of the agent again, so what the author changed in its settings (timeout, URL, key, sampling) is
+         * used by the next request of a run that is already going. A model that can't be found now is left as it was.
+         */
+        private void refreshModel() throws Exception {
+            if (profile == null) {
+                return;
+            }
+            ResolvedProfile current = agentService.resolveProfile(profile.profile());
+            if (current != null) {
+                profile = current;
+                inference = inferenceServices.forAIOrThrow(current.ai());
+            }
+        }
 
         private Round ask(InferenceService inference, ResolvedProfile profile, List<LLMChatMessage> payload,
                           FunctionSet tools) throws Exception {

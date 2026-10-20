@@ -41,7 +41,8 @@ public class TestContextPostProcessor implements BeanDefinitionRegistryPostProce
     public void postProcessBeanDefinitionRegistry(@NonNull BeanDefinitionRegistry registry) throws BeansException {
         for (String name : registry.getBeanDefinitionNames()) {
             BeanDefinition definition = registry.getBeanDefinition(name);
-            if (EXCLUDED_CLASSES.contains(definition.getBeanClassName())) {
+            // a bean that has a parent definition has no class of its own
+            if (definition.getBeanClassName() != null && EXCLUDED_CLASSES.contains(definition.getBeanClassName())) {
                 registry.removeBeanDefinition(name);
             }
         }
