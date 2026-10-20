@@ -178,6 +178,7 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/append-to-part <part> <text> [separator]` | Adds text to the end of a part, after a blank line unless `separator` says otherwise. |
 | `/set-part-fields <part> [instructions] [scene] [pov] [present]` | Changes what a part was made from, which a new generation of it reuses; an empty text clears a field, a field you leave out stays. |
 | `/create-part <text> [parent] [instructions] [scene] [pov] [present]` | Writes a new part after the last part of the active branch, or after `parent` (a new branch); it becomes the end of the active branch. |
+| `/insert-part <text> <part> [before]` | Inserts a new part into the story right after `part` (or right before it when `before` is `true`). Everything that followed that place, all branches included, follows the new part now; nothing is deleted or made again, so the other parts keep their summaries and data and move one position down. The summaries that covered the place become outdated (the answer says which). At the end of the branch it is the same as `/create-part`. |
 | `/branch-part <part>` | Copies a part (and its summary) next to it, a new swipe that starts a branch, and makes the copy the active end. |
 | `/delete-part <part>` | Deletes a part and its summary; the parts that followed it stay. Asks first. |
 | `/switch-branch <part>` | Makes the branch through a part the active one. |

@@ -121,10 +121,13 @@
     <loc>https://enerccio.github.io/Marginalia/user/books/export/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/developer/database/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/templates/macros/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/database/</loc>
+    <loc>https://enerccio.github.io/Marginalia/developer/agents/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/generation-pipeline/</loc>
@@ -134,9 +137,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/commands/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/agents/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/templating/</loc>

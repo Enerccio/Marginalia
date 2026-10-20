@@ -283,8 +283,8 @@ All data entities extend `ExtendableEntity`. `User` extends `BaseEntity` directl
 - The story is a tree of `ChatMessage`s (parts): regenerate, swipe and branch create siblings; the book remembers the
   active leaf.
 
-The database is SQLite in WAL mode (`busy_timeout=10000`), through a commons-dbcp pool and a
-`TransactionAwareDataSourceProxy`. Flyway migrations in `src/main/resources/migration/` create and upgrade the schema,
+The database is SQLite in WAL mode (`busy_timeout=10000`), through commons-dbcp pools (read-write transactions begin with the write lock, see
+[Database & migrations](database.md)) and a `TransactionAwareDataSourceProxy`. Flyway migrations in `src/main/resources/migration/` create and upgrade the schema,
 and every entity is listed in `src/main/webapp/config/persistence.xml` (`exclude-unlisted-classes`).
 `SaneSQLiteDialect` adapts Hibernate's community SQLite dialect. See [Domain model](domain-model.md) and
 [Database & migrations](database.md).

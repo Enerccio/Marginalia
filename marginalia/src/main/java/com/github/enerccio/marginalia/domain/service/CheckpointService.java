@@ -175,6 +175,38 @@ public interface CheckpointService {
     Rewound rewind(AgentRun run, String id) throws Exception;
 
     /**
+     * What going back to before a message does.
+     *
+     * @param checkpoint the checkpoint the run goes back to: the newest one that was made before the message
+     * @param forgotten  how many messages the model no longer reads afterwards, the message and what came after it and also
+     *                   what came between the checkpoint and the message
+     */
+    record RewindPlan(Info checkpoint, int forgotten) {
+    }
+
+    /**
+     * What {@link #rewindToMessage} would do, for the user to confirm.
+     *
+     * @param messageUuid the uuid of the row of the transcript ({@code AgentMessage})
+     * @throws CheckpointException when the message is not one of the run, was rewound over before, or no checkpoint was made
+     *                             before it
+     */
+    RewindPlan planRewindToMessage(AgentRun run, String messageUuid) throws Exception;
+
+    /**
+     * Goes back in the conversation to before the message: the state of the run is the one of the newest checkpoint that was made
+     * before it (the state of a run is only known at its checkpoints), and the conversation goes back to the place of that
+     * checkpoint, see {@link #rewind}. The message and everything after it is kept for the user to read, marked rewound.
+     * <p>
+     * The run has to be paused or stopped and kept, like for {@link #rewind}.
+     *
+     * @param messageUuid the uuid of the row of the transcript ({@code AgentMessage}) the run goes back before
+     * @throws CheckpointException when the message is not one of the run, was rewound over before, no checkpoint was made before
+     *                             it, or the run is not paused or stopped
+     */
+    Rewound rewindToMessage(AgentRun run, String messageUuid) throws Exception;
+
+    /**
      * The archive of a checkpoint, to download.
      *
      * @throws CheckpointException when there is none

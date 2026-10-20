@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845791316238">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845821188720">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845791316238" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845821188720" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -173,7 +173,7 @@ finishes, asks you something, reaches a limit or you pause or stop it (see <doc-
 book, so your book is never touched while it works (the book itself is <doc-anchor-trigger to="#the-book-is-locked">locked</doc-anchor-trigger>); when it is done you
 <doc-anchor-trigger to="#reviewing-the-result">review its result</doc-anchor-trigger> and take over what you want.</p>
 <p>The tab is there only if an administrator gave you the <strong>Agents</strong> <a href="../administration/permissions/">permission</a> (administrators always
-have it). On a phone each agent is a card with the same buttons, see <doc-anchor-trigger to="#on-a-phone">On a phone</doc-anchor-trigger>.</p>
+have it, but the limits are the same as for everybody: the defaults unless they fill in the settings of their own permission, so an administrator who needs more agents, runs or room in the workspace sets it there; a changed limit reaches a run that is working when it is paused and resumed). On a phone each agent is a card with the same buttons, see <doc-anchor-trigger to="#on-a-phone">On a phone</doc-anchor-trigger>.</p>
 <h2 id="the-table">The table</h2>
 <retype-table copy-text="| Column | |
 |---|---|
@@ -371,7 +371,7 @@ the state when it goes on), answers the calls of the round that were not made as
 cost is lost; resume as usual.</p>
 <p>While the agent waits for a free place at its model (see <doc-anchor-trigger to="#one-model-several-agents">One model, several agents</doc-anchor-trigger>) it is <em>Running</em>; a <strong>Pause</strong> or <strong>Stop</strong> ends that wait at once.</p>
 <h2 id="the-console">The console</h2>
-<p><strong>Console</strong> opens a window for the latest run of the agent, with four tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong> and <strong>Checkpoints</strong>.</p>
+<p><strong>Console</strong> opens a window for the latest run of the agent, with five tabs: <strong>Run</strong>, <strong>Runs</strong>, <strong>Workspace</strong>, <strong>Checkpoints</strong> and <strong>Context</strong>.</p>
 <p><strong>Run</strong> shows the <em>transcript</em>: what you told the agent, what it said (both as <a href="https://commonmark.org/help/">Markdown</a>, so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its <strong>reasoning</strong> (what it thought before it answered), a folded <em>Reasoning</em> block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. The state of the run, the <strong>context</strong> (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
 is one) stay above it and the box for your message under it, while the transcript scrolls. What the agent waits for is in the transcript where it was written, as a bubble of its own that stays there when the run goes on:</p>
@@ -524,6 +524,14 @@ is in, was deleted from your book) says so and can&#x27;t be ticked.</p>
 among what you applied. The summaries of parts that were edited are outdated as after an edit by hand; the agent&#x27;s own summaries are taken over as they are.</p>
 <p>When the changes are applied the run is <em>Applied</em> and its copy and checkpoints are deleted. <strong>Discard the result</strong> throws the copy away and leaves the book as it is. Until you do one of the two the agent has an unfinished run and
 can&#x27;t start another.</p>
+<h3 id="the-context">The context</h3>
+<p>The <strong>Context</strong> tab shows what the model reads with its <strong>next request</strong>, taken apart, so you can see where the tokens go and debug an agent that behaves oddly. It is made when you open the tab and when you press <strong>Refresh</strong> (not while the run works: it counts the tokens of every part).</p>
+<ul>
+<li>Three charts: the <strong>kinds of parts</strong> against the limit of the context (the prompt of the agent, your instructions, the notes of the runner, the tool definitions, the summary of a compaction, your messages, the answers of the agent, the results of its calls, and what is free), <strong>every part in the order it is sent</strong> (a bar for each, in the colour of its kind: a tool whose description is huge or a result that fills the context stands out), and the <strong>size of the context the model reported at each of its answers</strong> with the limit as a dashed line.</li>
+<li>A <strong>table of the parts</strong> with the kind, name, tokens and share of the context. Pick a row to read <strong>exactly the text the model is sent</strong> for that part: a section of the system message, the description and parameters of one tool, a message, the arguments of a call or the result of one.</li>
+<li><strong>Download</strong> gives the whole context as one Markdown file (the system message with its sections, every tool with its description and schema, the conversation message by message, each text in a code fence), <strong>Copy</strong> puts the same text on the clipboard.</li>
+</ul>
+<p>The sizes of the parts are estimates; the number the model reported is the real one (the request and its answer). The system message and the tools are the ones the next request would use, so a change of the prompt, the instructions or the allowed commands shows at once. The messages are the transcript as stored, without what a resume adds (a &quot;go on&quot;, the answers to calls an interruption left open). Reasoning is not part of the context (the model is not sent it back) and images show as their file names. What a compaction replaced is not in the context either; the <strong>Run</strong> tab and the <strong>Runs</strong> download still have it.</p>
 <h2 id="checkpoints">Checkpoints</h2>
 <p>A <strong>checkpoint</strong> is a restore point of the working copy of the run (the parts, summaries, lorebooks and the data of the extensions, with the handles the agent was given) and of the
 workspace of the agent, so that a job that went wrong can be undone: the agent goes back with <code translate="no" v-pre>checkpoint_restore</code>, or you do it in the <strong>Checkpoints</strong> tab of the console. Who makes them:</p>
@@ -546,6 +554,7 @@ agent can&#x27;t use it all up; a checkpoint made on purpose that does not fit i
 that were there still work. The state before is saved as an automatic checkpoint first, if there is room, so a restore can be taken back. A restore takes about as long as the start of a run (half a minute for a book
 of two thousand parts). You can restore while the agent does not work; the agent restores itself between two rounds and is told what came back. The checkpoints go when the run lets go of its copy.</p>
 <p><strong>Rewind</strong> is a restore that also takes the <em>conversation</em> back. A restore alone leaves the agent remembering work that is no longer in the book, so a run you want to send in another direction needs a rewind: the working copy and the workspace go back to the checkpoint, the messages after the place where the checkpoint was made are greyed in the transcript (you can still read them, and the export has them) and the agent no longer reads them, and a notice tells the agent what happened, so it does the work again if it is still needed. The run has to be paused or stopped (pause an agent that waits for you first); you <strong>Resume</strong> it afterwards and it goes on from the notice. A checkpoint can only be rewound to while its place in the conversation is still part of it: after a rewind to an earlier checkpoint the later ones (of the conversation that was undone) can only be restored. A checkpoint made before the rewind existed does not know its place and can only be restored. What a compaction did after the checkpoint is undone with the rewind; the agent reads the messages the compaction had replaced again.</p>
+<p><strong>Going back to a message.</strong> You do not have to pick a checkpoint: every message you wrote to the agent has a <strong>Rewind</strong> button under it in the transcript of the <strong>Run</strong> tab. It takes the conversation back to before that message: the agent forgets the message and everything after it, and the working copy and the workspace go back to the newest checkpoint that was made before it (the runner makes one before every round that changes something, so this is usually right at the message). The state of a run is only known at its checkpoints, so when the closest one is older than the message, the messages between that checkpoint and yours are forgotten too; the confirmation tells which checkpoint it is and how many messages go. The forgotten messages stay in the transcript, greyed. The button works while the agent waits for you (it is paused for it), is paused, or was stopped and kept; while the agent works it is disabled. You <strong>Resume</strong> the run afterwards, and it goes on from the notice.</p>
 <h2 id="creating-and-editing-an-agent">Creating and editing an agent</h2>
 <p><strong>New agent</strong> opens the same window as <strong>Edit</strong>:</p>
 <retype-table copy-text="| Field | |
@@ -726,7 +735,7 @@ editing again after you paused or stopped the run. Other lorebooks are not affec
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2670dfb3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b5118431).</p></div>
             </footer>
         </div>
     </div>

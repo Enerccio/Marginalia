@@ -293,10 +293,10 @@ Tests: `LorebookReadCommandsTest`, the same way, with a lorebook tree, a loreboo
 The packages `domain.service.impl.commands.manuscript.write` and `lorebook.write` hold the commands that change the book, on
 `ManuscriptWriteSupport` (which extends `ManuscriptReadSupport`) and `LorebookWriteSupport` (which extends `LorebookReadSupport`):
 `PartEditCommands` (`edit-part`, `replace-part-text`, `append-to-part`, `set-part-fields`), `PartStructureCommands` (`create-part`,
-`branch-part`, `delete-part`, `switch-branch`), `SummaryWriteCommands` (`set-summary`, `remove-summary`, `revalidate-summaries`),
+`insert-part`, `branch-part`, `delete-part`, `switch-branch`), `SummaryWriteCommands` (`set-summary`, `remove-summary`, `revalidate-summaries`),
 `BookSettingsCommands` (`set-book-info`, `set-book-prompts`, `set-book-tags`), `StoryGenerationCommands` (`next`, `swipe`,
 `regenerate`), `SummaryGenerationCommands` (`regenerate-summary`, `create-meta-summary`), `LoreEntryWriteCommands` and
-`LorebookWriteCommands`. They call the services the screens use (`ChatMessageService.updateResponse` / `createPart` /
+`LorebookWriteCommands`. They call the services the screens use (`ChatMessageService.updateResponse` / `createPart` / `insertPart` /
 `branchAndSwitch` / `swipeAndSwitch` / `deleteNodeAndMigrateChildren`, `SummaryService.updateSummaryText` / `removeSummary` /
 `revalidate`, `ManuscriptService.updateSettings`, `LorebookEntryService.create` / `update` / `move` / `deleteEntry`,
 `LorebookService` for the subbooks) and add no rule of their own, so what the user does in a window and what a command does is one path.

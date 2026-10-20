@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845791316238">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845821188720">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845791316238" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845821188720" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -513,6 +513,7 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 | `/append-to-part &lt;part&gt; &lt;text&gt; [separator]` | Adds text to the end of a part, after a blank line unless `separator` says otherwise. |
 | `/set-part-fields &lt;part&gt; [instructions] [scene] [pov] [present]` | Changes what a part was made from, which a new generation of it reuses; an empty text clears a field, a field you leave out stays. |
 | `/create-part &lt;text&gt; [parent] [instructions] [scene] [pov] [present]` | Writes a new part after the last part of the active branch, or after `parent` (a new branch); it becomes the end of the active branch. |
+| `/insert-part &lt;text&gt; &lt;part&gt; [before]` | Inserts a new part into the story right after `part` (or right before it when `before` is `true`). Everything that followed that place, all branches included, follows the new part now; nothing is deleted or made again, so the other parts keep their summaries and data and move one position down. The summaries that covered the place become outdated (the answer says which). At the end of the branch it is the same as `/create-part`. |
 | `/branch-part &lt;part&gt;` | Copies a part (and its summary) next to it, a new swipe that starts a branch, and makes the copy the active end. |
 | `/delete-part &lt;part&gt;` | Deletes a part and its summary; the parts that followed it stay. Asks first. |
 | `/switch-branch &lt;part&gt;` | Makes the branch through a part the active one. |
@@ -564,6 +565,10 @@ describes): the answer lists them and says what to do, <code translate="no" v-pr
 <tr>
 <td><code translate="no" v-pre>/create-part &lt;text&gt; [parent] [instructions] [scene] [pov] [present]</code></td>
 <td>Writes a new part after the last part of the active branch, or after <code translate="no" v-pre>parent</code> (a new branch); it becomes the end of the active branch.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/insert-part &lt;text&gt; &lt;part&gt; [before]</code></td>
+<td>Inserts a new part into the story right after <code translate="no" v-pre>part</code> (or right before it when <code translate="no" v-pre>before</code> is <code translate="no" v-pre>true</code>). Everything that followed that place, all branches included, follows the new part now; nothing is deleted or made again, so the other parts keep their summaries and data and move one position down. The summaries that covered the place become outdated (the answer says which). At the end of the branch it is the same as <code translate="no" v-pre>/create-part</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>/branch-part &lt;part&gt;</code></td>
@@ -797,7 +802,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2670dfb3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b5118431).</p></div>
             </footer>
         </div>
     </div>

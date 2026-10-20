@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845791316238">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845821188720">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845791316238" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845821188720" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845791316238" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845821188720" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -174,9 +174,9 @@ and how to write a migration. What the tables contain is described in <a href=".
 <retype-table copy-text="| | |
 |---|---|
 | File | `&lt;user.home&gt;/.marginalia/marginalia.sqlite`, with `marginalia.sqlite-wal` and `-shm` while it runs |
-| JDBC URL | `jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL` (built by `Configuration.resolveDb`) |
+| JDBC URL | `jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL` (built by `Configuration.resolveDb`); the pool of read-write transactions adds `&amp;transaction_mode=IMMEDIATE` (`Configuration.resolveWriteDb`) |
 | Driver | `org.sqlite.JDBC` (`sqlite-jdbc`) |
-| Pool | commons-dbcp `BasicDataSource`, 10-20 connections, validated with `SELECT 1` |
+| Pool | commons-dbcp `BasicDataSource`, 10-20 connections, validated with `SELECT 1`; a second one (`writeDataSource`, 2-20) for read-write transactions |
 | Journal | WAL - readers don't block the writer; writers wait up to 10 s (`busy_timeout`) for each other |
 | Foreign keys | Not enforced (`PRAGMA foreign_keys` is off), see [Conventions](#schema-conventions) |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -194,7 +194,7 @@ and how to write a migration. What the tables contain is described in <a href=".
 </tr>
 <tr>
 <td>JDBC URL</td>
-<td><code translate="no" v-pre>jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL</code> (built by <code translate="no" v-pre>Configuration.resolveDb</code>)</td>
+<td><code translate="no" v-pre>jdbc:sqlite:&lt;file&gt;?busy_timeout=10000&amp;journal_mode=WAL</code> (built by <code translate="no" v-pre>Configuration.resolveDb</code>); the pool of read-write transactions adds <code translate="no" v-pre>&amp;transaction_mode=IMMEDIATE</code> (<code translate="no" v-pre>Configuration.resolveWriteDb</code>)</td>
 </tr>
 <tr>
 <td>Driver</td>
@@ -202,7 +202,7 @@ and how to write a migration. What the tables contain is described in <a href=".
 </tr>
 <tr>
 <td>Pool</td>
-<td>commons-dbcp <code translate="no" v-pre>BasicDataSource</code>, 10-20 connections, validated with <code translate="no" v-pre>SELECT 1</code></td>
+<td>commons-dbcp <code translate="no" v-pre>BasicDataSource</code>, 10-20 connections, validated with <code translate="no" v-pre>SELECT 1</code>; a second one (<code translate="no" v-pre>writeDataSource</code>, 2-20) for read-write transactions</td>
 </tr>
 <tr>
 <td>Journal</td>
@@ -219,8 +219,11 @@ and how to write a migration. What the tables contain is described in <a href=".
 <p>The beans are in <code translate="no" v-pre>src/main/resources/META-INF/spring/datasources-config.xml</code>:</p>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
     conf[&quot;configuration&lt;br/&gt;resolveDb()&quot;] --&gt; ds[&quot;dataSource&lt;br/&gt;BasicDataSource&quot;]
+    conf --&gt; wds[&quot;writeDataSource&lt;br/&gt;BEGIN IMMEDIATE&quot;]
     ds --&gt; fw[&quot;flyway&lt;br/&gt;init-method=migrate&quot;]
-    ds --&gt; proxy[&quot;ds&lt;br/&gt;TransactionAwareDataSourceProxy&quot;]
+    ds --&gt; routing[&quot;routingDataSource&lt;br/&gt;ReadWriteRoutingDataSource&quot;]
+    wds --&gt; routing
+    routing --&gt; proxy[&quot;ds&lt;br/&gt;TransactionAwareDataSourceProxy&quot;]
     fw -. &quot;depends-on&quot; .-&gt; emf
     proxy --&gt; emf[&quot;emf&lt;br/&gt;EntityManagerFactory (PU)&quot;]
     proxy --&gt; jdbc[&quot;jdbcTemplate&quot;]
@@ -234,6 +237,17 @@ schema.</p>
 <li>
 <p>Hibernate and <code translate="no" v-pre>jdbcTemplate</code> use the data source through <code translate="no" v-pre>TransactionAwareDataSourceProxy</code>, so plain JDBC code
 joins the current JPA transaction.</p>
+</li>
+<li>
+<p><strong>Read-write transactions take the write lock when they begin.</strong> A deferred transaction reads, takes its snapshot and
+needs the lock at its first write; when another connection has committed in between, the write fails at once with
+<code translate="no" v-pre>SQLITE_BUSY</code> or <code translate="no" v-pre>SQLITE_BUSY_SNAPSHOT</code> and <code translate="no" v-pre>busy_timeout</code> does not help. So <code translate="no" v-pre>routingDataSource</code>
+(<code translate="no" v-pre>ReadWriteRoutingDataSource</code>) gives a read-write transaction a connection of <code translate="no" v-pre>writeDataSource</code>
+(<code translate="no" v-pre>transaction_mode=IMMEDIATE</code>, writers queue for the busy timeout) and a read-only one
+(<code translate="no" v-pre>@CommonTxReadOnly</code>) a plain connection of <code translate="no" v-pre>dataSource</code> (never waits for a writer). The transaction manager asks for
+the connection before it publishes the read-only flag, so the <code translate="no" v-pre>jpaDialect</code> bean (<code translate="no" v-pre>ReadWriteRoutingDataSource.Dialect</code>)
+notes it while the transaction begins. Flyway and code outside a transaction use <code translate="no" v-pre>dataSource</code>. <code translate="no" v-pre>ConcurrentTransactionsTest</code>
+covers both sides.</p>
 </li>
 <li>
 <p>The persistence unit <code translate="no" v-pre>PU</code> is defined in <code translate="no" v-pre>src/main/webapp/config/persistence.xml</code>: the list of entity classes
@@ -718,7 +732,7 @@ converter for any new secret column.</p>
 <h2 id="sqlite-limitations">SQLite limitations</h2>
 <retype-table copy-text="| Limitation | Consequence |
 |---|---|
-| One writer at a time | Writes are serialized; long transactions block other users' writes (up to `busy_timeout`, then `SQLITE_BUSY`). Keep transactions short and never call a model inside one - generation runs outside transactions (`@NoTx`). |
+| One writer at a time | Writes are serialized; a read-write transaction holds the write lock from its start (see above), so a long one blocks other users' writes (up to `busy_timeout`, then `SQLITE_BUSY`); read-only transactions are not blocked. Keep transactions short and never call a model inside one - generation runs outside transactions (`@NoTx`). |
 | `ALTER TABLE` is limited | Type, nullability and constraint changes need a table rebuild. |
 | DDL in transactions | SQLite supports transactional DDL, so a failing migration is rolled back completely. |
 | No `VACUUM` inside a transaction | `VACUUM INTO` for backups runs with `@NoTx`. |
@@ -735,7 +749,7 @@ converter for any new secret column.</p>
 <tbody>
 <tr>
 <td>One writer at a time</td>
-<td>Writes are serialized; long transactions block other users&#x27; writes (up to <code translate="no" v-pre>busy_timeout</code>, then <code translate="no" v-pre>SQLITE_BUSY</code>). Keep transactions short and never call a model inside one - generation runs outside transactions (<code translate="no" v-pre>@NoTx</code>).</td>
+<td>Writes are serialized; a read-write transaction holds the write lock from its start (see above), so a long one blocks other users&#x27; writes (up to <code translate="no" v-pre>busy_timeout</code>, then <code translate="no" v-pre>SQLITE_BUSY</code>); read-only transactions are not blocked. Keep transactions short and never call a model inside one - generation runs outside transactions (<code translate="no" v-pre>@NoTx</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ALTER TABLE</code> is limited</td>
@@ -847,7 +861,7 @@ A backup restored on another installation loses them unless <code translate="no"
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2670dfb3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b5118431).</p></div>
             </footer>
         </div>
     </div>

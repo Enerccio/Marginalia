@@ -8,12 +8,12 @@ import com.github.enerccio.marginalia.domain.security.permissions.PermissionType
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.CheckpointService.CheckpointException;
 import com.github.enerccio.marginalia.domain.service.CheckpointService.CheckpointFullException;
-import com.github.enerccio.marginalia.domain.service.impl.CheckpointServiceImpl;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Kind;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
+import com.github.enerccio.marginalia.domain.service.impl.CheckpointServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
@@ -511,6 +511,73 @@ class CheckpointServiceTest extends AgentTestBase {
         checkpointService.rewind(run, fresh.id());
 
         assertThat(readByTheModel()).startsWith("task").contains("new work").doesNotContain("old work", "newer work");
+    }
+
+    private String rowUuid(int ordinal) throws Exception {
+        return messageService.messages(run).get(ordinal).getUuid();
+    }
+
+    @Test
+    void aRunGoesBackToBeforeAMessageThroughTheNewestCheckpointMadeBeforeIt() throws Exception {
+        say(user("task"), agentSays("I start"));
+        Info before = checkpointService.makeManual(run, "before the edit").checkpoint();
+        edit("Once upon a time", "changed");
+        say(user("later"), agentSays("more"));
+        checkpointService.makeManual(run, "after the answer");
+        say(user("last"));
+        pause();
+
+        CheckpointService.RewindPlan plan = checkpointService.planRewindToMessage(run, rowUuid(2));
+        CheckpointService.Rewound rewound = checkpointService.rewindToMessage(run, rowUuid(2));
+
+        assertThat(plan.checkpoint().id()).as("the second checkpoint is after the message").isEqualTo(before.id());
+        assertThat(plan.forgotten()).isEqualTo(3);
+        assertThat(rewound.forgotten()).isEqualTo(3);
+        assertThat(texts()).containsExactly("Once upon a time", "there was a dragon");
+        assertThat(readByTheModel()).hasSize(3).startsWith("task", "I start");
+        assertThat(messageService.messages(run).stream().map(AgentMessage::isRewound).toList())
+                .containsExactly(false, false, true, true, true, false);
+    }
+
+    @Test
+    void theStateBetweenTwoCheckpointsGoesBackToTheEarlierOneWithTheMessagesBetween() throws Exception {
+        say(user("task"));
+        Info early = checkpointService.makeManual(run, "early").checkpoint();
+        say(agentSays("reads"), user("the question"));
+        checkpointService.makeManual(run, "late");
+        pause();
+
+        CheckpointService.RewindPlan plan = checkpointService.planRewindToMessage(run, rowUuid(2));
+
+        assertThat(plan.checkpoint().id()).isEqualTo(early.id());
+        assertThat(plan.forgotten()).isEqualTo(2);
+    }
+
+    @Test
+    void aMessageWithoutACheckpointBeforeItAndAMessageThatWasRewoundOverCannotBeGoneBackTo() throws Exception {
+        say(user("task"));
+        checkpointService.makeManual(run, "after the task");
+        say(agentSays("work"));
+        pause();
+        String first = rowUuid(0);
+        String second = rowUuid(1);
+
+        assertThatThrownBy(() -> checkpointService.planRewindToMessage(run, first)).isInstanceOf(CheckpointException.class)
+                .hasMessageContaining("No checkpoint was made before");
+        checkpointService.rewindToMessage(run, second);
+        assertThatThrownBy(() -> checkpointService.planRewindToMessage(run, second)).isInstanceOf(CheckpointException.class)
+                .hasMessageContaining("rewind before");
+        assertThatThrownBy(() -> checkpointService.planRewindToMessage(run, "nothing")).isInstanceOf(CheckpointException.class)
+                .hasMessageContaining("not a message of this run");
+    }
+
+    @Test
+    void aRunThatWorksCannotBeGoneBackBeforeAMessage() throws Exception {
+        say(user("task"), agentSays("work"));
+        checkpointService.makeManual(run, "a");
+
+        assertThatThrownBy(() -> checkpointService.rewindToMessage(agentRunService.find(run.getId()), rowUuid(1)))
+                .isInstanceOf(CheckpointException.class).hasMessageContaining("paused or stopped");
     }
 
     @Test

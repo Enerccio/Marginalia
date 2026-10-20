@@ -10,7 +10,7 @@ book, so your book is never touched while it works (the book itself is [locked](
 [review its result](#reviewing-the-result) and take over what you want.
 
 The tab is there only if an administrator gave you the **Agents** [permission](administration/permissions.md) (administrators always
-have it). On a phone each agent is a card with the same buttons, see [On a phone](#on-a-phone).
+have it, but the limits are the same as for everybody: the defaults unless they fill in the settings of their own permission, so an administrator who needs more agents, runs or room in the workspace sets it there; a changed limit reaches a run that is working when it is paused and resumed). On a phone each agent is a card with the same buttons, see [On a phone](#on-a-phone).
 
 ## The table
 
@@ -78,7 +78,7 @@ While the agent waits for a free place at its model (see [One model, several age
 
 ## The console
 
-**Console** opens a window for the latest run of the agent, with four tabs: **Run**, **Runs**, **Workspace** and **Checkpoints**.
+**Console** opens a window for the latest run of the agent, with five tabs: **Run**, **Runs**, **Workspace**, **Checkpoints** and **Context**.
 
 **Run** shows the *transcript*: what you told the agent, what it said (both as [Markdown](https://commonmark.org/help/), so lists, headings and emphasis show as such), and every command or file tool it called, folded to one line with the
 arguments (click it to see them and the result, shown as plain text). When the model sends its **reasoning** (what it thought before it answered), a folded *Reasoning* block shows it before the answer, and the download has it. Whether you get any depends on the model and the server: it has to report it, and your AI has to have reasoning switched on. The state of the run, the **context** (how many tokens the last request used of the limit of the model, so you see how close the run is to a pause), the rounds and tokens it used (and the token budget, when there
@@ -260,6 +260,16 @@ among what you applied. The summaries of parts that were edited are outdated as 
 When the changes are applied the run is *Applied* and its copy and checkpoints are deleted. **Discard the result** throws the copy away and leaves the book as it is. Until you do one of the two the agent has an unfinished run and
 can't start another.
 
+### The context
+
+The **Context** tab shows what the model reads with its **next request**, taken apart, so you can see where the tokens go and debug an agent that behaves oddly. It is made when you open the tab and when you press **Refresh** (not while the run works: it counts the tokens of every part).
+
+- Three charts: the **kinds of parts** against the limit of the context (the prompt of the agent, your instructions, the notes of the runner, the tool definitions, the summary of a compaction, your messages, the answers of the agent, the results of its calls, and what is free), **every part in the order it is sent** (a bar for each, in the colour of its kind: a tool whose description is huge or a result that fills the context stands out), and the **size of the context the model reported at each of its answers** with the limit as a dashed line.
+- A **table of the parts** with the kind, name, tokens and share of the context. Pick a row to read **exactly the text the model is sent** for that part: a section of the system message, the description and parameters of one tool, a message, the arguments of a call or the result of one.
+- **Download** gives the whole context as one Markdown file (the system message with its sections, every tool with its description and schema, the conversation message by message, each text in a code fence), **Copy** puts the same text on the clipboard.
+
+The sizes of the parts are estimates; the number the model reported is the real one (the request and its answer). The system message and the tools are the ones the next request would use, so a change of the prompt, the instructions or the allowed commands shows at once. The messages are the transcript as stored, without what a resume adds (a "go on", the answers to calls an interruption left open). Reasoning is not part of the context (the model is not sent it back) and images show as their file names. What a compaction replaced is not in the context either; the **Run** tab and the **Runs** download still have it.
+
 ## Checkpoints
 
 A **checkpoint** is a restore point of the working copy of the run (the parts, summaries, lorebooks and the data of the extensions, with the handles the agent was given) and of the
@@ -279,6 +289,8 @@ that were there still work. The state before is saved as an automatic checkpoint
 of two thousand parts). You can restore while the agent does not work; the agent restores itself between two rounds and is told what came back. The checkpoints go when the run lets go of its copy.
 
 **Rewind** is a restore that also takes the *conversation* back. A restore alone leaves the agent remembering work that is no longer in the book, so a run you want to send in another direction needs a rewind: the working copy and the workspace go back to the checkpoint, the messages after the place where the checkpoint was made are greyed in the transcript (you can still read them, and the export has them) and the agent no longer reads them, and a notice tells the agent what happened, so it does the work again if it is still needed. The run has to be paused or stopped (pause an agent that waits for you first); you **Resume** it afterwards and it goes on from the notice. A checkpoint can only be rewound to while its place in the conversation is still part of it: after a rewind to an earlier checkpoint the later ones (of the conversation that was undone) can only be restored. A checkpoint made before the rewind existed does not know its place and can only be restored. What a compaction did after the checkpoint is undone with the rewind; the agent reads the messages the compaction had replaced again.
+
+**Going back to a message.** You do not have to pick a checkpoint: every message you wrote to the agent has a **Rewind** button under it in the transcript of the **Run** tab. It takes the conversation back to before that message: the agent forgets the message and everything after it, and the working copy and the workspace go back to the newest checkpoint that was made before it (the runner makes one before every round that changes something, so this is usually right at the message). The state of a run is only known at its checkpoints, so when the closest one is older than the message, the messages between that checkpoint and yours are forgotten too; the confirmation tells which checkpoint it is and how many messages go. The forgotten messages stay in the transcript, greyed. The button works while the agent waits for you (it is paused for it), is paused, or was stopped and kept; while the agent works it is disabled. You **Resume** the run afterwards, and it goes on from the notice.
 
 ## Creating and editing an agent
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845791316238">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.845821188720">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.845791316238" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.845821188720" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845791316238" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845791316238" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.845821188720" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.845821188720" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -688,8 +688,8 @@ listener fills <code translate="no" v-pre>_fulltext</code> with the text of the 
 active leaf.</p>
 </li>
 </ul>
-<p>The database is SQLite in WAL mode (<code translate="no" v-pre>busy_timeout=10000</code>), through a commons-dbcp pool and a
-<code translate="no" v-pre>TransactionAwareDataSourceProxy</code>. Flyway migrations in <code translate="no" v-pre>src/main/resources/migration/</code> create and upgrade the schema,
+<p>The database is SQLite in WAL mode (<code translate="no" v-pre>busy_timeout=10000</code>), through commons-dbcp pools (read-write transactions begin with the write lock, see
+<a href="../database/">Database &amp; migrations</a>) and a <code translate="no" v-pre>TransactionAwareDataSourceProxy</code>. Flyway migrations in <code translate="no" v-pre>src/main/resources/migration/</code> create and upgrade the schema,
 and every entity is listed in <code translate="no" v-pre>src/main/webapp/config/persistence.xml</code> (<code translate="no" v-pre>exclude-unlisted-classes</code>).
 <code translate="no" v-pre>SaneSQLiteDialect</code> adapts Hibernate&#x27;s community SQLite dialect. See <a href="../domain-model/">Domain model</a> and
 <a href="../database/">Database &amp; migrations</a>.</p>
@@ -1055,7 +1055,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (2670dfb3).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.4.0 (b5118431).</p></div>
             </footer>
         </div>
     </div>

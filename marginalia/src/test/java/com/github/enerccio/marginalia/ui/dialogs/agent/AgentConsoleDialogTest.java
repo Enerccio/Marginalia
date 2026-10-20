@@ -276,6 +276,35 @@ class AgentConsoleDialogTest extends AgentTestBase {
     }
 
     @Test
+    void aMessageOfTheAuthorHasAButtonThatGoesBackToBeforeItWhileNothingWorks() throws Exception {
+        AgentRun run = startedRun();
+        say(run, LLMChatMessage.of(LLMRole.USER, "task"), LLMChatMessage.of(LLMRole.ASSISTANT, "first"));
+        checkpointService.makeManual(run, "after the first answer");
+        say(run, LLMChatMessage.of(LLMRole.USER, "do it differently"), LLMChatMessage.of(LLMRole.ASSISTANT, "second"));
+        String second = agentMessageService.messages(run).get(2).getUuid();
+        AgentConsoleDialog dialog = console();
+
+        // a button under each message of the author, none while the agent works
+        assertThat(dialog.getRollbackButtons()).hasSize(2);
+        assertThat(dialog.getRollbackButtons().stream().map(Button::isEnabled)).containsOnly(false);
+
+        run = agentRunService.pause(agentRunService.find(run.getId()));
+        dialog.refreshRun();
+
+        assertThat(dialog.getRollbackButtons().stream().map(Button::isEnabled)).containsOnly(true);
+
+        dialog.rollBackNow(second);
+
+        List<Component> shown = dialog.getTranscriptBox().getChildren().toList();
+        // task, first, do it differently (greyed), second (greyed), the notice of the run
+        assertThat(shown).hasSize(5);
+        assertThat(shown.stream().map(c -> c.hasClassName(CssStyles.AGENT_REWOUND)).toList())
+                .containsExactly(false, false, true, true, false);
+        assertThat(textOf(shown.getLast())).contains("rewound the run to checkpoint");
+        assertThat(dialog.getRollbackButtons()).as("the forgotten messages have none: the first one and the notice have").hasSize(2);
+    }
+
+    @Test
     void newMessagesAreAddedWhenTheConsoleLooksAgain() throws Exception {
         AgentRun run = startedRun();
         say(run, LLMChatMessage.of(LLMRole.USER, "first"));

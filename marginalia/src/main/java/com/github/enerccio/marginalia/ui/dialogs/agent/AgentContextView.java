@@ -111,7 +111,8 @@ public class AgentContextView extends VerticalLayout implements LLMInteract {
 
         grid = new Grid<>();
         grid.setWidthFull();
-        grid.setHeight("320px");
+        grid.setHeight("420px");
+        grid.setMinHeight("420px");
         grid.addColumn(part -> numbers.get(part)).setHeader("#").setFlexGrow(0).setWidth("70px");
         grid.addColumn(part -> kindName(part.kind())).setHeader(loc.getValue(L.LABEL_TYPE)).setFlexGrow(1);
         grid.addColumn(AgentContext.Part::title).setHeader(loc.getValue(L.LABEL_NAME)).setFlexGrow(3);
