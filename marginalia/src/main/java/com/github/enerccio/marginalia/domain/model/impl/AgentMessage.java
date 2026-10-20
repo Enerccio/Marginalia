@@ -92,6 +92,10 @@ public class AgentMessage extends ExtendableEntity {
      */
     @Transient
     @ExtendedAttribute
+    private String telemetry;
+
+    @Transient
+    @ExtendedAttribute
     private Boolean compacted;
 
     /**
@@ -179,6 +183,17 @@ public class AgentMessage extends ExtendableEntity {
 
     public void setOrdinal(int ordinal) {
         this.ordinal = ordinal;
+    }
+
+    /**
+     * What the runner knew about the request that made this answer, JSON, see {@code AgentTelemetry}; null for a row that has none.
+     */
+    public String getTelemetry() {
+        return telemetry;
+    }
+
+    public void setTelemetry(String telemetry) {
+        this.telemetry = telemetry;
     }
 
     public String getReasoning() {

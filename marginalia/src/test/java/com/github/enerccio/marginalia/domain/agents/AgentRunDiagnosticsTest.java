@@ -4,8 +4,10 @@ import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.service.AgentMessageService;
 import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.agent.AgentDiagnostics.Report;
+import com.github.enerccio.marginalia.domain.service.agent.AgentTelemetry;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,9 @@ class AgentRunDiagnosticsTest extends AgentTestBase {
 
     @Autowired
     private AgentRunner runner;
+
+    @Autowired
+    private AgentMessageService agentMessageService;
 
     private AgentRun finishedTurn() throws Exception {
         loginAgentUser();
@@ -64,6 +69,26 @@ class AgentRunDiagnosticsTest extends AgentTestBase {
             assertThat(tool.resultChars()).isPositive();
         });
         assertThat(report.toMarkdown()).contains("get-book-info");
+    }
+
+    @Test
+    void theAnswersAreStoredWithWhatTheRequestsReported() throws Exception {
+        AgentRun run = finishedTurn();
+
+        var answers = agentMessageService.messages(run).stream().filter(row -> row.getContextTokens() != null).toList();
+
+        assertThat(answers).hasSize(2);
+        answers.forEach(row -> {
+            AgentTelemetry telemetry = AgentTelemetry.fromJson(row.getTelemetry());
+            assertThat(telemetry).as("telemetry of %s", row.getUuid()).isNotNull();
+            assertThat(telemetry.promptTokens()).isPositive();
+            assertThat(telemetry.firstTokenMillis()).isNotNegative();
+            assertThat(telemetry.generationMillis()).isNotNegative();
+            assertThat(telemetry.finishReason()).isNotBlank();
+        });
+        assertThat(AgentTelemetry.fromJson(answers.getFirst().getTelemetry()).asked()).isEqualTo(1);
+        assertThat(AgentTelemetry.fromJson(answers.getFirst().getTelemetry()).kept()).isEqualTo(1);
+        assertThat(runner.diagnostics(run).telemetry().rounds()).isEqualTo(2);
     }
 
     @Test

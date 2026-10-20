@@ -70,6 +70,11 @@ public interface AgentMessageService extends ExtendableService<AgentMessage, Age
     AgentMessage appendAnswer(AgentRun run, LLMChatMessage answer, long contextTokens, String reasoning) throws Exception;
 
     /**
+     * As above, with what the runner knew about the request ({@code AgentTelemetry.toJson}, null for nothing).
+     */
+    AgentMessage appendAnswer(AgentRun run, LLMChatMessage answer, long contextTokens, String reasoning, String telemetry) throws Exception;
+
+    /**
      * Starts the conversation of a sub-agent with the message it is told first.
      *
      * @throws IllegalArgumentException when the run is not a run of the current user
@@ -89,6 +94,12 @@ public interface AgentMessageService extends ExtendableService<AgentMessage, Age
      * @throws IllegalArgumentException when the run is not a run of the current user
      */
     AgentMessage appendAnswerToThread(AgentRun run, String handle, LLMChatMessage answer, long contextTokens, String reasoning) throws Exception;
+
+    /**
+     * As above, with what the runner knew about the request.
+     */
+    AgentMessage appendAnswerToThread(AgentRun run, String handle, LLMChatMessage answer, long contextTokens, String reasoning,
+                                      String telemetry) throws Exception;
 
     /**
      * Ends the conversation of a sub-agent: nothing is appended to it and it is not continued with the run.
@@ -140,6 +151,11 @@ public interface AgentMessageService extends ExtendableService<AgentMessage, Age
      * @throws IllegalArgumentException when the run is not a run of the current user
      */
     AgentMessage compact(AgentRun run, LLMChatMessage summary, long contextTokens) throws Exception;
+
+    /**
+     * As above, with what the runner knew about the request that wrote the summary ({@code AgentTelemetry.toJson}, null for nothing).
+     */
+    AgentMessage compact(AgentRun run, LLMChatMessage summary, long contextTokens, String telemetry) throws Exception;
 
     /**
      * Goes back in the conversation: every message from the place {@code keep} on is marked rewound - it stays in

@@ -43,6 +43,12 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     @Override
     @CommonTx
     public AgentMessage appendAnswer(AgentRun run, LLMChatMessage answer, long contextTokens, String reasoning) throws Exception {
+        return appendAnswer(run, answer, contextTokens, reasoning, null);
+    }
+
+    @Override
+    @CommonTx
+    public AgentMessage appendAnswer(AgentRun run, LLMChatMessage answer, long contextTokens, String reasoning, String telemetry) throws Exception {
         AgentRun stored = ownRun(run);
         AgentMessage message = new AgentMessage();
         message.setRun(stored);
@@ -50,12 +56,19 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         message.setChatMessage(answer);
         message.setContextTokens(contextTokens);
         message.setReasoning(reasoning);
+        message.setTelemetry(telemetry);
         return save(message);
     }
 
     @Override
     @CommonTx
     public AgentMessage compact(AgentRun run, LLMChatMessage summary, long contextTokens) throws Exception {
+        return compact(run, summary, contextTokens, null);
+    }
+
+    @Override
+    @CommonTx
+    public AgentMessage compact(AgentRun run, LLMChatMessage summary, long contextTokens, String telemetry) throws Exception {
         AgentRun stored = ownRun(run);
         List<AgentMessage> rows = getRepository().findAllByRun(stored);
         for (AgentMessage row : rows) {
@@ -70,6 +83,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         message.setChatMessage(summary);
         message.setSummary(true);
         message.setContextTokens(contextTokens);
+        message.setTelemetry(telemetry);
         return save(message);
     }
 
@@ -159,6 +173,13 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
     @Override
     @CommonTx
     public AgentMessage appendAnswerToThread(AgentRun run, String handle, LLMChatMessage answer, long contextTokens, String reasoning) throws Exception {
+        return appendAnswerToThread(run, handle, answer, contextTokens, reasoning, null);
+    }
+
+    @Override
+    @CommonTx
+    public AgentMessage appendAnswerToThread(AgentRun run, String handle, LLMChatMessage answer, long contextTokens, String reasoning,
+                                             String telemetry) throws Exception {
         AgentRun stored = ownRun(run);
         AgentMessage message = new AgentMessage();
         message.setRun(stored);
@@ -167,6 +188,7 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         message.setChatMessage(answer);
         message.setContextTokens(contextTokens);
         message.setReasoning(reasoning);
+        message.setTelemetry(telemetry);
         return save(message);
     }
 

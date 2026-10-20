@@ -256,7 +256,7 @@ public final class AgentDiagnostics {
      * @param compactions   the compactions
      * @param subAgents     the sub-agents
      */
-    public record Report(String agentName, AgentRunStatus status, String started, Overview overview, List<ToolStat> tools,
+    public record Report(String agentName, AgentRunStatus status, String started, Overview overview, Telemetry telemetry, List<ToolStat> tools,
                          List<Series> series, List<Repeat> repeats, List<ErrorStat> errorMessages, List<Biggest> biggest,
                          List<BigArgument> bigArguments, List<Block> blocks, List<Slow> slowest, List<Compaction> compactions, List<SubAgent> subAgents) {
 
@@ -269,6 +269,45 @@ public final class AgentDiagnostics {
         public String toMarkdown() {
             return AgentDiagnostics.toMarkdown(this);
         }
+    }
+
+    /**
+     * What the requests to the model reported about themselves, from the answers that were stored with it ({@link AgentTelemetry}).
+     * Answers of older runs have none, {@code rounds} says how many had.
+     *
+     * @param rounds             the answers that have telemetry
+     * @param firstTokenMillis   the time the requests waited for the first word: the server reading the prompt
+     * @param generationMillis   the time the answers were written
+     * @param waitMillis         the time the requests waited for a place (the caps of the run and of the model) before they were sent
+     * @param tokensPerSecond    what the model wrote per second while it wrote
+     * @param promptTokens       the tokens of the prompts of the answers that tell about their cache
+     * @param cachedTokens       how many of them the server did not read again
+     * @param completionTokens   the tokens of the answers that tell about their reasoning
+     * @param reasoningTokens    how many of them were reasoning
+     * @param finishReasons      why the answers ended, by reason
+     * @param droppedCalls       the calls the model wrote that were not made (repeats, limits, batch policies)
+     * @param compactions        the requests that wrote a summary
+     * @param compactionMillis   the time they took (the first word and the writing)
+     * @param blocks             the same by block of {@link #BLOCK} answers
+     */
+    public record Telemetry(long rounds, long firstTokenMillis, long generationMillis, long waitMillis, double tokensPerSecond,
+                            long promptTokens, long cachedTokens, long completionTokens, long reasoningTokens,
+                            Map<String, Long> finishReasons, long droppedCalls, long compactions, long compactionMillis,
+                            List<TelemetryBlock> blocks) {
+    }
+
+    /**
+     * One block of answers of the telemetry.
+     *
+     * @param rounds           the numbers of the answers, for example {@code 1-25}
+     * @param firstTokenMillis the waits for the first word, on average
+     * @param generationMillis the times of writing, on average
+     * @param cachePercent     how much of the prompt was not read again, -1 when it is not known
+     * @param reasoningPercent how much of the answers was reasoning, -1 when it is not known
+     * @param cutOffs          the answers that ended because of the limit of one answer ({@code length})
+     */
+    public record TelemetryBlock(String rounds, long firstTokenMillis, long generationMillis, int cachePercent, int reasoningPercent,
+                                 long cutOffs) {
     }
 
     // a call with its result
@@ -322,6 +361,7 @@ public final class AgentDiagnostics {
         long contextTokens;
         long textChars;
         long reasoningChars;
+        AgentTelemetry telemetry;
 
         Round(int number) {
             this.number = number;
@@ -341,6 +381,8 @@ public final class AgentDiagnostics {
         final List<Round> rounds = new ArrayList<>();
         final List<Compaction> compactions = new ArrayList<>();
         final Map<String, Long> notices = new TreeMap<>();
+        // the requests that wrote a summary
+        final List<AgentTelemetry> summaries = new ArrayList<>();
         long textAnswers;
         long authorMessages;
         long rewound;
@@ -416,7 +458,7 @@ public final class AgentDiagnostics {
 
         return new Report(agentName, run == null ? null : run.getStatus(),
                 run == null || run.getStartedAt() == null ? null : new SimpleDateFormat("yyyy-MM-dd HH:mm").format(run.getStartedAt()),
-                overview, tools, series(scan.rounds), repeats(calls), errors(calls), biggest, bigArguments, blocks(scan.rounds), slowest,
+                overview, telemetry(scan), tools, series(scan.rounds), repeats(calls), errors(calls), biggest, bigArguments, blocks(scan.rounds), slowest,
                 scan.compactions, subAgents);
     }
 
@@ -451,6 +493,10 @@ public final class AgentDiagnostics {
             if (row.isSummary()) {
                 int replaced = (int) rows.stream().filter(other -> other.isCompacted() && other.getOrdinal() < row.getOrdinal()).count();
                 scan.compactions.add(new Compaction(scan.rounds.size(), lastContext, replaced));
+                AgentTelemetry written = AgentTelemetry.fromJson(row.getTelemetry());
+                if (written != null) {
+                    scan.summaries.add(written);
+                }
                 round = null;
                 continue;
             }
@@ -462,6 +508,7 @@ public final class AgentDiagnostics {
                     round.contextTokens = row.getContextTokens() == null ? 0 : row.getContextTokens();
                     round.textChars = StringUtils.length(message.getContent());
                     round.reasoningChars = StringUtils.length(row.getReasoning());
+                    round.telemetry = AgentTelemetry.fromJson(row.getTelemetry());
                     lastContext = round.contextTokens > 0 ? round.contextTokens : lastContext;
                     scan.rounds.add(round);
                     if (message.getToolCalls().isEmpty()) {
@@ -575,6 +622,52 @@ public final class AgentDiagnostics {
         return content.startsWith("Notice from the run:") ? "other" : null;
     }
 
+    private static Telemetry telemetry(Scan scan) {
+        List<Round> told = scan.rounds.stream().filter(round -> round.telemetry != null).toList();
+        long first = told.stream().mapToLong(round -> Math.max(0, round.telemetry.firstTokenMillis())).sum();
+        long generation = told.stream().mapToLong(round -> Math.max(0, round.telemetry.generationMillis())).sum();
+        long wait = told.stream().mapToLong(round -> Math.max(0, round.telemetry.waitMillis())).sum();
+        List<Round> timed = told.stream().filter(round -> round.telemetry.generationMillis() > 0).toList();
+        long writtenTokens = timed.stream().mapToLong(round -> round.telemetry.completionTokens()).sum();
+        long writtenMillis = timed.stream().mapToLong(round -> round.telemetry.generationMillis()).sum();
+        List<Round> cached = told.stream().filter(round -> round.telemetry.cachedTokens() >= 0).toList();
+        List<Round> thought = told.stream().filter(round -> round.telemetry.reasoningTokens() >= 0).toList();
+        Map<String, Long> reasons = new TreeMap<>();
+        told.stream().map(round -> round.telemetry.finishReason()).filter(Objects::nonNull).forEach(reason -> reasons.merge(reason, 1L, Long::sum));
+        long dropped = told.stream().filter(round -> round.telemetry.asked() > round.telemetry.kept())
+                .mapToLong(round -> round.telemetry.asked() - round.telemetry.kept()).sum();
+        List<TelemetryBlock> blocks = new ArrayList<>();
+        for (int from = 0; from < scan.rounds.size(); from += BLOCK) {
+            List<Round> block = scan.rounds.subList(from, Math.min(scan.rounds.size(), from + BLOCK)).stream()
+                    .filter(round -> round.telemetry != null).toList();
+            if (block.isEmpty()) {
+                continue;
+            }
+            List<Round> blockCached = block.stream().filter(round -> round.telemetry.cachedTokens() >= 0).toList();
+            List<Round> blockThought = block.stream().filter(round -> round.telemetry.reasoningTokens() >= 0).toList();
+            blocks.add(new TelemetryBlock((from + 1) + "-" + Math.min(scan.rounds.size(), from + BLOCK),
+                    block.stream().mapToLong(round -> Math.max(0, round.telemetry.firstTokenMillis())).sum() / block.size(),
+                    block.stream().mapToLong(round -> Math.max(0, round.telemetry.generationMillis())).sum() / block.size(),
+                    share(blockCached.stream().mapToLong(round -> round.telemetry.cachedTokens()).sum(),
+                            blockCached.stream().mapToLong(round -> round.telemetry.promptTokens()).sum()),
+                    share(blockThought.stream().mapToLong(round -> round.telemetry.reasoningTokens()).sum(),
+                            blockThought.stream().mapToLong(round -> round.telemetry.completionTokens()).sum()),
+                    block.stream().filter(round -> "length".equals(round.telemetry.finishReason())).count()));
+        }
+        return new Telemetry(told.size(), first, generation, wait, writtenMillis == 0 ? 0 : writtenTokens * 1000.0 / writtenMillis,
+                cached.stream().mapToLong(round -> round.telemetry.promptTokens()).sum(),
+                cached.stream().mapToLong(round -> round.telemetry.cachedTokens()).sum(),
+                thought.stream().mapToLong(round -> round.telemetry.completionTokens()).sum(),
+                thought.stream().mapToLong(round -> round.telemetry.reasoningTokens()).sum(), reasons, dropped, scan.summaries.size(),
+                scan.summaries.stream().mapToLong(summary -> Math.max(0, summary.firstTokenMillis()) + Math.max(0, summary.generationMillis())).sum(),
+                blocks);
+    }
+
+    // a share in percent, -1 when there is nothing to share
+    private static int share(long part, long whole) {
+        return whole <= 0 ? -1 : (int) Math.min(100, Math.round(part * 100.0 / whole));
+    }
+
     private static ToolStat toolStat(String name, List<Call> calls, Scan scan) {
         long solo = scan.rounds.stream().filter(round -> round.calls.size() == 1 && round.calls.getFirst().call.getName().equals(name)).count();
         return new ToolStat(name, calls.size(), calls.stream().filter(Call::failed).count(), calls.stream().filter(Call::interrupted).count(),
@@ -681,6 +774,45 @@ public final class AgentDiagnostics {
         return minutes < 60 ? minutes + " min " + seconds % 60 + " s" : minutes / 60 + " h " + minutes % 60 + " min";
     }
 
+    private static void telemetryMarkdown(StringBuilder md, Telemetry t) {
+        md.append("## What the requests reported\n\n");
+        if (t.rounds() == 0) {
+            md.append("The answers of this run have no telemetry (the runs made before it was recorded have none).\n\n");
+            return;
+        }
+        md.append("From ").append(t.rounds()).append(" answers. The first word is the time from sending the request until something came back, "
+                + "which is the server reading the prompt (and waiting for its turn); a cache that is hot makes it short.\n\n");
+        md.append("- Waiting for the first word: ").append(duration(t.firstTokenMillis())).append(" in all, ")
+                .append(duration(t.firstTokenMillis() / t.rounds())).append(" on average\n");
+        md.append("- Writing: ").append(duration(t.generationMillis())).append(" in all, ").append(String.format("%.1f tokens per second", t.tokensPerSecond()))
+                .append('\n');
+        if (t.waitMillis() > 0) {
+            md.append("- Waiting for a place before the request was sent: ").append(duration(t.waitMillis())).append('\n');
+        }
+        md.append("- Prompt read from the cache of the server: ").append(t.promptTokens() <= 0 ? "not reported"
+                : t.cachedTokens() + " of " + t.promptTokens() + " tokens (" + percent(t.cachedTokens(), t.promptTokens()) + ")").append('\n');
+        md.append("- Reasoning: ").append(t.completionTokens() <= 0 ? "not reported"
+                : t.reasoningTokens() + " of " + t.completionTokens() + " tokens (" + percent(t.reasoningTokens(), t.completionTokens()) + ")").append('\n');
+        if (!t.finishReasons().isEmpty()) {
+            md.append("- Why the answers ended: ").append(t.finishReasons().entrySet().stream().map(entry -> entry.getKey() + " " + entry.getValue())
+                    .collect(Collectors.joining(", "))).append('\n');
+        }
+        if (t.droppedCalls() > 0) {
+            md.append("- Calls the model wrote that were not made: ").append(t.droppedCalls()).append('\n');
+        }
+        if (t.compactions() > 0) {
+            md.append("- Summaries written: ").append(t.compactions()).append(", ").append(duration(t.compactionMillis())).append(" in all\n");
+        }
+        md.append("\n| Rounds | First word (avg) | Writing (avg) | Prompt from the cache | Reasoning | Cut by the limit of an answer |\n|---|---|---|---|---|---|\n");
+        for (TelemetryBlock block : t.blocks()) {
+            md.append("| ").append(block.rounds()).append(" | ").append(duration(block.firstTokenMillis())).append(" | ")
+                    .append(duration(block.generationMillis())).append(" | ").append(block.cachePercent() < 0 ? "-" : block.cachePercent() + " %")
+                    .append(" | ").append(block.reasoningPercent() < 0 ? "-" : block.reasoningPercent() + " %").append(" | ")
+                    .append(block.cutOffs()).append(" |\n");
+        }
+        md.append('\n');
+    }
+
     private static String percent(long part, long whole) {
         return whole == 0 ? "-" : String.format("%.0f %%", part * 100.0 / whole);
     }
@@ -718,6 +850,7 @@ public final class AgentDiagnostics {
                     .append(o.notices().entrySet().stream().map(entry -> entry.getKey() + " " + entry.getValue()).collect(Collectors.joining(", "))).append('\n');
         }
         md.append('\n');
+        telemetryMarkdown(md, report.telemetry());
 
         md.append("## Tools\n\n");
         if (report.tools().isEmpty()) {
