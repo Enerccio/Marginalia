@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.agent;
 
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
 import com.github.enerccio.marginalia.domain.service.search.replace.TextSearch;
 import org.slf4j.Logger;
@@ -144,12 +145,14 @@ public final class AgentFileToolsImpl implements AgentFileTools {
             }
             StringBuilder out = new StringBuilder();
             int shownTo = from - 1;
+            boolean lineCut = false;
             for (int i = from; i <= to; i++) {
                 String line = lines[i - 1];
                 if (out.length() + line.length() + 1 > MAX_READ_CHARS) {
                     if (shownTo < from) {
                         out.append(line, 0, MAX_READ_CHARS).append('\n');
                         shownTo = i;
+                        lineCut = true;
                     }
                     break;
                 }
@@ -165,7 +168,14 @@ public final class AgentFileToolsImpl implements AgentFileTools {
                 }
                 out.append(']');
             }
-            return out.toString().stripTrailing().isEmpty() ? "(the lines are empty)" : out.toString().replaceAll("\n$", "");
+            if (out.toString().stripTrailing().isEmpty()) {
+                return "(the lines are empty)";
+            }
+            String result = out.toString().replaceAll("\n$", "");
+            // the whole file is in front of the model: this is the moment it may copy it into a call, writing it out again at the
+            // speed of its output, so it is told once more that the file itself can be passed
+            return from == 1 && shownTo == total && !lineCut && text.length() >= Defaults.AGENT_FILE_HINT_FROM
+                    ? result + "\n" + String.format(Defaults.AGENT_FILE_HINT, file) : result;
         });
     }
 

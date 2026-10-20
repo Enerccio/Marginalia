@@ -109,6 +109,7 @@ class AgentDiagnosticsTest {
         assertThat(report.errorMessages()).singleElement().satisfies(error -> {
             assertThat(error.tool()).isEqualTo("list_files");
             assertThat(error.message()).isEqualTo("the folder /nope does not exist");
+            assertThat(error.example()).as("the arguments the model wrote").isEqualTo("{\"path\":\"/n2.md\"}");
         });
         assertThat(report.tools().getFirst().name()).as("the most called first").isEqualTo("read_file");
     }
@@ -284,6 +285,119 @@ class AgentDiagnosticsTest {
             assertThat(sub.errors()).isEqualTo(1);
             assertThat(sub.tools()).containsEntry("search-lore", 1);
         });
+    }
+
+    // a call of one tool with the arguments as written
+    private static void call(Rows rows, String id, String tool, String arguments, String result) {
+        rows.add(null, LLMChatMessage.ofToolCalls(null, List.of(LLMToolCall.of(id, tool, arguments))), 100).setContextTokens(1000L);
+        rows.result(id, result, 10);
+    }
+
+    private static String json(String path, String text) {
+        JsonObject arguments = new JsonObject();
+        arguments.addProperty("path", path);
+        arguments.addProperty("text", text);
+        return arguments.toString();
+    }
+
+    @Test
+    void aLongTextWrittenOutIsToldFromAReferenceAndFromACopyOfWhatWasJustRead() {
+        String chunk = "Lily laughed and slipped in to the tub, and nothing was between them but water and bubbles. ".repeat(6);
+        String other = "A paragraph the agent made up itself, and nobody gave it to the agent in any result at all. ".repeat(6);
+        Rows rows = new Rows();
+        rows.user("Import");
+        call(rows, "a", "read_file", "{\"path\":\"/chunked/0001.md\"}", chunk);
+        call(rows, "b", "create-part", json("p", chunk), "created");
+        call(rows, "c", "create-part", "{\"text\":\"@file:/chunked/0002.md\"}", "created");
+        call(rows, "d", "create-part", "{\"text\":\"@result\"}", "created");
+        call(rows, "e", "create-part", json("p", other), "created");
+        call(rows, "f", "create-part", json("p", "short"), "created");
+
+        Report report = report(rows);
+
+        AgentDiagnostics.ToolStat parts = report.tools().stream().filter(tool -> tool.name().equals("create-part")).findFirst().orElseThrow();
+        assertThat(parts.calls()).isEqualTo(5);
+        assertThat(parts.referenced()).as("@file and @result").isEqualTo(2);
+        assertThat(parts.longTexts()).as("the copy and the made up one").isEqualTo(2);
+        assertThat(parts.copied()).as("only the one that was in the result before it").isEqualTo(1);
+        assertThat(parts.copiedChars()).isEqualTo(chunk.length());
+        assertThat(report.tools().stream().filter(tool -> tool.name().equals("read_file")).findFirst().orElseThrow().copied()).isZero();
+        assertThat(report.bigArguments().getFirst().copied()).isIn(true, false);
+        assertThat(report.bigArguments()).filteredOn(AgentDiagnostics.BigArgument::copied).singleElement()
+                .satisfies(big -> assertThat(big.tool()).isEqualTo("create-part"));
+    }
+
+    @Test
+    void aTextCopiedFromARoundLongAgoIsNotACopyOfWhatWasJustRead() {
+        String chunk = "Severus clambered in to the tub and kept his eyes on the mermaid painting in front of him. ".repeat(6);
+        Rows rows = new Rows();
+        rows.user("Import");
+        call(rows, "a", "read_file", "{\"path\":\"/chunked/0001.md\"}", chunk);
+        for (int i = 0; i < 70; i++) {
+            call(rows, "r" + i, "list_files", "{}", "nothing new " + i);
+        }
+        call(rows, "z", "create-part", json("p", chunk), "created");
+
+        assertThat(report(rows).tools().stream().filter(tool -> tool.name().equals("create-part")).findFirst().orElseThrow().copied()).isZero();
+    }
+
+    @Test
+    void aCallCutOffInTheMiddleCountsWhatWasWritten() {
+        Rows rows = new Rows();
+        rows.user("Import");
+        call(rows, "a", "create-part", "{\"text\":\"" + "x".repeat(500), "Error: The arguments of create-part are not valid JSON: Unexpected end-of-input");
+
+        AgentDiagnostics.ToolStat parts = report(rows).tools().getFirst();
+
+        assertThat(parts.longTexts()).isEqualTo(1);
+        assertThat(parts.argChars()).isGreaterThan(500);
+        assertThat(parts.errors()).isEqualTo(1);
+    }
+
+    @Test
+    void theRoundsAreCountedInBlocksWithTheReasoningAndTheTextTheModelWrote() {
+        Rows rows = new Rows();
+        rows.user("Go");
+        for (int i = 1; i <= 30; i++) {
+            rows.round(1000 + i, 1000, "read_file");
+            rows.rows.getLast().setReasoning("t".repeat(10));
+            rows.result("c" + i, "text", 10);
+        }
+        rows.text(1100, 1000, "Done, all of it");
+
+        Report report = report(rows);
+
+        assertThat(report.blocks()).hasSize(2);
+        AgentDiagnostics.Block first = report.blocks().getFirst();
+        assertThat(first.firstRound()).isEqualTo(1);
+        assertThat(first.lastRound()).isEqualTo(AgentDiagnostics.BLOCK);
+        assertThat(first.calls()).isEqualTo(AgentDiagnostics.BLOCK);
+        assertThat(first.reasoningChars()).isEqualTo(10L * AgentDiagnostics.BLOCK);
+        assertThat(first.modelMillis()).isEqualTo(1000L * AgentDiagnostics.BLOCK);
+        AgentDiagnostics.Block second = report.blocks().get(1);
+        assertThat(second.firstRound()).isEqualTo(AgentDiagnostics.BLOCK + 1);
+        assertThat(second.lastRound()).isEqualTo(31);
+        assertThat(second.textChars()).isEqualTo("Done, all of it".length());
+        assertThat(report.overview().reasoningChars()).isEqualTo(300);
+        assertThat(report.overview().textChars()).isEqualTo("Done, all of it".length());
+        assertThat(report.overview().argChars()).isPositive();
+        assertThat(report.toMarkdown()).contains("## What the model wrote, by block of 25 rounds", "| 1-25 |", "| 26-31 |",
+                "Written by the model:", "## Longest arguments");
+    }
+
+    @Test
+    void theLongestArgumentsShowTheStartOfThemWithThePathOfAFileTool() {
+        Rows rows = new Rows();
+        rows.user("Go");
+        call(rows, "a", "write_file", json("/notes/characters.md", "n".repeat(900)), "written");
+        call(rows, "b", "write_file", json("/notes/status.md", "s"), "written");
+
+        List<AgentDiagnostics.BigArgument> big = report(rows).bigArguments();
+
+        assertThat(big).hasSize(2);
+        assertThat(big.getFirst().arguments()).contains("/notes/characters.md");
+        assertThat(big.getFirst().chars()).isGreaterThan(900);
+        assertThat(big.getFirst().round()).isEqualTo(1);
     }
 
     @Test
