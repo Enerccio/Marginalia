@@ -43,7 +43,8 @@ import java.util.function.BooleanSupplier;
  * read a text file, download a file, upload a text file or an image, create a folder, delete a file or a folder, or
  * clear the whole workspace to get rid of stale notes. Goes through the same cage as the agent's own file tools, so
  * there is nothing here but the workspace, and the same limits and rules of names hold for what the user puts in (an
- * uploaded file has to be text, as the agent can only read text, or an image the agent can be shown). Files can't be
+ * uploaded file has to be text, as the agent can only read text, an image the agent can be shown, or a zip file the
+ * agent can unpack). Files can't be
  * changed while the agent works, the run would lose them under its hands.
  */
 @Configurable
@@ -124,7 +125,7 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
         uploadButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         upload = new Upload(new InMemoryUploadHandler((metadata, data) -> upload(metadata.fileName(), data)));
         WorkspaceLimits limits = limits();
-        upload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, Math.max(limits.maxFileBytes(), limits.maxImageBytes())));
+        upload.setMaxFileSize((int) Math.min(Integer.MAX_VALUE, limits.maxAnyFileBytes()));
         upload.setUploadButton(uploadButton);
         upload.setDropLabel(new Span());
         upload.addFileRejectedListener(event -> Notification.warning(
@@ -254,8 +255,8 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
     }
 
     /**
-     * Puts an uploaded file in the open folder. It is text (what the agent reads) or an image (what it can be shown),
-     * within the limits of the workspace, and a file of that name is not replaced.
+     * Puts an uploaded file in the open folder. It is text (what the agent reads), an image (what it can be shown) or a
+     * zip file (which the agent unpacks), within the limits of the workspace, and a file of that name is not replaced.
      */
     void upload(String fileName, byte[] content) {
         if (isBusy()) {
@@ -268,6 +269,11 @@ public class AgentWorkspaceBrowser extends VerticalLayout implements LLMInteract
             }
             if (ImageFiles.isImage(content)) {
                 files.writeImage(target, content);
+                return;
+            }
+            if (ArchiveFiles.isZip(content)) {
+                // kept as it is, the agent unpacks it with unzip_file
+                files.writeArchive(target, content);
                 return;
             }
             String text;

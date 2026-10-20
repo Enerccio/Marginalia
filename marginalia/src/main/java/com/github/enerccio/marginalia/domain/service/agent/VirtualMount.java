@@ -51,6 +51,26 @@ public interface VirtualMount {
     }
 
     /**
+     * As {@link #write} of a whole zip file, which may be larger than a text file: the caller checked that it starts
+     * like one ({@link ArchiveFiles#isZip}).
+     */
+    default void writeArchive(VirtualPath file, byte[] content) {
+        throw new VirtualFileException(file + " can't hold zip files");
+    }
+
+    /**
+     * Unpacks a zip file of the mount into a folder that does not exist yet, all or nothing: the files are unpacked
+     * next to the target first and moved into place when everything was checked and fits the limits. See {@link ZipExtractor}
+     * for the checks.
+     *
+     * @return what was unpacked and what was left out
+     * @throws VirtualFileException when the file is not a zip file, the archive is refused, or the target exists
+     */
+    default UnzipResult unzip(VirtualPath archive, VirtualPath target) {
+        throw new VirtualFileException(archive + " can't be unpacked");
+    }
+
+    /**
      * Creates an empty folder, with the folders above it.
      *
      * @throws VirtualFileException when something of that name exists already

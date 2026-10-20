@@ -104,7 +104,8 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
         int files = grant.maxWorkspaceFiles() > 0 ? grant.maxWorkspaceFiles() : limits.maxFiles();
         // an image may be as large as the default allows, or as any file when that is more
         long imageBytes = grant.maxFileBytes() > 0 ? Math.max(fileBytes, limits.maxImageBytes()) : limits.maxImageBytes();
-        return new WorkspaceLimits(fileBytes, totalBytes, files, imageBytes);
+        long archiveBytes = grant.maxFileBytes() > 0 ? Math.max(fileBytes, limits.maxArchiveBytes()) : limits.maxArchiveBytes();
+        return new WorkspaceLimits(fileBytes, totalBytes, files, imageBytes, archiveBytes);
     }
 
     private Path home() {

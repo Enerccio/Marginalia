@@ -117,6 +117,18 @@ public interface AgentFileTools {
                   @LLMParam(description = "Path of the file or folder to copy") String from,
                   @LLMParam(description = "The path of the copy, for example /backup/notes") String to);
 
+    @LLMFunction(name = "unzip_file", description = "Unpacks a zip file of your workspace (for example one the author "
+            + "uploaded) into a new folder. The folders inside are made; the files that are kept are text files, images "
+            + "and zip files (a zip file inside is stored, not unpacked), the others are left out and listed in the "
+            + "result. All or nothing: the archive is refused when it has more files or bytes than the workspace has room "
+            + "for, a name that leads out of the folder, or is a zip bomb. Afterwards list_files shows what is in the "
+            + "folder.")
+    void unzipFile(FunctionContinuation<String> done,
+                   @LLMParam(description = "Path of the zip file, for example /uploads/notes.zip") String path,
+                   @LLMParam(description = "The folder to unpack into; it must not exist yet. Default: the path of the zip "
+                           + "file without .zip, so /uploads/notes.zip is unpacked into /uploads/notes",
+                           required = false) String target);
+
     @LLMFunction(name = "merge_files", description = "Joins several files of your workspace into one file, without the "
             + "text going through you. The target is created, or replaced when it exists. Use it to put notes together "
             + "into one document; to add one file to another use append_file with @file:/path.")

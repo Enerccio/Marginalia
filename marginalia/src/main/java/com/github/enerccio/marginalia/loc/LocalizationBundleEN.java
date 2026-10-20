@@ -834,7 +834,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NOTICE_PAUSED, "The run of the agent \"%s\" was paused: %s");
         setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "Delete this run? Its steps and its report go to the trash.");
         setValue(L.MSG_AGENT_RUN_BUSY, "The run is going on, pause or stop it first.");
-        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "The file %s is not a text file. The agent works with text, so only text files (UTF-8) and images (PNG, JPEG, GIF, WebP) can be uploaded.");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "The file %s is not a text file. The agent works with text, so only text files (UTF-8), images (PNG, JPEG, GIF, WebP) and zip files can be uploaded.");
         setValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE, "The file %s is not an image. Only PNG, JPEG, GIF and WebP images can be attached.");
         setValue(L.MSG_AGENT_LOREBOOK_LOCKED, "This lorebook is locked by the agent \"%s\", whose book uses it. It is shown as it is and can't be changed until the run is paused or stopped. Refresh to check.");
         setValue(L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT, "%s summaries no longer describe the story. If what they say is still true, run revalidate-summaries, otherwise make them again (regenerate-summary).");

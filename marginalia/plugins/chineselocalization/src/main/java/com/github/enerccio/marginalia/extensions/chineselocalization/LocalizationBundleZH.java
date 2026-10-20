@@ -842,7 +842,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NOTICE_PAUSED, "智能体“%s”的运行已暂停：%s");
         setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "要删除此次运行吗？其步骤和报告将移入回收站。");
         setValue(L.MSG_AGENT_RUN_BUSY, "运行仍在进行，请先暂停或停止。");
-        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "文件 %s 不是文本文件。智能体处理文本，因此只能上传文本文件（UTF-8）和图片（PNG、JPEG、GIF、WebP）。");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "文件 %s 不是文本文件。智能体处理文本，因此只能上传文本文件（UTF-8）、图片（PNG、JPEG、GIF、WebP）和 zip 文件。");
         setValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE, "文件 %s 不是图片。只能附加 PNG、JPEG、GIF 和 WebP 图片。");
         setValue(L.MSG_AGENT_LOREBOOK_LOCKED, "该世界书已被使用它的书的智能体“%s”锁定，只能查看，在运行暂停或停止之前无法修改。可点击刷新检查。");
         setValue(L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT, "有 %s 个摘要不再与故事相符。如果其内容仍然正确，请运行 revalidate-summaries，否则请重新生成（regenerate-summary）。");

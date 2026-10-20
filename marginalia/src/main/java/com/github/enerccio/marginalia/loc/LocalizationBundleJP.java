@@ -834,7 +834,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AGENT_NOTICE_PAUSED, "エージェント「%s」の実行が一時停止されました: %s");
         setValue(L.MSG_AGENT_CONFIRM_DELETE_RUN, "この実行を削除しますか？ステップとレポートはゴミ箱に移動します。");
         setValue(L.MSG_AGENT_RUN_BUSY, "実行中です。先に一時停止または停止してください。");
-        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "ファイル %s はテキストファイルではありません。エージェントはテキストを扱うため、アップロードできるのはテキストファイル（UTF-8）と画像（PNG、JPEG、GIF、WebP）だけです。");
+        setValue(L.MSG_AGENT_UPLOAD_NOT_TEXT, "ファイル %s はテキストファイルではありません。エージェントはテキストを扱うため、アップロードできるのはテキストファイル（UTF-8）、画像（PNG、JPEG、GIF、WebP）、zipファイルだけです。");
         setValue(L.MSG_AGENT_UPLOAD_NOT_IMAGE, "ファイル %s は画像ではありません。添付できるのは PNG、JPEG、GIF、WebP の画像だけです。");
         setValue(L.MSG_AGENT_LOREBOOK_LOCKED, "このロアブックは、これを使う本で作業中のエージェント「%s」によってロックされています。表示のみで、実行を一時停止または停止するまで変更できません。更新で確認できます。");
         setValue(L.MSG_COMMAND_OUTDATED_SUMMARIES_HINT, "%s 件の要約がストーリーと合わなくなりました。内容がまだ正しければ revalidate-summaries を実行し、そうでなければ作り直してください（regenerate-summary）。");

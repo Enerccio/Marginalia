@@ -151,7 +151,7 @@ class AgentVirtualFileSystemServiceTest extends AgentTestBase {
 
         assertThat(tools.getDefinitions().stream().map(FunctionDefinition::getName)).containsExactlyInAnyOrder("list_files", "read_file",
                 "write_file", "append_file", "replace_in_file", "regex_replace_in_file", "grep_files", "move_file", "copy_file", "merge_files",
-                "delete_file", "list_command_results", "save_command_result");
+                "unzip_file", "delete_file", "list_command_results", "save_command_result");
         assertThat(call(tools, "write_file", "{\"path\":\"/notes/plot.md\",\"content\":\"The hero left.\\n\"}"))
                 .isEqualTo("Wrote /notes/plot.md (15 bytes)");
         call(tools, "replace_in_file", "{\"path\":\"/notes/plot.md\",\"old_text\":\"left\",\"new_text\":\"stayed\"}");
